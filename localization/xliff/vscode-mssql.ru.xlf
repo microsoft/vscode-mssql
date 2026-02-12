@@ -10,6 +10,11 @@
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug)  Подключение к MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
+        <source xml:lang="en">'{0}' started.</source>
+        <note>{0} is the service name</note>
+        <target state="new">'{0}' started.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
         <source xml:lang="en">&lt;Default&gt;</source>
         <target state="translated">&lt;По умолчанию&gt;</target>
@@ -119,7 +124,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
         <source xml:lang="en">Actions</source>
-        <target state="new">Actions</target>
+        <target state="translated">Действия</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -307,7 +312,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
         <source xml:lang="en">An error occurred while loading data.</source>
-        <target state="new">An error occurred while loading data.</target>
+        <target state="translated">При загрузке данных произошла ошибка.</target>
       </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
@@ -553,10 +558,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Миграция в Azure Data Studio</target>
       </trans-unit>
-      <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
-        <source xml:lang="en">Azure Data Studio Migration - Connections</source>
-        <target state="translated">Миграция Azure Data Studio — подключения</target>
-      </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
         <target state="translated">Файл параметров Azure Data Studio</target>
@@ -685,9 +686,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Brightness</source>
         <target state="translated">Яркость</target>
       </trans-unit>
-      <trans-unit id="++CODE++1de7cc215a806b6a7f80087b52123f4ec362c12f3eff680663047c72d2c01bdb">
-        <source xml:lang="en">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
-        <target state="translated">Перенесите сохранённые подключения из Azure Data Studio в расширение MSSQL и откройте для себя знакомые возможности.</target>
+      <trans-unit id="++CODE++ecc77aec6ef08eda8ac83e4a4062c7509261b6fadd0f7939f483aed310bea9e3">
+        <source xml:lang="en">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
+        <target state="new">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</target>
       </trans-unit>
       <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
         <source xml:lang="en">Browse</source>
@@ -736,6 +737,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
         <target state="translated">CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec5bba01c0ecebae4bcbcf149b4aa52c4eea045c03875f558224d2965fb0dd8d">
+        <source xml:lang="en">CSV/TXT Files (*.csv;*.txt)</source>
+        <target state="new">CSV/TXT Files (*.csv;*.txt)</target>
       </trans-unit>
       <trans-unit id="++CODE++d9a998bc5b0b1a8720c33d843590e55895977f19f6d8f56e440c778b673ab17a">
         <source xml:lang="en">Calling tool: {0} with {1}.</source>
@@ -1133,6 +1138,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Collapse connections</source>
         <target state="translated">Свернуть подключения</target>
       </trans-unit>
+      <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
+        <source xml:lang="en">Collapse settings</source>
+        <target state="new">Collapse settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
         <source xml:lang="en">Collation</source>
         <target state="translated">Параметры сортировки</target>
@@ -1239,6 +1248,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
         <source xml:lang="en">Compression</source>
         <target state="translated">Сжатие</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
+        <source xml:lang="en">Configuration to Import</source>
+        <target state="new">Configuration to Import</target>
       </trans-unit>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
@@ -1373,7 +1386,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
         <source xml:lang="en">Connecting to {0}...</source>
         <note>{0} is the server name</note>
-        <target state="new">Connecting to {0}...</target>
+        <target state="translated">Подключение к {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
@@ -1566,7 +1579,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++5729bfc2e8db943201613faaab43256239d22b9beff66b83b894a92fcf29264e">
         <source xml:lang="en">Copied "{0}" to clipboard</source>
         <note>{0} is the object name</note>
-        <target state="new">Copied "{0}" to clipboard</target>
+        <target state="translated">"{0}" скопировано в буфер обмена</target>
       </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
@@ -1582,7 +1595,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++26c6883b4e9eb25526ec19d94646a3c9fd552c11c259e57b199d396504ada712">
         <source xml:lang="en">Copy Object Name</source>
-        <target state="new">Copy Object Name</target>
+        <target state="translated">Копировать имя объекта</target>
       </trans-unit>
       <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
         <source xml:lang="en">Copy Script</source>
@@ -1678,7 +1691,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
         <source xml:lang="en">Create Database (Preview)</source>
-        <target state="new">Create Database (Preview)</target>
+        <target state="translated">Создать базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
@@ -1762,7 +1775,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
         <source xml:lang="en">Creating database</source>
-        <target state="new">Creating database</target>
+        <target state="translated">Идет создание базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
         <source xml:lang="en">Creating session...</source>
@@ -1845,7 +1858,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
         <source xml:lang="en">Data API Builder</source>
-        <target state="new">Data API Builder</target>
+        <target state="translated">Построитель API данных</target>
       </trans-unit>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
@@ -1912,6 +1925,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Database changed successfully</source>
         <target state="translated">База данных изменена</target>
       </trans-unit>
+      <trans-unit id="++CODE++9a3b60430561d2e64fd2ce48fdd216da6e79a93e147f7ec6a7702c5658d28f97">
+        <source xml:lang="en">Database is required</source>
+        <target state="new">Database is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
         <source xml:lang="en">Database list</source>
         <target state="translated">Список баз данных</target>
@@ -1939,6 +1956,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
         <source xml:lang="en">Database not found on the server</source>
         <target state="translated">База данных не найдена на сервере</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
+        <source xml:lang="en">Database the table is created in</source>
+        <target state="new">Database the table is created in</target>
       </trans-unit>
       <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
         <source xml:lang="en">Default</source>
@@ -2209,7 +2230,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="new">Drop Database (Preview)</target>
+        <target state="translated">Удалить базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
         <source xml:lang="en">Drop Database Options</source>
@@ -2221,7 +2242,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
         <source xml:lang="en">Dropping database</source>
-        <target state="new">Dropping database</target>
+        <target state="translated">Удаление базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -2247,7 +2268,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
         <source xml:lang="en">Edit Data</source>
-        <target state="new">Edit Data</target>
+        <target state="translated">Изменить данные</target>
       </trans-unit>
       <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
         <source xml:lang="en">Edit Data (Preview)</source>
@@ -2455,6 +2476,14 @@ Select "{0}" to establish a connection.</source>
 {1} is the error message</note>
         <target state="translated">Ошибка при создании правила брандмауэра {0}.  Проверьте параметры учетной записи Azure и повторите попытку.  Ошибка: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2">
+        <source xml:lang="en">Error fetching schemas for the selected database.</source>
+        <target state="new">Error fetching schemas for the selected database.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4561f39368038f0a735649f745939796bec6caf45d87dd948f211edd4045b3b4">
+        <source xml:lang="en">Error fetching the table preview.</source>
+        <target state="new">Error fetching the table preview.</target>
+      </trans-unit>
       <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
         <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
         <target state="translated">Ошибка при создании текстового представления. Попробуйте переключиться на представление сетки.</target>
@@ -2488,7 +2517,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++46d21a3d00fbab9fc7b91fa6516b4f6e151557d29318ce4ec616e65825a754e6">
         <source xml:lang="en">Error loading database objects</source>
-        <target state="new">Error loading database objects</target>
+        <target state="translated">Ошибка загрузки объектов базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
@@ -2590,7 +2619,7 @@ Error:
       <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
         <source xml:lang="en">Execute '{0}' operation on Data API Builder?</source>
         <note>{0} is the operation name</note>
-        <target state="new">Execute '{0}' operation on Data API Builder?</target>
+        <target state="translated">Выполнить операцию "{0}" в построителе API данных?</target>
       </trans-unit>
       <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
         <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
@@ -2600,7 +2629,7 @@ Error:
       <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
         <source xml:lang="en">Executing '{0}' operation on Data API Builder</source>
         <note>{0} is the operation name</note>
-        <target state="new">Executing '{0}' operation on Data API Builder</target>
+        <target state="translated">Выполняется операция "{0}" в построителе API данных</target>
       </trans-unit>
       <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
         <source xml:lang="en">Executing '{0}' operation on schema designer</source>
@@ -2654,6 +2683,10 @@ Error:
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">Развернуть панель свойств</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580">
+        <source xml:lang="en">Expand settings</source>
+        <target state="new">Expand settings</target>
       </trans-unit>
       <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
         <source xml:lang="en">Expiration</source>
@@ -2861,7 +2894,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d84b3d155999e4fbb9375b2096b6b34a6799bc70319582c93eff74f3a69e1ebb">
         <source xml:lang="en">Failed to establish connection</source>
-        <target state="new">Failed to establish connection</target>
+        <target state="translated">Не удалось установить подключение</target>
       </trans-unit>
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
@@ -2931,6 +2964,10 @@ Error:
 {1} is the account name</note>
         <target state="translated">Не удалось получить клиент "{0}" для учетной записи "{1}".</target>
       </trans-unit>
+      <trans-unit id="++CODE++75a86f33876b52fd9ce7e4c568a7ca35b392f02f2523ec303a5764f9ea5e946a">
+        <source xml:lang="en">Failed to import file.</source>
+        <target state="new">Failed to import file.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3d920bce049a4644ce154bb0d5751edf90ddee5dbfd34ccc55ab53c065c6dfb">
         <source xml:lang="en">Failed to launch profiler: {0}</source>
         <note>{0} is the error message</note>
@@ -2956,12 +2993,12 @@ Error:
       <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
         <source xml:lang="en">Failed to open Edit Data: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open Edit Data: {0}</target>
+        <target state="translated">Не удалось открыть редактирование данных: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5e48fe09a77f9c6eaf15d210eb7a4d05f676e38b8999adc6e782ef2b35b4ccbe">
         <source xml:lang="en">Failed to open Modify Table: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open Modify Table: {0}</target>
+        <target state="translated">Не удалось открыть изменение таблицы: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -3034,7 +3071,13 @@ Error:
       <trans-unit id="++CODE++2309e149b41332c6c6b1dbd7f42722f08fc63b0ac9a12cf7b6b3d94ce5d6d252">
         <source xml:lang="en">Failed to script object: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to script object: {0}</target>
+        <target state="translated">Не удалось создать сценарий для объекта: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b83535802d81722fc60f64ecac36906e07c0df4bb61e9b41182702d25a26d3d2">
+        <source xml:lang="en">Failed to start '{0}': {1}</source>
+        <note>{0} is the service name
+{1} is the error message</note>
+        <target state="new">Failed to start '{0}': {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++69844cf3a734ae7ea156a613f4d02d35df0d04fcda909d938898102ee51f61af">
         <source xml:lang="en">Failed to start DAB container.</source>
@@ -3117,6 +3160,10 @@ Error:
         <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
         <target state="translated">Файл уже существует. Если продолжить, он будет перезаписан</target>
       </trans-unit>
+      <trans-unit id="++CODE++995935b22cda9b6dfbbd92c71e406c7bd23c9ed98b4548ad67a6214fe9e38c34">
+        <source xml:lang="en">File imported successfully</source>
+        <target state="new">File imported successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
         <source xml:lang="en">File name is required</source>
         <target state="translated">Необходимо имя файла</target>
@@ -3128,6 +3175,10 @@ Error:
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
         <target state="translated">Требуется путь к файлу</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de4c053ce93fdab8261214c50e808306b000f07b8f37d19f843d0462e59f035e">
+        <source xml:lang="en">File to be imported</source>
+        <target state="new">File to be imported</target>
       </trans-unit>
       <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
         <source xml:lang="en">Files</source>
@@ -3168,11 +3219,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6e35e285106ad4a8ff905af2f619136cb2d19f6a588eec3ce15ea95afb506dcc">
         <source xml:lang="en">Filter by name</source>
-        <target state="new">Filter by name</target>
+        <target state="translated">Фильтровать по имени</target>
       </trans-unit>
       <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
         <source xml:lang="en">Filter by schema</source>
-        <target state="new">Filter by schema</target>
+        <target state="translated">Фильтр по схеме</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
@@ -3192,7 +3243,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
         <source xml:lang="en">Filter {0}</source>
-        <target state="new">Filter {0}</target>
+        <target state="translated">Фильтр {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -3334,11 +3385,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
         <source xml:lang="en">Function</source>
-        <target state="new">Function</target>
+        <target state="translated">Функция</target>
       </trans-unit>
       <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
         <source xml:lang="en">Functions</source>
-        <target state="new">Functions</target>
+        <target state="translated">Функции</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -3584,6 +3635,30 @@ Error:
         <source xml:lang="en">Import BACPAC</source>
         <target state="translated">Импорт BACPAC</target>
       </trans-unit>
+      <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
+        <source xml:lang="en">Import Data</source>
+        <target state="new">Import Data</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
+        <source xml:lang="en">Import File</source>
+        <target state="new">Import File</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
+        <source xml:lang="en">Import Flat File (Preview)</source>
+        <target state="new">Import Flat File (Preview)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
+        <source xml:lang="en">Import Information</source>
+        <target state="new">Import Information</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79e6ae7e99e1a20fac22d0e96d3c6655da33fa78e816b9cb389c74e94963eddc">
+        <source xml:lang="en">Import New File</source>
+        <target state="new">Import New File</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1e4a87f0347e3ffdfda399805853364283c57e23e938222c1aac71399a458148">
+        <source xml:lang="en">Import Status</source>
+        <target state="new">Import Status</target>
+      </trans-unit>
       <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
         <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
         <target state="translated">Импорт файла BACPAC в новую или пустую базу данных</target>
@@ -3596,10 +3671,18 @@ Error:
         <source xml:lang="en">Import complete. You can close this dialog.</source>
         <target state="translated">Импорт выполнен. Это диалоговое окно можно закрыть.</target>
       </trans-unit>
+      <trans-unit id="++CODE++12c9bd2df1fb0a4bd74d299e36eaeec5884e1497a0292853a8ac0ec456b9031c">
+        <source xml:lang="en">Import connection configuration settings from Azure Data Studio</source>
+        <target state="new">Import connection configuration settings from Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
         <source xml:lang="en">Import failed: {0}</source>
         <note>{0} is the error message returned from the import helper.</note>
         <target state="translated">Не удалось выполнить импорт: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a08ed3bdb12bc70103aac4b9c62d71981854c89e6d7a4a0a60ae4b0a16d392af">
+        <source xml:lang="en">Import file is required</source>
+        <target state="new">Import file is required</target>
       </trans-unit>
       <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
         <source xml:lang="en">Import from Azure Data Studio</source>
@@ -3616,6 +3699,10 @@ Error:
       <trans-unit id="++CODE++6ef88827ba30503ec0beb5b6cc6801a9f9f1b0dd11d47de6f30e57fce50a7f63">
         <source xml:lang="en">Importing BACPAC...</source>
         <target state="translated">Импорт BACPAC...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1055660e603fb86aa34b3b67aa1e5ac0d1f7d5bf303fb151808544c699012c05">
+        <source xml:lang="en">Importing data...</source>
+        <target state="new">Importing data...</target>
       </trans-unit>
       <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
         <source xml:lang="en">Importing selections</source>
@@ -3668,6 +3755,10 @@ Error:
       <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
         <source xml:lang="en">Install Docker</source>
         <target state="translated">Установить Docker</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
+        <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
+        <target state="new">Install the MSSQL Database Management Keymap extension</target>
       </trans-unit>
       <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
         <source xml:lang="en">Instant Container Setup</source>
@@ -3995,7 +4086,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
         <source xml:lang="en">Loading database objects</source>
-        <target state="new">Loading database objects</target>
+        <target state="translated">Загрузка объектов базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
         <source xml:lang="en">Loading databases in '{0}'...</source>
@@ -4018,6 +4109,10 @@ Error:
         <source xml:lang="en">Loading fabric provisioning...</source>
         <target state="translated">Загрузка подготовки Fabric...</target>
       </trans-unit>
+      <trans-unit id="++CODE++2dd2f1e34594bff7a420c8f7f69d7933114f5f4e7efd583f515691dea65b63d8">
+        <source xml:lang="en">Loading flat file import...</source>
+        <target state="new">Loading flat file import...</target>
+      </trans-unit>
       <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
         <source xml:lang="en">Loading local containers...</source>
         <target state="translated">Загрузка локальных контейнеров...</target>
@@ -4025,6 +4120,10 @@ Error:
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
         <target state="translated">Загрузка результатов...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11915518f7318632b91b797ca08f2be829f1364847dda216d397370f2287a83a">
+        <source xml:lang="en">Loading schemas...</source>
+        <target state="new">Loading schemas...</target>
       </trans-unit>
       <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
         <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
@@ -4034,6 +4133,10 @@ Error:
       <trans-unit id="++CODE++128f2373a3147694ff5bcaab3d428611eba44a540cb348d9d263f855c0ee2a2d">
         <source xml:lang="en">Loading table data...</source>
         <target state="translated">Загрузка данных таблицы...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e96fc8b40ca909f818f5677d99cd419b69170253e04fc2848ec08fe2b31c6b0f">
+        <source xml:lang="en">Loading table preview...</source>
+        <target state="new">Loading table preview...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -4078,6 +4181,14 @@ Error:
       <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
         <source xml:lang="en">Location (Workspace)</source>
         <target state="translated">Расположение (рабочая область)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1aa90f6c7d9e7a123d71457bdbe1f733cbe0170eb978723ecf13717f64403cda">
+        <source xml:lang="en">Location of the file to be imported</source>
+        <target state="new">Location of the file to be imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
+        <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
+        <target state="new">Looking for Azure Data Studio key bindings, like F5 to execute queries?</target>
       </trans-unit>
       <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
         <source xml:lang="en">MCP</source>
@@ -4291,7 +4402,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
         <source xml:lang="en">Modify Table</source>
-        <target state="new">Modify Table</target>
+        <target state="translated">Изменить таблицу</target>
       </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
@@ -4413,6 +4524,10 @@ Error:
       <trans-unit id="++CODE++fc0bb85f3867f1df067d69d6446c6df5b8bdd4caf25718a67bdc68c9e079bd5f">
         <source xml:lang="en">New Session</source>
         <target state="translated">Новый сеанс</target>
+      </trans-unit>
+      <trans-unit id="++CODE++853562aba61600b2977f2c1e36ed27382069409f9497ac880dd6e8b39b87ca42">
+        <source xml:lang="en">New Table Name</source>
+        <target state="new">New Table Name</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
@@ -4539,6 +4654,10 @@ Error:
         <source xml:lang="en">No connections were found in the file.</source>
         <target state="translated">В файле не найдено подключений.</target>
       </trans-unit>
+      <trans-unit id="++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd">
+        <source xml:lang="en">No customized settings found</source>
+        <target state="new">No customized settings found</target>
+      </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
         <target state="translated">Нет доступных данных</target>
@@ -4554,7 +4673,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
         <source xml:lang="en">No databases found on the server. Please check your connection.</source>
-        <target state="new">No databases found on the server. Please check your connection.</target>
+        <target state="translated">На сервере не найдены базы данных. Проверьте подключение.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
+        <source xml:lang="en">No databases found to import into.</source>
+        <target state="new">No databases found to import into.</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -4584,7 +4707,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
         <source xml:lang="en">No objects found</source>
-        <target state="new">No objects found</target>
+        <target state="translated">Объекты не найдены</target>
       </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -4625,6 +4748,10 @@ Error:
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
         <target state="translated">Различия в схемах не найдены.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++db1fdd083d2ee48c5a7d1d3998a8421b63f0810c496428e3b4168399952e2683">
+        <source xml:lang="en">No schemas found</source>
+        <target state="new">No schemas found</target>
       </trans-unit>
       <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
         <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
@@ -4761,7 +4888,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
         <source xml:lang="en">Object Types</source>
-        <target state="new">Object Types</target>
+        <target state="translated">Типы объектов</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -5167,7 +5294,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
         <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
-        <target state="new">Profiler is not supported on Microsoft Fabric SQL databases.</target>
+        <target state="translated">Профилировщик не поддерживается в базах данных SQL Microsoft Fabric.</target>
       </trans-unit>
       <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
         <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
@@ -5181,7 +5308,7 @@ Error:
       <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
         <source xml:lang="en">Profiler session '{0}' started successfully.</source>
         <note>{0} is the session name</note>
-        <target state="new">Profiler session '{0}' started successfully.</target>
+        <target state="translated">Сеанс профилировщика "{0}" запущен.</target>
       </trans-unit>
       <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
         <source xml:lang="en">Profiler: No session</source>
@@ -5425,7 +5552,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
         <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="new">Rename Database (Preview)</target>
+        <target state="translated">Переименовать базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -5864,6 +5991,10 @@ Query: {2}</source>
         <source xml:lang="en">Schema designer updated successfully.</source>
         <target state="translated">Конструктор схем успешно обновлен.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
+        <source xml:lang="en">Schema is required</source>
+        <target state="new">Schema is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
         <source xml:lang="en">Schema visualization opened.</source>
         <target state="translated">Визуализация схемы открыта.</target>
@@ -5874,7 +6005,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
         <source xml:lang="en">Schemas</source>
-        <target state="new">Schemas</target>
+        <target state="translated">Схемы</target>
       </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
@@ -5882,7 +6013,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++da92ada9f62a3c48d32510f433e324d463eb9c983b33fe778f0517dcbae55755">
         <source xml:lang="en">Script as Alter</source>
-        <target state="new">Script as Alter</target>
+        <target state="translated">Сценарий в режиме изменения</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
         <source xml:lang="en">Script as Create</source>
@@ -5890,11 +6021,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++322de6924dbe3c139348ee124dcc19e9ca0de352f0b03a3846d60ec82eb1f44d">
         <source xml:lang="en">Script as Drop</source>
-        <target state="new">Script as Drop</target>
+        <target state="translated">Сценарий в режиме удаления</target>
       </trans-unit>
       <trans-unit id="++CODE++ff98ebd77a41e1bbbde627a6d59c75d1f0c638d766414f8a1d10734624710015">
         <source xml:lang="en">Script as Execute</source>
-        <target state="new">Script as Execute</target>
+        <target state="translated">Сценарий в режиме выполнения</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -5906,12 +6037,12 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="new">Search Database Objects</target>
+        <target state="translated">Поиск объектов базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
         <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="new">Search Database Objects - {0}</target>
+        <target state="translated">Поиск объектов базы данных — {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -5919,7 +6050,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++00ab6658a4f12b6a8c605e0b8f0f7c9f1a29294670b38a100a26715170b4fc71">
         <source xml:lang="en">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</source>
-        <target state="new">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</target>
+        <target state="translated">Поиск по имени или типу объекта (например, t:&lt;name&gt;, v:, f: или sp:)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
         <source xml:lang="en">Search changes...</source>
@@ -5955,7 +6086,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
         <source xml:lang="en">Searching...</source>
-        <target state="new">Searching...</target>
+        <target state="translated">Выполняется поиск...</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
@@ -5999,7 +6130,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++37f95b8055347aebdc95a41564e27c63db0902208c38f9dcfe404b186aa34199">
         <source xml:lang="en">Select Top 1000</source>
-        <target state="new">Select Top 1000</target>
+        <target state="translated">Выбрать первые 1000</target>
       </trans-unit>
       <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
         <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -6023,7 +6154,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
         <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
-        <target state="new">Select a database for profiling (Azure SQL requires a specific database)</target>
+        <target state="translated">Выберите базу данных для профилирования (для Azure SQL требуется конкретная база данных)</target>
       </trans-unit>
       <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
         <source xml:lang="en">Select a file</source>
@@ -6099,6 +6230,10 @@ Query: {2}</source>
         <source xml:lang="en">Select an operation</source>
         <target state="translated">Выберите операцию</target>
       </trans-unit>
+      <trans-unit id="++CODE++1dd75b0dd68914e185b547fe475e416fe18bc8a68709129eada033866baf612c">
+        <source xml:lang="en">Select file to import</source>
+        <target state="new">Select file to import</target>
+      </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
         <target state="translated">Выберите образ</target>
@@ -6156,6 +6291,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
         <source xml:lang="en">Server Edition</source>
         <target state="translated">Выпуск сервера</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bc4816425ebe8079c4f9aef802a1507b5c519d415762a5cb6549fc4c1cc6dee7">
+        <source xml:lang="en">Server Name</source>
+        <target state="new">Server Name</target>
       </trans-unit>
       <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
         <source xml:lang="en">Server Version</source>
@@ -6227,6 +6366,10 @@ Query: {2}</source>
         <source xml:lang="en">Set backup retain days</source>
         <target state="translated">Установить время хранения резервной копии в днях</target>
       </trans-unit>
+      <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
+        <source xml:lang="en">Setting</source>
+        <target state="new">Setting</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
         <source xml:lang="en">Setting up</source>
         <target state="translated">Настройка</target>
@@ -6238,6 +6381,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
         <source xml:lang="en">Settings</source>
         <target state="translated">Параметры</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
+        <source xml:lang="en">Settings and Keybindings</source>
+        <target state="new">Settings and Keybindings</target>
       </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
@@ -6475,6 +6622,11 @@ Query: {2}</source>
         <source xml:lang="en">Started saving results to </source>
         <target state="translated">Начало сохранения результатов в </target>
       </trans-unit>
+      <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
+        <source xml:lang="en">Starting '{0}'...</source>
+        <note>{0} is the service name</note>
+        <target state="new">Starting '{0}'...</target>
+      </trans-unit>
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">Запуск контейнера...</target>
@@ -6508,6 +6660,22 @@ Query: {2}</source>
         <source xml:lang="en">Status</source>
         <target state="translated">Состояние</target>
       </trans-unit>
+      <trans-unit id="++CODE++6b3ad0a81a146978929aa5ff3cfeb5e1f1b6658c48ca1bed10ba991ca3be97c8">
+        <source xml:lang="en">Step 1: Specify Input File</source>
+        <target state="new">Step 1: Specify Input File</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64e67d642ec0bb6b76227ac3a15c8338599c92129010ee19d0de12a997fa3006">
+        <source xml:lang="en">Step 2: Preview Data</source>
+        <target state="new">Step 2: Preview Data</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4733c9b09467407fd987c336994bf9bfef9175b2eca699bab566e0373572578">
+        <source xml:lang="en">Step 3: Modify Columns</source>
+        <target state="new">Step 3: Modify Columns</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ebb5f7790ae1660e99a26a345411dcead3a0e54d906277838b984a64aacdd2fd">
+        <source xml:lang="en">Step 4: Summary</source>
+        <target state="new">Step 4: Summary</target>
+      </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
         <target state="translated">Остановить</target>
@@ -6539,11 +6707,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
         <source xml:lang="en">Stored Procedure</source>
-        <target state="new">Stored Procedure</target>
+        <target state="translated">Хранимая процедура</target>
       </trans-unit>
       <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
         <source xml:lang="en">Stored Procedures</source>
-        <target state="new">Stored Procedures</target>
+        <target state="translated">Хранимые процедуры</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -6663,6 +6831,14 @@ Query: {2}</source>
         <note>{0} is the table name</note>
         <target state="translated">Обозреватель таблиц для "{0}" содержит несохраненные изменения. Сохранить или отменить их?</target>
       </trans-unit>
+      <trans-unit id="++CODE++77f37933f34ccf53cb9126d1a6cd95ac5b1b7c5df2f940fe66d1be7e20108847">
+        <source xml:lang="en">Table Name</source>
+        <target state="new">Table Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f95cb857da039127b754a5f2c8af4bcf9f023fb4dd3c9eb2a0181957fd0b8fdf">
+        <source xml:lang="en">Table Schema</source>
+        <target state="new">Table Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
         <source xml:lang="en">Table added to schema designer successfully.</source>
         <target state="translated">Таблица успешно добавлена в конструктор схем.</target>
@@ -6687,13 +6863,17 @@ Query: {2}</source>
         <source xml:lang="en">Table name cannot be empty</source>
         <target state="translated">Имя таблицы не может быть пустым</target>
       </trans-unit>
+      <trans-unit id="++CODE++ff490dd9f89998ccb0379e44509170c44b5aad8684bf118d6bf96e5b5dd3f87c">
+        <source xml:lang="en">Table name is required</source>
+        <target state="new">Table name is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
         <source xml:lang="en">Table updated in schema designer successfully.</source>
         <target state="translated">Таблица в конструкторе схем успешно изменена.</target>
       </trans-unit>
       <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
         <source xml:lang="en">Tables</source>
-        <target state="new">Tables</target>
+        <target state="translated">Таблицы</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -6889,6 +7069,10 @@ Query: {2}</source>
         <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
         <target state="translated">Не удалось обработать это сообщение. Если проблема сохранится, проверьте журналы и сообщите о проблеме на GitHub.</target>
       </trans-unit>
+      <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
+        <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+        <target state="new">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</target>
+      </trans-unit>
       <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
         <target state="translated">Это значение не указано в файле параметров Azure Data Studio.</target>
@@ -6972,7 +7156,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
         <source xml:lang="en">Try adjusting your search or filters</source>
-        <target state="new">Try adjusting your search or filters</target>
+        <target state="translated">Попробуйте изменить условия поиска или фильтры</target>
       </trans-unit>
       <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
         <source xml:lang="en">Try it</source>
@@ -6992,7 +7176,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
-        <target state="new">Unable to load backup configuration. Please try again.</target>
+        <target state="translated">Не удалось загрузить резервную конфигурацию. Повторите попытку.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -7024,7 +7208,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
         <source xml:lang="en">Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">Неизвестно</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -7189,7 +7373,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
         <source xml:lang="en">View</source>
-        <target state="new">View</target>
+        <target state="translated">Просмотреть</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -7203,6 +7387,10 @@ Query: {2}</source>
         <source xml:lang="en">View roadmap</source>
         <target state="translated">Просмотреть дорожную карту</target>
       </trans-unit>
+      <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
+        <source xml:lang="en">View settings</source>
+        <target state="new">View settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
         <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
         <target state="translated">Просматривайте, редактируйте, добавляйте и удаляйте строки таблиц в интерактивной сетке с проверкой в реальном времени и предварительным просмотром сценариев DML.</target>
@@ -7213,7 +7401,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++69c404591e99d86fd11f5ae1b15ebd246d4836aaa88a29f75f3f3d61c028357a">
         <source xml:lang="en">Views</source>
-        <target state="new">Views</target>
+        <target state="translated">Представления</target>
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -7502,6 +7690,26 @@ Query: {2}</source>
         <note>{0} is the number of columns</note>
         <target state="translated">Данные столбцов ({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++f5b9a5e5e605057aa53be69b163fecc2183dcc3350e0366142ead290ae058b81">
+        <source xml:lang="en">{0} connection group imported</source>
+        <note>{0} is the number of connection groups imported (singular)</note>
+        <target state="new">{0} connection group imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f12c66806d4a524f59f2d92f0f60c743727758060a54d3d4404abc8c09a3e766">
+        <source xml:lang="en">{0} connection groups imported</source>
+        <note>{0} is the number of connection groups imported (plural)</note>
+        <target state="new">{0} connection groups imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fdafb5c26d9b0676b97c877261cc5ffcbbe40b53f2ed0863f213e2d5cd1713f">
+        <source xml:lang="en">{0} connection imported</source>
+        <note>{0} is the number of connections imported (singular)</note>
+        <target state="new">{0} connection imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++440129f90fc8b26515c43b81f41d4243fca747b73149d34a9c33df4f75d9a85d">
+        <source xml:lang="en">{0} connections imported</source>
+        <note>{0} is the number of connections imported (plural)</note>
+        <target state="new">{0} connections imported</target>
+      </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
         <note>{0} deleted successfully.</note>
@@ -7540,7 +7748,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
         <source xml:lang="en">{0} objects found</source>
         <note>{0} is the number of objects found</note>
-        <target state="new">{0} objects found</target>
+        <target state="translated">Найдено объектов: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
         <source xml:lang="en">{0} of {1}</source>
@@ -7590,6 +7798,16 @@ Query: {2}</source>
         <source xml:lang="en">{0} selected</source>
         <note>{0} is the number of selected rows</note>
         <target state="translated">Выбрано: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++95fa4a329ceeda46847f23c83d8b2df1c86ab5e6ec17645bd1ade313919d0481">
+        <source xml:lang="en">{0} setting imported</source>
+        <note>{0} is the number of settings imported (singular)</note>
+        <target state="new">{0} setting imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
+        <source xml:lang="en">{0} settings imported</source>
+        <note>{0} is the number of settings imported (plural)</note>
+        <target state="new">{0} settings imported</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
@@ -7817,7 +8035,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
         <source xml:lang="en">Create Database (Preview)</source>
-        <target state="new">Create Database (Preview)</target>
+        <target state="translated">Создать базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
@@ -7891,7 +8109,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="new">Drop Database (Preview)</target>
+        <target state="translated">Удалить базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
@@ -8091,6 +8309,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Import BACPAC</source>
         <target state="translated">Импорт BACPAC</target>
       </trans-unit>
+      <trans-unit id="mssql.flatFileImport">
+        <source xml:lang="en">Import flat file (Preview)</source>
+        <target state="new">Import flat file (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Profiler</source>
         <target state="translated">Запустить профилировщик</target>
@@ -8259,7 +8481,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
         <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="new">Rename Database (Preview)</target>
+        <target state="translated">Переименовать базу данных (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
@@ -8319,7 +8541,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="new">Search Database Objects</target>
+        <target state="translated">Поиск объектов базы данных</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
