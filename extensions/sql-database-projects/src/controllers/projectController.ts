@@ -3041,7 +3041,11 @@ export class ProjectsController {
         let folderPath;
         // target is the root of project, which is the .sqlproj
         if (target.element.projectFileUri.fsPath === target.element.fileSystemUri.fsPath) {
-            folderPath = path.basename(path.dirname(target.element.projectFileUri.fsPath!));
+            // Get the project name from .sqlproj file path, not the folder name
+            folderPath = path.basename(
+                target.element.projectFileUri.fsPath,
+                constants.sqlprojExtension,
+            );
         } else {
             // target is another file or folder
             folderPath = target.element.relativeProjectUri.fsPath.endsWith(
