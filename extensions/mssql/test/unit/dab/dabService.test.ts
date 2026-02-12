@@ -228,6 +228,28 @@ suite("DabService Tests", () => {
                 expect(result.connectionString).to.include("remotehost.example.com");
                 expect(result.connectionString).to.not.include("host.docker.internal");
             });
+
+            test("should replace existing instance name with container name", () => {
+                const result = transform(
+                    "Server=localhost\\SQLEXPRESS;Database=TestDb;",
+                    "my-container",
+                );
+                expect(result.connectionString).to.include(
+                    "Server=host.docker.internal\\my-container",
+                );
+                expect(result.connectionString).to.not.include("SQLEXPRESS");
+            });
+
+            test("should replace existing instance name with container name and preserve port", () => {
+                const result = transform(
+                    "Server=localhost\\SQLEXPRESS,1433;Database=TestDb;",
+                    "my-container",
+                );
+                expect(result.connectionString).to.include(
+                    "Server=host.docker.internal\\my-container,1433",
+                );
+                expect(result.connectionString).to.not.include("SQLEXPRESS");
+            });
         });
 
         // --- Edge cases ---

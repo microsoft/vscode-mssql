@@ -18,6 +18,7 @@ import {
     getEngineErrorLink,
     getEngineErrorLinkText,
     pullDabContainerImage,
+    sanitizeContainerInput,
     startDabDockerContainer,
     startDocker,
     stopAndRemoveDabContainer,
@@ -341,18 +342,25 @@ export class DabService implements Dab.IDabService {
             return connectionInfo;
         }
 
-        // Always use host.docker.internal to reach services on the host machine.
-        // For containerized SQL Server, append the container name as a suffix
-        // since port mapping exposes it on the host.
-        const newHost = sqlServerContainerName
-            ? `host.docker.internal\\${sqlServerContainerName}`
-            : "host.docker.internal";
-
-        // Replace the host portion in the server value, preserving port and instance name
-        const newServerValue = serverValue.replace(
-            new RegExp(`^${this.escapeRegex(host)}`, "i"),
-            newHost,
-        );
+        // Build the new server value:
+        // - Always use host.docker.internal to reach services on the host machine.
+        // - For containerized SQL Server, replace host and any instance name with
+        //   host.docker.internal\<container-name>, preserving only the port.
+        //   Containerized SQL Server does not use named instances.
+        // - For host SQL Server, replace only the host, preserving instance name and port.
+        let newServerValue: string;
+        if (sqlServerContainerName) {
+            // Extract port if present (comma-separated), discard any instance name
+            const commaIndex = serverValue.indexOf(",");
+            const port = commaIndex !== -1 ? serverValue.substring(commaIndex) : "";
+            newServerValue = `host.docker.internal\\${sanitizeContainerInput(sqlServerContainerName)}${port}`;
+        } else {
+            // Replace only the host portion, preserving instance name and port
+            newServerValue = serverValue.replace(
+                new RegExp(`^${this.escapeRegex(host)}`, "i"),
+                "host.docker.internal",
+            );
+        }
 
         // Replace in connection string
         const transformedConnectionString = connectionString.replace(
