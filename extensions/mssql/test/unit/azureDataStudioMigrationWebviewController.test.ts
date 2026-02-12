@@ -145,7 +145,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                 },
             ],
             "mssql.resultsFontSize": 14,
-            "mssql.logDebugInfo": true,
+            "mssql.query.alwaysEncryptedParameterization": true,
             "other.setting": "ignored",
         });
 
@@ -209,7 +209,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         ).to.have.lengthOf(2);
         expect(controller.state.settings.map((s) => s.key)).to.include.members([
             "mssql.resultsFontSize",
-            "mssql.logDebugInfo",
+            "mssql.query.alwaysEncryptedParameterization",
         ]);
         expect(
             controller.state.settings.find((s) => s.key === "mssql.resultsFontSize")?.value,
@@ -337,7 +337,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             importSettings: true,
             settings: [
                 { key: "mssql.resultsFontSize", value: 14 },
-                { key: "mssql.logDebugInfo", value: true },
+                { key: "mssql.query.alwaysEncryptedParameterization", value: true },
             ],
             dialog: undefined,
         };
@@ -408,7 +408,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             vscode.ConfigurationTarget.Global,
         );
         expect(config.update).to.have.been.calledWith(
-            "mssql.logDebugInfo",
+            "mssql.query.alwaysEncryptedParameterization",
             true,
             vscode.ConfigurationTarget.Global,
         );
@@ -635,7 +635,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
     test("parseSettings filters mssql.* keys and skips non-mssql keys", () => {
         const config: Record<string, unknown> = {
             "mssql.resultsFontSize": 14,
-            "mssql.logDebugInfo": true,
+            "mssql.query.alwaysEncryptedParameterization": true,
             "mssql.messagesDefaultOpen": false,
             "datasource.connections": [],
             "editor.fontSize": 12,
@@ -647,7 +647,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         expect(settings).to.have.lengthOf(3);
         expect(settings.map((s) => s.key)).to.deep.equal([
             "mssql.resultsFontSize",
-            "mssql.logDebugInfo",
+            "mssql.query.alwaysEncryptedParameterization",
             "mssql.messagesDefaultOpen",
         ]);
         expect(settings[0].value).to.equal(14);

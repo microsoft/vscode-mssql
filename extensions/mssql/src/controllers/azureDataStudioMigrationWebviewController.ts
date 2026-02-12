@@ -65,7 +65,7 @@ const EXCLUDED_SETTINGS = new Set<string>([
     "mssql.enableConnectionPooling",
 
     // Exclude intelliSense lower case suggestions because it was intentionally removed from MSSQL
-    // due to being redundant with mssql.format.kewordCasing and therefore confusing.
+    // due to being redundant with mssql.format.keywordCasing and therefore confusing.
     "mssql.intelliSense.lowerCaseSuggestions",
 
     // Exclude settings that aren't supported in MSSQL
@@ -507,10 +507,12 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 await this.connectionStore.saveProfile(connectionToAdd);
             }
 
+            let settingCount = 0;
             if (state.importSettings && state.settings.length > 0) {
                 activity.update({ step: "3_importingSettings" });
 
                 const config = vscode.workspace.getConfiguration();
+
                 for (const setting of state.settings) {
                     try {
                         await config.update(
@@ -518,6 +520,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                             setting.value,
                             vscode.ConfigurationTarget.Global,
                         );
+                        settingCount++;
                     } catch (err) {
                         this.logger.error(
                             `Error updating setting ${setting.key}: ${getErrorMessage(err)}`,
@@ -545,10 +548,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 importedCounts: {
                     connectionGroups: selectedGroups.size,
                     connections: selectedConnections.length,
-                    settings:
-                        state.importSettings && state.settings.length > 0
-                            ? state.settings.length
-                            : 0,
+                    settings: settingCount,
                 },
             } as ImportProgressDialogProps;
 
