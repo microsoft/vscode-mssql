@@ -24,6 +24,7 @@ import {
     RowsRemovedParams,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
@@ -107,6 +108,7 @@ export const Profiler: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
+    const sessionName = useProfilerSelector((s) => s.sessionName);
 
     const {
         pauseResume,
@@ -118,6 +120,7 @@ export const Profiler: React.FC = () => {
         changeView,
         toggleAutoScroll,
         fetchRows,
+        exportToCsv,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview();
 
@@ -415,6 +418,23 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll();
     };
 
+    /**
+     * Handle export to CSV request.
+     * Sends export request to extension with suggested filename.
+     * The extension generates CSV from the session's RingBuffer (source of truth)
+     * to ensure ALL events are exported, not just those loaded in the grid.
+     */
+    const handleExportToCsv = useCallback(() => {
+        // Generate suggested file name with timestamp (YYYY-MM-DD-HH-mm-ss)
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        const suggestedFileName = sessionName
+            ? `${sessionName}_${timestamp}`
+            : `${locConstants.profiler.defaultExportFileName}_${timestamp}`;
+
+        // Send to extension host - extension will generate CSV from ring buffer
+        exportToCsv(suggestedFileName);
+    }, [sessionName, exportToCsv]);
+
     return (
         <div className={classes.profilerContainer}>
             <ProfilerToolbar
@@ -434,6 +454,8 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
+                totalEventCount={totalRowCount}
+                onExportToCsv={handleExportToCsv}
             />
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                 <SlickgridReact

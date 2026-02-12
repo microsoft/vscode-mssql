@@ -1208,7 +1208,7 @@ export class ProjectsController {
         const suggestedName = utils.sanitizeStringForFilename(
             defaultName ?? itemType.friendlyName.replace(/\s+/g, ""),
         );
-        let counter: number = 0;
+        let counter = 0;
 
         do {
             counter++;
