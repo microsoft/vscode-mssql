@@ -1114,6 +1114,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Close Without Export</source>
         <target state="new">Close Without Export</target>
       </trans-unit>
+      <trans-unit id="++CODE++c89401adf57129e294dc62c01819ce24126217a0f529f17047cda53ec2482829">
+        <source xml:lang="en">Close details panel</source>
+        <target state="new">Close details panel</target>
+      </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
         <target state="translated">[プロパティを閉じる] ウィンドウ</target>
@@ -1593,6 +1597,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the object name</note>
         <target state="translated">"{0}" をクリップボードにコピーしました</target>
       </trans-unit>
+      <trans-unit id="++CODE++d37078fe6a1faa15fc48c293dd1d4c37698eb0cfafae8ca1c456b0cc4600db11">
+        <source xml:lang="en">Copied to clipboard</source>
+        <target state="new">Copied to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
         <target state="translated">コピー</target>
@@ -1648,6 +1656,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
         <target state="translated">スクリプトのコピー</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
+        <source xml:lang="en">Copy text data to clipboard</source>
+        <target state="new">Copy text data to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
@@ -2111,6 +2123,18 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
         <target state="translated">詳細</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1afc642a5d662904513b79d29425d71c74aecd4fd5b0b4446b048f174dd56eb4">
+        <source xml:lang="en">Details panel actions</source>
+        <target state="new">Details panel actions</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c4d0829a683ee613c0189343791967620efc401efb10c1d3e22549b980ea881">
+        <source xml:lang="en">Details panel tabs</source>
+        <target state="new">Details panel tabs</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
+        <source xml:lang="en">Details tab - displays all event properties</source>
+        <target state="new">Details tab - displays all event properties</target>
       </trans-unit>
       <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
         <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
@@ -2616,6 +2640,15 @@ Error:
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">エラー: 指定した接続情報を使用して接続できません。プロファイルの作成を再試行しますか?</target>
       </trans-unit>
+      <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
+        <source xml:lang="en">Event details for {0}</source>
+        <note>{0} is the name of the profiler event</note>
+        <target state="new">Event details for {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
+        <source xml:lang="en">Event properties list</source>
+        <target state="new">Event properties list</target>
+      </trans-unit>
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
         <target state="translated">Excel</target>
@@ -3047,6 +3080,11 @@ Error:
         <source xml:lang="en">Failed to open script: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">スクリプトを開けませんでした: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
+        <source xml:lang="en">Failed to open text in editor: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open text in editor: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
         <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
@@ -4304,6 +4342,10 @@ Error:
         <source xml:lang="en">Maximize Panel Size</source>
         <target state="translated">パネル サイズの最大化</target>
       </trans-unit>
+      <trans-unit id="++CODE++d0dc4d4fffaa64f945179fe8a9e183b128196f798714a40a1ab8aacc822de3cf">
+        <source xml:lang="en">Maximize details panel</source>
+        <target state="new">Maximize details panel</target>
+      </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
         <target state="translated">パネル サイズの最大化</target>
@@ -4735,6 +4777,10 @@ Error:
         <source xml:lang="en">No entities found</source>
         <target state="translated">エンティティが見つかりませんでした</target>
       </trans-unit>
+      <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
+        <source xml:lang="en">No event selected</source>
+        <target state="new">No event selected</target>
+      </trans-unit>
       <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
         <source xml:lang="en">No events to export</source>
         <target state="new">No events to export</target>
@@ -4840,6 +4886,10 @@ Error:
       <trans-unit id="++CODE++51714413577c82c973b8393c564c859a63c4597383b9d1b6fee9b9cf54ba273e">
         <source xml:lang="en">No tenants found</source>
         <target state="translated">テナントが見つかりません</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d">
+        <source xml:lang="en">No text data available</source>
+        <target state="new">No text data available</target>
       </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
@@ -5031,6 +5081,10 @@ Error:
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
         <target state="translated">エディターで開く</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
+        <source xml:lang="en">Open text data in a new editor</source>
+        <target state="new">Open text data in a new editor</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -5529,6 +5583,10 @@ Error:
       <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
         <source xml:lang="en">Read-Only</source>
         <target state="new">Read-Only</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
+        <source xml:lang="en">Read-only SQL text editor</source>
+        <target state="new">Read-only SQL text editor</target>
       </trans-unit>
       <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
         <source xml:lang="en">Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.</source>
@@ -7011,9 +7069,17 @@ Query: {2}</source>
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">接続プロファイルをテストしています...</target>
       </trans-unit>
+      <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
+        <source xml:lang="en">Text</source>
+        <target state="new">Text</target>
+      </trans-unit>
       <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
         <source xml:lang="en">Text View</source>
         <target state="translated">テキスト ビュー</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
+        <source xml:lang="en">Text tab - displays SQL text data</source>
+        <target state="new">Text tab - displays SQL text data</target>
       </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
