@@ -139,7 +139,7 @@ export class ProjectsController {
 
         const sqlProjectsService = await utils.getSqlProjectsService();
         // default version of Microsoft.Build.Sql for SDK style projects, update in README when updating this, and buildHelper.cs for legacy projects SDK support
-        const microsoftBuildSqlSDKStyleDefaultVersion = "2.0.0";
+        const microsoftBuildSqlSDKStyleDefaultVersion = "2.1.0";
         const projectStyle = creationParams.sdkStyle
             ? mssqlVscode.ProjectType.SdkStyle
             : mssqlVscode.ProjectType.LegacyStyle;
