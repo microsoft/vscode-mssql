@@ -301,18 +301,30 @@ jobs:
       - name: Setup environment for smoke tests
         run: |
           echo "Setting up environment for smoke tests"
-          PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
+          PASS_LOWER="$(LC_ALL=C tr -dc 'a-z' < /dev/urandom | head -c 1)"
+          PASS_UPPER="$(LC_ALL=C tr -dc 'A-Z' < /dev/urandom | head -c 1)"
+          PASS_DIGIT="$(LC_ALL=C tr -dc '0-9' < /dev/urandom | head -c 1)"
+          PASS_SPECIAL="$(LC_ALL=C tr -dc '!@#^%' < /dev/urandom | head -c 1)"
+          PASS_REST="$(LC_ALL=C tr -dc 'A-Za-z0-9!@#^%' < /dev/urandom | head -c 12)"
+          PASSWORD="${PASS_LOWER}${PASS_UPPER}${PASS_DIGIT}${PASS_SPECIAL}${PASS_REST}"
           echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
-          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker rm -f mssql-server >/dev/null 2>&1 || true
+          docker pull mcr.microsoft.com/mssql/server:2025-latest
           docker run -e "ACCEPT_EULA=Y" -e "MSSQL_PID=Developer" -e "MSSQL_SA_PASSWORD=$PASSWORD" \
-            -p 1433:1433 --name mssql-server -d mcr.microsoft.com/mssql/server:2022-latest
+            -p 1433:1433 --name mssql-server -d mcr.microsoft.com/mssql/server:2025-latest
+          SERVER_READY=false
           for i in {1..30}; do
             if docker logs mssql-server 2>&1 | grep -q "SQL Server is now ready for client connections"; then
+              SERVER_READY=true
               break
             fi
             sleep 2
           done
           docker logs mssql-server --tail 50
+          if [ "$SERVER_READY" != "true" ]; then
+            echo "SQL Server did not become ready in time."
+            exit 1
+          fi
         working-directory: ./extensions/mssql
 
       - name: Run smoke tests
