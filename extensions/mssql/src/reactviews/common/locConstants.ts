@@ -1937,6 +1937,9 @@ export class LocConstants {
             settingsKeyColumn: l10n.t("Setting"),
             settingsValueColumn: l10n.t("Value"),
             noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            noCustomizedSettingsFoundInAds: l10n.t(
+                "No customized settings found in Azure Data Studio",
+            ),
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
