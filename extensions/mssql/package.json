@@ -2415,6 +2415,35 @@
         ],
         "languageModelTools": [
             {
+                "name": "mssql_show_schema",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "schema",
+                    "visualization"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to use for schema visualization.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Show Database Schema",
+                "toolReferenceName": "mssql_show_schema",
+                "userDescription": "Show database schema for a connected MSSQL database.",
+                "icon": "$(graph-scatter)",
+                "when": "!config.mssql.enableDAB"
+            },
+            {
                 "name": "mssql_schema_designer",
                 "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer for a connectionId when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [
@@ -3430,7 +3459,8 @@
                 "displayName": "Schema Designer",
                 "toolReferenceName": "mssql_schema_designer",
                 "userDescription": "Open or manage the active schema designer (no connection needed if it is already open).",
-                "icon": "$(edit)"
+                "icon": "$(edit)",
+                "when": "config.mssql.enableDAB"
             },
             {
                 "name": "mssql_dab",
@@ -3767,7 +3797,8 @@
                 "displayName": "Data API Builder",
                 "toolReferenceName": "mssql_dab",
                 "userDescription": "Inspect or update Data API Builder settings for the active schema designer.",
-                "icon": "$(database)"
+                "icon": "$(database)",
+                "when": "config.mssql.enableDAB"
             },
             {
                 "name": "mssql_connect",

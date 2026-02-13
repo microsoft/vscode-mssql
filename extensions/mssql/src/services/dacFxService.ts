@@ -237,6 +237,17 @@ export class DacFxService implements mssql.IDacFxService {
         return this._client.sendRequest(dacFxContracts.ValidateStreamingJobRequest.type, params);
     }
 
+    public parseTSqlScript(
+        filePath: string,
+        databaseSchemaProvider: string,
+    ): Thenable<mssql.ParseTSqlScriptResult> {
+        const params: mssql.ParseTSqlScriptParams = {
+            filePath: filePath,
+            databaseSchemaProvider: databaseSchemaProvider,
+        };
+        return this._client.sendRequest(dacFxContracts.ParseTSqlScriptRequest.type, params);
+    }
+
     public savePublishProfile(
         profilePath: string,
         databaseName: string,

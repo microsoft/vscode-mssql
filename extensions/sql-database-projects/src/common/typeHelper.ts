@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from "mssql";
 import * as vscodeMssql from "vscode-mssql";
 
-export type ProjectType = mssql.ProjectType | vscodeMssql.ProjectType;
-export type GetScriptsResult = mssql.GetScriptsResult | vscodeMssql.GetScriptsResult;
-export type GetFoldersResult = mssql.GetFoldersResult | vscodeMssql.GetFoldersResult;
-export type SystemDatabase = mssql.SystemDatabase | vscodeMssql.SystemDatabase;
-export type SystemDbReferenceType = mssql.SystemDbReferenceType | vscodeMssql.SystemDbReferenceType;
+export type ProjectType = vscodeMssql.ProjectType;
+export type GetScriptsResult = vscodeMssql.GetScriptsResult;
+export type GetFoldersResult = vscodeMssql.GetFoldersResult;
+export type SystemDatabase = vscodeMssql.SystemDatabase;
+export type SystemDbReferenceType = vscodeMssql.SystemDbReferenceType;

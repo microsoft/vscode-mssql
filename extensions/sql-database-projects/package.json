@@ -14,11 +14,6 @@
     "icon": "images/sqlDatabaseProjects.png",
     "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
     "activationEvents": [
-        "onCommand:sqlDatabaseProjects.createProjectFromDatabase",
-        "onCommand:sqlDatabaseProjects.updateProjectFromDatabase",
-        "onCommand:sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-        "onCommand:sqlDatabaseProjects.build",
-        "onCommand:sqlDatabaseProjects.buildWithCodeAnalysis",
         "workspaceContains:**/*.sqlproj",
         "onView:dataworkspace.views.main"
     ],
@@ -164,11 +159,6 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
-                "command": "sqlDatabaseProjects.publishDialog",
-                "title": "%sqlDatabaseProjects.publishDialog%",
-                "category": "%sqlDatabaseProjects.displayName%"
-            },
-            {
                 "command": "sqlDatabaseProjects.properties",
                 "title": "%sqlDatabaseProjects.properties%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -259,11 +249,6 @@
                     "group": "1_currentWorkspace@1"
                 },
                 {
-                    "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                    "when": "view == dataworkspace.views.main && azdataAvailable",
-                    "group": "1_currentWorkspace@2"
-                },
-                {
                     "command": "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
                     "when": "view == dataworkspace.views.main && (config.workbench.enablePreviewFeatures || config.sqlDatabaseProjects.enablePreviewFeatures)",
                     "group": "1_currentWorkspace@3"
@@ -320,10 +305,6 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.publish",
-                    "when": "false"
-                },
-                {
-                    "command": "sqlDatabaseProjects.publishDialog",
                     "when": "false"
                 },
                 {
@@ -406,12 +387,7 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.publish",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && !azdataAvailable",
-                    "group": "1_dbProjectsFirst@3"
-                },
-                {
-                    "command": "sqlDatabaseProjects.publishDialog",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && !azdataAvailable",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "1_dbProjectsFirst@3"
                 },
                 {
@@ -485,11 +461,6 @@
                     "group": "5_dbProjects_streamingJob"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openInDesigner",
-                    "when": "azdataAvailable && view == dataworkspace.views.main && viewItem == databaseProject.itemType.file.table",
-                    "group": "6_dbProjects_openInDesigner"
-                },
-                {
                     "command": "sqlDatabaseProjects.openReferencedSqlProject",
                     "when": "view == dataworkspace.views.main && viewItem == databaseProject.itemType.reference.sqlProject",
                     "group": "8_dbProjects_openReferencedSqlProject"
@@ -526,12 +497,12 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
-                    "when": "!azdataAvailable && view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "sqldbproj@1"
                 },
                 {
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                    "when": "!azdataAvailable && view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "sqldbproj@2"
                 },
                 {
