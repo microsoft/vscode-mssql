@@ -8855,6 +8855,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">This setting will be removed in a future release.</source>
         <target state="translated">Questa impostazione verrà rimossa in una versione futura.</target>
       </trans-unit>
+      <trans-unit id="mssql.toggleActualPlan">
+        <source xml:lang="en">Toggle Actual Plan</source>
+        <target state="new">Toggle Actual Plan</target>
+      </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
         <target state="translated">Attiva/Disattiva modalità SQLCMD</target>

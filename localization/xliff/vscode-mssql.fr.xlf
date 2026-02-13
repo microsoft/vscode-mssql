@@ -8855,6 +8855,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <source xml:lang="en">This setting will be removed in a future release.</source>
         <target state="translated">Ce paramètre sera supprimé dans une mise en production ultérieure.</target>
       </trans-unit>
+      <trans-unit id="mssql.toggleActualPlan">
+        <source xml:lang="en">Toggle Actual Plan</source>
+        <target state="new">Toggle Actual Plan</target>
+      </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
         <target state="translated">Activer/désactiver le mode SQLCMD</target>
