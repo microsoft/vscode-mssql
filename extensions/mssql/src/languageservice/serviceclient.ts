@@ -457,6 +457,7 @@ export default class SqlToolsServiceClient {
             this._logPath,
             "resourceprovider.log",
         );
+        launchArgs = launchArgs.filter((arg) => typeof arg === "string" && arg.length > 0);
         return {
             command: executablePath,
             args: launchArgs,
@@ -534,7 +535,7 @@ export default class SqlToolsServiceClient {
                 serverArgs.push("--enable-connection-pooling");
             }
 
-            let locale = vscode.env.language;
+            let locale = vscode.env.language || "en";
             serverArgs.push("--locale");
             serverArgs.push(locale);
 
@@ -543,6 +544,8 @@ export default class SqlToolsServiceClient {
             serverArgs.push("--parallel-message-processing-limit");
             serverArgs.push(String(100));
         }
+
+        serverArgs = serverArgs.filter((arg) => typeof arg === "string" && arg.length > 0);
 
         // run the service host using dotnet.exe from the path
         let serverOptions: ServerOptions = {
