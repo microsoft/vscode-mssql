@@ -190,10 +190,6 @@ export interface ProfilerSelectedEventDetails {
     textData: string;
     /** All event properties (for the Details tab) */
     properties: ProfilerEventProperty[];
-    /** Export events to CSV file */
-    exportToCsv: {
-        suggestedFileName: string;
-    };
 }
 
 /**

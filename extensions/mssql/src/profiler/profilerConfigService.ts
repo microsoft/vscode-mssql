@@ -299,9 +299,6 @@ export class ProfilerConfigService {
             eventName: event.eventClass || "",
             textData: event.textData || "",
             properties,
-            exportToCsv: {
-                suggestedFileName: "",
-            },
         };
     }
 }
