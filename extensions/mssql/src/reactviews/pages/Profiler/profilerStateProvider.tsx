@@ -42,6 +42,8 @@ export interface ProfilerRpcMethods {
     setQuickFilter: (term: string) => void;
     /** Get distinct values for a column from unfiltered ring buffer */
     getDistinctValues: (field: string) => void;
+    /** Export events to CSV file */
+    exportToCsv: (suggestedFileName: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -137,6 +139,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const exportToCsv = useCallback(
+        (suggestedFileName: string) => {
+            extensionRpc?.action("exportToCsv", { suggestedFileName });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -154,6 +163,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 clearFilter,
                 setQuickFilter,
                 getDistinctValues,
+                exportToCsv,
             }}>
             {children}
         </ProfilerContext.Provider>

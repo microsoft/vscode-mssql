@@ -127,6 +127,9 @@ export const Profiler: React.FC = () => {
     const isFilterActive =
         (filterState.enabled && filterState.clauses.length > 0) ||
         (filterState.quickFilter !== undefined && filterState.quickFilter.trim() !== "");
+    const isReadOnly = useProfilerSelector((s) => s.isReadOnly ?? false);
+    const xelFileName = useProfilerSelector((s) => s.xelFileName);
+    const sessionName = useProfilerSelector((s) => s.sessionName);
 
     const {
         pauseResume,
@@ -142,6 +145,7 @@ export const Profiler: React.FC = () => {
         clearFilter,
         setQuickFilter,
         getDistinctValues,
+        exportToCsv,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview();
 
@@ -844,6 +848,22 @@ export const Profiler: React.FC = () => {
         },
         [filterState.clauses, applyFilter, clearFilter],
     );
+    /**
+     * Handle export to CSV request.
+     * Sends export request to extension with suggested filename.
+     * The extension generates CSV from the session's RingBuffer (source of truth)
+     * to ensure ALL events are exported, not just those loaded in the grid.
+     */
+    const handleExportToCsv = useCallback(() => {
+        // Generate suggested file name with timestamp (YYYY-MM-DD-HH-mm-ss)
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        const suggestedFileName = sessionName
+            ? `${sessionName}_${timestamp}`
+            : `${locConstants.profiler.defaultExportFileName}_${timestamp}`;
+
+        // Send to extension host - extension will generate CSV from ring buffer
+        exportToCsv(suggestedFileName);
+    }, [sessionName, exportToCsv]);
 
     return (
         <div className={classes.profilerContainer}>
@@ -858,6 +878,8 @@ export const Profiler: React.FC = () => {
                 isCreatingSession={isCreatingSession}
                 isFilterActive={isFilterActive}
                 quickFilterTerm={filterState.quickFilter ?? ""}
+                isReadOnly={isReadOnly}
+                xelFileName={xelFileName}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
@@ -868,6 +890,8 @@ export const Profiler: React.FC = () => {
                 onAutoScrollToggle={handleAutoScrollToggle}
                 onClearFilter={handleClearFilter}
                 onQuickFilterChange={handleQuickFilterChange}
+                totalEventCount={totalRowCount}
+                onExportToCsv={handleExportToCsv}
             />
             <ProfilerActiveFiltersBar
                 clauses={filterState.clauses}

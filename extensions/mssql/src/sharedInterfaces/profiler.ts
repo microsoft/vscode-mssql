@@ -138,6 +138,16 @@ export interface ProfilerWebviewState {
     currentSessionId?: string;
     /** Whether a session is being created (show spinner) */
     isCreatingSession?: boolean;
+    /** Whether this is a read-only file-based session */
+    isReadOnly?: boolean;
+    /** File path if this is a file-based session */
+    xelFilePath?: string;
+    /** File name for display if this is a file-based session */
+    xelFileName?: string;
+    /** Whether there are unexported events since last export */
+    hasUnexportedEvents?: boolean;
+    /** Timestamp of last export (for dirty tracking) */
+    lastExportTimestamp?: number;
 }
 
 /**
@@ -190,6 +200,10 @@ export interface ProfilerReducers {
     getDistinctValues: {
         field: string;
     };
+    /** Export events to CSV file */
+    exportToCsv: {
+        suggestedFileName: string;
+    };
 }
 
 /**
@@ -220,6 +234,26 @@ export interface NewEventsAvailableParams {
 export interface RowsRemovedParams {
     /** Array of row IDs (UUIDs) that were removed from the buffer */
     removedRowIds: string[];
+}
+
+/**
+ * Payload for export to CSV request
+ */
+export interface ExportToCsvParams {
+    /** Suggested file name */
+    suggestedFileName: string;
+}
+
+/**
+ * Payload for export result notification
+ */
+export interface ExportResultParams {
+    /** Whether the export was successful */
+    success: boolean;
+    /** Error message if export failed */
+    errorMessage?: string;
+    /** File path if export succeeded */
+    filePath?: string;
 }
 
 /**
@@ -373,3 +407,6 @@ export function getNextSortState(
     // Same column, was DESC → clear sort
     return undefined;
 }
+
+/** Notification sent when export result is available */
+export const ExportResult = new NotificationType<ExportResultParams>("exportResult");

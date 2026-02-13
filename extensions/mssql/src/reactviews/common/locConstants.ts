@@ -2057,6 +2057,7 @@ export class LocConstants {
             selectSessionLabel: l10n.t("Select Session:"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
+            readOnlyFileLabel: l10n.t("File (Read-Only)"),
 
             // Tooltips
             creatingSessionTooltip: l10n.t("Creating session..."),
@@ -2100,12 +2101,22 @@ export class LocConstants {
                     args: [filteredCount, totalCount],
                     comment: ["{0} is filtered count, {1} is total count"],
                 }),
+            readOnlyDisabledTooltip: l10n.t("Not available for read-only file sessions"),
+            sessionActiveCannotChangeTooltip: l10n.t("Cannot change session while active"),
+            xelFileReadOnlyDisconnectedTooltip: (fileName: string) =>
+                l10n.t({
+                    message:
+                        "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+                    args: [fileName],
+                    comment: ["{0} is the XEL file name"],
+                }),
 
             // Session states
             stateRunning: l10n.t("Running"),
             statePaused: l10n.t("Paused"),
             stateStopped: l10n.t("Stopped"),
             stateNotStarted: l10n.t("Not Started"),
+            stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
             noSession: l10n.t("Profiler: No session"),
@@ -2193,6 +2204,11 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
+            // Export
+            exportToCsv: l10n.t("Export to CSV"),
+            exportTooltip: l10n.t("Export all captured events to a CSV file"),
+            noEventsToExport: l10n.t("No events to export"),
+            defaultExportFileName: l10n.t("profiler_events"),
         };
     }
 
