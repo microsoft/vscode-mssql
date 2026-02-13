@@ -9,7 +9,8 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
-import * as dockerUtils from "../../src/deployment/dockerUtils";
+import * as dockerUtils from "../../src/docker/dockerUtils";
+import * as sqlServerContainer from "../../src/deployment/sqlServerContainer";
 import * as localContainersHelpers from "../../src/deployment/localContainersHelpers";
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
@@ -46,10 +47,10 @@ suite("localContainers logic", () => {
 
     test("initializeLocalContainersState sets defaults", async () => {
         sandbox
-            .stub(dockerUtils, "getSqlServerContainerVersions")
+            .stub(sqlServerContainer, "getSqlServerContainerVersions")
             .resolves([{ displayName: "Latest", value: "latest" }]);
         sandbox
-            .stub(dockerUtils, "initializeDockerSteps")
+            .stub(sqlServerContainer, "initializeDockerSteps")
             .returns([{ loadState: ApiStatus.NotStarted }] as any);
 
         const groupOptions = [{ displayName: "Default Group", value: "default" }];
@@ -66,10 +67,10 @@ suite("localContainers logic", () => {
 
     test("initializeLocalContainersState sets connection group", async () => {
         sandbox
-            .stub(dockerUtils, "getSqlServerContainerVersions")
+            .stub(sqlServerContainer, "getSqlServerContainerVersions")
             .resolves([{ displayName: "Latest", value: "latest" }]);
         sandbox
-            .stub(dockerUtils, "initializeDockerSteps")
+            .stub(sqlServerContainer, "initializeDockerSteps")
             .returns([{ loadState: ApiStatus.NotStarted }] as any);
 
         const groupOptions = [{ displayName: "Default Group", value: "default" }];
