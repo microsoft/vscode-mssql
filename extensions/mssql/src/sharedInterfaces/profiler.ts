@@ -156,10 +156,6 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
-    /** Export events to CSV file */
-    exportToCsv: {
-        suggestedFileName: string;
-    };
     /** Notify extension that a row was selected in the grid */
     selectRow: {
         rowId: string;
@@ -223,14 +219,6 @@ export interface RowsRemovedParams {
 }
 
 /**
- * Payload for export to CSV request
- */
-export interface ExportToCsvParams {
-    /** Suggested file name */
-    suggestedFileName: string;
-}
-
-/**
  * Payload for export result notification
  */
 export interface ExportResultParams {
@@ -267,6 +255,10 @@ export namespace ProfilerNotifications {
 
     /** Notification sent from webview to copy text to clipboard */
     export const CopyToClipboard = new NotificationType<{ text: string }>("copyToClipboard");
+
+    /** Notification sent from webview to request CSV export */
+    export const ExportToCsv = new NotificationType<Record<string, never>>("exportToCsv");
+
     /** Notification sent when export result is available */
     export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
 }

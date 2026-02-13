@@ -43,7 +43,7 @@ export interface ProfilerRpcMethods {
     /** Close the embedded details panel */
     closeDetailsPanel: () => void;
     /** Export events to CSV file */
-    exportToCsv: (suggestedFileName: string) => void;
+    exportToCsv: () => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -121,12 +121,9 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
-    const exportToCsv = useCallback(
-        (suggestedFileName: string) => {
-            extensionRpc?.action("exportToCsv", { suggestedFileName });
-        },
-        [extensionRpc],
-    );
+    const exportToCsv = useCallback(() => {
+        void extensionRpc?.sendNotification(ProfilerNotifications.ExportToCsv, {});
+    }, [extensionRpc]);
 
     const openInEditor = useCallback(
         (textData: string, eventName?: string) => {

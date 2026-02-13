@@ -465,8 +465,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         // Handle export to CSV request from webview
         // Generate CSV from the RingBuffer (source of truth) rather than from grid data
         // This ensures ALL events in the session buffer are exported
-        this.registerReducer("exportToCsv", (state, payload: { suggestedFileName: string }) => {
-            // Generate CSV from buffer if we have a session
+        this.onNotification(ProfilerNotifications.ExportToCsv, async () => {
             if (
                 this._currentSession &&
                 this._currentSession.events.size > 0 &&
@@ -474,27 +473,27 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             ) {
                 const allEvents = this._currentSession.events.getAllRows();
                 const viewConfig = this.state.viewConfig;
+
+                // Generate suggested file name with timestamp
+                const sessionName =
+                    this._currentSession.sessionName || LocProfiler.defaultExportFileName;
+                const timestamp = generateExportTimestamp();
+                const suggestedFileName = `${sessionName}_${timestamp}`;
+
                 if (this._eventHandlers.onExportToCsv) {
-                    // Request stream and write CSV (async, but reducer returns synchronously)
-                    void this._eventHandlers
-                        .onExportToCsv(payload.suggestedFileName)
-                        .then(async (stream) => {
-                            if (stream) {
-                                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
-                                stream.end(); // Close the stream to trigger 'finish' event
-                            }
-                        })
-                        .catch((error) => {
-                            const errorMessage =
-                                error instanceof Error ? error.message : String(error);
-                            console.error("Failed to export profiler session to CSV:", error);
-                            void vscode.window.showErrorMessage(
-                                LocProfiler.exportFailed(errorMessage),
-                            );
-                        });
+                    try {
+                        const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
+                        if (stream) {
+                            await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                            stream.end();
+                        }
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        console.error("Failed to export profiler session to CSV:", error);
+                        void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+                    }
                 }
             }
-            return state;
         });
     }
 
