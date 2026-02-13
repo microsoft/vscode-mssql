@@ -558,9 +558,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
                     appearance="primary"
                     size="small"
                     onClick={handleApply}
-                    disabled={
-                        filterType === FilterType.Categorical && selectedValues.size === 0
-                    }>
+                    disabled={filterType === FilterType.Categorical && selectedValues.size === 0}>
                     {loc.applyFilter}
                 </Button>
                 <Button appearance="subtle" size="small" onClick={onClear}>
