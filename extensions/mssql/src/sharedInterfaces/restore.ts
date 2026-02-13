@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    DisasterRecoveryAzureReducers,
+    DisasterRecoveryReducers,
     DisasterRecoveryAzureFormState,
     DisasterRecoveryViewModel,
-    DisasterRecoveryAzureProvider,
+    DisasterRecoveryProvider,
     ObjectManagementWebviewState,
 } from "./objectManagement";
-import { BackupFile, MediaDeviceType } from "./backup";
+import { MediaDeviceType } from "./backup";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
 import { FormContextProps, FormReducers } from "./form";
 import { TaskExecutionMode } from "./schemaCompare";
@@ -225,24 +225,11 @@ export interface RestoreConfigInfoResponse {
 //#endregion
 
 export class RestoreDatabaseViewModel extends DisasterRecoveryViewModel {
-    loadState: ApiStatus = ApiStatus.Loading;
-    errorMessage?: string;
-    restoreType: RestoreType = RestoreType.Database;
     serverName: string = "";
-
-    backupFiles: BackupFile[] = [];
-
-    restoreUrl: string = "";
-
     restorePlan: RestorePlanResponse | undefined = undefined;
     restorePlanStatus: ApiStatus = ApiStatus.NotStarted;
-
     blobs: BlobItem[] = [];
-
-    credentialNames: string[] = [];
-
     cachedRestorePlanParams: RestoreParams | undefined = undefined;
-
     selectedBackupSets: string[] = [];
 }
 
@@ -277,7 +264,10 @@ export interface RestoreDatabaseFormState extends DisasterRecoveryAzureFormState
 }
 
 export interface RestoreDatabaseReducers<TFormState>
-    extends FormReducers<TFormState>, FileBrowserReducers, DisasterRecoveryAzureReducers {
+    extends FormReducers<TFormState>, FileBrowserReducers, DisasterRecoveryReducers {
+    /**
+     * Restores the database
+     */
     restoreDatabase: {};
 
     /**
@@ -286,21 +276,9 @@ export interface RestoreDatabaseReducers<TFormState>
     openRestoreScript: {};
 
     /**
-     * Sets the restore type.
-     * @param restoreType The type of restore operation.
+     * Updates the selected backup sets to restore
+     * @param selectedBackupSets  The list of selected backup set ids to restore
      */
-    setRestoreType: {
-        restoreType: RestoreType;
-    };
-
-    /**
-     * Removes a backup file from the list
-     * @param filePath The file path to remove
-     */
-    removeBackupFile: {
-        filePath: string;
-    };
-
     updateSelectedBackupSets: {
         selectedBackupSets: number[];
     };
@@ -310,7 +288,7 @@ export interface RestoreDatabaseProvider
     extends
         FormContextProps<RestoreDatabaseFormState>,
         FileBrowserProvider,
-        DisasterRecoveryAzureProvider {
+        DisasterRecoveryProvider {
     /**
      * Restores the database based on the provided restore information
      */
@@ -322,24 +300,10 @@ export interface RestoreDatabaseProvider
     openRestoreScript(): void;
 
     /**
-     * Sets the restore type.
-     * @param restoreType
+     * Updates the selected backup sets to restore
+     * @param selectedBackupSets  The list of selected backup set ids to restore
      */
-    setRestoreType(restoreType: RestoreType): void;
-
-    /**
-     *  Removes a backup file from the list
-     * @param filePath  The file path to remove
-     */
-    removeBackupFile(filePath: string): void;
-
     updateSelectedBackupSets(selectedBackupSets: number[]): void;
-}
-
-export enum RestoreType {
-    Database = "database",
-    BackupFile = "backupFile",
-    Url = "url",
 }
 
 export enum RecoveryState {

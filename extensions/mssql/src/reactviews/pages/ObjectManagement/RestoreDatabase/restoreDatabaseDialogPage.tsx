@@ -10,11 +10,12 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { ObjectManagementDialog } from "../../../common/objectManagementDialog";
 import {
+    DisasterRecoveryType,
     ObjectManagementCancelNotification,
     ObjectManagementHelpNotification,
 } from "../../../../sharedInterfaces/objectManagement";
 import { RestoreDatabaseContext } from "./restoreDatabaseStateProvider";
-import { RestoreDatabaseViewModel, RestoreType } from "../../../../sharedInterfaces/restore";
+import { RestoreDatabaseViewModel } from "../../../../sharedInterfaces/restore";
 import { RestoreDatabaseForm } from "./restoreDatabaseForm";
 import { useRestoreDatabaseSelector } from "./restoreDatabaseSelector";
 
@@ -54,7 +55,7 @@ export const RestoreDatabaseDialogPage = () => {
         (s) => (s.viewModel.model as RestoreDatabaseViewModel).errorMessage,
     );
     const restoreType = useRestoreDatabaseSelector(
-        (s) => (s.viewModel.model as RestoreDatabaseViewModel).restoreType,
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).type,
     );
     const formComponents = useRestoreDatabaseSelector((s) => s.formComponents);
     const formErrors = useRestoreDatabaseSelector((s) => s.formErrors);
@@ -85,7 +86,8 @@ export const RestoreDatabaseDialogPage = () => {
             return value === undefined || value === null || value === "";
         });
 
-        const hasNoBackupFiles = restoreType === RestoreType.BackupFile && backupFiles.length === 0;
+        const hasNoBackupFiles =
+            restoreType === DisasterRecoveryType.BackupFile && backupFiles.length === 0;
 
         const hasFormErrors = formErrors.length > 0;
 

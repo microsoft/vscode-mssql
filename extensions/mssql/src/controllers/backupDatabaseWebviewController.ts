@@ -33,7 +33,6 @@ import {
     backupDatabaseHelpLink,
     defaultBackupFileTypes,
     defaultDatabase,
-    https,
     simple,
     url,
 } from "../constants/constants";
@@ -41,10 +40,8 @@ import { FileBrowserService } from "../services/fileBrowserService";
 import { registerFileBrowserReducers } from "./fileBrowserUtils";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
-import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
-import { getCloudProviderSettings } from "../azure/providerSettings";
 import { AzureBlobService } from "../models/contracts/azureBlob";
-import { getErrorMessage, getExpirationDateForSas } from "../utils/utils";
+import { getErrorMessage } from "../utils/utils";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -52,6 +49,7 @@ import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
 import {
     DisasterRecoveryAzureFormState,
+    DisasterRecoveryType,
     ObjectManagementActionParams,
     ObjectManagementActionResult,
     ObjectManagementDialogType,
@@ -60,9 +58,17 @@ import {
 } from "../sharedInterfaces/objectManagement";
 import { ObjectManagementService } from "../services/objectManagementService";
 import {
+    createDisasterRecoveryConnectionContext,
+    createSasKeyIfNeeded,
+    disasterRecoveryFormAction,
+    getBlobCredentialNames,
     loadAzureComponentHelper,
-    reloadAzureComponents,
-} from "./sharedDisasterRecoveryAzureHelpers";
+    removeBackupFile,
+    setType,
+} from "./sharedDisasterRecoveryUtils";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { ConnectionProfile } from "../models/connectionProfile";
+import ConnectionManager from "./connectionManager";
 
 export class BackupDatabaseWebviewController extends ObjectManagementWebviewController<
     BackupDatabaseFormState,
@@ -73,26 +79,25 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
+        private client: SqlToolsServiceClient,
+        private connectionManager: ConnectionManager,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
-        connectionUri: string,
-        serverName: string,
+        private profile: ConnectionProfile,
+        private ownerUri: string,
         databaseName: string,
-        parentUrn?: string,
-        dialogTitle?: string,
     ) {
         super(
             context,
             vscodeWrapper,
             objectManagementService,
             ObjectManagementDialogType.BackupDatabase,
-            dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
-            dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
+            LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
+            LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
             "backupDatabaseDialog",
-            connectionUri,
-            serverName,
+            ownerUri,
+            profile.server || "",
             databaseName,
-            parentUrn,
         );
 
         this.start();
@@ -103,8 +108,20 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.state.ownerUri = this.connectionUri;
 
         // Make sure the backup load state is set, so the loading ui properly displays
-        this.state.viewModel.model = backupModel;
-        this.updateState();
+        this.updateViewModel(backupModel);
+
+        backupModel.databaseName = this.databaseName;
+        this.state.ownerUri = await createDisasterRecoveryConnectionContext(
+            this.ownerUri,
+            this.ownerUri,
+            backupModel.databaseName,
+            this.profile,
+            this.connectionManager,
+        );
+
+        this.onDisposed(() => {
+            void this.connectionManager.disconnect(this.state.ownerUri);
+        });
 
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
         let backupConfigInfo: BackupConfigInfo;
@@ -120,8 +137,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             backupModel.loadState = ApiStatus.Error;
             this.state.errorMessage =
                 backupConfigError || LocConstants.BackupDatabase.unableToLoadBackupConfig;
-            this.state.viewModel.model = backupModel;
-            this.updateState();
+            this.updateViewModel(backupModel);
             return;
         }
 
@@ -138,6 +154,19 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             },
         ];
 
+        // Get credential names in server
+        try {
+            backupModel.credentialNames = await getBlobCredentialNames(
+                this.client,
+                this.connectionUri,
+            );
+        } catch (error) {
+            backupModel.loadState = ApiStatus.Error;
+            backupModel.errorMessage = getErrorMessage(error);
+            this.updateViewModel(backupModel);
+            return;
+        }
+
         backupModel.databaseName = this.databaseName;
         backupModel.backupEncryptors = backupConfigInfo.backupEncryptors;
         backupModel.recoveryModel = backupConfigInfo.recoveryModel;
@@ -151,7 +180,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             },
         ];
 
-        this.state.viewModel.model = backupModel;
+        this.updateViewModel(backupModel);
 
         // Set default form values
         this.state.formComponents = this.setFormComponents();
@@ -185,13 +214,14 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             const { task, progress } = taskCompletedEvent;
             if (task.name === this.BACKUP_DATABASE_TASK_NAME && progress.script) {
                 let includesBackupLocation = false;
-                if (!backupModel.saveToUrl) {
+                const backupModel = this.backupViewModel();
+                if (backupModel.type === DisasterRecoveryType.BackupFile) {
                     const filePaths = backupModel.backupFiles.map((file) => file.filePath);
                     includesBackupLocation = filePaths.every((path) =>
                         progress.script?.includes(path),
                     );
                 } else {
-                    includesBackupLocation = progress.script?.includes(backupModel.backupUrl);
+                    includesBackupLocation = progress.script?.includes(backupModel.url);
                 }
 
                 if (includesBackupLocation) {
@@ -230,60 +260,11 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
     private registerBackupRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            // isAction indicates whether the event was triggered by an action button
-            if (payload.event.isAction) {
-                const component = state.formComponents[payload.event.propertyName];
-                if (component && component.actionButtons) {
-                    const actionButton = component.actionButtons.find(
-                        (b) => b.id === payload.event.value,
-                    );
-                    if (actionButton?.callback) {
-                        await actionButton.callback();
-                    }
-                }
-                const reloadCompsResult = await reloadAzureComponents(
-                    state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
-                    payload.event.propertyName,
-                );
-                // Reload necessary dependent components
-                state = reloadCompsResult as ObjectManagementWebviewState<BackupDatabaseFormState>;
-            } else {
-                // formAction is a normal form item value change; update form state
-                (state.formState[
-                    payload.event.propertyName
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ] as any) = payload.event.value;
-
-                // If an azure component changed, reload dependent components and revalidate
-                if (
-                    ["accountId", "tenantId", "subscriptionId", "storageAccountId"].includes(
-                        payload.event.propertyName,
-                    )
-                ) {
-                    const reloadCompsResult = await reloadAzureComponents(
-                        state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
-                        payload.event.propertyName,
-                    );
-                    // Reload necessary dependent components
-                    state =
-                        reloadCompsResult as ObjectManagementWebviewState<BackupDatabaseFormState>;
-                }
-
-                // Re-validate the changed component
-                const [componentFormError] = await this.validateForm(
-                    state.formState,
-                    payload.event.propertyName,
-                    true,
-                );
-                if (componentFormError) {
-                    state.formErrors.push(payload.event.propertyName);
-                } else {
-                    state.formErrors = state.formErrors.filter(
-                        (formError) => formError !== payload.event.propertyName,
-                    );
-                }
-            }
-            return state;
+            return await disasterRecoveryFormAction<BackupDatabaseFormState>(
+                state,
+                payload,
+                this.validateForm,
+            );
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
@@ -292,9 +273,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             const backupViewModel = this.backupViewModel(state);
 
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.Backup, {
-                backupToUrl: backupViewModel.saveToUrl ? "true" : "false",
+                backupToUrl:
+                    backupViewModel.type === DisasterRecoveryType.BackupFile ? "true" : "false",
                 backupWithExistingFiles:
-                    backupViewModel.saveToUrl &&
+                    backupViewModel.type === DisasterRecoveryType.BackupFile &&
                     backupViewModel.backupFiles.some((file) => file.isExisting)
                         ? "true"
                         : "false",
@@ -309,21 +291,18 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             return state;
         });
 
-        this.registerReducer("setSaveLocation", async (state, payload) => {
-            // Set save to URL or local files; reload form errors
-            const backupViewModel = this.backupViewModel(state);
-            backupViewModel.saveToUrl = payload.saveToUrl;
-            state.viewModel.model = backupViewModel;
-            state.formErrors = [];
-            return state;
+        this.registerReducer("setType", async (state, payload) => {
+            return (await setType(
+                state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+                payload,
+            )) as ObjectManagementWebviewState<BackupDatabaseFormState>;
         });
 
         this.registerReducer("removeBackupFile", async (state, payload) => {
-            const backupViewModel = this.backupViewModel(state);
-            backupViewModel.backupFiles = backupViewModel.backupFiles.filter(
-                (file) => file.filePath !== payload.filePath,
-            );
-            state.viewModel.model = backupViewModel;
+            state = (await removeBackupFile(
+                state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+                payload,
+            )) as ObjectManagementWebviewState<BackupDatabaseFormState>;
             return this.setMediaOptionsIfExistingFiles(state);
         });
 
@@ -339,8 +318,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 newFilePath = `${currentFilePath.substring(0, currentFilePath.lastIndexOf("/") + 1)}${payload.newValue}`;
             }
             backupViewModel.backupFiles[payload.index].filePath = newFilePath;
-            state.viewModel.model = backupViewModel;
-            return state;
+            return this.updateViewModel(backupViewModel, state);
         });
 
         this.registerReducer("loadAzureComponent", async (state, payload) => {
@@ -378,8 +356,9 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             }
 
             // Update media options if there are existing files
-            state.viewModel.model = backupViewModel;
-            return this.setMediaOptionsIfExistingFiles(state);
+            return this.setMediaOptionsIfExistingFiles(
+                this.updateViewModel(backupViewModel, state),
+            );
         });
     }
 
@@ -388,6 +367,15 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
     ): BackupDatabaseViewModel {
         const webviewState = state ?? this.state;
         return webviewState.viewModel.model as BackupDatabaseViewModel;
+    }
+
+    private updateViewModel(
+        updatedViewModel: BackupDatabaseViewModel,
+        state?: ObjectManagementWebviewState<BackupDatabaseFormState>,
+    ): ObjectManagementWebviewState<BackupDatabaseFormState> {
+        this.state.viewModel.model = updatedViewModel;
+        this.updateState(state);
+        return this.state;
     }
 
     /**
@@ -432,48 +420,15 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         const backupPathList: string[] = [];
 
         // If saving to URL, construct the Blob URL and get SAS token
-        if (backupViewModel.saveToUrl) {
-            const accountEndpoint =
-                getCloudProviderSettings().settings.azureStorageResource.endpoint.replace(
-                    https,
-                    "",
-                );
-            const subscription = backupViewModel.subscriptions.find(
-                (s) => s.subscriptionId === state.formState.subscriptionId,
+        if (backupViewModel.type === DisasterRecoveryType.Url) {
+            const stateWithUrl = await createSasKeyIfNeeded(
+                state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+                this.connectionUri,
+                this.azureBlobService,
             );
-            const storageAccount = backupViewModel.storageAccounts.find(
-                (sa) => sa.id === state.formState.storageAccountId,
-            );
-            const blobContainer = backupViewModel.blobContainers.find(
-                (bc) => bc.id === state.formState.blobContainerId,
-            );
-
-            const blobContainerUrl = `${https}${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
-            const backupUrl = `${blobContainerUrl}/${state.formState.backupName}`;
-            backupViewModel.backupUrl = backupUrl;
+            const backupUrl = `${(stateWithUrl.viewModel.model as BackupDatabaseViewModel).url}/${state.formState.backupName}`;
             backupPathDevices[backupUrl] = MediaDeviceType.Url;
             backupPathList.push(backupUrl);
-
-            let sasKeyResult;
-            try {
-                sasKeyResult = await VsCodeAzureHelper.getStorageAccountKeys(
-                    subscription,
-                    storageAccount,
-                );
-            } catch (error) {
-                vscode.window.showErrorMessage(
-                    LocConstants.BackupDatabase.generatingSASKeyFailedWithError(error.message),
-                );
-                return;
-            }
-
-            void this.azureBlobService.createSas(
-                this.connectionUri,
-                blobContainerUrl,
-                sasKeyResult.keys[0].value,
-                storageAccount.name,
-                getExpirationDateForSas(),
-            );
         } else {
             for (const file of backupViewModel.backupFiles) {
                 backupPathDevices[file.filePath] = MediaDeviceType.File;
@@ -485,9 +440,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             databaseName: backupViewModel.databaseName,
             backupType: getBackupTypeNumber(state.formState.backupType),
             backupComponent: BackupComponent.Database, // always database for this scenario
-            backupDeviceType: backupViewModel.saveToUrl
-                ? PhysicalDeviceType.Url
-                : PhysicalDeviceType.Disk, // always disk or URL
+            backupDeviceType:
+                backupViewModel.type === DisasterRecoveryType.Url
+                    ? PhysicalDeviceType.Url
+                    : PhysicalDeviceType.Disk, // always disk or URL
             selectedFiles: undefined,
             backupsetName: state.formState.backupName ?? backupViewModel.defaultBackupName,
             selectedFileGroup: undefined,
@@ -511,7 +467,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             encryptorName: encryptor.encryptorName,
         };
         const backupResult = await this.objectManagementService.backupDatabase(
-            this.connectionUri,
+            state.ownerUri,
             backupInfo,
             mode,
         );
@@ -568,7 +524,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 groupName: url,
                 validate(state, value) {
                     const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
-                    const isValid = value !== "" || !backupViewModel.saveToUrl;
+                    const isValid =
+                        value !== "" || backupViewModel.type !== DisasterRecoveryType.Url;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -588,7 +545,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 groupName: url,
                 validate(state, value) {
                     const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
-                    const isValid = value !== "" || !backupViewModel.saveToUrl;
+                    const isValid =
+                        value !== "" || backupViewModel.type !== DisasterRecoveryType.Url;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -608,7 +566,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 groupName: url,
                 validate(state, value) {
                     const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
-                    const isValid = value !== "" || !backupViewModel.saveToUrl;
+                    const isValid =
+                        value !== "" || backupViewModel.type !== DisasterRecoveryType.Url;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -628,7 +587,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 groupName: url,
                 validate(state, value) {
                     const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
-                    const isValid = value !== "" || !backupViewModel.saveToUrl;
+                    const isValid =
+                        value !== "" || backupViewModel.type !== DisasterRecoveryType.Url;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -648,7 +608,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 groupName: url,
                 validate(state, value) {
                     const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
-                    const isValid = value !== "" || !backupViewModel.saveToUrl;
+                    const isValid =
+                        value !== "" || backupViewModel.type !== DisasterRecoveryType.Url;
                     return {
                         isValid: isValid,
                         validationMessage: isValid

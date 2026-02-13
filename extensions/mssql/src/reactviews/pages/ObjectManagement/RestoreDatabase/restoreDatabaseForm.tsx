@@ -13,9 +13,9 @@ import {
     RestoreDatabaseFormState,
     RestoreDatabaseViewModel,
     RestorePlanTableType,
-    RestoreType,
 } from "../../../../sharedInterfaces/restore";
 import {
+    DisasterRecoveryType,
     ObjectManagementFormItemSpec,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
@@ -150,10 +150,8 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
 
     const { themeKind } = useVscodeWebview();
 
-    const [restoreType, setRestoreType] = useState<RestoreType>(
-        useRestoreDatabaseSelector(
-            (s) => (s.viewModel.model as RestoreDatabaseViewModel).restoreType,
-        ),
+    const [restoreType, setRestoreType] = useState<DisasterRecoveryType>(
+        useRestoreDatabaseSelector((s) => (s.viewModel.model as RestoreDatabaseViewModel).type),
     );
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState<boolean>(false);
 
@@ -206,7 +204,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
 
     const renderUrlFields = () =>
         Object.values(formComponents)
-            .filter((component) => component.groupName === RestoreType.Url)
+            .filter((component) => component.groupName === DisasterRecoveryType.Url)
             .map((component, index) => {
                 const loadStatus = azureComponentStatuses[component.propertyName];
                 // Trigger loading only if not started or loaded
@@ -312,16 +310,16 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                         orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                const selectedRestoreType = data.value as RestoreType;
-                                context.setRestoreType(selectedRestoreType);
+                                const selectedRestoreType = data.value as DisasterRecoveryType;
+                                context.setType(selectedRestoreType);
                                 setRestoreType(selectedRestoreType);
-                                if (selectedRestoreType === RestoreType.Url) {
+                                if (selectedRestoreType === DisasterRecoveryType.Url) {
                                     context.loadAzureComponent("accountId");
                                 }
                             }}
                             value={restoreType}>
                             <Radio
-                                value={RestoreType.Database}
+                                value={DisasterRecoveryType.Database}
                                 label={
                                     <div className={classes.saveOption}>
                                         <Database20Regular style={{ marginRight: "8px" }} />
@@ -330,7 +328,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                                 }
                             />
                             <Radio
-                                value={RestoreType.BackupFile}
+                                value={DisasterRecoveryType.BackupFile}
                                 label={
                                     <div className={classes.saveOption}>
                                         <DocumentDatabase20Regular style={{ marginRight: "8px" }} />
@@ -339,7 +337,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                                 }
                             />
                             <Radio
-                                value={RestoreType.Url}
+                                value={DisasterRecoveryType.Url}
                                 label={
                                     <div className={classes.saveOption}>
                                         <AzureIcon20 style={{ marginRight: "8px" }} />
@@ -350,7 +348,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                         </RadioGroup>
                     </Field>
                 </div>
-                {restoreType === RestoreType.Url ? (
+                {restoreType === DisasterRecoveryType.Url ? (
                     azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
                         renderUrlFields()
                     ) : (
@@ -364,7 +362,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                             <Spinner size="large" style={{ marginTop: "10px" }} />
                         </div>
                     )
-                ) : restoreType === RestoreType.BackupFile ? (
+                ) : restoreType === DisasterRecoveryType.BackupFile ? (
                     <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
                         <Field
                             label={locConstants.backupDatabase.backupFiles}
@@ -409,7 +407,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                         </Field>
                     </div>
                 ) : (
-                    renderFormFields(RestoreType.Database)
+                    renderFormFields(DisasterRecoveryType.Database)
                 )}
                 {renderFormFields()}
                 <RestorePlanTableContainer restoreTableType={RestorePlanTableType.BackupSets} />

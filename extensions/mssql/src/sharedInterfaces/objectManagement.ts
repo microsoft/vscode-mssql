@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
-import { BackupDatabaseParams, BackupDatabaseViewModel } from "./backup";
+import { BackupDatabaseParams, BackupDatabaseViewModel, BackupFile } from "./backup";
 import { FormItemSpec, FormState } from "./form";
 import { FileTypeOption, FileBrowserState } from "./fileBrowser";
 import { IDialogProps } from "./connectionDialog";
@@ -178,6 +178,13 @@ export interface DisasterRecoveryAzureFormState {
 }
 
 export class DisasterRecoveryViewModel {
+    loadState: ApiStatus = ApiStatus.Loading;
+    errorMessage?: string;
+    type: DisasterRecoveryType = DisasterRecoveryType.BackupFile;
+
+    backupFiles: BackupFile[] = [];
+    url: string = "";
+
     tenants: AzureTenant[] = [];
     subscriptions: AzureSubscription[] = [];
     storageAccounts: StorageAccount[] = [];
@@ -189,16 +196,51 @@ export class DisasterRecoveryViewModel {
         storageAccountId: ApiStatus.NotStarted,
         blobContainerId: ApiStatus.NotStarted,
     };
+
+    credentialNames: string[] = [];
 }
 
-export interface DisasterRecoveryAzureReducers {
+export interface DisasterRecoveryReducers {
+    /**
+     * Sets the backup type.
+     * @param type The type of backup operation.
+     */
+    setType: {
+        type: DisasterRecoveryType;
+    };
+
+    /**
+     * Removes a backup file from the list
+     * @param filePath The file path to remove
+     */
+    removeBackupFile: {
+        filePath: string;
+    };
+
     loadAzureComponent: { componentName: string };
 }
 
-export interface DisasterRecoveryAzureProvider {
+export interface DisasterRecoveryProvider {
+    /**
+     * Sets the restore type.
+     * @param type The type of restore operation.
+     */
+    setType(type: DisasterRecoveryType): void;
+
+    /**
+     *  Removes a backup file from the list
+     * @param filePath  The file path to remove
+     */
+    removeBackupFile(filePath: string): void;
     /**
      * Loads the specified Azure component for backup to URL operations
      * @param componentName  The name of the Azure component to load
      */
     loadAzureComponent(componentName: string): void;
+}
+
+export enum DisasterRecoveryType {
+    Database = "database",
+    BackupFile = "backupFile",
+    Url = "url",
 }

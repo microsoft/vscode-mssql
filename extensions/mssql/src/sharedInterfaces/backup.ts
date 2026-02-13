@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FormContextProps, FormReducers } from "./form";
-import { ApiStatus } from "./webview";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
 import { TaskExecutionMode } from "./schemaCompare";
 import {
     DisasterRecoveryAzureFormState,
-    DisasterRecoveryAzureReducers,
+    DisasterRecoveryReducers,
     DisasterRecoveryViewModel,
-    DisasterRecoveryAzureProvider,
+    DisasterRecoveryProvider,
     ObjectManagementWebviewState,
 } from "./objectManagement";
 
@@ -179,15 +178,10 @@ export interface BackupEncryptor {
 }
 
 export class BackupDatabaseViewModel extends DisasterRecoveryViewModel {
-    loadState: ApiStatus = ApiStatus.Loading;
-    errorMessage?: string;
     databaseName: string = "";
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
-    saveToUrl: boolean = false;
-    backupFiles: BackupFile[] = [];
-    backupUrl: string = "";
 }
 
 export interface BackupDatabaseParams {
@@ -196,7 +190,7 @@ export interface BackupDatabaseParams {
 }
 
 export interface BackupDatabaseReducers<TFormState>
-    extends FormReducers<TFormState>, FileBrowserReducers, DisasterRecoveryAzureReducers {
+    extends FormReducers<TFormState>, FileBrowserReducers, DisasterRecoveryReducers {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -206,22 +200,6 @@ export interface BackupDatabaseReducers<TFormState>
      * Opens the generated backup script in a new editor window
      */
     openBackupScript: {};
-
-    /**
-     * Sets the backup save location.
-     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
-     */
-    setSaveLocation: {
-        saveToUrl: boolean;
-    };
-
-    /**
-     * Removes a backup file from the list
-     * @param filePath The file path to remove
-     */
-    removeBackupFile: {
-        filePath: string;
-    };
 
     /**
      * Handles changes to backup file paths
@@ -240,9 +218,9 @@ export interface BackupDatabaseProvider
     extends
         FormContextProps<BackupDatabaseFormState>,
         FileBrowserProvider,
-        DisasterRecoveryAzureProvider {
+        DisasterRecoveryProvider {
     /**
-     * Bsacks up the database based on the provided backup information
+     * Backs up the database based on the provided backup information
      */
     backupDatabase(): void;
 
@@ -250,18 +228,6 @@ export interface BackupDatabaseProvider
      * Opens the generated backup script in a new editor window
      */
     openBackupScript(): void;
-
-    /**
-     * Sets the backup save location.
-     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
-     */
-    setSaveLocation(saveToUrl: boolean): void;
-
-    /**
-     *  Removes a backup file from the list
-     * @param filePath  The file path to remove
-     */
-    removeBackupFile(filePath: string): void;
 
     /**
      *  Handles changes to backup file paths

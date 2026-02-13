@@ -21,6 +21,7 @@ import { useContext, useState } from "react";
 import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
 import {
+    DisasterRecoveryType,
     ObjectManagementFormItemSpec,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
@@ -33,7 +34,6 @@ import {
     RestoreDatabaseFormState,
     RestoreDatabaseViewModel,
     RestorePlanTableType,
-    RestoreType,
 } from "../../../../sharedInterfaces/restore";
 import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
@@ -113,7 +113,7 @@ export const AdvancedOptionsDrawer = ({
     const shouldShowGroup = (groupName: string): boolean => {
         if (
             groupName === locConstants.restoreDatabase.files &&
-            restoreViewModel.restoreType !== RestoreType.BackupFile
+            restoreViewModel.type !== DisasterRecoveryType.BackupFile
         ) {
             return false;
         }
@@ -148,7 +148,9 @@ export const AdvancedOptionsDrawer = ({
     };
 
     const shouldShowRestoreFileField = (): boolean => {
-        return restoreViewModel.restoreType === RestoreType.BackupFile && formState.relocateDbFiles;
+        return (
+            restoreViewModel.type === DisasterRecoveryType.BackupFile && formState.relocateDbFiles
+        );
     };
 
     return (

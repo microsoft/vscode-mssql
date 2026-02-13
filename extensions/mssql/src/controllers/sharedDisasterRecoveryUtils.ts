@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormItemActionButton } from "../sharedInterfaces/form";
+import { FormEvent, FormItemActionButton } from "../sharedInterfaces/form";
 import {
     DisasterRecoveryAzureFormState,
+    DisasterRecoveryType,
     DisasterRecoveryViewModel,
     ObjectManagementWebviewState,
 } from "../sharedInterfaces/objectManagement";
@@ -13,6 +14,16 @@ import * as LocConstants from "../constants/locConstants";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
+import { getExpirationDateForSas } from "../utils/utils";
+import * as vscode from "vscode";
+import { SimpleExecuteResult } from "vscode-mssql";
+import { RequestType } from "vscode-languageclient";
+import { getCloudProviderSettings } from "../azure/providerSettings";
+import { https } from "../constants/constants";
+import { AzureBlobService } from "../models/contracts/azureBlob";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import ConnectionManager from "./connectionManager";
+import { ConnectionProfile } from "../models/connectionProfile";
 
 export async function getAzureActionButton(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
@@ -80,7 +91,7 @@ export async function loadAccountComponent(
 export async function loadTenantComponent(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
 ): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
-    const viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     const tenantComponent = state.formComponents["tenantId"];
 
     // If no account selected, set error state and return
@@ -117,7 +128,7 @@ export async function loadTenantComponent(
 export async function loadSubscriptionComponent(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
 ): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
-    const viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     const subscriptionComponent = state.formComponents["subscriptionId"];
 
     // if no tenant selected, set error state and return
@@ -156,7 +167,7 @@ export async function loadSubscriptionComponent(
 export async function loadStorageAccountComponent(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
 ): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
-    const viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     const storageAccountComponent = state.formComponents["storageAccountId"];
 
     // if no subscription selected, set error state and return
@@ -203,7 +214,7 @@ export async function loadStorageAccountComponent(
 export async function loadBlobContainerComponent(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
 ): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
-    const viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     const blobContainerComponent = state.formComponents["blobContainerId"];
 
     // if no storage account or subscription selected, set error state and return
@@ -260,7 +271,7 @@ export function reloadAzureComponents(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
     formComponent: string,
 ): ObjectManagementWebviewState<DisasterRecoveryAzureFormState> {
-    const viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     const azureComponents = Object.keys(viewModel.azureComponentStatuses);
     const reloadComponentsFromIndex = azureComponents.indexOf(formComponent) + 1;
 
@@ -278,8 +289,8 @@ export function reloadAzureComponents(
 export async function loadAzureComponentHelper(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
     payload: { componentName: string },
-) {
-    let viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
+    let viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     // Only start loading if not already started
     if (viewModel.azureComponentStatuses[payload.componentName] !== ApiStatus.NotStarted)
         return state;
@@ -304,9 +315,233 @@ export async function loadAzureComponentHelper(
             return state;
     }
 
-    viewModel = state.viewModel.model as unknown as DisasterRecoveryViewModel;
+    viewModel = state.viewModel.model as DisasterRecoveryViewModel;
     viewModel.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
     state.viewModel.model = viewModel as any;
 
     return state;
+}
+
+export async function removeBackupFile(
+    state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+    payload: { filePath: string },
+): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
+    let viewModel = state.viewModel.model as DisasterRecoveryViewModel;
+    viewModel.backupFiles = viewModel.backupFiles.filter(
+        (file) => file.filePath !== payload.filePath,
+    );
+    state.viewModel.model = viewModel as any;
+    return state;
+}
+
+export async function setType(
+    state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+    payload: { type: DisasterRecoveryType },
+): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
+    let viewModel = state.viewModel.model as DisasterRecoveryViewModel;
+    viewModel.type = payload.type;
+    state.viewModel.model = viewModel as any;
+    state.formErrors = [];
+    return state;
+}
+
+export async function disasterRecoveryFormAction<TForm>(
+    state: ObjectManagementWebviewState<TForm>,
+    payload: {
+        event: FormEvent<TForm>;
+    },
+    validateForm: (
+        formTarget: TForm,
+        propertyName?: keyof TForm,
+        updateValidation?: boolean,
+    ) => Promise<(keyof TForm)[]>,
+): Promise<ObjectManagementWebviewState<TForm>> {
+    const propertyName = payload.event.propertyName.toString();
+
+    // isAction indicates whether the event was triggered by an action button
+    if (payload.event.isAction) {
+        const component = state.formComponents[propertyName];
+        if (component && component.actionButtons) {
+            const actionButton = component.actionButtons.find((b) => b.id === payload.event.value);
+            if (actionButton?.callback) {
+                await actionButton.callback();
+            }
+        }
+        const reloadCompsResult = await reloadAzureComponents(
+            state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+            propertyName,
+        );
+        // Reload necessary dependent components
+        state = reloadCompsResult as ObjectManagementWebviewState<TForm>;
+    } else {
+        // formAction is a normal form item value change; update form state
+        (state.formState[
+            propertyName
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ] as any) = payload.event.value;
+
+        // If an azure component changed, reload dependent components and revalidate
+        if (
+            [
+                "accountId",
+                "tenantId",
+                "subscriptionId",
+                "storageAccountId",
+                "blobContainerId",
+                "blob",
+            ].includes(propertyName)
+        ) {
+            const reloadCompsResult = await reloadAzureComponents(
+                state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+                propertyName,
+            );
+            // Reload necessary dependent components
+            state = reloadCompsResult as ObjectManagementWebviewState<TForm>;
+        }
+
+        // Re-validate the changed component
+        const [componentFormError] = await validateForm(
+            state.formState,
+            propertyName as keyof TForm,
+            true,
+        );
+        if (componentFormError) {
+            state.formErrors.push(propertyName);
+        } else {
+            state.formErrors = state.formErrors.filter((formError) => formError !== propertyName);
+        }
+    }
+    return state;
+}
+
+export function getUrl(
+    state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+): string {
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
+    const accountEndpoint =
+        getCloudProviderSettings().settings.azureStorageResource.endpoint.replace(https, "");
+
+    const storageAccount = viewModel.storageAccounts.find(
+        (sa) => sa.id === state.formState.storageAccountId,
+    );
+    const blobContainer = viewModel.blobContainers.find(
+        (bc) => bc.id === state.formState.blobContainerId,
+    );
+
+    return `${https}${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
+}
+
+export async function getBlobCredentialNames(
+    client: SqlToolsServiceClient,
+    ownerUri: string,
+): Promise<string[]> {
+    const getCredsQuery = `
+            SELECT name
+            FROM sys.credentials`;
+
+    const result = await client.sendRequest(
+        new RequestType<{ ownerUri: string; queryString: string }, SimpleExecuteResult, void, void>(
+            "query/simpleexecute",
+        ),
+        {
+            ownerUri: ownerUri,
+            queryString: getCredsQuery,
+        },
+    );
+
+    if (!result || !result.rows || result.rows.length === 0) {
+        return [];
+    }
+
+    const credentialNames: string[] = [];
+    for (const row of result.rows) {
+        if (row && row.length > 0 && row[0] && !row[0].isNull) {
+            const credName = row[0].displayValue.trim();
+            if (credName) {
+                credentialNames.push(credName);
+            }
+        }
+    }
+    return credentialNames;
+}
+
+export async function createSasKeyIfNeeded(
+    state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+    ownerUri: string,
+    azureBlobService: AzureBlobService,
+): Promise<ObjectManagementWebviewState<DisasterRecoveryAzureFormState>> {
+    const viewModel = state.viewModel.model as DisasterRecoveryViewModel;
+
+    if (viewModel.type !== DisasterRecoveryType.Url) {
+        return state;
+    }
+
+    if (!viewModel.url) {
+        viewModel.url = getUrl(state);
+    }
+
+    if (!viewModel.credentialNames.includes(viewModel.url)) {
+        const subscription = viewModel.subscriptions.find(
+            (s) => s.subscriptionId === state.formState.subscriptionId,
+        );
+        const storageAccount = viewModel.storageAccounts.find(
+            (sa) => sa.id === state.formState.storageAccountId,
+        );
+
+        if (!subscription || !storageAccount) {
+            return state;
+        }
+
+        let sasKeyResult;
+        try {
+            sasKeyResult = await VsCodeAzureHelper.getStorageAccountKeys(
+                subscription,
+                storageAccount,
+            );
+            void azureBlobService.createSas(
+                ownerUri,
+                viewModel.url,
+                sasKeyResult.keys[0].value,
+                storageAccount.name,
+                getExpirationDateForSas(),
+            );
+
+            viewModel.credentialNames.push(viewModel.url);
+
+            state.viewModel.model = viewModel as any;
+        } catch (error) {
+            vscode.window.showErrorMessage(
+                LocConstants.BackupDatabase.generatingSASKeyFailedWithError(error.message),
+            );
+        }
+    }
+    return state;
+}
+
+export async function createDisasterRecoveryConnectionContext(
+    originalOwnerUri: string,
+    currentConnectionUri: string,
+    databaseName: string,
+    profile: ConnectionProfile,
+    connectionManager: ConnectionManager,
+): Promise<string | undefined> {
+    // If we have an existing connection for a different database, disconnect it
+    if (currentConnectionUri && currentConnectionUri !== originalOwnerUri) {
+        void connectionManager.disconnect(currentConnectionUri);
+    }
+
+    const databaseConnectionUri = `${databaseName}_${originalOwnerUri}`;
+
+    // Create a new temp connection for the database if we are not already connected
+    // This lets sts know the context of the database we are backing up; otherwise,
+    // sts will assume the master database context
+    const didConnect = await connectionManager.connect(databaseConnectionUri, {
+        ...profile,
+        database: databaseName,
+    });
+
+    if (didConnect) {
+        return databaseConnectionUri;
+    }
+    return undefined;
 }

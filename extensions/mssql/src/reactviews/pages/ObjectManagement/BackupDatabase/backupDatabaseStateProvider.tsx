@@ -11,7 +11,10 @@ import {
 } from "../../../../sharedInterfaces/backup";
 import { getCoreRPCs } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import { ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
+import {
+    DisasterRecoveryType,
+    ObjectManagementWebviewState,
+} from "../../../../sharedInterfaces/objectManagement";
 import { WebviewRpc } from "../../../common/rpc";
 
 export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
@@ -44,9 +47,9 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                 openBackupScript: function (): void {
                     extensionRpc.action("openBackupScript", {});
                 },
-                setSaveLocation: function (saveToUrl: boolean): void {
-                    extensionRpc.action("setSaveLocation", {
-                        saveToUrl,
+                setType: function (type: DisasterRecoveryType): void {
+                    extensionRpc.action("setType", {
+                        type,
                     });
                 },
                 removeBackupFile: function (filePath: string): void {

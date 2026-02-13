@@ -32,6 +32,7 @@ import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
 import { BackupFileCard } from "./backupFileCard";
 import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import {
+    DisasterRecoveryType,
     ObjectManagementFormItemSpec,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
@@ -329,21 +330,20 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                const isSaveToUrl =
-                                    data.value === locConstants.backupDatabase.saveToUrl;
-                                context.setSaveLocation(isSaveToUrl);
+                                const isSaveToUrl = data.value === DisasterRecoveryType.Url;
+                                context.setType(
+                                    isSaveToUrl
+                                        ? DisasterRecoveryType.Url
+                                        : DisasterRecoveryType.BackupFile,
+                                );
                                 if (isSaveToUrl) {
                                     // Start loading the first Azure component (Account) when switching to Save to URL
                                     context.loadAzureComponent("accountId");
                                 }
                             }}
-                            value={
-                                backupViewModel.saveToUrl
-                                    ? locConstants.backupDatabase.saveToUrl
-                                    : locConstants.backupDatabase.saveToDisk
-                            }>
+                            value={backupViewModel.type}>
                             <Radio
-                                value={locConstants.backupDatabase.saveToDisk}
+                                value={DisasterRecoveryType.BackupFile}
                                 label={
                                     <div className={classes.saveOption}>
                                         <Save20Regular style={{ marginRight: "8px" }} />
@@ -352,7 +352,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                 }
                             />
                             <Radio
-                                value={locConstants.backupDatabase.saveToUrl}
+                                value={DisasterRecoveryType.Url}
                                 label={
                                     <div className={classes.saveOption}>
                                         <AzureIcon20 style={{ marginRight: "8px" }} />
@@ -363,7 +363,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         </RadioGroup>
                     </Field>
                 </div>
-                {backupViewModel.saveToUrl ? (
+                {backupViewModel.type === DisasterRecoveryType.Url ? (
                     backupViewModel.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
                         renderBackupSaveToUrlFields()
                     ) : (
