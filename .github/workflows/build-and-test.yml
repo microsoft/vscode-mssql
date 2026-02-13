@@ -289,9 +289,38 @@ jobs:
         run: |
           set +e  # Don't exit on errors
           cd extensions/mssql
+          export VSCODE_LOG_LEVEL=trace
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+
+      - name: MSSQL - Dump unit test diagnostics
+        if: always()
+        run: |
+          set +e
+          cd extensions/mssql
+          echo "=== Environment ==="
+          uname -a || true
+          node -v || true
+          dotnet --info || true
+
+          echo "=== SQL Tools Service binaries ==="
+          find ./sqltoolsservice -type f -name MicrosoftSqlToolsServiceLayer -print | sort || true
+          STS_BIN=$(find ./sqltoolsservice -type f -name MicrosoftSqlToolsServiceLayer | head -n 1)
+          if [ -n "$STS_BIN" ]; then
+            ls -l "$STS_BIN" || true
+            file "$STS_BIN" || true
+            ldd "$STS_BIN" || true
+            echo "--- STS --help output ---"
+            "$STS_BIN" --help | head -n 60 || true
+          fi
+
+          echo "=== Extension/Service logs ==="
+          find ./.vscode-test -type f \( -name "*.log" -o -name "*.txt" \) | grep -Ei "sqltools|resourceprovider|extensionhost" | sort | head -n 80 || true
+          for f in $(find ./.vscode-test -type f -name "*.log" | grep -Ei "sqltools|resourceprovider|extensionhost" | head -n 20); do
+            echo "--- tail: $f ---"
+            tail -n 120 "$f" || true
+          done
 
       - name: MSSQL - Unit Test Report
         uses: dorny/test-reporter@v2
