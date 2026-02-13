@@ -80,7 +80,7 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Get all available templates.
+     * Get all available templates
      */
     public getTemplates(): ProfilerTemplate[] {
         return this._config.templates;
@@ -176,7 +176,7 @@ export class ProfilerConfigService {
         // Try each mapped event field until we find a value
         for (const mappedField of column.eventsMapped) {
             const value = this.getFieldValue(event, mappedField);
-            if (value !== undefined && value !== "") {
+            if (value) {
                 return value;
             }
         }

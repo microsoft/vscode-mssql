@@ -95,9 +95,19 @@ export class FilteredBuffer<T extends IndexedRow> {
 
     /**
      * Sets the filter clauses and enables filtering.
+     * This sets the filter per column if any. Filter clauses represent
+     * the conditions that must be met for a row to be included in the filtered result.
+     * If there are many clauses, they are combined with AND logic (a row must match all clauses to be included).
+     * Meaning of the clause properties:
+     * - field: The column/field name to filter on
+     * - operator: The comparison operator (e.g. equals, contains, greater than)
+     * - value: The value to compare against (not used for operators like IsNull)
+     * - values: An array of values for operators like "In"
+     * - typeHint: Optional hint for how to interpret the value (e.g. as number or date)
+     * These are not used for quick filter which is a separate text-based search across all columns.
      * @param clauses - Array of filter clauses (combined with AND logic)
      */
-    setFilter(clauses: FilterClause[]): void {
+    setColumnFilters(clauses: FilterClause[]): void {
         this._clauses = [...clauses];
         this._enabled = clauses.length > 0;
     }
@@ -107,7 +117,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      * Does NOT clear quick filter — use clearQuickFilter() or clearAllFilters() for that.
      * After clearing, all events in the buffer become visible (if no quick filter).
      */
-    clearFilter(): void {
+    clearColumnFilters(): void {
         this._clauses = [];
         this._enabled = false;
     }
@@ -131,7 +141,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      * Clears both column filters and the quick filter.
      */
     clearAllFilters(): void {
-        this.clearFilter();
+        this.clearColumnFilters();
         this.clearQuickFilter();
     }
 
@@ -142,13 +152,6 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     setRowConverter(converter: ((row: T) => Record<string, unknown>) | undefined): void {
         this._rowConverter = converter;
-    }
-
-    /**
-     * Enables or disables the clause filter without changing clauses.
-     */
-    setEnabled(enabled: boolean): void {
-        this._enabled = enabled;
     }
 
     /**
@@ -188,64 +191,6 @@ export class FilteredBuffer<T extends IndexedRow> {
             return this._buffer.size;
         }
         return this.getFilteredRows().length;
-    }
-
-    /**
-     * Gets converted and filtered rows for the grid, applying both column filters
-     * and quick filter, then slicing for pagination.
-     * When a row converter is set, returns converted rows (not raw buffer rows).
-     * @param startIndex - Starting index in the filtered result set
-     * @param count - Maximum number of rows to return
-     * @returns Object with rows, startIndex, and totalCount
-     */
-    getConvertedFilteredRange(
-        startIndex: number,
-        count: number,
-    ): { rows: Record<string, unknown>[]; startIndex: number; totalCount: number } {
-        const allRows = this._buffer.getAllRows();
-
-        const hasClauseFilter = this._enabled && this._clauses.length > 0;
-        const hasQuickFilter = this._quickFilter !== undefined && this._quickFilter.trim() !== "";
-
-        let convertedFiltered: Record<string, unknown>[];
-
-        if (!hasClauseFilter && !hasQuickFilter) {
-            // No filters — convert all rows
-            convertedFiltered = this._rowConverter
-                ? allRows.map((row) => this._rowConverter!(row))
-                : (allRows as unknown as Record<string, unknown>[]);
-        } else {
-            // Filter after converting
-            convertedFiltered = [];
-            for (const row of allRows) {
-                const converted = this._rowConverter
-                    ? this._rowConverter(row)
-                    : (row as unknown as Record<string, unknown>);
-
-                if (hasClauseFilter && !this.evaluateRow(converted as T)) {
-                    continue;
-                }
-                if (
-                    hasQuickFilter &&
-                    !this.matchesQuickFilter(converted as T, this._quickFilter!)
-                ) {
-                    continue;
-                }
-                convertedFiltered.push(converted);
-            }
-        }
-
-        const totalCount = convertedFiltered.length;
-        if (startIndex >= totalCount) {
-            return { rows: [], startIndex, totalCount };
-        }
-
-        const endIndex = Math.min(startIndex + count, totalCount);
-        return {
-            rows: convertedFiltered.slice(startIndex, endIndex),
-            startIndex,
-            totalCount,
-        };
     }
 
     /**

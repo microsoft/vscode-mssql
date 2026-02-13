@@ -10,6 +10,8 @@ import {
     ProfilerWebviewState,
     ProfilerReducers,
     FilterClause,
+    ProfilerRequests,
+    DistinctValuesResponse,
 } from "../../../sharedInterfaces/profiler";
 
 /**
@@ -41,7 +43,7 @@ export interface ProfilerRpcMethods {
     /** Set quick filter term (cross-column search) */
     setQuickFilter: (term: string) => void;
     /** Get distinct values for a column from unfiltered ring buffer */
-    getDistinctValues: (field: string) => void;
+    getDistinctValues: (field: string) => Promise<DistinctValuesResponse>;
     /** Export events to CSV file */
     exportToCsv: (suggestedFileName: string) => void;
 }
@@ -133,8 +135,8 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
     );
 
     const getDistinctValues = useCallback(
-        (field: string) => {
-            extensionRpc?.action("getDistinctValues", { field });
+        (field: string): Promise<DistinctValuesResponse> => {
+            return extensionRpc.sendRequest(ProfilerRequests.GetDistinctValues, { field });
         },
         [extensionRpc],
     );

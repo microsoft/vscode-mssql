@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { ProfilerEvent } from "../models/contracts/profiler";
 import {
     SessionState,
@@ -196,10 +196,6 @@ export interface ProfilerReducers {
     setQuickFilter: {
         term: string;
     };
-    /** Get distinct values for a column from the unfiltered ring buffer */
-    getDistinctValues: {
-        field: string;
-    };
     /** Export events to CSV file */
     exportToCsv: {
         suggestedFileName: string;
@@ -278,11 +274,18 @@ export namespace ProfilerNotifications {
     export const FilterStateChanged = new NotificationType<FilterStateChangedParams>(
         "filterStateChanged",
     );
+}
 
-    /** Notification sent with distinct values for a column (from unfiltered buffer) */
-    export const DistinctValuesAvailable = new NotificationType<DistinctValuesResponse>(
-        "distinctValuesAvailable",
-    );
+/**
+ * Request types for profiler webview communication
+ */
+export namespace ProfilerRequests {
+    /** Request to get distinct values for a column from the unfiltered ring buffer */
+    export const GetDistinctValues = new RequestType<
+        { field: string },
+        DistinctValuesResponse,
+        void
+    >("profiler/getDistinctValues");
 }
 
 /**

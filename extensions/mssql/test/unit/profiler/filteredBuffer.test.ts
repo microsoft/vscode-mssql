@@ -7,12 +7,7 @@ import { expect } from "chai";
 import { v4 as uuidv4 } from "uuid";
 import { RingBuffer } from "../../../src/profiler/ringBuffer";
 import { FilteredBuffer } from "../../../src/profiler/filteredBuffer";
-import {
-    IndexedRow,
-    FilterOperator,
-    FilterClause,
-    FilterTypeHint,
-} from "../../../src/profiler/profilerTypes";
+import { IndexedRow, FilterOperator, FilterTypeHint } from "../../../src/profiler/profilerTypes";
 
 interface TestRow extends IndexedRow {
     eventNumber: number;
@@ -76,43 +71,21 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("isFilterActive returns true when filter is enabled with clauses", () => {
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "test" },
             ]);
             expect(filteredBuffer.isFilterActive).to.be.true;
-        });
-
-        test("isFilterActive returns false when filter is disabled", () => {
-            filteredBuffer.setFilter([
-                { field: "name", operator: FilterOperator.Contains, value: "test" },
-            ]);
-            filteredBuffer.setEnabled(false);
-            expect(filteredBuffer.isFilterActive).to.be.false;
         });
 
         test("clearFilter clears all clauses and disables filter", () => {
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "test" },
             ]);
             expect(filteredBuffer.isFilterActive).to.be.true;
 
-            filteredBuffer.clearFilter();
+            filteredBuffer.clearColumnFilters();
             expect(filteredBuffer.isFilterActive).to.be.false;
             expect(filteredBuffer.clauses).to.have.length(0);
-        });
-
-        test("setEnabled toggles filter without changing clauses", () => {
-            const clauses: FilterClause[] = [
-                { field: "name", operator: FilterOperator.Contains, value: "test" },
-            ];
-            filteredBuffer.setFilter(clauses);
-
-            filteredBuffer.setEnabled(false);
-            expect(filteredBuffer.isFilterActive).to.be.false;
-            expect(filteredBuffer.clauses).to.have.length(1);
-
-            filteredBuffer.setEnabled(true);
-            expect(filteredBuffer.isFilterActive).to.be.true;
         });
     });
 
@@ -137,7 +110,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("banana", 2));
             buffer.add(createTestRow("apple pie", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
             ]);
 
@@ -161,7 +134,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("banana", 2));
             buffer.add(createTestRow("cherry", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "a" },
             ]);
 
@@ -177,7 +150,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("banana", 2));
 
             // Apply filter
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
             ]);
 
@@ -189,7 +162,7 @@ suite("FilteredBuffer Tests", () => {
             expect(filteredBuffer.getFilteredRows()).to.have.length(2);
 
             // Clear filter - should show ALL rows including cherry
-            filteredBuffer.clearFilter();
+            filteredBuffer.clearColumnFilters();
             const allRows = filteredBuffer.getFilteredRows();
             expect(allRows).to.have.length(4);
             expect(allRows.map((r) => r.name)).to.include("cherry");
@@ -232,7 +205,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns true when row matches filter", () => {
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "test" },
             ]);
             const row = createTestRow("testing", 1);
@@ -240,7 +213,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns false when row does not match filter", () => {
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "xyz" },
             ]);
             const row = createTestRow("testing", 1);
@@ -255,7 +228,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("APPLE", 3));
             buffer.add(createTestRow("banana", 4));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Equals, value: "apple" },
             ]);
 
@@ -268,7 +241,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 200));
             buffer.add(createTestRow("test3", 100));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.Equals,
@@ -285,7 +258,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test1", 1, 0, "cat1"));
             buffer.add(createTestRow("test2", 2, 0, undefined));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.Equals, value: undefined },
             ]);
 
@@ -302,7 +275,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("banana", 2));
             buffer.add(createTestRow("cherry", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotEquals, value: "banana" },
             ]);
 
@@ -318,7 +291,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 20));
             buffer.add(createTestRow("test3", 30));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.LessThan,
@@ -335,7 +308,7 @@ suite("FilteredBuffer Tests", () => {
         test("returns no match when numeric parsing fails", () => {
             buffer.add(createTestRow("test1", 10));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "name",
                     operator: FilterOperator.LessThan,
@@ -356,7 +329,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 20));
             buffer.add(createTestRow("test3", 30));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.LessThanOrEqual,
@@ -376,7 +349,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 20));
             buffer.add(createTestRow("test3", 30));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.GreaterThan,
@@ -396,7 +369,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 20));
             buffer.add(createTestRow("test3", 30));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.GreaterThanOrEqual,
@@ -416,7 +389,9 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 2, 0, undefined));
             buffer.add(createTestRow("test3", 3, 0, undefined));
 
-            filteredBuffer.setFilter([{ field: "category", operator: FilterOperator.IsNull }]);
+            filteredBuffer.setColumnFilters([
+                { field: "category", operator: FilterOperator.IsNull },
+            ]);
 
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(2);
@@ -425,7 +400,7 @@ suite("FilteredBuffer Tests", () => {
         test("matches missing fields", () => {
             buffer.add(createTestRow("test1", 1));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "nonExistentField", operator: FilterOperator.IsNull },
             ]);
 
@@ -439,7 +414,9 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test1", 1, 0, "category"));
             buffer.add(createTestRow("test2", 2, 0, undefined));
 
-            filteredBuffer.setFilter([{ field: "category", operator: FilterOperator.IsNotNull }]);
+            filteredBuffer.setColumnFilters([
+                { field: "category", operator: FilterOperator.IsNotNull },
+            ]);
 
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(1);
@@ -453,7 +430,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("hello there", 2));
             buffer.add(createTestRow("goodbye", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "HELLO" },
             ]);
 
@@ -464,7 +441,7 @@ suite("FilteredBuffer Tests", () => {
         test("returns false for null field value", () => {
             buffer.add(createTestRow("test", 1, 0, undefined));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.Contains, value: "any" },
             ]);
 
@@ -479,7 +456,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("hello there", 2));
             buffer.add(createTestRow("goodbye", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotContains, value: "hello" },
             ]);
 
@@ -492,7 +469,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test1", 1, 0, "hasCategory"));
             buffer.add(createTestRow("test2", 2, 0, undefined));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.NotContains, value: "xyz" },
             ]);
 
@@ -508,7 +485,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("HELLO there", 2));
             buffer.add(createTestRow("goodbye", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.StartsWith, value: "hello" },
             ]);
 
@@ -519,7 +496,7 @@ suite("FilteredBuffer Tests", () => {
         test("returns false for null field value", () => {
             buffer.add(createTestRow("test", 1, 0, undefined));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.StartsWith, value: "any" },
             ]);
 
@@ -534,7 +511,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("hello there", 2));
             buffer.add(createTestRow("goodbye", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotStartsWith, value: "hello" },
             ]);
 
@@ -547,7 +524,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test1", 1, 0, "category"));
             buffer.add(createTestRow("test2", 2, 0, undefined));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.NotStartsWith, value: "x" },
             ]);
 
@@ -564,7 +541,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("carrot", 50, 0, "vegetable"));
             buffer.add(createTestRow("apple pie", 150, 0, "dessert"));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
                 {
                     field: "value",
@@ -583,7 +560,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("apple", 100));
             buffer.add(createTestRow("banana", 200));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
                 {
                     field: "value",
@@ -604,7 +581,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test2", 2, 0, undefined, { query: "INSERT INTO logs" }));
             buffer.add(createTestRow("test3", 3, 0, undefined, { query: "SELECT id FROM orders" }));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "query", operator: FilterOperator.Contains, value: "SELECT" },
             ]);
 
@@ -620,7 +597,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("recent", 2, -1000)); // 1 second ago
             buffer.add(createTestRow("future", 3, 10000)); // 10 seconds in future
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThan,
@@ -649,7 +626,7 @@ suite("FilteredBuffer Tests", () => {
             boolBuffer.add({ id: uuidv4(), eventNumber: 2, name: "test2", active: false });
             boolBuffer.add({ id: uuidv4(), eventNumber: 3, name: "test3", active: true });
 
-            boolFiltered.setFilter([
+            boolFiltered.setColumnFilters([
                 {
                     field: "active",
                     operator: FilterOperator.Equals,
@@ -667,7 +644,7 @@ suite("FilteredBuffer Tests", () => {
         test("unknown operator returns no match", () => {
             buffer.add(createTestRow("test", 1));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: "unknownOp" as FilterOperator, value: "test" },
             ]);
 
@@ -681,7 +658,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("", 1));
             buffer.add(createTestRow("test", 2));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Equals, value: "" },
             ]);
 
@@ -694,7 +671,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test1", 100));
             buffer.add(createTestRow("test2", 200));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.Equals,
@@ -770,7 +747,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ eventClass: "RPC:Completed" }));
             eventBuffer.add(createEventRow({ eventClass: "SQL:BatchStarting" }));
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 { field: "eventClass", operator: FilterOperator.Contains, value: "SQL" },
             ]);
 
@@ -783,7 +760,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ textData: "INSERT INTO Logs VALUES" }));
             eventBuffer.add(createEventRow({ textData: "SELECT COUNT(*) FROM Orders" }));
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 { field: "textData", operator: FilterOperator.StartsWith, value: "SELECT" },
             ]);
 
@@ -796,7 +773,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ databaseName: "TestDB" }));
             eventBuffer.add(createEventRow({ databaseName: "productiondb" })); // case insensitive
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 { field: "databaseName", operator: FilterOperator.Equals, value: "ProductionDB" },
             ]);
 
@@ -809,7 +786,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ spid: 60 }));
             eventBuffer.add(createEventRow({ spid: undefined }));
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 {
                     field: "spid",
                     operator: FilterOperator.Equals,
@@ -828,7 +805,9 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ spid: undefined }));
             eventBuffer.add(createEventRow({ spid: undefined }));
 
-            eventFilteredBuffer.setFilter([{ field: "spid", operator: FilterOperator.IsNull }]);
+            eventFilteredBuffer.setColumnFilters([
+                { field: "spid", operator: FilterOperator.IsNull },
+            ]);
 
             const rows = eventFilteredBuffer.getFilteredRows();
             expect(rows).to.have.length(2);
@@ -840,7 +819,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ duration: 3000 }));
             eventBuffer.add(createEventRow({ duration: undefined }));
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 {
                     field: "duration",
                     operator: FilterOperator.GreaterThan,
@@ -859,7 +838,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ cpu: 100 }));
             eventBuffer.add(createEventRow({ cpu: 200 }));
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 {
                     field: "cpu",
                     operator: FilterOperator.LessThanOrEqual,
@@ -877,7 +856,7 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ reads: 100 }));
             eventBuffer.add(createEventRow({ reads: 0 }));
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 {
                     field: "reads",
                     operator: FilterOperator.NotEquals,
@@ -904,7 +883,7 @@ suite("FilteredBuffer Tests", () => {
                 createEventRow({ additionalData: { client_app_name: "VS Code mssql" } }),
             );
 
-            eventFilteredBuffer.setFilter([
+            eventFilteredBuffer.setColumnFilters([
                 {
                     field: "client_app_name",
                     operator: FilterOperator.Contains,
@@ -969,7 +948,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters dates with ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)", () => {
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThan,
@@ -983,7 +962,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters dates with simplified ISO format (YYYY-MM-DD)", () => {
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.LessThan,
@@ -998,7 +977,7 @@ suite("FilteredBuffer Tests", () => {
 
         test("filters dates with Equals using ISO date", () => {
             // Note: Equals on dates requires exact match including time
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.Equals,
@@ -1013,7 +992,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters dates with GreaterThanOrEqual", () => {
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThanOrEqual,
@@ -1027,7 +1006,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters dates with LessThanOrEqual", () => {
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.LessThanOrEqual,
@@ -1041,7 +1020,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters dates between range using two clauses", () => {
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThanOrEqual,
@@ -1062,7 +1041,7 @@ suite("FilteredBuffer Tests", () => {
 
         test("filters with Date object value converted to string", () => {
             const filterDate = new Date("2024-05-01T00:00:00.000Z");
-            dateFilteredBuffer.setFilter([
+            dateFilteredBuffer.setColumnFilters([
                 {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThan,
@@ -1125,7 +1104,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("GreaterThan with profiler format filters correctly", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.GreaterThan,
@@ -1140,7 +1119,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("GreaterThanOrEqual with profiler format includes exact match", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.GreaterThanOrEqual,
@@ -1154,7 +1133,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("LessThan with profiler format filters correctly", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.LessThan,
@@ -1169,7 +1148,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("LessThanOrEqual with profiler format includes exact match", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.LessThanOrEqual,
@@ -1183,7 +1162,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("Equals with profiler format requires exact time match", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.Equals,
@@ -1198,7 +1177,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("NotEquals with profiler format", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.NotEquals,
@@ -1212,7 +1191,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("range filter with profiler format", () => {
-            profilerFilteredBuffer.setFilter([
+            profilerFilteredBuffer.setColumnFilters([
                 {
                     field: "StartTime",
                     operator: FilterOperator.GreaterThanOrEqual,
@@ -1300,7 +1279,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("3 clauses: eventClass AND textData AND databaseName", () => {
-            complexFilteredBuffer.setFilter([
+            complexFilteredBuffer.setColumnFilters([
                 {
                     field: "eventClass",
                     operator: FilterOperator.Equals,
@@ -1315,7 +1294,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("4 clauses: eventClass AND textData AND databaseName AND duration", () => {
-            complexFilteredBuffer.setFilter([
+            complexFilteredBuffer.setColumnFilters([
                 {
                     field: "eventClass",
                     operator: FilterOperator.Equals,
@@ -1336,7 +1315,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("4 clauses with different operator types", () => {
-            complexFilteredBuffer.setFilter([
+            complexFilteredBuffer.setColumnFilters([
                 { field: "eventClass", operator: FilterOperator.Contains, value: "Batch" },
                 { field: "textData", operator: FilterOperator.NotContains, value: "INSERT" },
                 {
@@ -1359,7 +1338,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("5 clauses: comprehensive filtering", () => {
-            complexFilteredBuffer.setFilter([
+            complexFilteredBuffer.setColumnFilters([
                 { field: "eventClass", operator: FilterOperator.StartsWith, value: "SQL" },
                 { field: "textData", operator: FilterOperator.Contains, value: "SELECT" },
                 { field: "databaseName", operator: FilterOperator.NotEquals, value: "TestDB" },
@@ -1377,7 +1356,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("clauses that filter to empty result", () => {
-            complexFilteredBuffer.setFilter([
+            complexFilteredBuffer.setColumnFilters([
                 {
                     field: "eventClass",
                     operator: FilterOperator.Equals,
@@ -1408,7 +1387,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 55,
             });
 
-            complexFilteredBuffer.setFilter([
+            complexFilteredBuffer.setColumnFilters([
                 {
                     field: "eventClass",
                     operator: FilterOperator.Equals,
@@ -1449,7 +1428,7 @@ suite("FilteredBuffer Tests", () => {
             });
             optBuffer.add({ id: uuidv4(), eventNumber: 3, name: "high value", optionalNum: 300 });
 
-            optFiltered.setFilter([
+            optFiltered.setColumnFilters([
                 {
                     field: "optionalNum",
                     operator: FilterOperator.GreaterThan,
@@ -1479,7 +1458,7 @@ suite("FilteredBuffer Tests", () => {
             optBuffer.add({ id: uuidv4(), eventNumber: 3, name: "unknown", duration: undefined });
 
             // Find slow queries (duration > 1000) but only where duration is known
-            optFiltered.setFilter([
+            optFiltered.setColumnFilters([
                 { field: "duration", operator: FilterOperator.IsNotNull },
                 {
                     field: "duration",
@@ -1501,7 +1480,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("INSERT INTO orders", 2));
             buffer.add(createTestRow("DELETE FROM users", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.EndsWith, value: "users" },
             ]);
 
@@ -1515,7 +1494,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("query.SQL", 1));
             buffer.add(createTestRow("query.txt", 2));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.EndsWith, value: ".sql" },
             ]);
 
@@ -1528,7 +1507,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("hello", 1));
             buffer.add(createTestRow("world", 2));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.EndsWith, value: "xyz" },
             ]);
 
@@ -1542,7 +1521,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("INSERT INTO orders", 2));
             buffer.add(createTestRow("DELETE FROM users", 3));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotEndsWith, value: "users" },
             ]);
 
@@ -1555,7 +1534,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("query.SQL", 1));
             buffer.add(createTestRow("query.txt", 2));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotEndsWith, value: ".sql" },
             ]);
 
@@ -1572,7 +1551,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("Gamma", 3, 0, "catC"));
             buffer.add(createTestRow("Delta", 4, 0, "catA"));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "category",
                     operator: FilterOperator.In,
@@ -1590,7 +1569,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("B", 2, 0, "CATB"));
             buffer.add(createTestRow("C", 3, 0, "catc"));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "category",
                     operator: FilterOperator.In,
@@ -1607,7 +1586,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("A", 1, 0, "catA"));
             buffer.add(createTestRow("B", 2, 0, "catB"));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "category",
                     operator: FilterOperator.In,
@@ -1621,7 +1600,7 @@ suite("FilteredBuffer Tests", () => {
         test("should return no results when values is undefined", () => {
             buffer.add(createTestRow("A", 1, 0, "catA"));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "category",
                     operator: FilterOperator.In,
@@ -1637,7 +1616,7 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("B", 200));
             buffer.add(createTestRow("C", 300));
 
-            filteredBuffer.setFilter([
+            filteredBuffer.setColumnFilters([
                 {
                     field: "value",
                     operator: FilterOperator.In,

@@ -24,7 +24,6 @@ import {
     FetchRowsResponse,
     NewEventsAvailableParams,
     RowsRemovedParams,
-    DistinctValuesResponse,
     FilterClause,
     FilterType,
     ProfilerColumnDef,
@@ -99,8 +98,25 @@ function getFormatterConfig(
     return undefined;
 }
 
+// Inject SlickGrid styles once
+let stylesInjected = false;
+function injectSlickGridStyles() {
+    if (stylesInjected) {
+        return;
+    }
+    stylesInjected = true;
+    const styleElement = document.createElement("style");
+    styleElement.textContent = slickGridStyles;
+    document.head.appendChild(styleElement);
+}
+
 export const Profiler: React.FC = () => {
     const classes = useStyles();
+
+    // Inject SlickGrid styles on mount
+    useEffect(() => {
+        injectSlickGridStyles();
+    }, []);
 
     const totalRowCount = useProfilerSelector((s) => s.totalRowCount ?? 0);
     const clearGeneration = useProfilerSelector((s) => s.clearGeneration ?? 0);
@@ -128,8 +144,8 @@ export const Profiler: React.FC = () => {
         (filterState.enabled && filterState.clauses.length > 0) ||
         (filterState.quickFilter !== undefined && filterState.quickFilter.trim() !== "");
     const isReadOnly = useProfilerSelector((s) => s.isReadOnly ?? false);
-    const xelFileName = useProfilerSelector((s) => s.xelFileName);
     const sessionName = useProfilerSelector((s) => s.sessionName);
+    const xelFileName = useProfilerSelector((s) => s.xelFileName);
 
     const {
         pauseResume,
@@ -228,7 +244,9 @@ export const Profiler: React.FC = () => {
             // Request distinct values from extension (scans unfiltered ring buffer)
             const filterType = getFilterType(colDef);
             if (filterType === FilterType.Categorical) {
-                getDistinctValues(field);
+                void getDistinctValues(field).then((response) => {
+                    setPopoverDistinctValues(response.values);
+                });
             }
         },
         [viewConfig, getDistinctValues],
@@ -582,14 +600,6 @@ export const Profiler: React.FC = () => {
                 setLocalRowCount(newCount);
             },
         );
-
-        // Handle distinct values response from extension (for categorical filter popover)
-        extensionRpc.onNotification(
-            ProfilerNotifications.DistinctValuesAvailable,
-            (response: DistinctValuesResponse) => {
-                setPopoverDistinctValues(response.values);
-            },
-        );
     }, []);
 
     /**
@@ -848,6 +858,7 @@ export const Profiler: React.FC = () => {
         },
         [filterState.clauses, applyFilter, clearFilter],
     );
+
     /**
      * Handle export to CSV request.
      * Sends export request to extension with suggested filename.
@@ -991,5 +1002,101 @@ const useStyles = makeStyles({
         flexDirection: "column",
     },
 });
+
+// Global styles for SlickGrid that need to be injected as CSS
+// These use CSS custom properties with --slick- prefix which makeStyles doesn't support well
+const slickGridStyles = `
+#profilerGrid {
+    /* Header colors - --slick-header-background-color is what .slick-header-column reads,
+       --slick-grid-header-background is what .slick-header-columns reads */
+    --slick-header-background-color: var(--vscode-editor-background);
+    --slick-grid-header-background: var(--vscode-editor-background);
+    --slick-header-text-color: var(--vscode-foreground);
+    --slick-hover-header-color: var(--vscode-foreground);
+    --slick-sorting-header-color: var(--vscode-foreground);
+    --slick-header-row-background-color: var(--vscode-editor-background);
+    --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
+    --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground);
+    --slick-header-row-border-color: var(--vscode-panel-border);
+
+    /* Cell & row colors */
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-canvas-bg-color: var(--vscode-editor-background);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-row-selected-color: var(--vscode-list-activeSelectionBackground);
+
+    /* Border colors */
+    --slick-border-color: var(--vscode-editorWidget-border);
+    --slick-grid-border-color: var(--vscode-editorWidget-border);
+    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-left: 0;
+    --slick-container-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border);
+
+    /* Scrollbar */
+    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background) var(--vscode-editor-background);
+
+    /* Column picker colors */
+    --slick-column-picker-background-color: var(--vscode-menu-background);
+    --slick-column-picker-item-color: var(--vscode-menu-foreground);
+    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-column-picker-border-color: var(--vscode-menu-border);
+    --slick-menu-bg-color: var(--vscode-menu-background);
+    --slick-menu-color: var(--vscode-menu-foreground);
+    --slick-menu-border: 1px solid var(--vscode-menu-border);
+    --slick-menu-item-hover-color: var(--vscode-menu-selectionBackground);
+
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Auto-hide scrollbars when not needed */
+#profilerGrid .slick-viewport {
+    overflow: auto !important;
+}
+
+/* Ensure internal grid structure fills container */
+#profilerGrid .slick-pane {
+    flex: 1;
+}
+
+#profilerGrid .slick-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Hide scrollbars when content fits */
+#profilerGrid .slick-viewport::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb {
+    background-color: var(--vscode-scrollbarSlider-background);
+    border-radius: 7px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:active {
+    background-color: var(--vscode-scrollbarSlider-activeBackground);
+}
+`;
 
 // #endregion

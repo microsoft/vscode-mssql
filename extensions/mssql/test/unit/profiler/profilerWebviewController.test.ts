@@ -659,7 +659,7 @@ suite("ProfilerWebviewController Tests", () => {
             expect(mockWebview.postMessage).to.have.been.called;
         });
 
-        test("should disable close prompt and clear unexported flag after export", () => {
+        test("should clear unexported flag but keep close prompt after export", () => {
             const controller = createController();
 
             // Set up session with events
@@ -675,11 +675,11 @@ suite("ProfilerWebviewController Tests", () => {
             controller.setCurrentSession(session);
             controller.notifyNewEvents(2);
 
-            // After export, events remaining in the buffer are considered exported,
-            // so the close prompt is disabled until new events arrive.
+            // After export, the unexported flag is cleared but the close prompt
+            // remains active because the session is still running.
             controller.setExportComplete();
 
-            expect((controller as any)._options.showRestorePromptAfterClose).to.be.false;
+            expect((controller as any)._options.showRestorePromptAfterClose).to.be.true;
             expect((controller as any).state.hasUnexportedEvents).to.be.false;
         });
     });

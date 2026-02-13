@@ -14,7 +14,11 @@ import { Writable } from "stream";
  * Format: YYYY-MM-DD-HH-mm-ss
  */
 export function generateExportTimestamp(): string {
-    return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    const iso = new Date().toISOString();
+    // Format: YYYY-MM-DD-HH-mm-ss (replace T and colons with dashes)
+    const date = iso.slice(0, 10);
+    const time = iso.slice(11, 19).split(":").join("-");
+    return `${date}-${time}`;
 }
 
 /**

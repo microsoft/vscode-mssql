@@ -18,6 +18,7 @@ import {
     FilterClause,
     FilterStateChangedParams,
     DistinctValuesResponse,
+    ProfilerRequests,
     ColumnType,
     FilterType,
 } from "../sharedInterfaces/profiler";
@@ -34,8 +35,8 @@ import {
     XelFileInfo,
 } from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
-import { Profiler as LocProfiler } from "../constants/locConstants";
-import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
+import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
+import { generateCsvContent } from "./csvUtils";
 
 /**
  * Events emitted by the profiler webview controller
@@ -207,9 +208,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Override showRestorePrompt to show export prompt when there are unexported events.
-     * Prompts the user to export or discard captured events before closing.
-     * Like VS Code's native "unsaved changes" dialog: Export & Close, Close Without Export, Cancel
+     * Override showRestorePrompt to show a simple confirmation when there are captured events.
+     * Behaves like an unsaved file: the panel stays open until the user explicitly confirms closure.
+     * "Yes" disposes the panel. "No" (or Escape) keeps it open.
      */
     protected override async showRestorePrompt(): Promise<
         | {
@@ -219,66 +220,25 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         | undefined
     > {
         const result = await vscode.window.showWarningMessage(
-            LocProfiler.unexportedEventsMessage,
+            LocProfiler.closeSessionConfirmation,
             {
                 modal: true,
             },
-            LocProfiler.exportAndClose,
-            LocProfiler.closeWithoutExport,
+            msgYes,
         );
 
-        if (result === LocProfiler.exportAndClose) {
-            // Perform export then allow close
-            await this.performExportFromBuffer();
-            return undefined; // Allow close
-        } else if (result === LocProfiler.closeWithoutExport) {
-            // Just close without export
-            return undefined; // Allow close
+        if (result === msgYes) {
+            // User confirmed – allow close (dispose will handle cleanup)
+            return undefined;
         } else {
-            // Cancel button clicked (result is undefined) - keep panel open without further prompts
+            // User cancelled (Escape / dismissed) – keep the panel open by recreating it
             return {
                 title: "",
                 run: async () => {
-                    // No-op: do nothing and keep the panel open
+                    this.createWebviewPanel();
+                    this.panel.reveal(vscode.ViewColumn.Beside);
                 },
             };
-        }
-    }
-
-    /**
-     * Generates CSV content from all events in the buffer and performs export.
-     * Used by the close prompt to export before closing.
-     */
-    private async performExportFromBuffer(): Promise<void> {
-        if (!this._currentSession || this._currentSession.events.size === 0) {
-            return;
-        }
-
-        // Get all events from the buffer
-        const allEvents = this._currentSession.events.getAllRows();
-
-        if (allEvents.length === 0) {
-            return;
-        }
-
-        // Get current view config to determine which columns to export
-        const viewConfig = this.state.viewConfig;
-        if (!viewConfig) {
-            return;
-        }
-
-        // Generate suggested file name
-        const sessionName = this._currentSession.sessionName || LocProfiler.defaultExportFileName;
-        const timestamp = generateExportTimestamp();
-        const suggestedFileName = `${sessionName}_${timestamp}`;
-
-        // Request a stream from the event handler and write CSV content to it
-        if (this._eventHandlers.onExportToCsv) {
-            const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
-            if (stream) {
-                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
-                stream.end(); // Close the stream to trigger 'finish' event
-            }
         }
     }
 
@@ -462,8 +422,10 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle apply filter request from webview (client-side only)
         this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
-            if (this._filteredBuffer) {
-                this._filteredBuffer.setFilter(payload.clauses);
+            if (!this._filteredBuffer) {
+                return state;
+            } else {
+                this._filteredBuffer.setColumnFilters(payload.clauses);
                 const totalCount = this._filteredBuffer.totalCount;
                 const filteredCount = this._filteredBuffer.getFilteredCount();
 
@@ -495,7 +457,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
                 return this.state;
             }
-            return state;
         });
 
         // Handle clear filter request from webview
@@ -532,22 +493,60 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         });
 
         // Handle get distinct values request from webview (scans unfiltered ring buffer)
-        this.registerReducer("getDistinctValues", (state, payload: { field: string }) => {
-            if (this._filteredBuffer) {
-                this.updateFilteredBufferConverter();
-                const values = this._filteredBuffer.getDistinctValuesForField(payload.field);
-                const response: DistinctValuesResponse = {
-                    field: payload.field,
-                    values,
-                };
-                void this.sendNotification(ProfilerNotifications.DistinctValuesAvailable, response);
+        this.onRequest(
+            ProfilerRequests.GetDistinctValues,
+            async (payload: { field: string }): Promise<DistinctValuesResponse> => {
+                if (this._filteredBuffer) {
+                    this.updateFilteredBufferConverter();
+                    const values = this._filteredBuffer.getDistinctValuesForField(payload.field);
+                    return {
+                        field: payload.field,
+                        values,
+                    };
+                }
+                return { field: payload.field, values: [] };
+            },
+        );
+
+        // Handle export to CSV request from webview
+        // Generate CSV from the RingBuffer (source of truth) rather than from grid data
+        // This ensures ALL events in the session buffer are exported
+        this.registerReducer("exportToCsv", (state, payload: { suggestedFileName: string }) => {
+            if (
+                this._currentSession &&
+                this._currentSession.events.size > 0 &&
+                this.state.viewConfig
+            ) {
+                const allEvents = this._currentSession.events.getAllRows();
+                const viewConfig = this.state.viewConfig;
+                if (this._eventHandlers.onExportToCsv) {
+                    // Request stream and write CSV (async, but reducer returns synchronously)
+                    void this._eventHandlers
+                        .onExportToCsv(payload.suggestedFileName)
+                        .then(async (stream) => {
+                            if (stream) {
+                                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                                stream.end();
+                            }
+                        })
+                        .catch((error) => {
+                            const errorMessage =
+                                error instanceof Error ? error.message : String(error);
+                            console.error("Failed to export profiler session to CSV:", error);
+                            void vscode.window.showErrorMessage(
+                                LocProfiler.exportFailed(errorMessage),
+                            );
+                        });
+                }
             }
             return state;
         });
 
         // Handle set quick filter request from webview
         this.registerReducer("setQuickFilter", (state, payload: { term: string }) => {
-            if (this._filteredBuffer) {
+            if (!this._filteredBuffer) {
+                return state;
+            } else {
                 const quickFilter = payload.term.trim();
                 const clauses = state.filterState?.clauses ?? [];
                 const hasColumnFilters = clauses.length > 0;
@@ -583,7 +582,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
                 return this.state;
             }
-            return state;
         });
     }
 
@@ -603,40 +601,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         };
 
         await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
-        // Handle export to CSV request from webview
-        // Generate CSV from the RingBuffer (source of truth) rather than from grid data
-        // This ensures ALL events in the session buffer are exported
-        this.registerReducer("exportToCsv", (state, payload: { suggestedFileName: string }) => {
-            // Generate CSV from buffer if we have a session
-            if (
-                this._currentSession &&
-                this._currentSession.events.size > 0 &&
-                this.state.viewConfig
-            ) {
-                const allEvents = this._currentSession.events.getAllRows();
-                const viewConfig = this.state.viewConfig;
-                if (this._eventHandlers.onExportToCsv) {
-                    // Request stream and write CSV (async, but reducer returns synchronously)
-                    void this._eventHandlers
-                        .onExportToCsv(payload.suggestedFileName)
-                        .then(async (stream) => {
-                            if (stream) {
-                                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
-                                stream.end(); // Close the stream to trigger 'finish' event
-                            }
-                        })
-                        .catch((error) => {
-                            const errorMessage =
-                                error instanceof Error ? error.message : String(error);
-                            console.error("Failed to export profiler session to CSV:", error);
-                            void vscode.window.showErrorMessage(
-                                LocProfiler.exportFailed(errorMessage),
-                            );
-                        });
-                }
-            }
-            return state;
-        });
     }
 
     /**
@@ -801,7 +765,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 savedFilterState.clauses.length > 0
             ) {
                 // Re-apply saved filter to the new buffer
-                this._filteredBuffer.setFilter(savedFilterState.clauses);
+                this._filteredBuffer.setColumnFilters(savedFilterState.clauses);
             }
 
             // Restore quick filter if present
@@ -916,7 +880,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Fetch rows from the buffer and convert to grid rows.
      * This is the core method for the pull model.
-     * Delegates all filtering (column filters + quick filter) to FilteredBuffer.
+     * Delegates filtering and pagination to FilteredBuffer, then converts
+     * the raw EventRows to ProfilerGridRows using the current view config.
      */
     private fetchRowsFromBuffer(startIndex: number, count: number): FetchRowsResponse {
         if (!this._currentSession || !this._filteredBuffer) {
@@ -927,16 +892,24 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             };
         }
 
-        // Ensure converter is up to date
+        // Ensure converter is up to date for filtering
         this.updateFilteredBufferConverter();
 
-        // Delegate to FilteredBuffer which handles conversion + filtering + pagination
-        const result = this._filteredBuffer.getConvertedFilteredRange(startIndex, count);
+        // Get filtered + paginated raw rows and total filtered count from FilteredBuffer
+        const filteredRows = this._filteredBuffer.getFilteredRange(startIndex, count);
+        const totalCount = this._filteredBuffer.getFilteredCount();
+
+        // Convert raw EventRows to view-specific grid rows
+        const configService = getProfilerConfigService();
+        const view = configService.getView(this._currentViewId);
+        const rows: ProfilerGridRow[] = view
+            ? (configService.convertEventsToViewRows(filteredRows, view) as ProfilerGridRow[])
+            : (filteredRows as unknown as ProfilerGridRow[]);
 
         return {
-            rows: result.rows as ProfilerGridRow[],
-            startIndex: result.startIndex,
-            totalCount: result.totalCount,
+            rows,
+            startIndex,
+            totalCount,
         };
     }
 
@@ -1002,6 +975,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Mark that export has been completed successfully.
      * This resets the hasUnexportedEvents flag and updates the lastExportTimestamp.
+     * The close confirmation prompt remains active because the session is still running.
      */
     public setExportComplete(): void {
         this.state = {
@@ -1009,9 +983,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             hasUnexportedEvents: false,
             lastExportTimestamp: Date.now(),
         };
-        // After a successful export there are no unexported events,
-        // so do not show the close prompt until new events arrive.
-        this.showRestorePromptAfterClose = false;
     }
 
     /**
