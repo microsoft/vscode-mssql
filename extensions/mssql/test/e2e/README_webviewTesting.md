@@ -2,9 +2,9 @@
 
 ### Prerequisites
 
--   [Node.js](https://nodejs.org/en/) v18 or higher
--   [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
--   [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
+- [Node.js](https://nodejs.org/en/) v18 or higher
+- [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
+- [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
 
 ### ⚠️ Important
 
@@ -14,9 +14,9 @@ If you have VSCode open, it can cause conflicts with the test-launched instance 
 
 This happens because:
 
--   An already running VSCode session can lock resources needed by the test instance.
--   The test-launched VSCode process may fail to start properly when another session is open.
--   It can cause instability, test failures, or crashes.
+- An already running VSCode session can lock resources needed by the test instance.
+- The test-launched VSCode process may fail to start properly when another session is open.
+- It can cause instability, test failures, or crashes.
 
 To avoid this, always ensure that **no VSCode windows are open** when running these tests.
 

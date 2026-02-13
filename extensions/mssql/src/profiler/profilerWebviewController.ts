@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { Writable } from "stream";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
     ProfilerWebviewState,
@@ -20,8 +21,9 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM } from "./profilerTypes";
+import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, XelFileInfo } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
 
 /**
  * Events emitted by the profiler webview controller
@@ -37,6 +39,8 @@ export interface ProfilerWebviewEvents {
     onStartSession?: (sessionId: string) => void;
     /** Emitted when view is changed from the UI */
     onViewChange?: (viewId: string) => void;
+    /** Emitted when export to CSV is requested from the UI. Returns a stream to write CSV content to. */
+    onExportToCsv?: (suggestedFileName: string) => Promise<Writable | undefined>;
 }
 
 /**
@@ -51,6 +55,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
+    private _isReadOnly: boolean;
+    private _xelFileInfo: XelFileInfo | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -59,6 +65,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         availableSessions: Array<{ id: string; name: string }> = [],
         sessionName?: string,
         templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
+        isReadOnly: boolean = false,
+        xelFileInfo?: XelFileInfo,
     ) {
         const configService = getProfilerConfigService();
         const template = configService.getTemplate(templateId);
@@ -81,6 +89,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             defaultView: t.defaultView,
         }));
 
+        // Determine title based on mode
+        const title = xelFileInfo
+            ? `Profiler: ${xelFileInfo.fileName}`
+            : sessionName
+              ? `Profiler: ${sessionName}`
+              : "Profiler";
+
         super(
             context,
             vscodeWrapper,
@@ -90,17 +105,20 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 totalRowCount: 0,
                 clearGeneration: 0,
                 sessionState: SessionState.NotStarted,
-                autoScroll: true,
-                sessionName: sessionName,
+                autoScroll: !isReadOnly, // Disable auto-scroll for read-only file sessions
+                sessionName: xelFileInfo?.fileName ?? sessionName,
                 templateId: templateId,
                 viewId: defaultViewId,
                 viewConfig: viewConfig,
                 availableViews: availableViews,
                 availableTemplates: availableTemplates,
                 availableSessions: availableSessions,
+                isReadOnly: isReadOnly,
+                xelFilePath: xelFileInfo?.filePath,
+                xelFileName: xelFileInfo?.fileName,
             },
             {
-                title: sessionName ? `Profiler: ${sessionName}` : "Profiler",
+                title: title,
                 viewColumn: vscode.ViewColumn.Beside,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -114,11 +132,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                         "executionPlan_light.svg",
                     ),
                 },
+                showRestorePromptAfterClose: false, // Will be set to true when events are captured
             },
         );
 
         this._sessionManager = sessionManager;
         this._currentViewId = defaultViewId;
+        this._isReadOnly = isReadOnly;
+        this._xelFileInfo = xelFileInfo;
 
         // Create status bar item for session info (unique ID per instance)
         this._statusBarItem = vscode.window.createStatusBarItem(
@@ -165,6 +186,139 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         }
 
         super.dispose();
+    }
+
+    /**
+     * Override showRestorePrompt to show export prompt when there are unexported events.
+     * Prompts the user to export or discard captured events before closing.
+     * Like VS Code's native "unsaved changes" dialog: Export & Close, Close Without Export, Cancel
+     */
+    protected override async showRestorePrompt(): Promise<
+        | {
+              title: string;
+              run: () => Promise<void>;
+          }
+        | undefined
+    > {
+        const result = await vscode.window.showWarningMessage(
+            LocProfiler.unexportedEventsMessage,
+            {
+                modal: true,
+            },
+            LocProfiler.exportAndClose,
+            LocProfiler.closeWithoutExport,
+        );
+
+        if (result === LocProfiler.exportAndClose) {
+            // Perform export then allow close
+            await this.performExportFromBuffer();
+            return undefined; // Allow close
+        } else if (result === LocProfiler.closeWithoutExport) {
+            // Just close without export
+            return undefined; // Allow close
+        } else {
+            // Cancel button clicked (result is undefined) - keep panel open without further prompts
+            return {
+                title: "",
+                run: async () => {
+                    // No-op: do nothing and keep the panel open
+                },
+            };
+        }
+    }
+
+    /**
+     * Generates CSV content from all events in the buffer and performs export.
+     * Used by the close prompt to export before closing.
+     */
+    private async performExportFromBuffer(): Promise<void> {
+        if (!this._currentSession || this._currentSession.events.size === 0) {
+            return;
+        }
+
+        // Get all events from the buffer
+        const allEvents = this._currentSession.events.getAllRows();
+
+        if (allEvents.length === 0) {
+            return;
+        }
+
+        // Get current view config to determine which columns to export
+        const viewConfig = this.state.viewConfig;
+        if (!viewConfig) {
+            return;
+        }
+
+        // Generate suggested file name
+        const sessionName = this._currentSession.sessionName || LocProfiler.defaultExportFileName;
+        const timestamp = generateExportTimestamp();
+        const suggestedFileName = `${sessionName}_${timestamp}`;
+
+        // Request a stream from the event handler and write CSV content to it
+        if (this._eventHandlers.onExportToCsv) {
+            const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
+            if (stream) {
+                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                stream.end(); // Close the stream to trigger 'finish' event
+            }
+        }
+    }
+
+    /**
+     * Generates CSV content from events using the current view configuration.
+     * Uses shared csvUtils for consistent CSV formatting across the extension.
+     * Writes directly to the provided stream for memory efficiency.
+     */
+    private async generateCsvFromEvents(
+        stream: Writable,
+        events: EventRow[],
+        viewConfig: ProfilerViewConfig,
+    ): Promise<void> {
+        const columns = viewConfig.columns.map((col) => ({
+            field: col.field,
+            header: col.header,
+        }));
+
+        await generateCsvContent(stream, columns, events, (event, field) =>
+            this.getEventFieldValue(event, field),
+        );
+    }
+
+    /**
+     * Gets the value of a field from an EventRow.
+     * Handles both direct properties and additionalData.
+     * Supports both PascalCase (from view config) and camelCase field names.
+     * Returns undefined for missing values so CSV formatter can handle them properly.
+     */
+    private getEventFieldValue(event: EventRow, field: string): string | number | Date | undefined {
+        // Map field names to EventRow properties (case-insensitive)
+        switch (field.toLowerCase()) {
+            case "eventnumber":
+                return event.eventNumber;
+            case "timestamp":
+            case "starttime":
+                // Return Date object for timestamp - formatCsvCell will handle conversion
+                return event.timestamp;
+            case "eventclass":
+                return event.eventClass;
+            case "textdata":
+                return event.textData;
+            case "databasename":
+                return event.databaseName;
+            case "spid":
+                return event.spid;
+            case "duration":
+                return event.duration;
+            case "cpu":
+                return event.cpu;
+            case "reads":
+                return event.reads;
+            case "writes":
+                return event.writes;
+            default:
+                // Check additionalData for other fields (e.g., ApplicationName, LoginName, etc.)
+                return event.additionalData?.[field];
+        }
     }
 
     /**
@@ -354,6 +508,40 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 ),
             );
         }
+        // Handle export to CSV request from webview
+        // Generate CSV from the RingBuffer (source of truth) rather than from grid data
+        // This ensures ALL events in the session buffer are exported
+        this.registerReducer("exportToCsv", (state, payload: { suggestedFileName: string }) => {
+            // Generate CSV from buffer if we have a session
+            if (
+                this._currentSession &&
+                this._currentSession.events.size > 0 &&
+                this.state.viewConfig
+            ) {
+                const allEvents = this._currentSession.events.getAllRows();
+                const viewConfig = this.state.viewConfig;
+                if (this._eventHandlers.onExportToCsv) {
+                    // Request stream and write CSV (async, but reducer returns synchronously)
+                    void this._eventHandlers
+                        .onExportToCsv(payload.suggestedFileName)
+                        .then(async (stream) => {
+                            if (stream) {
+                                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                                stream.end(); // Close the stream to trigger 'finish' event
+                            }
+                        })
+                        .catch((error) => {
+                            const errorMessage =
+                                error instanceof Error ? error.message : String(error);
+                            console.error("Failed to export profiler session to CSV:", error);
+                            void vscode.window.showErrorMessage(
+                                LocProfiler.exportFailed(errorMessage),
+                            );
+                        });
+                }
+            }
+            return state;
+        });
     }
 
     /**
@@ -368,6 +556,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const state = this.state;
         const sessionName = state.sessionName;
         const sessionState = state.sessionState;
+        const isReadOnly = state.isReadOnly ?? this._isReadOnly;
         // Get count directly from current session's ring buffer if available (source of truth)
         // Otherwise fall back to state (which might be stale)
         const totalRowCount = this._currentSession?.events.size ?? state.totalRowCount ?? 0;
@@ -375,21 +564,30 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         let statusText = "";
 
         if (sessionName) {
-            statusText = sessionName;
+            // For read-only file sessions, show file indicator
+            if (isReadOnly && state.xelFileName) {
+                statusText = LocProfiler.fileSessionLabel(state.xelFileName);
+            } else {
+                statusText = sessionName;
+            }
 
             // Add status indicator
-            switch (sessionState) {
-                case SessionState.Running:
-                    statusText += ` $(circle-filled) ${LocProfiler.stateRunning}`;
-                    break;
-                case SessionState.Paused:
-                    statusText += ` $(debug-pause) ${LocProfiler.statePaused}`;
-                    break;
-                case SessionState.Stopped:
-                    statusText += ` $(stop-circle) ${LocProfiler.stateStopped}`;
-                    break;
-                default:
-                    statusText += ` $(circle-outline) ${LocProfiler.stateNotStarted}`;
+            if (isReadOnly) {
+                statusText += ` $(lock) ${LocProfiler.stateReadOnly}`;
+            } else {
+                switch (sessionState) {
+                    case SessionState.Running:
+                        statusText += ` $(circle-filled) ${LocProfiler.stateRunning}`;
+                        break;
+                    case SessionState.Paused:
+                        statusText += ` $(debug-pause) ${LocProfiler.statePaused}`;
+                        break;
+                    case SessionState.Stopped:
+                        statusText += ` $(stop-circle) ${LocProfiler.stateStopped}`;
+                        break;
+                    default:
+                        statusText += ` $(circle-outline) ${LocProfiler.stateNotStarted}`;
+                }
             }
 
             // Add event count
@@ -400,6 +598,27 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         this._statusBarItem.text = statusText;
         this._statusBarItem.tooltip = LocProfiler.statusBarTooltip;
+    }
+
+    /**
+     * Reveals the webview panel to the foreground
+     */
+    public revealToForeground(): void {
+        this.panel.reveal(vscode.ViewColumn.Beside);
+    }
+
+    /**
+     * Gets whether this is a read-only session
+     */
+    public get isReadOnly(): boolean {
+        return this._isReadOnly;
+    }
+
+    /**
+     * Gets the XEL file info if this is a file-based session
+     */
+    public get xelFileInfo(): XelFileInfo | undefined {
+        return this._xelFileInfo;
     }
 
     /**
@@ -490,8 +709,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.state = {
             ...this.state,
             totalRowCount: totalCount,
+            hasUnexportedEvents: totalCount > 0, // Mark as having unexported events when we have data
         };
         this.updateStatusBar();
+
+        // Enable close prompt when there are unexported events
+        if (totalCount > 0) {
+            this.showRestorePromptAfterClose = true;
+        }
 
         // Notify webview of new data availability
         const params: NewEventsAvailableParams = {
@@ -627,6 +852,21 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             };
         }
         this.updateStatusBar();
+    }
+
+    /**
+     * Mark that export has been completed successfully.
+     * This resets the hasUnexportedEvents flag and updates the lastExportTimestamp.
+     */
+    public setExportComplete(): void {
+        this.state = {
+            ...this.state,
+            hasUnexportedEvents: false,
+            lastExportTimestamp: Date.now(),
+        };
+        // After a successful export there are no unexported events,
+        // so do not show the close prompt until new events arrive.
+        this.showRestorePromptAfterClose = false;
     }
 
     /**

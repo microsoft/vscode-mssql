@@ -42,7 +42,7 @@
         "localization:extract": "node ../../scripts/localization-extract.js data-workspace",
         "localization:generate": "node ../../scripts/localization-generate.js data-workspace .",
         "localization": "yarn localization:extract",
-        "test": "yarn build && node ./out/src/test/runTest.js",
+        "test": "yarn build && node ./out/test/runTest.js",
         "package": "yarn build && vsce package --no-yarn"
     },
     "capabilities": {

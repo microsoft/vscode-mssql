@@ -30,6 +30,7 @@ export class LocConstants {
                     comment: ["{0} is the action being confirmed"],
                 }),
             close: l10n.t("Close"),
+            copy: l10n.t("Copy"),
             apply: l10n.t("Apply"),
             next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
@@ -2055,6 +2056,7 @@ export class LocConstants {
             selectSessionLabel: l10n.t("Select Session:"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
+            readOnlyFileLabel: l10n.t("File (Read-Only)"),
 
             // Tooltips
             creatingSessionTooltip: l10n.t("Creating session..."),
@@ -2070,12 +2072,22 @@ export class LocConstants {
             clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+            readOnlyDisabledTooltip: l10n.t("Not available for read-only file sessions"),
+            sessionActiveCannotChangeTooltip: l10n.t("Cannot change session while active"),
+            xelFileReadOnlyDisconnectedTooltip: (fileName: string) =>
+                l10n.t({
+                    message:
+                        "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+                    args: [fileName],
+                    comment: ["{0} is the XEL file name"],
+                }),
 
             // Session states
             stateRunning: l10n.t("Running"),
             statePaused: l10n.t("Paused"),
             stateStopped: l10n.t("Stopped"),
             stateNotStarted: l10n.t("Not Started"),
+            stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
             noSession: l10n.t("Profiler: No session"),
@@ -2092,10 +2104,8 @@ export class LocConstants {
                 textTab: l10n.t("Text"),
                 detailsTab: l10n.t("Details"),
                 openInEditor: l10n.t("Open in Editor"),
-                copy: l10n.t("Copy"),
                 maximize: l10n.t("Maximize"),
                 restore: l10n.t("Restore"),
-                close: l10n.t("Close"),
                 noEventSelected: l10n.t("No event selected"),
                 noTextData: l10n.t("No text data available"),
                 openInEditorTooltip: l10n.t("Open text data in a new editor"),
@@ -2117,6 +2127,11 @@ export class LocConstants {
                         comment: ["{0} is the name of the profiler event"],
                     }),
             },
+            // Export
+            exportToCsv: l10n.t("Export to CSV"),
+            exportTooltip: l10n.t("Export all captured events to a CSV file"),
+            noEventsToExport: l10n.t("No events to export"),
+            defaultExportFileName: l10n.t("profiler_events"),
         };
     }
 

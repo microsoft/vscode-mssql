@@ -108,6 +108,16 @@ export interface ProfilerWebviewState {
     isCreatingSession?: boolean;
     /** The currently selected event details for the embedded details panel */
     selectedEvent?: ProfilerSelectedEventDetails;
+    /** Whether this is a read-only file-based session */
+    isReadOnly?: boolean;
+    /** File path if this is a file-based session */
+    xelFilePath?: string;
+    /** File name for display if this is a file-based session */
+    xelFileName?: string;
+    /** Whether there are unexported events since last export */
+    hasUnexportedEvents?: boolean;
+    /** Timestamp of last export (for dirty tracking) */
+    lastExportTimestamp?: number;
 }
 
 /**
@@ -176,6 +186,10 @@ export interface ProfilerSelectedEventDetails {
     textData: string;
     /** All event properties (for the Details tab) */
     properties: ProfilerEventProperty[];
+    /** Export events to CSV file */
+    exportToCsv: {
+        suggestedFileName: string;
+    };
 }
 
 /**
@@ -209,6 +223,26 @@ export interface RowsRemovedParams {
 }
 
 /**
+ * Payload for export to CSV request
+ */
+export interface ExportToCsvParams {
+    /** Suggested file name */
+    suggestedFileName: string;
+}
+
+/**
+ * Payload for export result notification
+ */
+export interface ExportResultParams {
+    /** Whether the export was successful */
+    success: boolean;
+    /** Error message if export failed */
+    errorMessage?: string;
+    /** File path if export succeeded */
+    filePath?: string;
+}
+
+/**
  * Notification types for profiler webview communication
  */
 export namespace ProfilerNotifications {
@@ -233,4 +267,6 @@ export namespace ProfilerNotifications {
 
     /** Notification sent from webview to copy text to clipboard */
     export const CopyToClipboard = new NotificationType<{ text: string }>("copyToClipboard");
+    /** Notification sent when export result is available */
+    export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
 }

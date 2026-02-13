@@ -161,6 +161,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
 }) => {
     const classes = useStyles();
     const loc = locConstants.profiler.detailsPanel;
+    const commonLoc = locConstants.common;
     const [activeTab, setActiveTab] = useState<DetailsPanelTab>(DetailsPanelTab.Text);
 
     // Memoize the theme for Monaco editor
@@ -265,7 +266,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                                     icon={<Copy16Regular />}
                                     onClick={handleCopy}
                                     disabled={!hasTextData}
-                                    aria-label={loc.copy}
+                                    aria-label={commonLoc.copy}
                                 />
                             </Tooltip>
                         </>
@@ -297,7 +298,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                                     appearance="subtle"
                                     icon={<Dismiss16Regular />}
                                     onClick={onClose}
-                                    aria-label={loc.close}
+                                    aria-label={commonLoc.close}
                                 />
                             </Tooltip>
                         </>

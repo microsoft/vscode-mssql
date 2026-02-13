@@ -89,6 +89,7 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
+import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -665,6 +666,15 @@ export default class MainController implements vscode.Disposable {
             );
             vscode.window.registerCustomEditorProvider("mssql.executionPlanView", providerInstance);
 
+            // Register XEL file custom editor provider
+            const xelProviderInstance = new this.ProfilerXelCustomEditorProvider(
+                this.profilerController,
+            );
+            vscode.window.registerCustomEditorProvider(
+                "mssql.profilerXelView",
+                xelProviderInstance,
+            );
+
             const self = this;
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
@@ -789,26 +799,27 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        // Register mssql_show_schema tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotShowSchemaToolName,
+                new ShowSchemaTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) => {
+                        await this.openSchemaDesigner(connectionUri, database);
+                    },
+                ),
+            ),
+        );
+
         // Register mssql_schema_designer tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
                 Constants.copilotSchemaDesignerToolName,
                 new SchemaDesignerTool(
                     this.connectionManager,
-                    async (connectionUri: string, database: string) => {
-                        const designer =
-                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
-                                this._context,
-                                this._vscodeWrapper,
-                                this,
-                                this.schemaDesignerService,
-                                database,
-                                undefined,
-                                connectionUri,
-                            );
-                        designer.revealToForeground();
-                        return designer;
-                    },
+                    async (connectionUri: string, database: string) =>
+                        this.openSchemaDesigner(connectionUri, database),
                 ),
             ),
         );
@@ -817,6 +828,20 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
         );
+    }
+
+    private async openSchemaDesigner(connectionUri: string, database: string) {
+        const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+            this._context,
+            this._vscodeWrapper,
+            this,
+            this.schemaDesignerService,
+            database,
+            undefined,
+            connectionUri,
+        );
+        designer.revealToForeground();
+        return designer;
     }
 
     /**
@@ -3053,6 +3078,40 @@ export default class MainController implements vscode.Disposable {
                 planContents,
                 docName,
             );
+        }
+    };
+
+    /**
+     * Custom editor provider for XEL files.
+     * Opens XEL files in the SQL Profiler UI in read-only mode.
+     * Uses CustomReadonlyEditorProvider since XEL files are binary.
+     */
+    private ProfilerXelCustomEditorProvider = class
+        implements vscode.CustomReadonlyEditorProvider<vscode.CustomDocument>
+    {
+        constructor(public profilerController: ProfilerController) {}
+
+        public async openCustomDocument(uri: vscode.Uri): Promise<vscode.CustomDocument> {
+            // Return a simple custom document - the actual file reading is done by the backend
+            return {
+                uri,
+                dispose: () => {
+                    // No cleanup needed
+                },
+            };
+        }
+
+        public async resolveCustomEditor(
+            document: vscode.CustomDocument,
+            webviewPanel: vscode.WebviewPanel,
+        ): Promise<void> {
+            const filePath = document.uri.fsPath;
+
+            // Dispose the webview panel since we'll use our own profiler UI
+            webviewPanel.dispose();
+
+            // Open the XEL file in the Profiler UI
+            await this.profilerController.openXelFile(filePath);
         }
     };
 }
