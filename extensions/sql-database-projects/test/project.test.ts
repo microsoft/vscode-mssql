@@ -561,10 +561,9 @@ suite("Project: sdk style project content operations", function (): void {
 
         const project: Project = await Project.openProject(projFilePath);
 
-        // Capture initial counts
-        const initialFolderCount = project.folders.length;
-        const initialScriptCount = project.sqlObjectScripts.length;
-        const initialNoneDeployCount = project.noneDeployScripts.length;
+        expect(project.sqlObjectScripts.length).to.equal(13);
+        expect(project.folders.length).to.equal(3);
+        expect(project.noneDeployScripts.length).to.equal(2);
 
         // Verify folder1 exists before exclusion
         expect(project.folders.find((f) => f.relativePath === "folder1")).to.not.equal(undefined);
@@ -573,12 +572,12 @@ suite("Project: sdk style project content operations", function (): void {
         await project.excludeFolder("folder1");
 
         // verify folder and contents are excluded
-        expect(project.folders.length).to.be.lessThan(initialFolderCount);
-        expect(project.sqlObjectScripts.length).to.be.lessThan(initialScriptCount);
+        expect(project.folders.length).to.equal(1);
+        expect(project.sqlObjectScripts.length).to.equal(6);
         expect(
             project.noneDeployScripts.length,
             "Script.PostDeployment2.sql should have been excluded",
-        ).to.be.lessThan(initialNoneDeployCount);
+        ).to.equal(1);
         expect(project.folders.find((f) => f.relativePath === "folder1")).to.equal(undefined);
     });
 
@@ -598,18 +597,15 @@ suite("Project: sdk style project content operations", function (): void {
 
         const project: Project = await Project.openProject(projFilePath);
 
-        // Capture initial counts (may vary based on file system)
-        const initialFolderCount = project.folders.length;
-        const initialScriptCount = project.sqlObjectScripts.length;
-        expect(initialFolderCount).to.be.greaterThan(0);
-        expect(initialScriptCount).to.be.greaterThan(0);
+        expect(project.sqlObjectScripts.length).to.equal(13);
+        expect(project.folders.length).to.equal(3);
 
         // try to exclude a glob included folder
         await project.excludeFolder("folder1\\nestedFolder");
 
-        // verify folder and contents are excluded - counts should decrease
-        expect(project.folders.length).to.be.lessThan(initialFolderCount);
-        expect(project.sqlObjectScripts.length).to.be.lessThan(initialScriptCount);
+        // verify folder and contents are excluded
+        expect(project.folders.length).to.equal(2);
+        expect(project.sqlObjectScripts.length).to.equal(11);
         expect(project.folders.find((f) => f.relativePath === "folder1\\nestedFolder")).to.equal(
             undefined,
         );
