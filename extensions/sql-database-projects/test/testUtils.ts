@@ -9,7 +9,6 @@ import * as constants from "../src/common/constants";
 import * as templates from "../src/templates/templates";
 import * as vscode from "vscode";
 import * as sqldbproj from "sqldbproj";
-import * as utils from "../src/common/utils";
 
 import { promises as fs } from "fs";
 import should = require("should/as-function");
@@ -39,9 +38,7 @@ export async function shouldThrowSpecificError(
 }
 
 export function getExtensionResourcePath(...segments: string[]): string {
-    const extName = utils.getAzdataApi()
-        ? sqldbproj.extension.name
-        : sqldbproj.extension.vsCodeName;
+    const extName = sqldbproj.extension.vsCodeName;
     const extensionPath = vscode.extensions.getExtension(extName)?.extensionPath ?? "";
     return path.join(extensionPath, ...segments);
 }

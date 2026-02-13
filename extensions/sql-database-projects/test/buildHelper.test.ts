@@ -10,7 +10,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { BuildHelper } from "../src/tools/buildHelper";
 import { TestContext, createContext } from "./testContext";
-import { ProjectType } from "mssql";
+import { ProjectType } from "vscode-mssql";
 import * as sqldbproj from "sqldbproj";
 import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";

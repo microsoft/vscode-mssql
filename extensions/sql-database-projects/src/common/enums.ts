@@ -30,3 +30,12 @@ export const enum DeploymentScenario {
      */
     SchemaCompare = 1,
 }
+
+/**
+ * Specifies the mode in which a task should be executed.
+ */
+export enum TaskExecutionMode {
+    execute = 0,
+    script = 1,
+    executeAndScript = 2,
+}
