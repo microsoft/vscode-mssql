@@ -127,6 +127,12 @@ jobs:
           cd extensions/data-workspace
           vsce package
 
+      - name: Keymap - Package extension
+        continue-on-error: true
+        run: |
+          cd extensions/database-management-keymap
+          vsce package
+
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
         with:
@@ -144,6 +150,12 @@ jobs:
         with:
           name: data-workspace-vsix
           path: ./extensions/data-workspace/*.vsix
+
+      - name: Keymap - Upload VSIX files
+        uses: actions/upload-artifact@v6
+        with:
+          name: keymap-vsix
+          path: ./extensions/database-management-keymap/*.vsix
 
       - name: Setting up change icons
         if: env.should_compare_baseline == 'true'
