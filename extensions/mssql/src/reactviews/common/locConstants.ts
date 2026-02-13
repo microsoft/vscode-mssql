@@ -65,6 +65,7 @@ export class LocConstants {
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
+            previous: l10n.t("Previous"),
         };
     }
 
@@ -1201,6 +1202,45 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+
+            // DAB Deployment Dialog
+            deployDabContainer: l10n.t("Deploy DAB Container"),
+            localContainerDeployment: l10n.t("Local Container Deployment"),
+            deployDabContainerDescription: l10n.t(
+                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+            ),
+            requirements: l10n.t("Requirements:"),
+            dockerDesktopRequirement: l10n.t(
+                "Docker Desktop must be installed and running on your machine.",
+            ),
+            containerSettings: l10n.t("Container Settings"),
+            containerName: l10n.t("Container Name"),
+            containerNameRequired: l10n.t("Container name is required"),
+            containerNameInvalid: l10n.t(
+                "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
+            ),
+            containerNameHint: l10n.t("Name for the Docker container running DAB"),
+            port: l10n.t("Port"),
+            portInvalid: l10n.t("Port must be between 1 and 65535"),
+            portHint: l10n.t("Port to expose the API on (default: 5000)"),
+            deploymentComplete: l10n.t("Deployment Complete"),
+            deploymentFailed: l10n.t("Deployment Failed"),
+            dabContainerRunning: l10n.t("DAB container is running!"),
+            apiAvailableAt: l10n.t("Your API is available at:"),
+
+            // DAB Deployment Steps
+            checkingDockerInstallation: l10n.t("Checking Docker installation"),
+            verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
+            startingDockerDesktop: l10n.t("Starting Docker Desktop"),
+            ensuringDockerDesktopRunning: l10n.t("Ensuring Docker Desktop is running"),
+            checkingDockerEngine: l10n.t("Checking Docker engine"),
+            verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
+            pullingDabImage: l10n.t("Pulling DAB container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            startingDabContainer: l10n.t("Starting DAB container"),
+            creatingAndStartingContainer: l10n.t("Creating and starting the container"),
+            checkingContainerReadiness: l10n.t("Checking container readiness"),
+            verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
         };
     }
 
@@ -1683,6 +1723,78 @@ export class LocConstants {
         };
     }
 
+    public get searchDatabase() {
+        return {
+            // Page titles and headers
+            title: l10n.t("Search Database Objects"),
+            loading: l10n.t("Loading database objects"),
+            connectingTo: (serverName: string) =>
+                l10n.t({
+                    message: "Connecting to {0}...",
+                    args: [serverName],
+                    comment: ["{0} is the server name"],
+                }),
+            defaultError: l10n.t("An error occurred while loading data."),
+            errorLoadingDatabaseObjects: l10n.t("Error loading database objects"),
+            searching: l10n.t("Searching..."),
+            objectsFound: (count: number) =>
+                l10n.t({
+                    message: "{0} objects found",
+                    args: [count],
+                    comment: ["{0} is the number of objects found"],
+                }),
+
+            // Filter labels
+            database: l10n.t("Database"),
+            objectTypes: l10n.t("Object Types"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            storedProcedures: l10n.t("Stored Procedures"),
+            functions: l10n.t("Functions"),
+            schemas: l10n.t("Schemas"),
+            all: l10n.t("All"),
+            none: l10n.t("None"),
+
+            // Type names (singular, for display)
+            typeTable: l10n.t("Table"),
+            typeView: l10n.t("View"),
+            typeStoredProcedure: l10n.t("Stored Procedure"),
+            typeFunction: l10n.t("Function"),
+
+            // Toolbar
+            searchPlaceholder: l10n.t(
+                "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
+            ),
+
+            // Results table headers
+            name: l10n.t("Name"),
+            schema: l10n.t("Schema"),
+            type: l10n.t("Type"),
+            actions: l10n.t("Actions"),
+
+            // Empty state
+            noObjectsFound: l10n.t("No objects found"),
+            tryAdjustingFilters: l10n.t("Try adjusting your search or filters"),
+
+            // Column header filters
+            filterByName: l10n.t("Filter by name"),
+            filterBySchema: l10n.t("Filter by schema"),
+            filterByType: l10n.t("Filter by type"),
+            filterColumnAriaLabel: (columnName: string) => l10n.t("Filter {0}", columnName),
+            selectAll: l10n.t("Select All"),
+
+            // Action menu items
+            selectTop1000: l10n.t("Select Top 1000"),
+            scriptAsCreate: l10n.t("Script as Create"),
+            scriptAsDrop: l10n.t("Script as Drop"),
+            scriptAsAlter: l10n.t("Script as Alter"),
+            scriptAsExecute: l10n.t("Script as Execute"),
+            editData: l10n.t("Edit Data"),
+            modifyTable: l10n.t("Modify Table"),
+            copyObjectName: l10n.t("Copy Object Name"),
+        };
+    }
+
     // SlickGrid-specific localization strings
     public get slickGrid() {
         return {
@@ -1749,9 +1861,9 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration - Connections"),
+            title: l10n.t("Azure Data Studio Migration"),
             subtitle: l10n.t(
-                "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+                "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
             configInputLabel: l10n.t("Azure Data Studio settings file"),
             configInputDescription: l10n.t(
@@ -1844,6 +1956,57 @@ export class LocConstants {
             entraSignInDialogMessage: l10n.t(
                 "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
             ),
+            settingsHeader: l10n.t("Settings and Keybindings"),
+            settingsCollapse: l10n.t("Collapse settings"),
+            settingsExpand: l10n.t("Expand settings"),
+            importSettingsCheckboxLabel: l10n.t(
+                "Import connection configuration settings from Azure Data Studio",
+            ),
+            viewSettingsButton: l10n.t("View settings"),
+            viewSettingsDialogTitle: l10n.t("Configuration to Import"),
+            settingsKeyColumn: l10n.t("Setting"),
+            settingsValueColumn: l10n.t("Value"),
+            noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            keymapCallout: l10n.t(
+                "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+            ),
+            keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
+            importedConnectionGroups: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection group imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connection groups imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (plural)"],
+                      }),
+            importedConnections: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connections imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (plural)"],
+                      }),
+            importedSettings: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} setting imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} settings imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (plural)"],
+                      }),
         };
     }
 
@@ -1922,6 +2085,7 @@ export class LocConstants {
             selectSessionLabel: l10n.t("Select Session:"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
+            readOnlyFileLabel: l10n.t("File (Read-Only)"),
 
             // Tooltips
             creatingSessionTooltip: l10n.t("Creating session..."),
@@ -1937,12 +2101,22 @@ export class LocConstants {
             clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+            readOnlyDisabledTooltip: l10n.t("Not available for read-only file sessions"),
+            sessionActiveCannotChangeTooltip: l10n.t("Cannot change session while active"),
+            xelFileReadOnlyDisconnectedTooltip: (fileName: string) =>
+                l10n.t({
+                    message:
+                        "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+                    args: [fileName],
+                    comment: ["{0} is the XEL file name"],
+                }),
 
             // Session states
             stateRunning: l10n.t("Running"),
             statePaused: l10n.t("Paused"),
             stateStopped: l10n.t("Stopped"),
             stateNotStarted: l10n.t("Not Started"),
+            stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
             noSession: l10n.t("Profiler: No session"),
@@ -1953,6 +2127,47 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of events"],
                 }),
+
+            // Export
+            exportToCsv: l10n.t("Export to CSV"),
+            exportTooltip: l10n.t("Export all captured events to a CSV file"),
+            noEventsToExport: l10n.t("No events to export"),
+            defaultExportFileName: l10n.t("profiler_events"),
+        };
+    }
+
+    public get flatFileImport() {
+        return {
+            importFile: l10n.t("Import File"),
+            stepOne: l10n.t("Step 1: Specify Input File"),
+            loadingFlatFileImport: l10n.t("Loading flat file import..."),
+            loadingTablePreview: l10n.t("Loading table preview..."),
+            browse: l10n.t("Browse"),
+            stepTwo: l10n.t("Step 2: Preview Data"),
+            operationPreviewText: l10n.t(
+                "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+            ),
+            stepThree: l10n.t("Step 3: Modify Columns"),
+            columnName: l10n.t("Column Name"),
+            dataType: l10n.t("Data Type"),
+            allowNulls: l10n.t("Allow Nulls"),
+            primaryKey: l10n.t("Primary Key"),
+            importData: l10n.t("Import Data"),
+            stepFour: l10n.t("Step 4: Summary"),
+            importInformation: l10n.t("Import Information"),
+            importStatus: l10n.t("Import Status"),
+            objectType: l10n.t("Object Type"),
+            name: l10n.t("Name"),
+            serverName: l10n.t("Server Name"),
+            databaseName: l10n.t("Database Name"),
+            tableName: l10n.t("Table Name"),
+            tableSchema: l10n.t("Table Schema"),
+            fileToBeImported: l10n.t("File to be imported"),
+            importingData: l10n.t("Importing data..."),
+            importSuccessful: l10n.t("File imported successfully"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            importNewFile: l10n.t("Import New File"),
         };
     }
 }

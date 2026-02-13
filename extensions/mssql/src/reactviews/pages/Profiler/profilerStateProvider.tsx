@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, ReactNode, useContext, useCallback } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 import { ProfilerWebviewState, ProfilerReducers } from "../../../sharedInterfaces/profiler";
 
@@ -30,6 +30,8 @@ export interface ProfilerRpcMethods {
     toggleAutoScroll: () => void;
     /** Fetch rows from the buffer (pull model for infinite scroll) */
     fetchRows: (startIndex: number, count: number) => void;
+    /** Export events to CSV file */
+    exportToCsv: (suggestedFileName: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -43,7 +45,7 @@ interface ProfilerProviderProps {
 }
 
 const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ProfilerWebviewState, ProfilerReducers>();
+    const { extensionRpc } = useVscodeWebview<ProfilerWebviewState, ProfilerReducers>();
 
     const pauseResume = useCallback(async () => {
         extensionRpc?.action("pauseResume", {});
@@ -100,6 +102,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const exportToCsv = useCallback(
+        (suggestedFileName: string) => {
+            extensionRpc?.action("exportToCsv", { suggestedFileName });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -113,6 +122,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 changeView,
                 toggleAutoScroll,
                 fetchRows,
+                exportToCsv,
             }}>
             {children}
         </ProfilerContext.Provider>

@@ -28,6 +28,7 @@ import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { useCallback, useContext, useRef, useEffect, useState, cloneElement } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
@@ -866,9 +867,12 @@ const TableColumns = ({
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const enableExpandCollapseButtons = useSchemaDesignerSelector(
+        (s) => s?.enableExpandCollapseButtons,
+    );
 
     // Get setting from webview state, default to true if not set
-    const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
+    const expandCollapseEnabled = enableExpandCollapseButtons ?? true;
     const showBaselineHighlights = context.showChangesHighlight && !isPendingAiMode;
 
     const deletedColumns = showBaselineHighlights
@@ -1033,7 +1037,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
         ? hasPendingAiChanges &&
           pendingAiTableChange?.action !== ChangeAction.Add &&
           pendingAiTableChange?.action !== ChangeAction.Delete &&
-                    (pendingAiTableChange?.action === ChangeAction.Modify || hasPendingAiColumnChanges)
+          (pendingAiTableChange?.action === ChangeAction.Modify || hasPendingAiColumnChanges)
         : !isDeletedTable &&
           context.showChangesHighlight &&
           context.modifiedTableHighlights.has(table.id);

@@ -12,7 +12,6 @@ import {
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
 import { WebviewRpc } from "./rpc";
-import { VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.
@@ -96,13 +95,7 @@ export function deepClone<T>(obj: T): T {
     return result;
 }
 
-export function getCoreRPCs<TState, TReducers>(
-    webviewContext: VscodeWebviewContext<TState, TReducers>,
-): CoreRPCs {
-    return getCoreRPCs2(webviewContext.extensionRpc);
-}
-
-export function getCoreRPCs2<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
+export function getCoreRPCs<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
     return {
         log(message: string, level?: LoggerLevel) {
             extensionRpc.log(message, level);

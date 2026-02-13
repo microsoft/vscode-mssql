@@ -18,6 +18,8 @@ import { SegmentedControl } from "../../common/segmentedControl";
 import { SchemaDesignerChangesPanel } from "./changes/schemaDesignerChangesPanel";
 import { SchemaDesignerChangesCodeDiff } from "./changes/schemaDesignerChangesCodeDiff";
 import { getVisiblePendingAiSchemaChanges } from "./aiLedger/ledgerUtils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
 enum SchemaDesignerDefinitionCustomTabs {
     Changes = "changes",
@@ -40,6 +42,11 @@ const useStyles = makeStyles({
 });
 
 export const SchemaDesignerDefinitionsPanel = () => {
+    const context = useContext(SchemaDesignerContext);
+    const { themeKind } = useVscodeWebview<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
     const classes = useStyles();
     const {
         aiLedger,
@@ -54,8 +61,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
         setChangesPanelTab,
         setIsChangesPanelVisible,
         setShowChangesHighlight,
-        themeKind,
-    } = useContext(SchemaDesignerContext);
+    } = context;
     const [code, setCode] = useState<string>("");
     const [baselineCode, setBaselineCode] = useState<string>("");
     const [activeTab, setActiveTab] = useState<SchemaDesignerDefinitionTab>(
