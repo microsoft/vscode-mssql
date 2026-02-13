@@ -274,6 +274,8 @@ jobs:
 
       - name: MSSQL - Run unit tests
         continue-on-error: true
+        env:
+          MSSQL_SKIP_SQLTOOLS_SERVICE_START: "1"
         run: |
           set +e  # Don't exit on errors
           cd extensions/mssql
