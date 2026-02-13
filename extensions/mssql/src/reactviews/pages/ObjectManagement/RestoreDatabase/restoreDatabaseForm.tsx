@@ -5,6 +5,22 @@
 
 import { useContext, useState } from "react";
 import {
+    RestoreDatabaseContext,
+    RestoreDatabaseContextProps,
+} from "./restoreDatabaseStateProvider";
+import { FormField, useFormStyles } from "../../../common/forms/form.component";
+import {
+    RestoreDatabaseFormState,
+    RestoreDatabaseViewModel,
+    RestorePlanTableType,
+    RestoreType,
+} from "../../../../sharedInterfaces/restore";
+import {
+    ObjectManagementFormItemSpec,
+    ObjectManagementWebviewState,
+} from "../../../../sharedInterfaces/objectManagement";
+import { locConstants } from "../../../common/locConstants";
+import {
     Button,
     Dropdown,
     Field,
@@ -15,28 +31,18 @@ import {
     Spinner,
     Text,
 } from "@fluentui/react-components";
-import { locConstants } from "../../../common/locConstants";
-import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
-import {
-    BackupDatabaseFormState,
-    BackupDatabaseViewModel,
-} from "../../../../sharedInterfaces/backup";
-import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
-import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
-import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
-import { FormField, useFormStyles } from "../../../common/forms/form.component";
-import { AzureIcon20 } from "../../../common/icons/fluentIcons";
-import { Save20Regular } from "@fluentui/react-icons";
-import { url } from "../../../common/constants";
-import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
-import { BackupFileCard } from "./backupFileCard";
 import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
-import {
-    ObjectManagementFormItemSpec,
-    ObjectManagementWebviewState,
-} from "../../../../sharedInterfaces/objectManagement";
-import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
+import { AzureIcon20 } from "../../../common/icons/fluentIcons";
+import { Database20Regular, DocumentDatabase20Regular } from "@fluentui/react-icons";
+import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
+import { BackupFileCard } from "../BackupDatabase/backupFileCard";
+import { BackupFormProps } from "../BackupDatabase/backupDatabaseForm";
+import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
+import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
+import { AdvancedOptionsDrawer } from "./restoreAdvancedOptions";
+import { useRestoreDatabaseSelector } from "./restoreDatabaseSelector";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+import { RestorePlanTableContainer } from "./restoreTable";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -112,41 +118,63 @@ const useStyles = makeStyles({
     },
 });
 
-const backupLightIcon = require("../../../../../media/backup_light.svg");
-const backupDarkIcon = require("../../../../../media/backup_dark.svg");
+const restoreLightIcon = require("../../../../../media/restore_light.svg");
+const restoreDarkIcon = require("../../../../../media/restore_dark.svg");
 
-export interface BackupFormProps {
-    fileErrors: number[];
-    setFileErrors: (errors: number[]) => void;
-}
-
-export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setFileErrors }) => {
+export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setFileErrors }) => {
     const classes = useStyles();
-    const context = useContext(BackupDatabaseContext);
-    const viewModel = useBackupDatabaseSelector((s) => s.viewModel);
-    const formComponents = useBackupDatabaseSelector((s) => s.formComponents);
-    const formState = useBackupDatabaseSelector((s) => s.formState);
-    const dialog = useBackupDatabaseSelector((s) => s.dialog);
-    const fileBrowserState = useBackupDatabaseSelector((s) => s.fileBrowserState);
-    const ownerUri = useBackupDatabaseSelector((s) => s.ownerUri);
-    const defaultFileBrowserExpandPath = useBackupDatabaseSelector(
-        (s) => s.defaultFileBrowserExpandPath,
-    );
-    const fileFilterOptions = useBackupDatabaseSelector((s) => s.fileFilterOptions);
-    const { themeKind } = useVscodeWebview();
+    const context = useContext(RestoreDatabaseContext);
 
-    if (!context || !viewModel) {
+    if (!context) {
         return null;
     }
 
-    const backupViewModel = viewModel.model as BackupDatabaseViewModel;
+    const formComponents = useRestoreDatabaseSelector((s) => s.formComponents);
+    const formState = useRestoreDatabaseSelector((s) => s.formState);
+    const dialog = useRestoreDatabaseSelector((s) => s.dialog);
+    const fileBrowserState = useRestoreDatabaseSelector((s) => s.fileBrowserState);
+    const ownerUri = useRestoreDatabaseSelector((s) => s.ownerUri);
+    const defaultFileBrowserExpandPath = useRestoreDatabaseSelector(
+        (s) => s.defaultFileBrowserExpandPath,
+    );
+    const fileFilterOptions = useRestoreDatabaseSelector((s) => s.fileFilterOptions);
+    const azureComponentStatuses = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).azureComponentStatuses,
+    );
+    const backupFiles = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).backupFiles,
+    );
+    const serverName = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).serverName,
+    );
+
+    const { themeKind } = useVscodeWebview();
+
+    const [restoreType, setRestoreType] = useState<RestoreType>(
+        useRestoreDatabaseSelector(
+            (s) => (s.viewModel.model as RestoreDatabaseViewModel).restoreType,
+        ),
+    );
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState<boolean>(false);
 
     const formStyles = useFormStyles();
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
-    const renderFormFields = () =>
+    const handleLoadAzureComponents = () => {
+        const azureComponents = Object.keys(azureComponentStatuses);
+        const azureComponentToLoad = azureComponents.find(
+            (component) => azureComponentStatuses[component] === ApiStatus.NotStarted,
+        );
+        if (azureComponentToLoad) {
+            context.loadAzureComponent(azureComponentToLoad);
+        }
+    };
+
+    const renderFormFields = (groupName?: string) =>
         Object.values(formComponents)
-            .filter((component) => !component.groupName)
+            .filter(
+                (component) =>
+                    component.groupName === groupName || (!groupName && !component.groupName),
+            )
             .map((component, index) => (
                 <div
                     key={index}
@@ -156,17 +184,17 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             ? {
                                   width: component.componentWidth,
                                   maxWidth: component.componentWidth,
-                                  whiteSpace: "normal",
-                                  overflowWrap: "break-word",
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
                                   wordBreak: "break-word",
                               }
                             : {}
                     }>
                     <FormField<
-                        BackupDatabaseFormState,
-                        ObjectManagementWebviewState<BackupDatabaseFormState>,
-                        ObjectManagementFormItemSpec<BackupDatabaseFormState>,
-                        BackupDatabaseContextProps
+                        RestoreDatabaseFormState,
+                        ObjectManagementWebviewState<RestoreDatabaseFormState>,
+                        ObjectManagementFormItemSpec<RestoreDatabaseFormState>,
+                        RestoreDatabaseContextProps
                     >
                         context={context}
                         formState={formState}
@@ -176,11 +204,12 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                 </div>
             ));
 
-    const renderBackupSaveToUrlFields = () =>
+    const renderUrlFields = () =>
         Object.values(formComponents)
-            .filter((component) => component.groupName === url)
+            .filter((component) => component.groupName === RestoreType.Url)
             .map((component, index) => {
-                const loadStatus = backupViewModel.azureComponentStatuses[component.propertyName];
+                const loadStatus = azureComponentStatuses[component.propertyName];
+                // Trigger loading only if not started or loaded
                 if (loadStatus === ApiStatus.NotStarted) {
                     handleLoadAzureComponents();
                 }
@@ -194,17 +223,17 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                 ? {
                                       width: component.componentWidth,
                                       maxWidth: component.componentWidth,
-                                      whiteSpace: "normal",
-                                      overflowWrap: "break-word",
+                                      whiteSpace: "normal", // allows wrapping
+                                      overflowWrap: "break-word", // breaks long words if needed
                                       wordBreak: "break-word",
                                   }
                                 : {}
                         }>
                         <FormField<
-                            BackupDatabaseFormState,
-                            ObjectManagementWebviewState<BackupDatabaseFormState>,
-                            ObjectManagementFormItemSpec<BackupDatabaseFormState>,
-                            BackupDatabaseContextProps
+                            RestoreDatabaseFormState,
+                            ObjectManagementWebviewState<RestoreDatabaseFormState>,
+                            ObjectManagementFormItemSpec<RestoreDatabaseFormState>,
+                            RestoreDatabaseContextProps
                         >
                             context={context}
                             formState={formState}
@@ -239,65 +268,20 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                 );
             });
 
-    const renderMediaFields = () =>
-        Object.values(formComponents)
-            .filter((component) => component.groupName == locConstants.backupDatabase.media)
-            .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
-                    <FormField<
-                        BackupDatabaseFormState,
-                        ObjectManagementWebviewState<BackupDatabaseFormState>,
-                        ObjectManagementFormItemSpec<BackupDatabaseFormState>,
-                        BackupDatabaseContextProps
-                    >
-                        context={context}
-                        formState={formState}
-                        component={component}
-                        idx={index}
-                    />
-                </div>
-            ));
-    const handleLoadAzureComponents = () => {
-        if (!context || !backupViewModel) return;
-
-        const azureComponents = Object.keys(backupViewModel.azureComponentStatuses);
-        const azureComponentToLoad = azureComponents.find(
-            (component) =>
-                backupViewModel.azureComponentStatuses[component] === ApiStatus.NotStarted,
-        );
-        if (azureComponentToLoad) {
-            context.loadAzureComponent(azureComponentToLoad);
-        }
-    };
-
     const getFileValidationMessage = (): string => {
-        return backupViewModel.backupFiles.length > 0
-            ? ""
-            : locConstants.backupDatabase.chooseAtLeastOneFile;
+        return backupFiles.length > 0 ? "" : locConstants.backupDatabase.chooseAtLeastOneFile;
     };
 
     return (
-        <div className={classes.outerDiv}>
-            <div>
+        <div>
+            <div className={classes.outerDiv}>
                 <div className={classes.header}>
                     <Image
                         style={{
                             padding: "10px",
                         }}
-                        src={themeKind === ColorThemeKind.Dark ? backupDarkIcon : backupLightIcon}
-                        alt={`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
+                        src={themeKind === ColorThemeKind.Dark ? restoreDarkIcon : restoreLightIcon}
+                        alt={`${locConstants.restoreDatabase.restoreDatabase} - ${serverName}`}
                         height={60}
                         width={60}
                     />
@@ -307,7 +291,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             lineHeight: "60px",
                         }}
                         weight="medium">
-                        {`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
+                        {`${locConstants.restoreDatabase.restore} - ${serverName}`}
                     </Text>
                 </div>
                 {dialog?.type === "fileBrowser" && fileBrowserState && (
@@ -321,7 +305,6 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         closeDialog={() => context.toggleFileBrowserDialog(false, false)}
                     />
                 )}
-                {renderFormFields()}
                 <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
                     <Field
                         label={locConstants.backupDatabase.backupLocation}
@@ -329,43 +312,47 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                const isSaveToUrl =
-                                    data.value === locConstants.backupDatabase.saveToUrl;
-                                context.setSaveLocation(isSaveToUrl);
-                                if (isSaveToUrl) {
-                                    // Start loading the first Azure component (Account) when switching to Save to URL
+                                const selectedRestoreType = data.value as RestoreType;
+                                context.setRestoreType(selectedRestoreType);
+                                setRestoreType(selectedRestoreType);
+                                if (selectedRestoreType === RestoreType.Url) {
                                     context.loadAzureComponent("accountId");
                                 }
                             }}
-                            value={
-                                backupViewModel.saveToUrl
-                                    ? locConstants.backupDatabase.saveToUrl
-                                    : locConstants.backupDatabase.saveToDisk
-                            }>
+                            value={restoreType}>
                             <Radio
-                                value={locConstants.backupDatabase.saveToDisk}
+                                value={RestoreType.Database}
                                 label={
                                     <div className={classes.saveOption}>
-                                        <Save20Regular style={{ marginRight: "8px" }} />
-                                        {locConstants.backupDatabase.saveToDisk}
+                                        <Database20Regular style={{ marginRight: "8px" }} />
+                                        {locConstants.restoreDatabase.database}
                                     </div>
                                 }
                             />
                             <Radio
-                                value={locConstants.backupDatabase.saveToUrl}
+                                value={RestoreType.BackupFile}
+                                label={
+                                    <div className={classes.saveOption}>
+                                        <DocumentDatabase20Regular style={{ marginRight: "8px" }} />
+                                        {locConstants.restoreDatabase.backupFile}
+                                    </div>
+                                }
+                            />
+                            <Radio
+                                value={RestoreType.Url}
                                 label={
                                     <div className={classes.saveOption}>
                                         <AzureIcon20 style={{ marginRight: "8px" }} />
-                                        {locConstants.backupDatabase.saveToUrl}
+                                        {locConstants.restoreDatabase.url}
                                     </div>
                                 }
                             />
                         </RadioGroup>
                     </Field>
                 </div>
-                {backupViewModel.saveToUrl ? (
-                    backupViewModel.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
-                        renderBackupSaveToUrlFields()
+                {restoreType === RestoreType.Url ? (
+                    azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
+                        renderUrlFields()
                     ) : (
                         <div className={classes.azureLoadingContainer}>
                             <img
@@ -377,7 +364,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             <Spinner size="large" style={{ marginTop: "10px" }} />
                         </div>
                     )
-                ) : (
+                ) : restoreType === RestoreType.BackupFile ? (
                     <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
                         <Field
                             label={locConstants.backupDatabase.backupFiles}
@@ -388,17 +375,23 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             orientation="horizontal">
                             <div className={classes.fileDiv}>
                                 <div className={classes.fileList}>
-                                    {backupViewModel.backupFiles.map((file, index) => (
-                                        <BackupFileCard
-                                            key={file.filePath}
-                                            backupFiles={backupViewModel.backupFiles}
-                                            file={file}
-                                            index={index}
-                                            fileErrors={fileErrors}
-                                            setFileErrors={setFileErrors}
-                                            removeBackupFile={context.removeBackupFile}
-                                            handleFileChange={context.handleFileChange}
-                                        />
+                                    {backupFiles.map((file, index) => (
+                                        <div key={file.filePath}>
+                                            <Field
+                                                validationMessage={file.errorMessage}
+                                                validationState={
+                                                    file.errorMessage ? "none" : "error"
+                                                }>
+                                                <BackupFileCard
+                                                    backupFiles={backupFiles}
+                                                    file={file}
+                                                    index={index}
+                                                    fileErrors={fileErrors}
+                                                    setFileErrors={setFileErrors}
+                                                    removeBackupFile={context.removeBackupFile}
+                                                />
+                                            </Field>
+                                        </div>
                                     ))}
                                 </div>
                                 <div className={classes.fileButtons}>
@@ -406,39 +399,35 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                         className={classes.button}
                                         type="submit"
                                         appearance="secondary"
-                                        onClick={() => context.toggleFileBrowserDialog(true, true)}>
-                                        {locConstants.backupDatabase.createNew}
-                                    </Button>
-                                    <Button
-                                        className={classes.button}
-                                        type="submit"
-                                        appearance="secondary"
-                                        onClick={() =>
-                                            context.toggleFileBrowserDialog(false, true)
-                                        }>
-                                        {locConstants.backupDatabase.chooseExisting}
+                                        onClick={() => {
+                                            context.toggleFileBrowserDialog(false, true);
+                                        }}>
+                                        {locConstants.restoreDatabase.browseFiles}
                                     </Button>
                                 </div>
                             </div>
                         </Field>
-                        {!formComponents["mediaSet"]?.isAdvancedOption && renderMediaFields()}
                     </div>
+                ) : (
+                    renderFormFields(RestoreType.Database)
                 )}
-            </div>
-            <AdvancedOptionsDrawer
-                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-            />
-            <div className={classes.bottomDiv}>
-                <div className={classes.advancedButtonDiv}>
-                    <Button
-                        className={classes.button}
-                        appearance="secondary"
-                        onClick={(_event) => {
-                            setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                        }}>
-                        {locConstants.backupDatabase.advanced}
-                    </Button>
+                {renderFormFields()}
+                <RestorePlanTableContainer restoreTableType={RestorePlanTableType.BackupSets} />
+                <AdvancedOptionsDrawer
+                    isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                    setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+                />
+                <div className={classes.bottomDiv}>
+                    <div style={{ marginLeft: "10px" }}>
+                        <Button
+                            className={classes.button}
+                            appearance="secondary"
+                            onClick={(_event) => {
+                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                            }}>
+                            {locConstants.backupDatabase.advanced}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

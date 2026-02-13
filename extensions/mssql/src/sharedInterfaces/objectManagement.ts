@@ -4,20 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
-import {
-    BackupDatabaseFormState,
-    BackupDatabaseParams,
-    BackupDatabaseReducers,
-    BackupDatabaseViewModel,
-} from "./backup";
+import { BackupDatabaseParams, BackupDatabaseViewModel } from "./backup";
 import { FormItemSpec, FormState } from "./form";
 import { FileTypeOption, FileBrowserState } from "./fileBrowser";
 import { IDialogProps } from "./connectionDialog";
+import { RestoreDatabaseParams, RestoreDatabaseViewModel } from "./restore";
+import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { BlobContainer, StorageAccount } from "@azure/arm-storage";
+import { ApiStatus } from "./webview";
 
 export enum ObjectManagementDialogType {
     CreateDatabase = "createDatabase",
     DropDatabase = "dropDatabase",
     BackupDatabase = "backupDatabase",
+    RestoreDatabase = "restoreDatabase",
 }
 
 export interface CreateDatabaseViewModel {
@@ -70,19 +70,22 @@ export type ObjectManagementViewModel =
     | {
           dialogType: ObjectManagementDialogType.BackupDatabase;
           model?: BackupDatabaseViewModel;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.RestoreDatabase;
+          model?: RestoreDatabaseViewModel;
       };
 
-export interface ObjectManagementWebviewState
-    extends FormState<
-        ObjectManagementFormState,
-        ObjectManagementWebviewState,
-        ObjectManagementFormItemSpec
-    > {
+export interface ObjectManagementWebviewState<TFormState> extends FormState<
+    TFormState,
+    ObjectManagementWebviewState<TFormState>,
+    ObjectManagementFormItemSpec<TFormState>
+> {
     viewModel: ObjectManagementViewModel;
 
     // Form specific state
-    formState: ObjectManagementFormState;
-    formComponents: Partial<Record<keyof ObjectManagementFormState, ObjectManagementFormItemSpec>>;
+    formState: TFormState;
+    formComponents: Partial<Record<keyof TFormState, ObjectManagementFormItemSpec<TFormState>>>;
     formErrors: string[];
 
     // File browser specific state
@@ -109,10 +112,11 @@ export type ObjectManagementActionParams =
     | {
           dialogType: ObjectManagementDialogType.BackupDatabase;
           params: BackupDatabaseParams;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.RestoreDatabase;
+          params: RestoreDatabaseParams;
       };
-
-// If there are more object management form types in the future, add them here
-export type ObjectManagementFormState = BackupDatabaseFormState;
 
 export interface ObjectManagementActionResult {
     success: boolean;
@@ -143,12 +147,11 @@ export namespace ObjectManagementHelpNotification {
     export const type = new NotificationType<void>("objectManagementWebview/help");
 }
 
-export interface ObjectManagementFormItemSpec
-    extends FormItemSpec<
-        ObjectManagementFormState,
-        ObjectManagementWebviewState,
-        ObjectManagementFormItemSpec
-    > {
+export interface ObjectManagementFormItemSpec<TFormState> extends FormItemSpec<
+    TFormState,
+    ObjectManagementWebviewState<TFormState>,
+    ObjectManagementFormItemSpec<TFormState>
+> {
     /**
      * The width of the form item component
      */
@@ -165,5 +168,37 @@ export interface ObjectManagementFormItemSpec
     componentProps?: any;
 }
 
-// If there are more object management form reducers in the future, add them here
-export type ObjectManagementReducers = BackupDatabaseReducers;
+// Disaster Recovery Azure Interfaces
+export interface DisasterRecoveryAzureFormState {
+    accountId: string;
+    tenantId: string;
+    subscriptionId: string;
+    storageAccountId: string;
+    blobContainerId: string;
+}
+
+export class DisasterRecoveryViewModel {
+    tenants: AzureTenant[] = [];
+    subscriptions: AzureSubscription[] = [];
+    storageAccounts: StorageAccount[] = [];
+    blobContainers: BlobContainer[] = [];
+    azureComponentStatuses: Record<string, ApiStatus> = {
+        accountId: ApiStatus.NotStarted,
+        tenantId: ApiStatus.NotStarted,
+        subscriptionId: ApiStatus.NotStarted,
+        storageAccountId: ApiStatus.NotStarted,
+        blobContainerId: ApiStatus.NotStarted,
+    };
+}
+
+export interface DisasterRecoveryAzureReducers {
+    loadAzureComponent: { componentName: string };
+}
+
+export interface DisasterRecoveryAzureProvider {
+    /**
+     * Loads the specified Azure component for backup to URL operations
+     * @param componentName  The name of the Azure component to load
+     */
+    loadAzureComponent(componentName: string): void;
+}

@@ -274,8 +274,6 @@
     "mssql.openChangelog": "Open Changelog",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
-    "mssql.profiler.openXelFile": "Open Profiler XEL File",
-    "mssql.profiler.xelEditorDisplayName": "SQL Server Extended Events Log",
     "mssql.backupDatabase": "Backup Database (Preview)",
-    "mssql.flatFileImport": "Import flat file (Preview)"
+    "mssql.restoreDatabase": "Restore Database (Preview)"
 }

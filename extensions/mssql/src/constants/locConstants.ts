@@ -2763,17 +2763,6 @@ export class Profiler {
     public static noTemplatesAvailable = l10n.t("No profiler templates available");
     public static sessionCreationTimedOut = l10n.t("Session creation timed out");
 
-    // XEL file error messages
-    public static failedToOpenXelFile = (error: string) =>
-        l10n.t({
-            message: "Failed to open XEL file: {0}",
-            args: [error],
-            comment: ["{0} is the error message"],
-        });
-    public static invalidXelFile = l10n.t("The selected file is not a valid XEL file.");
-    public static xelFileNotFound = l10n.t("The XEL file was not found.");
-    public static xelFileAccessDenied = l10n.t("Access to the XEL file was denied.");
-
     // Validation messages
     public static sessionNameEmpty = l10n.t("Session name cannot be empty");
     public static sessionNameTooLong = (maxLength: number) =>
@@ -2798,8 +2787,6 @@ export class Profiler {
             args: [engineType],
             comment: ["{0} is the engine type"],
         });
-    public static selectXelFile = l10n.t("Select XEL File");
-    public static xelFileFilter = l10n.t("Extended Events Log Files");
 
     // Success messages
     public static sessionCreatedSuccessfully = (sessionName: string) =>
@@ -2823,26 +2810,6 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
-    public static loadingXelFile = (fileName: string) =>
-        l10n.t({
-            message: "Loading XEL file: {0}",
-            args: [fileName],
-            comment: ["{0} is the file name"],
-        });
-    public static xelFileReadOnlyDisconnectedNotification = (fileName: string) =>
-        l10n.t({
-            message:
-                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
-            args: [fileName],
-            comment: ["{0} is the file name"],
-        });
-    public static xelFileReadOnlyDisconnectedTooltip = (fileName: string) =>
-        l10n.t({
-            message:
-                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
-            args: [fileName],
-            comment: ["{0} is the file name"],
-        });
 
     // Status bar
     public static statusBarNoSession = l10n.t("Profiler: No session");
@@ -2851,43 +2818,13 @@ export class Profiler {
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
     public static stateNotStarted = l10n.t("Not Started");
-    public static stateReadOnly = l10n.t("Read-Only");
     public static eventsCount = (count: number) =>
         l10n.t({
             message: "{0} events",
             args: [count],
             comment: ["{0} is the number of events"],
         });
-    public static fileSessionLabel = (fileName: string) =>
-        l10n.t({
-            message: "File: {0}",
-            args: [fileName],
-            comment: ["{0} is the file name"],
-        });
 
-    // Export messages
-    public static defaultExportFileName = l10n.t("profiler_events");
-    public static exportToCsv = l10n.t("Export to CSV");
-    public static exportSuccess = (filePath: string) =>
-        l10n.t({
-            message: "Profiler events exported successfully to {0}",
-            args: [filePath],
-            comment: ["{0} is the file path"],
-        });
-    public static openFile = l10n.t("Open File");
-    public static exportFailed = (error: string) =>
-        l10n.t({
-            message: "Failed to export profiler events: {0}",
-            args: [error],
-            comment: ["{0} is the error message"],
-        });
-
-    // Close prompt messages
-    public static unexportedEventsMessage = l10n.t(
-        "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
-    );
-    public static exportAndClose = l10n.t("Export & Close");
-    public static closeWithoutExport = l10n.t("Close Without Export");
     // Database selection for Azure SQL
     public static selectDatabaseForProfiler = l10n.t(
         "Select a database for profiling (Azure SQL requires a specific database)",
@@ -2997,40 +2934,56 @@ export class BackupDatabase {
     );
 }
 
-export class FlatFileImport {
-    public static serviceStarting = (serviceName: string) =>
-        l10n.t({
-            message: "Starting '{0}'...",
-            args: [serviceName],
-            comment: ["{0} is the service name"],
+export class RestoreDatabase {
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static sourceDatabase = l10n.t("Source Database");
+    public static targetDatabase = l10n.t("Target Database");
+    public static files = l10n.t("Files");
+    public static relocateDbFiles = l10n.t("Relocate all files");
+    public static general = l10n.t("General");
+    public static overwriteExistingDb = l10n.t("Overwrite the existing database");
+    public static overwriteExistingDbTooltip = l10n.t(
+        "Uses the WITH REPLACE option during restore",
+    );
+    public static preserveReplicationSettings = l10n.t("Preserve the replication settings");
+    public static preserveReplicationSettingsTooltip = l10n.t(
+        "Uses the WITH KEEP_REPLICATION option during restore",
+    );
+    public static restrictAccessToRestoredDb = l10n.t("Restrict access to the restored database");
+    public static restrictAccessToRestoredDbTooltip = l10n.t(
+        "Uses the WITH RESTRICTED_USER option during restore",
+    );
+    public static recoveryState = l10n.t("Recovery state");
+    public static restoreWithRecovery = l10n.t("RESTORE WITH RECOVERY");
+    public static restoreWithNoRecovery = l10n.t("RESTORE WITH NORECOVERY");
+    public static restoreWithStandby = l10n.t("RESTORE WITH STANDBY");
+    public static dataFileFolder = l10n.t("Data file folder");
+    public static logFileFolder = l10n.t("Log file folder");
+    public static standbyFile = l10n.t("Standby file");
+    public static tailLogBackup = l10n.t("Tail-log backup");
+    public static takeTailLogBackup = l10n.t("Take tail-log backup before restore");
+    public static leaveSourceDatabase = l10n.t("Leave the source database the restoring state");
+    public static leaveSourceDatabaseTooltip = l10n.t(
+        "Uses the WITH NORECOVERY option during restore",
+    );
+    public static tailLogBackupFile = l10n.t("Tail-log backup file");
+    public static serverConnections = l10n.t("Server Connections");
+    public static closeExistingConnections = l10n.t(
+        "Close existing connections to destination database",
+    );
+    public static blob = l10n.t("Blob");
+    public static selectABlob = l10n.t("Select a blob");
+    public static blobIsRequired = l10n.t("Blob is required");
+    public static blobDatabaseError = l10n.t("Blob does not contain a valid database backup");
+    public static noBlobsFound = l10n.t("No blobs found");
+    public static backupFileDatabaseError = l10n.t(
+        "Selected backup file does not contain a valid database backup",
+    );
+    public static couldNotConnectToDatabase = (database: string) => {
+        return l10n.t({
+            message: "Could not connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
         });
-    public static serviceStarted = (serviceName: string) =>
-        l10n.t({
-            message: "'{0}' started.",
-            args: [serviceName],
-            comment: ["{0} is the service name"],
-        });
-    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
-        l10n.t({
-            message: "Failed to start '{0}': {1}",
-            args: [serviceName, errorMessage],
-            comment: ["{0} is the service name", "{1} is the error message"],
-        });
-    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
-    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
-    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
-    public static newTableName = l10n.t("New Table Name");
-    public static tableSchema = l10n.t("Table Schema");
-    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
-    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
-    public static selectFileToImport = l10n.t("Select file to import");
-    public static databaseRequired = l10n.t("Database is required");
-    public static importFileRequired = l10n.t("Import file is required");
-    public static tableNameRequired = l10n.t("Table name is required");
-    public static schemaRequired = l10n.t("Schema is required");
-    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
-    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
-    public static loadingSchemas = l10n.t("Loading schemas...");
-    public static noSchemasFound = l10n.t("No schemas found");
-    public static importFailed = l10n.t("Failed to import file.");
+    };
 }

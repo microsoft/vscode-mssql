@@ -134,7 +134,7 @@ export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
-export const cmdFlatFileImport = "mssql.flatFileImport";
+export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -150,7 +150,6 @@ export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";
 export const defaultDatabase = "master";
-export const defaultSchema = "dbo";
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
@@ -187,6 +186,8 @@ export const dropDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
 export const backupDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
+export const restoreDatabaseHelpLink =
+    "https://learn.microsoft.com/en-us/sql/t-sql/statements/restore-statements-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
@@ -225,7 +226,6 @@ export const copilotListFunctionsToolName = "mssql_list_functions";
 export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
-export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
 
@@ -300,19 +300,14 @@ export const serviceInstalled = "Sql Tools Service installed";
 export const serviceInstallationFailed = "Failed to install Sql Tools Service";
 export const sqlToolsServiceCrashMessage = "SQL Tools Service component could not start.";
 export const sqlToolsServiceCrashButton = "View Known Issues";
+export const serviceInitializingOutputChannelName = "SqlToolsService Initialization";
 export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
-export const flatFileServiceInitializing =
-    "Initializing Flat File service for the mssql extension.";
 export const commandsNotAvailableWhileInstallingTheService =
     "Note: mssql commands will be available after installing the service.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
-export const flatFileServiceLoadingFailed = "Failed to load Flat File Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
-export const invalidFlatFileServiceFilePath = "Invalid file path for Flat File Service";
 export const sqlToolsServiceName = "SQLToolsService";
-export const flatFileServiceName = "FlatFileService";
-export const flatFileProvider = "FlatFileProvider";
 export const resourceServiceName = "AzureResourceProvider";
 export const resourceProviderId = "azurePublicCloud";
 export const sqlToolsServiceConfigKey = "service";
@@ -335,13 +330,10 @@ export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
 
-// Backup+Restore Constants
+// Backup/Restore Constants
 export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const disk = "Disk";
 export const url = "URL";
-
-// Flat File Import Constants
-export const flatFileImportFileTypes = ["csv", "txt"];
 
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";

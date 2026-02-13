@@ -5,53 +5,49 @@
 
 import { ReactNode, createContext } from "react";
 import {
-    BackupDatabaseFormState,
-    BackupDatabaseProvider,
-    BackupDatabaseReducers,
-} from "../../../../sharedInterfaces/backup";
+    RestoreDatabaseFormState,
+    RestoreDatabaseProvider,
+    RestoreDatabaseReducers,
+    RestoreType,
+} from "../../../../sharedInterfaces/restore";
 import { getCoreRPCs } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
 import { WebviewRpc } from "../../../common/rpc";
 
-export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
-    extensionRpc: WebviewRpc<BackupDatabaseReducers<BackupDatabaseFormState>>;
+export interface RestoreDatabaseContextProps extends RestoreDatabaseProvider {
+    extensionRpc: WebviewRpc<RestoreDatabaseReducers<RestoreDatabaseFormState>>;
 }
 
-const BackupDatabaseContext = createContext<BackupDatabaseContextProps | undefined>(undefined);
+const RestoreDatabaseContext = createContext<RestoreDatabaseContextProps | undefined>(undefined);
 
-interface BackupDatabaseProviderProps {
+interface RestoreDatabaseProviderProps {
     children: ReactNode;
 }
 
-const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
+const RestoreDatabaseStateProvider: React.FC<RestoreDatabaseProviderProps> = ({ children }) => {
     const { extensionRpc } = useVscodeWebview<
-        ObjectManagementWebviewState<BackupDatabaseFormState>,
-        BackupDatabaseReducers<BackupDatabaseFormState>
+        ObjectManagementWebviewState<RestoreDatabaseFormState>,
+        RestoreDatabaseReducers<RestoreDatabaseFormState>
     >();
 
     return (
-        <BackupDatabaseContext.Provider
+        <RestoreDatabaseContext.Provider
             value={{
-                extensionRpc: extensionRpc,
+                extensionRpc,
                 ...getCoreRPCs(extensionRpc),
                 formAction(event) {
                     extensionRpc.action("formAction", { event });
                 },
-                backupDatabase: function (): void {
-                    extensionRpc.action("backupDatabase", {});
+                restoreDatabase: function (): void {
+                    extensionRpc.action("restoreDatabase", {});
                 },
-                openBackupScript: function (): void {
-                    extensionRpc.action("openBackupScript", {});
+                openRestoreScript: function (): void {
+                    extensionRpc.action("openRestoreScript", {});
                 },
-                setSaveLocation: function (saveToUrl: boolean): void {
-                    extensionRpc.action("setSaveLocation", {
-                        saveToUrl,
-                    });
-                },
-                removeBackupFile: function (filePath: string): void {
-                    extensionRpc.action("removeBackupFile", {
-                        filePath,
+                setRestoreType: function (restoreType: RestoreType): void {
+                    extensionRpc.action("setRestoreType", {
+                        restoreType,
                     });
                 },
                 openFileBrowser: function (
@@ -75,9 +71,10 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         nodePath,
                     });
                 },
-                submitFilePath(selectedPath: string): void {
+                submitFilePath(selectedPath: string, propertyName?: string): void {
                     extensionRpc.action("submitFilePath", {
                         selectedPath,
+                        propertyName,
                     });
                 },
                 closeFileBrowser(ownerUri: string): void {
@@ -91,22 +88,25 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         shouldOpen,
                     });
                 },
-                handleFileChange(index: number, newValue: string, isFolderChange: boolean): void {
-                    extensionRpc.action("handleFileChange", {
-                        index,
-                        newValue,
-                        isFolderChange,
-                    });
-                },
                 loadAzureComponent(componentName: string): void {
                     extensionRpc.action("loadAzureComponent", {
                         componentName,
                     });
                 },
+                removeBackupFile: function (filePath: string): void {
+                    extensionRpc.action("removeBackupFile", {
+                        filePath,
+                    });
+                },
+                updateSelectedBackupSets: function (selectedBackupSets: number[]): void {
+                    extensionRpc.action("updateSelectedBackupSets", {
+                        selectedBackupSets,
+                    });
+                },
             }}>
             {children}
-        </BackupDatabaseContext.Provider>
+        </RestoreDatabaseContext.Provider>
     );
 };
 
-export { BackupDatabaseContext, BackupDatabaseStateProvider };
+export { RestoreDatabaseContext, RestoreDatabaseStateProvider };

@@ -44,6 +44,12 @@ import {
     StorageAccountsListKeysResponse,
     StorageManagementClient,
 } from "@azure/arm-storage";
+import {
+    BlobServiceClient,
+    ContainerClient,
+    BlobItem,
+    StorageSharedKeyCredential,
+} from "@azure/storage-blob";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -333,6 +339,53 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching blob containers for storage account:", error);
+            throw new Error(error.message);
+        }
+    }
+
+    /**
+     * Fetches blobs for a given blob container using storage account keys.
+     * @param sub Azure subscription
+     * @param storageAccount Storage account
+     * @param container Blob container
+     * @returns A list of blobs.
+     */
+    public static async fetchBlobsForContainer(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+        container: BlobContainer,
+    ): Promise<BlobItem[]> {
+        try {
+            // Get storage account keys (ARM call)
+            const keys = await this.getStorageAccountKeys(sub, storageAccount);
+            const accountKey = keys.keys?.[0]?.value;
+
+            if (!accountKey) {
+                throw new Error("No storage account key returned.");
+            }
+
+            const accountName = storageAccount.name;
+            const blobEndpoint = `https://${accountName}.blob.core.windows.net`;
+
+            // Create shared key credential
+            const credential = new StorageSharedKeyCredential(accountName, accountKey);
+
+            // Create blob service client using key-based auth
+            const blobServiceClient = new BlobServiceClient(blobEndpoint, credential);
+
+            const containerClient: ContainerClient = blobServiceClient.getContainerClient(
+                container.name,
+            );
+
+            const blobs: BlobItem[] = [];
+
+            for await (const blob of containerClient.listBlobsFlat()) {
+                blobs.push(blob);
+            }
+
+            return blobs;
+        } catch (error) {
+            console.error("Error fetching blobs for container:", error);
             throw new Error(error.message);
         }
     }
