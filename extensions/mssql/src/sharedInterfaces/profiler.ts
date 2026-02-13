@@ -156,6 +156,10 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
+    /** Export events to CSV file */
+    exportToCsv: {
+        suggestedFileName: string;
+    };
     /** Notify extension that a row was selected in the grid */
     selectRow: {
         rowId: string;
