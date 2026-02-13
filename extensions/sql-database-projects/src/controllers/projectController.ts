@@ -838,7 +838,9 @@ export class ProjectsController {
 
                 // Case 2: Check for nested object type folder (e.g., "Sales/Functions")
                 if (folderName) {
-                    const nestedPath = path.join(schemaFolder.relativePath, folderName);
+                    const nestedPath = utils.convertSlashesForSqlProj(
+                        path.join(schemaFolder.relativePath, folderName),
+                    );
                     const nestedFolder = project.folders.find(
                         (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
                     );

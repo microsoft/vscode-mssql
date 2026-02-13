@@ -386,7 +386,7 @@ suite("ProjectsController", function (): void {
                         "sales",
                     ),
                     "Should return Sales/Functions when nested folder exists",
-                ).to.equal("Sales\\Functions");
+                ).to.equal(utils.convertSlashesForSqlProj(path.join("Sales", "Functions")));
 
                 // With dbo schema and no dbo folder - should return empty (place at root)
                 expect(
@@ -499,7 +499,7 @@ suite("ProjectsController", function (): void {
                 expect(
                     projController.getDefaultFolderForItemType(ItemType.sequence, project, "dbo"),
                     "Should return dbo/Sequences when no root Sequences exists",
-                ).to.equal(path.join("dbo", "Sequences"));
+                ).to.equal(utils.convertSlashesForSqlProj(path.join("dbo", "Sequences")));
             });
 
             test("Should parse schema and object name from user input", function (): void {
