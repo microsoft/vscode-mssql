@@ -2865,6 +2865,14 @@ export class Profiler {
             comment: ["{0} is the file name"],
         });
 
+    // Details panel
+    public static failedToOpenInEditor = (error: string) =>
+        l10n.t({
+            message: "Failed to open text in editor: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
     // Export messages
     public static defaultExportFileName = l10n.t("profiler_events");
     public static exportToCsv = l10n.t("Export to CSV");
@@ -2882,6 +2890,7 @@ export class Profiler {
             comment: ["{0} is the error message"],
         });
 
+    public static copiedToClipboard = l10n.t("Copied to clipboard");
     // Close prompt messages
     public static unexportedEventsMessage = l10n.t(
         "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",

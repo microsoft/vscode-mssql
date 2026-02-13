@@ -106,6 +106,8 @@ export interface ProfilerWebviewState {
     currentSessionId?: string;
     /** Whether a session is being created (show spinner) */
     isCreatingSession?: boolean;
+    /** The currently selected event details for the embedded details panel */
+    selectedEvent?: ProfilerSelectedEventDetails;
     /** Whether this is a read-only file-based session */
     isReadOnly?: boolean;
     /** File path if this is a file-based session */
@@ -154,10 +156,36 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
-    /** Export events to CSV file */
-    exportToCsv: {
-        suggestedFileName: string;
+    /** Notify extension that a row was selected in the grid */
+    selectRow: {
+        rowId: string;
     };
+    /** Close the embedded details panel */
+    closeDetailsPanel: Record<string, never>;
+}
+
+/**
+ * A property/column for display in the details panel
+ */
+export interface ProfilerEventProperty {
+    /** Property label (column header or field name) */
+    label: string;
+    /** Property value (formatted as string for display) */
+    value: string;
+}
+
+/**
+ * Selected event details for the details panel
+ */
+export interface ProfilerSelectedEventDetails {
+    /** Row ID of the selected event */
+    rowId: string;
+    /** Event class/name */
+    eventName: string;
+    /** TextData content (for the Text tab) */
+    textData: string;
+    /** All event properties (for the Details tab) */
+    properties: ProfilerEventProperty[];
 }
 
 /**
@@ -191,14 +219,6 @@ export interface RowsRemovedParams {
 }
 
 /**
- * Payload for export to CSV request
- */
-export interface ExportToCsvParams {
-    /** Suggested file name */
-    suggestedFileName: string;
-}
-
-/**
  * Payload for export result notification
  */
 export interface ExportResultParams {
@@ -227,6 +247,17 @@ export namespace ProfilerNotifications {
 
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
+
+    /** Notification sent from webview to open text data in a new editor */
+    export const OpenInEditor = new NotificationType<{ textData: string; eventName?: string }>(
+        "openInEditor",
+    );
+
+    /** Notification sent from webview to copy text to clipboard */
+    export const CopyToClipboard = new NotificationType<{ text: string }>("copyToClipboard");
+
+    /** Notification sent from webview to request CSV export */
+    export const ExportToCsv = new NotificationType<Record<string, never>>("exportToCsv");
 
     /** Notification sent when export result is available */
     export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
