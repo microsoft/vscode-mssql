@@ -40,6 +40,10 @@ suite("Project: sqlproj content operations", function (): void {
         await templates.loadTemplates(testUtils.getTemplatesRootPath());
     });
 
+    teardown(function (): void {
+        sinon.restore();
+    });
+
     suiteTeardown(async function (): Promise<void> {
         await testUtils.deleteGeneratedTestFolder();
     });
@@ -1841,6 +1845,10 @@ suite("Project: round trip updates", function (): void {
     });
 
     setup(function (): void {
+        sinon.restore();
+    });
+
+    teardown(function (): void {
         sinon.restore();
     });
 
