@@ -16,7 +16,6 @@ import {
     CloseAction,
 } from "vscode-languageclient";
 import * as path from "path";
-import * as fs from "fs/promises";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
 import { Logger } from "../models/logger";
@@ -235,9 +234,6 @@ export default class SqlToolsServiceClient {
                             let installedServerPath = await this._server.downloadServerFiles(
                                 platformInfo.runtimeId,
                             );
-                            this.logger.logDebug(
-                                `Downloaded SQL Tools Service path: ${installedServerPath}`,
-                            );
                             this._sqlToolsServicePath = path.dirname(installedServerPath);
                             await this.initializeLanguageClient(
                                 installedServerPath,
@@ -249,7 +245,6 @@ export default class SqlToolsServiceClient {
                                 new ServerInitializationResult(true, true, installedServerPath),
                             );
                         } else {
-                            this.logger.logDebug(`Using SQL Tools Service path: ${serverPath}`);
                             this._sqlToolsServicePath = path.dirname(serverPath);
                             await this.initializeLanguageClient(
                                 serverPath,
@@ -262,12 +257,6 @@ export default class SqlToolsServiceClient {
                     })
                     .catch((err) => {
                         this.logger.logDebug(Constants.serviceLoadingFailed + " " + err);
-                        this.logger.logDebug(
-                            `STS startup context: platform=${process.platform}, arch=${process.arch}, runtimeId=${platformInfo.runtimeId}, logPath=${this._logPath}, serviceRoot=${this._sqlToolsServicePath}`,
-                        );
-                        if (err instanceof Error && err.stack) {
-                            this.logger.logDebug(`STS startup stack: ${err.stack}`);
-                        }
                         Utils.showErrorMsg(Constants.serviceLoadingFailed);
                         reject(err);
                     });
@@ -363,10 +352,9 @@ export default class SqlToolsServiceClient {
                 // Fall back to config if something unexpected happens here
             }
             // Use the override path if we have one, otherwise just use the original serverPath passed in
-            const launchPath = overridePath || serverPath;
-            await this.logExecutableDiagnostics("Service", launchPath);
-            let serverOptions: ServerOptions = this.createServiceLayerServerOptions(launchPath);
-            this.logger.logDebug(`Launching SQL Tools Service executable: ${launchPath}`);
+            let serverOptions: ServerOptions = this.createServiceLayerServerOptions(
+                overridePath || serverPath,
+            );
             this.client = this.createLanguageClient(serverOptions);
             let executablePath = isWindows
                 ? Constants.windowsResourceClientPath
@@ -385,8 +373,6 @@ export default class SqlToolsServiceClient {
                     resourcePath = resourceOverridePath;
                 }
             }
-            await this.logExecutableDiagnostics("ResourceProvider", resourcePath);
-            this.logger.logDebug(`Launching SQL Resource Provider executable: ${resourcePath}`);
             this._resourceClient = this.createResourceClient(resourcePath);
 
             if (context !== undefined) {
@@ -401,23 +387,6 @@ export default class SqlToolsServiceClient {
                 context.subscriptions.push(disposable);
                 context.subscriptions.push(resourceDisposable);
             }
-        }
-    }
-
-    private async logExecutableDiagnostics(
-        component: string,
-        executablePath: string,
-    ): Promise<void> {
-        try {
-            const stat = await fs.stat(executablePath);
-            const mode = (stat.mode & 0o777).toString(8);
-            this.logger.logDebug(
-                `${component} executable details: path=${executablePath}, mode=${mode}, size=${stat.size}`,
-            );
-        } catch (err) {
-            this.logger.logDebug(
-                `${component} executable diagnostics failed for path=${executablePath}. Error: ${err}`,
-            );
         }
     }
 
@@ -457,7 +426,6 @@ export default class SqlToolsServiceClient {
             this._logPath,
             "resourceprovider.log",
         );
-        launchArgs = launchArgs.filter((arg) => typeof arg === "string" && arg.length > 0);
         return {
             command: executablePath,
             args: launchArgs,
@@ -535,7 +503,7 @@ export default class SqlToolsServiceClient {
                 serverArgs.push("--enable-connection-pooling");
             }
 
-            let locale = vscode.env.language || "en";
+            let locale = vscode.env.language;
             serverArgs.push("--locale");
             serverArgs.push(locale);
 
@@ -544,8 +512,6 @@ export default class SqlToolsServiceClient {
             serverArgs.push("--parallel-message-processing-limit");
             serverArgs.push(String(100));
         }
-
-        serverArgs = serverArgs.filter((arg) => typeof arg === "string" && arg.length > 0);
 
         // run the service host using dotnet.exe from the path
         let serverOptions: ServerOptions = {

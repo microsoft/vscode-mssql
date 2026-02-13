@@ -656,9 +656,9 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 export function getConfigTracingLevel(): string {
     let config = getConfiguration();
     if (config) {
-        return config.get(configTracingLevel, "Critical");
+        return config.get(configTracingLevel);
     } else {
-        return "Critical";
+        return undefined;
     }
 }
 
@@ -715,7 +715,7 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(
         `This process (ui Extenstion Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
     );
     launchArgs.push("--tracing-level");
-    launchArgs.push(getConfigTracingLevel() || "Critical");
+    launchArgs.push(getConfigTracingLevel());
     if (getConfigPiiLogging()) {
         launchArgs.push("--pii-logging");
     }

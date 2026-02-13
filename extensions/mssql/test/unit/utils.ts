@@ -18,28 +18,9 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { ServerInitializationResult } from "../../src/languageservice/serverStatus";
-
-const unitTestServicePath = path.join("sqltoolsservice", "unit-test");
-
-function stubSqlToolsServiceInitializationForUnitTests(): void {
-    const serviceClient = SqlToolsServerClient.instance as any;
-
-    if (serviceClient.__unitTestInitializationStubbed) {
-        return;
-    }
-
-    serviceClient.__unitTestInitializationStubbed = true;
-    serviceClient.initialize = async () => {
-        serviceClient._sqlToolsServicePath = unitTestServicePath;
-        return new ServerInitializationResult(true, true, unitTestServicePath);
-    };
-    serviceClient._sqlToolsServicePath = unitTestServicePath;
-}
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
-    stubSqlToolsServiceInitializationForUnitTests();
     const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
     return await extension.activate();
 }

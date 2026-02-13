@@ -75,18 +75,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
 
-      - name: Install Linux native dependencies for SQL Tools Service
-        run: |
-          if command -v apt-get >/dev/null 2>&1; then
-            if command -v sudo >/dev/null 2>&1; then
-              sudo apt-get update
-              sudo apt-get install -y libicu-dev
-            else
-              apt-get update
-              apt-get install -y libicu-dev
-            fi
-          fi
-
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
         with:
@@ -289,64 +277,9 @@ jobs:
         run: |
           set +e  # Don't exit on errors
           cd extensions/mssql
-          export VSCODE_LOG_LEVEL=trace
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
-
-      - name: MSSQL - Dump unit test diagnostics
-        if: always()
-        run: |
-          set +e
-          cd extensions/mssql
-          echo "=== Environment ==="
-          uname -a || true
-          node -v || true
-          dotnet --info || true
-
-          echo "=== SQL Tools Service binaries ==="
-          find ./sqltoolsservice -type f -name MicrosoftSqlToolsServiceLayer -print | sort || true
-          find ./sqltoolsservice -type f -name SqlToolsResourceProviderService -print | sort || true
-          STS_BIN=$(find ./sqltoolsservice -type f -name MicrosoftSqlToolsServiceLayer | head -n 1)
-          RP_BIN=$(find ./sqltoolsservice -type f -name SqlToolsResourceProviderService | head -n 1)
-          if [ -n "$STS_BIN" ]; then
-            ls -l "$STS_BIN" || true
-            file "$STS_BIN" || true
-            ldd "$STS_BIN" || true
-            echo "--- STS --help output ---"
-            "$STS_BIN" --help | head -n 60 || true
-
-            echo "--- STS launch simulation (5s timeout) ---"
-            timeout 5s "$STS_BIN" --log-file /tmp/sqltoolsservice-ci.log --tracing-level Verbose >/tmp/sqltoolsservice-ci.stdout 2>/tmp/sqltoolsservice-ci.stderr
-            echo "STS simulated launch exit code: $?"
-            echo "STS stderr:"
-            sed -n '1,80p' /tmp/sqltoolsservice-ci.stderr || true
-            echo "STS stdout:"
-            sed -n '1,80p' /tmp/sqltoolsservice-ci.stdout || true
-          fi
-
-          if [ -n "$RP_BIN" ]; then
-            ls -l "$RP_BIN" || true
-            file "$RP_BIN" || true
-            ldd "$RP_BIN" || true
-            echo "--- Resource Provider --help output ---"
-            "$RP_BIN" --help | head -n 60 || true
-
-            echo "--- Resource Provider launch simulation (5s timeout) ---"
-            timeout 5s "$RP_BIN" --log-file /tmp/sqltoolsresource-ci.log --tracing-level Verbose >/tmp/sqltoolsresource-ci.stdout 2>/tmp/sqltoolsresource-ci.stderr
-            echo "Resource Provider simulated launch exit code: $?"
-            echo "Resource Provider stderr:"
-            sed -n '1,80p' /tmp/sqltoolsresource-ci.stderr || true
-            echo "Resource Provider stdout:"
-            sed -n '1,80p' /tmp/sqltoolsresource-ci.stdout || true
-          fi
-
-          echo "=== Extension/Service logs ==="
-          find ./.vscode-test -type f \( -name "*.log" -o -name "*.txt" \) | grep -Ei "sqltools|resourceprovider|extensionhost" | sort | head -n 80 || true
-          for f in $(find ./.vscode-test -type f -name "*.log" | grep -Ei "sqltools|resourceprovider|extensionhost" | head -n 20); do
-            echo "--- tail: $f ---"
-            tail -n 120 "$f" || true
-          done
 
       - name: MSSQL - Unit Test Report
         uses: dorny/test-reporter@v2
