@@ -1796,8 +1796,8 @@ suite("ProjectsController", function (): void {
 
         test("Should move a file to project root when project folder name differs from project name", async function (): Promise<void> {
             // Arrange
-            const errorSpy = sinon.spy(vscode.window, "showErrorMessage");
-            sinon
+            const errorSpy = sandbox.spy(vscode.window, "showErrorMessage");
+            sandbox
                 .stub(vscode.window, "showWarningMessage")
                 .returns(<any>Promise.resolve(constants.move));
 
