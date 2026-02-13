@@ -8855,6 +8855,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">This setting will be removed in a future release.</source>
         <target state="translated">이 설정은 향후 릴리스에서 제거될 예정입니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.toggleActualPlan">
+        <source xml:lang="en">Toggle Actual Plan</source>
+        <target state="new">Toggle Actual Plan</target>
+      </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
         <target state="translated">SQLCMD 모드 토글</target>
