@@ -306,13 +306,39 @@ jobs:
 
           echo "=== SQL Tools Service binaries ==="
           find ./sqltoolsservice -type f -name MicrosoftSqlToolsServiceLayer -print | sort || true
+          find ./sqltoolsservice -type f -name SqlToolsResourceProviderService -print | sort || true
           STS_BIN=$(find ./sqltoolsservice -type f -name MicrosoftSqlToolsServiceLayer | head -n 1)
+          RP_BIN=$(find ./sqltoolsservice -type f -name SqlToolsResourceProviderService | head -n 1)
           if [ -n "$STS_BIN" ]; then
             ls -l "$STS_BIN" || true
             file "$STS_BIN" || true
             ldd "$STS_BIN" || true
             echo "--- STS --help output ---"
             "$STS_BIN" --help | head -n 60 || true
+
+            echo "--- STS launch simulation (5s timeout) ---"
+            timeout 5s "$STS_BIN" --log-file /tmp/sqltoolsservice-ci.log --tracing-level Verbose >/tmp/sqltoolsservice-ci.stdout 2>/tmp/sqltoolsservice-ci.stderr
+            echo "STS simulated launch exit code: $?"
+            echo "STS stderr:"
+            sed -n '1,80p' /tmp/sqltoolsservice-ci.stderr || true
+            echo "STS stdout:"
+            sed -n '1,80p' /tmp/sqltoolsservice-ci.stdout || true
+          fi
+
+          if [ -n "$RP_BIN" ]; then
+            ls -l "$RP_BIN" || true
+            file "$RP_BIN" || true
+            ldd "$RP_BIN" || true
+            echo "--- Resource Provider --help output ---"
+            "$RP_BIN" --help | head -n 60 || true
+
+            echo "--- Resource Provider launch simulation (5s timeout) ---"
+            timeout 5s "$RP_BIN" --log-file /tmp/sqltoolsresource-ci.log --tracing-level Verbose >/tmp/sqltoolsresource-ci.stdout 2>/tmp/sqltoolsresource-ci.stderr
+            echo "Resource Provider simulated launch exit code: $?"
+            echo "Resource Provider stderr:"
+            sed -n '1,80p' /tmp/sqltoolsresource-ci.stderr || true
+            echo "Resource Provider stdout:"
+            sed -n '1,80p' /tmp/sqltoolsresource-ci.stdout || true
           fi
 
           echo "=== Extension/Service logs ==="
