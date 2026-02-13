@@ -2608,6 +2608,17 @@ declare module "vscode-mssql" {
          * Each row is an array of DbCellValue, representing the values of each column in that row.
          */
         rows: DbCellValue[][];
+        /**
+         * Messages generated during query execution (e.g. PRINT output, info messages).
+         */
+        messages?: ResultMessage[];
+    }
+
+    export interface ResultMessage {
+        batchId?: number;
+        isError: boolean;
+        time?: string;
+        message: string;
     }
 
     export interface IScriptingObject {
