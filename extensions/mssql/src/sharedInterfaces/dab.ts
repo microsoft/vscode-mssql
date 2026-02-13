@@ -658,6 +658,11 @@ export namespace Dab {
      */
     export interface DabConnectionInfo {
         connectionString: string;
+        /**
+         * Name of the SQL Server Docker container, if the SQL Server is running in a container.
+         * Used to transform the connection string for DAB container access.
+         */
+        sqlServerContainerName?: string;
     }
 
     /**
@@ -677,13 +682,13 @@ export namespace Dab {
          * @param step The deployment step to run
          * @param params Optional deployment parameters (container name, port)
          * @param config Optional DAB config (needed for startContainer step)
-         * @param connectionString Optional connection string for generating config
+         * @param connectionInfo Optional connection info for generating config
          */
         runDeploymentStep(
             step: DabDeploymentStepOrder,
             params?: DabDeploymentParams,
             config?: DabConfig,
-            connectionString?: string,
+            connectionInfo?: DabConnectionInfo,
         ): Promise<RunDeploymentStepResponse>;
 
         /**

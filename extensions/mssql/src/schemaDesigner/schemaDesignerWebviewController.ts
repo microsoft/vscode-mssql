@@ -43,6 +43,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     private _sessionId: string = "";
     private _key: string = "";
     private _serverName: string | undefined;
+    private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
@@ -90,6 +91,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this._key = `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
+        this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
         this.setupRequestHandlers();
         this.setupConfigurationListener();
@@ -386,6 +388,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
             return this._dabService.generateConfig(payload.config, {
                 connectionString: this.connectionString,
+                sqlServerContainerName: this._sqlServerContainerName,
             });
         });
 
@@ -408,7 +411,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 payload.step,
                 payload.params,
                 payload.config,
-                this.connectionString,
+                this.connectionString
+                    ? {
+                          connectionString: this.connectionString,
+                          sqlServerContainerName: this._sqlServerContainerName,
+                      }
+                    : undefined,
             );
         });
 
@@ -522,6 +530,23 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         if (this.connectionUri) {
             return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
                 ?.credentials?.server;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Resolves the SQL Server container name from the connection profile.
+     * Returns undefined if the SQL Server is not running in a Docker container.
+     */
+    private resolveSqlServerContainerName(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.containerName;
+        }
+
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.containerName;
         }
 
         return undefined;
