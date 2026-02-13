@@ -8,6 +8,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import {
     allFileTypes,
     defaultBackupFileTypes,
+    defaultDatabase,
     restoreDatabaseHelpLink,
 } from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -25,6 +26,7 @@ import {
 import { ObjectManagementService } from "../services/objectManagementService";
 import {
     RecoveryState,
+    RestoreConfigInfo,
     RestoreDatabaseFormState,
     RestoreDatabaseReducers,
     RestoreDatabaseViewModel,
@@ -37,10 +39,8 @@ import * as LocConstants from "../constants/locConstants";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import ConnectionManager from "./connectionManager";
 import {
-    createDisasterRecoveryConnectionContext,
-    createSasKeyIfNeeded,
+    createSasKey,
     disasterRecoveryFormAction,
-    getBlobCredentialNames,
     getUrl,
     loadAzureComponentHelper,
     setType,
@@ -54,9 +54,9 @@ import { BlobItem } from "@azure/storage-blob";
 import { registerFileBrowserReducers } from "./fileBrowserUtils";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
-import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { ConnectionProfile } from "../models/connectionProfile";
-import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 
 export class RestoreDatabaseWebviewController extends ObjectManagementWebviewController<
     RestoreDatabaseFormState,
@@ -67,12 +67,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
-        private client: SqlToolsServiceClient,
         private connectionManager: ConnectionManager,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
         private profile: ConnectionProfile,
         private ownerUri: string,
+        databaseName?: string,
     ) {
         super(
             context,
@@ -84,7 +84,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             "restoreDatabaseDialog",
             ownerUri,
             profile.server || "",
-            profile.database || "",
+            databaseName || profile.database || "",
         );
 
         this.start();
@@ -99,10 +99,24 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         restoreViewModel.serverName = this.profile.server || "";
         this.state.ownerUri = this.ownerUri;
 
-        // Get restore config info; Gets the recovery model, default backup folder, and encryptors
-        const restoreConfigInfo = (
-            await this.objectManagementService.getRestoreConfigInfo(this.state.ownerUri)
-        ).configInfo;
+        // Get restore config info
+        let restoreConfigInfo: RestoreConfigInfo;
+        try {
+            restoreConfigInfo = (
+                await this.objectManagementService.getRestoreConfigInfo(this.state.ownerUri)
+            ).configInfo;
+        } catch (error) {
+            restoreViewModel.loadState = ApiStatus.Error;
+            restoreViewModel.errorMessage = getErrorMessage(error);
+            this.updateViewModel(restoreViewModel);
+            sendErrorEvent(
+                TelemetryViews.Restore,
+                TelemetryActions.InitializeRestore,
+                error,
+                false, // include error message in telemetry
+            );
+            return;
+        }
 
         // File Browser setup
         this.state.defaultFileBrowserExpandPath = restoreConfigInfo.defaultBackupFolder;
@@ -126,10 +140,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 displayName: dbName,
             }));
         if (
-            this.profile.database &&
-            restoreConfigInfo.sourceDatabaseNamesWithBackupSets.includes(this.profile.database)
+            this.databaseName &&
+            restoreConfigInfo.sourceDatabaseNamesWithBackupSets.includes(this.databaseName)
         ) {
-            this.state.formState.sourceDatabaseName = this.profile.database;
+            this.state.formState.sourceDatabaseName = this.databaseName;
         } else {
             this.state.formState.sourceDatabaseName =
                 restoreConfigInfo.sourceDatabaseNamesWithBackupSets[0];
@@ -164,62 +178,31 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             logFileFolder: restoreConfigInfo.logFileFolder,
         };
 
-        // Get credential names in server
-        try {
-            restoreViewModel.credentialNames = await getBlobCredentialNames(
-                this.client,
-                this.ownerUri,
-            );
-        } catch (error) {
-            restoreViewModel.loadState = ApiStatus.Error;
-            restoreViewModel.errorMessage = getErrorMessage(error);
-            this.updateViewModel(restoreViewModel);
-            return;
-        }
-
-        void this.getRestorePlan(false).then((state) => {
-            restoreViewModel = this.setDefaultFormValuesFromPlan(state);
-            this.updateViewModel(restoreViewModel, state);
-        });
-
-        this.onDisposed(() => {
-            //  Disconnect connection that we may have created for the restore operation.
-            if (this.state.ownerUri !== this.ownerUri) {
-                void this.connectionManager.disconnect(this.state.ownerUri);
-            }
-        });
-
-        // Handle task completed events to close the webview if the restore task completed
-        onTaskCompleted((taskCompletedEvent: TaskCompletedEvent) => {
-            const { task, progress } = taskCompletedEvent;
-            if (task.name === this.RESTORE_DATABASE_TASK_NAME && progress.script) {
-                let includesBackupLocation = false;
-                const restoreViewModel = this.restoreViewModel();
-                if (restoreViewModel.type === DisasterRecoveryType.BackupFile) {
-                    const filePaths = restoreViewModel.backupFiles.map((file) => file.filePath);
-                    includesBackupLocation = filePaths.every((path) =>
-                        progress.script?.includes(path),
-                    );
-                } else {
-                    includesBackupLocation = progress.script?.includes(restoreViewModel.url);
-                }
-                console.log(includesBackupLocation);
-            }
-        });
+        void this.getRestorePlan(false)
+            .then((state) => {
+                restoreViewModel = this.setDefaultFormValuesFromPlan(state);
+                this.updateViewModel(restoreViewModel, state);
+            })
+            .catch((error) => {
+                sendErrorEvent(
+                    TelemetryViews.Restore,
+                    TelemetryActions.GetRestorePlan,
+                    error,
+                    false, // include error message in telemetry
+                );
+            });
 
         this.registerRestoreRpcHandlers();
         restoreViewModel.loadState = ApiStatus.Loaded;
 
         this.updateState();
+
+        sendActionEvent(TelemetryViews.Restore, TelemetryActions.InitializeRestore);
     }
 
     private registerRestoreRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            state = await disasterRecoveryFormAction<RestoreDatabaseFormState>(
-                state,
-                payload,
-                this.validateForm,
-            );
+            state = await disasterRecoveryFormAction<RestoreDatabaseFormState>(state, payload);
 
             // If the source database or blob fields were changed,
             // we need to get an updated restore plan
@@ -280,11 +263,17 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
 
         this.registerReducer("restoreDatabase", async (state, _payload) => {
             await this.restoreHelper(TaskExecutionMode.executeAndScript);
+            sendActionEvent(TelemetryViews.Restore, TelemetryActions.Restore, {
+                restoreType: this.restoreViewModel(state).type,
+            });
             return state;
         });
 
         this.registerReducer("openRestoreScript", async (state, _payload) => {
             await this.restoreHelper(TaskExecutionMode.script);
+            sendActionEvent(TelemetryViews.Restore, TelemetryActions.ScriptRestore, {
+                restoreType: this.restoreViewModel(state).type,
+            });
             return state;
         });
 
@@ -673,6 +662,17 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             return await this.objectManagementService.restoreDatabase(params);
         } catch (error) {
             this.state.errorMessage = getErrorMessage(error);
+            sendErrorEvent(
+                TelemetryViews.Restore,
+                TelemetryActions.Restore,
+                error,
+                false, // include error message in telemetry
+                undefined, // error code
+                undefined, // error type
+                {
+                    isScript: (taskMode === TaskExecutionMode.script).toString(),
+                },
+            );
             return;
         }
     }
@@ -702,6 +702,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel.restorePlan = undefined;
             this.state.errorMessage = getErrorMessage(error);
             this.updateViewModel(restoreViewModel, state);
+            sendErrorEvent(
+                TelemetryViews.Restore,
+                TelemetryActions.GetRestorePlan,
+                error,
+                false, // include error message in telemetry
+            );
 
             return state;
         }
@@ -736,6 +742,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         }
 
         restoreViewModel.restorePlanStatus = plan.canRestore ? ApiStatus.Loaded : ApiStatus.Error;
+
+        sendActionEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan);
+
         return this.updateViewModel(restoreViewModel, state);
     }
 
@@ -760,39 +769,23 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         }
 
         let backupSets = null;
-        if (!shouldOverwrite && restoreViewModel.restorePlan) {
+        if (
+            !shouldOverwrite &&
+            restoreViewModel.restorePlan &&
+            restoreViewModel.selectedBackupSets.length
+        ) {
             backupSets = restoreViewModel.selectedBackupSets;
         }
 
-        state = (await createSasKeyIfNeeded(
+        state = (await createSasKey(
             state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
             this.ownerUri,
             this.azureBlobService,
         )) as ObjectManagementWebviewState<RestoreDatabaseFormState>;
 
-        const sourceDatabaseName = useDefaults ? null : state.formState.sourceDatabaseName;
-        if (!useDefaults && sourceDatabaseName && !state.ownerUri.startsWith(sourceDatabaseName)) {
-            const databaseConnectionUri = await createDisasterRecoveryConnectionContext(
-                this.ownerUri,
-                state.ownerUri,
-                sourceDatabaseName,
-                this.profile,
-                this.connectionManager,
-            );
-            if (!databaseConnectionUri) {
-                const databaseFormComponent = this.state.formComponents["sourceDatabaseName"];
-                databaseFormComponent.validation = {
-                    isValid: false,
-                    validationMessage:
-                        LocConstants.RestoreDatabase.couldNotConnectToDatabase(sourceDatabaseName),
-                };
-                state.formErrors.push("sourceDatabaseName");
-            }
-        }
-
         const restoreInfo: RestoreInfo = {
-            targetDatabaseName: useDefaults ? "master" : state.formState.targetDatabaseName,
-            sourceDatabaseName: sourceDatabaseName,
+            targetDatabaseName: useDefaults ? defaultDatabase : state.formState.targetDatabaseName,
+            sourceDatabaseName: useDefaults ? null : state.formState.sourceDatabaseName,
             relocateDbFiles: state.formState.relocateDbFiles,
             readHeaderFromMedia: restoreFromDatabase ? false : true,
             overwriteTargetDatabase: shouldOverwrite,
@@ -809,7 +802,11 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel = this.updatePlanFromState(restoreViewModel, state);
 
             for (const key in restoreViewModel.restorePlan.planDetails) {
-                options[key] = restoreViewModel.restorePlan.planDetails[key];
+                let value = restoreViewModel.restorePlan.planDetails[key];
+                if (value && "currentValue" in value) {
+                    value = value.currentValue;
+                }
+                options[key] = value;
             }
         }
         for (const key in restoreInfo) {

@@ -410,11 +410,18 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                     renderFormFields(DisasterRecoveryType.Database)
                 )}
                 {renderFormFields()}
-                <RestorePlanTableContainer restoreTableType={RestorePlanTableType.BackupSets} />
-                <AdvancedOptionsDrawer
-                    isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                    setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                />
+                {!(
+                    restoreType === DisasterRecoveryType.Url &&
+                    azureComponentStatuses["accountId"] !== ApiStatus.Loaded
+                ) && (
+                    <RestorePlanTableContainer restoreTableType={RestorePlanTableType.BackupSets} />
+                )}
+                {isAdvancedDrawerOpen && (
+                    <AdvancedOptionsDrawer
+                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+                    />
+                )}
                 <div className={classes.bottomDiv}>
                     <div style={{ marginLeft: "10px" }}>
                         <Button

@@ -2995,6 +2995,13 @@ export class BackupDatabase {
     public static unableToLoadBackupConfig = l10n.t(
         "Unable to load backup configuration. Please try again.",
     );
+    public static couldNotConnectToDatabase = (database: string) => {
+        return l10n.t({
+            message: "Could not connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
 }
 
 export class FlatFileImport {
@@ -3080,11 +3087,4 @@ export class RestoreDatabase {
     public static backupFileDatabaseError = l10n.t(
         "Selected backup file does not contain a valid database backup",
     );
-    public static couldNotConnectToDatabase = (database: string) => {
-        return l10n.t({
-            message: "Could not connect to database: {0}",
-            args: [database],
-            comment: ["{0} is the database name"],
-        });
-    };
 }

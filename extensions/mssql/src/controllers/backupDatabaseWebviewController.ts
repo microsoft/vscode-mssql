@@ -43,7 +43,7 @@ import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterface
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { getErrorMessage } from "../utils/utils";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
@@ -58,15 +58,12 @@ import {
 } from "../sharedInterfaces/objectManagement";
 import { ObjectManagementService } from "../services/objectManagementService";
 import {
-    createDisasterRecoveryConnectionContext,
-    createSasKeyIfNeeded,
+    createSasKey,
     disasterRecoveryFormAction,
-    getBlobCredentialNames,
     loadAzureComponentHelper,
     removeBackupFile,
     setType,
 } from "./sharedDisasterRecoveryUtils";
-import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { ConnectionProfile } from "../models/connectionProfile";
 import ConnectionManager from "./connectionManager";
 
@@ -79,7 +76,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
-        private client: SqlToolsServiceClient,
         private connectionManager: ConnectionManager,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
@@ -105,19 +101,33 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
     protected async initializeDialog(): Promise<void> {
         const backupModel = new BackupDatabaseViewModel();
-        this.state.ownerUri = this.connectionUri;
 
         // Make sure the backup load state is set, so the loading ui properly displays
         this.updateViewModel(backupModel);
 
         backupModel.databaseName = this.databaseName;
-        this.state.ownerUri = await createDisasterRecoveryConnectionContext(
-            this.ownerUri,
-            this.ownerUri,
-            backupModel.databaseName,
-            this.profile,
-            this.connectionManager,
-        );
+
+        try {
+            this.state.ownerUri = await this.createBackupConnectionContext(
+                this.ownerUri,
+                this.ownerUri,
+                backupModel.databaseName,
+                this.profile,
+                this.connectionManager,
+            );
+        } catch (error) {
+            backupModel.loadState = ApiStatus.Error;
+            this.state.errorMessage = LocConstants.BackupDatabase.couldNotConnectToDatabase(
+                backupModel.databaseName,
+            );
+            this.updateViewModel(backupModel);
+            sendErrorEvent(
+                TelemetryViews.Backup,
+                TelemetryActions.InitializeBackup,
+                new Error(LocConstants.BackupDatabase.couldNotConnectToDatabase("")),
+                true, // include error message in telemetry
+            );
+        }
 
         this.onDisposed(() => {
             void this.connectionManager.disconnect(this.state.ownerUri);
@@ -138,6 +148,12 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             this.state.errorMessage =
                 backupConfigError || LocConstants.BackupDatabase.unableToLoadBackupConfig;
             this.updateViewModel(backupModel);
+            sendErrorEvent(
+                TelemetryViews.Backup,
+                TelemetryActions.InitializeBackup,
+                new Error(LocConstants.BackupDatabase.unableToLoadBackupConfig),
+                true, // include error message in telemetry
+            );
             return;
         }
 
@@ -153,19 +169,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 value: allFileTypes,
             },
         ];
-
-        // Get credential names in server
-        try {
-            backupModel.credentialNames = await getBlobCredentialNames(
-                this.client,
-                this.connectionUri,
-            );
-        } catch (error) {
-            backupModel.loadState = ApiStatus.Error;
-            backupModel.errorMessage = getErrorMessage(error);
-            this.updateViewModel(backupModel);
-            return;
-        }
 
         backupModel.databaseName = this.databaseName;
         backupModel.backupEncryptors = backupConfigInfo.backupEncryptors;
@@ -232,7 +235,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             }
         });
 
-        sendActionEvent(TelemetryViews.Backup, TelemetryActions.StartBackup);
+        sendActionEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup);
 
         this.registerBackupRpcHandlers();
         backupModel.loadState = ApiStatus.Loaded;
@@ -260,11 +263,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
     private registerBackupRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            return await disasterRecoveryFormAction<BackupDatabaseFormState>(
-                state,
-                payload,
-                this.validateForm,
-            );
+            return await disasterRecoveryFormAction<BackupDatabaseFormState>(state, payload);
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
@@ -421,7 +420,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
         // If saving to URL, construct the Blob URL and get SAS token
         if (backupViewModel.type === DisasterRecoveryType.Url) {
-            const stateWithUrl = await createSasKeyIfNeeded(
+            const stateWithUrl = await createSasKey(
                 state as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
                 this.connectionUri,
                 this.azureBlobService,
@@ -472,6 +471,34 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             mode,
         );
         return { success: backupResult.result };
+    }
+
+    private async createBackupConnectionContext(
+        originalOwnerUri: string,
+        currentConnectionUri: string,
+        databaseName: string,
+        profile: ConnectionProfile,
+        connectionManager: ConnectionManager,
+    ): Promise<string | undefined> {
+        // If we have an existing connection for a different database, disconnect it
+        if (currentConnectionUri && currentConnectionUri !== originalOwnerUri) {
+            void connectionManager.disconnect(currentConnectionUri);
+        }
+
+        const databaseConnectionUri = `${databaseName}_${originalOwnerUri}`;
+
+        // Create a new temp connection for the database if we are not already connected
+        // This lets sts know the context of the database we are backing up; otherwise,
+        // sts will assume the master database context
+        const didConnect = await connectionManager.connect(databaseConnectionUri, {
+            ...profile,
+            database: databaseName,
+        });
+
+        if (didConnect) {
+            return databaseConnectionUri;
+        }
+        return undefined;
     }
 
     //#region Form Helpers

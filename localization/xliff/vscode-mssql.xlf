@@ -6547,6 +6547,9 @@
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
+    <trans-unit id="mssql.flatFileImport">
+      <source xml:lang="en">Import flat file (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Profiler</source>
     </trans-unit>
@@ -6622,6 +6625,9 @@
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>
     </trans-unit>
+    <trans-unit id="mssql.profiler.openXelFile">
+      <source xml:lang="en">Open Profiler XEL File</source>
+    </trans-unit>
     <trans-unit id="mssql.openQueryHistory">
       <source xml:lang="en">Open Query</source>
     </trans-unit>
@@ -6696,6 +6702,9 @@
     </trans-unit>
     <trans-unit id="mssql.sqlScriptsSubmenu">
       <source xml:lang="en">SQL Scripts</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.xelEditorDisplayName">
+      <source xml:lang="en">SQL Server Extended Events Log</source>
     </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare</source>

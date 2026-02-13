@@ -1728,7 +1728,6 @@ export default class MainController implements vscode.Disposable {
                             this._context,
                             this._vscodeWrapper,
                             this.objectManagementService,
-                            SqlToolsServerClient.instance,
                             this._connectionMgr,
                             this.fileBrowserService,
                             this.azureBlobService,
@@ -1745,16 +1744,18 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.registerCommand(
                     Constants.cmdRestoreDatabase,
                     async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
                         const reactPanel = new RestoreDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
                             this.objectManagementService,
-                            SqlToolsServerClient.instance,
                             this._connectionMgr,
                             this.fileBrowserService,
                             this.azureBlobService,
                             node.connectionProfile,
                             node.sessionId,
+                            databaseName,
                         );
                         reactPanel.revealToForeground();
                     },

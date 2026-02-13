@@ -196,8 +196,6 @@ export class DisasterRecoveryViewModel {
         storageAccountId: ApiStatus.NotStarted,
         blobContainerId: ApiStatus.NotStarted,
     };
-
-    credentialNames: string[] = [];
 }
 
 export interface DisasterRecoveryReducers {

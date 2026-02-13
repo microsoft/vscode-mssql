@@ -16,14 +16,9 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { getExpirationDateForSas } from "../utils/utils";
 import * as vscode from "vscode";
-import { SimpleExecuteResult } from "vscode-mssql";
-import { RequestType } from "vscode-languageclient";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { https } from "../constants/constants";
 import { AzureBlobService } from "../models/contracts/azureBlob";
-import SqlToolsServiceClient from "../languageservice/serviceclient";
-import ConnectionManager from "./connectionManager";
-import { ConnectionProfile } from "../models/connectionProfile";
 
 export async function getAzureActionButton(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
@@ -350,11 +345,6 @@ export async function disasterRecoveryFormAction<TForm>(
     payload: {
         event: FormEvent<TForm>;
     },
-    validateForm: (
-        formTarget: TForm,
-        propertyName?: keyof TForm,
-        updateValidation?: boolean,
-    ) => Promise<(keyof TForm)[]>,
 ): Promise<ObjectManagementWebviewState<TForm>> {
     const propertyName = payload.event.propertyName.toString();
 
@@ -400,15 +390,16 @@ export async function disasterRecoveryFormAction<TForm>(
         }
 
         // Re-validate the changed component
-        const [componentFormError] = await validateForm(
-            state.formState,
-            propertyName as keyof TForm,
-            true,
-        );
-        if (componentFormError) {
-            state.formErrors.push(propertyName);
-        } else {
-            state.formErrors = state.formErrors.filter((formError) => formError !== propertyName);
+        const component = state.formComponents[propertyName];
+        if (component && component.validate) {
+            const validation = component.validate(state, payload.event.value);
+            if (!validation.isValid) {
+                state.formErrors.push(propertyName);
+            } else {
+                state.formErrors = state.formErrors.filter(
+                    (formError) => formError !== propertyName,
+                );
+            }
         }
     }
     return state;
@@ -431,41 +422,7 @@ export function getUrl(
     return `${https}${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
 }
 
-export async function getBlobCredentialNames(
-    client: SqlToolsServiceClient,
-    ownerUri: string,
-): Promise<string[]> {
-    const getCredsQuery = `
-            SELECT name
-            FROM sys.credentials`;
-
-    const result = await client.sendRequest(
-        new RequestType<{ ownerUri: string; queryString: string }, SimpleExecuteResult, void, void>(
-            "query/simpleexecute",
-        ),
-        {
-            ownerUri: ownerUri,
-            queryString: getCredsQuery,
-        },
-    );
-
-    if (!result || !result.rows || result.rows.length === 0) {
-        return [];
-    }
-
-    const credentialNames: string[] = [];
-    for (const row of result.rows) {
-        if (row && row.length > 0 && row[0] && !row[0].isNull) {
-            const credName = row[0].displayValue.trim();
-            if (credName) {
-                credentialNames.push(credName);
-            }
-        }
-    }
-    return credentialNames;
-}
-
-export async function createSasKeyIfNeeded(
+export async function createSasKey(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
     ownerUri: string,
     azureBlobService: AzureBlobService,
@@ -480,68 +437,34 @@ export async function createSasKeyIfNeeded(
         viewModel.url = getUrl(state);
     }
 
-    if (!viewModel.credentialNames.includes(viewModel.url)) {
-        const subscription = viewModel.subscriptions.find(
-            (s) => s.subscriptionId === state.formState.subscriptionId,
-        );
-        const storageAccount = viewModel.storageAccounts.find(
-            (sa) => sa.id === state.formState.storageAccountId,
-        );
+    const subscription = viewModel.subscriptions.find(
+        (s) => s.subscriptionId === state.formState.subscriptionId,
+    );
+    const storageAccount = viewModel.storageAccounts.find(
+        (sa) => sa.id === state.formState.storageAccountId,
+    );
 
-        if (!subscription || !storageAccount) {
-            return state;
-        }
-
-        let sasKeyResult;
-        try {
-            sasKeyResult = await VsCodeAzureHelper.getStorageAccountKeys(
-                subscription,
-                storageAccount,
-            );
-            void azureBlobService.createSas(
-                ownerUri,
-                viewModel.url,
-                sasKeyResult.keys[0].value,
-                storageAccount.name,
-                getExpirationDateForSas(),
-            );
-
-            viewModel.credentialNames.push(viewModel.url);
-
-            state.viewModel.model = viewModel as any;
-        } catch (error) {
-            vscode.window.showErrorMessage(
-                LocConstants.BackupDatabase.generatingSASKeyFailedWithError(error.message),
-            );
-        }
+    if (!subscription || !storageAccount) {
+        return state;
     }
+
+    let sasKeyResult;
+    try {
+        sasKeyResult = await VsCodeAzureHelper.getStorageAccountKeys(subscription, storageAccount);
+        void azureBlobService.createSas(
+            ownerUri,
+            viewModel.url,
+            sasKeyResult.keys[0].value,
+            storageAccount.name,
+            getExpirationDateForSas(),
+        );
+
+        state.viewModel.model = viewModel as any;
+    } catch (error) {
+        vscode.window.showErrorMessage(
+            LocConstants.BackupDatabase.generatingSASKeyFailedWithError(error.message),
+        );
+    }
+
     return state;
-}
-
-export async function createDisasterRecoveryConnectionContext(
-    originalOwnerUri: string,
-    currentConnectionUri: string,
-    databaseName: string,
-    profile: ConnectionProfile,
-    connectionManager: ConnectionManager,
-): Promise<string | undefined> {
-    // If we have an existing connection for a different database, disconnect it
-    if (currentConnectionUri && currentConnectionUri !== originalOwnerUri) {
-        void connectionManager.disconnect(currentConnectionUri);
-    }
-
-    const databaseConnectionUri = `${databaseName}_${originalOwnerUri}`;
-
-    // Create a new temp connection for the database if we are not already connected
-    // This lets sts know the context of the database we are backing up; otherwise,
-    // sts will assume the master database context
-    const didConnect = await connectionManager.connect(databaseConnectionUri, {
-        ...profile,
-        database: databaseName,
-    });
-
-    if (didConnect) {
-        return databaseConnectionUri;
-    }
-    return undefined;
 }
