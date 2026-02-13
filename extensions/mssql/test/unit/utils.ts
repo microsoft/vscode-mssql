@@ -19,8 +19,28 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 
+const UNIT_TEST_SERVICE_PATH = path.join("sqltoolsservice", "unit-test");
+
+function ensureSqlToolsServiceInitializeMock(): void {
+    const serviceClient = SqlToolsServerClient.instance as unknown as {
+        initialize: (...args: unknown[]) => Promise<unknown>;
+        _sqlToolsServicePath?: string;
+    };
+
+    const maybeStub = serviceClient.initialize as sinon.SinonStub;
+    if (typeof maybeStub?.restore === "function") {
+        return;
+    }
+
+    sinon.stub(serviceClient, "initialize").callsFake(async () => {
+        serviceClient._sqlToolsServicePath = UNIT_TEST_SERVICE_PATH;
+        return { installRequired: false, succeeded: true, serverPath: UNIT_TEST_SERVICE_PATH };
+    });
+}
+
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
+    ensureSqlToolsServiceInitializeMock();
     const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
     return await extension.activate();
 }

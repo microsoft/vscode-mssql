@@ -55,6 +55,7 @@ async function main() {
                 TEST_PATTERN: testPattern ?? "",
                 // Some runners read MOCHA_GREP; set it too for convenience
                 MOCHA_GREP: testPattern ?? "",
+                MSSQL_EXTENSION_ENTRY: "out",
             },
         });
     } catch (err) {
