@@ -172,7 +172,9 @@ export const RestorePlanTableContainer = ({
                 }
 
             case ApiStatus.Error:
-                return renderErrorContent(errorMessage ?? "");
+                return renderErrorContent(
+                    errorMessage ?? locConstants.restoreDatabase.couldNotLoadRestorePlan,
+                );
 
             default:
                 return null; // optional: handle unexpected loadState values

@@ -58,6 +58,7 @@ import {
 } from "../sharedInterfaces/objectManagement";
 import { ObjectManagementService } from "../services/objectManagementService";
 import {
+    createDisasterRecoveryConnectionContext,
     createSasKey,
     disasterRecoveryFormAction,
     loadAzureComponentHelper,
@@ -108,7 +109,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         backupModel.databaseName = this.databaseName;
 
         try {
-            this.state.ownerUri = await this.createBackupConnectionContext(
+            this.state.ownerUri = await createDisasterRecoveryConnectionContext(
                 this.ownerUri,
                 this.ownerUri,
                 backupModel.databaseName,
@@ -471,34 +472,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             mode,
         );
         return { success: backupResult.result };
-    }
-
-    private async createBackupConnectionContext(
-        originalOwnerUri: string,
-        currentConnectionUri: string,
-        databaseName: string,
-        profile: ConnectionProfile,
-        connectionManager: ConnectionManager,
-    ): Promise<string | undefined> {
-        // If we have an existing connection for a different database, disconnect it
-        if (currentConnectionUri && currentConnectionUri !== originalOwnerUri) {
-            void connectionManager.disconnect(currentConnectionUri);
-        }
-
-        const databaseConnectionUri = `${databaseName}_${originalOwnerUri}`;
-
-        // Create a new temp connection for the database if we are not already connected
-        // This lets sts know the context of the database we are backing up; otherwise,
-        // sts will assume the master database context
-        const didConnect = await connectionManager.connect(databaseConnectionUri, {
-            ...profile,
-            database: databaseName,
-        });
-
-        if (didConnect) {
-            return databaseConnectionUri;
-        }
-        return undefined;
     }
 
     //#region Form Helpers

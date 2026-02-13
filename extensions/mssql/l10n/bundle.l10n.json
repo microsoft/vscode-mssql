@@ -1412,6 +1412,8 @@
     "Restore as": "Restore as",
     "File type": "File type",
     "Backup sets to restore": "Backup sets to restore",
+    "Advanced restore options": "Advanced restore options",
+    "Could not load restore plan": "Could not load restore plan",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",

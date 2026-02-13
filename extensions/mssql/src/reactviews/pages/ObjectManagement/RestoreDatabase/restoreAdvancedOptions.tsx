@@ -182,7 +182,7 @@ export const AdvancedOptionsDrawer = ({
                                 onClick={() => setIsAdvancedDrawerOpen(false)}
                             />
                         }>
-                        {locConstants.backupDatabase.advancedBackupOptions}
+                        {locConstants.restoreDatabase.advancedRestoreOptions}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
 

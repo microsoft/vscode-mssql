@@ -19,6 +19,8 @@ import * as vscode from "vscode";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { https } from "../constants/constants";
 import { AzureBlobService } from "../models/contracts/azureBlob";
+import ConnectionManager from "./connectionManager";
+import { ConnectionProfile } from "../models/connectionProfile";
 
 export async function getAzureActionButton(
     state: ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
@@ -467,4 +469,32 @@ export async function createSasKey(
     }
 
     return state;
+}
+
+export async function createDisasterRecoveryConnectionContext(
+    originalOwnerUri: string,
+    currentConnectionUri: string,
+    databaseName: string,
+    profile: ConnectionProfile,
+    connectionManager: ConnectionManager,
+): Promise<string | undefined> {
+    // If we have an existing connection for a different database, disconnect it
+    if (currentConnectionUri && currentConnectionUri !== originalOwnerUri) {
+        void connectionManager.disconnect(currentConnectionUri);
+    }
+
+    const databaseConnectionUri = `${databaseName}_${originalOwnerUri}`;
+
+    // Create a new temp connection for the database if we are not already connected
+    // This lets sts know the context of the database we are backing up; otherwise,
+    // sts will assume the master database context
+    const didConnect = await connectionManager.connect(databaseConnectionUri, {
+        ...profile,
+        database: databaseName,
+    });
+
+    if (didConnect) {
+        return databaseConnectionUri;
+    }
+    return undefined;
 }

@@ -229,6 +229,7 @@ export enum TelemetryActions {
     InitializeRestore = "InitializeRestore",
     GetRestorePlan = "GetRestorePlan",
     ScriptRestore = "ScriptRestore",
+    GetRestoreParams = "GetRestoreParams",
 }
 
 /**

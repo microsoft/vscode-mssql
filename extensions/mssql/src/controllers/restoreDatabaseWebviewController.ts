@@ -39,6 +39,7 @@ import * as LocConstants from "../constants/locConstants";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import ConnectionManager from "./connectionManager";
 import {
+    createDisasterRecoveryConnectionContext,
     createSasKey,
     disasterRecoveryFormAction,
     getUrl,
@@ -156,8 +157,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             displayName: dbName,
         }));
         this.state.formComponents["targetDatabaseName"].options = targetDatabaseOptions;
-        this.state.formState.targetDatabaseName = this.profile.database ?? databases[0];
-        this.state.formState.targetDatabaseName = this.state.formState.sourceDatabaseName;
+        this.state.formState.targetDatabaseName =
+            this.state.formState.sourceDatabaseName ?? databases[0];
 
         // Set Azure related defaults
         restoreViewModel.azureComponentStatuses["blob"] = ApiStatus.NotStarted;
@@ -191,6 +192,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                     false, // include error message in telemetry
                 );
             });
+
+        this.onDisposed(() => {
+            if (this.ownerUri !== this.state.ownerUri) {
+                void this.connectionManager.disconnect(this.state.ownerUri);
+            }
+        });
 
         this.registerRestoreRpcHandlers();
         restoreViewModel.loadState = ApiStatus.Loaded;
@@ -772,9 +779,37 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         if (
             !shouldOverwrite &&
             restoreViewModel.restorePlan &&
-            restoreViewModel.selectedBackupSets.length
+            taskMode !== TaskExecutionMode.script
         ) {
             backupSets = restoreViewModel.selectedBackupSets;
+        }
+
+        const sourceDatabaseName = useDefaults ? null : state.formState.sourceDatabaseName;
+        if (!useDefaults && sourceDatabaseName && !state.ownerUri.startsWith(sourceDatabaseName)) {
+            const databaseConnectionUri = await createDisasterRecoveryConnectionContext(
+                this.ownerUri,
+                state.ownerUri,
+                sourceDatabaseName,
+                this.profile,
+                this.connectionManager,
+            );
+            if (!databaseConnectionUri) {
+                const databaseFormComponent = this.state.formComponents["sourceDatabaseName"];
+                databaseFormComponent.validation = {
+                    isValid: false,
+                    validationMessage:
+                        LocConstants.BackupDatabase.couldNotConnectToDatabase(sourceDatabaseName),
+                };
+                state.formErrors.push("sourceDatabaseName");
+                sendErrorEvent(
+                    TelemetryViews.Restore,
+                    TelemetryActions.GetRestoreParams,
+                    new Error(`Failed to create connection context for database`),
+                    true, // include error message in telemetry
+                );
+            } else {
+                state.ownerUri = databaseConnectionUri;
+            }
         }
 
         state = (await createSasKey(
@@ -785,7 +820,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
 
         const restoreInfo: RestoreInfo = {
             targetDatabaseName: useDefaults ? defaultDatabase : state.formState.targetDatabaseName,
-            sourceDatabaseName: useDefaults ? null : state.formState.sourceDatabaseName,
+            sourceDatabaseName: sourceDatabaseName,
             relocateDbFiles: state.formState.relocateDbFiles,
             readHeaderFromMedia: restoreFromDatabase ? false : true,
             overwriteTargetDatabase: shouldOverwrite,
@@ -853,11 +888,11 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         const state = currentState ?? this.state;
         const restoreViewModel = this.restoreViewModel(state);
         for (const key in restoreViewModel.restorePlan?.planDetails) {
-            if (key in state.formState) {
+            if (key in state.formState && !state.formState[key]) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (state.formState[key] as any) =
                     restoreViewModel.restorePlan?.planDetails[key].defaultValue;
-            } else if (key in restoreViewModel) {
+            } else if (key in restoreViewModel && !restoreViewModel[key]) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (restoreViewModel[key] as any) =
                     restoreViewModel.restorePlan?.planDetails[key].defaultValue;

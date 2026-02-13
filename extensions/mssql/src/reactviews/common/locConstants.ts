@@ -2166,6 +2166,8 @@ export class LocConstants {
             restoreAs: l10n.t("Restore as"),
             fileType: l10n.t("File type"),
             backupSetsToRestore: l10n.t("Backup sets to restore"),
+            advancedRestoreOptions: l10n.t("Advanced restore options"),
+            couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
         };
     }
 }
