@@ -40,8 +40,6 @@ import {
 import { serviceName } from "../azure/constants";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
-const SKIP_STS_START_ENV_VAR = "MSSQL_SKIP_SQLTOOLS_SERVICE_START";
-const UNIT_TEST_SERVICE_PATH = path.join("sqltoolsservice", "unit-test");
 
 /**
  * @interface IMessage
@@ -196,19 +194,6 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
-        if (
-            env[SKIP_STS_START_ENV_VAR] === "1" ||
-            env[SKIP_STS_START_ENV_VAR]?.toLowerCase() === "true"
-        ) {
-            this._sqlToolsServicePath = UNIT_TEST_SERVICE_PATH;
-            this._logger.appendLine(
-                `Skipping SQL Tools Service startup because ${SKIP_STS_START_ENV_VAR} is set.`,
-            );
-            return Promise.resolve(
-                new ServerInitializationResult(true, true, UNIT_TEST_SERVICE_PATH),
-            );
-        }
-
         this._logger.appendLine(Constants.serviceInitializing);
         this._logPath = context.logUri.fsPath;
         return PlatformInformation.getCurrent().then((platformInfo) => {
