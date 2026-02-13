@@ -41,7 +41,8 @@ import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
     AdsMigrationSetting,
-    AzureDataStudioMigrationBrowseForConfigRequest,
+    BrowseForConfigRequest,
+    OpenKeymapLinkNotification as OpenKeymapLinkNotification,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     EntraSignInDialogProps,
@@ -174,10 +175,7 @@ export const AzureDataStudioMigrationPage = () => {
     };
 
     const handleBrowseForConfig = async () => {
-        const result = await extensionRpc.sendRequest(
-            AzureDataStudioMigrationBrowseForConfigRequest.type,
-            undefined,
-        );
+        const result = await extensionRpc.sendRequest(BrowseForConfigRequest.type, undefined);
         if (result) {
             setConfigPath(result);
         }
@@ -516,9 +514,11 @@ export const AzureDataStudioMigrationPage = () => {
                                 <Body1 className={classes.summaryText}>
                                     {LocMigration.keymapCallout}{" "}
                                     <Link
-                                        href="https://aka.ms/vscode-mssql-keymap"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        onClick={() =>
+                                            void extensionRpc.sendNotification(
+                                                OpenKeymapLinkNotification.type,
+                                            )
+                                        }
                                         inline>
                                         {LocMigration.keymapCalloutLink}
                                     </Link>

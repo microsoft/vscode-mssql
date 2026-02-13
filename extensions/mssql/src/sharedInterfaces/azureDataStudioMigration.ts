@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { IConnectionDialogProfile } from "./connectionDialog";
 import { IConnectionGroup } from "./connectionGroup";
 import { Status } from "./webview";
@@ -119,8 +119,12 @@ export interface AzureDataStudioMigrationReducers {
     confirmImport: {};
 }
 
-export namespace AzureDataStudioMigrationBrowseForConfigRequest {
+export namespace BrowseForConfigRequest {
     export const type = new RequestType<void, string | undefined, void>(
         "azureDataStudioMigration/browseConfig",
     );
+}
+
+export namespace OpenKeymapLinkNotification {
+    export const type = new NotificationType<void>("azureDataStudioMigration/openKeymapLink");
 }
