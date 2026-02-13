@@ -131,17 +131,49 @@ export default class HttpClient implements IHttpClient {
             response.on("data", (data) => {
                 this.handleDataReceivedEvent(progress, data, logger, statusView);
             });
-            let tmpFile = fs.createWriteStream("", { fd: pkg.tmpFile.fd });
-            response.on("end", () => {
-                resolve();
-            });
+
+            const tmpFile = fs.createWriteStream("", { fd: pkg.tmpFile.fd, autoClose: true });
+            let settled = false;
+            const complete = (err?: Error): void => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            };
 
             response.on("error", (err: any) => {
-                reject(new PackageError(`Response error: ${err.code || "NONE"}`, pkg, err));
+                complete(new PackageError(`Response error: ${err.code || "NONE"}`, pkg, err));
             });
 
-            // Begin piping data from the response to the package file
-            response.pipe(tmpFile, { end: false });
+            tmpFile.on("error", (err: any) => {
+                complete(new PackageError(`File write error: ${err.code || "NONE"}`, pkg, err));
+            });
+
+            tmpFile.on("finish", () => {
+                if (
+                    Number.isFinite(progress.packageSize) &&
+                    progress.packageSize > 0 &&
+                    progress.downloadedBytes !== progress.packageSize
+                ) {
+                    complete(
+                        new PackageError(
+                            `Downloaded bytes mismatch. expected=${progress.packageSize},
+  actual=${progress.downloadedBytes}`,
+                            pkg,
+                        ),
+                    );
+                    return;
+                }
+                complete();
+            });
+
+            // Resolve only after file write is fully flushed/finished.
+            response.pipe(tmpFile);
         });
     }
 }
