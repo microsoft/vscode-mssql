@@ -510,7 +510,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 // Notify webview to clear and refetch unfiltered data
                 void this.sendNotification(ProfilerNotifications.ClearGrid, {});
 
-                // After clear, notify of all available data
+                // After clear, notify of all available data, which is total count since filter is cleared
                 setTimeout(() => {
                     void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
                         newCount: totalCount,

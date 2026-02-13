@@ -70,7 +70,7 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Get the singleton instance
+     * Get the singleton instance.
      */
     public static get instance(): ProfilerConfigService {
         if (!ProfilerConfigService._instance) {
@@ -80,7 +80,7 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Get all available templates
+     * Get all available templates.
      */
     public getTemplates(): ProfilerTemplate[] {
         return this._config.templates;
