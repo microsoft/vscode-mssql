@@ -5,7 +5,6 @@
 
 import * as os from "os";
 import * as path from "path";
-import findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from "./interfaces";
@@ -690,11 +689,48 @@ export function getConfigLogRetentionSeconds(): number {
 }
 
 export function removeOldLogFiles(logPath: string, prefix: string): Record<string, any> | number {
-    return findRemoveSync(logPath, {
-        age: { seconds: getConfigLogRetentionSeconds() },
-        limit: getConfigLogFilesRemovalLimit(),
-        prefix: prefix,
-    });
+    if (!fs.existsSync(logPath)) {
+        return {};
+    }
+
+    const retentionSeconds = getConfigLogRetentionSeconds();
+    const removalLimit = getConfigLogFilesRemovalLimit();
+    const now = Date.now();
+    const deletedFiles: Record<string, boolean> = {};
+
+    const candidates = fs
+        .readdirSync(logPath)
+        .filter((name) => name.startsWith(prefix))
+        .map((name) => {
+            const fullPath = path.join(logPath, name);
+            const stats = fs.statSync(fullPath);
+            return { name, fullPath, stats };
+        })
+        .filter((entry) => entry.stats.isFile())
+        .filter((entry) => {
+            if (retentionSeconds === undefined) {
+                return true;
+            }
+            const ageInSeconds = (now - entry.stats.mtimeMs) / 1000;
+            return ageInSeconds >= retentionSeconds;
+        })
+        .sort((a, b) => a.stats.mtimeMs - b.stats.mtimeMs);
+
+    const filesToDelete =
+        removalLimit !== undefined && removalLimit > 0
+            ? candidates.slice(0, removalLimit)
+            : candidates;
+
+    for (const entry of filesToDelete) {
+        try {
+            fs.unlinkSync(entry.fullPath);
+            deletedFiles[entry.name] = true;
+        } catch {
+            // No-op. Best-effort cleanup should not block service startup.
+        }
+    }
+
+    return deletedFiles;
 }
 
 export function getCommonLaunchArgsAndCleanupOldLogFiles(
