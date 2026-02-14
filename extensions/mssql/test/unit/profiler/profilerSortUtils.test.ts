@@ -8,7 +8,7 @@ import {
     profilerSortComparator,
     createDataViewSortFn,
     getNextSortState,
-} from "../../../src/profiler/profilerSortUtils";
+} from "../../../src/sharedInterfaces/profiler";
 import { SortDirection, SortState } from "../../../src/profiler/profilerTypes";
 
 suite("profilerSortUtils", () => {
