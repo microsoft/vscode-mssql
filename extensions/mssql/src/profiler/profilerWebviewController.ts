@@ -201,7 +201,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
             // Stop and dispose only this session (fire and forget since dispose is sync)
             this._currentSession.dispose().catch((err) => {
-                console.error("Error disposing profiler session:", err);
+                this.logger.error("Error disposing profiler session:", err);
             });
         }
 
@@ -567,7 +567,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                         }
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error);
-                        console.error("Failed to export profiler session to CSV:", error);
+                        this.logger.error("Failed to export profiler session to CSV:", error);
                         void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
                     }
                 }

@@ -9,6 +9,7 @@ import { RingBuffer } from "./ringBuffer";
 import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
+import { Logger } from "../models/logger";
 
 /**
  * Default event buffer capacity
@@ -118,12 +119,21 @@ export class ProfilerSession {
     private _onSessionStopped: ((errorMessage?: string) => void) | undefined;
     /** Counter for generating sequential event numbers when service doesn't provide them */
     private _eventNumberCounter: number = 0;
+
+    /** Logger for diagnostic output */
+    private readonly _logger: Logger | undefined;
     /**
      * Creates a new ProfilerSession.
      * @param options - Session configuration options
      * @param profilerService - Reference to the profiler service for RPC calls
+     * @param logger - Optional logger for diagnostic output
      */
-    constructor(options: ProfilerSessionOptions, profilerService: ProfilerService) {
+    constructor(
+        options: ProfilerSessionOptions,
+        profilerService: ProfilerService,
+        logger?: Logger,
+    ) {
+        this._logger = logger;
         this.id = options.id;
         this.ownerUri = options.ownerUri;
         this.sessionName = options.sessionName;
@@ -506,7 +516,7 @@ export class ProfilerSession {
                 await this.stopProfiling();
             } catch (e) {
                 // Log but don't throw - we still want to clean up client resources
-                console.error(`Error stopping profiling session during dispose: ${e}`);
+                this._logger?.error(`Error stopping profiling session during dispose: ${e}`);
             }
         }
 
