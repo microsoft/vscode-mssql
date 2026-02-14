@@ -32,7 +32,6 @@ steps:
     workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - pwsh: |
-      if (Test-Path Env:ELECTRON_RUN_AS_NODE) { Remove-Item Env:ELECTRON_RUN_AS_NODE }
       yarn test
     displayName: MSSQL - Run tests
     workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"

@@ -288,7 +288,6 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          unset ELECTRON_RUN_AS_NODE
           cd extensions/mssql
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
@@ -344,7 +343,6 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          unset ELECTRON_RUN_AS_NODE
           export VS_CODE_VERSION=stable
           export SERVER_NAME=localhost
           export AUTHENTICATION_TYPE="SQL Login"
@@ -439,7 +437,6 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          unset ELECTRON_RUN_AS_NODE
           cd extensions/sql-database-projects
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
@@ -449,7 +446,6 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          unset ELECTRON_RUN_AS_NODE
           cd extensions/data-workspace
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?

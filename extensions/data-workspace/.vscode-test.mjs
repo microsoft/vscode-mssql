@@ -3,13 +3,10 @@ import { defineConfig } from "@vscode/test-cli";
 export default defineConfig({
     tests: [
         {
-            files: "out/test/unit/**/*.test.js",
+            files: "out/test/**/*.test.js",
+            launchArgs: ["--disable-extensions"],
             mocha: {
-                timeout: 30_000,
-                reporter: "mocha-junit-reporter",
-                reporterOptions: {
-                    mochaFile: "test-reports/test-results-ext.xml",
-                },
+                timeout: 10_000,
             },
         },
     ],

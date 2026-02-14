@@ -27,7 +27,6 @@ steps:
     workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
 
   - pwsh: |
-      if (Test-Path Env:ELECTRON_RUN_AS_NODE) { Remove-Item Env:ELECTRON_RUN_AS_NODE }
       yarn test
     displayName: DataWorkspace - Run tests
     workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"

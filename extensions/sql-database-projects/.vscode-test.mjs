@@ -3,13 +3,14 @@ import { defineConfig } from "@vscode/test-cli";
 export default defineConfig({
     tests: [
         {
-            files: "out/test/unit/**/*.test.js",
+            files: "out/test/**/*.test.js",
+            launchArgs: ["--disable-gpu"],
+            env: {
+                SQLPROJ_TEST_MODE: "1",
+            },
             mocha: {
                 timeout: 30_000,
-                reporter: "mocha-junit-reporter",
-                reporterOptions: {
-                    mochaFile: "test-reports/test-results-ext.xml",
-                },
+                require: ["./out/test/stubs/moduleShims.js"],
             },
         },
     ],

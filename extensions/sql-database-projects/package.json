@@ -39,7 +39,7 @@
         "watch": "yarn build:prepare && run-p -l watch:extension",
         "lint": "eslint ./src",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
-        "test": "yarn build && node ./out/test/runTest.js",
+        "test": "yarn build && vscode-test --coverage",
         "package": "yarn build && vsce package --no-yarn"
     },
     "capabilities": {
@@ -587,7 +587,7 @@
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
         "@vscode/l10n-dev": "^0.0.35",
-        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.1.1",
         "chai": "^5.3.3",
