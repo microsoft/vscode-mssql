@@ -12,12 +12,19 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, shorthands } from "@fluentui/react-components";
+import {
+    Panel,
+    PanelGroup,
+    PanelResizeHandle,
+    ImperativePanelHandle,
+} from "react-resizable-panels";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
 import { ProfilerColumnFilterPopover, getFilterType } from "./profilerColumnFilterPopover";
 import { ProfilerActiveFiltersBar } from "./profilerActiveFiltersBar";
+import { ProfilerDetailsPanel } from "./profilerDetailsPanel";
 import {
     SessionState,
     ProfilerNotifications,
@@ -144,7 +151,7 @@ export const Profiler: React.FC = () => {
         (filterState.enabled && filterState.clauses.length > 0) ||
         (filterState.quickFilter !== undefined && filterState.quickFilter.trim() !== "");
     const isReadOnly = useProfilerSelector((s) => s.isReadOnly ?? false);
-    const sessionName = useProfilerSelector((s) => s.sessionName);
+    const selectedEvent = useProfilerSelector((s) => s.selectedEvent);
     const xelFileName = useProfilerSelector((s) => s.xelFileName);
 
     const {
@@ -161,6 +168,10 @@ export const Profiler: React.FC = () => {
         clearFilter,
         setQuickFilter,
         getDistinctValues,
+        selectRow,
+        openInEditor,
+        copyToClipboard,
+        closeDetailsPanel,
         exportToCsv,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview();
@@ -179,6 +190,10 @@ export const Profiler: React.FC = () => {
     // Distinct values for categorical filter — fetched from extension (unfiltered ring buffer)
     const [popoverDistinctValues, setPopoverDistinctValues] = useState<string[]>([]);
 
+    const gridPanelRef = useRef<ImperativePanelHandle | null>(null);
+    const detailsPanelRef = useRef<ImperativePanelHandle | null>(null);
+    const [isDetailsPanelMaximized, setIsDetailsPanelMaximized] = useState(false);
+    const showDetailsPanel = selectedEvent !== undefined;
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | undefined>(undefined);
     const autoScrollRef = useRef(autoScroll);
@@ -209,6 +224,20 @@ export const Profiler: React.FC = () => {
     useEffect(() => {
         isPopoverOpenRef.current = isPopoverOpen;
     }, [isPopoverOpen]);
+    // Resize grid panel when details panel visibility changes
+    useEffect(() => {
+        if (gridPanelRef.current) {
+            if (showDetailsPanel) {
+                // Details panel is showing, resize grid to 50%
+                gridPanelRef.current.resize(50);
+            } else {
+                // Details panel is hidden, expand grid to 100%
+                gridPanelRef.current.resize(100);
+                // Reset maximized state when panel is closed
+                setIsDetailsPanelMaximized(false);
+            }
+        }
+    }, [showDetailsPanel]);
 
     // Handle clear when clearGeneration changes (ensures RingBuffer is cleared before we reset local index)
     useEffect(() => {
@@ -859,22 +888,84 @@ export const Profiler: React.FC = () => {
         [filterState.clauses, applyFilter, clearFilter],
     );
 
+    // Handlers for embedded details panel
+    const handleOpenInEditor = useCallback(
+        (textData: string, eventName?: string) => {
+            openInEditor(textData, eventName);
+        },
+        [openInEditor],
+    );
+
+    const handleCopy = useCallback(
+        (text: string) => {
+            copyToClipboard(text);
+        },
+        [copyToClipboard],
+    );
+
+    const handleToggleMaximize = useCallback(() => {
+        if (detailsPanelRef.current) {
+            if (isDetailsPanelMaximized) {
+                detailsPanelRef.current.resize(50);
+            } else {
+                detailsPanelRef.current.resize(95);
+            }
+            setIsDetailsPanelMaximized(!isDetailsPanelMaximized);
+        }
+    }, [isDetailsPanelMaximized]);
+
+    const handleCloseDetailsPanel = useCallback(() => {
+        setIsDetailsPanelMaximized(false);
+        closeDetailsPanel();
+    }, [closeDetailsPanel]);
+
+    // Handle row selection (click or keyboard navigation) to show details in the panel
+    const handleRowSelection = useCallback(
+        (rowIndex: number) => {
+            if (!reactGridRef.current?.dataView) {
+                return;
+            }
+
+            const dataView = reactGridRef.current.dataView;
+            const item = dataView.getItem(rowIndex);
+
+            if (item && item.id) {
+                selectRow(item.id);
+            }
+        },
+        [selectRow],
+    );
+
+    // Handle row click to show details in the panel
+    const handleRowClick = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            if (!args) {
+                return;
+            }
+            handleRowSelection(args.row);
+        },
+        [handleRowSelection],
+    );
+
+    // Handle active cell change (keyboard navigation) to show details in the panel
+    const handleActiveCellChanged = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            if (!args || args.row === undefined || args.row === null) {
+                return;
+            }
+            handleRowSelection(args.row);
+        },
+        [handleRowSelection],
+    );
     /**
      * Handle export to CSV request.
-     * Sends export request to extension with suggested filename.
-     * The extension generates CSV from the session's RingBuffer (source of truth)
-     * to ensure ALL events are exported, not just those loaded in the grid.
+     * The extension generates the filename and CSV from the session's RingBuffer.
      */
     const handleExportToCsv = useCallback(() => {
-        // Generate suggested file name with timestamp (YYYY-MM-DD-HH-mm-ss)
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-        const suggestedFileName = sessionName
-            ? `${sessionName}_${timestamp}`
-            : `${locConstants.profiler.defaultExportFileName}_${timestamp}`;
-
-        // Send to extension host - extension will generate CSV from ring buffer
-        exportToCsv(suggestedFileName);
-    }, [sessionName, exportToCsv]);
+        exportToCsv();
+    }, [exportToCsv]);
 
     return (
         <div className={classes.profilerContainer}>
@@ -931,6 +1022,43 @@ export const Profiler: React.FC = () => {
                     onScroll={handleScroll}
                 />
             </div>
+            <PanelGroup direction="vertical" className={classes.panelGroup}>
+                <Panel ref={gridPanelRef} defaultSize={100} minSize={10}>
+                    <div id="profilerGridContainer" className={classes.profilerGridContainer}>
+                        <SlickgridReact
+                            gridId="profilerGrid"
+                            columns={columns}
+                            options={gridOptions}
+                            dataset={EMPTY_DATASET}
+                            onReactGridCreated={(e) => reactGridReady(e.detail)}
+                            onScroll={handleScroll}
+                            onClick={handleRowClick}
+                            onActiveCellChanged={handleActiveCellChanged}
+                        />
+                    </div>
+                </Panel>
+                {showDetailsPanel && (
+                    <>
+                        <PanelResizeHandle className={classes.resizeHandle} />
+                        <Panel
+                            ref={detailsPanelRef}
+                            defaultSize={50}
+                            minSize={10}
+                            className={classes.detailsPanelContainer}>
+                            <ProfilerDetailsPanel
+                                selectedEvent={selectedEvent}
+                                themeKind={themeKind}
+                                isMaximized={isDetailsPanelMaximized}
+                                onOpenInEditor={handleOpenInEditor}
+                                onCopy={handleCopy}
+                                onToggleMaximize={handleToggleMaximize}
+                                onClose={handleCloseDetailsPanel}
+                                isPanelView={false}
+                            />
+                        </Panel>
+                    </>
+                )}
+            </PanelGroup>
         </div>
     );
 };
@@ -989,8 +1117,15 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: "var(--vscode-descriptionForeground)",
     },
+    panelGroup: {
+        ...shorthands.flex(1),
+        width: "100%",
+        height: "100%",
+        minHeight: 0,
+        ...shorthands.overflow("hidden"),
+    },
     profilerGridContainer: {
-        flex: 1,
+        height: "100%",
         minHeight: 0,
         overflow: "hidden",
         padding: "0",
@@ -1000,6 +1135,20 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
+    },
+    resizeHandle: {
+        height: "4px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
+        cursor: "row-resize",
+        "&:hover": {
+            backgroundColor: "var(--vscode-focusBorder)",
+        },
+    },
+    detailsPanelContainer: {
+        display: "flex",
+        flexDirection: "column",
+        ...shorthands.overflow("hidden"),
+        height: "100%",
     },
 });
 

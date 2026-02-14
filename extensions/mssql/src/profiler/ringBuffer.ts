@@ -21,6 +21,7 @@ export class RingBuffer<T extends IndexedRow> {
     private _size: number = 0;
     private _capacity: number;
     private _paused: boolean = false;
+    private _idIndex: Map<string, T> = new Map();
 
     /**
      * Creates a new RingBuffer with the specified capacity.
@@ -92,6 +93,12 @@ export class RingBuffer<T extends IndexedRow> {
         // Check if we're overwriting an existing row
         const removedRow = this._size >= this._capacity ? this._rows[position] : undefined;
 
+        // Update ID index
+        if (removedRow) {
+            this._idIndex.delete(removedRow.id);
+        }
+        this._idIndex.set(row.id, row);
+
         // Store the row
         this._rows[position] = row;
 
@@ -127,6 +134,7 @@ export class RingBuffer<T extends IndexedRow> {
         this._rows = new Array(this._capacity);
         this._size = 0;
         this._head = 0;
+        this._idIndex.clear();
     }
 
     /**
@@ -141,9 +149,13 @@ export class RingBuffer<T extends IndexedRow> {
 
         const actualCount = Math.min(count, this._size);
 
-        // Clear the rows
+        // Clear the rows and update ID index
         for (let i = 0; i < actualCount; i++) {
             const index = (this._head + i) % this._capacity;
+            const row = this._rows[index];
+            if (row) {
+                this._idIndex.delete(row.id);
+            }
             this._rows[index] = undefined;
         }
 
@@ -211,5 +223,14 @@ export class RingBuffer<T extends IndexedRow> {
         }
         const bufferIndex = (this._head + index) % this._capacity;
         return this._rows[bufferIndex];
+    }
+
+    /**
+     * Finds a row by its ID.
+     * @param id - The unique ID of the row to find
+     * @returns The row with the matching ID, or undefined if not found
+     */
+    findById(id: string): T | undefined {
+        return this._idIndex.get(id);
     }
 }

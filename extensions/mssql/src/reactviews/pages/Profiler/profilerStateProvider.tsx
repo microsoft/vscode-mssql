@@ -12,6 +12,7 @@ import {
     FilterClause,
     ProfilerRequests,
     DistinctValuesResponse,
+    ProfilerNotifications,
 } from "../../../sharedInterfaces/profiler";
 
 /**
@@ -44,8 +45,16 @@ export interface ProfilerRpcMethods {
     setQuickFilter: (term: string) => void;
     /** Get distinct values for a column from unfiltered ring buffer */
     getDistinctValues: (field: string) => Promise<DistinctValuesResponse>;
+    /** Select a row to show details in the panel */
+    selectRow: (rowId: string) => void;
+    /** Open TextData content in a new VS Code editor (embedded details panel) */
+    openInEditor: (textData: string, eventName?: string) => void;
+    /** Copy text to clipboard (embedded details panel) */
+    copyToClipboard: (text: string) => void;
+    /** Close the embedded details panel */
+    closeDetailsPanel: () => void;
     /** Export events to CSV file */
-    exportToCsv: (suggestedFileName: string) => void;
+    exportToCsv: () => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -141,12 +150,37 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
-    const exportToCsv = useCallback(
-        (suggestedFileName: string) => {
-            extensionRpc?.action("exportToCsv", { suggestedFileName });
+    const selectRow = useCallback(
+        (rowId: string) => {
+            extensionRpc?.action("selectRow", { rowId });
         },
         [extensionRpc],
     );
+
+    const exportToCsv = useCallback(() => {
+        void extensionRpc?.sendNotification(ProfilerNotifications.ExportToCsv, {});
+    }, [extensionRpc]);
+
+    const openInEditor = useCallback(
+        (textData: string, eventName?: string) => {
+            void extensionRpc?.sendNotification(ProfilerNotifications.OpenInEditor, {
+                textData,
+                eventName,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const copyToClipboard = useCallback(
+        (text: string) => {
+            void extensionRpc?.sendNotification(ProfilerNotifications.CopyToClipboard, { text });
+        },
+        [extensionRpc],
+    );
+
+    const closeDetailsPanel = useCallback(() => {
+        extensionRpc?.action("closeDetailsPanel", {});
+    }, [extensionRpc]);
 
     return (
         <ProfilerContext.Provider
@@ -165,6 +199,10 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 clearFilter,
                 setQuickFilter,
                 getDistinctValues,
+                selectRow,
+                openInEditor,
+                copyToClipboard,
+                closeDetailsPanel,
                 exportToCsv,
             }}>
             {children}
