@@ -107,6 +107,22 @@ export class SqlOutputContentProvider {
         );
 
         /**
+         * Command to toggle the actual execution plan for the active query result
+         */
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdToggleActualPlan, async () => {
+                const uri = this._vscodeWrapper.activeTextEditorUri;
+
+                if (!uri) {
+                    return;
+                }
+
+                const isCurrentlyEnabled = this._actualPlanStatuses.includes(uri);
+                this.onToggleActualPlan(!isCurrentlyEnabled);
+            }),
+        );
+
+        /**
          * Command that reveals the query result
          */
         this._context.subscriptions.push(

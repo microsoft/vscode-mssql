@@ -15,6 +15,7 @@ import {
     ProfilerNotifications,
     NewEventsAvailableParams,
     RowsRemovedParams,
+    ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
@@ -430,11 +431,41 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
+        // Handle row selection from webview - update state with selected event details
+        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
+            state.selectedEvent = this.handleRowSelection(payload.rowId);
+            return state;
+        });
+
+        // Handle Open in Editor request from embedded details panel
+        this.onNotification(
+            ProfilerNotifications.OpenInEditor,
+            async (params: { textData: string; eventName?: string }) => {
+                await this.openTextInEditor(params.textData);
+            },
+        );
+
+        // Handle Copy to Clipboard request from embedded details panel
+        this.onNotification(
+            ProfilerNotifications.CopyToClipboard,
+            async (params: { text: string }) => {
+                await vscode.env.clipboard.writeText(params.text);
+                void vscode.window.showInformationMessage(LocProfiler.copiedToClipboard);
+            },
+        );
+
+        // Handle close details panel request
+        this.registerReducer("closeDetailsPanel", (state) => {
+            return {
+                ...state,
+                selectedEvent: undefined,
+            };
+        });
+
         // Handle export to CSV request from webview
         // Generate CSV from the RingBuffer (source of truth) rather than from grid data
         // This ensures ALL events in the session buffer are exported
-        this.registerReducer("exportToCsv", (state, payload: { suggestedFileName: string }) => {
-            // Generate CSV from buffer if we have a session
+        this.onNotification(ProfilerNotifications.ExportToCsv, async () => {
             if (
                 this._currentSession &&
                 this._currentSession.events.size > 0 &&
@@ -442,28 +473,75 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             ) {
                 const allEvents = this._currentSession.events.getAllRows();
                 const viewConfig = this.state.viewConfig;
+
+                // Generate suggested file name with timestamp
+                const sessionName =
+                    this._currentSession.sessionName || LocProfiler.defaultExportFileName;
+                const timestamp = generateExportTimestamp();
+                const suggestedFileName = `${sessionName}_${timestamp}`;
+
                 if (this._eventHandlers.onExportToCsv) {
-                    // Request stream and write CSV (async, but reducer returns synchronously)
-                    void this._eventHandlers
-                        .onExportToCsv(payload.suggestedFileName)
-                        .then(async (stream) => {
-                            if (stream) {
-                                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
-                                stream.end(); // Close the stream to trigger 'finish' event
-                            }
-                        })
-                        .catch((error) => {
-                            const errorMessage =
-                                error instanceof Error ? error.message : String(error);
-                            console.error("Failed to export profiler session to CSV:", error);
-                            void vscode.window.showErrorMessage(
-                                LocProfiler.exportFailed(errorMessage),
-                            );
-                        });
+                    try {
+                        const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
+                        if (stream) {
+                            await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                            stream.end();
+                        }
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        console.error("Failed to export profiler session to CSV:", error);
+                        void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+                    }
                 }
             }
-            return state;
         });
+    }
+
+    /**
+     * Handle row selection - get event details and return them for state update
+     */
+    private handleRowSelection(rowId: string): ProfilerSelectedEventDetails | undefined {
+        if (!this._currentSession) {
+            return undefined;
+        }
+
+        // Find the event in the ring buffer by its ID
+        const event = this._currentSession.events.findById(rowId);
+        if (!event) {
+            return undefined;
+        }
+
+        // Build the selected event details using the centralized ProfilerConfigService
+        const viewConfig = this._currentSession.viewConfig;
+        const selectedEventDetails = getProfilerConfigService().buildEventDetails(
+            event,
+            viewConfig,
+        );
+
+        return selectedEventDetails;
+    }
+
+    /**
+     * Open text content in a new VS Code editor
+     */
+    private async openTextInEditor(textData: string): Promise<void> {
+        try {
+            const document = await vscode.workspace.openTextDocument({
+                content: textData,
+                language: "sql",
+            });
+
+            await vscode.window.showTextDocument(document, {
+                viewColumn: vscode.ViewColumn.One,
+                preview: true,
+            });
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                LocProfiler.failedToOpenInEditor(
+                    error instanceof Error ? error.message : String(error),
+                ),
+            );
+        }
     }
 
     /**
