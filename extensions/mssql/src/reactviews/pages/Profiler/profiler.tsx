@@ -1012,16 +1012,6 @@ export const Profiler: React.FC = () => {
                     onClear={handlePopoverClear}
                 />
             )}
-            <div id="profilerGridContainer" className={classes.profilerGridContainer}>
-                <SlickgridReact
-                    gridId="profilerGrid"
-                    columns={columns}
-                    options={gridOptions}
-                    dataset={EMPTY_DATASET}
-                    onReactGridCreated={handleReactGridCreated}
-                    onScroll={handleScroll}
-                />
-            </div>
             <PanelGroup direction="vertical" className={classes.panelGroup}>
                 <Panel ref={gridPanelRef} defaultSize={100} minSize={10}>
                     <div id="profilerGridContainer" className={classes.profilerGridContainer}>
@@ -1030,7 +1020,7 @@ export const Profiler: React.FC = () => {
                             columns={columns}
                             options={gridOptions}
                             dataset={EMPTY_DATASET}
-                            onReactGridCreated={(e) => reactGridReady(e.detail)}
+                            onReactGridCreated={handleReactGridCreated}
                             onScroll={handleScroll}
                             onClick={handleRowClick}
                             onActiveCellChanged={handleActiveCellChanged}
