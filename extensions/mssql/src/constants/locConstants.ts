@@ -2858,6 +2858,12 @@ export class Profiler {
             args: [count],
             comment: ["{0} is the number of events"],
         });
+    public static eventsCountFiltered = (filtered: number, total: number) =>
+        l10n.t({
+            message: "{0}/{1} events",
+            args: [filtered, total],
+            comment: ["{0} is the filtered count, {1} is the total count"],
+        });
     public static fileSessionLabel = (fileName: string) =>
         l10n.t({
             message: "File: {0}",
@@ -2897,6 +2903,9 @@ export class Profiler {
     );
     public static exportAndClose = l10n.t("Export & Close");
     public static closeWithoutExport = l10n.t("Close Without Export");
+    public static closeSessionConfirmation = l10n.t(
+        "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
+    );
     // Database selection for Azure SQL
     public static selectDatabaseForProfiler = l10n.t(
         "Select a database for profiling (Azure SQL requires a specific database)",

@@ -2051,6 +2051,8 @@ export class LocConstants {
             resume: l10n.t("Resume"),
             clear: l10n.t("Clear Data"),
             autoScroll: l10n.t("Auto-scroll"),
+            filter: l10n.t("Filter..."),
+            clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
             selectSessionLabel: l10n.t("Select Session:"),
@@ -2072,6 +2074,34 @@ export class LocConstants {
             clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+            filterTooltip: l10n.t("Filter events by column values"),
+            sortTooltip: l10n.t("Sort column"),
+            clearFilterTooltip: l10n.t("Clear all filters and show all events"),
+            clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
+
+            // Filter operators
+            operatorEquals: l10n.t("="),
+            operatorNotEquals: l10n.t("<>"),
+            operatorLessThan: l10n.t("<"),
+            operatorLessThanOrEqual: l10n.t("<="),
+            operatorGreaterThan: l10n.t(">"),
+            operatorGreaterThanOrEqual: l10n.t(">="),
+            operatorIsNull: l10n.t("Is Null"),
+            operatorIsNotNull: l10n.t("Is Not Null"),
+            operatorContains: l10n.t("Contains"),
+            operatorNotContains: l10n.t("Not Contains"),
+            operatorStartsWith: l10n.t("Starts With"),
+            operatorNotStartsWith: l10n.t("Not Starts With"),
+            operatorIn: l10n.t("In"),
+
+            // Filter status
+            filterActive: l10n.t("Filter active"),
+            filterActiveTooltip: (filteredCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "Showing {0} of {1} events",
+                    args: [filteredCount, totalCount],
+                    comment: ["{0} is filtered count, {1} is total count"],
+                }),
             readOnlyDisabledTooltip: l10n.t("Not available for read-only file sessions"),
             sessionActiveCannotChangeTooltip: l10n.t("Cannot change session while active"),
             xelFileReadOnlyDisconnectedTooltip: (fileName: string) =>
@@ -2099,6 +2129,82 @@ export class LocConstants {
                     comment: ["{0} is the number of events"],
                 }),
 
+            // Filter popover
+            filterColumnHeader: (columnName: string) =>
+                l10n.t({
+                    message: "Filter: {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            operatorEndsWith: l10n.t("Ends With"),
+            operatorNotEndsWith: l10n.t("Not Ends With"),
+            applyFilter: l10n.t("Apply"),
+            clearColumnFilter: l10n.t("Clear"),
+            searchValues: l10n.t("Search values..."),
+            enterText: l10n.t("Enter text..."),
+            enterNumber: l10n.t("Enter a number..."),
+            enterDate: l10n.t("Enter a date..."),
+            selectAll: l10n.t("Select All"),
+            deselectAll: l10n.t("Deselect All"),
+            numericFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Example: Find queries with {0} > 100",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            textFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Search within {0} text content",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            noResultsMatchFilter: l10n.t("No results match the current filters"),
+            noDataToDisplay: l10n.t("No data to display."),
+
+            // Quick filter
+            quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
+            clearAllFilters: l10n.t("Clear All Filters"),
+            clearAllFiltersTooltip: l10n.t("Clear quick filter and all column filters"),
+
+            // Popover
+            closePopover: l10n.t("Close"),
+            emptyCategory: l10n.t("(empty)"),
+            selectedCount: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0}/{1}",
+                    args: [selected, total],
+                    comment: ["{0} is selected count", "{1} is total count"],
+                }),
+            enterDateFormat: l10n.t("YYYY-MM-DD HH:mm:ss"),
+            dateFormatError: l10n.t("Use format: YYYY-MM-DD HH:mm:ss[.SSS]"),
+            filterValue: l10n.t("Filter value"),
+            filterOperator: l10n.t("Filter operator"),
+
+            // Validation
+            validationValueRequired: l10n.t("Value is required"),
+            validationMustBeNumber: l10n.t("Must be a valid number"),
+
+            // Active filters bar
+            filterNoneSelected: l10n.t("none selected"),
+            filterCountSelected: (count: number) =>
+                l10n.t({
+                    message: "{0} selected",
+                    args: [count],
+                    comment: ["{0} is the number of selected filter values"],
+                }),
+            activeFiltersLabel: l10n.t("Active filters:"),
+            filterBadge: (columnName: string, desc: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [columnName, desc],
+                    comment: ["{0} is the column name", "{1} is the filter description"],
+                }),
+            removeFilter: (columnName: string) =>
+                l10n.t({
+                    message: "Remove filter for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
             // Details panel
             detailsPanel: {
                 textTab: l10n.t("Text"),

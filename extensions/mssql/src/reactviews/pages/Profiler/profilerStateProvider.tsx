@@ -9,6 +9,9 @@ import { WebviewRpc } from "../../common/rpc";
 import {
     ProfilerWebviewState,
     ProfilerReducers,
+    FilterClause,
+    ProfilerRequests,
+    DistinctValuesResponse,
     ProfilerNotifications,
 } from "../../../sharedInterfaces/profiler";
 
@@ -34,6 +37,14 @@ export interface ProfilerRpcMethods {
     toggleAutoScroll: () => void;
     /** Fetch rows from the buffer (pull model for infinite scroll) */
     fetchRows: (startIndex: number, count: number) => void;
+    /** Apply filter clauses (client-side only) */
+    applyFilter: (clauses: FilterClause[]) => void;
+    /** Clear all filter clauses and quick filter */
+    clearFilter: () => void;
+    /** Set quick filter term (cross-column search) */
+    setQuickFilter: (term: string) => void;
+    /** Get distinct values for a column from unfiltered ring buffer */
+    getDistinctValues: (field: string) => Promise<DistinctValuesResponse>;
     /** Select a row to show details in the panel */
     selectRow: (rowId: string) => void;
     /** Open TextData content in a new VS Code editor (embedded details panel) */
@@ -114,6 +125,31 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const applyFilter = useCallback(
+        (clauses: FilterClause[]) => {
+            extensionRpc?.action("applyFilter", { clauses });
+        },
+        [extensionRpc],
+    );
+
+    const clearFilter = useCallback(() => {
+        extensionRpc?.action("clearFilter", {});
+    }, [extensionRpc]);
+
+    const setQuickFilter = useCallback(
+        (term: string) => {
+            extensionRpc?.action("setQuickFilter", { term });
+        },
+        [extensionRpc],
+    );
+
+    const getDistinctValues = useCallback(
+        (field: string): Promise<DistinctValuesResponse> => {
+            return extensionRpc.sendRequest(ProfilerRequests.GetDistinctValues, { field });
+        },
+        [extensionRpc],
+    );
+
     const selectRow = useCallback(
         (rowId: string) => {
             extensionRpc?.action("selectRow", { rowId });
@@ -159,6 +195,10 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 changeView,
                 toggleAutoScroll,
                 fetchRows,
+                applyFilter,
+                clearFilter,
+                setQuickFilter,
+                getDistinctValues,
                 selectRow,
                 openInEditor,
                 copyToClipboard,

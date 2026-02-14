@@ -15,14 +15,28 @@ import {
     ProfilerNotifications,
     NewEventsAvailableParams,
     RowsRemovedParams,
+    FilterClause,
+    FilterStateChangedParams,
+    DistinctValuesResponse,
+    ProfilerRequests,
+    ColumnType,
+    FilterType,
     ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, XelFileInfo } from "./profilerTypes";
-import { Profiler as LocProfiler } from "../constants/locConstants";
+import {
+    EventRow,
+    SessionState,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    FilterState,
+    ColumnDataType,
+    XelFileInfo,
+} from "./profilerTypes";
+import { FilteredBuffer } from "./filteredBuffer";
+import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
 import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
 
 /**
@@ -55,6 +69,10 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
+    /** Filtered buffer for applying client-side filtering */
+    private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
+    /** Persisted filter state per session (keyed by session ID) */
+    private _sessionFilterState = new Map<string, FilterState>();
     private _isReadOnly: boolean;
     private _xelFileInfo: XelFileInfo | undefined;
 
@@ -103,8 +121,10 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             "profiler",
             {
                 totalRowCount: 0,
+                filteredRowCount: 0,
                 clearGeneration: 0,
                 sessionState: SessionState.NotStarted,
+                filterState: { enabled: false, clauses: [] },
                 autoScroll: !isReadOnly, // Disable auto-scroll for read-only file sessions
                 sessionName: xelFileInfo?.fileName ?? sessionName,
                 templateId: templateId,
@@ -181,7 +201,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
             // Stop and dispose only this session (fire and forget since dispose is sync)
             this._currentSession.dispose().catch((err) => {
-                console.error("Error disposing profiler session:", err);
+                this.logger.error("Error disposing profiler session:", err);
             });
         }
 
@@ -189,9 +209,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Override showRestorePrompt to show export prompt when there are unexported events.
-     * Prompts the user to export or discard captured events before closing.
-     * Like VS Code's native "unsaved changes" dialog: Export & Close, Close Without Export, Cancel
+     * Override showRestorePrompt to show a simple confirmation when there are captured events.
+     * Behaves like an unsaved file: the panel stays open until the user explicitly confirms closure.
+     * "Yes" disposes the panel. "No" (or Escape) keeps it open.
      */
     protected override async showRestorePrompt(): Promise<
         | {
@@ -201,66 +221,25 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         | undefined
     > {
         const result = await vscode.window.showWarningMessage(
-            LocProfiler.unexportedEventsMessage,
+            LocProfiler.closeSessionConfirmation,
             {
                 modal: true,
             },
-            LocProfiler.exportAndClose,
-            LocProfiler.closeWithoutExport,
+            msgYes,
         );
 
-        if (result === LocProfiler.exportAndClose) {
-            // Perform export then allow close
-            await this.performExportFromBuffer();
-            return undefined; // Allow close
-        } else if (result === LocProfiler.closeWithoutExport) {
-            // Just close without export
-            return undefined; // Allow close
+        if (result === msgYes) {
+            // User confirmed – allow close (dispose will handle cleanup)
+            return undefined;
         } else {
-            // Cancel button clicked (result is undefined) - keep panel open without further prompts
+            // User cancelled (Escape / dismissed) – keep the panel open by recreating it
             return {
                 title: "",
                 run: async () => {
-                    // No-op: do nothing and keep the panel open
+                    this.createWebviewPanel();
+                    this.panel.reveal(vscode.ViewColumn.Beside);
                 },
             };
-        }
-    }
-
-    /**
-     * Generates CSV content from all events in the buffer and performs export.
-     * Used by the close prompt to export before closing.
-     */
-    private async performExportFromBuffer(): Promise<void> {
-        if (!this._currentSession || this._currentSession.events.size === 0) {
-            return;
-        }
-
-        // Get all events from the buffer
-        const allEvents = this._currentSession.events.getAllRows();
-
-        if (allEvents.length === 0) {
-            return;
-        }
-
-        // Get current view config to determine which columns to export
-        const viewConfig = this.state.viewConfig;
-        if (!viewConfig) {
-            return;
-        }
-
-        // Generate suggested file name
-        const sessionName = this._currentSession.sessionName || LocProfiler.defaultExportFileName;
-        const timestamp = generateExportTimestamp();
-        const suggestedFileName = `${sessionName}_${timestamp}`;
-
-        // Request a stream from the event handler and write CSV content to it
-        if (this._eventHandlers.onExportToCsv) {
-            const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
-            if (stream) {
-                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
-                stream.end(); // Close the stream to trigger 'finish' event
-            }
         }
     }
 
@@ -427,7 +406,106 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 const response = this.fetchRowsFromBuffer(payload.startIndex, payload.count);
                 // Send response to webview via notification
                 void this.sendNotification(ProfilerNotifications.RowsAvailable, response);
+
+                // Update filtered count from actual fetch result when filter is active
+                if (this._filteredBuffer?.isFilterActive) {
+                    this.state = {
+                        ...state,
+                        filteredRowCount: response.totalCount,
+                    };
+                    this.updateStatusBar();
+                    return this.state;
+                }
+
                 return state;
+            },
+        );
+
+        // Handle apply filter request from webview (client-side only)
+        this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
+            if (!this._filteredBuffer) {
+                return state;
+            } else {
+                this._filteredBuffer.setColumnFilters(payload.clauses);
+                const totalCount = this._filteredBuffer.totalCount;
+                const filteredCount = this._filteredBuffer.getFilteredCount();
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch filtered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+
+                // After clear, notify of available filtered data
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: filteredCount,
+                        totalCount: filteredCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                this.state = {
+                    ...state,
+                    filterState: {
+                        enabled: payload.clauses.length > 0,
+                        clauses: payload.clauses,
+                        quickFilter: this._filteredBuffer.quickFilter,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: filteredCount,
+                };
+                this.updateStatusBar();
+
+                return this.state;
+            }
+        });
+
+        // Handle clear filter request from webview
+        this.registerReducer("clearFilter", (state) => {
+            if (this._filteredBuffer) {
+                this._filteredBuffer.clearAllFilters();
+                const totalCount = this._filteredBuffer.totalCount;
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch unfiltered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+
+                // After clear, notify of all available data, which is total count since filter is cleared
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: totalCount,
+                        totalCount: totalCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                this.state = {
+                    ...state,
+                    filterState: { enabled: false, clauses: [], quickFilter: undefined },
+                    totalRowCount: totalCount,
+                    filteredRowCount: totalCount,
+                };
+                this.updateStatusBar();
+
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle get distinct values request from webview (scans unfiltered ring buffer)
+        this.onRequest(
+            ProfilerRequests.GetDistinctValues,
+            async (payload: { field: string }): Promise<DistinctValuesResponse> => {
+                if (this._filteredBuffer) {
+                    this.updateFilteredBufferConverter();
+                    const values = this._filteredBuffer.getDistinctValuesForField(payload.field);
+                    return {
+                        field: payload.field,
+                        values,
+                    };
+                }
+                return { field: payload.field, values: [] };
             },
         );
 
@@ -489,10 +567,52 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                         }
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error);
-                        console.error("Failed to export profiler session to CSV:", error);
+                        this.logger.error("Failed to export profiler session to CSV:", error);
                         void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
                     }
                 }
+            }
+        });
+
+        // Handle set quick filter request from webview
+        this.registerReducer("setQuickFilter", (state, payload: { term: string }) => {
+            if (!this._filteredBuffer) {
+                return state;
+            } else {
+                const quickFilter = payload.term.trim();
+                const clauses = state.filterState?.clauses ?? [];
+                const hasColumnFilters = clauses.length > 0;
+                const hasQuickFilter = quickFilter !== "";
+
+                // Delegate quick filter to FilteredBuffer
+                this._filteredBuffer.setQuickFilter(hasQuickFilter ? quickFilter : undefined);
+
+                const totalCount = this._filteredBuffer.totalCount;
+                const filteredCount = this._filteredBuffer.getFilteredCount();
+
+                // Notify webview to clear and refetch
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: filteredCount,
+                        totalCount: filteredCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                this.state = {
+                    ...state,
+                    filterState: {
+                        enabled: hasColumnFilters,
+                        clauses,
+                        quickFilter: hasQuickFilter ? quickFilter : undefined,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: filteredCount,
+                };
+                this.updateStatusBar();
+
+                return this.state;
             }
         });
     }
@@ -519,6 +639,24 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         );
 
         return selectedEventDetails;
+    }
+
+    /**
+     * Send filter state changed notification to the webview
+     */
+    private async sendFilterStateChanged(): Promise<void> {
+        if (!this._filteredBuffer) {
+            return;
+        }
+
+        const params: FilterStateChangedParams = {
+            isFilterActive: this._filteredBuffer.isFilterActive,
+            clauseCount: this._filteredBuffer.clauses.length,
+            totalCount: this._filteredBuffer.totalCount,
+            filteredCount: this._filteredBuffer.getFilteredCount(),
+        };
+
+        await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
     }
 
     /**
@@ -558,8 +696,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const sessionState = state.sessionState;
         const isReadOnly = state.isReadOnly ?? this._isReadOnly;
         // Get count directly from current session's ring buffer if available (source of truth)
-        // Otherwise fall back to state (which might be stale)
         const totalRowCount = this._currentSession?.events.size ?? state.totalRowCount ?? 0;
+
+        // Use FilteredBuffer as single source of truth for filter state
+        const isFilterActive = this._filteredBuffer?.isFilterActive ?? false;
+        const filteredRowCount = isFilterActive
+            ? (state.filteredRowCount ?? totalRowCount)
+            : totalRowCount;
 
         let statusText = "";
 
@@ -590,8 +733,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 }
             }
 
-            // Add event count
-            statusText += ` | ${LocProfiler.eventsCount(totalRowCount)}`;
+            // Add event count (show filtered/total when filter is active)
+            if (isFilterActive) {
+                statusText += ` | ${LocProfiler.eventsCountFiltered(filteredRowCount, totalRowCount)}`;
+            } else {
+                statusText += ` | ${LocProfiler.eventsCount(totalRowCount)}`;
+            }
         } else {
             statusText = LocProfiler.statusBarNoSession;
         }
@@ -639,9 +786,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             columns: Array<{
                 field: string;
                 header: string;
+                type?: string;
                 width?: number;
                 sortable?: boolean;
                 filterable?: boolean;
+                filterType?: string;
             }>;
         },
     ): ProfilerViewConfig {
@@ -652,9 +801,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             columns: view.columns.map((col) => ({
                 field: col.field,
                 header: col.header,
+                type: (col.type ?? ColumnDataType.String) as ColumnType,
                 width: col.width,
                 sortable: col.sortable,
                 filterable: col.filterable,
+                filterType: col.filterType as FilterType | undefined,
             })),
         };
     }
@@ -664,25 +815,64 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * This enables the pull model where the webview requests data from the session's RingBuffer.
      */
     public setCurrentSession(session: ProfilerSession | undefined): void {
+        // Persist current session's filter state before switching
+        if (this._currentSession) {
+            const currentFilterState = this.state.filterState;
+            if (currentFilterState) {
+                this._sessionFilterState.set(this._currentSession.id, currentFilterState);
+            }
+        }
+
         this._currentSession = session;
 
         // Update state with the current session ID and its actual state
         if (session) {
+            // Create a filtered buffer wrapping the session's ring buffer
+            this._filteredBuffer = new FilteredBuffer(session.events);
+
+            // Set up a row converter so filtering operates on view-level column names
+            this.updateFilteredBufferConverter();
+
+            // Restore persisted filter state for this session, if any
+            const savedFilterState = this._sessionFilterState.get(session.id);
+
             const sessionState = this.getSessionStateFromSession(session);
+
+            if (
+                savedFilterState &&
+                savedFilterState.enabled &&
+                savedFilterState.clauses.length > 0
+            ) {
+                // Re-apply saved filter to the new buffer
+                this._filteredBuffer.setColumnFilters(savedFilterState.clauses);
+            }
+
+            // Restore quick filter if present
+            if (savedFilterState?.quickFilter) {
+                this._filteredBuffer.setQuickFilter(savedFilterState.quickFilter);
+            }
+
             this.state = {
                 ...this.state,
                 currentSessionId: session.id,
                 sessionState,
                 sessionName: session.sessionName,
-                totalRowCount: session.events.size, // Reset to actual buffer size
+                totalRowCount: session.events.size,
+                filteredRowCount: savedFilterState?.enabled
+                    ? this._filteredBuffer.filteredCount
+                    : session.events.size,
+                filterState: savedFilterState ?? { enabled: false, clauses: [] },
             };
         } else {
+            this._filteredBuffer = undefined;
             this.state = {
                 ...this.state,
                 currentSessionId: undefined,
                 sessionState: SessionState.NotStarted,
                 sessionName: undefined,
                 totalRowCount: 0,
+                filteredRowCount: 0,
+                filterState: { enabled: false, clauses: [] },
             };
         }
         this.updateStatusBar();
@@ -699,18 +889,29 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Notify the webview that new events are available.
      * Updates totalRowCount and sends notification to trigger data fetch.
+     * When filter is active, only notifies about events that match the filter.
      */
     public notifyNewEvents(newCount: number): void {
-        if (!this._currentSession) {
+        if (!this._currentSession || !this._filteredBuffer) {
             return;
         }
 
         const totalCount = this._currentSession.events.size;
+
+        // Delegate filtered count calculation to FilteredBuffer
+        const hasAnyFilter = this._filteredBuffer.isFilterActive;
+        const filteredCount = hasAnyFilter ? this._filteredBuffer.getFilteredCount() : totalCount;
+
         this.state = {
             ...this.state,
             totalRowCount: totalCount,
-            hasUnexportedEvents: totalCount > 0, // Mark as having unexported events when we have data
+            filteredRowCount: filteredCount,
         };
+        this.updateStatusBar();
+
+        // When filter is active, notify only about filtered count
+        const effectiveCount = hasAnyFilter ? filteredCount : totalCount;
+
         this.updateStatusBar();
 
         // Enable close prompt when there are unexported events
@@ -720,8 +921,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Notify webview of new data availability
         const params: NewEventsAvailableParams = {
-            newCount,
-            totalCount,
+            newCount: hasAnyFilter ? filteredCount : newCount,
+            totalCount: effectiveCount,
         };
         void this.sendNotification(ProfilerNotifications.NewEventsAvailable, params);
     }
@@ -756,13 +957,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Fetch rows from the RingBuffer and convert to grid rows.
+     * Fetch rows from the buffer and convert to grid rows.
      * This is the core method for the pull model.
-     * Captures buffer size at start for consistency - any new events arriving
-     * during fetch will trigger a separate notification cycle.
+     * Delegates filtering and pagination to FilteredBuffer, then converts
+     * the raw EventRows to ProfilerGridRows using the current view config.
      */
     private fetchRowsFromBuffer(startIndex: number, count: number): FetchRowsResponse {
-        if (!this._currentSession) {
+        if (!this._currentSession || !this._filteredBuffer) {
             return {
                 rows: [],
                 startIndex,
@@ -770,55 +971,51 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             };
         }
 
-        // Capture the buffer size at the start for consistency
-        // Any new events arriving during this fetch will trigger another notification
-        const bufferSize = this._currentSession.events.size;
+        // Ensure converter is up to date for filtering
+        this.updateFilteredBufferConverter();
 
-        // If startIndex is beyond current buffer, return empty
-        if (startIndex >= bufferSize) {
-            return {
-                rows: [],
-                startIndex,
-                totalCount: bufferSize,
-            };
+        // Get filtered + paginated raw rows and total filtered count from FilteredBuffer
+        const filteredRows = this._filteredBuffer.getFilteredRange(startIndex, count);
+        const totalCount = this._filteredBuffer.getFilteredCount();
+
+        // Convert raw EventRows to view-specific grid rows
+        const configService = getProfilerConfigService();
+        const view = configService.getView(this._currentViewId);
+        const rows: ProfilerGridRow[] = view
+            ? (configService.convertEventsToViewRows(filteredRows, view) as ProfilerGridRow[])
+            : (filteredRows as unknown as ProfilerGridRow[]);
+
+        return {
+            rows,
+            startIndex,
+            totalCount,
+        };
+    }
+
+    /**
+     * Updates the row converter on the FilteredBuffer to use the current view.
+     * Should be called whenever the view changes or when a session is set.
+     */
+    private updateFilteredBufferConverter(): void {
+        if (!this._filteredBuffer) {
+            return;
         }
-
         const configService = getProfilerConfigService();
         let view = configService.getView(this._currentViewId);
-
-        // Fallback to first available view if current view not found
         if (!view) {
             const views = configService.getViews();
             if (views.length > 0) {
                 view = views[0];
                 this._currentViewId = view.id!;
             } else {
-                return {
-                    rows: [],
-                    startIndex,
-                    totalCount: bufferSize,
-                };
+                this._filteredBuffer.setRowConverter(undefined);
+                return;
             }
         }
-
-        // Adjust count to not exceed available rows at time of capture
-        const availableCount = Math.min(count, bufferSize - startIndex);
-
-        // Get events from RingBuffer
-        const events = this._currentSession.events.getRange(startIndex, availableCount);
-
-        // Convert events to grid rows
-        const rows: ProfilerGridRow[] = events.map((event) => {
-            // Use UUID id for row synchronization, include eventNumber for display/tracking
-            const row = configService.convertEventToViewRow(event, view);
-            return row as ProfilerGridRow;
+        const viewRef = view;
+        this._filteredBuffer.setRowConverter((event) => {
+            return configService.convertEventToViewRow(event, viewRef) as Record<string, unknown>;
         });
-
-        return {
-            rows,
-            startIndex,
-            totalCount: bufferSize,
-        };
     }
 
     /**
@@ -857,6 +1054,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Mark that export has been completed successfully.
      * This resets the hasUnexportedEvents flag and updates the lastExportTimestamp.
+     * The close confirmation prompt remains active because the session is still running.
      */
     public setExportComplete(): void {
         this.state = {
@@ -864,9 +1062,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             hasUnexportedEvents: false,
             lastExportTimestamp: Date.now(),
         };
-        // After a successful export there are no unexported events,
-        // so do not show the close prompt until new events arrive.
-        this.showRestorePromptAfterClose = false;
     }
 
     /**
