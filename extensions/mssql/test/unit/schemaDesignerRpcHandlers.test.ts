@@ -8,6 +8,10 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
+import {
+    mergePendingAiTableGroups,
+    flattenPendingAiItems,
+} from "../../src/reactviews/pages/SchemaDesigner/aiLedger/ledgerUtils";
 import { registerSchemaDesignerApplyEditsHandler } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
 import { normalizeColumn } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerToolBatchUtils";
 import { locConstants } from "../../src/reactviews/common/locConstants";
@@ -23,7 +27,14 @@ suite("schemaDesignerRpcHandlers", () => {
         sandbox.restore();
     });
 
-    const createApplyEditsHarness = (initialSchema: SchemaDesigner.Schema) => {
+    const createApplyEditsHarness = (
+        initialSchema: SchemaDesigner.Schema,
+        options?: {
+            waitForNextFrame?: () => Promise<void>;
+            onAiEditsApplied?: (result: any) => void;
+            onAiEditsApplyingStateChanged?: (isApplying: boolean) => void;
+        },
+    ) => {
         let currentSchema: SchemaDesigner.Schema = initialSchema;
 
         const applyHandlerStub = sandbox.stub();
@@ -58,7 +69,7 @@ suite("schemaDesignerRpcHandlers", () => {
             extensionRpc: extensionRpc as any,
             schemaNames: ["dbo"],
             datatypes: [],
-            waitForNextFrame: async () => {},
+            waitForNextFrame: options?.waitForNextFrame ?? (async () => {}),
             extractSchema: () => currentSchema,
             onMaybeAutoArrange,
             addTable,
@@ -69,15 +80,157 @@ suite("schemaDesignerRpcHandlers", () => {
             validateTable: () => undefined,
             onPushUndoState: sandbox.stub(),
             onRequestScriptRefresh,
+            onAiEditsApplied: options?.onAiEditsApplied,
+            onAiEditsApplyingStateChanged: options?.onAiEditsApplyingStateChanged,
         });
 
         return {
             applyEdits: (edits: SchemaDesigner.SchemaDesignerEdit[]) => applyHandlerStub({ edits }),
             onMaybeAutoArrange,
             onRequestScriptRefresh,
+            addTable,
             getSchema: () => currentSchema,
         };
     };
+
+    test("apply_edits accumulates pending AI ledger across multiple batches", async () => {
+        let ledger: any[] = [];
+        const { applyEdits } = createApplyEditsHarness(
+            { tables: [] },
+            {
+                onAiEditsApplied: (result) => {
+                    ledger = mergePendingAiTableGroups(ledger, result.pendingGroups);
+                },
+            },
+        );
+
+        const batch1 = await applyEdits([
+            { op: "add_table", table: { schema: "dbo", name: "T1" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T2" } } as any,
+        ]);
+        expect(batch1.success).to.equal(true);
+
+        const batch2 = await applyEdits([
+            { op: "add_table", table: { schema: "dbo", name: "T3" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T4" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T5" } } as any,
+        ]);
+        expect(batch2.success).to.equal(true);
+
+        const batch3 = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T3" },
+                foreignKey: {
+                    name: "FK_T3_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T4" },
+                foreignKey: {
+                    name: "FK_T4_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T5" },
+                foreignKey: {
+                    name: "FK_T5_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T1" },
+                foreignKey: {
+                    name: "FK_T1_T2",
+                    referencedTable: { schema: "dbo", name: "T2" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+        expect(batch3.success).to.equal(true);
+
+        const pendingItems = flattenPendingAiItems(ledger);
+        const tableAdds = pendingItems.filter(
+            (item) => item.category === "table" && item.action === "add",
+        );
+        const foreignKeyAdds = pendingItems.filter(
+            (item) => item.category === "foreignKey" && item.action === "add",
+        );
+
+        expect(tableAdds.length).to.equal(5);
+        expect(foreignKeyAdds.length).to.equal(5);
+    });
+
+    test("apply_edits serializes concurrent requests", async () => {
+        let waitCallCount = 0;
+        let releaseFirstWait: (() => void) | undefined;
+        const applyingStates: boolean[] = [];
+
+        const { applyEdits, addTable } = createApplyEditsHarness(
+            { tables: [] },
+            {
+                waitForNextFrame: async () => {
+                    waitCallCount += 1;
+                    if (waitCallCount === 1) {
+                        await new Promise<void>((resolve) => {
+                            releaseFirstWait = resolve;
+                        });
+                    }
+                },
+                onAiEditsApplyingStateChanged: (isApplying) => {
+                    applyingStates.push(isApplying);
+                },
+            },
+        );
+
+        const firstBatch = applyEdits([
+            { op: "add_table", table: { schema: "dbo", name: "T1" } } as any,
+        ]);
+        await Promise.resolve();
+
+        const secondBatch = applyEdits([
+            { op: "add_table", table: { schema: "dbo", name: "T2" } } as any,
+        ]);
+        await Promise.resolve();
+
+        expect(addTable.callCount).to.equal(1);
+
+        releaseFirstWait?.();
+        const firstResult = await firstBatch;
+        const secondResult = await secondBatch;
+
+        expect(firstResult.success).to.equal(true);
+        expect(secondResult.success).to.equal(true);
+        expect(addTable.callCount).to.equal(2);
+        expect(applyingStates).to.deep.equal([true, false, true, false]);
+    });
 
     test("apply_edits handler calls onMaybeAutoArrange with table/fk pre+post counts", async () => {
         const { applyEdits, onMaybeAutoArrange } = createApplyEditsHarness({ tables: [] });

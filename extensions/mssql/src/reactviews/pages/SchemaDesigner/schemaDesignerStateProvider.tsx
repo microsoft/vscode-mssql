@@ -194,10 +194,11 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const { extensionRpc } = useVscodeWebview<
+    const { extensionRpc, vscodeApi } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
+    const coreRPCs = getCoreRPCs(extensionRpc);
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
@@ -285,7 +286,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Persist pending AI ledger across webview restore/reload.
     useEffect(() => {
         try {
-            const persisted = webviewContext.vscodeApi.getState() as
+            const persisted = vscodeApi.getState() as
                 | {
                       schemaDesignerAiLedger?: {
                           version: number;
@@ -302,15 +303,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         } finally {
             setAiLedgerHydrated(true);
         }
-    }, [webviewContext.vscodeApi]);
+    }, [vscodeApi]);
 
     useEffect(() => {
         if (!aiLedgerHydrated) {
             return;
         }
         try {
-            const current = (webviewContext.vscodeApi.getState() as Record<string, unknown>) ?? {};
-            webviewContext.vscodeApi.setState({
+            const current = (vscodeApi.getState() as Record<string, unknown>) ?? {};
+            vscodeApi.setState({
                 ...current,
                 schemaDesignerAiLedger: {
                     version: 1,
@@ -320,7 +321,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         } catch {
             // Ignore persistence errors.
         }
-    }, [aiLedger, aiLedgerHydrated, webviewContext.vscodeApi]);
+    }, [aiLedger, aiLedgerHydrated, vscodeApi]);
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(NULL_VALUE);
@@ -2059,7 +2060,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(extensionRpc),
+                ...coreRPCs,
                 extensionRpc,
                 schemaNames,
                 datatypes,
