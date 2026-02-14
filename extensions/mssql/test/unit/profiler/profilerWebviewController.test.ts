@@ -603,7 +603,7 @@ suite("ProfilerWebviewController Tests", () => {
         });
     });
 
-    suite("exportToCsv reducer", () => {
+    suite("exportToCsv notification", () => {
         test("should have setEventHandlers method to configure export handler", () => {
             const controller = createController();
 
