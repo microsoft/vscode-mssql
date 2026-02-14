@@ -460,7 +460,7 @@ export const SchemaDesignerFlow = () => {
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
             <Toast appearance="inverted">
-                <ToastTitle>Failed to create foreign key</ToastTitle>
+                <ToastTitle>{locConstants.schemaDesigner.failedToCreateForeignKey}</ToastTitle>
                 <ToastBody>{errorMessage}</ToastBody>
             </Toast>,
             { pauseOnHover: true, intent: "error" },
@@ -878,7 +878,7 @@ export const SchemaDesignerFlow = () => {
                         appearance="primary"
                         onClick={handleKeepActivePendingAiChange}
                         disabled={!activePendingAiChange || isApplyingPendingAiAction}>
-                        Keep
+                        {locConstants.schemaDesigner.keep}
                     </Button>
                     <Button
                         size="small"
@@ -894,7 +894,7 @@ export const SchemaDesignerFlow = () => {
                         appearance="subtle"
                         onClick={handleRevealActivePendingAiChange}
                         disabled={!activePendingAiChange}>
-                        Reveal
+                        {locConstants.schemaDesigner.changesPanel.reveal}
                     </Button>
                     <Divider vertical />
                     <span
@@ -904,13 +904,16 @@ export const SchemaDesignerFlow = () => {
                             minWidth: "56px",
                             textAlign: "center",
                         }}>
-                        {`${activePendingAiIndex + 1} of ${pendingAiChanges.length}`}
+                        {locConstants.common.searchResultSummary(
+                            activePendingAiIndex + 1,
+                            pendingAiChanges.length,
+                        )}
                     </span>
                     <Button
                         size="small"
                         appearance="subtle"
                         icon={<ArrowUp16Regular />}
-                        aria-label="Previous AI change"
+                        aria-label={locConstants.schemaDesigner.previousAiChange}
                         onClick={() => navigatePendingAiChange(-1)}
                         disabled={pendingAiChanges.length === 0}
                     />
@@ -918,7 +921,7 @@ export const SchemaDesignerFlow = () => {
                         size="small"
                         appearance="subtle"
                         icon={<ArrowDown16Regular />}
-                        aria-label="Next AI change"
+                        aria-label={locConstants.schemaDesigner.nextAiChange}
                         onClick={() => navigatePendingAiChange(1)}
                         disabled={pendingAiChanges.length === 0}
                     />
@@ -946,7 +949,7 @@ export const SchemaDesignerFlow = () => {
                             backgroundColor: "var(--vscode-editorWidget-background)",
                             boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                         }}>
-                        <Tooltip content={"Keep"} relationship="label">
+                        <Tooltip content={locConstants.schemaDesigner.keep} relationship="label">
                             <Button
                                 size="small"
                                 appearance="primary"
