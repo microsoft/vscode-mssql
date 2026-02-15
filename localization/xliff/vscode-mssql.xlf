@@ -638,6 +638,9 @@
     <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
       <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
     </trans-unit>
+    <trans-unit id="++CODE++77f3db0738e815a7bf2d2f3eb4287ebf27ec57ed71927b88bb81ffc7da98ce52">
+      <source xml:lang="en">Cannot undo this AI change in the current schema state</source>
+    </trans-unit>
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
     </trans-unit>
@@ -5588,6 +5591,9 @@
     </trans-unit>
     <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
       <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a1cbcfb113387bf1f2fd8cd99fa20495812b3b6347cf41c5c082b9f74912e26">
+      <source xml:lang="en">Unable to undo AI change</source>
     </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>

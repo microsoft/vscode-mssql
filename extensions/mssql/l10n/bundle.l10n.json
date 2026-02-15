@@ -670,6 +670,8 @@
     "Keep": "Keep",
     "Keep this AI change": "Keep this AI change",
     "Undo this AI change": "Undo this AI change",
+    "Unable to undo AI change": "Unable to undo AI change",
+    "Cannot undo this AI change in the current schema state": "Cannot undo this AI change in the current schema state",
     "Previous AI change": "Previous AI change",
     "Next AI change": "Next AI change",
     "Keep All": "Keep All",
