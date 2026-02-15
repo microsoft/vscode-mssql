@@ -257,7 +257,6 @@ export const SchemaDesignerDefinitionsPanel = () => {
         activeTab === SchemaDesignerDefinitionCustomTabs.Changes ||
         activeTab === SchemaDesignerDefinitionCustomTabs.PendingAiChanges;
     const isBaselineChangesTabActive = activeTab === SchemaDesignerDefinitionCustomTabs.Changes;
-    const isPendingAiTabActive = activeTab === SchemaDesignerDefinitionCustomTabs.PendingAiChanges;
 
     useEffect(() => {
         if (!isBaselineChangesTabActive || changesViewMode !== SchemaDesignerChangesViewMode.Code) {
@@ -326,6 +325,45 @@ export const SchemaDesignerDefinitionsPanel = () => {
 
     const pendingAiTabContent = <SchemaDesignerChangesPanel tab="pendingAi" />;
 
+    const baselineChangesHeaderActions = (
+        <SegmentedControl<SchemaDesignerChangesViewMode>
+            value={changesViewMode}
+            options={[
+                {
+                    value: SchemaDesignerChangesViewMode.List,
+                    label: locConstants.schemaDesigner.changesListView,
+                },
+                {
+                    value: SchemaDesignerChangesViewMode.Code,
+                    label: locConstants.schemaDesigner.codeChangesView,
+                },
+            ]}
+            onValueChange={setChangesViewMode}
+            buttonClassName={classes.changesViewModeButton}
+        />
+    );
+
+    const pendingAiHeaderActions = (
+        <>
+            <Button
+                size="small"
+                appearance="primary"
+                onClick={handleKeepAllPendingAi}
+                disabled={isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0}>
+                {locConstants.schemaDesigner.keepAll}
+            </Button>
+            <Button
+                size="small"
+                appearance="subtle"
+                onClick={() => {
+                    void handleUndoAllPendingAi();
+                }}
+                disabled={isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0}>
+                {locConstants.schemaDesigner.undoAll}
+            </Button>
+        </>
+    );
+
     return (
         <DesignerDefinitionPane
             ref={definitionPaneRef}
@@ -333,48 +371,6 @@ export const SchemaDesignerDefinitionsPanel = () => {
             themeKind={themeKind}
             openInEditor={openInEditor}
             copyToClipboard={copyToClipboard}
-            headerActions={
-                isBaselineChangesTabActive ? (
-                    <SegmentedControl<SchemaDesignerChangesViewMode>
-                        value={changesViewMode}
-                        options={[
-                            {
-                                value: SchemaDesignerChangesViewMode.List,
-                                label: locConstants.schemaDesigner.changesListView,
-                            },
-                            {
-                                value: SchemaDesignerChangesViewMode.Code,
-                                label: locConstants.schemaDesigner.codeChangesView,
-                            },
-                        ]}
-                        onValueChange={setChangesViewMode}
-                        buttonClassName={classes.changesViewModeButton}
-                    />
-                ) : isPendingAiTabActive ? (
-                    <>
-                        <Button
-                            size="small"
-                            appearance="primary"
-                            onClick={handleKeepAllPendingAi}
-                            disabled={
-                                isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0
-                            }>
-                            {locConstants.schemaDesigner.keepAll}
-                        </Button>
-                        <Button
-                            size="small"
-                            appearance="subtle"
-                            onClick={() => {
-                                void handleUndoAllPendingAi();
-                            }}
-                            disabled={
-                                isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0
-                            }>
-                            {locConstants.schemaDesigner.undoAll}
-                        </Button>
-                    </>
-                ) : undefined
-            }
             activeTab={activeTab}
             setActiveTab={handleSetActiveTab}
             customTabs={[
@@ -382,11 +378,13 @@ export const SchemaDesignerDefinitionsPanel = () => {
                     id: SchemaDesignerDefinitionCustomTabs.Changes,
                     label: changesTabLabel,
                     content: changesTabContent,
+                    headerActions: baselineChangesHeaderActions,
                 },
                 {
                     id: SchemaDesignerDefinitionCustomTabs.PendingAiChanges,
                     label: pendingAiTabLabel,
                     content: pendingAiTabContent,
+                    headerActions: pendingAiHeaderActions,
                 },
             ]}
             onPanelVisibilityChange={(isVisible) => {

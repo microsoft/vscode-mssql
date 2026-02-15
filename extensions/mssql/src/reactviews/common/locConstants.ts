@@ -967,6 +967,8 @@ export class LocConstants {
             keep: l10n.t("Keep"),
             keepAiChangeTooltip: l10n.t("Keep this AI change"),
             undoAiChangeTooltip: l10n.t("Undo this AI change"),
+            undoAiChangeUnavailableTitle: l10n.t("Unable to undo AI change"),
+            cannotUndoAiChange: l10n.t("Cannot undo this AI change in the current schema state"),
             previousAiChange: l10n.t("Previous AI change"),
             nextAiChange: l10n.t("Next AI change"),
             keepAll: l10n.t("Keep All"),

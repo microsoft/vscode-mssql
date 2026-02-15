@@ -145,6 +145,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     undoAiLedgerTable: (tableId: string) => Promise<boolean>;
     undoAiLedgerChange: (change: SchemaChange) => Promise<boolean>;
     undoAllAiLedger: () => Promise<boolean>;
+    canUndoAiLedgerChange: (change: SchemaChange) => CanRevertResult;
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -1130,6 +1131,149 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setAiLedger([]);
     }, []);
 
+    const validatePendingAiUndoItem = useCallback(
+        (item: PendingAiItem, schema: SchemaDesigner.Schema): CanRevertResult => {
+            const cannotUndoReason = locConstants.schemaDesigner.cannotUndoAiChange;
+            const cannotRestoreFkReason =
+                locConstants.schemaDesigner.changesPanel.cannotRevertForeignKey;
+
+            const table = schema.tables.find((candidate) => candidate.id === item.tableId);
+
+            const canRestoreBaselineForeignKey = (
+                foreignKey: SchemaDesigner.ForeignKey,
+            ): CanRevertResult => {
+                if (
+                    !table ||
+                    foreignKey.columns.length === 0 ||
+                    foreignKey.columns.length !== foreignKey.referencedColumns.length
+                ) {
+                    return { canRevert: false, reason: cannotRestoreFkReason };
+                }
+
+                const sourceHasAllColumns = foreignKey.columns.every((columnName) =>
+                    table.columns.some((column) => column.name === columnName),
+                );
+                if (!sourceHasAllColumns) {
+                    return { canRevert: false, reason: cannotRestoreFkReason };
+                }
+
+                const referencedTable = schema.tables.find(
+                    (candidateTable) =>
+                        candidateTable.schema === foreignKey.referencedSchemaName &&
+                        candidateTable.name === foreignKey.referencedTableName,
+                );
+                if (!referencedTable) {
+                    return { canRevert: false, reason: cannotRestoreFkReason };
+                }
+
+                const targetHasAllColumns = foreignKey.referencedColumns.every((columnName) =>
+                    referencedTable.columns.some((column) => column.name === columnName),
+                );
+                if (!targetHasAllColumns) {
+                    return { canRevert: false, reason: cannotRestoreFkReason };
+                }
+
+                return { canRevert: true };
+            };
+
+            switch (item.category) {
+                case ChangeCategory.Table: {
+                    const baselineTable = item.baselineSnapshot as SchemaDesigner.Table | null;
+                    if (item.action === ChangeAction.Add) {
+                        return { canRevert: true };
+                    }
+                    if (!baselineTable) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    return { canRevert: true };
+                }
+                case ChangeCategory.Column: {
+                    if (!table) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    const baselineColumn = item.baselineSnapshot as SchemaDesigner.Column | null;
+                    const currentColumn = item.currentSnapshot as SchemaDesigner.Column | null;
+                    const columnId = item.objectId ?? currentColumn?.id ?? baselineColumn?.id;
+                    if (!columnId) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    if (
+                        (item.action === ChangeAction.Delete ||
+                            item.action === ChangeAction.Modify) &&
+                        !baselineColumn
+                    ) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    if (
+                        item.action === ChangeAction.Modify &&
+                        !table.columns.some((column) => column.id === columnId)
+                    ) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    return { canRevert: true };
+                }
+                case ChangeCategory.ForeignKey: {
+                    if (!table) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    const baselineForeignKey =
+                        item.baselineSnapshot as SchemaDesigner.ForeignKey | null;
+                    const currentForeignKey =
+                        item.currentSnapshot as SchemaDesigner.ForeignKey | null;
+                    const foreignKeyId =
+                        item.objectId ?? currentForeignKey?.id ?? baselineForeignKey?.id;
+                    if (!foreignKeyId) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+
+                    if (item.action === ChangeAction.Add) {
+                        return { canRevert: true };
+                    }
+
+                    if (!baselineForeignKey) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+
+                    if (
+                        item.action === ChangeAction.Modify &&
+                        !table.foreignKeys.some((fk) => fk.id === foreignKeyId)
+                    ) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+
+                    return canRestoreBaselineForeignKey(baselineForeignKey);
+                }
+                default:
+                    return { canRevert: false, reason: cannotUndoReason };
+            }
+        },
+        [],
+    );
+
+    const canUndoAiLedgerChange = useCallback(
+        (change: SchemaChange): CanRevertResult => {
+            const group = aiLedger.find((entry) => entry.tableId === change.tableId);
+            if (!group) {
+                return {
+                    canRevert: false,
+                    reason: locConstants.schemaDesigner.cannotUndoAiChange,
+                };
+            }
+
+            const itemKey = toAiLedgerItemKey(change.category, change.tableId, change.objectId);
+            const item = group.items.find((candidate) => candidate.key === itemKey);
+            if (!item) {
+                return {
+                    canRevert: false,
+                    reason: locConstants.schemaDesigner.cannotUndoAiChange,
+                };
+            }
+
+            return validatePendingAiUndoItem(item, extractSchema());
+        },
+        [aiLedger, extractSchema, validatePendingAiUndoItem],
+    );
+
     const applyUndoForAiLedgerItem = useCallback(
         async (item: PendingAiItem): Promise<boolean> => {
             const schema = extractSchema();
@@ -1214,6 +1358,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     if (!foreignKeyId) {
                         return false;
                     }
+                    const validation = validatePendingAiUndoItem(item, schema);
+                    if (!validation.canRevert) {
+                        return false;
+                    }
 
                     let nextForeignKeys = [...(table.foreignKeys ?? [])];
                     if (item.action === ChangeAction.Add) {
@@ -1227,6 +1375,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         }
                     } else {
                         if (!baselineForeignKey) {
+                            return false;
+                        }
+                        if (!nextForeignKeys.some((fk) => fk.id === foreignKeyId)) {
                             return false;
                         }
                         nextForeignKeys = nextForeignKeys.map((fk) =>
@@ -1248,7 +1399,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     return false;
             }
         },
-        [extractSchema, deleteTable, updateTable, addTable],
+        [extractSchema, deleteTable, updateTable, addTable, validatePendingAiUndoItem],
     );
 
     const applyUndoForAiLedgerItems = useCallback(
@@ -1326,9 +1477,48 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     );
 
     const collectCascadeUndoItems = useCallback(
-        (group: PendingAiTableGroup, item: PendingAiItem): PendingAiItem[] => {
+        (
+            group: PendingAiTableGroup,
+            item: PendingAiItem,
+            allGroups: PendingAiTableGroup[],
+        ): PendingAiItem[] => {
             if (item.category === ChangeCategory.Table) {
-                return [...group.items];
+                const scopedItems = [...group.items];
+                if (item.action !== ChangeAction.Modify) {
+                    return scopedItems;
+                }
+
+                const baselineTable = item.baselineSnapshot as SchemaDesigner.Table | null;
+                const currentTable = item.currentSnapshot as SchemaDesigner.Table | null;
+                if (!baselineTable || !currentTable) {
+                    return scopedItems;
+                }
+
+                const matchesTableRef = (
+                    foreignKey: SchemaDesigner.ForeignKey | null,
+                    schemaName: string,
+                    tableName: string,
+                ) =>
+                    !!foreignKey &&
+                    foreignKey.referencedSchemaName === schemaName &&
+                    foreignKey.referencedTableName === tableName;
+
+                const relatedForeignKeys = allGroups
+                    .flatMap((candidateGroup) => candidateGroup.items)
+                    .filter((candidate) => candidate.category === ChangeCategory.ForeignKey)
+                    .filter((candidate) => {
+                        const baselineFk =
+                            candidate.baselineSnapshot as SchemaDesigner.ForeignKey | null;
+                        const currentFk =
+                            candidate.currentSnapshot as SchemaDesigner.ForeignKey | null;
+
+                        return (
+                            matchesTableRef(baselineFk, baselineTable.schema, baselineTable.name) ||
+                            matchesTableRef(currentFk, currentTable.schema, currentTable.name)
+                        );
+                    });
+
+                return [...scopedItems, ...relatedForeignKeys];
             }
 
             if (item.category !== ChangeCategory.Column) {
@@ -1375,8 +1565,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
+            const tableItem = group.items.find((item) => item.category === ChangeCategory.Table);
+            const cascadeItems = tableItem
+                ? collectCascadeUndoItems(group, tableItem, aiLedger)
+                : [...group.items];
+            const uniqueItems = [
+                ...new Map(cascadeItems.map((entry) => [entry.key, entry])).values(),
+            ];
+
             suppressAiLedgerAutoClearRef.current += 1;
-            const success = await applyUndoForAiLedgerItems([...group.items]).finally(() => {
+            const success = await applyUndoForAiLedgerItems(uniqueItems).finally(() => {
                 suppressAiLedgerAutoClearRef.current = Math.max(
                     0,
                     suppressAiLedgerAutoClearRef.current - 1,
@@ -1386,14 +1584,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
+            const removedKeys = new Set(uniqueItems.map((entry) => entry.key));
             setAiLedger((previousLedger) =>
-                previousLedger.filter((entry) => entry.tableId !== tableId),
+                previousLedger
+                    .map((entry) => ({
+                        ...entry,
+                        items: entry.items.filter((candidate) => !removedKeys.has(candidate.key)),
+                    }))
+                    .filter((entry) => entry.items.length > 0),
             );
             eventBus.emit("pushState");
             eventBus.emit("getScript");
             return true;
         },
-        [aiLedger, applyUndoForAiLedgerItems],
+        [aiLedger, applyUndoForAiLedgerItems, collectCascadeUndoItems],
     );
 
     const undoAiLedgerChange = useCallback(
@@ -1409,7 +1613,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
-            const cascadeItems = collectCascadeUndoItems(group, item);
+            const cascadeItems = collectCascadeUndoItems(group, item, aiLedger);
             const uniqueItems = [
                 ...new Map(cascadeItems.map((entry) => [entry.key, entry])).values(),
             ];
@@ -1429,14 +1633,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setAiLedger((previousLedger) =>
                 previousLedger
                     .map((entry) => {
-                        if (entry.tableId !== group.tableId) {
-                            return entry;
-                        }
-
-                        if (item.category === ChangeCategory.Table) {
-                            return { ...entry, items: [] };
-                        }
-
                         const remainingItems = entry.items.filter(
                             (candidate) => !removedKeys.has(candidate.key),
                         );
@@ -2118,6 +2314,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 undoAiLedgerTable,
                 undoAiLedgerChange,
                 undoAllAiLedger,
+                canUndoAiLedgerChange,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,

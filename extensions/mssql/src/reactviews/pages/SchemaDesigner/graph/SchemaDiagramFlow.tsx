@@ -466,6 +466,15 @@ export const SchemaDesignerFlow = () => {
             { pauseOnHover: true, intent: "error" },
         );
 
+    const showPendingAiUndoBlockedNotification = (reason?: string) =>
+        dispatchToast(
+            <Toast appearance="inverted">
+                <ToastTitle>{locConstants.schemaDesigner.undoAiChangeUnavailableTitle}</ToastTitle>
+                <ToastBody>{reason ?? locConstants.schemaDesigner.cannotUndoAiChange}</ToastBody>
+            </Toast>,
+            { pauseOnHover: true, intent: "warning" },
+        );
+
     /**
      * Handles new connections between nodes
      * @param params - Connection parameters
@@ -627,12 +636,19 @@ export const SchemaDesignerFlow = () => {
     };
 
     const handleUndoActivePendingAiChange = async () => {
-        if (!activePendingAiChange || isApplyingPendingAiAction) {
+        if (
+            !activePendingAiChange ||
+            isApplyingPendingAiAction ||
+            !activePendingAiUndoState.canRevert
+        ) {
             return;
         }
         setIsApplyingPendingAiAction(true);
         try {
-            await context.undoAiLedgerChange(activePendingAiChange);
+            const didUndo = await context.undoAiLedgerChange(activePendingAiChange);
+            if (!didUndo) {
+                showPendingAiUndoBlockedNotification(activePendingAiUndoState.reason);
+            }
         } finally {
             setIsApplyingPendingAiAction(false);
         }
@@ -647,12 +663,20 @@ export const SchemaDesignerFlow = () => {
     };
 
     const handleUndoPendingAiEdgeChange = async () => {
-        if (!pendingAiEdgeToolbarState || isApplyingPendingAiAction) {
+        if (
+            !pendingAiEdgeToolbarState ||
+            isApplyingPendingAiAction ||
+            !pendingAiEdgeUndoState.canRevert
+        ) {
             return;
         }
         setIsApplyingPendingAiAction(true);
         try {
-            await context.undoAiLedgerChange(pendingAiEdgeToolbarState.change);
+            const didUndo = await context.undoAiLedgerChange(pendingAiEdgeToolbarState.change);
+            if (!didUndo) {
+                showPendingAiUndoBlockedNotification(pendingAiEdgeUndoState.reason);
+                return;
+            }
             setPendingAiEdgeToolbarState(NULL_VALUE);
         } finally {
             setIsApplyingPendingAiAction(false);
@@ -670,6 +694,26 @@ export const SchemaDesignerFlow = () => {
         setActivePendingAiChangeId(nextChange.id);
         revealChangeInDiagram(nextChange);
     };
+
+    const activePendingAiUndoState = useMemo(() => {
+        if (!activePendingAiChange) {
+            return {
+                canRevert: false,
+                reason: locConstants.schemaDesigner.cannotUndoAiChange,
+            };
+        }
+        return context.canUndoAiLedgerChange(activePendingAiChange);
+    }, [activePendingAiChange, context]);
+
+    const pendingAiEdgeUndoState = useMemo(() => {
+        if (!pendingAiEdgeToolbarState) {
+            return {
+                canRevert: false,
+                reason: locConstants.schemaDesigner.cannotUndoAiChange,
+            };
+        }
+        return context.canUndoAiLedgerChange(pendingAiEdgeToolbarState.change);
+    }, [context, pendingAiEdgeToolbarState]);
 
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
@@ -880,15 +924,27 @@ export const SchemaDesignerFlow = () => {
                         disabled={!activePendingAiChange || isApplyingPendingAiAction}>
                         {locConstants.schemaDesigner.keep}
                     </Button>
-                    <Button
-                        size="small"
-                        appearance="subtle"
-                        onClick={() => {
-                            void handleUndoActivePendingAiChange();
-                        }}
-                        disabled={!activePendingAiChange || isApplyingPendingAiAction}>
-                        {locConstants.schemaDesigner.undo}
-                    </Button>
+                    <Tooltip
+                        content={
+                            activePendingAiUndoState.canRevert
+                                ? locConstants.schemaDesigner.undo
+                                : (activePendingAiUndoState.reason ?? "")
+                        }
+                        relationship="label">
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            onClick={() => {
+                                void handleUndoActivePendingAiChange();
+                            }}
+                            disabled={
+                                !activePendingAiChange ||
+                                isApplyingPendingAiAction ||
+                                !activePendingAiUndoState.canRevert
+                            }>
+                            {locConstants.schemaDesigner.undo}
+                        </Button>
+                    </Tooltip>
                     <Button
                         size="small"
                         appearance="subtle"
@@ -961,12 +1017,20 @@ export const SchemaDesignerFlow = () => {
                                 }}
                             />
                         </Tooltip>
-                        <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
+                        <Tooltip
+                            content={
+                                pendingAiEdgeUndoState.canRevert
+                                    ? locConstants.schemaDesigner.undo
+                                    : (pendingAiEdgeUndoState.reason ?? "")
+                            }
+                            relationship="label">
                             <Button
                                 size="small"
                                 appearance="subtle"
                                 icon={<ArrowUndo16Regular />}
-                                disabled={isApplyingPendingAiAction}
+                                disabled={
+                                    isApplyingPendingAiAction || !pendingAiEdgeUndoState.canRevert
+                                }
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     void handleUndoPendingAiEdgeChange();
