@@ -34,7 +34,7 @@ export const SchemaDesignerPage = () => {
             <SchemaDesignerEditorDrawer />
             <MainLayout>
                 <PanelGroup direction="vertical">
-                    <Panel defaultSize={100} minSize={30}>
+                    <Panel defaultSize={100} minSize={0}>
                         <GraphContainer>
                             <SchemaDesignerToolbar />
                             <SchemaDesignerFlow />
