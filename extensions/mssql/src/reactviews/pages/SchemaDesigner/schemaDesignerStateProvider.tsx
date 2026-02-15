@@ -1134,50 +1134,45 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setAiLedger([]);
     }, []);
 
+    // Helper to check FK validity using the current schema state
+    const validateForeignKeyRestoration = (
+        foreignKey: SchemaDesigner.ForeignKey,
+        targetTable: SchemaDesigner.Table | undefined,
+        sourceTable: SchemaDesigner.Table,
+    ): CanRevertResult => {
+        const cannotRestoreFkReason =
+            locConstants.schemaDesigner.changesPanel.cannotRevertForeignKey;
+
+        if (
+            !targetTable ||
+            foreignKey.columns.length === 0 ||
+            foreignKey.columns.length !== foreignKey.referencedColumns.length
+        ) {
+            return { canRevert: false, reason: cannotRestoreFkReason };
+        }
+
+        const sourceHasAllColumns = foreignKey.columns.every((columnName) =>
+            sourceTable.columns.some((column) => column.name === columnName),
+        );
+        if (!sourceHasAllColumns) {
+            return { canRevert: false, reason: cannotRestoreFkReason };
+        }
+
+        const targetHasAllColumns = foreignKey.referencedColumns.every((columnName) =>
+            targetTable.columns.some((column) => column.name === columnName),
+        );
+        if (!targetHasAllColumns) {
+            return { canRevert: false, reason: cannotRestoreFkReason };
+        }
+
+        return { canRevert: true };
+    };
+
     const validatePendingAiUndoItem = useCallback(
         (item: PendingAiItem, schema: SchemaDesigner.Schema): CanRevertResult => {
             const cannotUndoReason = locConstants.schemaDesigner.cannotUndoAiChange;
-            const cannotRestoreFkReason =
-                locConstants.schemaDesigner.changesPanel.cannotRevertForeignKey;
 
             const table = schema.tables.find((candidate) => candidate.id === item.tableId);
-
-            const canRestoreBaselineForeignKey = (
-                foreignKey: SchemaDesigner.ForeignKey,
-            ): CanRevertResult => {
-                if (
-                    !table ||
-                    foreignKey.columns.length === 0 ||
-                    foreignKey.columns.length !== foreignKey.referencedColumns.length
-                ) {
-                    return { canRevert: false, reason: cannotRestoreFkReason };
-                }
-
-                const sourceHasAllColumns = foreignKey.columns.every((columnName) =>
-                    table.columns.some((column) => column.name === columnName),
-                );
-                if (!sourceHasAllColumns) {
-                    return { canRevert: false, reason: cannotRestoreFkReason };
-                }
-
-                const referencedTable = schema.tables.find(
-                    (candidateTable) =>
-                        candidateTable.schema === foreignKey.referencedSchemaName &&
-                        candidateTable.name === foreignKey.referencedTableName,
-                );
-                if (!referencedTable) {
-                    return { canRevert: false, reason: cannotRestoreFkReason };
-                }
-
-                const targetHasAllColumns = foreignKey.referencedColumns.every((columnName) =>
-                    referencedTable.columns.some((column) => column.name === columnName),
-                );
-                if (!targetHasAllColumns) {
-                    return { canRevert: false, reason: cannotRestoreFkReason };
-                }
-
-                return { canRevert: true };
-            };
 
             switch (item.category) {
                 case ChangeCategory.Table: {
@@ -1211,6 +1206,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         item.action === ChangeAction.Modify &&
                         !table.columns.some((column) => column.id === columnId)
                     ) {
+                        // The column must exist to be modified back
                         return { canRevert: false, reason: cannotUndoReason };
                     }
                     return { canRevert: true };
@@ -1244,7 +1240,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         return { canRevert: false, reason: cannotUndoReason };
                     }
 
-                    return canRestoreBaselineForeignKey(baselineForeignKey);
+                    // Find the referenced table in the CURRENT schema
+                    // If the baseline FK pointed to Table A, Table A must exist now to restore strict FK integrity.
+                    const referencedTable = schema.tables.find(
+                        (candidateTable) =>
+                            candidateTable.schema === baselineForeignKey.referencedSchemaName &&
+                            candidateTable.name === baselineForeignKey.referencedTableName,
+                    );
+
+                    return validateForeignKeyRestoration(
+                        baselineForeignKey,
+                        referencedTable,
+                        table,
+                    );
                 }
                 default:
                     return { canRevert: false, reason: cannotUndoReason };
