@@ -181,6 +181,11 @@
                 "icon": "images/databaseProjectToolbar.svg"
             },
             {
+                "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                "title": "%sqlDatabaseProjects.configureCodeAnalysisSettings%",
+                "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
                 "command": "sqlDatabaseProjects.addDatabaseReference",
                 "title": "%sqlDatabaseProjects.addDatabaseReference%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -322,6 +327,10 @@
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase"
                 },
                 {
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                    "when": "false"
+                },
+                {
                     "command": "sqlDatabaseProjects.addDatabaseReference",
                     "when": "false"
                 },
@@ -399,6 +408,11 @@
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "1_dbProjectsFirst@5"
+                },
+                {
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "1_dbProjectsFirst@6"
                 },
                 {
                     "command": "sqlDatabaseProjects.newItem",

@@ -2364,6 +2364,45 @@ export class ProjectsController {
 
     //#endregion
 
+    //#region Code Analysis
+
+    /**
+     * Opens the Code Analysis configuration for a SQL project
+     * @param context The project node from the tree view
+     */
+    public async configureCodeAnalysisSettings(
+        context: dataworkspace.WorkspaceTreeItem,
+    ): Promise<void> {
+        try {
+            const project = await this.getProjectFromContext(context);
+
+            if (!project) {
+                void vscode.window.showErrorMessage(constants.noProjectContext);
+                return;
+            }
+
+            TelemetryReporter.createActionEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.configureCodeAnalysisSettings,
+            ).send();
+
+            // Delegate to mssql extension's Code Analysis dialog
+            await vscode.commands.executeCommand(
+                constants.mssqlConfigureCodeAnalysisSettingsCommand,
+                project.projectFilePath,
+            );
+        } catch (err) {
+            void vscode.window.showErrorMessage(utils.getErrorMessage(err));
+            TelemetryReporter.sendErrorEvent2(
+                TelemetryViews.ProjectController,
+                TelemetryActions.configureCodeAnalysisSettings,
+                err,
+            );
+        }
+    }
+
+    //#endregion
+
     /**
      * Move a file or folder in the project tree
      * @param projectUri URI of the project
