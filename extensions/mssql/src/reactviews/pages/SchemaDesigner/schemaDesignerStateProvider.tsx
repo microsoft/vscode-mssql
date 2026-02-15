@@ -59,6 +59,7 @@ import {
     removeEdgesForForeignKey,
 } from "./schemaDesignerEdgeUtils";
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 import {
     normalizeColumn,
@@ -520,11 +521,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
             onAiEditsApplied,
             onAiEditsApplyingStateChanged: (isApplying) => {
-                suppressAiLedgerAutoClearRef.current += isApplying ? 1 : -1;
-                suppressAiLedgerAutoClearRef.current = Math.max(
-                    0,
-                    suppressAiLedgerAutoClearRef.current,
-                );
+                // Guard: only decrement if >0 to prevent underflow from
+                // mismatched calls (e.g. if an error path calls false twice).
+                if (isApplying) {
+                    suppressAiLedgerAutoClearRef.current += 1;
+                } else if (suppressAiLedgerAutoClearRef.current > 0) {
+                    suppressAiLedgerAutoClearRef.current -= 1;
+                }
             },
         });
     }, [

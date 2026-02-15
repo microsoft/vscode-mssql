@@ -79,6 +79,7 @@ const NODE_TYPES: NodeTypes = {
     tableNode: SchemaDesignerTableNode,
 };
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 
 /**
@@ -901,22 +902,7 @@ export const SchemaDesignerFlow = () => {
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
             {showPendingAiFloatingToolbar && (
-                <div
-                    style={{
-                        position: "absolute",
-                        left: "50%",
-                        bottom: "14px",
-                        transform: "translateX(-50%)",
-                        zIndex: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "6px 8px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--vscode-editorWidget-border)",
-                        backgroundColor: "var(--vscode-editorWidget-background)",
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
-                    }}>
+                <div className="sd-pending-ai-floating-toolbar">
                     <Button
                         size="small"
                         appearance="primary"
@@ -953,13 +939,7 @@ export const SchemaDesignerFlow = () => {
                         {locConstants.schemaDesigner.changesPanel.reveal}
                     </Button>
                     <Divider vertical />
-                    <span
-                        style={{
-                            fontSize: "12px",
-                            color: "var(--vscode-descriptionForeground)",
-                            minWidth: "56px",
-                            textAlign: "center",
-                        }}>
+                    <span className="sd-pending-ai-floating-toolbar__counter">
                         {locConstants.common.searchResultSummary(
                             activePendingAiIndex + 1,
                             pendingAiChanges.length,
@@ -986,25 +966,13 @@ export const SchemaDesignerFlow = () => {
             {pendingAiEdgeToolbarState && (
                 <div
                     ref={edgeUndoWrapperRef}
+                    className="sd-edge-tooltip-wrapper"
                     style={{
-                        position: "absolute",
                         left: pendingAiEdgeToolbarState.position.x,
                         top: pendingAiEdgeToolbarState.position.y,
-                        zIndex: 5,
-                        padding: "10px",
                     }}
                     onMouseLeave={() => setPendingAiEdgeToolbarState(NULL_VALUE)}>
-                    <div
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "6px 8px",
-                            borderRadius: "8px",
-                            border: "1px solid var(--vscode-editorWidget-border)",
-                            backgroundColor: "var(--vscode-editorWidget-background)",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        }}>
+                    <div className="sd-edge-tooltip-inner">
                         <Tooltip content={locConstants.schemaDesigner.keep} relationship="label">
                             <Button
                                 size="small"
@@ -1043,12 +1011,10 @@ export const SchemaDesignerFlow = () => {
             {edgeUndoState && (
                 <div
                     ref={edgeUndoWrapperRef}
+                    className="sd-edge-tooltip-wrapper"
                     style={{
-                        position: "absolute",
                         left: edgeUndoState.position.x,
                         top: edgeUndoState.position.y,
-                        zIndex: 5,
-                        padding: "10px",
                     }}
                     onMouseLeave={() => setEdgeUndoState(NULL_VALUE)}>
                     <Tooltip

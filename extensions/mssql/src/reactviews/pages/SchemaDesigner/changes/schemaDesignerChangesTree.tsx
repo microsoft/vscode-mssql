@@ -55,9 +55,12 @@ type SchemaDesignerChangesTreeProps = {
     onKeep?: (change: SchemaChange) => void;
     getCanKeep?: (change: SchemaChange) => { canKeep: boolean; reason?: string };
     activeChangeId?: string;
+    /** Increment this counter to trigger a scroll-into-view for the `activeChangeId`. */
+    scrollToActiveVersion?: number;
     isPendingAiTab?: boolean;
 };
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 
 const useStyles = makeStyles({
@@ -301,13 +304,14 @@ export const SchemaDesignerChangesTree = ({
     onKeep,
     getCanKeep,
     activeChangeId,
+    scrollToActiveVersion,
     isPendingAiTab = false,
 }: SchemaDesignerChangesTreeProps) => {
     const classes = useStyles();
     const treeContainerRef = useRef<HTMLDivElement | null>(NULL_VALUE);
 
     useEffect(() => {
-        if (!activeChangeId) {
+        if (!activeChangeId || !scrollToActiveVersion) {
             return;
         }
 
@@ -321,7 +325,7 @@ export const SchemaDesignerChangesTree = ({
             `[data-schema-designer-change-id="${activeChangeId}"]`,
         );
         target?.scrollIntoView({ block: "nearest" });
-    }, [activeChangeId]);
+    }, [activeChangeId, scrollToActiveVersion]);
 
     const renderChangeIcon = (category: ChangeCategory) => {
         switch (category) {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     makeStyles,
     TreeItemValue,
@@ -19,6 +19,7 @@ import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptySta
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
 import { getVisiblePendingAiItems, toPendingAiSchemaChange } from "../aiLedger/ledgerUtils";
+import { buildPendingAiFlatTreeItems } from "./pendingAiFlatTreeBuilder";
 
 const useStyles = makeStyles({
     container: {
@@ -51,6 +52,7 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
     const [activePendingAiChangeId, setActivePendingAiChangeId] = useState<string | undefined>(
         undefined,
     );
+    const scrollToActiveVersionRef = useRef(0);
 
     const loc = locConstants.schemaDesigner.changesPanel;
     const pendingAiTabLabel = locConstants.schemaDesigner.pendingAiTabLabel;
@@ -266,105 +268,10 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
         [baselineFilteredGroups, toFlatTreeItems],
     );
 
-    const pendingAiFlatTreeItems = useMemo(() => {
-        const items: FlatTreeItem[] = [];
-        const groups = new Map<
-            string,
-            {
-                tableId: string;
-                tableName: string;
-                tableSchema: string;
-                isNew: boolean;
-                isDeleted: boolean;
-                changes: SchemaChange[];
-                orderedChanges: SchemaChange[];
-                renameParentId?: string;
-            }
-        >();
-
-        for (const { change } of pendingAiFilteredEntries) {
-            const existing = groups.get(change.tableId);
-            if (existing) {
-                existing.changes.push(change);
-                existing.orderedChanges.push(change);
-                continue;
-            }
-
-            groups.set(change.tableId, {
-                tableId: change.tableId,
-                tableName: change.tableName,
-                tableSchema: change.tableSchema,
-                isNew: false,
-                isDeleted: false,
-                changes: [change],
-                orderedChanges: [change],
-            });
-        }
-
-        for (const group of groups.values()) {
-            group.isNew = group.changes.some(
-                (change) =>
-                    change.category === ChangeCategory.Table && change.action === ChangeAction.Add,
-            );
-            group.isDeleted = group.changes.some(
-                (change) =>
-                    change.category === ChangeCategory.Table &&
-                    change.action === ChangeAction.Delete,
-            );
-
-            const renameParent = group.changes.find(
-                (change) =>
-                    change.category === ChangeCategory.Table &&
-                    change.action === ChangeAction.Modify &&
-                    !!change.propertyChanges?.some(
-                        (propertyChange) =>
-                            propertyChange.property === "name" ||
-                            propertyChange.property === "schema",
-                    ),
-            );
-            group.renameParentId = renameParent?.id;
-
-            if (renameParent) {
-                group.orderedChanges = [
-                    renameParent,
-                    ...group.changes.filter((change) => change.id !== renameParent.id),
-                ];
-            }
-
-            const qualifiedName = `[${group.tableSchema}].[${group.tableName}]`;
-            const tableValue = `ai-table-${group.tableId}`;
-            items.push({
-                value: tableValue,
-                nodeType: "table",
-                tableGroup: {
-                    tableId: group.tableId,
-                    tableName: group.tableName,
-                    tableSchema: group.tableSchema,
-                    isNew: group.isNew,
-                    isDeleted: group.isDeleted,
-                    changes: group.changes,
-                },
-                tableId: group.tableId,
-                content: qualifiedName,
-            });
-
-            for (const change of group.orderedChanges) {
-                const isDependentChild =
-                    !!group.renameParentId && change.id !== group.renameParentId;
-                items.push({
-                    value: `ai-change-${change.id}`,
-                    parentValue: tableValue,
-                    nodeType: "change",
-                    change,
-                    tableId: change.tableId,
-                    content: getChangeDescription(change),
-                    suppressPendingAiActions: isDependentChild,
-                });
-            }
-        }
-
-        return items;
-    }, [getChangeDescription, pendingAiFilteredEntries]);
+    const pendingAiFlatTreeItems = useMemo(
+        () => buildPendingAiFlatTreeItems(pendingAiFilteredEntries, getChangeDescription),
+        [getChangeDescription, pendingAiFilteredEntries],
+    );
 
     useEffect(() => {
         const tableValues = baselineFlatTreeItems
@@ -391,6 +298,8 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
     useEffect(() => {
         const handleActivePendingAiChangeUpdated = (changeId: string | undefined) => {
             setActivePendingAiChangeId(changeId);
+            // Programmatic navigation — request scroll-into-view.
+            scrollToActiveVersionRef.current += 1;
         };
         eventBus.on("activePendingAiChangeUpdated", handleActivePendingAiChangeUpdated);
         return () => {
@@ -622,6 +531,7 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
                             searchText={pendingAiSearchText}
                             ariaLabel={pendingAiTabLabel}
                             activeChangeId={activePendingAiChangeId}
+                            scrollToActiveVersion={scrollToActiveVersionRef.current}
                             isPendingAiTab={true}
                             loc={{
                                 ...loc,

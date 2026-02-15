@@ -77,6 +77,10 @@ export const SchemaDesignerDefinitionsPanel = () => {
         undefined as unknown as DesignerDefinitionPaneRef | null,
     );
     const codeDiffRequestIdRef = useRef(0);
+    const activeTabRef = useRef(activeTab);
+    activeTabRef.current = activeTab;
+    const changesPanelTabRef = useRef(changesPanelTab);
+    changesPanelTabRef.current = changesPanelTab;
 
     const pendingAiChangesCount = useMemo(
         () => getVisiblePendingAiSchemaChanges(aiLedger).length,
@@ -151,7 +155,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
                 return;
             }
 
-            if (activeTab === DesignerDefinitionTabs.Script) {
+            if (activeTabRef.current === DesignerDefinitionTabs.Script) {
                 definitionPaneRef.current.closePanel();
                 setIsChangesPanelVisible(false);
                 setShowChangesHighlight(false);
@@ -184,12 +188,12 @@ export const SchemaDesignerDefinitionsPanel = () => {
                 return;
             }
 
-            if (activeTab !== SchemaDesignerDefinitionCustomTabs.Changes) {
+            if (activeTabRef.current !== SchemaDesignerDefinitionCustomTabs.Changes) {
                 activateChangesTab("baseline");
                 return;
             }
 
-            if (changesPanelTab !== "baseline") {
+            if (changesPanelTabRef.current !== "baseline") {
                 setChangesPanelTab("baseline");
                 return;
             }
@@ -213,9 +217,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
     }, [
         activateChangesTab,
         activateScriptTab,
-        activeTab,
         refreshScript,
-        changesPanelTab,
         setChangesPanelTab,
         setIsChangesPanelVisible,
         setShowChangesHighlight,

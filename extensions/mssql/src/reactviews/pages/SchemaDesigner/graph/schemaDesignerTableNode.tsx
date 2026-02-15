@@ -26,7 +26,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useCallback, useContext, useRef, useEffect, useState, cloneElement } from "react";
+import { useCallback, useContext, useRef, useEffect, useMemo, useState, cloneElement } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
@@ -37,7 +37,7 @@ import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
-import { PendingAiItem } from "../aiLedger/operations";
+import { toPendingAiSchemaChange } from "../aiLedger/ledgerUtils";
 
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
@@ -284,7 +284,7 @@ const useStyles = makeStyles({
         left: "-18px",
         top: "8px",
         zIndex: 12,
-        color: "#d4af37",
+        color: "var(--vscode-charts-purple)",
         pointerEvents: "none",
     },
     aiColumnIndicator: {
@@ -293,21 +293,9 @@ const useStyles = makeStyles({
         top: "50%",
         transform: "translateY(-50%)",
         zIndex: 3,
-        color: "#d4af37",
+        color: "var(--vscode-charts-purple)",
         pointerEvents: "none",
     },
-});
-
-const toPendingAiSchemaChange = (item: PendingAiItem): SchemaChange => ({
-    id: `ai-${item.key}`,
-    action: item.action,
-    category: item.category,
-    tableId: item.tableId,
-    tableName: item.currentTableName ?? item.tableName,
-    tableSchema: item.currentTableSchema ?? item.tableSchema,
-    objectId: item.objectId,
-    objectName: item.objectName,
-    propertyChanges: item.propertyChanges,
 });
 
 const getPropertyChange = (
@@ -743,7 +731,7 @@ const TableColumn = ({
             {canShowPendingAiActions && effectivePendingAiChange && (
                 <div className={styles.columnUndoButtonWrapper}>
                     <div className={styles.aiActionsToolbar}>
-                        <Tooltip content={"Keep"} relationship="label">
+                        <Tooltip content={locConstants.schemaDesigner.keep} relationship="label">
                             <Button
                                 appearance="primary"
                                 size="small"
@@ -976,28 +964,38 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
               return foreignKeyItem ? toPendingAiSchemaChange(foreignKeyItem) : undefined;
           })()
         : undefined;
-    const pendingAiColumnChangesByColumnId = new Map<string, SchemaChange>(
-        (pendingAiGroup?.items ?? [])
-            .filter(
-                (item) =>
-                    item.category === ChangeCategory.Column && typeof item.objectId === "string",
-            )
-            .map((item) => [item.objectId as string, toPendingAiSchemaChange(item)]),
+    const pendingAiColumnChangesByColumnId = useMemo(
+        () =>
+            new Map<string, SchemaChange>(
+                (pendingAiGroup?.items ?? [])
+                    .filter(
+                        (item) =>
+                            item.category === ChangeCategory.Column &&
+                            typeof item.objectId === "string",
+                    )
+                    .map((item) => [item.objectId as string, toPendingAiSchemaChange(item)]),
+            ),
+        [pendingAiGroup],
     );
-    const pendingAiDeletedColumns = [
-        ...new Map(
-            (pendingAiGroup?.items ?? [])
-                .filter(
-                    (item) =>
-                        item.category === ChangeCategory.Column &&
-                        item.action === ChangeAction.Delete,
-                )
-                .map((item) => {
-                    const deletedColumn = item.baselineSnapshot as SchemaDesigner.Column | null;
-                    return [deletedColumn?.id ?? item.objectId ?? item.key, deletedColumn];
-                }),
-        ).values(),
-    ].filter((column): column is SchemaDesigner.Column => Boolean(column));
+    const pendingAiDeletedColumns = useMemo(
+        () =>
+            [
+                ...new Map(
+                    (pendingAiGroup?.items ?? [])
+                        .filter(
+                            (item) =>
+                                item.category === ChangeCategory.Column &&
+                                item.action === ChangeAction.Delete,
+                        )
+                        .map((item) => {
+                            const deletedColumn =
+                                item.baselineSnapshot as SchemaDesigner.Column | null;
+                            return [deletedColumn?.id ?? item.objectId ?? item.key, deletedColumn];
+                        }),
+                ).values(),
+            ].filter((column): column is SchemaDesigner.Column => Boolean(column)),
+        [pendingAiGroup],
+    );
     const hasPendingAiChanges = (pendingAiGroup?.items.length ?? 0) > 0;
     const isPendingAiNewTable = pendingAiTableChange?.action === ChangeAction.Add;
     const hasPendingAiColumnChanges =

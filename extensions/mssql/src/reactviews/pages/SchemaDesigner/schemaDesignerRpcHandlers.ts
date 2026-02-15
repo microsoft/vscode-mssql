@@ -14,6 +14,7 @@ import { AiLedgerApplyResult, AiLedgerOperation } from "./aiLedger/operations";
 import { ChangeAction, ChangeCategory } from "./diff/diffUtils";
 import { tableUtils } from "./schemaDesignerUtils";
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 
 export function registerSchemaDesignerApplyEditsHandler(params: {
