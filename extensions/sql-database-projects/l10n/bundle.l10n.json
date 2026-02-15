@@ -209,6 +209,7 @@
     "Cannot access parent of provided tree item": "Cannot access parent of provided tree item",
     "To successfully build, update the project to have one pre-deployment script and/or one post-deployment script": "To successfully build, update the project to have one pre-deployment script and/or one post-deployment script",
     "Cannot access provided database project. Only valid, open database projects can be reloaded.": "Cannot access provided database project. Only valid, open database projects can be reloaded.",
+    "No database project found in the current context.": "No database project found in the current context.",
     "Validation of external streaming job passed.": "Validation of external streaming job passed.",
     "Could not build project. Error retrieving files needed to build.": "Could not build project. Error retrieving files needed to build.",
     "Project '{0}' is already opened.": "Project '{0}' is already opened.",
