@@ -233,6 +233,7 @@ export enum TelemetryActions {
     ProfilerCloseWarningShown = "ProfilerSession.Close.WarningShown",
     ProfilerFilterApplied = "Profiler.Filter.Applied",
     ProfilerBufferOverflow = "Profiler.Buffer.Overflow",
+    ProfilerSessionStopFailed = "ProfilerSession.Stop.Failed",
 }
 
 /**

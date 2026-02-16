@@ -204,6 +204,18 @@ export class ProfilerTelemetry {
         }
     }
 
+    /** A profiling session failed to stop. */
+    static sendSessionStopFailed(sessionId: string, errorCategory: ProfilerErrorCategory): void {
+        try {
+            sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStopFailed, {
+                sessionId,
+                errorCategory,
+            });
+        } catch {
+            // best-effort
+        }
+    }
+
     /** The ring buffer overflowed and events were evicted. */
     static sendBufferOverflow(
         sessionId: string,

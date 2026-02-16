@@ -692,6 +692,8 @@ export class ProfilerController {
                     );
                 } catch (e) {
                     this._logger.error(`Error stopping session: ${e}`);
+                    const errCat = categorizeError(getErrorMessage(e));
+                    ProfilerTelemetry.sendSessionStopFailed(session.id, errCat);
                 }
             },
             onViewChange: (viewId: string) => {
