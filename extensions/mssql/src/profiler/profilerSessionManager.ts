@@ -5,12 +5,13 @@
 
 import * as vscode from "vscode";
 import { ProfilerSession, ProfilerSessionOptions, StartProfilerResult } from "./profilerSession";
-import { EventRow, SessionState } from "./profilerTypes";
+import { EventRow, SessionState, SessionType } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import {
     ProfilerSessionCreatedParams,
     ProfilerSessionTemplate,
 } from "../models/contracts/profiler";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
  * Manages multiple profiler sessions.
@@ -131,7 +132,19 @@ export class ProfilerSessionManager {
             throw new Error(`Session '${sessionId}' not found`);
         }
 
-        return await session.startProfiling();
+        const result = await session.startProfiling();
+
+        // Record session start time and emit telemetry
+        session.startedAt = Date.now();
+        const isFromFile = session.sessionType === SessionType.File;
+        ProfilerTelemetry.sendSessionStarted(
+            sessionId,
+            session.engineType,
+            session.templateName,
+            isFromFile,
+        );
+
+        return result;
     }
 
     /**

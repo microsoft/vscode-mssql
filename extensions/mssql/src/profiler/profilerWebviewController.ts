@@ -38,6 +38,7 @@ import {
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
 import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
+import { ProfilerTelemetry, CloseWarningUserAction } from "./profilerTelemetry";
 
 /**
  * Events emitted by the profiler webview controller
@@ -230,9 +231,25 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         if (result === msgYes) {
             // User confirmed – allow close (dispose will handle cleanup)
+            // Telemetry: user chose to discard unsaved events
+            if (this._currentSession) {
+                ProfilerTelemetry.sendCloseWarningShown(
+                    this._currentSession.id,
+                    this._currentSession.events.size,
+                    CloseWarningUserAction.Discarded,
+                );
+            }
             return undefined;
         } else {
             // User cancelled (Escape / dismissed) – keep the panel open by recreating it
+            // Telemetry: user cancelled close
+            if (this._currentSession) {
+                ProfilerTelemetry.sendCloseWarningShown(
+                    this._currentSession.id,
+                    this._currentSession.events.size,
+                    CloseWarningUserAction.Cancelled,
+                );
+            }
             return {
                 title: "",
                 run: async () => {
@@ -456,6 +473,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 };
                 this.updateStatusBar();
 
+                // Telemetry: filter applied (column:operator pairs only, never values)
+                if (this._currentSession && payload.clauses.length > 0) {
+                    ProfilerTelemetry.sendFilterApplied(this._currentSession.id, payload.clauses);
+                }
+
                 return this.state;
             }
         });
@@ -564,6 +586,16 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                         if (stream) {
                             await this.generateCsvFromEvents(stream, allEvents, viewConfig);
                             stream.end();
+
+                            // Telemetry: export done
+                            if (this._currentSession) {
+                                this._currentSession.exported = true;
+                                ProfilerTelemetry.sendExportDone(
+                                    this._currentSession.id,
+                                    "csv",
+                                    allEvents.length,
+                                );
+                            }
                         }
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error);

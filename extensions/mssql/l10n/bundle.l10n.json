@@ -2935,6 +2935,16 @@
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
+    "This profiler feature is not supported on Azure SQL Database.": "This profiler feature is not supported on Azure SQL Database.",
+    "You do not have permission to run the profiler on this server. Contact your database administrator.": "You do not have permission to run the profiler on this server. Contact your database administrator.",
+    "Profiler buffer configuration error: {0}/{0} is the error message": {
+        "message": "Profiler buffer configuration error: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "The profiler event buffer is full ({0} events). Oldest events are being discarded. Consider exporting or increasing the buffer size./{0} is the buffer size": {
+        "message": "The profiler event buffer is full ({0} events). Oldest events are being discarded. Consider exporting or increasing the buffer size.",
+        "comment": ["{0} is the buffer size"]
+    },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

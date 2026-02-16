@@ -44,6 +44,7 @@ export enum TelemetryViews {
     Backup = "Backup",
     SearchDatabase = "SearchDatabase",
     FlatFile = "FlatFile",
+    Profiler = "Profiler",
 }
 
 export enum TelemetryActions {
@@ -225,6 +226,13 @@ export enum TelemetryActions {
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
+    ProfilerSessionStarted = "ProfilerSession.Started",
+    ProfilerSessionFailed = "ProfilerSession.Failed",
+    ProfilerSessionStopped = "ProfilerSession.Stopped",
+    ProfilerExportDone = "ProfilerSession.Export.Done",
+    ProfilerCloseWarningShown = "ProfilerSession.Close.WarningShown",
+    ProfilerFilterApplied = "Profiler.Filter.Applied",
+    ProfilerBufferOverflow = "Profiler.Buffer.Overflow",
 }
 
 /**
