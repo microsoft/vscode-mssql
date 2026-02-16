@@ -7,12 +7,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as telemetry from "../../../src/telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../../../src/sharedInterfaces/telemetry";
-import {
-    ProfilerErrorCategory,
-    CloseWarningUserAction,
-    categorizeError,
-    ProfilerTelemetry,
-} from "../../../src/profiler/profilerTelemetry";
+import { CloseWarningUserAction, ProfilerTelemetry } from "../../../src/profiler/profilerTelemetry";
 import { FilterOperator } from "../../../src/profiler/profilerTypes";
 
 suite("ProfilerTelemetry Tests", () => {
@@ -32,99 +27,11 @@ suite("ProfilerTelemetry Tests", () => {
     // Enum value tests
     // ================================================================
 
-    suite("ProfilerErrorCategory", () => {
-        test("has expected values", () => {
-            expect(ProfilerErrorCategory.PermissionDenied).to.equal("PermissionDenied");
-            expect(ProfilerErrorCategory.AzureUnsupported).to.equal("AzureUnsupported");
-            expect(ProfilerErrorCategory.BufferConfigError).to.equal("BufferConfigError");
-            expect(ProfilerErrorCategory.XelFileError).to.equal("XelFileError");
-            expect(ProfilerErrorCategory.Unknown).to.equal("Unknown");
-        });
-    });
-
     suite("CloseWarningUserAction", () => {
         test("has expected values", () => {
             expect(CloseWarningUserAction.Saved).to.equal("Saved");
             expect(CloseWarningUserAction.Discarded).to.equal("Discarded");
             expect(CloseWarningUserAction.Cancelled).to.equal("Cancelled");
-        });
-    });
-
-    // ================================================================
-    // categorizeError tests
-    // ================================================================
-
-    suite("categorizeError", () => {
-        test("classifies permission errors", () => {
-            expect(categorizeError("Permission denied on server")).to.equal(
-                ProfilerErrorCategory.PermissionDenied,
-            );
-            expect(categorizeError("Access denied for user")).to.equal(
-                ProfilerErrorCategory.PermissionDenied,
-            );
-            expect(categorizeError("Request was unauthorized")).to.equal(
-                ProfilerErrorCategory.PermissionDenied,
-            );
-            expect(categorizeError("Permission to run profiler")).to.equal(
-                ProfilerErrorCategory.PermissionDenied,
-            );
-        });
-
-        test("classifies Azure unsupported errors", () => {
-            expect(categorizeError("This feature is not supported on Azure")).to.equal(
-                ProfilerErrorCategory.AzureUnsupported,
-            );
-            expect(categorizeError("Unsupported on this edition")).to.equal(
-                ProfilerErrorCategory.AzureUnsupported,
-            );
-            expect(categorizeError("Feature not available")).to.equal(
-                ProfilerErrorCategory.AzureUnsupported,
-            );
-        });
-
-        test("classifies buffer config errors", () => {
-            expect(categorizeError("ring_buffer memory exceeded")).to.equal(
-                ProfilerErrorCategory.BufferConfigError,
-            );
-            expect(categorizeError("Buffer capacity too small")).to.equal(
-                ProfilerErrorCategory.BufferConfigError,
-            );
-            expect(categorizeError("Config setting invalid for memory")).to.equal(
-                ProfilerErrorCategory.BufferConfigError,
-            );
-        });
-
-        test("classifies XEL file errors", () => {
-            expect(categorizeError("Failed to read XEL file")).to.equal(
-                ProfilerErrorCategory.XelFileError,
-            );
-            expect(categorizeError("XEvent data corrupted")).to.equal(
-                ProfilerErrorCategory.XelFileError,
-            );
-            expect(categorizeError("Extended event log missing")).to.equal(
-                ProfilerErrorCategory.XelFileError,
-            );
-        });
-
-        test("returns Unknown for unrecognised errors", () => {
-            expect(categorizeError("Something went wrong")).to.equal(ProfilerErrorCategory.Unknown);
-            expect(categorizeError("")).to.equal(ProfilerErrorCategory.Unknown);
-        });
-
-        test("is case-insensitive", () => {
-            expect(categorizeError("PERMISSION DENIED")).to.equal(
-                ProfilerErrorCategory.PermissionDenied,
-            );
-            expect(categorizeError("NOT SUPPORTED")).to.equal(
-                ProfilerErrorCategory.AzureUnsupported,
-            );
-        });
-
-        test("accepts optional engineType parameter", () => {
-            // Engine type does not change the result when keywords already match
-            expect(categorizeError("Permission denied", "AzureSQLDB")).to.equal(
-                ProfilerErrorCategory.PermissionDenied,
-            );
         });
     });
 
@@ -170,7 +77,7 @@ suite("ProfilerTelemetry Tests", () => {
             ProfilerTelemetry.sendSessionFailed(
                 "sess-1",
                 "AzureSQLDB",
-                ProfilerErrorCategory.PermissionDenied,
+                "Permission denied on server",
             );
 
             expect(sendActionEventStub.calledOnce).to.be.true;
@@ -180,14 +87,14 @@ suite("ProfilerTelemetry Tests", () => {
             expect(props).to.deep.include({
                 sessionId: "sess-1",
                 engineType: "AzureSQLDB",
-                errorCategory: ProfilerErrorCategory.PermissionDenied,
+                errorMessage: "Permission denied on server",
             });
         });
 
         test("swallows errors silently", () => {
             sendActionEventStub.throws(new Error("boom"));
             expect(() =>
-                ProfilerTelemetry.sendSessionFailed("s", "e", ProfilerErrorCategory.Unknown),
+                ProfilerTelemetry.sendSessionFailed("s", "e", "some error"),
             ).to.not.throw();
         });
     });

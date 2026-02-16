@@ -24,7 +24,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
-import { ProfilerTelemetry, categorizeError, ProfilerErrorCategory } from "./profilerTelemetry";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /** System databases that cannot be used for Azure SQL profiling */
 const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
@@ -355,8 +355,7 @@ export class ProfilerController {
         } catch (e) {
             this._logger.error(`Error starting profiler session: ${e}`);
             const errMsg = getErrorMessage(e);
-            const errCat = categorizeError(errMsg, this._currentEngineType);
-            ProfilerTelemetry.sendSessionFailed(sessionId, this._currentEngineType, errCat);
+            ProfilerTelemetry.sendSessionFailed(sessionId, this._currentEngineType, errMsg);
             vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(errMsg));
         }
     }
@@ -692,8 +691,7 @@ export class ProfilerController {
                     );
                 } catch (e) {
                     this._logger.error(`Error stopping session: ${e}`);
-                    const errCat = categorizeError(getErrorMessage(e));
-                    ProfilerTelemetry.sendSessionStopFailed(session.id, errCat);
+                    ProfilerTelemetry.sendSessionStopFailed(session.id, getErrorMessage(e));
                 }
             },
             onViewChange: (viewId: string) => {
@@ -1056,11 +1054,7 @@ export class ProfilerController {
             webviewController.setSessionState(SessionState.Failed);
 
             // Telemetry: XEL file load failure
-            ProfilerTelemetry.sendSessionFailed(
-                sessionId,
-                "SQLServer",
-                ProfilerErrorCategory.XelFileError,
-            );
+            ProfilerTelemetry.sendSessionFailed(sessionId, "SQLServer", getErrorMessage(e));
             // Clean up the session that failed to load
             await this._sessionManager.removeSession(sessionId);
 

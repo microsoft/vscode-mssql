@@ -8,67 +8,12 @@ import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry"
 import { FilterClause } from "./profilerTypes";
 
 /**
- * Categories of profiler errors for telemetry classification.
- * Used to bucket errors without sending PII.
- */
-export enum ProfilerErrorCategory {
-    PermissionDenied = "PermissionDenied",
-    AzureUnsupported = "AzureUnsupported",
-    BufferConfigError = "BufferConfigError",
-    XelFileError = "XelFileError",
-    Unknown = "Unknown",
-}
-
-/**
  * User actions when the close-with-unsaved-events warning is shown.
  */
 export enum CloseWarningUserAction {
     Saved = "Saved",
     Discarded = "Discarded",
     Cancelled = "Cancelled",
-}
-
-// ── keyword lists for error categorisation ──────────────────────────
-const PERMISSION_KEYWORDS = ["permission", "denied", "unauthorized", "access"];
-const AZURE_UNSUPPORTED_KEYWORDS = ["not supported", "azure", "unsupported", "not available"];
-const BUFFER_CONFIG_KEYWORDS = ["buffer", "memory", "config", "capacity", "ring_buffer"];
-const XEL_KEYWORDS = ["xel", "file", "xevent", "extended event"];
-
-/**
- * Inspects an error message and returns a coarse category.
- * Never records the raw message itself (no PII).
- *
- * @param errorMessage - The error text to classify.
- * @param engineType   - Optional engine type to disambiguate Azure-specific errors.
- * @returns A {@link ProfilerErrorCategory}.
- */
-export function categorizeError(errorMessage: string, engineType?: string): ProfilerErrorCategory {
-    const lower = errorMessage.toLowerCase();
-
-    if (PERMISSION_KEYWORDS.some((kw) => lower.includes(kw))) {
-        return ProfilerErrorCategory.PermissionDenied;
-    }
-
-    if (AZURE_UNSUPPORTED_KEYWORDS.some((kw) => lower.includes(kw))) {
-        return ProfilerErrorCategory.AzureUnsupported;
-    }
-
-    if (
-        engineType?.toLowerCase().includes("azure") &&
-        AZURE_UNSUPPORTED_KEYWORDS.some((kw) => lower.includes(kw))
-    ) {
-        return ProfilerErrorCategory.AzureUnsupported;
-    }
-
-    if (BUFFER_CONFIG_KEYWORDS.some((kw) => lower.includes(kw))) {
-        return ProfilerErrorCategory.BufferConfigError;
-    }
-
-    if (XEL_KEYWORDS.some((kw) => lower.includes(kw))) {
-        return ProfilerErrorCategory.XelFileError;
-    }
-
-    return ProfilerErrorCategory.Unknown;
 }
 
 /**
@@ -101,16 +46,12 @@ export class ProfilerTelemetry {
     }
 
     /** A profiling session failed to start or encountered a fatal error. */
-    static sendSessionFailed(
-        sessionId: string,
-        engineType: string,
-        errorCategory: ProfilerErrorCategory,
-    ): void {
+    static sendSessionFailed(sessionId: string, engineType: string, errorMessage: string): void {
         try {
             sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionFailed, {
                 sessionId,
                 engineType,
-                errorCategory,
+                errorMessage,
             });
         } catch {
             // best-effort
@@ -205,11 +146,11 @@ export class ProfilerTelemetry {
     }
 
     /** A profiling session failed to stop. */
-    static sendSessionStopFailed(sessionId: string, errorCategory: ProfilerErrorCategory): void {
+    static sendSessionStopFailed(sessionId: string, errorMessage: string): void {
         try {
             sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStopFailed, {
                 sessionId,
-                errorCategory,
+                errorMessage,
             });
         } catch {
             // best-effort

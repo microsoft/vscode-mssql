@@ -155,7 +155,7 @@ export class ProfilerSession {
         this.templateName = options.templateName;
         this.readOnly = options.readOnly ?? false;
         this._profilerService = profilerService;
-        this.engineType = options.engineType ?? "SQLServer";
+        this.engineType = options.engineType ?? "Standalone";
 
         // Initialize event buffer with indexed fields
         const capacity = options.bufferCapacity ?? DEFAULT_BUFFER_CAPACITY;
