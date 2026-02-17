@@ -1431,7 +1431,7 @@ export class LocConstants {
             ),
             chooseTheRightVersion: l10n.t("Choose the Right Version"),
             chooseTheRightVersionDescription: l10n.t(
-                "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+                "Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.",
             ),
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
@@ -1446,14 +1446,6 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
-            armErrorDescription: l10n.t(
-                "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
-            ),
-            toContinueCheck: l10n.t(
-                "To continue, run SQL Server on a machine with a supported processor. Check ",
-            ),
-            theDocumentation: l10n.t("the documentation "),
-            forMoreInformation: l10n.t("for more information."),
         };
     }
 
@@ -1938,6 +1930,9 @@ export class LocConstants {
             settingsKeyColumn: l10n.t("Setting"),
             settingsValueColumn: l10n.t("Value"),
             noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            noCustomizedSettingsFoundInAds: l10n.t(
+                "No customized settings found in Azure Data Studio",
+            ),
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
@@ -2003,9 +1998,14 @@ export class LocConstants {
 
     public get fileBrowser() {
         return {
-            fileBrowserTitle: l10n.t("Select a file"),
+            fileBrowserFileTitle: l10n.t("Select a file"),
+            fileBrowserFolderTitle: l10n.t("Select a folder"),
+            folderRequired: l10n.t("Folder is required"),
+            fileRequired: l10n.t("File is required"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
+            pleaseChooseAFile: l10n.t("Please choose a file"),
+            pleaseChooseAFolder: l10n.t("Please choose a folder"),
         };
     }
 
@@ -2273,6 +2273,31 @@ export class LocConstants {
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
             importNewFile: l10n.t("Import New File"),
+        };
+    }
+
+    public get restoreDatabase() {
+        return {
+            loadingRestoreDatabase: l10n.t("Loading restore database..."),
+            restore: l10n.t("Restore"),
+            restoreDatabase: l10n.t("Restore Database"),
+            database: l10n.t("Database"),
+            backupFile: l10n.t("Backup File"),
+            url: l10n.t("URL"),
+            browseFiles: l10n.t("Browse files"),
+            tailLogBackup: l10n.t("Tail-log backup"),
+            files: l10n.t("Files"),
+            loadingRestorePlan: l10n.t("Loading restore plan..."),
+            noBackupSets: l10n.t("No backup sets found in the restore plan"),
+            noDatabaseFiles: l10n.t("No database files found in the restore plan"),
+            invalidTableType: l10n.t("Invalid table type"),
+            logicalFileName: l10n.t("Logical file name"),
+            originalFileName: l10n.t("Original file name"),
+            restoreAs: l10n.t("Restore as"),
+            fileType: l10n.t("File type"),
+            backupSetsToRestore: l10n.t("Backup sets to restore"),
+            advancedRestoreOptions: l10n.t("Advanced restore options"),
+            couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
         };
     }
 }

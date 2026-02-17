@@ -3,20 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    BackupDatabaseFormState,
-    BackupDatabaseReducers,
-} from "../../../../sharedInterfaces/backup";
 import { ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
+import {
+    RestoreDatabaseFormState,
+    RestoreDatabaseReducers,
+} from "../../../../sharedInterfaces/restore";
 import { useVscodeSelector } from "../../../common/useVscodeSelector";
 
-export function useBackupDatabaseSelector<T>(
-    selector: (state: ObjectManagementWebviewState<BackupDatabaseFormState>) => T,
+export function useRestoreDatabaseSelector<T>(
+    selector: (state: ObjectManagementWebviewState<RestoreDatabaseFormState>) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
     return useVscodeSelector<
-        ObjectManagementWebviewState<BackupDatabaseFormState>,
-        BackupDatabaseReducers<BackupDatabaseFormState>,
+        ObjectManagementWebviewState<RestoreDatabaseFormState>,
+        RestoreDatabaseReducers<RestoreDatabaseFormState>,
         T
     >(selector, equals);
 }

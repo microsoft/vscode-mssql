@@ -8,17 +8,16 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
-import { BackupDatabaseForm } from "./backupDatabaseForm";
 import { ObjectManagementDialog } from "../../../common/objectManagementDialog";
 import {
     DisasterRecoveryType,
     ObjectManagementCancelNotification,
     ObjectManagementHelpNotification,
 } from "../../../../sharedInterfaces/objectManagement";
-import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
-import { url } from "../../../common/constants";
-import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
+import { RestoreDatabaseContext } from "./restoreDatabaseStateProvider";
+import { RestoreDatabaseViewModel } from "../../../../sharedInterfaces/restore";
+import { RestoreDatabaseForm } from "./restoreDatabaseForm";
+import { useRestoreDatabaseSelector } from "./restoreDatabaseSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -41,31 +40,45 @@ const useStyles = makeStyles({
     },
 });
 
-export const BackupDatabaseDialogPage = () => {
+export const RestoreDatabaseDialogPage = () => {
     const classes = useStyles();
-    const context = useContext(BackupDatabaseContext);
-    const viewModel = useBackupDatabaseSelector((s) => s.viewModel);
-    const formComponents = useBackupDatabaseSelector((s) => s.formComponents);
-    const formState = useBackupDatabaseSelector((s) => s.formState);
-    const formErrors = useBackupDatabaseSelector((s) => s.formErrors);
-    const errorMessage = useBackupDatabaseSelector((s) => s.errorMessage);
+    const context = useContext(RestoreDatabaseContext);
 
-    if (!context || !viewModel) {
+    if (!context) {
         return null;
     }
 
+    const loadState = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).loadState,
+    );
+    const errorMessage = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).errorMessage,
+    );
+    const restoreType = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).type,
+    );
+    const formComponents = useRestoreDatabaseSelector((s) => s.formComponents);
+    const formErrors = useRestoreDatabaseSelector((s) => s.formErrors);
+    const formState = useRestoreDatabaseSelector((s) => s.formState);
+    const backupFiles = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).backupFiles,
+    );
+    const restorePlanStatus = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).restorePlanStatus,
+    );
+
     const [fileErrors, setFileErrors] = useState<number[]>([]);
-    const backupViewModel = viewModel.model as BackupDatabaseViewModel;
 
-    const shouldDisableBackupButton = (): boolean => {
-        const isUrlBackup = backupViewModel.type === DisasterRecoveryType.Url;
-
+    const shouldDisableRestoreButton = (): boolean => {
         const requiredComponents = Object.values(formComponents).filter((component) => {
             if (!component.required) {
                 return false;
             }
+            if (component.propertyName === "targetDatabaseName") {
+                return true;
+            }
 
-            return isUrlBackup ? component.groupName === url : component.groupName !== url;
+            return component.groupName === restoreType;
         });
 
         const hasMissingRequiredValue = requiredComponents.some((component) => {
@@ -73,28 +86,27 @@ export const BackupDatabaseDialogPage = () => {
             return value === undefined || value === null || value === "";
         });
 
+        const hasNoBackupFiles =
+            restoreType === DisasterRecoveryType.BackupFile && backupFiles.length === 0;
+
         const hasFormErrors = formErrors.length > 0;
-        const hasNoBackupFiles = !isUrlBackup && backupViewModel.backupFiles.length === 0;
-        const hasFileErrors = !isUrlBackup && fileErrors.length > 0;
-        const isAzureNotReady =
-            isUrlBackup &&
-            backupViewModel.azureComponentStatuses["blobContainerId"] !== ApiStatus.Loaded;
+
         return (
             hasMissingRequiredValue ||
-            hasFormErrors ||
             hasNoBackupFiles ||
-            hasFileErrors ||
-            isAzureNotReady
+            hasFormErrors ||
+            fileErrors.length > 0 ||
+            restorePlanStatus !== ApiStatus.Loaded
         );
     };
 
     const renderMainContent = () => {
-        switch (backupViewModel?.loadState) {
+        switch (loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
                         <Spinner
-                            label={locConstants.backupDatabase.loadingBackupDatabase}
+                            label={locConstants.restoreDatabase.loadingRestoreDatabase}
                             labelPosition="below"
                         />
                     </div>
@@ -105,17 +117,17 @@ export const BackupDatabaseDialogPage = () => {
                         title={undefined}
                         description={undefined}
                         errorMessage={errorMessage}
-                        primaryLabel={locConstants.backupDatabase.backup}
+                        primaryLabel={locConstants.restoreDatabase.restore}
                         cancelLabel={locConstants.createDatabase.cancelButton}
                         helpLabel={locConstants.createDatabase.helpButton}
                         scriptLabel={locConstants.backupDatabase.script}
-                        primaryDisabled={shouldDisableBackupButton()}
+                        primaryDisabled={shouldDisableRestoreButton()}
                         scriptDisabled={false}
-                        onPrimary={() => {
-                            context.backupDatabase();
+                        onPrimary={async () => {
+                            context.restoreDatabase();
                         }}
                         onScript={async () => {
-                            context.openBackupScript();
+                            context.openRestoreScript();
                         }}
                         onHelp={() => {
                             void context?.extensionRpc.sendNotification(
@@ -127,7 +139,10 @@ export const BackupDatabaseDialogPage = () => {
                                 ObjectManagementCancelNotification.type,
                             );
                         }}>
-                        <BackupDatabaseForm fileErrors={fileErrors} setFileErrors={setFileErrors} />
+                        <RestoreDatabaseForm
+                            fileErrors={fileErrors}
+                            setFileErrors={setFileErrors}
+                        />
                     </ObjectManagementDialog>
                 );
             case ApiStatus.Error:

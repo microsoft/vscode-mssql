@@ -118,6 +118,7 @@ import { FlatFileClient } from "../flatFile/flatFileClient";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
 import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
+import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -1723,40 +1724,40 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdBackupDatabase,
                     async (node: TreeNodeInfo) => {
                         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-
-                        let ownerUri = node.sessionId;
-                        if (node.nodeType === Constants.databaseString) {
-                            const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
-
-                            // Create a new temp connection for the database if we are not already connected
-                            // This lets sts know the context of the database we are backing up; otherwise,
-                            // sts will assume the master database context
-                            await this.connectionManager.connect(databaseConnectionUri, {
-                                ...node.connectionProfile,
-                                database: databaseName,
-                            });
-
-                            ownerUri = databaseConnectionUri;
-                        }
-
                         const reactPanel = new BackupDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
                             this.objectManagementService,
+                            this._connectionMgr,
                             this.fileBrowserService,
                             this.azureBlobService,
-                            ownerUri,
-                            node.connectionProfile.server || "",
+                            node.connectionProfile,
+                            node.sessionId,
                             databaseName,
                         );
                         reactPanel.revealToForeground();
+                    },
+                ),
+            );
 
-                        // Disconnect the temp database connection when the backup panel is closed
-                        reactPanel.onDisposed(() => {
-                            if (ownerUri !== node.sessionId) {
-                                void this.connectionManager.disconnect(ownerUri);
-                            }
-                        });
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRestoreDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
+                        const reactPanel = new RestoreDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this.objectManagementService,
+                            this._connectionMgr,
+                            this.fileBrowserService,
+                            this.azureBlobService,
+                            node.connectionProfile,
+                            node.sessionId,
+                            databaseName,
+                        );
+                        reactPanel.revealToForeground();
                     },
                 ),
             );
