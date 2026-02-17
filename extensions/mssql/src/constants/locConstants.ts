@@ -3051,6 +3051,9 @@ export class FlatFileImport {
     public static loadingSchemas = l10n.t("Loading schemas...");
     public static noSchemasFound = l10n.t("No schemas found");
     public static importFailed = l10n.t("Failed to import file.");
+    public static flatFilePathTooltip = l10n.t(
+        "Please ensure the file is not open in another application before importing",
+    );
 }
 
 export class RestoreDatabase {
@@ -3097,5 +3100,11 @@ export class RestoreDatabase {
     public static noBlobsFound = l10n.t("No blobs found");
     public static backupFileDatabaseError = l10n.t(
         "Selected backup file does not contain a valid database backup",
+    );
+    public static cannotGenerateScriptWithNoRestorePlan = l10n.t(
+        "Cannot generate script without a restore plan",
+    );
+    public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
+        "Please choose at least one backup set to restore",
     );
 }
