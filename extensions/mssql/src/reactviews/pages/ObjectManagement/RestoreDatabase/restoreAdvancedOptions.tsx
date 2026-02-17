@@ -49,7 +49,7 @@ export const AdvancedOptionsDrawer = ({
     const context = useContext(RestoreDatabaseContext);
 
     if (!context) {
-        return;
+        return null;
     }
 
     const [searchSettingsText, setSearchSettingText] = useState<string>("");

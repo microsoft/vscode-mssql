@@ -1488,7 +1488,7 @@
     "Tail-log backup": "Tail-log backup",
     "Files": "Files",
     "Loading restore plan...": "Loading restore plan...",
-    "No backup sets found in the  restore plan": "No backup sets found in the  restore plan",
+    "No backup sets found in the restore plan": "No backup sets found in the restore plan",
     "No database files found in the restore plan": "No database files found in the restore plan",
     "Invalid table type": "Invalid table type",
     "Logical file name": "Logical file name",

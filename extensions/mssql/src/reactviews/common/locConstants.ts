@@ -2293,7 +2293,7 @@ export class LocConstants {
             tailLogBackup: l10n.t("Tail-log backup"),
             files: l10n.t("Files"),
             loadingRestorePlan: l10n.t("Loading restore plan..."),
-            noBackupSets: l10n.t("No backup sets found in the  restore plan"),
+            noBackupSets: l10n.t("No backup sets found in the restore plan"),
             noDatabaseFiles: l10n.t("No database files found in the restore plan"),
             invalidTableType: l10n.t("Invalid table type"),
             logicalFileName: l10n.t("Logical file name"),

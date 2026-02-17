@@ -393,7 +393,7 @@ export async function disasterRecoveryFormAction<TForm>(
         const component = state.formComponents[propertyName];
         if (component && component.validate) {
             const validation = component.validate(state, payload.event.value);
-            if (!validation.isValid) {
+            if (!validation.isValid && !state.formErrors.includes(propertyName)) {
                 state.formErrors.push(propertyName);
             } else {
                 state.formErrors = state.formErrors.filter(

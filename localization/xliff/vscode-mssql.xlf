@@ -904,10 +904,11 @@
     <trans-unit id="++CODE++4f60d43fe743cd7aa4af117f641730b9e28e8aab2e3334b2c12bfd0c25e610d6">
       <source xml:lang="en">Close Without Export</source>
     </trans-unit>
-    <trans-unit id="++CODE++91304710b1b6a6920866a02b1d89f45c23c81ff5e8fe03ede29099da34498d54">
-      <source xml:lang="en">Close existing connections to destination database</source>
     <trans-unit id="++CODE++c89401adf57129e294dc62c01819ce24126217a0f529f17047cda53ec2482829">
       <source xml:lang="en">Close details panel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++91304710b1b6a6920866a02b1d89f45c23c81ff5e8fe03ede29099da34498d54">
+      <source xml:lang="en">Close existing connections to destination database</source>
     </trans-unit>
     <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
       <source xml:lang="en">Close properties pane</source>
@@ -3727,8 +3728,8 @@
     <trans-unit id="++CODE++0e5e6762f01f3c5690e6d1628a2105cca05b94b94ccfc5d51534f4231aa4a533">
       <source xml:lang="en">No authentication required</source>
     </trans-unit>
-    <trans-unit id="++CODE++b1d15a94e9ce73034eb02bb6dc745c2976ccb69520cdbb2fce2f2e0db485322c">
-      <source xml:lang="en">No backup sets found in the  restore plan</source>
+    <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
+      <source xml:lang="en">No backup sets found in the restore plan</source>
     </trans-unit>
     <trans-unit id="++CODE++5a501b68d2cdd923a92baada7e109fff2c662ad392adf151f69f1f3d32e2180c">
       <source xml:lang="en">No blob containers found</source>
@@ -3776,10 +3777,11 @@
     <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
       <source xml:lang="en">No data available</source>
     </trans-unit>
-    <trans-unit id="++CODE++b15c8fb94bc966c85617c43fecf9a75b8a24edc609b0b410743efbcea68da5a9">
-      <source xml:lang="en">No database files found in the restore plan</source>
     <trans-unit id="++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1">
       <source xml:lang="en">No data to display.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b15c8fb94bc966c85617c43fecf9a75b8a24edc609b0b410743efbcea68da5a9">
+      <source xml:lang="en">No database files found in the restore plan</source>
     </trans-unit>
     <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
       <source xml:lang="en">No databases found in the selected workspace.</source>

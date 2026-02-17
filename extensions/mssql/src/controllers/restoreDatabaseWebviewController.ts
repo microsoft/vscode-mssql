@@ -692,7 +692,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         const state = currentState ?? this.state;
         const restoreViewModel = this.restoreViewModel(state);
 
-        if (restoreViewModel.restorePlanStatus === ApiStatus.Loading) {
+        if (
+            restoreViewModel.restorePlanStatus === ApiStatus.Loading &&
+            restoreViewModel.cachedRestorePlanParams
+        ) {
             void this.objectManagementService.cancelRestorePlan(
                 restoreViewModel.cachedRestorePlanParams,
             );

@@ -379,7 +379,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                                             <Field
                                                 validationMessage={file.errorMessage}
                                                 validationState={
-                                                    file.errorMessage ? "none" : "error"
+                                                    file.errorMessage ? "error" : "none"
                                                 }>
                                                 <BackupFileCard
                                                     backupFiles={backupFiles}
