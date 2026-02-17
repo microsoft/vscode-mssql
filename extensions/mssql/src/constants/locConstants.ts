@@ -1304,13 +1304,6 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static sqlServer2025ArmError = l10n.t(
-        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
-    );
-    public static sqlServer2025ArmErrorTooltip = l10n.t(
-        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
-    );
-
     // DAB (Data API Builder) deployment strings
     public static dabContainerNameInvalidOrInUse = l10n.t(
         "Container name is invalid or already in use",
@@ -3013,6 +3006,13 @@ export class BackupDatabase {
     public static unableToLoadBackupConfig = l10n.t(
         "Unable to load backup configuration. Please try again.",
     );
+    public static couldNotConnectToDatabase = (database: string) => {
+        return l10n.t({
+            message: "Could not connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
 }
 
 export class FlatFileImport {
@@ -3051,4 +3051,51 @@ export class FlatFileImport {
     public static loadingSchemas = l10n.t("Loading schemas...");
     public static noSchemasFound = l10n.t("No schemas found");
     public static importFailed = l10n.t("Failed to import file.");
+}
+
+export class RestoreDatabase {
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static sourceDatabase = l10n.t("Source Database");
+    public static targetDatabase = l10n.t("Target Database");
+    public static files = l10n.t("Files");
+    public static relocateDbFiles = l10n.t("Relocate all files");
+    public static general = l10n.t("General");
+    public static overwriteExistingDb = l10n.t("Overwrite the existing database");
+    public static overwriteExistingDbTooltip = l10n.t(
+        "Uses the WITH REPLACE option during restore",
+    );
+    public static preserveReplicationSettings = l10n.t("Preserve the replication settings");
+    public static preserveReplicationSettingsTooltip = l10n.t(
+        "Uses the WITH KEEP_REPLICATION option during restore",
+    );
+    public static restrictAccessToRestoredDb = l10n.t("Restrict access to the restored database");
+    public static restrictAccessToRestoredDbTooltip = l10n.t(
+        "Uses the WITH RESTRICTED_USER option during restore",
+    );
+    public static recoveryState = l10n.t("Recovery state");
+    public static restoreWithRecovery = l10n.t("RESTORE WITH RECOVERY");
+    public static restoreWithNoRecovery = l10n.t("RESTORE WITH NORECOVERY");
+    public static restoreWithStandby = l10n.t("RESTORE WITH STANDBY");
+    public static dataFileFolder = l10n.t("Data file folder");
+    public static logFileFolder = l10n.t("Log file folder");
+    public static standbyFile = l10n.t("Standby file");
+    public static tailLogBackup = l10n.t("Tail-log backup");
+    public static takeTailLogBackup = l10n.t("Take tail-log backup before restore");
+    public static leaveSourceDatabase = l10n.t("Leave the source database in the restoring state");
+    public static leaveSourceDatabaseTooltip = l10n.t(
+        "Uses the WITH NORECOVERY option during restore",
+    );
+    public static tailLogBackupFile = l10n.t("Tail-log backup file");
+    public static serverConnections = l10n.t("Server Connections");
+    public static closeExistingConnections = l10n.t(
+        "Close existing connections to destination database",
+    );
+    public static blob = l10n.t("Blob");
+    public static selectABlob = l10n.t("Select a blob");
+    public static blobIsRequired = l10n.t("Blob is required");
+    public static blobDatabaseError = l10n.t("Blob does not contain a valid database backup");
+    public static noBlobsFound = l10n.t("No blobs found");
+    public static backupFileDatabaseError = l10n.t(
+        "Selected backup file does not contain a valid database backup",
+    );
 }

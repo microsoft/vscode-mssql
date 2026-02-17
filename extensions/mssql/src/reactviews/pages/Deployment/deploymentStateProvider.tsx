@@ -65,9 +65,6 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
             checkDockerProfile: function (): void {
                 extensionRpc.action("checkDockerProfile", {});
             },
-            closeArmSql2025ErrorDialog: function (): void {
-                extensionRpc.action("closeArmSql2025ErrorDialog", {});
-            },
             //#endregion
             //#region Fabric Provisioning Reducers
             reloadFabricEnvironment: function (newTenant?: string): void {

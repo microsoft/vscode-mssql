@@ -44,6 +44,7 @@ export enum TelemetryViews {
     Backup = "Backup",
     SearchDatabase = "SearchDatabase",
     FlatFile = "FlatFile",
+    Restore = "Restore",
 }
 
 export enum TelemetryActions {
@@ -210,7 +211,7 @@ export enum TelemetryActions {
     FileBrowserClose = "FileBrowserClose",
     FileBrowserDialog = "FileBrowserDialog",
     FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
-    StartBackup = "StartBackup",
+    InitializeBackup = "InitializeBackup",
     Backup = "Backup",
     ScriptBackup = "ScriptBackup",
     FinishBackup = "FinishBackup",
@@ -225,6 +226,10 @@ export enum TelemetryActions {
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
+    InitializeRestore = "InitializeRestore",
+    GetRestorePlan = "GetRestorePlan",
+    ScriptRestore = "ScriptRestore",
+    GetRestoreParams = "GetRestoreParams",
 }
 
 /**

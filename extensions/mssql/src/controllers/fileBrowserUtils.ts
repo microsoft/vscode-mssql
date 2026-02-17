@@ -52,7 +52,13 @@ export function registerFileBrowserReducers<TResult>(
         return state;
     });
     controller.registerReducer("submitFilePath", async (state, payload) => {
-        state.fileBrowserState.selectedPath = payload.selectedPath;
+        if (payload.propertyName && payload.propertyName in state) {
+            // If a property name is provided, update that property with the selected path
+            state[payload.propertyName] = payload.selectedPath;
+        } else {
+            // If no property name is provided, update the default selectedPath
+            state.fileBrowserState.selectedPath = payload.selectedPath;
+        }
         sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserSubmitFilePath);
         return state;
     });

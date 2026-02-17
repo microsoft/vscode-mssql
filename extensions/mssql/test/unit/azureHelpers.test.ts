@@ -24,6 +24,7 @@ import {
 } from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import * as utils from "../../src/utils/utils";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 chai.use(sinonChai);
 
@@ -422,5 +423,66 @@ suite("Azure Helpers", () => {
         }
 
         storageStub.restore();
+    });
+
+    test("fetchBlobsForContainer", async () => {
+        const mockBlobs = [mockAzureResources.blob];
+
+        const listBlobsFlatStub = sinon.stub().returns({
+            [Symbol.asyncIterator]: async function* () {
+                for (const blob of mockBlobs) {
+                    yield blob;
+                }
+            },
+        });
+
+        const containerClientStub = {
+            listBlobsFlat: listBlobsFlatStub,
+        };
+
+        const clientStub = {
+            getContainerClient: sinon.stub().returns(containerClientStub),
+        };
+
+        // Stub the class constructor to return your stub instance
+        const sasKeyStub = sinon
+            .stub(azureHelpers.VsCodeAzureHelper, "getStorageAccountKeys")
+            .resolves({
+                keys: [{ keyName: "key1", value: "value1" }],
+            } as armStorage.StorageAccountsListKeysResponse);
+
+        let result = await azureHelpers.VsCodeAzureHelper.fetchBlobsForContainer(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            mockAzureResources.blobContainer,
+            clientStub as unknown as BlobServiceClient,
+        );
+
+        expect(result).to.deep.equal(mockBlobs);
+        expect(
+            clientStub.getContainerClient().listBlobsFlat.calledOnce,
+            "listBlobsFlat should be called once",
+        ).to.be.true;
+
+        const testError = new Error("Test error");
+        clientStub.getContainerClient().listBlobsFlat = sinon.stub().returns({
+            [Symbol.asyncIterator]: async function* () {
+                throw testError;
+            },
+        });
+
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchBlobsForContainer(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                mockAzureResources.blobContainer,
+                clientStub as unknown as BlobServiceClient,
+            );
+            expect.fail("Expected fetchBlobsForContainer to throw");
+        } catch (e) {
+            expect(e).to.equal(testError);
+        }
+
+        sasKeyStub.restore();
     });
 });
