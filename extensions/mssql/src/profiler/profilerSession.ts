@@ -41,6 +41,8 @@ export interface ProfilerSessionOptions {
     readOnly?: boolean;
     /** Maximum number of events to buffer */
     bufferCapacity?: number;
+    /** Engine type label for telemetry (e.g. "SQLServer", "AzureSQLDB") */
+    engineType?: string;
 }
 
 /**
@@ -94,6 +96,18 @@ export class ProfilerSession {
     /** Whether the session can be paused (determined by server) */
     public canPause: boolean = false;
 
+    /** Engine type label for telemetry */
+    public readonly engineType: string;
+
+    /** Timestamp (epoch ms) when profiling actually started; set by session manager */
+    public startedAt: number = 0;
+
+    /** Whether events have been exported (e.g. CSV) during this session */
+    public exported: boolean = false;
+
+    /** Whether the buffer-overflow warning has already fired for this session */
+    public bufferOverflowWarned: boolean = false;
+
     /** Current state of the session */
     private _state: SessionState;
 
@@ -141,6 +155,7 @@ export class ProfilerSession {
         this.templateName = options.templateName;
         this.readOnly = options.readOnly ?? false;
         this._profilerService = profilerService;
+        this.engineType = options.engineType ?? "Standalone";
 
         // Initialize event buffer with indexed fields
         const capacity = options.bufferCapacity ?? DEFAULT_BUFFER_CAPACITY;
