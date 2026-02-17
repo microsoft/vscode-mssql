@@ -3,20 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { ProfilerEvent } from "../models/contracts/profiler";
-import { SessionState } from "../profiler/profilerTypes";
+import {
+    SessionState,
+    FilterClause,
+    FilterState,
+    FilterOperator,
+    FilterType,
+    FilterTypeHint,
+    ColumnDataType,
+    SortDirection,
+    SortState,
+} from "../profiler/profilerTypes";
 
 // Re-export ProfilerEvent for convenience
 export type { ProfilerEvent };
 
-// Re-export SessionState as the unified session state enum
-export { SessionState };
+// Re-export types for convenience
+export { SessionState, FilterOperator, FilterType, FilterTypeHint, ColumnDataType, SortDirection };
+export type { FilterClause, FilterState, SortState };
 
 /**
  * Maximum length for session names
  */
 export const SESSION_NAME_MAX_LENGTH = 50;
+
+/**
+ * Data type for a column - determines filtering behavior.
+ * Uses the same values as ColumnDataType enum.
+ */
+export type ColumnType = `${ColumnDataType}`;
 
 /**
  * Column definition for the profiler grid (shared between extension and webview)
@@ -26,12 +43,23 @@ export interface ProfilerColumnDef {
     field: string;
     /** Display header */
     header: string;
+    /** Data type for the column (defaults to string) */
+    type?: ColumnType;
     /** Column width in pixels */
     width?: number;
     /** Whether the column is sortable */
     sortable?: boolean;
     /** Whether the column is filterable */
     filterable?: boolean;
+    /**
+     * Filter type for the column: determines the filter UI and available operators.
+     * - "categorical": show a searchable checkbox list of distinct values (e.g., EventClass, DatabaseName)
+     * - "text": show text operator input (contains/starts with/ends with) for long text (e.g., TextData)
+     * - "numeric": show numeric operator input for number columns
+     * - "date": show date/time operator input for datetime columns
+     * Defaults to "text" if not specified.
+     */
+    filterType?: FilterType;
 }
 
 /**
@@ -71,7 +99,7 @@ export interface ProfilerGridRow {
     /** Display event number for tracking/debugging */
     eventNumber: number;
     /** Dynamic fields based on view columns */
-    [field: string]: string | number | null;
+    [field: string]: string | number | undefined;
 }
 
 /**
@@ -80,12 +108,16 @@ export interface ProfilerGridRow {
 export interface ProfilerWebviewState {
     /** Total number of events in the buffer (for display purposes) */
     totalRowCount: number;
+    /** Number of events matching the current filter (equals totalRowCount when no filter) */
+    filteredRowCount: number;
     /** Generation counter incremented on each clear to synchronize state */
     clearGeneration: number;
     /** Current session state */
     sessionState: SessionState;
     /** Whether auto-scroll is enabled */
     autoScroll: boolean;
+    /** Current filter state (per session) */
+    filterState: FilterState;
     /** Session name if connected */
     sessionName?: string;
     /** Current template ID */
@@ -106,6 +138,8 @@ export interface ProfilerWebviewState {
     currentSessionId?: string;
     /** Whether a session is being created (show spinner) */
     isCreatingSession?: boolean;
+    /** The currently selected event details for the embedded details panel */
+    selectedEvent?: ProfilerSelectedEventDetails;
     /** Whether this is a read-only file-based session */
     isReadOnly?: boolean;
     /** File path if this is a file-based session */
@@ -154,10 +188,50 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
+    /** Apply filter clauses (client-side only) */
+    applyFilter: {
+        clauses: FilterClause[];
+    };
+    /** Clear all filter clauses and quick filter */
+    clearFilter: Record<string, never>;
+    /** Set quick filter term (cross-column search) */
+    setQuickFilter: {
+        term: string;
+    };
     /** Export events to CSV file */
     exportToCsv: {
         suggestedFileName: string;
     };
+    /** Notify extension that a row was selected in the grid */
+    selectRow: {
+        rowId: string;
+    };
+    /** Close the embedded details panel */
+    closeDetailsPanel: Record<string, never>;
+}
+
+/**
+ * A property/column for display in the details panel
+ */
+export interface ProfilerEventProperty {
+    /** Property label (column header or field name) */
+    label: string;
+    /** Property value (formatted as string for display) */
+    value: string;
+}
+
+/**
+ * Selected event details for the details panel
+ */
+export interface ProfilerSelectedEventDetails {
+    /** Row ID of the selected event */
+    rowId: string;
+    /** Event class/name */
+    eventName: string;
+    /** TextData content (for the Text tab) */
+    textData: string;
+    /** All event properties (for the Details tab) */
+    properties: ProfilerEventProperty[];
 }
 
 /**
@@ -191,14 +265,6 @@ export interface RowsRemovedParams {
 }
 
 /**
- * Payload for export to CSV request
- */
-export interface ExportToCsvParams {
-    /** Suggested file name */
-    suggestedFileName: string;
-}
-
-/**
  * Payload for export result notification
  */
 export interface ExportResultParams {
@@ -228,6 +294,159 @@ export namespace ProfilerNotifications {
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
 
+    /** Notification sent when filter state changes (for UI updates) */
+    export const FilterStateChanged = new NotificationType<FilterStateChangedParams>(
+        "filterStateChanged",
+    );
+    /** Notification sent from webview to open text data in a new editor */
+    export const OpenInEditor = new NotificationType<{ textData: string; eventName?: string }>(
+        "openInEditor",
+    );
+
+    /** Notification sent from webview to copy text to clipboard */
+    export const CopyToClipboard = new NotificationType<{ text: string }>("copyToClipboard");
+
+    /** Notification sent from webview to request CSV export */
+    export const ExportToCsv = new NotificationType<Record<string, never>>("exportToCsv");
+
     /** Notification sent when export result is available */
     export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
 }
+
+/**
+ * Request types for profiler webview communication
+ */
+export namespace ProfilerRequests {
+    /** Request to get distinct values for a column from the unfiltered ring buffer */
+    export const GetDistinctValues = new RequestType<
+        { field: string },
+        DistinctValuesResponse,
+        void
+    >("profiler/getDistinctValues");
+}
+
+/**
+ * Response payload for getDistinctValues request
+ */
+export interface DistinctValuesResponse {
+    /** The field for which distinct values were requested */
+    field: string;
+    /** Sorted array of distinct string values from the unfiltered buffer */
+    values: string[];
+}
+
+/**
+ * Payload for filter state changed notification
+ */
+export interface FilterStateChangedParams {
+    /** Whether filtering is currently active */
+    isFilterActive: boolean;
+    /** Number of filter clauses */
+    clauseCount: number;
+    /** Total count of events in buffer (unfiltered) */
+    totalCount: number;
+    /** Count of events matching the filter */
+    filteredCount: number;
+}
+
+/**
+ * Comparator for sorting profiler grid rows by a specific field.
+ * Handles string, number, and undefined comparisons.
+ *
+ * Undefined/empty values are always pushed to the end
+ * regardless of sort direction.
+ *
+ * @param a - First row
+ * @param b - Second row
+ * @param sortField - The field name to sort by
+ * @param sortDir - The sort direction (ASC or DESC)
+ * @returns Negative if a < b, positive if a > b, 0 if equal
+ */
+export function profilerSortComparator(
+    a: Record<string, unknown>,
+    b: Record<string, unknown>,
+    sortField: string,
+    sortDir: SortDirection,
+): number {
+    const valA = a[sortField];
+    const valB = b[sortField];
+
+    // Handle undefined/empty — push them to the end regardless of direction
+    const aIsEmpty = valA === undefined || valA === "";
+    const bIsEmpty = valB === undefined || valB === "";
+    if (aIsEmpty && bIsEmpty) {
+        return 0;
+    }
+    if (aIsEmpty) {
+        return 1;
+    }
+    if (bIsEmpty) {
+        return -1;
+    }
+
+    let result: number;
+    if (typeof valA === "number" && typeof valB === "number") {
+        result = valA - valB;
+    } else {
+        // String comparison (case-insensitive with numeric awareness)
+        result = String(valA).localeCompare(String(valB), undefined, {
+            sensitivity: "base",
+            numeric: true,
+        });
+    }
+
+    return sortDir === SortDirection.ASC ? result : -result;
+}
+
+/**
+ * Creates a DataView sort function for the given sort state.
+ * If sort is undefined, returns a comparator that restores natural
+ * insertion order (by eventNumber ascending).
+ *
+ * @param sort - The current sort state, or undefined for natural order
+ * @returns A comparator function suitable for DataView.sort()
+ */
+export function createDataViewSortFn(
+    sort: SortState | undefined,
+): (a: Record<string, unknown>, b: Record<string, unknown>) => number {
+    if (!sort) {
+        // Restore natural insertion order
+        return (a, b) => {
+            const numA = a["eventNumber"] as number;
+            const numB = b["eventNumber"] as number;
+            return numA - numB;
+        };
+    }
+
+    return (a, b) => profilerSortComparator(a, b, sort.field, sort.direction);
+}
+
+/**
+ * Computes the next sort state when a column header is clicked.
+ * Implements the cycle: unsorted → ASC → DESC → unsorted.
+ * Only one column can be sorted at a time.
+ *
+ * @param currentSort - The current sort state (undefined if no sort active)
+ * @param clickedField - The field of the column that was clicked
+ * @returns The new sort state, or undefined if sort should be cleared
+ */
+export function getNextSortState(
+    currentSort: SortState | undefined,
+    clickedField: string,
+): SortState | undefined {
+    if (!currentSort || currentSort.field !== clickedField) {
+        // Different column or no sort — start ascending
+        return { field: clickedField, direction: SortDirection.ASC };
+    }
+
+    if (currentSort.direction === SortDirection.ASC) {
+        // Same column, was ASC → switch to DESC
+        return { field: clickedField, direction: SortDirection.DESC };
+    }
+
+    // Same column, was DESC → clear sort
+    return undefined;
+}
+
+/** Notification sent when export result is available */
+export const ExportResult = new NotificationType<ExportResultParams>("exportResult");

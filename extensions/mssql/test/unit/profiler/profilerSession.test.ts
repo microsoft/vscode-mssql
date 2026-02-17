@@ -7,12 +7,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ProfilerSession, ProfilerSessionOptions } from "../../../src/profiler/profilerSession";
-import {
-    SessionType,
-    SessionState,
-    EventRow,
-    FilterKind,
-} from "../../../src/profiler/profilerTypes";
+import { SessionType, SessionState, EventRow } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
 
 /**
@@ -100,11 +95,6 @@ suite("ProfilerSession Tests", () => {
         test("should initialize with empty events buffer", () => {
             const session = createSession();
             expect(session.eventCount).to.equal(0);
-        });
-
-        test("should initialize with empty filters", () => {
-            const session = createSession();
-            expect(session.filters).to.deep.equal([]);
         });
 
         test("should set createdAt timestamp", () => {
@@ -247,39 +237,6 @@ suite("ProfilerSession Tests", () => {
 
             expect(session.eventCount).to.equal(0);
             expect(session.lastEventTimestamp).to.equal(0);
-        });
-    });
-
-    suite("filter management", () => {
-        test("should set filters", () => {
-            const session = createSession();
-            const filters = [{ filters: [{ kind: FilterKind.Equal, field: "spid", value: 55 }] }];
-
-            session.setFilters(filters);
-
-            expect(session.filters).to.deep.equal(filters);
-        });
-
-        test("should add filter", () => {
-            const session = createSession();
-            const filter = {
-                filters: [{ kind: FilterKind.Contains, field: "textData", value: "SELECT" }],
-            };
-
-            session.addFilter(filter);
-
-            expect(session.filters).to.have.length(1);
-            expect(session.filters[0]).to.deep.equal(filter);
-        });
-
-        test("should clear filters", () => {
-            const session = createSession();
-            session.addFilter({ filters: [] });
-            session.addFilter({ filters: [] });
-
-            session.clearFilters();
-
-            expect(session.filters).to.deep.equal([]);
         });
     });
 
