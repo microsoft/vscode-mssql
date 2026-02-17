@@ -4947,6 +4947,10 @@ Error:
         <source xml:lang="en">No customized settings found</source>
         <target state="new">No customized settings found</target>
       </trans-unit>
+      <trans-unit id="++CODE++748aaa52ba139eff31671120a62f62da0a7917d030b5f9ced8c6deab4da68352">
+        <source xml:lang="en">No customized settings found in Azure Data Studio</source>
+        <target state="new">No customized settings found in Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
         <target state="translated">No hay datos disponibles</target>
