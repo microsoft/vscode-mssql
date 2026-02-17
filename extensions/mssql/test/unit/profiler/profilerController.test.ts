@@ -602,7 +602,7 @@ suite("ProfilerController Server Type Tests", () => {
         };
 
         const connectionUI = {
-            promptForConnection: sandbox.stub().resolves(null),
+            promptForConnection: sandbox.stub().resolves(undefined),
         };
 
         mockConnectionManager = {

@@ -1080,9 +1080,12 @@ export class ProfilerController {
                     )
                     .then(async (openFile) => {
                         if (openFile === LocProfiler.openFile) {
-                            // Open the exported file in VS Code
+                            // Open the exported file in a new editor tab beside the profiler
                             const doc = await vscode.workspace.openTextDocument(saveUri);
-                            await vscode.window.showTextDocument(doc);
+                            await vscode.window.showTextDocument(doc, {
+                                viewColumn: vscode.ViewColumn.Beside,
+                                preview: false,
+                            });
                         }
                     });
 

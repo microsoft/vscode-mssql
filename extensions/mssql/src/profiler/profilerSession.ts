@@ -6,9 +6,10 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { RingBuffer } from "./ringBuffer";
-import { EventRow, Filter, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
+import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
+import { Logger } from "../models/logger";
 
 /**
  * Default event buffer capacity
@@ -75,9 +76,6 @@ export class ProfilerSession {
     /** Event buffer */
     public readonly events: RingBuffer<EventRow>;
 
-    /** Active filters applied to the session */
-    public filters: Filter[];
-
     /** View configuration for displaying events */
     public viewConfig: ViewTemplate;
 
@@ -121,12 +119,21 @@ export class ProfilerSession {
     private _onSessionStopped: ((errorMessage?: string) => void) | undefined;
     /** Counter for generating sequential event numbers when service doesn't provide them */
     private _eventNumberCounter: number = 0;
+
+    /** Logger for diagnostic output */
+    private readonly _logger: Logger | undefined;
     /**
      * Creates a new ProfilerSession.
      * @param options - Session configuration options
      * @param profilerService - Reference to the profiler service for RPC calls
+     * @param logger - Optional logger for diagnostic output
      */
-    constructor(options: ProfilerSessionOptions, profilerService: ProfilerService) {
+    constructor(
+        options: ProfilerSessionOptions,
+        profilerService: ProfilerService,
+        logger?: Logger,
+    ) {
+        this._logger = logger;
         this.id = options.id;
         this.ownerUri = options.ownerUri;
         this.sessionName = options.sessionName;
@@ -138,9 +145,6 @@ export class ProfilerSession {
         // Initialize event buffer with indexed fields
         const capacity = options.bufferCapacity ?? DEFAULT_BUFFER_CAPACITY;
         this.events = new RingBuffer<EventRow>(capacity, INDEXED_FIELDS);
-
-        // Initialize filters
-        this.filters = [];
 
         // Initialize view config
         this.viewConfig = options.viewConfig ?? this.getDefaultViewConfig();
@@ -502,29 +506,6 @@ export class ProfilerSession {
     }
 
     /**
-     * Sets the active filters for querying events.
-     * @param filters - The filters to apply
-     */
-    setFilters(filters: Filter[]): void {
-        this.filters = filters;
-    }
-
-    /**
-     * Adds a filter to the active filters.
-     * @param filter - The filter to add
-     */
-    addFilter(filter: Filter): void {
-        this.filters.push(filter);
-    }
-
-    /**
-     * Clears all active filters.
-     */
-    clearFilters(): void {
-        this.filters = [];
-    }
-
-    /**
      * Disposes of the session and cleans up resources.
      * If the session is running, stops it first to clean up server-side XEvent session.
      */
@@ -535,7 +516,7 @@ export class ProfilerSession {
                 await this.stopProfiling();
             } catch (e) {
                 // Log but don't throw - we still want to clean up client resources
-                console.error(`Error stopping profiling session during dispose: ${e}`);
+                this._logger?.error(`Error stopping profiling session during dispose: ${e}`);
             }
         }
 
@@ -566,12 +547,22 @@ export class ProfilerSession {
         const eventNumber =
             event.eventNumber ?? eventNumberFromValues ?? this._eventNumberCounter++;
 
+        // Extract text data from various possible field names used by XEvents
+        // Common field names: sql_text, statement, batch_text, options_text, query_text
+        const textData =
+            event.values["sql_text"] ||
+            event.values["statement"] ||
+            event.values["batch_text"] ||
+            event.values["options_text"] ||
+            event.values["query_text"] ||
+            "";
+
         return {
             id,
             eventNumber,
             timestamp: new Date(event.timestamp),
             eventClass: event.name,
-            textData: event.values["sql_text"] || event.values["statement"] || "",
+            textData,
             databaseName: event.values["database_name"] || "",
             spid: this.parseOptionalInt(event.values["session_id"]),
             duration: this.parseOptionalInt(event.values["duration"]),
@@ -652,7 +643,6 @@ export class ProfilerSession {
             templateName: this.templateName,
             state: this._state,
             eventCount: this.events.size,
-            filters: this.filters,
             viewConfig: this.viewConfig,
             createdAt: this.createdAt,
             lastEventTimestamp: this.lastEventTimestamp,
