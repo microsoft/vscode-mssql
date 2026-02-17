@@ -3059,7 +3059,7 @@ export class FlatFileImport {
     public static noSchemasFound = l10n.t("No schemas found");
     public static importFailed = l10n.t("Failed to import file.");
     public static flatFilePathTooltip = l10n.t(
-        "Ensure the file is not open in another application.",
+        "Please ensure the file is not open in another application before importing",
     );
 }
 
