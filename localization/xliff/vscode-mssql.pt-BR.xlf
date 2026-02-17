@@ -4947,6 +4947,10 @@ Erro:
         <source xml:lang="en">No customized settings found</source>
         <target state="new">No customized settings found</target>
       </trans-unit>
+      <trans-unit id="++CODE++748aaa52ba139eff31671120a62f62da0a7917d030b5f9ced8c6deab4da68352">
+        <source xml:lang="en">No customized settings found in Azure Data Studio</source>
+        <target state="new">No customized settings found in Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
         <target state="translated">Nenhum dado disponível</target>
@@ -5454,9 +5458,9 @@ Erro:
         <source xml:lang="en">Perform checksum before writing to media</source>
         <target state="translated">Executar soma de verificação antes de gravar na mídia</target>
       </trans-unit>
-      <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
-        <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
-        <target state="translated">Escolha entre várias versões do SQL Server, incluindo o SQL Server 2025 (Versão Prévia) com recursos de IA integrados, como busca vetorial e melhorias em JSON.</target>
+      <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
+        <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
+        <target state="new">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
         <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -6200,14 +6204,6 @@ Consulta: {2}</target>
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">Arquivos de Plano SQL</target>
       </trans-unit>
-      <trans-unit id="++CODE++0404cd9b41a2ccda40d68efcab8008a39503e1487a468ad37a26417a02df844f">
-        <source xml:lang="en">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</source>
-        <target state="translated">O SQL Server 2025 não tem suporte na arquitetura ARM. Selecione uma versão diferente do SQL Server.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++31aead661ae4eee1d516f5b824b2d74ec3221ad35899111d62eb58ea7a78aaf6">
-        <source xml:lang="en">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
-        <target state="translated">O SQL Server 2025 ainda não tem suporte na arquitetura ARM. O suporte do ARM estará disponível a partir da imagem de contêiner do SQL Server 2025 CU1.</target>
-      </trans-unit>
       <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
         <source xml:lang="en">SQL Server Container SA Password</source>
         <target state="translated">Senha SA do contêiner do SQL Server</target>
@@ -6219,10 +6215,6 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
         <target state="translated">O SQL Server não suporta contêineres Windows. Altere para contêineres Linux nas configurações do Docker Desktop.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fa9d43d3408d2b926cc81a65d48ab465911dbeecf89755eb0bb46c4a4ad61e04">
-        <source xml:lang="en">SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.</source>
-        <target state="translated">O SQL Server não é compatível com processadores ARM, incluindo computadores Windows e baseados Apple silicon.</target>
       </trans-unit>
       <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
         <source xml:lang="en">SQL Server port number</source>
@@ -7577,10 +7569,6 @@ Consulta: {2}</target>
         <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
         <target state="translated">Para comparar dois esquemas, primeiro selecione um esquema de origem e um esquema de destino e, em seguida, pressione Comparar.</target>
       </trans-unit>
-      <trans-unit id="++CODE++500066c85e5ad619476a8235df0b22c1d1cb23a1104f6d78c0353a03f797a18d">
-        <source xml:lang="en">To continue, run SQL Server on a machine with a supported processor. Check </source>
-        <target state="translated">Para continuar, execute o SQL Server em um computador com um processador com suporte. Verificar </target>
-      </trans-unit>
       <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
         <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
         <target state="translated">Para usar este comando, abra um arquivo .sql, altere a linguagem do editor para "SQL" ou selecione o texto T-SQL no editor SQL ativo.</target>
@@ -8095,10 +8083,6 @@ Consulta: {2}</target>
         <source xml:lang="en">encrypt</source>
         <target state="translated">criptografar</target>
       </trans-unit>
-      <trans-unit id="++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792">
-        <source xml:lang="en">for more information.</source>
-        <target state="translated">para obter mais informações.</target>
-      </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
         <target state="translated">hostname\instance ou &lt;server&gt;.database.windows.net ou cadeia de conexão do ADO.NET</target>
@@ -8154,10 +8138,6 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
         <source xml:lang="en">test</source>
         <target state="translated">teste</target>
-      </trans-unit>
-      <trans-unit id="++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73">
-        <source xml:lang="en">the documentation </source>
-        <target state="translated">a documentação </target>
       </trans-unit>
       <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
         <source xml:lang="en">undefined</source>
