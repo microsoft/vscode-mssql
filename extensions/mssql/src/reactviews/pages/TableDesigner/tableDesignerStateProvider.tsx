@@ -5,7 +5,7 @@
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
-import { DesignerDefinitionPaneRef } from "../../common/designerDefinitionPane";
+import { DefinitionPanelController } from "../../common/definitionPanel";
 import { getCoreRPCs } from "../../common/utils";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -127,7 +127,7 @@ export interface TableDesignerContextProps extends CoreRPCs {
     /**
      * Reference to the definition pane component.
      */
-    definitionPaneRef: React.RefObject<DesignerDefinitionPaneRef>;
+    definitionPaneRef: React.RefObject<DefinitionPanelController>;
 }
 
 const TableDesignerContext = createContext<TableDesignerContextProps | undefined>(undefined);
@@ -156,7 +156,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
     const [originalWidth, setOriginalWidth] = useState<number>(450);
 
     const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-    const definitionPaneRef = useRef<DesignerDefinitionPaneRef>(null);
+    const definitionPaneRef = useRef<DefinitionPanelController>(null);
 
     // Keep a ref to the current state for use in callbacks
     const stateRef = useRef(state);

@@ -7,10 +7,10 @@ import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import { useContext, useEffect, useRef, useState } from "react";
 import eventBus from "./schemaDesignerEvents";
 import {
-    DesignerDefinitionPane,
-    DesignerDefinitionPaneRef,
+    DefinitionPanel,
+    DefinitionPanelController,
     DesignerDefinitionTabs,
-} from "../../common/designerDefinitionPane";
+} from "../../common/definitionPanel";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
@@ -21,8 +21,8 @@ export const SchemaDesignerDefinitionsPanel = () => {
         SchemaDesigner.SchemaDesignerReducers
     >();
     const [code, setCode] = useState<string>("");
-    const definitionPaneRef = useRef<DesignerDefinitionPaneRef | null>(
-        undefined as unknown as DesignerDefinitionPaneRef | null,
+    const definitionPaneRef = useRef<DefinitionPanelController | null>(
+        undefined as unknown as DefinitionPanelController | null,
     );
 
     useEffect(() => {
@@ -49,12 +49,14 @@ export const SchemaDesignerDefinitionsPanel = () => {
     }, []);
 
     return (
-        <DesignerDefinitionPane
+        <DefinitionPanel
             ref={definitionPaneRef}
-            script={code}
-            themeKind={themeKind}
-            openInEditor={context?.openInEditor}
-            copyToClipboard={context?.copyToClipboard}
+            scriptTab={{
+                value: code,
+                themeKind,
+                openInEditor: context?.openInEditor,
+                copyToClipboard: context?.copyToClipboard,
+            }}
             activeTab={DesignerDefinitionTabs.Script}
         />
     );
