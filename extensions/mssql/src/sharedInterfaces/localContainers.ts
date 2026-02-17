@@ -72,11 +72,6 @@ export interface LocalContainersContextProps extends FormContextProps<DockerConn
      * Resets the states of the current Docker step to NotStarted.
      */
     resetDockerStepState(): void;
-
-    /**
-     * Closes the ARM SQL 2025 error dialog.
-     */
-    closeArmSql2025ErrorDialog(): void;
 }
 
 export interface LocalContainersReducers {
@@ -95,11 +90,6 @@ export interface LocalContainersReducers {
      * Reducer for Docker profile validation.
      */
     checkDockerProfile: {};
-
-    /**
-     * Reducer for closing the ARM SQL 2025 error dialog.
-     */
-    closeArmSql2025ErrorDialog: {};
 }
 
 /**

@@ -278,5 +278,6 @@
     "mssql.profiler.openXelFile": "Open Profiler XEL File",
     "mssql.profiler.xelEditorDisplayName": "SQL Server Extended Events Log",
     "mssql.backupDatabase": "Backup Database (Preview)",
+    "mssql.restoreDatabase": "Restore Database (Preview)",
     "mssql.flatFileImport": "Import flat file (Preview)"
 }
