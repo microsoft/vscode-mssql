@@ -160,6 +160,7 @@ export const TableExplorerPage: React.FC = () => {
                                     value:
                                         updateScript || `-- ${loc.tableExplorer.noPendingChanges}`,
                                     themeKind,
+                                    language: "sql",
                                     openInEditor: () => context.openScriptInEditor(),
                                     copyToClipboard: () => context.copyScriptToClipboard(),
                                 }}

@@ -53,6 +53,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
             ref={definitionPaneRef}
             scriptTab={{
                 value: code,
+                language: "sql",
                 themeKind,
                 openInEditor: context?.openInEditor,
                 copyToClipboard: context?.copyToClipboard,

@@ -51,6 +51,7 @@ export const DesignerResultPane = () => {
             ref={context?.definitionPaneRef}
             scriptTab={{
                 value: (model!["script"] as InputBoxProperties).value ?? "",
+                language: "sql",
                 themeKind,
                 openInEditor: context?.scriptAsCreate,
                 copyToClipboard: context?.copyScriptAsCreateToClipboard,
