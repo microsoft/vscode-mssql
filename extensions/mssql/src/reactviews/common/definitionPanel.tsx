@@ -111,7 +111,7 @@ export interface ScriptTabProps {
     copyToClipboard: (script: string) => void;
 }
 
-export interface DefintionPanelProps<TCustomTabId extends string = never> {
+export interface DefinitionPanelProps<TCustomTabId extends string = never> {
     activeTab?: DefinitionTabIdentifier<TCustomTabId>;
     scriptTab: ScriptTabProps;
     customTabs?: DefinitionPanelCustomTab<TCustomTabId>[];
@@ -132,7 +132,7 @@ function getScriptTab(
                 <Editor
                     height={"100%"}
                     width={"100%"}
-                    language={props.language}
+                    language={props.language ?? "sql"}
                     theme={resolveVscodeThemeType(props.themeKind)}
                     value={props.value}
                     options={{
@@ -164,7 +164,7 @@ function getScriptTab(
 }
 
 type DefinitionPanelComponent = <TCustomTabId extends string = never>(
-    props: DefintionPanelProps<TCustomTabId> & RefAttributes<DefinitionPanelController>,
+    props: DefinitionPanelProps<TCustomTabId> & RefAttributes<DefinitionPanelController>,
 ) => ReactElement;
 
 const DefinitionPanelInner = <TCustomTabId extends string = never>(
@@ -175,11 +175,11 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
         setActiveTab,
         onClose,
         onPanelVisibilityChange,
-    }: DefintionPanelProps<TCustomTabId>,
+    }: DefinitionPanelProps<TCustomTabId>,
     ref: React.ForwardedRef<DefinitionPanelController>,
 ): ReactElement => {
     const classes = useStyles();
-    const panelRef = useRef<ImperativePanelHandle>(undefined as unknown as ImperativePanelHandle);
+    const panelRef = useRef<ImperativePanelHandle | null>(null);
     const tabs: DefinitionPanelCustomTab<DefinitionTabIdentifier<TCustomTabId>>[] = [
         getScriptTab(scriptTab, classes.definitionPanelScriptTab),
         ...customTabs,

@@ -117,7 +117,7 @@ function useOpenAndFocusIssueComponent(): (issue: DesignerIssue) => Promise<void
             case 5: // This is a component in the table inside the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
                 elementToFocus = context.elementRefs.current[context.getComponentId(issuePath)];
                 break;
-            case 2: // This is table row. Therefore focuing on the first property of the row
+            case 2: // This is table row. Therefore focusing on the first property of the row
                 if (!tableComponent) {
                     return;
                 }
@@ -128,7 +128,7 @@ function useOpenAndFocusIssueComponent(): (issue: DesignerIssue) => Promise<void
                         context.getComponentId([...issuePath, firstProperty])
                     ];
                 break;
-            case 4: // This is table row in properties pane. Therefore focuing on the first property of the row
+            case 4: // This is table row in properties pane. Therefore focusing on the first property of the row
                 if (!tableComponent) {
                     return;
                 }
