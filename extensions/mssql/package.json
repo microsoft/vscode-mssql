@@ -4208,8 +4208,10 @@
                 "id": "mssql.resultsGridNullBackground",
                 "description": "Color for null background in results grid",
                 "defaults": {
-                    "light": "editor.wordHighlightBackground",
-                    "dark": "editor.wordHighlightBackground"
+                    "light": "#FFFFE1",
+                    "dark": "#4B0082",
+                    "highContrastLight": "#FFFFE1",
+                    "highContrast": "#000000"
                 }
             },
             {
