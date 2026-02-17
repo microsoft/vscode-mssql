@@ -711,7 +711,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         } catch (error) {
             restoreViewModel.restorePlanStatus = ApiStatus.Error;
             restoreViewModel.restorePlan = undefined;
-            this.state.errorMessage = getErrorMessage(error);
+            restoreViewModel.errorMessage = getErrorMessage(error);
             this.updateViewModel(restoreViewModel, state);
             sendErrorEvent(
                 TelemetryViews.Restore,

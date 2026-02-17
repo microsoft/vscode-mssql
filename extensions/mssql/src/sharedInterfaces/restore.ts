@@ -264,7 +264,9 @@ export interface RestoreDatabaseFormState extends DisasterRecoveryAzureFormState
 }
 
 export interface RestoreDatabaseReducers<TFormState>
-    extends FormReducers<TFormState>, FileBrowserReducers, DisasterRecoveryReducers {
+    extends FormReducers<TFormState>,
+        FileBrowserReducers,
+        DisasterRecoveryReducers {
     /**
      * Restores the database
      */
@@ -285,8 +287,7 @@ export interface RestoreDatabaseReducers<TFormState>
 }
 
 export interface RestoreDatabaseProvider
-    extends
-        FormContextProps<RestoreDatabaseFormState>,
+    extends FormContextProps<RestoreDatabaseFormState>,
         FileBrowserProvider,
         DisasterRecoveryProvider {
     /**

@@ -190,7 +190,9 @@ export interface BackupDatabaseParams {
 }
 
 export interface BackupDatabaseReducers<TFormState>
-    extends FormReducers<TFormState>, FileBrowserReducers, DisasterRecoveryReducers {
+    extends FormReducers<TFormState>,
+        FileBrowserReducers,
+        DisasterRecoveryReducers {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -215,8 +217,7 @@ export interface BackupDatabaseReducers<TFormState>
 }
 
 export interface BackupDatabaseProvider
-    extends
-        FormContextProps<BackupDatabaseFormState>,
+    extends FormContextProps<BackupDatabaseFormState>,
         FileBrowserProvider,
         DisasterRecoveryProvider {
     /**

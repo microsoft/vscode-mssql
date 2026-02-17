@@ -3087,7 +3087,9 @@ export default class MainController implements vscode.Disposable {
      * Opens XEL files in the SQL Profiler UI in read-only mode.
      * Uses CustomReadonlyEditorProvider since XEL files are binary.
      */
-    private ProfilerXelCustomEditorProvider = class implements vscode.CustomReadonlyEditorProvider<vscode.CustomDocument> {
+    private ProfilerXelCustomEditorProvider = class
+        implements vscode.CustomReadonlyEditorProvider<vscode.CustomDocument>
+    {
         constructor(public profilerController: ProfilerController) {}
 
         public async openCustomDocument(uri: vscode.Uri): Promise<vscode.CustomDocument> {
