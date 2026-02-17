@@ -51,7 +51,7 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
-import { checkIfConnectionIsDockerContainer } from "../deployment/dockerUtils";
+import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.

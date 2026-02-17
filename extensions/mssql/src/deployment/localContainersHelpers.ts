@@ -19,7 +19,8 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
-import * as dockerUtils from "./dockerUtils";
+import * as dockerUtils from "../docker/dockerUtils";
+import * as sqlServerContainer from "./sqlServerContainer";
 import MainController from "../controllers/mainController";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
@@ -32,7 +33,7 @@ export async function initializeLocalContainersState(
     const startTime = Date.now();
     const state = new lc.LocalContainersState();
 
-    const versions = await dockerUtils.getSqlServerContainerVersions();
+    const versions = await sqlServerContainer.getSqlServerContainerVersions();
     state.formComponents = setLocalContainersFormComponents(versions, groupOptions);
     state.formState = {
         version: versions[0].value,
@@ -45,7 +46,7 @@ export async function initializeLocalContainersState(
         acceptEula: false,
         groupId: selectedGroupId || groupOptions[0]?.value,
     } as lc.DockerConnectionProfile;
-    state.dockerSteps = dockerUtils.initializeDockerSteps();
+    state.dockerSteps = sqlServerContainer.initializeDockerSteps();
     state.loadState = ApiStatus.Loaded;
     sendActionEvent(
         TelemetryViews.LocalContainers,
@@ -343,7 +344,7 @@ export function setLocalContainersFormComponents(
             placeholder: LocalContainers.passwordPlaceholder,
             componentWidth: "500px",
             validate(_state, value) {
-                const result = dockerUtils.validateSqlServerPassword(value.toString());
+                const result = sqlServerContainer.validateSqlServerPassword(value.toString());
                 return {
                     isValid: result === "",
                     validationMessage: result,
