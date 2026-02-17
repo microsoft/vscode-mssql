@@ -3070,7 +3070,7 @@ export class RestoreDatabase {
     public static standbyFile = l10n.t("Standby file");
     public static tailLogBackup = l10n.t("Tail-log backup");
     public static takeTailLogBackup = l10n.t("Take tail-log backup before restore");
-    public static leaveSourceDatabase = l10n.t("Leave the source database the restoring state");
+    public static leaveSourceDatabase = l10n.t("Leave the source database in the restoring state");
     public static leaveSourceDatabaseTooltip = l10n.t(
         "Uses the WITH NORECOVERY option during restore",
     );

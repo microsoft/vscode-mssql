@@ -21,7 +21,6 @@ import { useContext, useState } from "react";
 import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
 import {
-    DisasterRecoveryType,
     ObjectManagementFormItemSpec,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
@@ -111,12 +110,6 @@ export const AdvancedOptionsDrawer = ({
     }
 
     const shouldShowGroup = (groupName: string): boolean => {
-        if (
-            groupName === locConstants.restoreDatabase.files &&
-            restoreViewModel.type !== DisasterRecoveryType.BackupFile
-        ) {
-            return false;
-        }
         return advancedOptionsByGroup[groupName].some((component) =>
             shouldShowComponent(component.propertyName),
         );
@@ -137,7 +130,7 @@ export const AdvancedOptionsDrawer = ({
         switch (propertyName) {
             case "dataFileFolder":
             case "logFileFolder":
-                return shouldShowRestoreFileField();
+                return formState.relocateDbFiles;
             case "standbyFile":
                 return formState.recoveryState === RecoveryState.Standby;
             case "tailLogBackupFile":
@@ -145,12 +138,6 @@ export const AdvancedOptionsDrawer = ({
             default:
                 return false;
         }
-    };
-
-    const shouldShowRestoreFileField = (): boolean => {
-        return (
-            restoreViewModel.type === DisasterRecoveryType.BackupFile && formState.relocateDbFiles
-        );
     };
 
     return (
@@ -292,7 +279,7 @@ export const AdvancedOptionsDrawer = ({
                                                     )}
                                                 {advancedGroupName ===
                                                     locConstants.restoreDatabase.files &&
-                                                    shouldShowRestoreFileField() && (
+                                                    formState.relocateDbFiles && (
                                                         <RestorePlanTableContainer
                                                             restoreTableType={
                                                                 RestorePlanTableType.DatabaseFiles

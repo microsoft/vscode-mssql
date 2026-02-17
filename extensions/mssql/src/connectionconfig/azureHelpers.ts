@@ -26,7 +26,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import { configSelectedAzureSubscriptions, https } from "../constants/constants";
 import { Logger } from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
@@ -339,7 +339,7 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching blob containers for storage account:", error);
-            throw new Error(error.message);
+            throw error;
         }
     }
 
@@ -348,15 +348,16 @@ export class VsCodeAzureHelper {
      * @param sub Azure subscription
      * @param storageAccount Storage account
      * @param container Blob container
+     * @param blobClient Blob service client for testing purposes
      * @returns A list of blobs.
      */
     public static async fetchBlobsForContainer(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
         container: BlobContainer,
+        blobClient?: BlobServiceClient,
     ): Promise<BlobItem[]> {
         try {
-            // Get storage account keys (ARM call)
             const keys = await this.getStorageAccountKeys(sub, storageAccount);
             const accountKey = keys.keys?.[0]?.value;
 
@@ -364,14 +365,20 @@ export class VsCodeAzureHelper {
                 throw new Error("No storage account key returned.");
             }
 
+            // get cloud endpoint from provider settings and construct blob service endpoint url
+            const cloudEndpoint =
+                getCloudProviderSettings().settings.azureStorageResource.endpoint.substring(
+                    https.length,
+                );
+
             const accountName = storageAccount.name;
-            const blobEndpoint = `https://${accountName}.blob.core.windows.net`;
+            const blobEndpoint = `${https}${accountName}.${cloudEndpoint}`;
 
             // Create shared key credential
             const credential = new StorageSharedKeyCredential(accountName, accountKey);
 
             // Create blob service client using key-based auth
-            const blobServiceClient = new BlobServiceClient(blobEndpoint, credential);
+            const blobServiceClient = blobClient ?? new BlobServiceClient(blobEndpoint, credential);
 
             const containerClient: ContainerClient = blobServiceClient.getContainerClient(
                 container.name,
@@ -386,7 +393,7 @@ export class VsCodeAzureHelper {
             return blobs;
         } catch (error) {
             console.error("Error fetching blobs for container:", error);
-            throw new Error(error.message);
+            throw error;
         }
     }
 
@@ -420,7 +427,7 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching storage account keys:", error);
-            throw new Error(error.message);
+            throw error;
         }
     }
 

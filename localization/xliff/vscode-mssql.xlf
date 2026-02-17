@@ -3043,8 +3043,8 @@
     <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
       <source xml:lang="en">Learn more about this issue.</source>
     </trans-unit>
-    <trans-unit id="++CODE++559fca0c4d99d194bbe31f7aee9836af6c46045d80bab08bdf42126f1de77bae">
-      <source xml:lang="en">Leave the source database the restoring state</source>
+    <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
+      <source xml:lang="en">Leave the source database in the restoring state</source>
     </trans-unit>
     <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
       <source xml:lang="en">Length</source>

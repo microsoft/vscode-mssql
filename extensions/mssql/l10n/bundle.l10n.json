@@ -2978,7 +2978,7 @@
     "Log file folder": "Log file folder",
     "Standby file": "Standby file",
     "Take tail-log backup before restore": "Take tail-log backup before restore",
-    "Leave the source database the restoring state": "Leave the source database the restoring state",
+    "Leave the source database in the restoring state": "Leave the source database in the restoring state",
     "Uses the WITH NORECOVERY option during restore": "Uses the WITH NORECOVERY option during restore",
     "Tail-log backup file": "Tail-log backup file",
     "Server Connections": "Server Connections",

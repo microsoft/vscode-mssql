@@ -307,8 +307,8 @@ export const RestorePlanTable = () => {
                                     ) : (
                                         <Checkbox
                                             checked={selectedBackupSets.includes(rowIndex)}
-                                            onChange={(e) => {
-                                                const checked = e.target.checked;
+                                            onChange={(_e, data) => {
+                                                const checked = data?.checked ?? false;
 
                                                 // Remove from selectedBackupSets if unchecked
                                                 let updatedSelectedBackupSets = selectedBackupSets;

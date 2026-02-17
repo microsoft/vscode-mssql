@@ -123,7 +123,7 @@ export const RestoreDatabaseDialogPage = () => {
                         scriptLabel={locConstants.backupDatabase.script}
                         primaryDisabled={shouldDisableRestoreButton()}
                         scriptDisabled={false}
-                        onPrimary={() => {
+                        onPrimary={async () => {
                             context.restoreDatabase();
                         }}
                         onScript={async () => {

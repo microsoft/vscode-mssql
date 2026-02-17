@@ -52,9 +52,9 @@ export function registerFileBrowserReducers<TResult>(
         return state;
     });
     controller.registerReducer("submitFilePath", async (state, payload) => {
-        if (payload.propertyName) {
+        if (payload.propertyName && payload.propertyName in state) {
             // If a property name is provided, update that property with the selected path
-            (state as any)[payload.propertyName] = payload.selectedPath;
+            state[payload.propertyName] = payload.selectedPath;
         } else {
             // If no property name is provided, update the default selectedPath
             state.fileBrowserState.selectedPath = payload.selectedPath;

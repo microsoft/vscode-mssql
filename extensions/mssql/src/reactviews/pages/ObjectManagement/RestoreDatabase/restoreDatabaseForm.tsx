@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
     RestoreDatabaseContext,
     RestoreDatabaseContextProps,
@@ -207,11 +207,6 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
             .filter((component) => component.groupName === DisasterRecoveryType.Url)
             .map((component, index) => {
                 const loadStatus = azureComponentStatuses[component.propertyName];
-                // Trigger loading only if not started or loaded
-                if (loadStatus === ApiStatus.NotStarted) {
-                    handleLoadAzureComponents();
-                }
-
                 return loadStatus === ApiStatus.Loaded || loadStatus === ApiStatus.Error ? (
                     <div
                         key={index}
@@ -269,6 +264,12 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
     const getFileValidationMessage = (): string => {
         return backupFiles.length > 0 ? "" : locConstants.backupDatabase.chooseAtLeastOneFile;
     };
+
+    useEffect(() => {
+        if (restoreType === DisasterRecoveryType.Url) {
+            handleLoadAzureComponents();
+        }
+    }, [restoreType, azureComponentStatuses]);
 
     return (
         <div>
