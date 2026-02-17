@@ -205,20 +205,23 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         this.registerReducer("formAction", async (state, payload) => {
             state = await disasterRecoveryFormAction<RestoreDatabaseFormState>(state, payload);
 
+            // Reset error message on form change
+            const restoreViewModel = this.restoreViewModel(state);
+            restoreViewModel.errorMessage = undefined;
+
             // If the source database or blob fields were changed,
             // we need to get an updated restore plan
             if (
                 payload.event.propertyName === "sourceDatabaseName" ||
                 payload.event.propertyName === "blob"
             ) {
-                const restoreViewModel = this.restoreViewModel(state);
                 if (restoreViewModel.restorePlanStatus !== ApiStatus.Loading) {
                     restoreViewModel.restorePlanStatus = ApiStatus.NotStarted;
                 }
                 state = this.updateViewModel(restoreViewModel, state);
                 void this.getRestorePlan(payload.event.propertyName === "blob", state);
             }
-            return state;
+            return this.updateViewModel(restoreViewModel, state);
         });
 
         this.registerReducer("loadAzureComponent", async (state, payload) => {
@@ -258,6 +261,11 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             if (restoreViewModel.restorePlanStatus !== ApiStatus.Loading) {
                 restoreViewModel.restorePlanStatus = ApiStatus.NotStarted;
             }
+            if (payload.type === DisasterRecoveryType.Database) {
+                void this.getRestorePlan(false, this.updateViewModel(restoreViewModel, state));
+            }
+            // reset error message on type change
+            restoreViewModel.errorMessage = undefined;
 
             return this.updateViewModel(restoreViewModel, state);
         });
@@ -271,6 +279,18 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         });
 
         this.registerReducer("openRestoreScript", async (state, _payload) => {
+            const restoreViewModel = this.restoreViewModel(state);
+            if (restoreViewModel.restorePlanStatus !== ApiStatus.Loaded) {
+                restoreViewModel.errorMessage =
+                    LocConstants.RestoreDatabase.cannotGenerateScriptWithNoRestorePlan;
+                return this.updateViewModel(restoreViewModel, state);
+            } else if (restoreViewModel.selectedBackupSets.length === 0) {
+                restoreViewModel.errorMessage =
+                    LocConstants.RestoreDatabase.pleaseChooseAtLeastOneBackupSetToRestore;
+
+                return this.updateViewModel(restoreViewModel, state);
+            }
+
             await this.restoreHelper(TaskExecutionMode.script);
             sendActionEvent(TelemetryViews.Restore, TelemetryActions.ScriptRestore, {
                 restoreType: this.restoreViewModel(state).type,
@@ -283,11 +303,17 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel.backupFiles = restoreViewModel.backupFiles.filter(
                 (file) => file.filePath !== payload.filePath,
             );
+            // reset error message on file change
+            restoreViewModel.errorMessage = undefined;
+
             return this.updateViewModel(restoreViewModel, state);
         });
 
         this.registerReducer("updateSelectedBackupSets", async (state, payload) => {
             const restoreViewModel = this.restoreViewModel(state);
+
+            // reset error message on backup set change
+            restoreViewModel.errorMessage = undefined;
 
             restoreViewModel.selectedBackupSets =
                 restoreViewModel.restorePlan.backupSetsToRestore
@@ -313,6 +339,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         // Override default file browser submitFilePath reducer
         this.registerReducer("submitFilePath", async (state, payload) => {
             const restoreViewModel = this.restoreViewModel(state);
+
+            // reset error message on file change
+            restoreViewModel.errorMessage = undefined;
 
             if (!payload.propertyName) {
                 const paths = restoreViewModel.backupFiles.map((f) => f.filePath);
@@ -708,6 +737,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         try {
             params = await this.getRestoreParams(TaskExecutionMode.execute, true, useDefaults);
             plan = await this.objectManagementService.getRestorePlan(params);
+            state.errorMessage = undefined;
         } catch (error) {
             restoreViewModel.restorePlanStatus = ApiStatus.Error;
             restoreViewModel.restorePlan = undefined;
@@ -720,7 +750,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 false, // include error message in telemetry
             );
 
-            return state;
+            return this.updateViewModel(restoreViewModel, state);
         }
         restoreViewModel.cachedRestorePlanParams = params;
         restoreViewModel.restorePlan = plan;
@@ -787,7 +817,11 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
 
         const restoreInfo: RestoreInfo = {
             targetDatabaseName: useDefaults ? defaultDatabase : state.formState.targetDatabaseName,
-            sourceDatabaseName: useDefaults ? "" : state.formState.sourceDatabaseName,
+            sourceDatabaseName: !restoreFromDatabase
+                ? null
+                : useDefaults
+                  ? ""
+                  : state.formState.sourceDatabaseName,
             relocateDbFiles: state.formState.relocateDbFiles,
             readHeaderFromMedia: restoreFromDatabase ? false : true,
             overwriteTargetDatabase: isRestorePlan,
@@ -796,12 +830,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 restoreViewModel.type === DisasterRecoveryType.Url
                     ? MediaDeviceType.Url
                     : MediaDeviceType.File,
-            selectedBackupSets: restoreViewModel.selectedBackupSets,
+            selectedBackupSets: isRestorePlan ? null : restoreViewModel.selectedBackupSets,
             sessionId: isRestorePlan ? undefined : restoreViewModel.restorePlan?.sessionId,
         };
 
         const options: { [key: string]: any } = {};
-        if (restoreViewModel.restorePlan) {
+        if (!isRestorePlan && restoreViewModel.restorePlan) {
             restoreViewModel = this.updatePlanFromState(restoreViewModel, state);
 
             for (const key in restoreViewModel.restorePlan?.planDetails) {

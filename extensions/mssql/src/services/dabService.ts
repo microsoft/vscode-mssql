@@ -11,19 +11,21 @@ import { DabConfigFileBuilder } from "../dab/dabConfigFileBuilder";
 import {
     checkDockerInstallation,
     checkEngine,
-    checkIfDabContainerIsReady,
     dockerInstallErrorLink,
     dockerLogger,
-    findAvailableDabPort,
     getEngineErrorLink,
     getEngineErrorLinkText,
-    pullDabContainerImage,
     sanitizeContainerInput,
-    startDabDockerContainer,
     startDocker,
+} from "../docker/dockerUtils";
+import {
+    checkIfDabContainerIsReady,
+    findAvailableDabPort,
+    pullDabContainerImage,
+    startDabDockerContainer,
     stopAndRemoveDabContainer,
     validateDabContainerName,
-} from "../deployment/dockerUtils";
+} from "../dab/dabContainer";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";

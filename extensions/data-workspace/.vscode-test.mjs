@@ -1,7 +1,7 @@
 import { defineConfig } from "@vscode/test-cli";
 
 const mocha = {
-    timeout: 30_000,
+    timeout: 10_000,
     reporter: "mocha-multi-reporters",
     reporterOptions: {
         reporterEnabled: "dot, mocha-junit-reporter",
@@ -14,7 +14,8 @@ const mocha = {
 export default defineConfig({
     tests: [
         {
-            files: "out/test/unit/**/*.test.js",
+            files: "out/test/**/*.test.js",
+            launchArgs: ["--disable-extensions"],
             env: {
                 VSCODE_LOG_LEVEL: "error",
             },

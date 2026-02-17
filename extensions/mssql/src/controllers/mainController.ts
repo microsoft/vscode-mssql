@@ -97,7 +97,7 @@ import {
     deleteContainer,
     prepareForDockerContainerCommand,
     stopContainer,
-} from "../deployment/dockerUtils";
+} from "../docker/dockerUtils";
 import { ProfilerController } from "../profiler/profilerController";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
