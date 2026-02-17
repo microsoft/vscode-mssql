@@ -6,7 +6,14 @@
 import React, { createContext, ReactNode, useContext, useCallback } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
-import { ProfilerWebviewState, ProfilerReducers } from "../../../sharedInterfaces/profiler";
+import {
+    ProfilerWebviewState,
+    ProfilerReducers,
+    FilterClause,
+    ProfilerRequests,
+    DistinctValuesResponse,
+    ProfilerNotifications,
+} from "../../../sharedInterfaces/profiler";
 
 /**
  * RPC helper methods for Profiler operations
@@ -30,8 +37,24 @@ export interface ProfilerRpcMethods {
     toggleAutoScroll: () => void;
     /** Fetch rows from the buffer (pull model for infinite scroll) */
     fetchRows: (startIndex: number, count: number) => void;
+    /** Apply filter clauses (client-side only) */
+    applyFilter: (clauses: FilterClause[]) => void;
+    /** Clear all filter clauses and quick filter */
+    clearFilter: () => void;
+    /** Set quick filter term (cross-column search) */
+    setQuickFilter: (term: string) => void;
+    /** Get distinct values for a column from unfiltered ring buffer */
+    getDistinctValues: (field: string) => Promise<DistinctValuesResponse>;
+    /** Select a row to show details in the panel */
+    selectRow: (rowId: string) => void;
+    /** Open TextData content in a new VS Code editor (embedded details panel) */
+    openInEditor: (textData: string, eventName?: string) => void;
+    /** Copy text to clipboard (embedded details panel) */
+    copyToClipboard: (text: string) => void;
+    /** Close the embedded details panel */
+    closeDetailsPanel: () => void;
     /** Export events to CSV file */
-    exportToCsv: (suggestedFileName: string) => void;
+    exportToCsv: () => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -102,12 +125,62 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
-    const exportToCsv = useCallback(
-        (suggestedFileName: string) => {
-            extensionRpc?.action("exportToCsv", { suggestedFileName });
+    const applyFilter = useCallback(
+        (clauses: FilterClause[]) => {
+            extensionRpc?.action("applyFilter", { clauses });
         },
         [extensionRpc],
     );
+
+    const clearFilter = useCallback(() => {
+        extensionRpc?.action("clearFilter", {});
+    }, [extensionRpc]);
+
+    const setQuickFilter = useCallback(
+        (term: string) => {
+            extensionRpc?.action("setQuickFilter", { term });
+        },
+        [extensionRpc],
+    );
+
+    const getDistinctValues = useCallback(
+        (field: string): Promise<DistinctValuesResponse> => {
+            return extensionRpc.sendRequest(ProfilerRequests.GetDistinctValues, { field });
+        },
+        [extensionRpc],
+    );
+
+    const selectRow = useCallback(
+        (rowId: string) => {
+            extensionRpc?.action("selectRow", { rowId });
+        },
+        [extensionRpc],
+    );
+
+    const exportToCsv = useCallback(() => {
+        void extensionRpc?.sendNotification(ProfilerNotifications.ExportToCsv, {});
+    }, [extensionRpc]);
+
+    const openInEditor = useCallback(
+        (textData: string, eventName?: string) => {
+            void extensionRpc?.sendNotification(ProfilerNotifications.OpenInEditor, {
+                textData,
+                eventName,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const copyToClipboard = useCallback(
+        (text: string) => {
+            void extensionRpc?.sendNotification(ProfilerNotifications.CopyToClipboard, { text });
+        },
+        [extensionRpc],
+    );
+
+    const closeDetailsPanel = useCallback(() => {
+        extensionRpc?.action("closeDetailsPanel", {});
+    }, [extensionRpc]);
 
     return (
         <ProfilerContext.Provider
@@ -122,6 +195,14 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 changeView,
                 toggleAutoScroll,
                 fetchRows,
+                applyFilter,
+                clearFilter,
+                setQuickFilter,
+                getDistinctValues,
+                selectRow,
+                openInEditor,
+                copyToClipboard,
+                closeDetailsPanel,
                 exportToCsv,
             }}>
             {children}

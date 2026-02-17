@@ -86,6 +86,7 @@
         "comment": ["{0} is the action being confirmed"]
     },
     "Close": "Close",
+    "Copy": "Copy",
     "Apply": "Apply",
     "Next": "Next",
     "Clear Selection": "Clear Selection",
@@ -188,7 +189,6 @@
     },
     "Schema": "Schema",
     "Back to preview": "Back to preview",
-    "Copy": "Copy",
     "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
     "Publish Changes": "Publish Changes",
     "Open Publish Script": "Open Publish Script",
@@ -1341,6 +1341,8 @@
     "Resume": "Resume",
     "Clear Data": "Clear Data",
     "Auto-scroll": "Auto-scroll",
+    "Filter...": "Filter...",
+    "Clear Filter": "Clear Filter",
     "Select Session:": "Select Session:",
     "View:": "View:",
     "Select a session...": "Select a session...",
@@ -1358,6 +1360,24 @@
     "Clear all events (keeps session running)": "Clear all events (keeps session running)",
     "Auto-scroll enabled": "Auto-scroll enabled",
     "Auto-scroll disabled": "Auto-scroll disabled",
+    "Filter events by column values": "Filter events by column values",
+    "Sort column": "Sort column",
+    "Clear all filters and show all events": "Clear all filters and show all events",
+    "No filter is currently active": "No filter is currently active",
+    "=": "=",
+    "<>": "<>",
+    "<": "<",
+    "<=": "<=",
+    ">": ">",
+    ">=": ">=",
+    "Is Null": "Is Null",
+    "Is Not Null": "Is Not Null",
+    "In": "In",
+    "Filter active": "Filter active",
+    "Showing {0} of {1} events/{0} is filtered count, {1} is total count": {
+        "message": "Showing {0} of {1} events",
+        "comment": ["{0} is filtered count, {1} is total count"]
+    },
     "Not available for read-only file sessions": "Not available for read-only file sessions",
     "Cannot change session while active": "Cannot change session while active",
     "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection./{0} is the XEL file name": {
@@ -1374,6 +1394,70 @@
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
+    },
+    "Filter: {0}/{0} is the column name": {
+        "message": "Filter: {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Search values...": "Search values...",
+    "Enter text...": "Enter text...",
+    "Enter a number...": "Enter a number...",
+    "Enter a date...": "Enter a date...",
+    "Deselect All": "Deselect All",
+    "Example: Find queries with {0} > 100/{0} is the column name": {
+        "message": "Example: Find queries with {0} > 100",
+        "comment": ["{0} is the column name"]
+    },
+    "Search within {0} text content/{0} is the column name": {
+        "message": "Search within {0} text content",
+        "comment": ["{0} is the column name"]
+    },
+    "No results match the current filters": "No results match the current filters",
+    "No data to display.": "No data to display.",
+    "Quick filter all columns...": "Quick filter all columns...",
+    "Clear All Filters": "Clear All Filters",
+    "Clear quick filter and all column filters": "Clear quick filter and all column filters",
+    "{0}/{1}/{0} is selected count{1} is total count": {
+        "message": "{0}/{1}",
+        "comment": ["{0} is selected count", "{1} is total count"]
+    },
+    "YYYY-MM-DD HH:mm:ss": "YYYY-MM-DD HH:mm:ss",
+    "Use format: YYYY-MM-DD HH:mm:ss[.SSS]": "Use format: YYYY-MM-DD HH:mm:ss[.SSS]",
+    "Filter value": "Filter value",
+    "Filter operator": "Filter operator",
+    "Value is required": "Value is required",
+    "Must be a valid number": "Must be a valid number",
+    "none selected": "none selected",
+    "{0} selected/{0} is the number of selected filter values": {
+        "message": "{0} selected",
+        "comment": ["{0} is the number of selected filter values"]
+    },
+    "Active filters:": "Active filters:",
+    "{0}: {1}/{0} is the column name{1} is the filter description": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the column name", "{1} is the filter description"]
+    },
+    "Remove filter for {0}/{0} is the column name": {
+        "message": "Remove filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Text": "Text",
+    "No event selected": "No event selected",
+    "No text data available": "No text data available",
+    "Open text data in a new editor": "Open text data in a new editor",
+    "Copy text data to clipboard": "Copy text data to clipboard",
+    "Maximize details panel": "Maximize details panel",
+    "Close details panel": "Close details panel",
+    "Text tab - displays SQL text data": "Text tab - displays SQL text data",
+    "Details tab - displays all event properties": "Details tab - displays all event properties",
+    "Read-only SQL text editor": "Read-only SQL text editor",
+    "Event properties list": "Event properties list",
+    "Copied to clipboard": "Copied to clipboard",
+    "Details panel tabs": "Details panel tabs",
+    "Details panel actions": "Details panel actions",
+    "Event details for {0}/{0} is the name of the profiler event": {
+        "message": "Event details for {0}",
+        "comment": ["{0} is the name of the profiler event"]
     },
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
@@ -2845,9 +2929,17 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
+    "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
+        "message": "{0}/{1} events",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
+    },
     "File: {0}/{0} is the file name": {
         "message": "File: {0}",
         "comment": ["{0} is the file name"]
+    },
+    "Failed to open text in editor: {0}/{0} is the error message": {
+        "message": "Failed to open text in editor: {0}",
+        "comment": ["{0} is the error message"]
     },
     "Profiler events exported successfully to {0}/{0} is the file path": {
         "message": "Profiler events exported successfully to {0}",
@@ -2861,6 +2953,7 @@
     "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
     "Export & Close": "Export & Close",
     "Close Without Export": "Close Without Export",
+    "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",

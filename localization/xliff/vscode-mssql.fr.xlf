@@ -15,6 +15,26 @@
         <note>{0} is the service name</note>
         <target state="new">'{0}' started.</target>
       </trans-unit>
+      <trans-unit id="++CODE++77d57e39b407cbca2770fb31b55c148c757f4f84d1e2ce824c7d5cf9412a6298">
+        <source xml:lang="en">&gt;</source>
+        <target state="new">&gt;</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0dd9aaac823c795196de2c13a409f5adf2652723f32be4c32c2831fcf47fdf51">
+        <source xml:lang="en">&gt;=</source>
+        <target state="new">&gt;=</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3885ff5ae3386f58e4f1f1363d4863d8c9a5f280fe15e346ad7c78a09529637a">
+        <source xml:lang="en">&lt;</source>
+        <target state="new">&lt;</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5db520ece127b89d67ed03b42b26dfc85e0e9e55c8e16e33e58bf2fc7a484b23">
+        <source xml:lang="en">&lt;&gt;</source>
+        <target state="new">&lt;&gt;</target>
+      </trans-unit>
+      <trans-unit id="++CODE++53047fb5d5fdae95544c86b244ac7919f3bcb3fed509de00e7fd91c093698974">
+        <source xml:lang="en">&lt;=</source>
+        <target state="new">&lt;=</target>
+      </trans-unit>
       <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
         <source xml:lang="en">&lt;Default&gt;</source>
         <target state="translated">&lt;Default&gt;</target>
@@ -55,6 +75,10 @@
       <trans-unit id="++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112">
         <source xml:lang="en">-</source>
         <target state="translated">-</target>
+      </trans-unit>
+      <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
+        <source xml:lang="en">=</source>
+        <target state="new">=</target>
       </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
@@ -129,6 +153,10 @@
       <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
         <source xml:lang="en">Actions</source>
         <target state="translated">Actions</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
+        <source xml:lang="en">Active filters:</source>
+        <target state="new">Active filters:</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -404,6 +432,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
         <target state="translated">Approuver</target>
+      </trans-unit>
+      <trans-unit id="++CODE++34ab1d94f3f0ea49596bfd3fdbba6358a366ecd259be4bf46543ee58caad0614">
+        <source xml:lang="en">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</source>
+        <target state="new">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
         <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -1026,9 +1058,17 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Clear All</source>
         <target state="translated">Effacer tout</target>
       </trans-unit>
+      <trans-unit id="++CODE++209d178dae312190122119feaf037ac343e2cb4f298ee03d7254fcc71da5e50a">
+        <source xml:lang="en">Clear All Filters</source>
+        <target state="new">Clear All Filters</target>
+      </trans-unit>
       <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
         <source xml:lang="en">Clear Data</source>
         <target state="translated">Effacer les données</target>
+      </trans-unit>
+      <trans-unit id="++CODE++910bda6aed78b23e29c53e12a4f1da7d4cad3793e138ab7839990e2ce507b68e">
+        <source xml:lang="en">Clear Filter</source>
+        <target state="new">Clear Filter</target>
       </trans-unit>
       <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
         <source xml:lang="en">Clear Filters</source>
@@ -1058,6 +1098,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Clear all filters</source>
         <target state="translated">Effacer tous les filtres</target>
       </trans-unit>
+      <trans-unit id="++CODE++2e05d0864b79bf5feb3776495d63cfde72a56aac038a6557620b5107b06fa701">
+        <source xml:lang="en">Clear all filters and show all events</source>
+        <target state="new">Clear all filters and show all events</target>
+      </trans-unit>
       <trans-unit id="++CODE++2c41036cefbc864e021ed1f12d45fe960a9ac85b8586d9338a1e3f9a2dcd65a1">
         <source xml:lang="en">Clear all grouping</source>
         <target state="translated">Effacer tous les regroupements</target>
@@ -1073,6 +1117,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
         <target state="translated">Effacer les autorisations d’accès à vos connexions pour toutes les extensions</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a">
+        <source xml:lang="en">Clear quick filter and all column filters</source>
+        <target state="new">Clear quick filter and all column filters</target>
       </trans-unit>
       <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
         <source xml:lang="en">Clear token cache</source>
@@ -1113,6 +1161,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++4f60d43fe743cd7aa4af117f641730b9e28e8aab2e3334b2c12bfd0c25e610d6">
         <source xml:lang="en">Close Without Export</source>
         <target state="new">Close Without Export</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c89401adf57129e294dc62c01819ce24126217a0f529f17047cda53ec2482829">
+        <source xml:lang="en">Close details panel</source>
+        <target state="new">Close details panel</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
@@ -1593,6 +1645,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <note>{0} is the object name</note>
         <target state="new">Copied "{0}" to clipboard</target>
       </trans-unit>
+      <trans-unit id="++CODE++d37078fe6a1faa15fc48c293dd1d4c37698eb0cfafae8ca1c456b0cc4600db11">
+        <source xml:lang="en">Copied to clipboard</source>
+        <target state="new">Copied to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
         <target state="translated">Copier</target>
@@ -1648,6 +1704,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
         <target state="translated">Copier le script</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
+        <source xml:lang="en">Copy text data to clipboard</source>
+        <target state="new">Copy text data to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
@@ -2104,6 +2164,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Description for the table.</source>
         <target state="translated">Description de la table.</target>
       </trans-unit>
+      <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
+        <source xml:lang="en">Deselect All</source>
+        <target state="new">Deselect All</target>
+      </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
         <target state="translated">Concevez, visualisez et faites évoluer les schémas de base de données à l’aide d’un diagramme interactif avec génération SQL synchronisée.</target>
@@ -2111,6 +2175,18 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
         <target state="translated">Détails</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1afc642a5d662904513b79d29425d71c74aecd4fd5b0b4446b048f174dd56eb4">
+        <source xml:lang="en">Details panel actions</source>
+        <target state="new">Details panel actions</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c4d0829a683ee613c0189343791967620efc401efb10c1d3e22549b980ea881">
+        <source xml:lang="en">Details panel tabs</source>
+        <target state="new">Details panel tabs</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
+        <source xml:lang="en">Details tab - displays all event properties</source>
+        <target state="new">Details tab - displays all event properties</target>
       </trans-unit>
       <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
         <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
@@ -2371,9 +2447,17 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Enter Database Name</source>
         <target state="translated">Entrer le nom de la base de données</target>
       </trans-unit>
+      <trans-unit id="++CODE++a1afcfa3e45c63a614a4d0646298473382e20d077466ce245a0f991dbe7f0a22">
+        <source xml:lang="en">Enter a date...</source>
+        <target state="new">Enter a date...</target>
+      </trans-unit>
       <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
         <source xml:lang="en">Enter a name for the new profiler session</source>
         <target state="translated">Entrer un nom pour la nouvelle session du profileur</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
+        <source xml:lang="en">Enter a number...</source>
+        <target state="new">Enter a number...</target>
       </trans-unit>
       <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
         <source xml:lang="en">Enter application name</source>
@@ -2422,6 +2506,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
         <source xml:lang="en">Enter profile name</source>
         <target state="translated">Entrer le nom du profil</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
+        <source xml:lang="en">Enter text...</source>
+        <target state="new">Enter text...</target>
       </trans-unit>
       <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
         <source xml:lang="en">Enter the SQL Login password for user '{0}'.</source>
@@ -2615,6 +2703,20 @@ Erreur :
       <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">Erreur : impossible de se connecter en utilisant les informations de connexion fournies. Réessayer la création du profil ?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
+        <source xml:lang="en">Event details for {0}</source>
+        <note>{0} is the name of the profiler event</note>
+        <target state="new">Event details for {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
+        <source xml:lang="en">Event properties list</source>
+        <target state="new">Event properties list</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
+        <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
+        <note>{0} is the column name</note>
+        <target state="new">Example: Find queries with {0} &gt; 100</target>
       </trans-unit>
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
@@ -3048,6 +3150,11 @@ Erreur :
         <note>{0} is the error message</note>
         <target state="translated">Échec de l'ouverture du script : {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
+        <source xml:lang="en">Failed to open text in editor: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open text in editor: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
         <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
         <target state="new">Failed to pull DAB container image. Please check your network connection.</target>
@@ -3256,6 +3363,10 @@ Erreur :
         <source xml:lang="en">Filter Settings</source>
         <target state="translated">Paramètres de filtres</target>
       </trans-unit>
+      <trans-unit id="++CODE++8303b392b5ebd96463b39a2d278551d266b1ee0a5a4a707daa49a142fdfedcc5">
+        <source xml:lang="en">Filter active</source>
+        <target state="new">Filter active</target>
+      </trans-unit>
       <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
         <source xml:lang="en">Filter by keyword</source>
         <target state="translated">Filtrer par mot clé</target>
@@ -3276,17 +3387,38 @@ Erreur :
         <source xml:lang="en">Filter changes</source>
         <target state="translated">Filtrer les changements</target>
       </trans-unit>
+      <trans-unit id="++CODE++d82276b4dc4d7c1934c610624dcd96caaaf8d372027329bba940c1bcdd633a4b">
+        <source xml:lang="en">Filter events by column values</source>
+        <target state="new">Filter events by column values</target>
+      </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
         <target state="translated">Filtrer un champ...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
+        <source xml:lang="en">Filter operator</source>
+        <target state="new">Filter operator</target>
       </trans-unit>
       <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
         <source xml:lang="en">Filter shortcuts</source>
         <target state="translated">Raccourcis de filtres</target>
       </trans-unit>
+      <trans-unit id="++CODE++d9542a271957e5da6241a181f50baa24e710645a5007dfa3e45c27bbad587791">
+        <source xml:lang="en">Filter value</source>
+        <target state="new">Filter value</target>
+      </trans-unit>
       <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
         <source xml:lang="en">Filter {0}</source>
         <target state="new">Filter {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
+        <source xml:lang="en">Filter...</source>
+        <target state="new">Filter...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
+        <source xml:lang="en">Filter: {0}</source>
+        <note>{0} is the column name</note>
+        <target state="new">Filter: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -3751,6 +3883,10 @@ Erreur :
         <source xml:lang="en">Importing selections</source>
         <target state="translated">Importation des sélections</target>
       </trans-unit>
+      <trans-unit id="++CODE++8bc1d53cc57c24b79bf7c260b1f3b29973caab7b8f501c33016b321ebfc274f1">
+        <source xml:lang="en">In</source>
+        <target state="new">In</target>
+      </trans-unit>
       <trans-unit id="++CODE++edc1807b28e26d830c47aea48d193d0a4a8d3f07dfc4cb3b11f43eabe698f01e">
         <source xml:lang="en">In case you missed it</source>
         <target state="translated">Au cas où vous l’auriez manqué</target>
@@ -3879,6 +4015,14 @@ Erreur :
       <trans-unit id="++CODE++6ea66fb270a32f7ef42424605fcee4a35665033b151fafac0c648fe3d8cb8129">
         <source xml:lang="en">Is Ledger Database</source>
         <target state="translated">Est la base de données du grand livre</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d477e89f1ae8255f0a2c539022a215feccd9d6569476d9b2c2287ef9cfc29554">
+        <source xml:lang="en">Is Not Null</source>
+        <target state="new">Is Not Null</target>
+      </trans-unit>
+      <trans-unit id="++CODE++adeeb108b9ef8dd2f4e3aa374b581719b1f82cae3e2223497b4cd350ca1aa167">
+        <source xml:lang="en">Is Null</source>
+        <target state="new">Is Null</target>
       </trans-unit>
       <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
         <source xml:lang="en">Is Persisted</source>
@@ -4304,6 +4448,10 @@ Erreur :
         <source xml:lang="en">Maximize Panel Size</source>
         <target state="translated">Agrandir la taille du panneau</target>
       </trans-unit>
+      <trans-unit id="++CODE++d0dc4d4fffaa64f945179fe8a9e183b128196f798714a40a1ab8aacc822de3cf">
+        <source xml:lang="en">Maximize details panel</source>
+        <target state="new">Maximize details panel</target>
+      </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
         <target state="translated">Maximiser la taille du panneau</target>
@@ -4472,6 +4620,10 @@ Erreur :
         <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
         <note>{0} is the root id</note>
         <target state="translated">Plusieurs groupes de connexions avec l’ID « {0} » ont été trouvés.  Supprimez ou renommez-les tous, sauf un dans User/Global settings.json, puis redémarrez l’extension.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730">
+        <source xml:lang="en">Must be a valid number</source>
+        <target state="new">Must be a valid number</target>
       </trans-unit>
       <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
         <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
@@ -4710,6 +4862,10 @@ Erreur :
         <source xml:lang="en">No data available</source>
         <target state="translated">Aucune donnée n’est disponible</target>
       </trans-unit>
+      <trans-unit id="++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1">
+        <source xml:lang="en">No data to display.</source>
+        <target state="new">No data to display.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
         <target state="translated">Désolé, aucunes bases de données dans l’espace de travail sélectionné.</target>
@@ -4735,9 +4891,17 @@ Erreur :
         <source xml:lang="en">No entities found</source>
         <target state="translated">Désolé, aucune entité n’a été trouvée</target>
       </trans-unit>
+      <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
+        <source xml:lang="en">No event selected</source>
+        <target state="new">No event selected</target>
+      </trans-unit>
       <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
         <source xml:lang="en">No events to export</source>
         <target state="new">No events to export</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
+        <source xml:lang="en">No filter is currently active</source>
+        <target state="new">No filter is currently active</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -4784,6 +4948,10 @@ Erreur :
       <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
         <source xml:lang="en">No results for the active editor</source>
         <target state="translated">Aucun résultat pour l’éditeur actif</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d6f175c0cc2e82f1f69f421b3776d1a306fc92dbce166cbf045a4d8e31f5608e">
+        <source xml:lang="en">No results match the current filters</source>
+        <target state="new">No results match the current filters</target>
       </trans-unit>
       <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
         <source xml:lang="en">No results to display</source>
@@ -4840,6 +5008,10 @@ Erreur :
       <trans-unit id="++CODE++51714413577c82c973b8393c564c859a63c4597383b9d1b6fee9b9cf54ba273e">
         <source xml:lang="en">No tenants found</source>
         <target state="translated">Aucun locataire trouvé</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d">
+        <source xml:lang="en">No text data available</source>
+        <target state="new">No text data available</target>
       </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
@@ -5031,6 +5203,10 @@ Erreur :
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
         <target state="translated">Ouvrir dans l’éditeur</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
+        <source xml:lang="en">Open text data in a new editor</source>
+        <target state="new">Open text data in a new editor</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -5506,6 +5682,10 @@ Erreur :
 {1} is the query cost</note>
         <target state="translated">Requête {0} :  Coût de la requête (par rapport au script) :  {1}%</target>
       </trans-unit>
+      <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
+        <source xml:lang="en">Quick filter all columns...</source>
+        <target state="new">Quick filter all columns...</target>
+      </trans-unit>
       <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
         <source xml:lang="en">REST API</source>
         <target state="translated">API REST</target>
@@ -5529,6 +5709,10 @@ Erreur :
       <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
         <source xml:lang="en">Read-Only</source>
         <target state="new">Read-Only</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
+        <source xml:lang="en">Read-only SQL text editor</source>
+        <target state="new">Read-only SQL text editor</target>
       </trans-unit>
       <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
         <source xml:lang="en">Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.</source>
@@ -5620,6 +5804,11 @@ Erreur :
       <trans-unit id="++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f">
         <source xml:lang="en">Remove filter</source>
         <target state="translated">Supprimer le filtre</target>
+      </trans-unit>
+      <trans-unit id="++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6">
+        <source xml:lang="en">Remove filter for {0}</source>
+        <note>{0} is the column name</note>
+        <target state="new">Remove filter for {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
@@ -6160,6 +6349,15 @@ Requête : {2}</target>
         <source xml:lang="en">Search tables...</source>
         <target state="translated">Rechercher dans des tableaux...</target>
       </trans-unit>
+      <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
+        <source xml:lang="en">Search values...</source>
+        <target state="new">Search values...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7">
+        <source xml:lang="en">Search within {0} text content</source>
+        <note>{0} is the column name</note>
+        <target state="new">Search within {0} text content</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
         <target state="translated">Rechercher dans les espaces de travail...</target>
@@ -6552,6 +6750,11 @@ Requête : {2}</target>
 {1} is the connection ID</note>
         <target state="translated">Affichage du schéma pour la connexion « {0} » (ID : {1})</target>
       </trans-unit>
+      <trans-unit id="++CODE++f2dabec2cf9b7f24f2e1ea799fac8dda0eda5f1ecb9109abc5211c31f5dc5bbb">
+        <source xml:lang="en">Showing {0} of {1} events</source>
+        <note>{0} is filtered count, {1} is total count</note>
+        <target state="new">Showing {0} of {1} events</target>
+      </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
         <target state="translated">Plan d’exécution XML</target>
@@ -6640,6 +6843,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++ec3c9c77806c5b64f8a48249389349d028e2a4eb86f8ce64e5e5fd7203bc62ea">
         <source xml:lang="en">Sort ascending</source>
         <target state="translated">Tri croissant</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e320e8c6ef9cc79399346a80f7074742cbc9e7ad78b2592c81929cf08b17f9ed">
+        <source xml:lang="en">Sort column</source>
+        <target state="new">Sort column</target>
       </trans-unit>
       <trans-unit id="++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807">
         <source xml:lang="en">Sort descending</source>
@@ -7011,9 +7218,17 @@ Requête : {2}</target>
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">Test du profil de connexion...</target>
       </trans-unit>
+      <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
+        <source xml:lang="en">Text</source>
+        <target state="new">Text</target>
+      </trans-unit>
       <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
         <source xml:lang="en">Text View</source>
         <target state="translated">Affichage du texte</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
+        <source xml:lang="en">Text tab - displays SQL text data</source>
+        <target state="new">Text tab - displays SQL text data</target>
       </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -7383,6 +7598,10 @@ Requête : {2}</target>
         <source xml:lang="en">Use encryption for this backup</source>
         <target state="translated">Utiliser le chiffrement pour cette sauvegarde</target>
       </trans-unit>
+      <trans-unit id="++CODE++db3264529da0968f55cf4d37e71f355fcda342a20fe7cbb114d534807215f634">
+        <source xml:lang="en">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</source>
+        <target state="new">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</target>
+      </trans-unit>
       <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
         <source xml:lang="en">Use the default server setting</source>
         <target state="translated">Utiliser le paramètre du serveur par défaut</target>
@@ -7442,6 +7661,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
         <source xml:lang="en">Value</source>
         <target state="translated">Valeur</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
+        <source xml:lang="en">Value is required</source>
+        <target state="new">Value is required</target>
       </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
@@ -7558,6 +7781,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
         <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
         <target state="translated">Rédiger, optimiser et résoudre les problèmes des requêtes SQL avec des améliorations recommandées par IA</target>
+      </trans-unit>
+      <trans-unit id="++CODE++54a82587ded9d34e040e4db9f860f3e0b0e6285ca43651e9cfca8dbc65bd3ab0">
+        <source xml:lang="en">YYYY-MM-DD HH:mm:ss</source>
+        <target state="new">YYYY-MM-DD HH:mm:ss</target>
       </trans-unit>
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
@@ -7702,6 +7929,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
         <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
         <target state="translated">La version macOS Sierra ou ultérieure est obligatoire pour utiliser cette fonctionnalité.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
+        <source xml:lang="en">none selected</source>
+        <target state="new">none selected</target>
       </trans-unit>
       <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
         <source xml:lang="en">of</source>
@@ -7898,6 +8129,11 @@ Requête : {2}</target>
         <note>{0} is the number of rows to fetch summary statistics for</note>
         <target state="translated">{0} lignes sélectionnées, cliquez pour charger le résumé</target>
       </trans-unit>
+      <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
+        <source xml:lang="en">{0} selected</source>
+        <note>{0} is the number of selected filter values</note>
+        <target state="new">{0} selected</target>
+      </trans-unit>
       <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
         <source xml:lang="en">{0} selected</source>
         <note>{0} is the number of selected rows</note>
@@ -7946,11 +8182,28 @@ Requête : {2}</target>
 {1} is the message</note>
         <target state="translated">{0}. {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++98705269dd591aad37bacd7289a91ccb143232441bfe1143db9f2704c6f029e8">
+        <source xml:lang="en">{0}/{1}</source>
+        <note>{0} is selected count
+{1} is total count</note>
+        <target state="new">{0}/{1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e4e17db5444ca9044df0967a4cb1cf74b4b906c65abc091feee77da17bda1bb">
+        <source xml:lang="en">{0}/{1} events</source>
+        <note>{0} is the filtered count, {1} is the total count</note>
+        <target state="new">{0}/{1} events</target>
+      </trans-unit>
       <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the task name
 {1} is the status</note>
         <target state="translated">{0} : {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
+        <source xml:lang="en">{0}: {1}</source>
+        <note>{0} is the column name
+{1} is the filter description</note>
+        <target state="new">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
         <source xml:lang="en">{0}: {1}</source>
@@ -8854,6 +9107,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       <trans-unit id="mssql.legacySetting.deprecationMessage">
         <source xml:lang="en">This setting will be removed in a future release.</source>
         <target state="translated">Ce paramètre sera supprimé dans une mise en production ultérieure.</target>
+      </trans-unit>
+      <trans-unit id="mssql.toggleActualPlan">
+        <source xml:lang="en">Toggle Actual Plan</source>
+        <target state="new">Toggle Actual Plan</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>

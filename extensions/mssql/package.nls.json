@@ -65,6 +65,7 @@
     "mssql.showEstimatedPlan": "Estimated Plan",
     "mssql.enableActualPlan": "Enable Actual Plan",
     "mssql.disableActualPlan": "Disable Actual Plan",
+    "mssql.toggleActualPlan": "Toggle Actual Plan",
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",
     "mssql.logDebugInfo": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
     "mssql.maxRecentConnections": "The maximum number of recently used connections to store in the connection list.",

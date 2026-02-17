@@ -898,6 +898,10 @@
                 {
                     "command": "mssql.editConnection",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.toggleActualPlan",
+                    "when": "false"
                 }
             ],
             "webview/context": [
@@ -1290,6 +1294,11 @@
                     "dark": "media/disableActualExecutionPlan_dark.svg",
                     "light": "media/disableActualExecutionPlan_light.svg"
                 }
+            },
+            {
+                "command": "mssql.toggleActualPlan",
+                "title": "%mssql.toggleActualPlan%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.enableRichExperiences",
@@ -2409,7 +2418,8 @@
                         "completionEvents": [
                             "onCommand:mssql.showEstimatedPlan",
                             "onCommand:mssql.enableActualPlan",
-                            "onCommand:mssql.disableActualPlan"
+                            "onCommand:mssql.disableActualPlan",
+                            "onCommand:mssql.toggleActualPlan"
                         ]
                     },
                     {
