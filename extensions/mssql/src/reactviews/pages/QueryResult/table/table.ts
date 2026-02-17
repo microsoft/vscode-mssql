@@ -614,15 +614,19 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             );
         }
 
+        /**
+         * We only want to apply null cell styles when the row is not hovered,
+         * to ensure that hover styles are visible even on null cells.
+         */
         if (styles.nullCellBackground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { background-color: ${styles.nullCellBackground}; }`,
+                `.monaco-table.${this.idPrefix} .slick-row:not(:hover) .cell-null { background-color: ${styles.nullCellBackground}; }`,
             );
         }
 
         if (styles.nullCellForeground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { color: ${styles.nullCellForeground}; }`,
+                `.monaco-table.${this.idPrefix} .slick-row:not(:hover) .cell-null { color: ${styles.nullCellForeground}; }`,
             );
         }
 
