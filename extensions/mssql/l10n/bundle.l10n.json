@@ -1264,6 +1264,7 @@
     "Configuration to Import": "Configuration to Import",
     "Setting": "Setting",
     "No customized settings found": "No customized settings found",
+    "No customized settings found in Azure Data Studio": "No customized settings found in Azure Data Studio",
     "Looking for Azure Data Studio key bindings, like F5 to execute queries?": "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
     "Install the MSSQL Database Management Keymap extension": "Install the MSSQL Database Management Keymap extension",
     "{0} connection group imported/{0} is the number of connection groups imported (singular)": {
