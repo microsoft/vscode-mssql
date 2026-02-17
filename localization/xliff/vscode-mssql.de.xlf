@@ -870,6 +870,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {1} is the name of the blocking dependency preventing exclusion.</note>
         <target state="translated">"{0}" kann nicht ausgeschlossen werden. Eingeschlossene abhängige Elemente vorhanden: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++33006e40439b93db7f082f388bbbb20f56d76f840597c3929027c24aa07fd9eb">
+        <source xml:lang="en">Cannot generate script without a restore plan</source>
+        <target state="new">Cannot generate script without a restore plan</target>
+      </trans-unit>
       <trans-unit id="++CODE++01adf8aae81a6ef23bd48a183bc221def8cebdf0dc5490668df49f07e3eb3615">
         <source xml:lang="en">Cannot include {0}. Excluded dependents exist</source>
         <note>{0} is the name of the entry</note>
@@ -5493,6 +5497,14 @@ Fehler:
       <trans-unit id="++CODE++5710fb22e6b1b30694e0f530d89f7a30e532b8d281db9f53b7a8437034653d6c">
         <source xml:lang="en">Please choose at least one backup file</source>
         <target state="translated">Wählen Sie mindestens ein Backup aus.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++97e21e287e76c2e2a8d7afb697d6adac3ce000b545bab266716d7140da0dfdee">
+        <source xml:lang="en">Please choose at least one backup set to restore</source>
+        <target state="new">Please choose at least one backup set to restore</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73b47d5625538a6827bfe1cec364ebd2ee036c3e0139035e60510754704d0bb9">
+        <source xml:lang="en">Please ensure the file is not open in another application before importing</source>
+        <target state="new">Please ensure the file is not open in another application before importing</target>
       </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
