@@ -2916,27 +2916,6 @@ export class Profiler {
     public static profilerNotSupportedOnFabric = l10n.t(
         "Profiler is not supported on Microsoft Fabric SQL databases.",
     );
-
-    // Telemetry-related friendly error messages
-    public static azureUnsupportedError = l10n.t(
-        "This profiler feature is not supported on Azure SQL Database.",
-    );
-    public static permissionDeniedError = l10n.t(
-        "You do not have permission to run the profiler on this server. Contact your database administrator.",
-    );
-    public static bufferConfigError = (error: string) =>
-        l10n.t({
-            message: "Profiler buffer configuration error: {0}",
-            args: [error],
-            comment: ["{0} is the error message"],
-        });
-    public static ringBufferFull = (bufferSize: number) =>
-        l10n.t({
-            message:
-                "The profiler event buffer is full ({0} events). Oldest events are being discarded. Consider exporting or increasing the buffer size.",
-            args: [bufferSize],
-            comment: ["{0} is the buffer size"],
-        });
 }
 
 export class Proxy {

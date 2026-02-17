@@ -4214,10 +4214,6 @@
     <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
       <source xml:lang="en">Profiler Session Status</source>
     </trans-unit>
-    <trans-unit id="++CODE++663bf15650d01acc4e5f1fbebfb73e56a34243115e26e4d18ef0592c73d51ea6">
-      <source xml:lang="en">Profiler buffer configuration error: {0}</source>
-      <note>{0} is the error message</note>
-    </trans-unit>
     <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
       <source xml:lang="en">Profiler events exported successfully to {0}</source>
       <note>{0} is the file path</note>
@@ -5589,10 +5585,6 @@
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
     </trans-unit>
-    <trans-unit id="++CODE++0794e1fd3e6f475372e5f5bb078c0307c135c574d8f744a1f5862e08c947bfc2">
-      <source xml:lang="en">The profiler event buffer is full ({0} events). Oldest events are being discarded. Consider exporting or increasing the buffer size.</source>
-      <note>{0} is the buffer size</note>
-    </trans-unit>
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
     </trans-unit>
@@ -5627,9 +5619,6 @@
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7f620a01c050c44a4b525a93da5fc4c6e3ee93e020231eb77acf5ada41304a6f">
-      <source xml:lang="en">This profiler feature is not supported on Azure SQL Database.</source>
     </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -5948,9 +5937,6 @@
     <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
       <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
       <note>{0} is the version number of the MSSQL extension</note>
-    </trans-unit>
-    <trans-unit id="++CODE++f41994e1ccc471611fdb67865f926ad3f859428c0159000444c1566a229b3a62">
-      <source xml:lang="en">You do not have permission to run the profiler on this server. Contact your database administrator.</source>
     </trans-unit>
     <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
       <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
