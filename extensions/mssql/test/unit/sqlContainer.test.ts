@@ -326,7 +326,7 @@ suite("SQL Server Container", () => {
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]); // isDockerContainerRunning
         inspectStub.onFirstCall().resolves({ State: { Running: true } });
 
-        let result = await sqlServerContainer.restartContainer(
+        let result = await sqlServerContainer.restartSqlServerContainer(
             containerName,
             node,
             mockObjectExplorerService,
@@ -350,7 +350,7 @@ suite("SQL Server Container", () => {
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]); // readiness
         inspectStub.onFirstCall().resolves({ State: { Running: false } });
 
-        result = await sqlServerContainer.restartContainer(
+        result = await sqlServerContainer.restartSqlServerContainer(
             containerName,
             node,
             mockObjectExplorerService,
@@ -392,7 +392,9 @@ suite("SQL Server Container", () => {
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
         let result =
-            await sqlServerContainer.checkIfContainerIsReadyForConnections("testContainer");
+            await sqlServerContainer.checkIfSqlServerContainerIsReadyForConnections(
+                "testContainer",
+            );
         expect(result.success, "Should return success when container is ready for connections").to
             .be.true;
         expect(logsStub).to.have.been.calledOnce;

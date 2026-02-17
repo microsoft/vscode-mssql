@@ -102,7 +102,7 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: ["containerName"],
             headerText: LocalContainers.settingUpContainerHeader,
             bodyText: LocalContainers.settingUpContainerBody,
-            stepAction: checkIfContainerIsReadyForConnections,
+            stepAction: checkIfSqlServerContainerIsReadyForConnections,
         },
         {
             loadState: ApiStatus.NotStarted,
@@ -220,7 +220,7 @@ export async function startSqlServerDockerContainer(
  * Restarts a Docker container with the specified name.
  * If the container is already running, it returns true without restarting.
  */
-export async function restartContainer(
+export async function restartSqlServerContainer(
     containerName: string,
     containerNode: ConnectionNode,
     objectExplorerService: ObjectExplorerService,
@@ -257,7 +257,8 @@ export async function restartContainer(
     containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
 
-    const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
+    const containerReadyResult =
+        await checkIfSqlServerContainerIsReadyForConnections(containerName);
 
     containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
@@ -281,7 +282,7 @@ export async function restartContainer(
  * Checks if the provided container is ready for connections by checking the logs.
  * It waits up to 5 minutes while streaming log chunks.
  */
-export async function checkIfContainerIsReadyForConnections(
+export async function checkIfSqlServerContainerIsReadyForConnections(
     containerName: string,
 ): Promise<DockerCommandParams> {
     const timeoutMs = 300_000; // 5 minutes
