@@ -21,20 +21,6 @@ import {
 } from "react";
 
 const useStyles = makeStyles({
-    resizeHandle: {
-        position: "absolute",
-        top: "0",
-        right: "0",
-        width: "100%",
-        height: "10px",
-        cursor: "ns-resize",
-        zIndex: 1,
-        boxShadow: "0px -1px 1px  var(--vscode-editorWidget-border)",
-    },
-    resizePaneContainer: {
-        width: "100%",
-        position: "relative",
-    },
     header: {
         display: "flex",
         justifyContent: "space-between",
@@ -47,18 +33,6 @@ const useStyles = makeStyles({
     },
     headerToolbar: {
         gap: "3px",
-    },
-    ribbon: {
-        width: "100%",
-        display: "flex",
-        flexDirection: "row",
-        "> *": {
-            marginRight: "10px",
-        },
-        padding: "5px 0px",
-    },
-    definitionTabs: {
-        flex: 1,
     },
     tabContent: {
         flex: "1 1 0",
