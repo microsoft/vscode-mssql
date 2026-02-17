@@ -2003,9 +2003,14 @@ export class LocConstants {
 
     public get fileBrowser() {
         return {
-            fileBrowserTitle: l10n.t("Select a file"),
+            fileBrowserFileTitle: l10n.t("Select a file"),
+            fileBrowserFolderTitle: l10n.t("Select a folder"),
+            folderRequired: l10n.t("Folder is required"),
+            fileRequired: l10n.t("File is required"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
+            pleaseChooseAFile: l10n.t("Please choose a file"),
+            pleaseChooseAFolder: l10n.t("Please choose a folder"),
         };
     }
 
@@ -2273,6 +2278,31 @@ export class LocConstants {
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
             importNewFile: l10n.t("Import New File"),
+        };
+    }
+
+    public get restoreDatabase() {
+        return {
+            loadingRestoreDatabase: l10n.t("Loading restore database..."),
+            restore: l10n.t("Restore"),
+            restoreDatabase: l10n.t("Restore Database"),
+            database: l10n.t("Database"),
+            backupFile: l10n.t("Backup File"),
+            url: l10n.t("URL"),
+            browseFiles: l10n.t("Browse files"),
+            tailLogBackup: l10n.t("Tail-log backup"),
+            files: l10n.t("Files"),
+            loadingRestorePlan: l10n.t("Loading restore plan..."),
+            noBackupSets: l10n.t("No backup sets found in the restore plan"),
+            noDatabaseFiles: l10n.t("No database files found in the restore plan"),
+            invalidTableType: l10n.t("Invalid table type"),
+            logicalFileName: l10n.t("Logical file name"),
+            originalFileName: l10n.t("Original file name"),
+            restoreAs: l10n.t("Restore as"),
+            fileType: l10n.t("File type"),
+            backupSetsToRestore: l10n.t("Backup sets to restore"),
+            advancedRestoreOptions: l10n.t("Advanced restore options"),
+            couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
         };
     }
 }

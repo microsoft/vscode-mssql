@@ -17,6 +17,8 @@ const config = {
         addFirewallRule: "src/reactviews/pages/AddFirewallRule/index.tsx",
         backupDatabaseDialog:
             "src/reactviews/pages/ObjectManagement/BackupDatabase/backupDatabaseIndex.tsx",
+        restoreDatabaseDialog:
+            "src/reactviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
         connectionDialog: "src/reactviews/pages/ConnectionDialog/index.tsx",
         connectionGroup: "src/reactviews/pages/ConnectionGroup/index.tsx",
         DacpacDialog: "src/reactviews/pages/DacpacDialog/index.tsx",
