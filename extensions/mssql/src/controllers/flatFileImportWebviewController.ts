@@ -364,6 +364,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 label: Loc.FlatFileImport.locationOfTheFileToBeImported,
                 required: true,
                 type: FormItemType.Input,
+                tooltip: Loc.FlatFileImport.flatFilePathTooltip,
                 validate(_state, value) {
                     const isEmpty = value.toString().trim().length === 0;
                     return {

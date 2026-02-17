@@ -271,6 +271,19 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         });
 
         this.registerReducer("openRestoreScript", async (state, _payload) => {
+            const restoreViewModel = this.restoreViewModel(state);
+            if (restoreViewModel.restorePlanStatus !== ApiStatus.Loaded) {
+                vscode.window.showErrorMessage(
+                    LocConstants.RestoreDatabase.cannotGenerateScriptWithNoRestorePlan,
+                );
+                return state;
+            } else if (restoreViewModel.selectedBackupSets.length === 0) {
+                vscode.window.showErrorMessage(
+                    LocConstants.RestoreDatabase.pleaseChooseAtLeastOneBackupSetToRestore,
+                );
+                return state;
+            }
+
             await this.restoreHelper(TaskExecutionMode.script);
             sendActionEvent(TelemetryViews.Restore, TelemetryActions.ScriptRestore, {
                 restoreType: this.restoreViewModel(state).type,
