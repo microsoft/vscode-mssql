@@ -1386,8 +1386,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Profiler: No session": "Profiler: No session",
-    "Profiler Session Status": "Profiler Session Status",
+    "Profiler (Preview): No session": "Profiler (Preview): No session",
+    "Profiler (Preview) Session Status": "Profiler (Preview) Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -2924,6 +2924,11 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
+    "Profiler (Preview): {0}/{0} is the file name or session name": {
+        "message": "Profiler (Preview): {0}",
+        "comment": ["{0} is the file name or session name"]
+    },
+    "Profiler (Preview)": "Profiler (Preview)",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]

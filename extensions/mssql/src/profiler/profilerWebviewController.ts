@@ -111,10 +111,10 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Determine title based on mode
         const title = xelFileInfo
-            ? `Profiler: ${xelFileInfo.fileName}`
+            ? LocProfiler.panelTitleWithSession(xelFileInfo.fileName)
             : sessionName
-              ? `Profiler: ${sessionName}`
-              : "Profiler";
+              ? LocProfiler.panelTitleWithSession(sessionName)
+              : LocProfiler.panelTitleDefault;
 
         super(
             context,
