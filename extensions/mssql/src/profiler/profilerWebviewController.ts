@@ -38,6 +38,8 @@ import {
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
 import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
  * Events emitted by the profiler webview controller
@@ -230,9 +232,27 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         if (result === msgYes) {
             // User confirmed – allow close (dispose will handle cleanup)
+            // Telemetry: user chose to discard unsaved events
+            if (this._currentSession) {
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerCloseWarningShown,
+                    { sessionId: this._currentSession.id, userAction: "Discarded" },
+                    { unsavedEventsCount: this._currentSession.events.size },
+                );
+            }
             return undefined;
         } else {
             // User cancelled (Escape / dismissed) – keep the panel open by recreating it
+            // Telemetry: user cancelled close
+            if (this._currentSession) {
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerCloseWarningShown,
+                    { sessionId: this._currentSession.id, userAction: "Cancelled" },
+                    { unsavedEventsCount: this._currentSession.events.size },
+                );
+            }
             return {
                 title: "",
                 run: async () => {
@@ -456,6 +476,16 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 };
                 this.updateStatusBar();
 
+                // Telemetry: filter applied (column:operator pairs only, never values)
+                if (this._currentSession && payload.clauses.length > 0) {
+                    const pairs = payload.clauses.map((f) => `${f.field}:${f.operator}`);
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerFilterApplied,
+                        { sessionId: this._currentSession.id, filters: pairs.join(",") },
+                    );
+                }
+
                 return this.state;
             }
         });
@@ -564,6 +594,17 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                         if (stream) {
                             await this.generateCsvFromEvents(stream, allEvents, viewConfig);
                             stream.end();
+
+                            // Telemetry: export done
+                            if (this._currentSession) {
+                                this._currentSession.exported = true;
+                                sendActionEvent(
+                                    TelemetryViews.Profiler,
+                                    TelemetryActions.ProfilerExportDone,
+                                    { sessionId: this._currentSession.id, exportFormat: "csv" },
+                                    { eventsExportedCount: allEvents.length },
+                                );
+                            }
                         }
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error);

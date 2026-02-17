@@ -24,6 +24,8 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /** System databases that cannot be used for Azure SQL profiling */
 const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
@@ -118,7 +120,7 @@ export class ProfilerController {
             await this.setupProfilerUI(profilerUri, this._currentEngineType);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(getErrorMessage(e)));
         }
     }
 
@@ -235,7 +237,7 @@ export class ProfilerController {
                     } catch (e) {
                         this._logger.error(`Command error: ${e}`);
                         vscode.window.showErrorMessage(
-                            LocProfiler.failedToLaunchProfiler(String(e)),
+                            LocProfiler.failedToLaunchProfiler(getErrorMessage(e)),
                         );
                     }
                 },
@@ -269,6 +271,7 @@ export class ProfilerController {
         webviewController: ProfilerWebviewController,
     ): Promise<void> {
         this._logger.verbose(`Starting profiler session: ${sessionName}`);
+        const sessionId = Utils.generateGuid();
         try {
             if (!this._profilerUri) {
                 this._logger.verbose("No profiler connection available");
@@ -282,7 +285,6 @@ export class ProfilerController {
             this._logger.verbose("Cleared existing events from grid");
 
             // Create a ProfilerSession for the selected session
-            const sessionId = Utils.generateGuid();
             const bufferCapacity = vscode.workspace
                 .getConfiguration(Constants.extensionConfigSectionName)
                 .get<number>(Constants.configProfilerEventBufferSize);
@@ -293,6 +295,7 @@ export class ProfilerController {
                 sessionType: SessionType.Live,
                 templateName: "Standard",
                 bufferCapacity: bufferCapacity,
+                engineType: this._profilerEngineTypes.get(this._profilerUri!) ?? "SQLServer",
             });
             this._logger.verbose(
                 `Created ProfilerSession: id=${sessionId}, ownerUri=${this._profilerUri}`,
@@ -315,6 +318,17 @@ export class ProfilerController {
                     `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for session ${sessionId}`,
                 );
                 webviewController.notifyRowsRemoved(events);
+
+                // Telemetry: buffer overflow (fire once per session)
+                if (!session.bufferOverflowWarned) {
+                    session.bufferOverflowWarned = true;
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerBufferOverflow,
+                        { sessionId },
+                        { bufferCapacity: session.events.capacity, evictedCount: events.length },
+                    );
+                }
             });
 
             session.onSessionStopped((errorMessage) => {
@@ -323,6 +337,15 @@ export class ProfilerController {
                     this._logger.error(`Session stopped with error: ${errorMessage}`);
                 }
                 webviewController.setSessionState(SessionState.Stopped);
+
+                // Telemetry: session stopped
+                const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerSessionStopped,
+                    { sessionId, wasExported: String(session.exported) },
+                    { durationMs, eventsCapturedCount: session.events.size },
+                );
             });
 
             // Start profiling on the session
@@ -333,7 +356,17 @@ export class ProfilerController {
             this._logger.verbose("Profiling session started");
         } catch (e) {
             this._logger.error(`Error starting profiler session: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(String(e)));
+            const errMsg = getErrorMessage(e);
+            sendErrorEvent(
+                TelemetryViews.Profiler,
+                TelemetryActions.ProfilerSessionFailed,
+                e instanceof Error ? e : new Error(errMsg),
+                false, // includeErrorMessage
+                undefined,
+                undefined,
+                { sessionId, engineType: this._currentEngineType },
+            );
+            vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(errMsg));
         }
     }
 
@@ -480,7 +513,7 @@ export class ProfilerController {
         } catch (e) {
             this._logger.error(`Error creating session: ${e}`);
             webviewController.setCreatingSession(false);
-            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(getErrorMessage(e)));
         }
     }
 
@@ -657,8 +690,26 @@ export class ProfilerController {
                     await this._sessionManager.stopProfilingSession(session.id);
                     webviewController.setSessionState(SessionState.Stopped);
                     this._logger.verbose("Session stopped");
+
+                    // Telemetry: session stopped by user
+                    const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerSessionStopped,
+                        { sessionId: session.id, wasExported: String(session.exported) },
+                        { durationMs, eventsCapturedCount: session.events.size },
+                    );
                 } catch (e) {
                     this._logger.error(`Error stopping session: ${e}`);
+                    sendErrorEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerSessionStopFailed,
+                        e instanceof Error ? e : new Error(getErrorMessage(e)),
+                        false, // includeErrorMessage
+                        undefined,
+                        undefined,
+                        { sessionId: session.id },
+                    );
                 }
             },
             onViewChange: (viewId: string) => {
@@ -749,7 +800,7 @@ export class ProfilerController {
             }
         } catch (e) {
             this._logger.error(`Error creating/starting session: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(getErrorMessage(e)));
             webviewController.dispose();
         }
     }
@@ -968,6 +1019,7 @@ export class ProfilerController {
             sessionType: SessionType.File,
             templateName: "XEL_File",
             readOnly: true,
+            engineType: "SQLServer",
         });
         this._logger.verbose(`Created ProfilerSession: id=${sessionId}, type=File`);
 
@@ -1019,6 +1071,16 @@ export class ProfilerController {
             this._logger.error(`Failed to load XEL file: ${getErrorMessage(e)}`);
             webviewController.setSessionState(SessionState.Failed);
 
+            // Telemetry: XEL file load failure
+            sendErrorEvent(
+                TelemetryViews.Profiler,
+                TelemetryActions.ProfilerSessionFailed,
+                e instanceof Error ? e : new Error(getErrorMessage(e)),
+                false, // includeErrorMessage
+                undefined,
+                undefined,
+                { sessionId, engineType: "SQLServer" },
+            );
             // Clean up the session that failed to load
             await this._sessionManager.removeSession(sessionId);
 
