@@ -1304,13 +1304,6 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static sqlServer2025ArmError = l10n.t(
-        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
-    );
-    public static sqlServer2025ArmErrorTooltip = l10n.t(
-        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
-    );
-
     // DAB (Data API Builder) deployment strings
     public static dabContainerNameInvalidOrInUse = l10n.t(
         "Container name is invalid or already in use",
