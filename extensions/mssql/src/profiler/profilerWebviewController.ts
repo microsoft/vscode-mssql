@@ -38,7 +38,8 @@ import {
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
 import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
-import { ProfilerTelemetry, CloseWarningUserAction } from "./profilerTelemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
  * Events emitted by the profiler webview controller
@@ -233,10 +234,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             // User confirmed – allow close (dispose will handle cleanup)
             // Telemetry: user chose to discard unsaved events
             if (this._currentSession) {
-                ProfilerTelemetry.sendCloseWarningShown(
-                    this._currentSession.id,
-                    this._currentSession.events.size,
-                    CloseWarningUserAction.Discarded,
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerCloseWarningShown,
+                    { sessionId: this._currentSession.id, userAction: "Discarded" },
+                    { unsavedEventsCount: this._currentSession.events.size },
                 );
             }
             return undefined;
@@ -244,10 +246,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             // User cancelled (Escape / dismissed) – keep the panel open by recreating it
             // Telemetry: user cancelled close
             if (this._currentSession) {
-                ProfilerTelemetry.sendCloseWarningShown(
-                    this._currentSession.id,
-                    this._currentSession.events.size,
-                    CloseWarningUserAction.Cancelled,
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerCloseWarningShown,
+                    { sessionId: this._currentSession.id, userAction: "Cancelled" },
+                    { unsavedEventsCount: this._currentSession.events.size },
                 );
             }
             return {
@@ -475,7 +478,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
                 // Telemetry: filter applied (column:operator pairs only, never values)
                 if (this._currentSession && payload.clauses.length > 0) {
-                    ProfilerTelemetry.sendFilterApplied(this._currentSession.id, payload.clauses);
+                    const pairs = payload.clauses.map((f) => `${f.field}:${f.operator}`);
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerFilterApplied,
+                        { sessionId: this._currentSession.id, filters: pairs.join(",") },
+                    );
                 }
 
                 return this.state;
@@ -590,10 +598,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                             // Telemetry: export done
                             if (this._currentSession) {
                                 this._currentSession.exported = true;
-                                ProfilerTelemetry.sendExportDone(
-                                    this._currentSession.id,
-                                    "csv",
-                                    allEvents.length,
+                                sendActionEvent(
+                                    TelemetryViews.Profiler,
+                                    TelemetryActions.ProfilerExportDone,
+                                    { sessionId: this._currentSession.id, exportFormat: "csv" },
+                                    { eventsExportedCount: allEvents.length },
                                 );
                             }
                         }

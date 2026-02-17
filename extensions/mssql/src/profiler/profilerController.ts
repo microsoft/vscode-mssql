@@ -24,7 +24,8 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
-import { ProfilerTelemetry } from "./profilerTelemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /** System databases that cannot be used for Azure SQL profiling */
 const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
@@ -321,10 +322,11 @@ export class ProfilerController {
                 // Telemetry: buffer overflow (fire once per session)
                 if (!session.bufferOverflowWarned) {
                     session.bufferOverflowWarned = true;
-                    ProfilerTelemetry.sendBufferOverflow(
-                        sessionId,
-                        session.events.capacity,
-                        events.length,
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerBufferOverflow,
+                        { sessionId },
+                        { bufferCapacity: session.events.capacity, evictedCount: events.length },
                     );
                 }
             });
@@ -338,11 +340,11 @@ export class ProfilerController {
 
                 // Telemetry: session stopped
                 const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
-                ProfilerTelemetry.sendSessionStopped(
-                    sessionId,
-                    durationMs,
-                    session.events.size,
-                    session.exported,
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerSessionStopped,
+                    { sessionId, wasExported: String(session.exported) },
+                    { durationMs, eventsCapturedCount: session.events.size },
                 );
             });
 
@@ -355,7 +357,15 @@ export class ProfilerController {
         } catch (e) {
             this._logger.error(`Error starting profiler session: ${e}`);
             const errMsg = getErrorMessage(e);
-            ProfilerTelemetry.sendSessionFailed(sessionId, this._currentEngineType, errMsg);
+            sendErrorEvent(
+                TelemetryViews.Profiler,
+                TelemetryActions.ProfilerSessionFailed,
+                e instanceof Error ? e : new Error(errMsg),
+                false, // includeErrorMessage
+                undefined,
+                undefined,
+                { sessionId, engineType: this._currentEngineType },
+            );
             vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(errMsg));
         }
     }
@@ -683,15 +693,23 @@ export class ProfilerController {
 
                     // Telemetry: session stopped by user
                     const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
-                    ProfilerTelemetry.sendSessionStopped(
-                        session.id,
-                        durationMs,
-                        session.events.size,
-                        session.exported,
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerSessionStopped,
+                        { sessionId: session.id, wasExported: String(session.exported) },
+                        { durationMs, eventsCapturedCount: session.events.size },
                     );
                 } catch (e) {
                     this._logger.error(`Error stopping session: ${e}`);
-                    ProfilerTelemetry.sendSessionStopFailed(session.id, getErrorMessage(e));
+                    sendErrorEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerSessionStopFailed,
+                        e instanceof Error ? e : new Error(getErrorMessage(e)),
+                        false, // includeErrorMessage
+                        undefined,
+                        undefined,
+                        { sessionId: session.id },
+                    );
                 }
             },
             onViewChange: (viewId: string) => {
@@ -1054,7 +1072,15 @@ export class ProfilerController {
             webviewController.setSessionState(SessionState.Failed);
 
             // Telemetry: XEL file load failure
-            ProfilerTelemetry.sendSessionFailed(sessionId, "SQLServer", getErrorMessage(e));
+            sendErrorEvent(
+                TelemetryViews.Profiler,
+                TelemetryActions.ProfilerSessionFailed,
+                e instanceof Error ? e : new Error(getErrorMessage(e)),
+                false, // includeErrorMessage
+                undefined,
+                undefined,
+                { sessionId, engineType: "SQLServer" },
+            );
             // Clean up the session that failed to load
             await this._sessionManager.removeSession(sessionId);
 

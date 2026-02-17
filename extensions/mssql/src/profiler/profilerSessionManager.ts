@@ -11,7 +11,8 @@ import {
     ProfilerSessionCreatedParams,
     ProfilerSessionTemplate,
 } from "../models/contracts/profiler";
-import { ProfilerTelemetry } from "./profilerTelemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
  * Manages multiple profiler sessions.
@@ -137,12 +138,12 @@ export class ProfilerSessionManager {
         // Record session start time and emit telemetry
         session.startedAt = Date.now();
         const isFromFile = session.sessionType === SessionType.File;
-        ProfilerTelemetry.sendSessionStarted(
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStarted, {
             sessionId,
-            session.engineType,
-            session.templateName,
-            isFromFile,
-        );
+            engineType: session.engineType,
+            templateName: session.templateName,
+            isFromFile: String(isFromFile),
+        });
 
         return result;
     }

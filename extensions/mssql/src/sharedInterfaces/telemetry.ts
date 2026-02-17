@@ -226,14 +226,14 @@ export enum TelemetryActions {
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
-    ProfilerSessionStarted = "ProfilerSession.Started",
-    ProfilerSessionFailed = "ProfilerSession.Failed",
-    ProfilerSessionStopped = "ProfilerSession.Stopped",
-    ProfilerExportDone = "ProfilerSession.Export.Done",
-    ProfilerCloseWarningShown = "ProfilerSession.Close.WarningShown",
-    ProfilerFilterApplied = "Profiler.Filter.Applied",
-    ProfilerBufferOverflow = "Profiler.Buffer.Overflow",
-    ProfilerSessionStopFailed = "ProfilerSession.Stop.Failed",
+    ProfilerSessionStarted = "SessionStarted",
+    ProfilerSessionFailed = "SessionFailed",
+    ProfilerSessionStopped = "SessionStopped",
+    ProfilerExportDone = "ExportDone",
+    ProfilerCloseWarningShown = "CloseWarningShown",
+    ProfilerFilterApplied = "FilterApplied",
+    ProfilerBufferOverflow = "BufferOverflow",
+    ProfilerSessionStopFailed = "StopFailed",
 }
 
 /**
