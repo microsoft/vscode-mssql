@@ -217,6 +217,7 @@
         "@types/vscode": "1.98.0",
         "@vscode/l10n-dev": "^0.0.35",
         "@vscode/test-cli": "^0.0.12",
+        "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.1.1",
         "chai": "^5.3.3",
         "glob": "^11.0.0",
