@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useEffect, useRef, useState } from "react";
-import eventBus from "./schemaDesignerEvents";
+import eventBus from "../schemaDesignerEvents";
 import {
     DefinitionPanel,
     DefinitionPanelController,
     DesignerDefinitionTabs,
-} from "../../common/definitionPanel";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+} from "../../../common/definitionPanel";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
