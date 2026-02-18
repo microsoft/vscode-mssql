@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from "react";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import {
     DefinitionPanel,
     DefinitionPanelController,
@@ -12,13 +11,14 @@ import {
 } from "../../../common/definitionPanel";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { useDabContext } from "./dabContext";
 
 export interface DabDefinitionsPanelRef {
     togglePanel: () => void;
 }
 
 export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, ref) => {
-    const context = useContext(SchemaDesignerContext);
+    const context = useDabContext();
     const { themeKind } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers

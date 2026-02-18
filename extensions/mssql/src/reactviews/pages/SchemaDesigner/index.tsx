@@ -16,6 +16,7 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
 import { locConstants } from "../../common/locConstants";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { DabProvider } from "./dab/dabContext";
 
 const useStyles = makeStyles({
     root: {
@@ -116,7 +117,9 @@ const MainLayout = () => {
                                     ? "block"
                                     : "none",
                         }}>
-                        <DabPage activeView={activeView} />
+                        <DabProvider>
+                            <DabPage activeView={activeView} />
+                        </DabProvider>
                     </div>
                 </div>
             </div>
