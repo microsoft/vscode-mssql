@@ -11,8 +11,6 @@ export type MyEvents = {
     refreshFlowState: () => void;
     revealForeignKeyEdges: (foreignKeyId: string) => void;
     clearEdgeSelection: () => void;
-    openCodeDrawer: () => void;
-    toggleChangesPanel: () => void;
     editTable: (
         table: SchemaDesigner.Table,
         schema: SchemaDesigner.Schema,

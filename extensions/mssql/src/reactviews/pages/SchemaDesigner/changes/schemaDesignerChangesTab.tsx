@@ -3,26 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
     makeStyles,
     TreeItemValue,
     useHeadlessFlatTree_unstable,
 } from "@fluentui/react-components";
 import { Checkmark24Regular, Search16Regular } from "@fluentui/react-icons";
-import { ImperativePanelHandle, Panel } from "react-resizable-panels";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
 import { describeChange } from "../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
-import { SchemaDesignerChangesHeader } from "./schemaDesignerChangesHeader";
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
-
-const DEFAULT_PANEL_SIZE = 25;
-const MIN_PANEL_SIZE = 10;
+import { useSchemaDesignerDefinitionPanelContext } from "../definition/schemaDesignerDefinitionPanelContext";
 
 const useStyles = makeStyles({
     container: {
@@ -36,11 +32,10 @@ const useStyles = makeStyles({
     },
 });
 
-export const SchemaDesignerChangesPanel = () => {
+export const SchemaDesignerChangesTab = () => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
-    const panelRef = useRef<ImperativePanelHandle | undefined>(undefined);
-    const { setIsChangesPanelVisible, setShowChangesHighlight } = context;
+    const { setIsChangesPanelVisible } = useSchemaDesignerDefinitionPanelContext();
 
     const [searchText, setSearchText] = useState("");
     const [openItems, setOpenItems] = useState<Set<TreeItemValue>>(new Set());
@@ -50,32 +45,11 @@ export const SchemaDesignerChangesPanel = () => {
     const loc = locConstants.schemaDesigner.changesPanel;
 
     useEffect(() => {
-        // Ensure panel starts collapsed
-        panelRef.current?.collapse();
-        setIsChangesPanelVisible(false);
-
-        const toggle = () => {
-            if (!panelRef.current) {
-                return;
-            }
-
-            if (panelRef.current.isCollapsed()) {
-                panelRef.current.expand(DEFAULT_PANEL_SIZE);
-                setIsChangesPanelVisible(true);
-                setShowChangesHighlight(true);
-            } else {
-                panelRef.current.collapse();
-                setIsChangesPanelVisible(false);
-                setShowChangesHighlight(false);
-            }
-        };
-
-        eventBus.on("toggleChangesPanel", toggle);
+        setIsChangesPanelVisible(true);
         return () => {
-            eventBus.off("toggleChangesPanel", toggle);
             setIsChangesPanelVisible(false);
         };
-    }, [setIsChangesPanelVisible, setShowChangesHighlight]);
+    }, [setIsChangesPanelVisible]);
 
     const filteredGroups = useMemo(() => {
         if (!context.schemaChangesSummary?.groups) {
@@ -269,74 +243,52 @@ export const SchemaDesignerChangesPanel = () => {
     }, []);
 
     return (
-        <Panel
-            collapsible
-            defaultSize={DEFAULT_PANEL_SIZE}
-            minSize={MIN_PANEL_SIZE}
-            onResize={(size) => {
-                setIsChangesPanelVisible(size > 0);
-            }}
-            ref={(ref) => {
-                panelRef.current = ref ?? undefined;
-            }}>
-            <div className={classes.container}>
-                <SchemaDesignerChangesHeader
-                    title={locConstants.schemaDesigner.changesPanelTitle(
-                        context.schemaChangesCount,
-                    )}
-                    onClose={() => {
-                        panelRef.current?.collapse();
-                        setIsChangesPanelVisible(false);
-                        setShowChangesHighlight(false);
+        <div className={classes.container}>
+            {!hasNoChanges && (
+                <SchemaDesignerChangesFilters
+                    searchText={searchText}
+                    onSearchTextChange={setSearchText}
+                    selectedActions={actionFilters}
+                    onToggleAction={toggleActionFilter}
+                    selectedCategories={categoryFilters}
+                    onToggleCategory={toggleCategoryFilter}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={() => {
+                        setActionFilters([]);
+                        setCategoryFilters([]);
                     }}
                 />
+            )}
 
-                {!hasNoChanges && (
-                    <SchemaDesignerChangesFilters
-                        searchText={searchText}
-                        onSearchTextChange={setSearchText}
-                        selectedActions={actionFilters}
-                        onToggleAction={toggleActionFilter}
-                        selectedCategories={categoryFilters}
-                        onToggleCategory={toggleCategoryFilter}
-                        hasActiveFilters={hasActiveFilters}
-                        onClearFilters={() => {
-                            setActionFilters([]);
-                            setCategoryFilters([]);
-                        }}
-                    />
-                )}
-
-                {hasNoChanges ? (
-                    <SchemaDesignerChangesEmptyState
-                        icon={<Checkmark24Regular />}
-                        title={locConstants.schemaDesigner.noChangesYet}
-                        subtitle={locConstants.schemaDesigner.noChangesYetSubtitle}
-                    />
-                ) : hasNoResults ? (
-                    <SchemaDesignerChangesEmptyState
-                        icon={<Search16Regular />}
-                        title={
-                            hasActiveFiltersOrSearch
-                                ? loc.noSearchResults
-                                : locConstants.schemaDesigner.noChangesYet
-                        }
-                    />
-                ) : (
-                    <SchemaDesignerChangesTree
-                        flatTree={flatTree}
-                        flatTreeItems={flatTreeItems}
-                        searchText={searchText}
-                        ariaLabel={locConstants.schemaDesigner.changesPanelTitle(
-                            context.schemaChangesCount,
-                        )}
-                        loc={loc}
-                        onReveal={handleReveal}
-                        onRevert={handleRevert}
-                        getCanRevert={getCanRevert}
-                    />
-                )}
-            </div>
-        </Panel>
+            {hasNoChanges ? (
+                <SchemaDesignerChangesEmptyState
+                    icon={<Checkmark24Regular />}
+                    title={locConstants.schemaDesigner.noChangesYet}
+                    subtitle={locConstants.schemaDesigner.noChangesYetSubtitle}
+                />
+            ) : hasNoResults ? (
+                <SchemaDesignerChangesEmptyState
+                    icon={<Search16Regular />}
+                    title={
+                        hasActiveFiltersOrSearch
+                            ? loc.noSearchResults
+                            : locConstants.schemaDesigner.noChangesYet
+                    }
+                />
+            ) : (
+                <SchemaDesignerChangesTree
+                    flatTree={flatTree}
+                    flatTreeItems={flatTreeItems}
+                    searchText={searchText}
+                    ariaLabel={locConstants.schemaDesigner.changesPanelTitle(
+                        context.schemaChangesCount,
+                    )}
+                    loc={loc}
+                    onReveal={handleReveal}
+                    onRevert={handleRevert}
+                    getCanRevert={getCanRevert}
+                />
+            )}
+        </div>
     );
 };

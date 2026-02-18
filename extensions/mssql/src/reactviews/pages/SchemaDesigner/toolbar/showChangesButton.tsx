@@ -6,10 +6,13 @@
 import { Badge, ToolbarButton, Tooltip, makeStyles } from "@fluentui/react-components";
 import { BranchCompare20Regular } from "@fluentui/react-icons";
 import { useContext } from "react";
-import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
+import {
+    SchemaDesignerDefinitionPanelTab,
+    useSchemaDesignerDefinitionPanelContext,
+} from "../definition/schemaDesignerDefinitionPanelContext";
 
 const useStyles = makeStyles({
     container: {
@@ -30,6 +33,7 @@ const useStyles = makeStyles({
 
 export function ShowChangesButton() {
     const context = useContext(SchemaDesignerContext);
+    const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
     const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
     const isDabEnabled = enableDAB ?? false;
@@ -45,7 +49,7 @@ export function ShowChangesButton() {
             <span className={classes.container}>
                 <ToolbarButton
                     onClick={() => {
-                        eventBus.emit("toggleChangesPanel");
+                        toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Changes);
                     }}
                     icon={<BranchCompare20Regular />}
                 />

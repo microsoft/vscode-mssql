@@ -4,43 +4,131 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import eventBus from "../schemaDesignerEvents";
-import { DefinitionPanel, DesignerDefinitionTabs } from "../../../common/definitionPanel";
+import {
+    DefinitionPanel,
+    DefinitionTabIdentifier,
+    DesignerDefinitionTabs,
+} from "../../../common/definitionPanel";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { useSchemaDesignerDefinitionPanelContext } from "./schemaDesignerDefinitionPanelContext";
+import {
+    SchemaDesignerDefinitionPanelTab,
+    useSchemaDesignerDefinitionPanelContext,
+} from "./schemaDesignerDefinitionPanelContext";
+import { SchemaDesignerChangesTab } from "../changes/schemaDesignerChangesTab";
+import { locConstants } from "../../../common/locConstants";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
+
+type SchemaDesignerDefinitionCustomTabId = SchemaDesignerDefinitionPanelTab;
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const { themeKind } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const { code, setCode, definitionPaneRef } = useSchemaDesignerDefinitionPanelContext();
+    const {
+        code,
+        setCode,
+        definitionPaneRef,
+        setIsChangesPanelVisible,
+        registerToggleDefinitionPanelHandler,
+    } = useSchemaDesignerDefinitionPanelContext();
+    const [isDefinitionPanelVisible, setIsDefinitionPanelVisible] = useState<boolean>(true);
+    const [activeTab, setActiveTab] = useState<
+        DefinitionTabIdentifier<SchemaDesignerDefinitionCustomTabId>
+    >(DesignerDefinitionTabs.Script);
+    const isDabEnabled = enableDAB ?? false;
+
+    const customTabs = useMemo(() => {
+        if (!isDabEnabled) {
+            return [];
+        }
+
+        return [
+            {
+                id: SchemaDesignerDefinitionPanelTab.Changes,
+                label: locConstants.schemaDesigner.changesPanelTitle(context.schemaChangesCount),
+                content: <SchemaDesignerChangesTab />,
+            },
+        ];
+    }, [context.schemaChangesCount, isDabEnabled]);
 
     useEffect(() => {
-        eventBus.on("getScript", () => {
+        const isChangesTabActive = activeTab === SchemaDesignerDefinitionPanelTab.Changes;
+        setIsChangesPanelVisible(isDefinitionPanelVisible && isChangesTabActive);
+    }, [activeTab, isDefinitionPanelVisible, setIsChangesPanelVisible]);
+
+    useEffect(() => {
+        const refreshScript = async () => {
+            const script = await context.getDefinition();
+            setCode(script);
+        };
+
+        const handleGetScript = () => {
             setTimeout(async () => {
-                const script = await context.getDefinition();
-                setCode(script);
+                await refreshScript();
             }, 0);
-        });
-        eventBus.on("openCodeDrawer", () => {
-            setTimeout(async () => {
-                const script = await context.getDefinition();
-                setCode(script);
-            }, 0);
+        };
+
+        const handleToggleDefinitionPanel = (tab: SchemaDesignerDefinitionPanelTab) => {
             if (!definitionPaneRef.current) {
                 return;
             }
-            if (definitionPaneRef.current.isCollapsed()) {
-                definitionPaneRef.current.openPanel(25);
-            } else {
-                definitionPaneRef.current.closePanel();
+
+            if (tab === SchemaDesignerDefinitionPanelTab.Script) {
+                setTimeout(async () => {
+                    await refreshScript();
+                }, 0);
             }
-        });
-    }, []);
+
+            const isCollapsed = definitionPaneRef.current.isCollapsed();
+            const isSameTab = activeTab === tab;
+
+            if (isCollapsed) {
+                setActiveTab(tab);
+                definitionPaneRef.current.openPanel(25);
+                if (tab === SchemaDesignerDefinitionPanelTab.Changes) {
+                    context.setShowChangesHighlight(true);
+                }
+                return;
+            }
+
+            if (isSameTab) {
+                definitionPaneRef.current.closePanel();
+                if (tab === SchemaDesignerDefinitionPanelTab.Changes) {
+                    context.setShowChangesHighlight(false);
+                }
+                return;
+            }
+
+            setActiveTab(tab);
+            if (tab === SchemaDesignerDefinitionPanelTab.Changes) {
+                context.setShowChangesHighlight(true);
+            }
+        };
+
+        eventBus.on("getScript", handleGetScript);
+        const disposeToggleDefinitionHandler = registerToggleDefinitionPanelHandler(
+            handleToggleDefinitionPanel,
+        );
+
+        return () => {
+            eventBus.off("getScript", handleGetScript);
+            disposeToggleDefinitionHandler();
+            setIsChangesPanelVisible(false);
+        };
+    }, [
+        activeTab,
+        context,
+        definitionPaneRef,
+        registerToggleDefinitionPanelHandler,
+        setCode,
+        setIsChangesPanelVisible,
+    ]);
 
     return (
         <DefinitionPanel
@@ -52,7 +140,17 @@ export const SchemaDesignerDefinitionsPanel = () => {
                 openInEditor: context?.openInEditor,
                 copyToClipboard: context?.copyToClipboard,
             }}
-            activeTab={DesignerDefinitionTabs.Script}
+            customTabs={customTabs}
+            activeTab={activeTab}
+            setActiveTab={(tab) => {
+                setActiveTab(tab);
+            }}
+            onPanelVisibilityChange={(isVisible) => {
+                setIsDefinitionPanelVisible(isVisible);
+                if (!isVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
+                    context.setShowChangesHighlight(false);
+                }
+            }}
         />
     );
 };

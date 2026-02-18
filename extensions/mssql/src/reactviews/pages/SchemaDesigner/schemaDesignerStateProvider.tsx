@@ -108,8 +108,6 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     setRenderOnlyVisibleTables: (value: boolean) => void;
     isExporting: boolean;
     setIsExporting: (value: boolean) => void;
-    isChangesPanelVisible: boolean;
-    setIsChangesPanelVisible: (value: boolean) => void;
     showChangesHighlight: boolean;
     setShowChangesHighlight: (value: boolean) => void;
     newTableIds: Set<string>;
@@ -188,7 +186,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
     const skipDeleteConfirmationRef = useRef(false);
-    const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
     const [showChangesHighlight, setShowChangesHighlight] = useState<boolean>(false);
 
     // Baseline schema is fetched from the extension and must survive webview restore.
@@ -1477,8 +1474,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setRenderOnlyVisibleTables,
                 isExporting,
                 setIsExporting,
-                isChangesPanelVisible,
-                setIsChangesPanelVisible,
                 showChangesHighlight,
                 setShowChangesHighlight,
                 newTableIds,
