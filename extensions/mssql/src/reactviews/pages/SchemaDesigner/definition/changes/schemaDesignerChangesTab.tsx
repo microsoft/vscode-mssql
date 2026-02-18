@@ -37,26 +37,85 @@ const useStyles = makeStyles({
 
 export const useSchemaDesignerChangesCustomTab = () => {
     const context = useContext(SchemaDesignerContext);
+    const [searchText, setSearchText] = useState("");
+    const [actionFilters, setActionFilters] = useState<ChangeAction[]>([]);
+    const [categoryFilters, setCategoryFilters] = useState<ChangeCategory[]>([]);
+    const hasNoChanges = context.structuredSchemaChanges.length === 0;
+    const hasActiveFilters = actionFilters.length > 0 || categoryFilters.length > 0;
+
+    const toggleActionFilter = useCallback((action: ChangeAction) => {
+        setActionFilters((prev) =>
+            prev.includes(action) ? prev.filter((value) => value !== action) : [...prev, action],
+        );
+    }, []);
+
+    const toggleCategoryFilter = useCallback((category: ChangeCategory) => {
+        setCategoryFilters((prev) =>
+            prev.includes(category)
+                ? prev.filter((value) => value !== category)
+                : [...prev, category],
+        );
+    }, []);
+
+    const clearFilters = useCallback(() => {
+        setActionFilters([]);
+        setCategoryFilters([]);
+    }, []);
 
     return useMemo(
         () => ({
             id: SchemaDesignerDefinitionPanelTab.Changes,
             label: locConstants.schemaDesigner.changesPanelTitle(context.schemaChangesCount),
-            content: <SchemaDesignerChangesTab />,
+            headerActions: hasNoChanges ? undefined : (
+                <SchemaDesignerChangesFilters
+                    searchText={searchText}
+                    onSearchTextChange={setSearchText}
+                    selectedActions={actionFilters}
+                    onToggleAction={toggleActionFilter}
+                    selectedCategories={categoryFilters}
+                    onToggleCategory={toggleCategoryFilter}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={clearFilters}
+                />
+            ),
+            content: (
+                <SchemaDesignerChangesTab
+                    searchText={searchText}
+                    selectedActions={actionFilters}
+                    selectedCategories={categoryFilters}
+                />
+            ),
         }),
-        [context.schemaChangesCount],
+        [
+            actionFilters,
+            categoryFilters,
+            clearFilters,
+            context.schemaChangesCount,
+            hasActiveFilters,
+            hasNoChanges,
+            searchText,
+            toggleActionFilter,
+            toggleCategoryFilter,
+        ],
     );
 };
 
-export const SchemaDesignerChangesTab = () => {
+type SchemaDesignerChangesTabProps = {
+    searchText: string;
+    selectedActions: ChangeAction[];
+    selectedCategories: ChangeCategory[];
+};
+
+export const SchemaDesignerChangesTab = ({
+    searchText,
+    selectedActions,
+    selectedCategories,
+}: SchemaDesignerChangesTabProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
     const { setIsChangesPanelVisible } = useSchemaDesignerDefinitionPanelContext();
 
-    const [searchText, setSearchText] = useState("");
     const [openItems, setOpenItems] = useState<Set<TreeItemValue>>(new Set());
-    const [actionFilters, setActionFilters] = useState<ChangeAction[]>([]);
-    const [categoryFilters, setCategoryFilters] = useState<ChangeCategory[]>([]);
 
     const loc = locConstants.schemaDesigner.changesPanel;
 
@@ -74,8 +133,8 @@ export const SchemaDesignerChangesTab = () => {
 
         const lowerSearch = searchText.toLowerCase().trim();
         const hasSearchText = lowerSearch.length > 0;
-        const hasActionFilter = actionFilters.length > 0;
-        const hasCategoryFilter = categoryFilters.length > 0;
+        const hasActionFilter = selectedActions.length > 0;
+        const hasCategoryFilter = selectedCategories.length > 0;
 
         // If no filters active, return all groups
         if (!hasSearchText && !hasActionFilter && !hasCategoryFilter) {
@@ -93,12 +152,12 @@ export const SchemaDesignerChangesTab = () => {
                 // Filter changes based on all criteria
                 const matchingChanges = group.changes.filter((change) => {
                     // Apply action filter
-                    if (hasActionFilter && !actionFilters.includes(change.action)) {
+                    if (hasActionFilter && !selectedActions.includes(change.action)) {
                         return false;
                     }
 
                     // Apply category filter
-                    if (hasCategoryFilter && !categoryFilters.includes(change.category)) {
+                    if (hasCategoryFilter && !selectedCategories.includes(change.category)) {
                         return false;
                     }
 
@@ -142,7 +201,7 @@ export const SchemaDesignerChangesTab = () => {
                 return undefined;
             })
             .filter((g): g is TableChangeGroup => g !== undefined);
-    }, [context.schemaChangesSummary, searchText, actionFilters, categoryFilters]);
+    }, [context.schemaChangesSummary, searchText, selectedActions, selectedCategories]);
 
     const getChangeDescription = useCallback((change: SchemaChange) => {
         if (change.action === ChangeAction.Modify) {
@@ -239,43 +298,12 @@ export const SchemaDesignerChangesTab = () => {
     );
 
     const hasNoChanges = context.structuredSchemaChanges.length === 0;
-    const hasActiveFilters = actionFilters.length > 0 || categoryFilters.length > 0;
     const hasActiveFiltersOrSearch =
-        searchText.trim() !== "" || actionFilters.length > 0 || categoryFilters.length > 0;
+        searchText.trim() !== "" || selectedActions.length > 0 || selectedCategories.length > 0;
     const hasNoResults = filteredGroups.length === 0 && !hasNoChanges;
-
-    const toggleActionFilter = useCallback((action: ChangeAction) => {
-        setActionFilters((prev) =>
-            prev.includes(action) ? prev.filter((value) => value !== action) : [...prev, action],
-        );
-    }, []);
-
-    const toggleCategoryFilter = useCallback((category: ChangeCategory) => {
-        setCategoryFilters((prev) =>
-            prev.includes(category)
-                ? prev.filter((value) => value !== category)
-                : [...prev, category],
-        );
-    }, []);
 
     return (
         <div className={classes.container}>
-            {!hasNoChanges && (
-                <SchemaDesignerChangesFilters
-                    searchText={searchText}
-                    onSearchTextChange={setSearchText}
-                    selectedActions={actionFilters}
-                    onToggleAction={toggleActionFilter}
-                    selectedCategories={categoryFilters}
-                    onToggleCategory={toggleCategoryFilter}
-                    hasActiveFilters={hasActiveFilters}
-                    onClearFilters={() => {
-                        setActionFilters([]);
-                        setCategoryFilters([]);
-                    }}
-                />
-            )}
-
             {hasNoChanges ? (
                 <SchemaDesignerChangesEmptyState
                     icon={<Checkmark24Regular />}

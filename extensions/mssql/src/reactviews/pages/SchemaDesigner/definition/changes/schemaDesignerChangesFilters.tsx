@@ -11,9 +11,9 @@ import { SchemaDesignerChangesFilterButton } from "./schemaDesignerChangesFilter
 
 const useStyles = makeStyles({
     searchContainer: {
-        padding: "8px",
-        borderBottom: "1px solid var(--vscode-editorWidget-border)",
-        flexShrink: 0,
+        padding: 0,
+        borderBottom: 0,
+        minWidth: "320px",
     },
     searchInput: {
         width: "100%",
