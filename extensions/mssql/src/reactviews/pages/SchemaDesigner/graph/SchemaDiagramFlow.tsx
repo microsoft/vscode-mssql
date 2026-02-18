@@ -220,7 +220,7 @@ export const SchemaDesignerFlow = () => {
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
                 setTimeout(() => {
-                    eventBus.emit("getScript");
+                    context.notifySchemaChanged();
                 }, 0);
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
@@ -398,7 +398,7 @@ export const SchemaDesignerFlow = () => {
         setRelationshipEdges((eds) => addEdge(newEdge, eds));
 
         // Update create script
-        eventBus.emit("getScript");
+        context.notifySchemaChanged();
         eventBus.emit("pushState");
     };
 
@@ -598,7 +598,7 @@ export const SchemaDesignerFlow = () => {
                     setEdgeUndoState(null);
                 }}
                 onDelete={() => {
-                    eventBus.emit("getScript");
+                    context.notifySchemaChanged();
                     eventBus.emit("pushState");
                 }}
                 onNodeDragStop={() => {

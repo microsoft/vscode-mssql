@@ -171,7 +171,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     const notifySchemaChanged = useCallback(() => {
         setSchemaRevision((revision) => revision + 1);
-    }, [notifySchemaChanged]);
+    }, []);
 
     useEffect(() => {
         extractSchemaRef.current = extractSchema;
