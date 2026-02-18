@@ -121,6 +121,7 @@ export class HttpClient {
 			});
 
 			writer.on('error', (err: Error) => {
+				stream.destroy(err);
 				reject(err);
 			});
 		});
