@@ -166,7 +166,7 @@ const useStyles = makeStyles({
         fontWeight: 600,
     },
     changeDescription: {
-        margin: "8px 0 12px",
+        margin: "8px 12px 12px 0",
         color: "var(--vscode-descriptionForeground)",
     },
     changeActions: {
@@ -570,14 +570,14 @@ export const ChangelogPage = () => {
                     </div>
 
                     <div className={classes.sidebarStack}>
-                        {sidebarContent.map((entry) => (
-                            <Card className={classes.sidebarCard}>
+                        {sidebarContent.map((entry, i) => (
+                            <Card key={entry.title || i} className={classes.sidebarCard}>
                                 <h3 className={classes.changeTitle}>{entry.title}</h3>
                                 <Text>{entry.description}</Text>
                                 <div className={classes.list}>
-                                    {entry.actions?.map((action, index) => (
-                                        <>
-                                            {action.type === "link" && (
+                                    {entry.actions?.map((action, index) => {
+                                        if (action.type === "link") {
+                                            return (
                                                 <Link
                                                     key={`${action.label}-${index}`}
                                                     className={classes.listItem}
@@ -585,8 +585,9 @@ export const ChangelogPage = () => {
                                                     {getActionIcon(action.icon)}
                                                     {action.label}
                                                 </Link>
-                                            )}
-                                            {action.type === "walkthrough" && (
+                                            );
+                                        } else if (action.type === "walkthrough") {
+                                            return (
                                                 <Link
                                                     key={`${action.label}-${index}`}
                                                     className={classes.listItem}
@@ -594,9 +595,10 @@ export const ChangelogPage = () => {
                                                     {getActionIcon(action.icon)}
                                                     {action.label}
                                                 </Link>
-                                            )}
-                                        </>
-                                    ))}
+                                            );
+                                        }
+                                        return undefined;
+                                    })}
                                 </div>
                             </Card>
                         ))}
