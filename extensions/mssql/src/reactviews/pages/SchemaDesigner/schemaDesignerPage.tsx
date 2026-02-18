@@ -48,15 +48,7 @@ export const SchemaDesignerPage = () => {
                     </SchemaDesignerDefinitionPanelProvider>
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
-                {context?.initializationError && (
-                    <ErrorDialog
-                        open={!!context?.initializationError}
-                        title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
-                        message={context?.initializationError ?? ""}
-                        retryLabel={locConstants.schemaDesigner.retry}
-                        onRetry={context?.triggerInitialization}
-                    />
-                )}
+                {context?.initializationError && <InitializationErrorDialog />}
             </MainLayout>
         </>
     );
@@ -117,3 +109,21 @@ const LoadingOverlay = () => (
         <Spinner label={locConstants.schemaDesigner.loadingSchemaDesigner} labelPosition="below" />
     </div>
 );
+
+const InitializationErrorDialog = () => {
+    const context = useContext(SchemaDesignerContext);
+
+    if (!context?.initializationError) {
+        return undefined;
+    }
+
+    return (
+        <ErrorDialog
+            open={!!context.initializationError}
+            title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
+            message={context.initializationError}
+            retryLabel={locConstants.schemaDesigner.retry}
+            onRetry={context.triggerInitialization}
+        />
+    );
+};
