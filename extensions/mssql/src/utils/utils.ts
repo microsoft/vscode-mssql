@@ -103,7 +103,7 @@ export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>
  * @returns A unique string key for the URI.
  */
 export function getUriKey(uri: vscode.Uri): string {
-    return uri?.toString(true);
+    return uri?.toString();
 }
 
 /**

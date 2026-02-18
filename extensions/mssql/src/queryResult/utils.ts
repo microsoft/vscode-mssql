@@ -47,9 +47,7 @@ export function getNewResultPaneViewColumn(
         case "next":
         default:
             const currentEditor = vscode.window.visibleTextEditors.find((editor) => {
-                return (
-                    editor.document.uri.toString(true) === uri && editor.viewColumn !== undefined
-                );
+                return editor.document.uri.toString() === uri && editor.viewColumn !== undefined;
             });
             if (!currentEditor) {
                 return vscode.ViewColumn.One;

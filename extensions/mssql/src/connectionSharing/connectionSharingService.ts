@@ -332,7 +332,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const activeEditorUri = activeEditor.document.uri.toString(true);
+        const activeEditorUri = activeEditor.document.uri.toString();
         const isConnected = this._connectionManager.isConnected(activeEditorUri);
 
         if (!isConnected) {
@@ -359,7 +359,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const activeEditorUri = activeEditor.document.uri.toString(true);
+        const activeEditorUri = activeEditor.document.uri.toString();
         const isConnected = this._connectionManager.isConnected(activeEditorUri);
 
         if (!isConnected) {
