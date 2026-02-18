@@ -16,6 +16,7 @@ import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ErrorDialog } from "../../common/errorDialog";
 import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesignerDefinitionPanelContext";
+import { SchemaDesignerChangeProvider } from "./definition/changes/schemaDesignerChangeContext";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -37,14 +38,16 @@ export const SchemaDesignerPage = () => {
             <MainLayout>
                 <PanelGroup direction="vertical">
                     <SchemaDesignerDefinitionPanelProvider>
-                        <Panel defaultSize={100}>
-                            <GraphContainer>
-                                <SchemaDesignerToolbar />
-                                <SchemaDesignerFlow />
-                            </GraphContainer>
-                        </Panel>
-                        <PanelResizeHandle className={classes.resizeHandle} />
-                        <SchemaDesignerDefinitionsPanel />
+                        <SchemaDesignerChangeProvider>
+                            <Panel defaultSize={100}>
+                                <GraphContainer>
+                                    <SchemaDesignerToolbar />
+                                    <SchemaDesignerFlow />
+                                </GraphContainer>
+                            </Panel>
+                            <PanelResizeHandle className={classes.resizeHandle} />
+                            <SchemaDesignerDefinitionsPanel />
+                        </SchemaDesignerChangeProvider>
                     </SchemaDesignerDefinitionPanelProvider>
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && <LoadingOverlay />}

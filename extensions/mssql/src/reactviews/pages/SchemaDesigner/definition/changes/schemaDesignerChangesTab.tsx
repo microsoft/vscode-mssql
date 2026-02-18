@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
 import { locConstants } from "../../../../common/locConstants";
 import { SchemaDesignerChangesToolbar } from "./schemaDesignerChangesToolbar";
 import { SegmentedControl } from "../../../../common/segmentedControl";
@@ -17,6 +16,7 @@ import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "../schemaDesignerDefinitionPanelContext";
+import { useSchemaDesignerChangeContext } from "./schemaDesignerChangeContext";
 
 const useStyles = makeStyles({
     container: {
@@ -39,14 +39,14 @@ const useStyles = makeStyles({
 });
 
 export const useSchemaDesignerChangesCustomTab = () => {
-    const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
     const classes = useStyles();
     const changesPanelLoc = locConstants.schemaDesigner.changesPanel;
     const [searchText, setSearchText] = useState("");
     const [actionFilters, setActionFilters] = useState<ChangeAction[]>([]);
     const [categoryFilters, setCategoryFilters] = useState<ChangeCategory[]>([]);
     const { changesViewMode, setChangesViewMode } = useSchemaDesignerDefinitionPanelContext();
-    const hasNoChanges = context.structuredSchemaChanges.length === 0;
+    const hasNoChanges = changeContext.structuredSchemaChanges.length === 0;
     const hasActiveFilters = actionFilters.length > 0 || categoryFilters.length > 0;
 
     const toggleActionFilter = useCallback((action: ChangeAction) => {
@@ -71,7 +71,7 @@ export const useSchemaDesignerChangesCustomTab = () => {
     return useMemo(
         () => ({
             id: SchemaDesignerDefinitionPanelTab.Changes,
-            label: locConstants.schemaDesigner.changesPanelTitle(context.schemaChangesCount),
+            label: locConstants.schemaDesigner.changesPanelTitle(changeContext.schemaChangesCount),
             headerActions: (
                 <div className={classes.headerActions}>
                     {changesViewMode === SchemaDesignerChangesViewMode.SchemaChanges &&
@@ -124,7 +124,7 @@ export const useSchemaDesignerChangesCustomTab = () => {
             clearFilters,
             classes.headerActions,
             classes.viewModeSegmented,
-            context.schemaChangesCount,
+            changeContext.schemaChangesCount,
             changesPanelLoc.viewModeAriaLabel,
             changesPanelLoc.viewModeSchemaChanges,
             changesPanelLoc.viewModeSchemaDiff,

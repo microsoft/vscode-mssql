@@ -5,14 +5,13 @@
 
 import { Badge, ToolbarButton, Tooltip, makeStyles } from "@fluentui/react-components";
 import { BranchCompare20Regular } from "@fluentui/react-icons";
-import { useContext } from "react";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
 import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 
 const useStyles = makeStyles({
     container: {
@@ -32,7 +31,7 @@ const useStyles = makeStyles({
 });
 
 export function ShowChangesButton() {
-    const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
     const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
@@ -44,7 +43,9 @@ export function ShowChangesButton() {
 
     return (
         <Tooltip
-            content={locConstants.schemaDesigner.showChangesButtonLabel(context.schemaChangesCount)}
+            content={locConstants.schemaDesigner.showChangesButtonLabel(
+                changeContext.schemaChangesCount,
+            )}
             relationship="label">
             <span className={classes.container}>
                 <ToolbarButton
@@ -53,9 +54,9 @@ export function ShowChangesButton() {
                     }}
                     icon={<BranchCompare20Regular />}
                 />
-                {context.schemaChangesCount > 0 && (
+                {changeContext.schemaChangesCount > 0 && (
                     <Badge size="small" className={classes.badge}>
-                        {context.schemaChangesCount}
+                        {changeContext.schemaChangesCount}
                     </Badge>
                 )}
             </span>

@@ -18,6 +18,7 @@ import { describeChange } from "../../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
 import { useSchemaDesignerDefinitionPanelContext } from "../schemaDesignerDefinitionPanelContext";
+import { useSchemaDesignerChangeContext } from "./schemaDesignerChangeContext";
 
 const useStyles = makeStyles({
     container: {
@@ -43,6 +44,7 @@ export const SchemaDesignerChangesListView = ({
     selectedCategories,
 }: SchemaDesignerChangesListViewProps) => {
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
     const classes = useStyles();
     const { setIsChangesPanelVisible } = useSchemaDesignerDefinitionPanelContext();
 
@@ -58,7 +60,7 @@ export const SchemaDesignerChangesListView = ({
     }, [setIsChangesPanelVisible]);
 
     const filteredGroups = useMemo(() => {
-        if (!context.schemaChangesSummary?.groups) {
+        if (!changeContext.schemaChangesSummary?.groups) {
             return [];
         }
 
@@ -68,10 +70,10 @@ export const SchemaDesignerChangesListView = ({
         const hasCategoryFilter = selectedCategories.length > 0;
 
         if (!hasSearchText && !hasActionFilter && !hasCategoryFilter) {
-            return context.schemaChangesSummary.groups;
+            return changeContext.schemaChangesSummary.groups;
         }
 
-        return context.schemaChangesSummary.groups
+        return changeContext.schemaChangesSummary.groups
             .map((group) => {
                 const tableMatchesSearch =
                     !hasSearchText ||
@@ -132,7 +134,7 @@ export const SchemaDesignerChangesListView = ({
                 return undefined;
             })
             .filter((group): group is TableChangeGroup => group !== undefined);
-    }, [context.schemaChangesSummary, searchText, selectedActions, selectedCategories]);
+    }, [changeContext.schemaChangesSummary, searchText, selectedActions, selectedCategories]);
 
     const getChangeDescription = useCallback((change: SchemaChange) => {
         if (change.action === ChangeAction.Modify) {
@@ -211,19 +213,19 @@ export const SchemaDesignerChangesListView = ({
 
     const handleRevert = useCallback(
         (change: SchemaChange) => {
-            context.revertChange(change);
+            changeContext.revertChange(change);
         },
-        [context],
+        [changeContext],
     );
 
     const getCanRevert = useCallback(
         (change: SchemaChange) => {
-            return context.canRevertChange(change);
+            return changeContext.canRevertChange(change);
         },
-        [context],
+        [changeContext],
     );
 
-    const hasNoChanges = context.structuredSchemaChanges.length === 0;
+    const hasNoChanges = changeContext.structuredSchemaChanges.length === 0;
     const hasActiveFiltersOrSearch =
         searchText.trim() !== "" || selectedActions.length > 0 || selectedCategories.length > 0;
     const hasNoResults = filteredGroups.length === 0 && !hasNoChanges;
@@ -251,7 +253,7 @@ export const SchemaDesignerChangesListView = ({
                     flatTreeItems={flatTreeItems}
                     searchText={searchText}
                     ariaLabel={locConstants.schemaDesigner.changesPanelTitle(
-                        context.schemaChangesCount,
+                        changeContext.schemaChangesCount,
                     )}
                     loc={loc}
                     onReveal={handleReveal}

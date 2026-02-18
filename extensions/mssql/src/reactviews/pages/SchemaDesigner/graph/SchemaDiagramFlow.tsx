@@ -64,6 +64,7 @@ import eventBus from "../schemaDesignerEvents";
 import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -81,6 +82,7 @@ export const SchemaDesignerFlow = () => {
 
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
 
     // State for nodes and edges
     const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
@@ -118,13 +120,13 @@ export const SchemaDesignerFlow = () => {
         const nextEdges = relationshipEdges.map((edge) => {
             const foreignKeyId = edge.data?.id;
             const shouldHighlight =
-                context.showChangesHighlight &&
+                changeContext.showChangesHighlight &&
                 !!foreignKeyId &&
-                context.newForeignKeyIds.has(foreignKeyId);
+                changeContext.newForeignKeyIds.has(foreignKeyId);
             const shouldShowModified =
-                context.showChangesHighlight &&
+                changeContext.showChangesHighlight &&
                 !!foreignKeyId &&
-                context.modifiedForeignKeyIds.has(foreignKeyId);
+                changeContext.modifiedForeignKeyIds.has(foreignKeyId);
 
             const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
             const classSet = new Set(baseClass);
@@ -152,42 +154,49 @@ export const SchemaDesignerFlow = () => {
 
         return didChange ? nextEdges : relationshipEdges;
     }, [
-        context.showChangesHighlight,
-        context.newForeignKeyIds,
-        context.modifiedForeignKeyIds,
+        changeContext.showChangesHighlight,
+        changeContext.newForeignKeyIds,
+        changeContext.modifiedForeignKeyIds,
         relationshipEdges,
     ]);
 
     const displayEdges = useMemo(() => {
-        if (!context.showChangesHighlight || context.deletedForeignKeyEdges.length === 0) {
+        if (
+            !changeContext.showChangesHighlight ||
+            changeContext.deletedForeignKeyEdges.length === 0
+        ) {
             return highlightedEdges;
         }
 
-        return [...highlightedEdges, ...context.deletedForeignKeyEdges];
-    }, [context.deletedForeignKeyEdges, context.showChangesHighlight, highlightedEdges]);
+        return [...highlightedEdges, ...changeContext.deletedForeignKeyEdges];
+    }, [
+        changeContext.deletedForeignKeyEdges,
+        changeContext.showChangesHighlight,
+        highlightedEdges,
+    ]);
 
     const displayNodes = useMemo(() => {
-        if (!context.showChangesHighlight) {
+        if (!changeContext.showChangesHighlight) {
             return schemaNodes;
         }
 
         return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
-    }, [context.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
+    }, [changeContext.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
 
     useEffect(() => {
-        if (!context.showChangesHighlight) {
+        if (!changeContext.showChangesHighlight) {
             setEdgeUndoState(null);
         }
-    }, [context.showChangesHighlight]);
+    }, [changeContext.showChangesHighlight]);
 
     useEffect(() => {
         setDeletedSchemaNodes((prev) => {
-            if (context.deletedTableNodes.length === 0) {
+            if (changeContext.deletedTableNodes.length === 0) {
                 return [];
             }
 
             const prevById = new Map(prev.map((node) => [node.id, node]));
-            return context.deletedTableNodes.map((node) => {
+            return changeContext.deletedTableNodes.map((node) => {
                 const existing = prevById.get(node.id);
                 if (!existing) {
                     return node;
@@ -199,7 +208,7 @@ export const SchemaDesignerFlow = () => {
                 };
             });
         });
-    }, [context.deletedTableNodes]);
+    }, [changeContext.deletedTableNodes]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -511,7 +520,7 @@ export const SchemaDesignerFlow = () => {
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
                 onEdgeMouseEnter={(event, edge) => {
-                    if (!context.showChangesHighlight || context.isExporting) {
+                    if (!changeContext.showChangesHighlight || context.isExporting) {
                         setEdgeUndoState(null);
                         return;
                     }
@@ -527,9 +536,9 @@ export const SchemaDesignerFlow = () => {
                     );
                     const changeAction = isDeleted
                         ? ChangeAction.Delete
-                        : context.newForeignKeyIds.has(foreignKeyId)
+                        : changeContext.newForeignKeyIds.has(foreignKeyId)
                           ? ChangeAction.Add
-                          : context.modifiedForeignKeyIds.has(foreignKeyId)
+                          : changeContext.modifiedForeignKeyIds.has(foreignKeyId)
                             ? ChangeAction.Modify
                             : undefined;
 
@@ -570,7 +579,7 @@ export const SchemaDesignerFlow = () => {
 
                     const x = event.clientX - rect.left + 6;
                     const y = event.clientY - rect.top - 6;
-                    const revertInfo = context.canRevertChange(change);
+                    const revertInfo = changeContext.canRevertChange(change);
                     setEdgeUndoState({
                         change,
                         canRevert: revertInfo.canRevert,
@@ -610,19 +619,21 @@ export const SchemaDesignerFlow = () => {
                     {context.isDabEnabled() && (
                         <ControlButton
                             onClick={() =>
-                                context.setShowChangesHighlight(!context.showChangesHighlight)
+                                changeContext.setShowChangesHighlight(
+                                    !changeContext.showChangesHighlight,
+                                )
                             }
                             title={
-                                context.showChangesHighlight
+                                changeContext.showChangesHighlight
                                     ? locConstants.schemaDesigner.hideChangesHighlight
                                     : locConstants.schemaDesigner.highlightChanges
                             }
                             aria-label={
-                                context.showChangesHighlight
+                                changeContext.showChangesHighlight
                                     ? locConstants.schemaDesigner.hideChangesHighlight
                                     : locConstants.schemaDesigner.highlightChanges
                             }>
-                            {context.showChangesHighlight ? (
+                            {changeContext.showChangesHighlight ? (
                                 <BranchCompare16Filled />
                             ) : (
                                 <BranchCompare16Regular />
@@ -728,7 +739,7 @@ export const SchemaDesignerFlow = () => {
                                 appearance="primary"
                                 onClick={() => {
                                     if (pendingEdgeUndoChange) {
-                                        context.revertChange(pendingEdgeUndoChange);
+                                        changeContext.revertChange(pendingEdgeUndoChange);
                                     }
                                     setEdgeUndoDialogOpen(false);
                                     setEdgeUndoState(null);

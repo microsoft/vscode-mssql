@@ -5,7 +5,6 @@
 
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useEffect, useState } from "react";
-import eventBus from "../schemaDesignerEvents";
 import { DefinitionPanel } from "../../../common/definitionPanel";
 import {
     SchemaDesignerDefinitionPanelTab,
@@ -14,9 +13,11 @@ import {
 import { useSchemaDesignerChangesCustomTab } from "./changes/schemaDesignerChangesTab";
 import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
+import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
     const {
         setCode,
         initializeBaselineDefinition,
@@ -38,28 +39,38 @@ export const SchemaDesignerDefinitionsPanel = () => {
     }, [activeTab, isDefinitionPanelVisible, setIsChangesPanelVisible]);
 
     useEffect(() => {
-        const refreshScript = async () => {
-            const [script, baselineScript] = await Promise.all([
-                context.getDefinition(),
-                context.getBaselineDefinition(),
-            ]);
-            initializeBaselineDefinition(baselineScript);
-            setCode(script);
-        };
+        if (!context.isInitialized) {
+            return;
+        }
 
-        const handleGetScript = () => {
-            setTimeout(async () => {
-                await refreshScript();
-            }, 0);
-        };
-
-        eventBus.on("getScript", handleGetScript);
+        const rafId = requestAnimationFrame(() => {
+            void (async () => {
+                const [script, baselineScript] = await Promise.all([
+                    context.getDefinition(),
+                    context.getBaselineDefinition(),
+                ]);
+                initializeBaselineDefinition(baselineScript);
+                setCode(script);
+            })();
+        });
 
         return () => {
-            eventBus.off("getScript", handleGetScript);
+            cancelAnimationFrame(rafId);
+        };
+    }, [
+        context,
+        context.baselineRevision,
+        context.isInitialized,
+        context.schemaRevision,
+        initializeBaselineDefinition,
+        setCode,
+    ]);
+
+    useEffect(() => {
+        return () => {
             setIsChangesPanelVisible(false);
         };
-    }, [context, initializeBaselineDefinition, setCode, setIsChangesPanelVisible]);
+    }, [setIsChangesPanelVisible]);
 
     useEffect(() => {
         const panel = definitionPaneRef.current;
@@ -73,13 +84,14 @@ export const SchemaDesignerDefinitionsPanel = () => {
         }
 
         if (!isPanelVisible || activeTab !== SchemaDesignerDefinitionPanelTab.Changes) {
-            context.setShowChangesHighlight(false);
+            changeContext.setShowChangesHighlight(false);
             return;
         }
 
-        context.setShowChangesHighlight(true);
+        changeContext.setShowChangesHighlight(true);
     }, [
         activeTab,
+        changeContext,
         context,
         definitionPaneRef,
         initializeBaselineDefinition,
@@ -99,7 +111,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
             onPanelVisibilityChange={(isVisible) => {
                 setIsDefinitionPanelVisible(isVisible);
                 if (!isVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
-                    context.setShowChangesHighlight(false);
+                    changeContext.setShowChangesHighlight(false);
                 }
             }}
         />
