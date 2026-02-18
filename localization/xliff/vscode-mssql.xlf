@@ -722,6 +722,9 @@
     <trans-unit id="++CODE++35c09389e41adb1bb2bf8991c39e3927981a271ab80a41ec216995e909344c23">
       <source xml:lang="en">Changes saved successfully.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a49c556a0c0853ed9f434360953ce0088ffa041d83bff7c0ba57f7ce9c668186">
+      <source xml:lang="en">Changes view mode</source>
+    </trans-unit>
     <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
       <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
       <note>{0} is the database name
@@ -4864,6 +4867,9 @@
       <source xml:lang="en">Schema &apos;{0}&apos; is not available.</source>
       <note>{0} is the schema name</note>
     </trans-unit>
+    <trans-unit id="++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a">
+      <source xml:lang="en">Schema Changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
@@ -4879,6 +4885,9 @@
     </trans-unit>
     <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
       <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
+      <source xml:lang="en">Schema Diff</source>
     </trans-unit>
     <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
       <source xml:lang="en">Schema designer is not initialized.</source>
