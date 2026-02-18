@@ -180,6 +180,7 @@ suite("Utility tests - getUriKey", () => {
         const uri = vscode.Uri.file("/tmp/path%20to%20workspace/test.sql");
         const key = utilUtils.getUriKey(uri);
 
+        // A literal '%' in the original path should be encoded as '%25', turning '%20' into '%2520'.
         expect(key).to.contain("%2520");
     });
 
@@ -187,7 +188,9 @@ suite("Utility tests - getUriKey", () => {
         const uri = vscode.Uri.parse("file:///tmp/report%2Fname%5Cwith%5Cseparators.sql");
         const key = utilUtils.getUriKey(uri);
 
+        // '%2F' is normalized to '/', so the filename segment is split by a forward slash.
         expect(key).to.contain("/report/name");
+        // Encoded backslashes remain percent-encoded in the URI string key.
         expect(key.toLowerCase()).to.contain("%5c");
     });
 
@@ -195,6 +198,7 @@ suite("Utility tests - getUriKey", () => {
         const uri = vscode.Uri.file("/tmp/multi%%%percent.sql");
         const key = utilUtils.getUriKey(uri);
 
+        // Each consecutive '%' should be encoded independently.
         expect(key).to.contain("%25%25%25");
     });
 
@@ -202,14 +206,18 @@ suite("Utility tests - getUriKey", () => {
         const uri = vscode.Uri.parse("untitled:query%20buffer.sql");
         const key = utilUtils.getUriKey(uri);
 
+        // getUriKey should return the URI's canonical string representation for non-file schemes too.
         expect(key).to.equal(uri.toString());
+        // Scheme prefix should be preserved to avoid collisions across URI types.
         expect(key).to.match(/^untitled:/);
     });
 
     test("handles empty and nullish uri values", () => {
         const emptyPathUri = vscode.Uri.from({ scheme: "file", path: "" });
 
+        // Empty but valid URIs should still round-trip via toString().
         expect(utilUtils.getUriKey(emptyPathUri)).to.equal(emptyPathUri.toString());
+        // Nullish inputs should not throw and should return undefined.
         expect(utilUtils.getUriKey(undefined as unknown as vscode.Uri)).to.equal(undefined);
         expect(utilUtils.getUriKey(null as unknown as vscode.Uri)).to.equal(undefined);
     });
