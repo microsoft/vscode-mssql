@@ -950,6 +950,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Changes saved successfully.</source>
         <target state="translated">Die Änderungen wurden erfolgreich gespeichert.</target>
       </trans-unit>
+      <trans-unit id="++CODE++a49c556a0c0853ed9f434360953ce0088ffa041d83bff7c0ba57f7ce9c668186">
+        <source xml:lang="en">Changes view mode</source>
+        <target state="new">Changes view mode</target>
+      </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
@@ -6385,6 +6389,10 @@ Abfrage: {2}</target>
         <note>{0} is the schema name</note>
         <target state="translated">Schema „{0}“ ist nicht verfügbar.</target>
       </trans-unit>
+      <trans-unit id="++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a">
+        <source xml:lang="en">Schema Changes</source>
+        <target state="new">Schema Changes</target>
+      </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">Schemavergleich</target>
@@ -6405,6 +6413,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">Das Schema-Designer-Modell ist bereit. Änderungen können jetzt veröffentlicht werden.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
+        <source xml:lang="en">Schema Diff</source>
+        <target state="new">Schema Diff</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
