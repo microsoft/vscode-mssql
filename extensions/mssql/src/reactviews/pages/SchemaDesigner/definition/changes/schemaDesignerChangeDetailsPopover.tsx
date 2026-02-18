@@ -20,8 +20,8 @@ import {
     Key20Regular,
     Table20Regular,
 } from "@fluentui/react-icons";
-import { locConstants } from "../../../common/locConstants";
-import { ChangeCategory, type PropertyChange, type SchemaChange } from "../diff/diffUtils";
+import { locConstants } from "../../../../common/locConstants";
+import { ChangeCategory, type PropertyChange, type SchemaChange } from "../../diff/diffUtils";
 
 const useStyles = makeStyles({
     badgeButton: {

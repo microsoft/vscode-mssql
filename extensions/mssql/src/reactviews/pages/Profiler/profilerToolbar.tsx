@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
     Tooltip,
     ToggleButton,
+    Input,
 } from "@fluentui/react-components";
 import {
     Play24Regular,
@@ -19,6 +20,7 @@ import {
     Next24Regular,
     EraserRegular,
     Add24Regular,
+    FilterDismiss24Regular,
     ArrowExportRegular,
 } from "@fluentui/react-icons";
 import {
@@ -45,6 +47,10 @@ export interface ProfilerToolbarProps {
     autoScroll: boolean;
     /** Whether a session is being created */
     isCreatingSession?: boolean;
+    /** Whether a filter is currently active */
+    isFilterActive: boolean;
+    /** Current quick filter term */
+    quickFilterTerm: string;
     /** Whether this is a read-only file-based session */
     isReadOnly?: boolean;
     /** XEL file name if this is a file-based session */
@@ -67,6 +73,10 @@ export interface ProfilerToolbarProps {
     onViewChange: (viewId: string) => void;
     /** Callback when auto-scroll is toggled */
     onAutoScrollToggle: () => void;
+    /** Callback when clear filter is clicked */
+    onClearFilter: () => void;
+    /** Callback when quick filter changes (debounced by consumer) */
+    onQuickFilterChange: (term: string) => void;
     /** Callback when export to CSV is clicked */
     onExportToCsv: () => void;
 }
@@ -80,6 +90,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     selectedSessionId,
     autoScroll,
     isCreatingSession,
+    isFilterActive,
     isReadOnly,
     xelFileName,
     totalEventCount,
@@ -91,6 +102,9 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     onClear,
     onViewChange,
     onAutoScrollToggle,
+    onClearFilter,
+    quickFilterTerm,
+    onQuickFilterChange,
     onExportToCsv,
 }) => {
     const isRunning = sessionState === SessionState.Running;
@@ -99,6 +113,32 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
         sessionState === SessionState.Stopped || sessionState === SessionState.NotStarted;
     const isActive = isRunning || isPaused;
     const hasTemplates = availableTemplates && availableTemplates.length > 0;
+
+    // Quick filter with debounce
+    const [localQuickFilter, setLocalQuickFilter] = useState(quickFilterTerm);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    const handleQuickFilterInput = useCallback(
+        (value: string) => {
+            // Enforce max length
+            const trimmed = value.slice(0, 1000);
+            setLocalQuickFilter(trimmed);
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+            debounceRef.current = setTimeout(() => {
+                onQuickFilterChange(trimmed);
+            }, 200);
+        },
+        [onQuickFilterChange],
+    );
+
+    // Sync local quick filter when external state clears it
+    React.useEffect(() => {
+        if (quickFilterTerm === "") {
+            setLocalQuickFilter("");
+        }
+    }, [quickFilterTerm]);
 
     // Determine pause/resume button state - use Next icon (line before play) for Resume
     const pauseResumeIcon = isRunning ? <Pause24Regular /> : <Next24Regular />;
@@ -260,6 +300,35 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                 </Tooltip>
 
                 <ToolbarDivider />
+
+                {/* Clear All Filters button */}
+                <Tooltip
+                    content={
+                        isFilterActive ? loc.clearAllFiltersTooltip : loc.clearFilterDisabledTooltip
+                    }
+                    relationship="label">
+                    <ToolbarButton
+                        aria-label={loc.clearAllFilters}
+                        icon={<FilterDismiss24Regular />}
+                        onClick={onClearFilter}
+                        disabled={!isFilterActive}>
+                        {loc.clearAllFilters}
+                    </ToolbarButton>
+                </Tooltip>
+
+                {/* Quick filter input */}
+                <Input
+                    placeholder={loc.quickFilterPlaceholder}
+                    value={localQuickFilter}
+                    onChange={(_e, data) => handleQuickFilterInput(data.value ?? "")}
+                    aria-label={loc.quickFilterPlaceholder}
+                    style={{
+                        minWidth: "180px",
+                        maxWidth: "300px",
+                        marginLeft: "4px",
+                    }}
+                    size="small"
+                />
 
                 {/* Export to CSV button */}
                 <Tooltip

@@ -12,6 +12,7 @@ import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
 import { BackupDatabaseForm } from "./backupDatabaseForm";
 import { ObjectManagementDialog } from "../../../common/objectManagementDialog";
 import {
+    DisasterRecoveryType,
     ObjectManagementCancelNotification,
     ObjectManagementHelpNotification,
 } from "../../../../sharedInterfaces/objectManagement";
@@ -57,7 +58,7 @@ export const BackupDatabaseDialogPage = () => {
     const backupViewModel = viewModel.model as BackupDatabaseViewModel;
 
     const shouldDisableBackupButton = (): boolean => {
-        const isUrlBackup = backupViewModel.saveToUrl;
+        const isUrlBackup = backupViewModel.type === DisasterRecoveryType.Url;
 
         const requiredComponents = Object.values(formComponents).filter((component) => {
             if (!component.required) {

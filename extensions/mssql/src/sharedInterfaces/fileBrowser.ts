@@ -98,7 +98,7 @@ export interface FileBrowserReducers {
     /**
      * Submits the selected file path
      */
-    submitFilePath: { selectedPath: string };
+    submitFilePath: { selectedPath: string; propertyName?: string };
 
     /**
      * Closes the file browser
@@ -140,8 +140,10 @@ export interface FileBrowserProvider {
     /**
      * Submits the selected file path
      * @param selectedPath the selected file path
+     * @param propertyName the name of the property to update, optional.
+     * If not provided, the selected path will update fileBrowserState.selectedPath by default
      */
-    submitFilePath(selectedPath: string): void;
+    submitFilePath(selectedPath: string, propertyName?: string): void;
 
     /**
      * Closes the file browser

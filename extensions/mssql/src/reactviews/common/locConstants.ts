@@ -1106,6 +1106,11 @@ export class LocConstants {
                 searchPlaceholder: l10n.t("Search changes..."),
                 noSearchResults: l10n.t("No changes match your search."),
 
+                // View mode segmented control
+                viewModeAriaLabel: l10n.t("Changes view mode"),
+                viewModeSchemaChanges: l10n.t("Schema Changes"),
+                viewModeSchemaDiff: l10n.t("Schema Diff"),
+
                 // Tooltips
                 revealTooltip: l10n.t("Navigate to this item in the diagram"),
                 revertTooltip: l10n.t("Revert this change to its original state"),
@@ -1136,6 +1141,7 @@ export class LocConstants {
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
             mcp: l10n.t("MCP"),
+            all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             nOfMEnabled: (enabled: number, total: number) =>
@@ -1431,7 +1437,7 @@ export class LocConstants {
             ),
             chooseTheRightVersion: l10n.t("Choose the Right Version"),
             chooseTheRightVersionDescription: l10n.t(
-                "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+                "Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.",
             ),
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
@@ -1446,14 +1452,6 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
-            armErrorDescription: l10n.t(
-                "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
-            ),
-            toContinueCheck: l10n.t(
-                "To continue, run SQL Server on a machine with a supported processor. Check ",
-            ),
-            theDocumentation: l10n.t("the documentation "),
-            forMoreInformation: l10n.t("for more information."),
         };
     }
 
@@ -1938,6 +1936,9 @@ export class LocConstants {
             settingsKeyColumn: l10n.t("Setting"),
             settingsValueColumn: l10n.t("Value"),
             noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            noCustomizedSettingsFoundInAds: l10n.t(
+                "No customized settings found in Azure Data Studio",
+            ),
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
@@ -2003,9 +2004,14 @@ export class LocConstants {
 
     public get fileBrowser() {
         return {
-            fileBrowserTitle: l10n.t("Select a file"),
+            fileBrowserFileTitle: l10n.t("Select a file"),
+            fileBrowserFolderTitle: l10n.t("Select a folder"),
+            folderRequired: l10n.t("Folder is required"),
+            fileRequired: l10n.t("File is required"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
+            pleaseChooseAFile: l10n.t("Please choose a file"),
+            pleaseChooseAFolder: l10n.t("Please choose a folder"),
         };
     }
 
@@ -2051,6 +2057,8 @@ export class LocConstants {
             resume: l10n.t("Resume"),
             clear: l10n.t("Clear Data"),
             autoScroll: l10n.t("Auto-scroll"),
+            filter: l10n.t("Filter..."),
+            clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
             selectSessionLabel: l10n.t("Select Session:"),
@@ -2072,6 +2080,34 @@ export class LocConstants {
             clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+            filterTooltip: l10n.t("Filter events by column values"),
+            sortTooltip: l10n.t("Sort column"),
+            clearFilterTooltip: l10n.t("Clear all filters and show all events"),
+            clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
+
+            // Filter operators
+            operatorEquals: l10n.t("="),
+            operatorNotEquals: l10n.t("<>"),
+            operatorLessThan: l10n.t("<"),
+            operatorLessThanOrEqual: l10n.t("<="),
+            operatorGreaterThan: l10n.t(">"),
+            operatorGreaterThanOrEqual: l10n.t(">="),
+            operatorIsNull: l10n.t("Is Null"),
+            operatorIsNotNull: l10n.t("Is Not Null"),
+            operatorContains: l10n.t("Contains"),
+            operatorNotContains: l10n.t("Not Contains"),
+            operatorStartsWith: l10n.t("Starts With"),
+            operatorNotStartsWith: l10n.t("Not Starts With"),
+            operatorIn: l10n.t("In"),
+
+            // Filter status
+            filterActive: l10n.t("Filter active"),
+            filterActiveTooltip: (filteredCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "Showing {0} of {1} events",
+                    args: [filteredCount, totalCount],
+                    comment: ["{0} is filtered count, {1} is total count"],
+                }),
             readOnlyDisabledTooltip: l10n.t("Not available for read-only file sessions"),
             sessionActiveCannotChangeTooltip: l10n.t("Cannot change session while active"),
             xelFileReadOnlyDisconnectedTooltip: (fileName: string) =>
@@ -2090,8 +2126,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Profiler: No session"),
-            sessionStatusTooltip: l10n.t("Profiler Session Status"),
+            noSession: l10n.t("Profiler (Preview): No session"),
+            sessionStatusTooltip: l10n.t("Profiler (Preview) Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",
@@ -2099,6 +2135,82 @@ export class LocConstants {
                     comment: ["{0} is the number of events"],
                 }),
 
+            // Filter popover
+            filterColumnHeader: (columnName: string) =>
+                l10n.t({
+                    message: "Filter: {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            operatorEndsWith: l10n.t("Ends With"),
+            operatorNotEndsWith: l10n.t("Not Ends With"),
+            applyFilter: l10n.t("Apply"),
+            clearColumnFilter: l10n.t("Clear"),
+            searchValues: l10n.t("Search values..."),
+            enterText: l10n.t("Enter text..."),
+            enterNumber: l10n.t("Enter a number..."),
+            enterDate: l10n.t("Enter a date..."),
+            selectAll: l10n.t("Select All"),
+            deselectAll: l10n.t("Deselect All"),
+            numericFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Example: Find queries with {0} > 100",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            textFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Search within {0} text content",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            noResultsMatchFilter: l10n.t("No results match the current filters"),
+            noDataToDisplay: l10n.t("No data to display."),
+
+            // Quick filter
+            quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
+            clearAllFilters: l10n.t("Clear All Filters"),
+            clearAllFiltersTooltip: l10n.t("Clear quick filter and all column filters"),
+
+            // Popover
+            closePopover: l10n.t("Close"),
+            emptyCategory: l10n.t("(empty)"),
+            selectedCount: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0}/{1}",
+                    args: [selected, total],
+                    comment: ["{0} is selected count", "{1} is total count"],
+                }),
+            enterDateFormat: l10n.t("YYYY-MM-DD HH:mm:ss"),
+            dateFormatError: l10n.t("Use format: YYYY-MM-DD HH:mm:ss[.SSS]"),
+            filterValue: l10n.t("Filter value"),
+            filterOperator: l10n.t("Filter operator"),
+
+            // Validation
+            validationValueRequired: l10n.t("Value is required"),
+            validationMustBeNumber: l10n.t("Must be a valid number"),
+
+            // Active filters bar
+            filterNoneSelected: l10n.t("none selected"),
+            filterCountSelected: (count: number) =>
+                l10n.t({
+                    message: "{0} selected",
+                    args: [count],
+                    comment: ["{0} is the number of selected filter values"],
+                }),
+            activeFiltersLabel: l10n.t("Active filters:"),
+            filterBadge: (columnName: string, desc: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [columnName, desc],
+                    comment: ["{0} is the column name", "{1} is the filter description"],
+                }),
+            removeFilter: (columnName: string) =>
+                l10n.t({
+                    message: "Remove filter for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
             // Details panel
             detailsPanel: {
                 textTab: l10n.t("Text"),
@@ -2167,6 +2279,31 @@ export class LocConstants {
             showFullErrorMessage: l10n.t("Show full error message"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
             importNewFile: l10n.t("Import New File"),
+        };
+    }
+
+    public get restoreDatabase() {
+        return {
+            loadingRestoreDatabase: l10n.t("Loading restore database..."),
+            restore: l10n.t("Restore"),
+            restoreDatabase: l10n.t("Restore Database"),
+            database: l10n.t("Database"),
+            backupFile: l10n.t("Backup File"),
+            url: l10n.t("URL"),
+            browseFiles: l10n.t("Browse files"),
+            tailLogBackup: l10n.t("Tail-log backup"),
+            files: l10n.t("Files"),
+            loadingRestorePlan: l10n.t("Loading restore plan..."),
+            noBackupSets: l10n.t("No backup sets found in the restore plan"),
+            noDatabaseFiles: l10n.t("No database files found in the restore plan"),
+            invalidTableType: l10n.t("Invalid table type"),
+            logicalFileName: l10n.t("Logical file name"),
+            originalFileName: l10n.t("Original file name"),
+            restoreAs: l10n.t("Restore as"),
+            fileType: l10n.t("File type"),
+            backupSetsToRestore: l10n.t("Backup sets to restore"),
+            advancedRestoreOptions: l10n.t("Advanced restore options"),
+            couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
         };
     }
 }

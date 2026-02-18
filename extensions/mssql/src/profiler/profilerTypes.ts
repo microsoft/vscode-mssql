@@ -40,65 +40,6 @@ export interface EventRow extends IndexedRow {
 }
 
 /**
- * Filter comparison operators
- */
-export enum FilterKind {
-    Equal = "equal",
-    NotEqual = "notEqual",
-    GreaterThan = "greaterThan",
-    GreaterThanOrEqual = "greaterThanOrEqual",
-    LessThan = "lessThan",
-    LessThanOrEqual = "lessThanOrEqual",
-    Contains = "contains",
-    NotContains = "notContains",
-    StartsWith = "startsWith",
-    EndsWith = "endsWith",
-    IsNull = "isNull",
-    IsNotNull = "isNotNull",
-}
-
-/**
- * A single filter condition
- */
-export interface FilterType {
-    /** The comparison operator */
-    kind: FilterKind;
-    /** The field/column to filter on */
-    field: string;
-    /** The value to compare against */
-    value: string | number | boolean | null;
-}
-
-/**
- * Filter configuration for querying events
- */
-export interface Filter {
-    /** Array of filter conditions (ANDed together) */
-    filters: FilterType[];
-    /** Optional time range filter */
-    timeRange?: {
-        from: number;
-        to: number;
-    };
-    /** Maximum number of results to return */
-    limit?: number;
-    /** Number of results to skip */
-    offset?: number;
-}
-
-/**
- * Result of a query operation
- */
-export interface QueryResult<T> {
-    /** The matching rows */
-    rows: T[];
-    /** Total count of matching rows (before limit/offset) */
-    totalCount: number;
-    /** Whether more results exist beyond the limit */
-    hasMore: boolean;
-}
-
-/**
  * Session type - file-based or live connection
  */
 export enum SessionType {
@@ -151,11 +92,25 @@ export interface ViewTemplate {
 }
 
 /**
+ * Data type for a view column - determines filtering behavior
+ */
+export enum ColumnDataType {
+    /** String/text data - supports all string operators */
+    String = "string",
+    /** Numeric data - supports comparison operators */
+    Number = "number",
+    /** Date/time data - supports comparison operators with date parsing */
+    DateTime = "datetime",
+}
+
+/**
  * Column configuration in a view template
  */
 export interface ViewColumn {
     /** Field name used as the column key */
     field: string;
+    /** Data type for the column (defaults to String) */
+    type?: ColumnDataType;
     /** Display header */
     header: string;
     /** Column width in pixels */
@@ -166,6 +121,11 @@ export interface ViewColumn {
     sortable?: boolean;
     /** Whether the column is filterable */
     filterable?: boolean;
+    /**
+     * Filter type for the column: determines the filter UI and available operators.
+     * Defaults to Text for string columns if not specified.
+     */
+    filterType?: FilterType;
     /**
      * Array of XEvent field names that map to this column.
      * When converting an event row, the first matching field will be used.
@@ -242,7 +202,126 @@ export interface ViewRow {
     /** Unique row identifier */
     id: string;
     /** Dynamic fields based on view columns */
-    [field: string]: string | number | null;
+    [field: string]: string | number | undefined;
+}
+
+/**
+ * Filter operators for client-side filtering.
+ * These operators provide ADS-style parity for filtering.
+ */
+export enum FilterOperator {
+    /** Equal comparison */
+    Equals = "equals",
+    /** Not equal comparison */
+    NotEquals = "notEquals",
+    /** Less than comparison */
+    LessThan = "lessThan",
+    /** Less than or equal comparison */
+    LessThanOrEqual = "lessThanOrEqual",
+    /** Greater than comparison */
+    GreaterThan = "greaterThan",
+    /** Greater than or equal comparison */
+    GreaterThanOrEqual = "greaterThanOrEqual",
+    /** Field is null or undefined */
+    IsNull = "isNull",
+    /** Field is not null and not undefined */
+    IsNotNull = "isNotNull",
+    /** Field contains the value as a substring (case-insensitive) */
+    Contains = "contains",
+    /** Field does not contain the value as a substring */
+    NotContains = "notContains",
+    /** Field starts with the value (case-insensitive) */
+    StartsWith = "startsWith",
+    /** Field does not start with the value */
+    NotStartsWith = "notStartsWith",
+    /** Field ends with the value (case-insensitive) */
+    EndsWith = "endsWith",
+    /** Field does not end with the value */
+    NotEndsWith = "notEndsWith",
+    /** Field value is one of a set of values (OR logic within a single column) */
+    In = "in",
+}
+
+/**
+ * Type hint for filter value parsing
+ */
+export enum FilterTypeHint {
+    /** String/text data */
+    String = "string",
+    /** Numeric data */
+    Number = "number",
+    /** Date data (without time) */
+    Date = "date",
+    /** Date/time data */
+    DateTime = "datetime",
+    /** Boolean data */
+    Boolean = "boolean",
+}
+
+/**
+ * A single filter clause for client-side filtering.
+ * Multiple clauses are combined with AND logic.
+ */
+export interface FilterClause {
+    /** The field/column name to filter on */
+    field: string;
+    /** The comparison operator */
+    operator: FilterOperator;
+    /** The value to compare against (not used for IsNull/IsNotNull) */
+    value?: string | number | boolean;
+    /** Set of values for the In operator (OR logic within a single column) */
+    values?: string[];
+    /** Optional type hint for value parsing */
+    typeHint?: FilterTypeHint;
+}
+
+/**
+ * Filter type for columns.
+ * Determines the filter UI and operators available for a column.
+ */
+export enum FilterType {
+    /** Show a searchable checkbox list of distinct values (e.g., EventClass, DatabaseName) */
+    Categorical = "categorical",
+    /** Show text operator input (contains/starts with/ends with) for long text (e.g., TextData) */
+    Text = "text",
+    /** Show numeric operator input (equals/greater than/less than, etc.) */
+    Numeric = "numeric",
+    /** Show date/time operator input (equals/greater than/less than, etc.) */
+    Date = "date",
+}
+
+/**
+ * Filter state for a profiler session.
+ * Each session has its own independent filter state.
+ */
+export interface FilterState {
+    /** Whether filtering is currently enabled */
+    enabled: boolean;
+    /** Array of filter clauses (combined with AND logic) */
+    clauses: FilterClause[];
+    /** Quick filter search term (cross-column case-insensitive contains) */
+    quickFilter?: string;
+}
+
+/**
+ * Sort direction for profiler grid columns
+ */
+export enum SortDirection {
+    /** Ascending order (A-Z, 0-9, oldest-newest) */
+    ASC = "asc",
+    /** Descending order (Z-A, 9-0, newest-oldest) */
+    DESC = "desc",
+}
+
+/**
+ * Sort state for the profiler grid.
+ * Only one column can be sorted at a time.
+ */
+export interface SortState {
+    /** The field/column being sorted */
+    field: string;
+    /** The sort direction */
+    direction: SortDirection;
 }
 
 /**

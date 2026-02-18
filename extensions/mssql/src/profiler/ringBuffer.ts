@@ -8,7 +8,7 @@
  * It provides a circular buffer for storing profiler events with automatic overflow handling.
  */
 
-import { IndexedRow, Filter, QueryResult } from "./profilerTypes";
+import { IndexedRow } from "./profilerTypes";
 
 /**
  * A circular buffer for storing rows with automatic sequence numbering.
@@ -110,21 +110,6 @@ export class RingBuffer<T extends IndexedRow> {
         }
 
         return { added: row, removed: removedRow };
-    }
-
-    /**
-     * Queries the buffer with the given filter.
-     * TODO: Implement filtering logic
-     *
-     * @param _filter - The filter criteria (unused for now)
-     * @returns Query result with empty rows
-     */
-    query(_filter: Filter): QueryResult<T> {
-        return {
-            rows: [],
-            totalCount: 0,
-            hasMore: false,
-        };
     }
 
     /**

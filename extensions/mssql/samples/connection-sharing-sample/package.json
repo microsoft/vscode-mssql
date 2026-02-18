@@ -77,6 +77,8 @@
         "typescript-eslint": "^8.34.0",
         "typescript": "^5.8.3",
         "@vscode/test-cli": "^0.0.10",
-        "@vscode/test-electron": "^2.5.2"
+        "@vscode/test-electron": "^2.5.2",
+        "mocha-junit-reporter": "^2.2.1",
+        "mocha-multi-reporters": "^1.5.1"
     }
 }

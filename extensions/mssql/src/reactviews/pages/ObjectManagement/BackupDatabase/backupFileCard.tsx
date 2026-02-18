@@ -3,17 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
 import { Button, Card, Field, Input, Text, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
 import {
     Dismiss20Regular,
     DocumentAdd24Regular,
     DocumentEdit24Regular,
 } from "@fluentui/react-icons";
-import { BackupDatabaseViewModel, BackupFile } from "../../../../sharedInterfaces/backup";
-import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
+import { BackupFile } from "../../../../sharedInterfaces/backup";
 
 const useStyles = makeStyles({
     cardDiv: {
@@ -47,31 +44,28 @@ const useStyles = makeStyles({
 });
 
 export const BackupFileCard = ({
+    backupFiles,
     file,
     index,
     fileErrors,
     setFileErrors,
+    removeBackupFile,
+    handleFileChange,
 }: {
+    backupFiles: BackupFile[];
     file: BackupFile;
     index: number;
     fileErrors: number[];
     setFileErrors: (errors: number[]) => void;
+    removeBackupFile?: (filePath: string) => void;
+    handleFileChange?: (index: number, value: string, isFolderPath: boolean) => void;
 }) => {
     const classes = useStyles();
-    const context = useContext(BackupDatabaseContext);
-
-    const backupFiles = useBackupDatabaseSelector(
-        (state) => (state.viewModel.model as BackupDatabaseViewModel).backupFiles,
-    );
-
-    if (!context) {
-        return undefined;
-    }
 
     const getFileNameErrorMessage = (filePath: string) => {
         const fileName = getFileNameFromPath(filePath);
         if (fileName.trim() === "") return locConstants.backupDatabase.fileNameRequired;
-        const files = backupFiles.filter((file) => file.filePath === filePath);
+        const files = backupFiles.filter((file: BackupFile) => file.filePath === filePath);
         return files.length <= 1 ? "" : locConstants.backupDatabase.chooseUniqueFile;
     };
 
@@ -86,7 +80,7 @@ export const BackupFileCard = ({
     };
 
     const handleRemoveFile = async (filePath: string) => {
-        await context.removeBackupFile(filePath);
+        await removeBackupFile?.(filePath);
     };
 
     return (
@@ -131,7 +125,7 @@ export const BackupFileCard = ({
                             <Input
                                 value={getFolderNameFromPath(file.filePath)}
                                 onChange={(e) => {
-                                    context.handleFileChange(index, e.target.value, true);
+                                    handleFileChange?.(index, e.target.value, true);
                                     if (e.target.value.trim() !== "") {
                                         setFileErrors(
                                             fileErrors.filter((fileIndex) => fileIndex !== index),
@@ -164,7 +158,7 @@ export const BackupFileCard = ({
                                         backupFiles[index].filePath,
                                     )}/${e.target.value}`;
 
-                                    context.handleFileChange(index, e.target.value, false);
+                                    handleFileChange?.(index, e.target.value, false);
 
                                     if (getFileNameErrorMessage(newPath) === "") {
                                         setFileErrors(

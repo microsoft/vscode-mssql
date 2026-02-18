@@ -36,7 +36,7 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
             return [];
         }
 
-        const connection = this._connectionManager.getConnectionInfo(document.uri.toString(true));
+        const connection = this._connectionManager.getConnectionInfo(document.uri.toString());
         if (!connection) {
             // On no connection, show a single "Connect" CodeLens
             return [

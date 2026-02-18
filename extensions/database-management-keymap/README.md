@@ -2,7 +2,20 @@
 
 ## Overview
 
-This extension provides MSSQL database management-oriented default keybindings for the SQL Server (mssql) extension in VS Code.
+This extension provides MSSQL database management-oriented default keybindings for the SQL Server (mssql) extension in VS Code, including:
+
+| Function                  | Shortcut (Windows/Linux) | Shortcut (macOS)        |
+| ------------------------- | ------------------------ | ----------------------- |
+| Run query                 | `F5`                     | `F5`                    |
+| Run current statement     | `Ctrl` + `F5`            | `⌘` + `F5`              |
+| Open new SQL query editor | `Ctrl` + `N`             | `⌘` + `N`               |
+| Show query results pane   | `Win` + `Shift` + `R`    | `⌘` + `Shift` + `R`     |
+| Show connection list      | `Ctrl` + `Shift` + `D`   | `⌘` + `Shift` + `D`     |
+| Show estimated plan       | `Ctrl` + `L`             | `⌘` + `L`               |
+| Toggle actual plan        | `Ctrl` + `M`             | `⌘` + `M`               |
+| Cancel running query      | `Alt` + `PauseBreak`     | `Option` + `PauseBreak` |
+
+⚠️ This keymap overrides some VS Code shortcuts used in development workflows for database management scenarios.
 
 ## Code of Conduct
 

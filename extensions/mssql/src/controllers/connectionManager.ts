@@ -51,7 +51,7 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
-import { checkIfConnectionIsDockerContainer } from "../deployment/dockerUtils";
+import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -930,15 +930,13 @@ export default class ConnectionManager {
                 .map((key) => {
                     try {
                         key = vscode.Uri.parse(key).toString();
-                    } catch (error) {
-                        // ignore errors from invalid URIs. Most probably an OE based key
-                        this._logger.verbose(
-                            "Error parsing URI, most probably an OE based key:",
-                            getErrorMessage(error),
-                        );
+                    } catch {
+                        // ignore invalid URIs (for example OE-only keys) in context resource list
+                        return undefined;
                     }
                     return key;
-                }),
+                })
+                .filter((key): key is string => !!key),
         );
     }
 
@@ -1765,7 +1763,7 @@ export default class ConnectionManager {
     }
 
     public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
-        let docUri: string = doc.uri.toString(true);
+        let docUri: string = doc.uri.toString();
 
         // If this file isn't connected, then don't do anything
         if (!this.isConnected(docUri)) {
@@ -1777,7 +1775,7 @@ export default class ConnectionManager {
     }
 
     public onDidOpenTextDocument(doc: vscode.TextDocument): void {
-        let uri = doc.uri.toString(true);
+        let uri = doc.uri.toString();
         if (doc.languageId === "sql" && typeof this._connections[uri] === "undefined") {
             this.statusView.setNotConnected(uri);
         }

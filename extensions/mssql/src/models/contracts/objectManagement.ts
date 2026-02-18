@@ -10,6 +10,12 @@ import {
     BackupConfigInfoResponse,
     BackupResponse,
 } from "../../sharedInterfaces/backup";
+import {
+    RestoreConfigInfoResponse,
+    RestoreParams,
+    RestorePlanResponse,
+    RestoreResponse,
+} from "../../sharedInterfaces/restore";
 
 export interface ObjectManagementSqlObject {
     name: string;
@@ -113,3 +119,32 @@ export namespace BackupConfigInfoRequest {
 }
 
 //#endregion
+
+// #region Restore Database
+export namespace RestoreConfigInfoRequest {
+    export const type = new RequestType<
+        DefaultDatabaseInfoParams,
+        RestoreConfigInfoResponse,
+        void,
+        void
+    >("restore/restoreconfiginfo");
+}
+export namespace RestorePlanRequest {
+    export const type = new RequestType<RestoreParams, RestorePlanResponse, void, void>(
+        "restore/restoreplan",
+    );
+}
+
+export namespace CancelRestorePlanRequest {
+    export const type = new RequestType<RestoreParams, boolean, void, void>(
+        "restore/cancelrestoreplan",
+    );
+}
+
+export namespace RestoreRequest {
+    export const type = new RequestType<RestoreParams, RestoreResponse, void, void>(
+        "restore/restore",
+    );
+}
+
+// #endregion
