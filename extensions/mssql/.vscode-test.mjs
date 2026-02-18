@@ -1,13 +1,28 @@
-import * as testCli from "@vscode/test-cli";
+import { defineConfig } from "@vscode/test-cli";
 
-export default testCli.defineConfig([
-    {
-        label: "Unit Tests",
-        files: "out/test/**/*.test.js",
-        version: "insiders",
-        mocha: {
-            ui: "tdd",
-            timeout: 6_000,
+const mocha = {
+    timeout: 30_000,
+    reporter: "mocha-multi-reporters",
+    reporterOptions: {
+        reporterEnabled: "dot, mocha-junit-reporter",
+        mochaJunitReporterReporterOptions: {
+            mochaFile: "test-reports/test-results-ext.xml",
         },
     },
-]);
+};
+
+export default defineConfig({
+    tests: [
+        {
+            files: "out/test/unit/**/*.test.js",
+            env: {
+                VSCODE_LOG_LEVEL: "error",
+            },
+            mocha,
+        },
+    ],
+    coverage: {
+        reporter: ["text-summary", "html", "lcov", "cobertura"],
+        output: "coverage",
+    },
+});

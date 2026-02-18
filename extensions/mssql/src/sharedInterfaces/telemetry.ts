@@ -44,6 +44,8 @@ export enum TelemetryViews {
     Backup = "Backup",
     SearchDatabase = "SearchDatabase",
     FlatFile = "FlatFile",
+    Profiler = "Profiler",
+    Restore = "Restore",
 }
 
 export enum TelemetryActions {
@@ -210,7 +212,7 @@ export enum TelemetryActions {
     FileBrowserClose = "FileBrowserClose",
     FileBrowserDialog = "FileBrowserDialog",
     FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
-    StartBackup = "StartBackup",
+    InitializeBackup = "InitializeBackup",
     Backup = "Backup",
     ScriptBackup = "ScriptBackup",
     FinishBackup = "FinishBackup",
@@ -225,6 +227,18 @@ export enum TelemetryActions {
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
+    ProfilerSessionStarted = "SessionStarted",
+    ProfilerSessionFailed = "SessionFailed",
+    ProfilerSessionStopped = "SessionStopped",
+    ProfilerExportDone = "ExportDone",
+    ProfilerCloseWarningShown = "CloseWarningShown",
+    ProfilerFilterApplied = "FilterApplied",
+    ProfilerBufferOverflow = "BufferOverflow",
+    ProfilerSessionStopFailed = "StopFailed",
+    InitializeRestore = "InitializeRestore",
+    GetRestorePlan = "GetRestorePlan",
+    ScriptRestore = "ScriptRestore",
+    GetRestoreParams = "GetRestoreParams",
 }
 
 /**

@@ -11,21 +11,29 @@ import { DabConfigFileBuilder } from "../dab/dabConfigFileBuilder";
 import {
     checkDockerInstallation,
     checkEngine,
-    checkIfDabContainerIsReady,
     dockerInstallErrorLink,
     dockerLogger,
-    findAvailableDabPort,
     getEngineErrorLink,
     getEngineErrorLinkText,
+    sanitizeContainerInput,
+    startDocker,
+} from "../docker/dockerUtils";
+import {
+    checkIfDabContainerIsReady,
+    findAvailableDabPort,
     pullDabContainerImage,
     startDabDockerContainer,
-    startDocker,
     stopAndRemoveDabContainer,
     validateDabContainerName,
-} from "../deployment/dockerUtils";
+} from "../dab/dabContainer";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
+
+/**
+ * Localhost addresses that need to be transformed for Docker container access
+ */
+const LOCALHOST_ADDRESSES = ["localhost", "127.0.0.1", "(local)", "."];
 
 export class DabService implements Dab.IDabService {
     private _configFileBuilder = new DabConfigFileBuilder();
@@ -35,7 +43,9 @@ export class DabService implements Dab.IDabService {
         connectionInfo: Dab.DabConnectionInfo,
     ): Dab.GenerateConfigResponse {
         try {
-            const configContent = this._configFileBuilder.build(config, connectionInfo);
+            // Transform connection string for Docker container access
+            const transformedConnectionInfo = this.transformConnectionInfoForDocker(connectionInfo);
+            const configContent = this._configFileBuilder.build(config, transformedConnectionInfo);
             return {
                 configContent,
                 success: true,
@@ -57,18 +67,18 @@ export class DabService implements Dab.IDabService {
      * @param step The step to run
      * @param params Optional parameters needed for certain steps
      * @param config Optional DAB config (needed for startContainer step)
-     * @param connectionString Connection string for generating config content
+     * @param connectionInfo Optional connection info for generating config content
      */
     public async runDeploymentStep(
         step: Dab.DabDeploymentStepOrder,
         params?: Dab.DabDeploymentParams,
         config?: Dab.DabConfig,
-        connectionString?: string,
+        connectionInfo?: Dab.DabConnectionInfo,
     ): Promise<Dab.RunDeploymentStepResponse> {
         // Generate config content if needed for startContainer step
         let configContent: string | undefined;
-        if (step === Dab.DabDeploymentStepOrder.startContainer && config && connectionString) {
-            const configResponse = this.generateConfig(config, { connectionString });
+        if (step === Dab.DabDeploymentStepOrder.startContainer && config && connectionInfo) {
+            const configResponse = this.generateConfig(config, connectionInfo);
             if (!configResponse.success) {
                 return {
                     success: false,
@@ -304,5 +314,105 @@ export class DabService implements Dab.IDabService {
         } catch (e) {
             dockerLogger.appendLine(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
         }
+    }
+
+    /**
+     * Transforms the connection info for use inside a Docker container.
+     * Replaces localhost references with either:
+     * - The SQL Server container name (if SQL Server is running in a container)
+     * - host.docker.internal (if SQL Server is running on the host machine)
+     */
+    private transformConnectionInfoForDocker(
+        connectionInfo: Dab.DabConnectionInfo,
+    ): Dab.DabConnectionInfo {
+        const { connectionString, sqlServerContainerName } = connectionInfo;
+
+        // Parse the server/data source from the connection string
+        // Supports both "Server=" and "Data Source=" formats
+        const serverMatch = connectionString.match(/(?:Server|Data Source)\s*=\s*([^;]+)/i);
+        if (!serverMatch) {
+            return connectionInfo;
+        }
+
+        const serverValue = serverMatch[1].trim();
+
+        // Parse the server address to check if it's localhost
+        const host = this.parseHostFromServerValue(serverValue);
+
+        // Check if this is a localhost address
+        if (!this.isLocalhostAddress(host)) {
+            return connectionInfo;
+        }
+
+        // Build the new server value:
+        // - Always use host.docker.internal to reach services on the host machine.
+        // - For containerized SQL Server, replace host and any instance name with
+        //   host.docker.internal\<container-name>, preserving only the port.
+        //   Containerized SQL Server does not use named instances.
+        // - For host SQL Server, replace only the host, preserving instance name and port.
+        let newServerValue: string;
+        if (sqlServerContainerName) {
+            // Extract port if present (comma-separated), discard any instance name
+            const commaIndex = serverValue.indexOf(",");
+            const port = commaIndex !== -1 ? serverValue.substring(commaIndex) : "";
+            newServerValue = `host.docker.internal\\${sanitizeContainerInput(sqlServerContainerName)}${port}`;
+        } else {
+            // Replace only the host portion, preserving instance name and port
+            newServerValue = serverValue.replace(
+                new RegExp(`^${this.escapeRegex(host)}`, "i"),
+                "host.docker.internal",
+            );
+        }
+
+        // Replace in connection string
+        const transformedConnectionString = connectionString.replace(
+            /(?:Server|Data Source)\s*=\s*[^;]+/i,
+            `Server=${newServerValue}`,
+        );
+
+        dockerLogger.appendLine(
+            `Transformed connection string server for DAB: ${serverValue} -> ${newServerValue}`,
+        );
+
+        return {
+            ...connectionInfo,
+            connectionString: transformedConnectionString,
+        };
+    }
+
+    /**
+     * Parses the host portion from a SQL Server value.
+     * Handles formats like: "localhost", "localhost,1433", "localhost\\instance"
+     */
+    private parseHostFromServerValue(serverValue: string): string {
+        let host = serverValue;
+
+        // Remove port specification (comma-separated)
+        const commaIndex = serverValue.indexOf(",");
+        if (commaIndex !== -1) {
+            host = serverValue.substring(0, commaIndex).trim();
+        }
+
+        // Remove instance name (backslash-separated)
+        const backslashIndex = host.indexOf("\\");
+        if (backslashIndex !== -1) {
+            host = host.substring(0, backslashIndex);
+        }
+
+        return host;
+    }
+
+    /**
+     * Checks if the given host is a localhost address
+     */
+    private isLocalhostAddress(host: string): boolean {
+        return LOCALHOST_ADDRESSES.some((addr) => host.toLowerCase() === addr.toLowerCase());
+    }
+
+    /**
+     * Escapes special regex characters in a string
+     */
+    private escapeRegex(str: string): string {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
 }

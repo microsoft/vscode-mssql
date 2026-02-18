@@ -5,13 +5,13 @@
 
 import {
     Button,
+    Checkbox,
+    Divider,
     Dropdown,
     makeStyles,
     Option,
     Text,
     tokens,
-    ToggleButton,
-    Toolbar,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext } from "react";
@@ -56,8 +56,9 @@ const useStyles = makeStyles({
         fontSize: "13px",
         color: tokens.colorNeutralForeground2,
     },
-    apiTypeButtons: {
+    apiTypeCheckboxes: {
         display: "flex",
+        alignItems: "center",
         gap: "4px",
     },
     filterRow: {
@@ -110,6 +111,10 @@ export function DabToolbar() {
         { type: Dab.ApiType.Mcp, label: locConstants.schemaDesigner.mcp },
     ];
 
+    const allApiTypes = apiTypeOptions.map((o) => o.type);
+    const allApiTypesSelected = allApiTypes.every((t) => dabConfig.apiTypes.includes(t));
+    const noneApiTypesExtraSelected = dabConfig.apiTypes.length <= 1;
+
     // Get unique schemas from entities for the filter dropdown
     const availableSchemas = Array.from(
         new Set(dabConfig.entities.map((e) => e.schemaName)),
@@ -145,28 +150,37 @@ export function DabToolbar() {
             {/* API Type selection row */}
             <div className={classes.apiTypeRow}>
                 <Text className={classes.apiTypeLabel}>{locConstants.schemaDesigner.apiType}</Text>
-                <Toolbar size="small" className={classes.apiTypeButtons}>
+                <div className={classes.apiTypeCheckboxes}>
                     {apiTypeOptions.map(({ type, label }) => {
                         const isSelected = dabConfig.apiTypes.includes(type);
                         const isLastSelected = isSelected && dabConfig.apiTypes.length === 1;
                         return (
-                            <ToggleButton
+                            <Checkbox
                                 key={type}
-                                appearance={isSelected ? "primary" : "subtle"}
-                                size="small"
+                                label={label}
                                 checked={isSelected}
                                 disabled={isLastSelected}
-                                onClick={() => {
-                                    const updated = isSelected
-                                        ? dabConfig.apiTypes.filter((t) => t !== type)
-                                        : [...dabConfig.apiTypes, type];
+                                onChange={(_, data) => {
+                                    const updated = data.checked
+                                        ? [...dabConfig.apiTypes, type]
+                                        : dabConfig.apiTypes.filter((t) => t !== type);
                                     updateDabApiTypes(updated);
-                                }}>
-                                {label}
-                            </ToggleButton>
+                                }}
+                            />
                         );
                     })}
-                </Toolbar>
+                    <Divider vertical style={{ height: "20px" }} />
+                    <Checkbox
+                        label={locConstants.schemaDesigner.all}
+                        checked={
+                            allApiTypesSelected ? true : noneApiTypesExtraSelected ? false : "mixed"
+                        }
+                        onChange={(_, data) => {
+                            const updated = data.checked ? allApiTypes : [allApiTypes[0]];
+                            updateDabApiTypes(updated);
+                        }}
+                    />
+                </div>
             </div>
 
             {/* Entity Endpoints filter row */}

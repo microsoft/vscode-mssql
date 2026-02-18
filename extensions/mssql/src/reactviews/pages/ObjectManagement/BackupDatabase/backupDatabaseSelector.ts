@@ -4,17 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    ObjectManagementReducers,
-    ObjectManagementWebviewState,
-} from "../../../../sharedInterfaces/objectManagement";
+    BackupDatabaseFormState,
+    BackupDatabaseReducers,
+} from "../../../../sharedInterfaces/backup";
+import { ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
 import { useVscodeSelector } from "../../../common/useVscodeSelector";
 
 export function useBackupDatabaseSelector<T>(
-    selector: (state: ObjectManagementWebviewState) => T,
+    selector: (state: ObjectManagementWebviewState<BackupDatabaseFormState>) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ObjectManagementWebviewState, ObjectManagementReducers, T>(
-        selector,
-        equals,
-    );
+    return useVscodeSelector<
+        ObjectManagementWebviewState<BackupDatabaseFormState>,
+        BackupDatabaseReducers<BackupDatabaseFormState>,
+        T
+    >(selector, equals);
 }

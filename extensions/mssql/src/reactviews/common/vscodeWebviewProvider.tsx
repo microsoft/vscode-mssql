@@ -129,6 +129,23 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                 // First paint gate: only wait for initial state.
                 const initialState = await extensionRpc.sendRequest(GetStateRequest.type<State>());
                 stateRef.current = initialState;
+
+                try {
+                    const keyboardShortcuts = await extensionRpc.sendRequest(
+                        GetKeyBindingsConfigRequest.type,
+                    );
+                    setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
+                } catch (error) {
+                    console.error("KeyBindings bootstrap failed:", error);
+                }
+
+                try {
+                    const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
+                    setEOL(eol);
+                } catch (error) {
+                    console.error("EOL bootstrap failed:", error);
+                }
+
                 setHasInitialState(true);
                 emit();
 
@@ -139,26 +156,6 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                         setTheme(theme);
                     } catch (error) {
                         console.error("Theme bootstrap failed:", error);
-                    }
-                })();
-
-                void (async () => {
-                    try {
-                        const keyboardShortcuts = await extensionRpc.sendRequest(
-                            GetKeyBindingsConfigRequest.type,
-                        );
-                        setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
-                    } catch (error) {
-                        console.error("KeyBindings bootstrap failed:", error);
-                    }
-                })();
-
-                void (async () => {
-                    try {
-                        const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
-                        setEOL(eol);
-                    } catch (error) {
-                        console.error("EOL bootstrap failed:", error);
                     }
                 })();
 

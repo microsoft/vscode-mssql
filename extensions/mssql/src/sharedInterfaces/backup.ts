@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FormContextProps, FormReducers } from "./form";
-import { ApiStatus } from "./webview";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
-import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { TaskExecutionMode } from "./schemaCompare";
-import { ObjectManagementFormState, ObjectManagementWebviewState } from "./objectManagement";
+import {
+    DisasterRecoveryAzureFormState,
+    DisasterRecoveryReducers,
+    DisasterRecoveryViewModel,
+    DisasterRecoveryProvider,
+    ObjectManagementWebviewState,
+} from "./objectManagement";
 
 //#region Sql Tools Service Interfaces
 
@@ -174,33 +177,22 @@ export interface BackupEncryptor {
     encryptorName: string;
 }
 
-export class BackupDatabaseViewModel {
-    loadState: ApiStatus = ApiStatus.Loading;
-    errorMessage?: string;
+export class BackupDatabaseViewModel extends DisasterRecoveryViewModel {
     databaseName: string = "";
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
-    saveToUrl: boolean = false;
-    backupFiles: BackupFile[] = [];
-    backupUrl: string = "";
-
-    // Azure
-    tenants: AzureTenant[] = [];
-    subscriptions: AzureSubscription[] = [];
-    storageAccounts: StorageAccount[] = [];
-    blobContainers: BlobContainer[] = [];
-    azureComponentStatuses: Record<string, ApiStatus> = {};
 }
 
 export interface BackupDatabaseParams {
-    state: ObjectManagementWebviewState;
+    state: ObjectManagementWebviewState<BackupDatabaseFormState>;
     taskExecutionMode: TaskExecutionMode;
 }
 
-export interface BackupDatabaseReducers
-    extends FormReducers<ObjectManagementFormState>,
-        FileBrowserReducers {
+export interface BackupDatabaseReducers<TFormState>
+    extends FormReducers<TFormState>,
+        FileBrowserReducers,
+        DisasterRecoveryReducers {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -210,22 +202,6 @@ export interface BackupDatabaseReducers
      * Opens the generated backup script in a new editor window
      */
     openBackupScript: {};
-
-    /**
-     * Sets the backup save location.
-     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
-     */
-    setSaveLocation: {
-        saveToUrl: boolean;
-    };
-
-    /**
-     * Removes a backup file from the list
-     * @param filePath The file path to remove
-     */
-    removeBackupFile: {
-        filePath: string;
-    };
 
     /**
      * Handles changes to backup file paths
@@ -238,18 +214,14 @@ export interface BackupDatabaseReducers
         newValue: string;
         isFolderChange: boolean;
     };
-
-    /**
-     * Loads the specified Azure component for backup to URL operations
-     */
-    loadAzureComponent: { componentName: string };
 }
 
 export interface BackupDatabaseProvider
-    extends FormContextProps<ObjectManagementFormState>,
-        FileBrowserProvider {
+    extends FormContextProps<BackupDatabaseFormState>,
+        FileBrowserProvider,
+        DisasterRecoveryProvider {
     /**
-     * Gets the database information associated with the backup operation
+     * Backs up the database based on the provided backup information
      */
     backupDatabase(): void;
 
@@ -259,33 +231,15 @@ export interface BackupDatabaseProvider
     openBackupScript(): void;
 
     /**
-     * Sets the backup save location.
-     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
-     */
-    setSaveLocation(saveToUrl: boolean): void;
-
-    /**
-     *  Removes a backup file from the list
-     * @param filePath  The file path to remove
-     */
-    removeBackupFile(filePath: string): void;
-
-    /**
      *  Handles changes to backup file paths
      * @param index    The index of the backup file being changed
      * @param newValue  The new value for the backup file path
      * @param isFolderChange  Indicates whether the change is for the folder path or the file name
      */
     handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
-
-    /**
-     * Loads the specified Azure component for backup to URL operations
-     * @param componentName  The name of the Azure component to load
-     */
-    loadAzureComponent(componentName: string): void;
 }
 
-export interface BackupDatabaseFormState {
+export interface BackupDatabaseFormState extends DisasterRecoveryAzureFormState {
     backupName: string;
     backupType: BackupType;
     copyOnly: boolean;
@@ -301,18 +255,12 @@ export interface BackupDatabaseFormState {
     encryptionEnabled: boolean;
     encryptionAlgorithm: EncryptionAlgorithm;
     encryptorName: string;
-
-    // Save to Azure URL fields
-    accountId: string;
-    tenantId: string;
-    subscriptionId: string;
-    storageAccountId: string;
-    blobContainerId: string;
 }
 
 export interface BackupFile {
     filePath: string;
     isExisting: boolean;
+    errorMessage?: string;
 }
 
 export enum BackupType {

@@ -7,10 +7,7 @@ import React, { useRef } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
-import {
-    DesignerDefinitionPane,
-    DesignerDefinitionTabs,
-} from "../../common/designerDefinitionPane";
+import { DefinitionPanel, DesignerDefinitionTabs } from "../../common/definitionPanel";
 import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
@@ -158,11 +155,15 @@ export const TableExplorerPage: React.FC = () => {
                     {showScriptPane && (
                         <>
                             <PanelResizeHandle className={classes.resizeHandle} />
-                            <DesignerDefinitionPane
-                                script={updateScript || `-- ${loc.tableExplorer.noPendingChanges}`}
-                                themeKind={themeKind}
-                                openInEditor={() => context.openScriptInEditor()}
-                                copyToClipboard={() => context.copyScriptToClipboard()}
+                            <DefinitionPanel
+                                scriptTab={{
+                                    value:
+                                        updateScript || `-- ${loc.tableExplorer.noPendingChanges}`,
+                                    themeKind,
+                                    language: "sql",
+                                    openInEditor: () => context.openScriptInEditor(),
+                                    copyToClipboard: () => context.copyScriptToClipboard(),
+                                }}
                                 activeTab={DesignerDefinitionTabs.Script}
                                 onClose={() => context.toggleScriptPane()}
                             />

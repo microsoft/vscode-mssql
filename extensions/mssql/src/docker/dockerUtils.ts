@@ -5,47 +5,30 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as tar from "tar";
 import { spawn } from "child_process";
 import { arch, platform } from "os";
 import { PassThrough } from "stream";
 import fixPath from "fix-path";
-import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
-import { ApiStatus } from "../sharedInterfaces/webview";
+import { DockerCommandParams } from "../sharedInterfaces/localContainers";
 import {
     defaultSqlServerContainerName,
-    defaultPortNumber,
     docker,
     dockerDeploymentLoggerChannelName,
     MAX_PORT_NUMBER,
-    sqlServerDockerRegistry,
-    sqlServerDockerRepository,
     Platform,
     windowsDockerDesktopExecutable,
     x64,
 } from "../constants/constants";
-import {
-    LocalContainers,
-    msgYes,
-    ObjectExplorer,
-    Common,
-    RemoveProfileLabel,
-} from "../constants/locConstants";
+import { LocalContainers, msgYes, Common, RemoveProfileLabel } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
+import { FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
-import { Dab } from "../sharedInterfaces/dab";
 import type Dockerode from "dockerode";
-import { getDockerodeClient } from "../docker/dockerodeClient";
-
-/**
- * The length of the year string in the version number
- */
-const yearStringLength = 4;
+import { getDockerodeClient } from "./dockerodeClient";
 
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
@@ -66,6 +49,14 @@ export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
 export const rosettaErrorLink =
     "https://docs.docker.com/desktop/settings-and-maintenance/settings/#general";
+
+/**
+ * Interface for parameterized commands
+ */
+export interface DockerCommand {
+    command: string;
+    args: string[];
+}
 
 /**
  * Commands used to interact with Docker.
@@ -124,73 +115,7 @@ export const COMMANDS = {
         command: "powershell.exe",
         args: ["-Command", `& "${path}" -SwitchLinuxEngine`],
     }),
-    CHECK_CONTAINER_READY: `Recovery is complete`,
-    GET_SQL_SERVER_CONTAINER_VERSIONS: (): DockerCommand => ({
-        command: "curl",
-        args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
-    }),
 };
-
-/**
- * The steps for the Docker container deployment process.
- */
-export function initializeDockerSteps(): DockerStep[] {
-    return [
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: [],
-            headerText: LocalContainers.dockerInstallHeader,
-            bodyText: LocalContainers.dockerInstallBody,
-            errorLink: dockerInstallErrorLink,
-            errorLinkText: LocalContainers.installDocker,
-            stepAction: checkDockerInstallation,
-        },
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: [],
-            headerText: LocalContainers.startDockerHeader,
-            bodyText: LocalContainers.startDockerBody,
-            stepAction: startDocker,
-        },
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: [],
-            headerText: LocalContainers.startDockerEngineHeader,
-            bodyText: LocalContainers.startDockerEngineBody,
-            errorLink: getEngineErrorLink(),
-            errorLinkText: getEngineErrorLinkText(),
-            stepAction: checkEngine,
-        },
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: ["version"],
-            headerText: LocalContainers.pullImageHeader,
-            bodyText: LocalContainers.pullImageBody,
-            stepAction: pullSqlServerContainerImage,
-        },
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: ["containerName", "password", "version", "hostname", "port"],
-            headerText: LocalContainers.creatingContainerHeader,
-            bodyText: LocalContainers.creatingContainerBody,
-            stepAction: startSqlServerDockerContainer,
-        },
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: ["containerName"],
-            headerText: LocalContainers.settingUpContainerHeader,
-            bodyText: LocalContainers.settingUpContainerBody,
-            stepAction: checkIfContainerIsReadyForConnections,
-        },
-        {
-            loadState: ApiStatus.NotStarted,
-            argNames: [],
-            headerText: LocalContainers.connectingToContainerHeader,
-            bodyText: LocalContainers.connectingToContainerBody,
-            stepAction: undefined,
-        },
-    ];
-}
 
 /**
  * Gets the link to the Docker engine error documentation based on the platform and architecture.
@@ -226,33 +151,6 @@ export function sanitizeErrorText(errorText: string): string {
 }
 
 /**
- * Checks if the SQL Server password meets the complexity requirements.
- * If the password is valid, it returns the validation message, which is an empty string.
- * If the password is invalid, it returns an error message.
- */
-export function validateSqlServerPassword(password: string): string {
-    if (password.length < 8 || password.length > 128) {
-        return LocalContainers.passwordLengthError;
-    }
-
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasDigit = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*]/.test(password);
-
-    // Count the number of required character categories met
-    const categoryCount = [hasUpperCase, hasLowerCase, hasDigit, hasSpecialChar].filter(
-        Boolean,
-    ).length;
-
-    if (categoryCount < 3) {
-        return LocalContainers.passwordComplexityError;
-    }
-
-    return "";
-}
-
-/**
  * Sanitizes container input by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
  */
 export function sanitizeContainerInput(name: string): string {
@@ -261,19 +159,7 @@ export function sanitizeContainerInput(name: string): string {
 
 //#region Docker Command Implementations
 
-/**
- * Interface for parameterized commands
- */
-interface DockerCommand {
-    command: string;
-    args: string[];
-}
-
-function getSqlServerImageName(versionTag: string): string {
-    return `${sqlServerDockerRegistry}/${sqlServerDockerRepository}:${versionTag}`;
-}
-
-async function getContainerByName(name: string): Promise<Dockerode.Container | undefined> {
+export async function getContainerByName(name: string): Promise<Dockerode.Container | undefined> {
     const safeContainerName = sanitizeContainerInput(name);
     const dockerClient = getDockerodeClient();
     const filters = {
@@ -323,7 +209,7 @@ function getContainerHostPorts(containerInspectInfo: Dockerode.ContainerInspectI
     return usedPorts;
 }
 
-async function waitForContainerReadyFromLogs(
+export async function waitForContainerReadyFromLogs(
     container: Dockerode.Container,
     sinceTimestampSeconds: number,
     timeoutMs: number,
@@ -392,7 +278,7 @@ async function waitForContainerReadyFromLogs(
 /**
  * Safe command execution helper that uses spawn
  */
-async function execDockerCommand(cmd: DockerCommand): Promise<string> {
+export async function execDockerCommand(cmd: DockerCommand): Promise<string> {
     // Ensure PATH is fixed for macOS/Linux environments; sometimes when launched from VS Code,
     // PATH can inherited incorrectly ie. GUI apps on macOS
     // and Linux do not inherit the $PATH defined in your dotfiles
@@ -618,20 +504,11 @@ export async function getDockerPath(executable: string): Promise<string> {
 }
 
 /**
- * Temp fix for the SQL Server 2025 version issue on Mac.
- * Returns the last working version of SQL Server 2025 for Mac.
- */
-export function constructVersionTag(version: string): string {
-    let versionYear = version.substring(0, yearStringLength);
-    return `${versionYear}-latest`;
-}
-
-/**
  * Pulls a container image from the registry.
  * @param imageName The full image name including tag
  * @param errorMessage The localized error message to use on failure
  */
-async function pullContainerImage(
+export async function pullContainerImage(
     imageName: string,
     errorMessage: string,
 ): Promise<DockerCommandParams> {
@@ -653,68 +530,6 @@ async function pullContainerImage(
         return {
             success: false,
             error: errorMessage,
-            fullErrorText: getErrorMessage(e),
-        };
-    }
-}
-
-/**
- * Pulls the SQL Server container image for the specified version.
- */
-export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
-    const imageTag = constructVersionTag(version);
-    const imageName = getSqlServerImageName(imageTag);
-    return pullContainerImage(imageName, LocalContainers.pullSqlServerContainerImageError);
-}
-
-/**
- * Starts a SQL Server Docker container with the specified parameters.
- */
-export async function startSqlServerDockerContainer(
-    containerName: string,
-    password: string,
-    version: string,
-    hostname: string,
-    port: number,
-): Promise<DockerCommandParams> {
-    try {
-        const dockerClient = getDockerodeClient();
-        const safeContainerName = sanitizeContainerInput(containerName);
-        const safeHostname = hostname ? sanitizeContainerInput(hostname) : undefined;
-        const imageTag = constructVersionTag(version);
-        const imageName = getSqlServerImageName(imageTag);
-        const sqlContainerPort = `${defaultPortNumber}/tcp`;
-        const hostPort = `${port}`;
-        const containerEnvironment = ["ACCEPT_EULA=Y", `SA_PASSWORD=${password}`];
-        const createContainerOptions: Dockerode.ContainerCreateOptions = {
-            Image: imageName,
-            name: safeContainerName,
-            Env: containerEnvironment,
-            ExposedPorts: {
-                [sqlContainerPort]: {},
-            },
-            HostConfig: {
-                PortBindings: {
-                    [sqlContainerPort]: [{ HostPort: hostPort }],
-                },
-            },
-        };
-        if (safeHostname) {
-            createContainerOptions.Hostname = safeHostname;
-        }
-
-        const container = await dockerClient.createContainer(createContainerOptions);
-        await container.start();
-        dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
-        return {
-            success: true,
-            port,
-        };
-    } catch (e) {
-        return {
-            success: false,
-            error: LocalContainers.startSqlServerContainerError,
-            port: undefined,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -813,111 +628,6 @@ export async function startDocker(
             fullErrorText: getErrorMessage(e),
         };
     }
-}
-
-/**
- * Restarts a Docker container with the specified name.
- * If the container is already running, it returns true without restarting.
- */
-export async function restartContainer(
-    containerName: string,
-    containerNode: ConnectionNode,
-    objectExplorerService: ObjectExplorerService,
-): Promise<boolean> {
-    const dockerPreparedResult = await prepareForDockerContainerCommand(
-        containerName,
-        containerNode,
-        objectExplorerService,
-    );
-    if (!dockerPreparedResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(dockerPreparedResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
-        return false;
-    }
-    const isContainerRunning = await isDockerContainerRunning(containerName);
-
-    if (isContainerRunning) return true; // Container is already running
-    containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
-    await objectExplorerService.setLoadingUiForNode(containerNode);
-    dockerLogger.appendLine(`Restarting container: ${containerName}`);
-    const container = await getContainerByName(containerName);
-    if (!container) {
-        throw new Error(`Container ${containerName} does not exist.`);
-    }
-    await container.start();
-
-    dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
-    containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
-    await objectExplorerService.setLoadingUiForNode(containerNode);
-
-    const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
-
-    containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
-    await objectExplorerService.setLoadingUiForNode(containerNode);
-
-    if (!containerReadyResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(containerReadyResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
-        return false;
-    }
-    sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
-    return true;
-}
-
-/**
- * Checks if the provided container is ready for connections by checking the logs.
- * It waits up to 5 minutes while streaming log chunks.
- */
-export async function checkIfContainerIsReadyForConnections(
-    containerName: string,
-): Promise<DockerCommandParams> {
-    const timeoutMs = 300_000; // 5 minutes
-    const readyMessage = COMMANDS.CHECK_CONTAINER_READY;
-    const startTimestampSeconds = Math.floor(Date.now() / 1000);
-
-    dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
-
-    try {
-        const container = await getContainerByName(containerName);
-        if (!container) {
-            return {
-                success: false,
-                error: LocalContainers.containerFailedToStartWithinTimeout,
-            };
-        }
-
-        const isReady = await waitForContainerReadyFromLogs(
-            container,
-            startTimestampSeconds,
-            timeoutMs,
-            readyMessage,
-        );
-        if (isReady) {
-            dockerLogger.appendLine(`${containerName} is ready for connections!`);
-            return { success: true };
-        }
-    } catch (e) {
-        dockerLogger.appendLine(
-            `Error while checking readiness for ${containerName}: ${getErrorMessage(e)}`,
-        );
-    }
-
-    return {
-        success: false,
-        error: LocalContainers.containerFailedToStartWithinTimeout,
-    };
 }
 
 /**
@@ -1046,65 +756,6 @@ export async function findAvailablePort(startPort: number): Promise<number> {
 }
 
 /**
- * Retrieves all raw SQL Server container tags from the Microsoft Container Registry.
- * @returns the complete list of available tags without filtering or processing.
- */
-export async function getAllSqlServerContainerTags(): Promise<string[]> {
-    try {
-        const stdout = await execDockerCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS());
-        const parsed = JSON.parse(stdout);
-        return (parsed.tags ?? []).filter((tag: string) => tag);
-    } catch (e) {
-        dockerLogger.appendLine(`Error fetching SQL Server container tags: ${getErrorMessage(e)}`);
-        return [];
-    }
-}
-
-/**
- * Retrieves the SQL Server container versions from the Microsoft Container Registry.
- * Returns a simplified year-based list (2025, 2022, 2019, 2017) for the deployment UI.
- */
-export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
-    try {
-        const tags = await getAllSqlServerContainerTags();
-
-        const versions: string[] = [];
-        const yearSet = new Set<string>();
-
-        for (const tag of tags) {
-            if (!tag) continue;
-
-            versions.push(tag);
-
-            const year = tag.slice(0, 4);
-            if (/^\d{4}$/.test(year)) {
-                yearSet.add(year);
-            }
-        }
-
-        const uniqueYears = Array.from(yearSet);
-        const latestVersionIndex = versions.length - 4;
-        const latestImage = versions[latestVersionIndex];
-
-        const versionOptions = uniqueYears
-            .map((year) => ({
-                displayName: LocalContainers.sqlServerVersionImage(year),
-                value: year,
-            }))
-            .reverse();
-
-        versionOptions[0].value = latestImage; // Version options is guaranteed to have at least one element
-
-        return versionOptions;
-    } catch (e) {
-        dockerLogger.appendLine(
-            `Error parsing SQL Server container versions: ${getErrorMessage(e)}`,
-        );
-        return [];
-    }
-}
-
-/**
  * Prepares the given Docker container for command execution.
  * This function checks if Docker is running and if the specified container exists.
  */
@@ -1153,212 +804,6 @@ export async function checkContainerExists(name: string): Promise<boolean> {
         dockerLogger.appendLine(`Error checking if container exists: ${getErrorMessage(e)}`);
         return false;
     }
-}
-
-//#endregion
-
-//#region DAB (Data API Builder) Docker Functions
-
-/**
- * Pulls the DAB container image from MCR
- */
-export async function pullDabContainerImage(): Promise<DockerCommandParams> {
-    return pullContainerImage(Dab.DAB_CONTAINER_IMAGE, LocalContainers.dabPullImageError);
-}
-
-/**
- * Starts a DAB Docker container with the specified parameters.
- * The config file is copied into the container (not bind-mounted) so the
- * temp file on the host can be deleted immediately after container creation.
- * @param containerName Name for the container
- * @param port Port to expose the DAB API on
- * @param configFilePath Path to the DAB config file
- */
-export async function startDabDockerContainer(
-    containerName: string,
-    port: number,
-    configFilePath: string,
-): Promise<DockerCommandParams> {
-    try {
-        dockerLogger.appendLine(
-            `Starting DAB container: ${containerName} on port ${port} with config ${configFilePath}`,
-        );
-
-        const dockerClient = getDockerodeClient();
-        const safeContainerName = sanitizeContainerInput(containerName);
-        const dabContainerPort = `${Dab.DAB_DEFAULT_PORT}/tcp`;
-        const hostPort = `${port}`;
-
-        const createContainerOptions: Dockerode.ContainerCreateOptions = {
-            Image: Dab.DAB_CONTAINER_IMAGE,
-            name: safeContainerName,
-            Cmd: ["--ConfigFileName", "/App/dab-config.json"],
-            ExposedPorts: {
-                [dabContainerPort]: {},
-            },
-            HostConfig: {
-                PortBindings: {
-                    [dabContainerPort]: [{ HostPort: hostPort }],
-                },
-            },
-        };
-
-        const container = await dockerClient.createContainer(createContainerOptions);
-
-        // Copy config file into the container instead of bind-mounting
-        // This allows the temp file to be deleted after container creation
-        // The file must be named 'dab-config.json' for proper extraction
-        const configDir = path.dirname(configFilePath);
-        const tarStream = tar.create(
-            {
-                gzip: false,
-                cwd: configDir,
-                portable: true,
-            },
-            ["dab-config.json"],
-        ) as unknown as NodeJS.ReadableStream;
-
-        await container.putArchive(tarStream, {
-            path: "/App",
-        });
-
-        await container.start();
-
-        dockerLogger.appendLine(`DAB container ${containerName} started successfully.`);
-        return {
-            success: true,
-            port,
-        };
-    } catch (e) {
-        dockerLogger.appendLine(`Failed to start DAB container: ${getErrorMessage(e)}`);
-        return {
-            success: false,
-            error: LocalContainers.dabStartContainerError,
-            fullErrorText: getErrorMessage(e),
-        };
-    }
-}
-
-/**
- * Checks if the DAB container is ready to accept connections
- * Polls the health endpoint until it responds or times out.
- * Uses setTimeout loop to avoid overlapping requests (fetch timeout is 5s, poll interval is 1s).
- * @param containerName Name of the container (for logging)
- * @param port Port the DAB API is exposed on
- */
-export async function checkIfDabContainerIsReady(
-    containerName: string,
-    port: number,
-): Promise<DockerCommandParams> {
-    const timeoutMs = 60_000; // 1 minute timeout for DAB
-    const intervalMs = 1000;
-    const start = Date.now();
-
-    dockerLogger.appendLine(
-        `Checking if DAB container ${containerName} is ready on port ${port}...`,
-    );
-
-    const poll = async (): Promise<DockerCommandParams> => {
-        // Check timeout before polling
-        if (Date.now() - start > timeoutMs) {
-            // Try to get container logs for debugging
-            try {
-                const container = await getContainerByName(containerName);
-                if (container) {
-                    const logs = await container.logs({
-                        stdout: true,
-                        stderr: true,
-                        tail: 50,
-                    });
-                    dockerLogger.appendLine(`DAB container logs:\n${logs.toString()}`);
-                }
-            } catch {
-                // Ignore log retrieval errors
-            }
-            return {
-                success: false,
-                error: LocalContainers.dabContainerReadyTimeout,
-            };
-        }
-
-        try {
-            // Use native fetch to check health endpoint
-            const response = await fetch(`http://localhost:${port}/`, {
-                method: "GET",
-                signal: AbortSignal.timeout(5000),
-            });
-
-            // DAB returns various status codes, but any response means it's running
-            if (response.status >= 200 && response.status < 500) {
-                dockerLogger.appendLine(
-                    `DAB container ${containerName} is ready! (HTTP ${response.status})`,
-                );
-                return { success: true, port };
-            }
-        } catch {
-            // Ignore errors and retry - container may not be ready yet
-        }
-
-        // Schedule next poll after current attempt finishes
-        await new Promise((resolve) => setTimeout(resolve, intervalMs));
-        return poll();
-    };
-
-    return poll();
-}
-
-/**
- * Stops and removes a DAB container
- * @param containerName Name of the container to stop and remove
- */
-export async function stopAndRemoveDabContainer(
-    containerName: string,
-): Promise<DockerCommandParams> {
-    try {
-        const container = await getContainerByName(containerName);
-        if (!container) {
-            dockerLogger.appendLine(`DAB container ${containerName} does not exist.`);
-            return { success: true }; // Container doesn't exist, consider it removed
-        }
-
-        dockerLogger.appendLine(`Stopping DAB container: ${containerName}`);
-        try {
-            await container.stop();
-        } catch {
-            // Container might already be stopped
-        }
-
-        dockerLogger.appendLine(`Removing DAB container: ${containerName}`);
-        await container.remove();
-
-        dockerLogger.appendLine(`DAB container ${containerName} stopped and removed.`);
-        return { success: true };
-    } catch (e) {
-        dockerLogger.appendLine(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
-        return {
-            success: false,
-            error: LocalContainers.dabStopContainerError,
-            fullErrorText: getErrorMessage(e),
-        };
-    }
-}
-
-/**
- * Validates and returns a unique container name for DAB
- * @param containerName The requested container name (can be empty for auto-generation)
- */
-export async function validateDabContainerName(containerName: string): Promise<string> {
-    return validateContainerName(containerName, Dab.DAB_DEFAULT_CONTAINER_NAME);
-}
-
-/**
- * Finds an available port for the DAB container
- * @param preferredPort The preferred port to use if available
- */
-export async function findAvailableDabPort(
-    preferredPort: number = Dab.DAB_DEFAULT_PORT,
-): Promise<number> {
-    return findAvailablePort(preferredPort);
 }
 
 //#endregion
