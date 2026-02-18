@@ -18,7 +18,10 @@ import { describeChange } from "../../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
-import { useSchemaDesignerDefinitionPanelContext } from "../schemaDesignerDefinitionPanelContext";
+import {
+    SchemaDesignerDefinitionPanelTab,
+    useSchemaDesignerDefinitionPanelContext,
+} from "../schemaDesignerDefinitionPanelContext";
 
 const useStyles = makeStyles({
     container: {
@@ -31,6 +34,19 @@ const useStyles = makeStyles({
         overflow: "hidden",
     },
 });
+
+export const useSchemaDesignerChangesCustomTab = () => {
+    const context = useContext(SchemaDesignerContext);
+
+    return useMemo(
+        () => ({
+            id: SchemaDesignerDefinitionPanelTab.Changes,
+            label: locConstants.schemaDesigner.changesPanelTitle(context.schemaChangesCount),
+            content: <SchemaDesignerChangesTab />,
+        }),
+        [context.schemaChangesCount],
+    );
+};
 
 export const SchemaDesignerChangesTab = () => {
     const context = useContext(SchemaDesignerContext);

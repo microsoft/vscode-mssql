@@ -4,44 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { DefinitionPanel } from "../../../common/definitionPanel";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "./schemaDesignerDefinitionPanelContext";
-import { SchemaDesignerChangesTab } from "./changes/schemaDesignerChangesTab";
-import { locConstants } from "../../../common/locConstants";
+import { useSchemaDesignerChangesCustomTab } from "./changes/schemaDesignerChangesTab";
+import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
-    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
-    const { themeKind } = useVscodeWebview<
-        SchemaDesigner.SchemaDesignerWebviewState,
-        SchemaDesigner.SchemaDesignerReducers
-    >();
-    const { code, setCode, definitionPaneRef, setIsChangesPanelVisible, activeTab, setActiveTab } =
+    const { setCode, definitionPaneRef, setIsChangesPanelVisible, activeTab, setActiveTab } =
         useSchemaDesignerDefinitionPanelContext();
     const [isDefinitionPanelVisible, setIsDefinitionPanelVisible] = useState<boolean>(true);
+    const enableDAB = useSchemaDesignerSelector((state) => state?.enableDAB);
     const isDabEnabled = enableDAB ?? false;
-
-    const customTabs = useMemo(() => {
-        if (!isDabEnabled) {
-            return [];
-        }
-
-        return [
-            {
-                id: SchemaDesignerDefinitionPanelTab.Changes,
-                label: locConstants.schemaDesigner.changesPanelTitle(context.schemaChangesCount),
-                content: <SchemaDesignerChangesTab />,
-            },
-        ];
-    }, [context.schemaChangesCount, isDabEnabled]);
+    const scriptTab = useSchemaDesignerScriptTab();
+    const changesCustomTab = useSchemaDesignerChangesCustomTab();
+    const customTabs = isDabEnabled ? [changesCustomTab] : [];
 
     useEffect(() => {
         const isChangesTabActive = activeTab === SchemaDesignerDefinitionPanelTab.Changes;
@@ -90,13 +73,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
     return (
         <DefinitionPanel
             ref={definitionPaneRef}
-            scriptTab={{
-                value: code,
-                language: "sql",
-                themeKind,
-                openInEditor: context?.openInEditor,
-                copyToClipboard: context?.copyToClipboard,
-            }}
+            scriptTab={scriptTab}
             customTabs={customTabs}
             activeTab={activeTab}
             setActiveTab={(tab) => {
