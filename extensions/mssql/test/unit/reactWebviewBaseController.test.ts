@@ -53,7 +53,6 @@ suite("ReactWebviewController Tests", () => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
         vscodeWrapper = stubVscodeWrapper(sandbox);
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
 
         configChangeHandlers = [];
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").callsFake(() => {
