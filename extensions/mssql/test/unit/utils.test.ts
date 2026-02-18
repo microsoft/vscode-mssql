@@ -182,6 +182,37 @@ suite("Utility tests - getUriKey", () => {
 
         expect(key).to.contain("%2520");
     });
+
+    test("normalizes encoded forward slashes and preserves encoded backslashes in filenames", () => {
+        const uri = vscode.Uri.parse("file:///tmp/report%2Fname%5Cwith%5Cseparators.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        expect(key).to.contain("/report/name");
+        expect(key.toLowerCase()).to.contain("%5c");
+    });
+
+    test("encodes multiple consecutive percent characters", () => {
+        const uri = vscode.Uri.file("/tmp/multi%%%percent.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        expect(key).to.contain("%25%25%25");
+    });
+
+    test("supports uri schemes other than file", () => {
+        const uri = vscode.Uri.parse("untitled:query%20buffer.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        expect(key).to.equal(uri.toString());
+        expect(key).to.match(/^untitled:/);
+    });
+
+    test("handles empty and nullish uri values", () => {
+        const emptyPathUri = vscode.Uri.from({ scheme: "file", path: "" });
+
+        expect(utilUtils.getUriKey(emptyPathUri)).to.equal(emptyPathUri.toString());
+        expect(utilUtils.getUriKey(undefined as unknown as vscode.Uri)).to.equal(undefined);
+        expect(utilUtils.getUriKey(null as unknown as vscode.Uri)).to.equal(undefined);
+    });
 });
 
 type Sample = {
