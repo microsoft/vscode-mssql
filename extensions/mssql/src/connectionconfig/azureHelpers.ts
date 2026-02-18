@@ -675,7 +675,7 @@ export async function getTenants(
 
         return tenants.map((tenant) => {
             return {
-                displayName: tenant.displayName,
+                displayName: `${tenant.displayName} (${tenant.id})`,
                 value: tenant.id,
             };
         });
