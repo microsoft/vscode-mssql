@@ -9,7 +9,7 @@ import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
-import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
+import { SchemaDesignerDefinitionsPanel } from "./definition/schemaDesignerDefinitionsPanel";
 import { SchemaDesignerChangesPanel } from "./changes/schemaDesignerChangesPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
@@ -17,6 +17,7 @@ import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ErrorDialog } from "../../common/errorDialog";
+import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesignerDefinitionPanelContext";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -46,14 +47,16 @@ export const SchemaDesignerPage = () => {
                 <PanelGroup direction="horizontal">
                     <Panel defaultSize={isDabEnabled ? 75 : 100} minSize={30}>
                         <PanelGroup direction="vertical">
-                            <Panel defaultSize={100}>
-                                <GraphContainer>
-                                    <SchemaDesignerToolbar />
-                                    <SchemaDesignerFlow />
-                                </GraphContainer>
-                            </Panel>
-                            <PanelResizeHandle className={classes.resizeHandle} />
-                            <SchemaDesignerDefinitionsPanel />
+                            <SchemaDesignerDefinitionPanelProvider>
+                                <Panel defaultSize={100}>
+                                    <GraphContainer>
+                                        <SchemaDesignerToolbar />
+                                        <SchemaDesignerFlow />
+                                    </GraphContainer>
+                                </Panel>
+                                <PanelResizeHandle className={classes.resizeHandle} />
+                                <SchemaDesignerDefinitionsPanel />
+                            </SchemaDesignerDefinitionPanelProvider>
                         </PanelGroup>
                     </Panel>
                     {isDabEnabled && (

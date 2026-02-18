@@ -3,16 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
-import { useContext, useEffect, useRef, useState } from "react";
-import eventBus from "./schemaDesignerEvents";
-import {
-    DefinitionPanel,
-    DefinitionPanelController,
-    DesignerDefinitionTabs,
-} from "../../common/definitionPanel";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useContext, useEffect } from "react";
+import eventBus from "../schemaDesignerEvents";
+import { DefinitionPanel, DesignerDefinitionTabs } from "../../../common/definitionPanel";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { useSchemaDesignerDefinitionPanelContext } from "./schemaDesignerDefinitionPanelContext";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
@@ -20,10 +17,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const [code, setCode] = useState<string>("");
-    const definitionPaneRef = useRef<DefinitionPanelController | null>(
-        undefined as unknown as DefinitionPanelController | null,
-    );
+    const { code, setCode, definitionPaneRef } = useSchemaDesignerDefinitionPanelContext();
 
     useEffect(() => {
         eventBus.on("getScript", () => {
