@@ -10,15 +10,15 @@ import {
     useHeadlessFlatTree_unstable,
 } from "@fluentui/react-components";
 import { Checkmark24Regular, Search16Regular } from "@fluentui/react-icons";
-import eventBus from "../schemaDesignerEvents";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { locConstants } from "../../../common/locConstants";
-import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
-import { describeChange } from "../diff/schemaDiff";
+import eventBus from "../../schemaDesignerEvents";
+import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
+import { locConstants } from "../../../../common/locConstants";
+import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../../diff/diffUtils";
+import { describeChange } from "../../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
-import { useSchemaDesignerDefinitionPanelContext } from "../definition/schemaDesignerDefinitionPanelContext";
+import { useSchemaDesignerDefinitionPanelContext } from "../schemaDesignerDefinitionPanelContext";
 
 const useStyles = makeStyles({
     container: {

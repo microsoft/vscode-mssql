@@ -13,7 +13,7 @@ import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "./schemaDesignerDefinitionPanelContext";
-import { SchemaDesignerChangesTab } from "../changes/schemaDesignerChangesTab";
+import { SchemaDesignerChangesTab } from "./changes/schemaDesignerChangesTab";
 import { locConstants } from "../../../common/locConstants";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 
