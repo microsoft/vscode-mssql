@@ -1269,7 +1269,7 @@ suite("ProjectsController", function (): void {
                     .resolves();
 
                 const projController = new ProjectsController(testContext.outputChannel);
-                await projController.configureCodeAnalysisSettings(proj as any);
+                await projController.configureCodeAnalysisSettings(proj);
 
                 expect(
                     executeCommandStub.calledOnce,

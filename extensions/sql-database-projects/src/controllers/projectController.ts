@@ -2371,7 +2371,11 @@ export class ProjectsController {
      * @param context The project node from the tree view
      */
     public async configureCodeAnalysisSettings(
-        context: dataworkspace.WorkspaceTreeItem,
+        treeNode: dataworkspace.WorkspaceTreeItem,
+    ): Promise<void>;
+    public async configureCodeAnalysisSettings(project: Project): Promise<void>;
+    public async configureCodeAnalysisSettings(
+        context: Project | dataworkspace.WorkspaceTreeItem,
     ): Promise<void> {
         try {
             const project = await this.getProjectFromContext(context);
