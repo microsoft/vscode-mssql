@@ -17,8 +17,14 @@ import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
-    const { setCode, definitionPaneRef, setIsChangesPanelVisible, activeTab, setActiveTab } =
-        useSchemaDesignerDefinitionPanelContext();
+    const {
+        setCode,
+        initializeBaselineDefinition,
+        definitionPaneRef,
+        setIsChangesPanelVisible,
+        activeTab,
+        setActiveTab,
+    } = useSchemaDesignerDefinitionPanelContext();
     const [isDefinitionPanelVisible, setIsDefinitionPanelVisible] = useState<boolean>(true);
     const enableDAB = useSchemaDesignerSelector((state) => state?.enableDAB);
     const isDabEnabled = enableDAB ?? false;
@@ -33,7 +39,11 @@ export const SchemaDesignerDefinitionsPanel = () => {
 
     useEffect(() => {
         const refreshScript = async () => {
-            const script = await context.getDefinition();
+            const [script, baselineScript] = await Promise.all([
+                context.getDefinition(),
+                context.getBaselineDefinition(),
+            ]);
+            initializeBaselineDefinition(baselineScript);
             setCode(script);
         };
 
@@ -49,7 +59,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
             eventBus.off("getScript", handleGetScript);
             setIsChangesPanelVisible(false);
         };
-    }, [context, setCode, setIsChangesPanelVisible]);
+    }, [context, initializeBaselineDefinition, setCode, setIsChangesPanelVisible]);
 
     useEffect(() => {
         const panel = definitionPaneRef.current;
@@ -68,7 +78,14 @@ export const SchemaDesignerDefinitionsPanel = () => {
         }
 
         context.setShowChangesHighlight(true);
-    }, [activeTab, context, definitionPaneRef, isDefinitionPanelVisible, setCode]);
+    }, [
+        activeTab,
+        context,
+        definitionPaneRef,
+        initializeBaselineDefinition,
+        isDefinitionPanelVisible,
+        setCode,
+    ]);
 
     return (
         <DefinitionPanel

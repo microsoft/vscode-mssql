@@ -75,6 +75,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     findTableText: string;
     setFindTableText: (text: string) => void;
     getDefinition: () => Promise<string>;
+    getBaselineDefinition: () => Promise<string>;
     initializeSchemaDesigner: () => Promise<{
         nodes: Node<SchemaDesigner.Table>[];
         edges: Edge<SchemaDesigner.ForeignKey>[];
@@ -190,6 +191,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
+    const baselineDefinitionRef = useRef<string | undefined>(undefined);
     const lastHasChangesRef = useRef<boolean | undefined>(undefined);
     // Ref to store pending flow state during undo/redo. This ensures diff calculation
     // uses the correct state immediately, without waiting for ReactFlow's async updates.
@@ -576,6 +578,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             } catch {
                 baselineSchemaRef.current = model.schema;
             }
+            baselineDefinitionRef.current = undefined;
 
             const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
@@ -610,6 +613,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setInitializationError(undefined);
         setIsInitialized(false);
         isInitializedRef.current = false;
+        baselineDefinitionRef.current = undefined;
         setInitializationRequestId((id) => id + 1);
     };
 
@@ -622,6 +626,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         const result = await extensionRpc.sendRequest(SchemaDesigner.GetDefinitionRequest.type, {
             updatedSchema: schema,
         });
+        return result.script;
+    };
+
+    const getBaselineDefinition = async () => {
+        if (baselineDefinitionRef.current !== undefined) {
+            return baselineDefinitionRef.current;
+        }
+
+        if (!baselineSchemaRef.current) {
+            baselineSchemaRef.current = await extensionRpc.sendRequest(
+                SchemaDesigner.GetBaselineSchemaRequest.type,
+            );
+        }
+
+        if (!baselineSchemaRef.current) {
+            return "";
+        }
+
+        const result = await extensionRpc.sendRequest(SchemaDesigner.GetDefinitionRequest.type, {
+            updatedSchema: baselineSchemaRef.current,
+        });
+        baselineDefinitionRef.current = result.script;
         return result.script;
     };
 
@@ -1131,6 +1157,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 // ignore
             }
         }
+        baselineDefinitionRef.current = undefined;
         setSchemaChangesCount(0);
         setSchemaChanges([]);
         setSchemaChangesSummary(undefined);
@@ -1447,6 +1474,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 findTableText,
                 setFindTableText,
                 getDefinition,
+                getBaselineDefinition,
                 initializeSchemaDesigner,
                 initializationError,
                 initializationRequestId,

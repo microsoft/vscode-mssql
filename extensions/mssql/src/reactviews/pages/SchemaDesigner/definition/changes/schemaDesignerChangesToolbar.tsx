@@ -21,7 +21,7 @@ const useStyles = makeStyles({
     },
 });
 
-type SchemaDesignerChangesFiltersProps = {
+type SchemaDesignerChangesToolbarProps = {
     searchText: string;
     onSearchTextChange: (value: string) => void;
     selectedActions: ChangeAction[];
@@ -32,7 +32,7 @@ type SchemaDesignerChangesFiltersProps = {
     onClearFilters: () => void;
 };
 
-export const SchemaDesignerChangesFilters = ({
+export const SchemaDesignerChangesToolbar = ({
     searchText,
     onSearchTextChange,
     selectedActions,
@@ -41,7 +41,7 @@ export const SchemaDesignerChangesFilters = ({
     onToggleCategory,
     hasActiveFilters,
     onClearFilters,
-}: SchemaDesignerChangesFiltersProps) => {
+}: SchemaDesignerChangesToolbarProps) => {
     const classes = useStyles();
 
     return (

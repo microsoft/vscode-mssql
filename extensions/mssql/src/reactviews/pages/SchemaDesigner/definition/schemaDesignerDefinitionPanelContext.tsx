@@ -11,9 +11,18 @@ export enum SchemaDesignerDefinitionPanelTab {
     Changes = "changes",
 }
 
+export enum SchemaDesignerChangesViewMode {
+    SchemaChanges = "schemaChanges",
+    SchemaDiff = "schemaDiff",
+}
+
 interface SchemaDesignerDefinitionPanelContextProps {
     code: string;
     setCode: React.Dispatch<React.SetStateAction<string>>;
+    baselineDefinition: string;
+    initializeBaselineDefinition: (value: string) => void;
+    changesViewMode: SchemaDesignerChangesViewMode;
+    setChangesViewMode: React.Dispatch<React.SetStateAction<SchemaDesignerChangesViewMode>>;
     activeTab: SchemaDesignerDefinitionPanelTab;
     setActiveTab: React.Dispatch<React.SetStateAction<SchemaDesignerDefinitionPanelTab>>;
     isChangesPanelVisible: boolean;
@@ -41,6 +50,10 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
     SchemaDesignerDefinitionPanelProviderProps
 > = ({ children }) => {
     const [code, setCode] = useState<string>("");
+    const [baselineDefinition, setBaselineDefinition] = useState<string>("");
+    const [changesViewMode, setChangesViewMode] = useState<SchemaDesignerChangesViewMode>(
+        SchemaDesignerChangesViewMode.SchemaChanges,
+    );
     const [activeTab, setActiveTab] = useState<SchemaDesignerDefinitionPanelTab>(
         SchemaDesignerDefinitionPanelTab.Script,
     );
@@ -77,11 +90,19 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
         [activeTab],
     );
 
+    const initializeBaselineDefinition = useCallback((value: string) => {
+        setBaselineDefinition((currentValue) => (currentValue === "" ? value : currentValue));
+    }, []);
+
     return (
         <SchemaDesignerDefinitionPanelContext.Provider
             value={{
                 code,
                 setCode,
+                baselineDefinition,
+                initializeBaselineDefinition,
+                changesViewMode,
+                setChangesViewMode,
                 activeTab,
                 setActiveTab,
                 isChangesPanelVisible,
