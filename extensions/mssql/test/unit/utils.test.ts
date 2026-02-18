@@ -9,6 +9,7 @@ import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import * as utilUtils from "../../src/utils/utils";
+import * as vscode from "vscode";
 
 suite("Utility Tests - parseTimeString", () => {
     test("should return false if nothing passed", () => {
@@ -171,6 +172,15 @@ suite("Utility tests - parseEnum", () => {
                 expected,
             );
         }
+    });
+});
+
+suite("Utility tests - getUriKey", () => {
+    test("encodes literal percent characters in file paths", () => {
+        const uri = vscode.Uri.file("/tmp/path%20to%20workspace/test.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        expect(key).to.contain("%2520");
     });
 });
 
