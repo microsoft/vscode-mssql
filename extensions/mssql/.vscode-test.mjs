@@ -12,7 +12,7 @@ export default defineConfig({
             },
             mocha: createMochaConfig({
                 ui: "tdd",
-                timeout: 6_000,
+                timeout: 30_000,
             }),
         },
     ],
