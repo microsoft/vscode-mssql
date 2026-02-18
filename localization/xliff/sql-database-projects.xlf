@@ -997,7 +997,7 @@
       <source xml:lang="en">Close Database Project</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
-      <source xml:lang="en">Code Analysis</source>
+      <source xml:lang="en">Code Analysis (Preview)</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
       <source xml:lang="en">Convert to SDK-style project</source>
