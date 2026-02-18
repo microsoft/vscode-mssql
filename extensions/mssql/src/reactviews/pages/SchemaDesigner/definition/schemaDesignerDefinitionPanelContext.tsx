@@ -14,12 +14,18 @@ export enum SchemaDesignerDefinitionPanelTab {
 interface SchemaDesignerDefinitionPanelContextProps {
     code: string;
     setCode: React.Dispatch<React.SetStateAction<string>>;
+    activeTab: SchemaDesignerDefinitionPanelTab;
+    setActiveTab: React.Dispatch<React.SetStateAction<SchemaDesignerDefinitionPanelTab>>;
     isChangesPanelVisible: boolean;
     setIsChangesPanelVisible: React.Dispatch<React.SetStateAction<boolean>>;
+    /**
+     * Toggles the definition panel for a target tab.
+     *
+     * - If the panel is open on the same tab, it closes.
+     * - If the panel is open on a different tab, it stays open and switches to the target tab.
+     * - If the panel is closed, it opens on the target tab.
+     */
     toggleDefinitionPanel: (tab: SchemaDesignerDefinitionPanelTab) => void;
-    registerToggleDefinitionPanelHandler: (
-        handler: (tab: SchemaDesignerDefinitionPanelTab) => void,
-    ) => () => void;
     definitionPaneRef: React.MutableRefObject<DefinitionPanelController | null>;
 }
 
@@ -35,29 +41,40 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
     SchemaDesignerDefinitionPanelProviderProps
 > = ({ children }) => {
     const [code, setCode] = useState<string>("");
+    const [activeTab, setActiveTab] = useState<SchemaDesignerDefinitionPanelTab>(
+        SchemaDesignerDefinitionPanelTab.Script,
+    );
     const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
-    const toggleDefinitionPanelHandlerRef = useRef<
-        ((tab: SchemaDesignerDefinitionPanelTab) => void) | undefined
-    >(undefined);
     const definitionPaneRef = useRef<DefinitionPanelController | null>(
         undefined as unknown as DefinitionPanelController | null,
     );
 
-    const toggleDefinitionPanel = useCallback((tab: SchemaDesignerDefinitionPanelTab) => {
-        toggleDefinitionPanelHandlerRef.current?.(tab);
-    }, []);
+    const toggleDefinitionPanel = useCallback(
+        (tab: SchemaDesignerDefinitionPanelTab) => {
+            const panel = definitionPaneRef.current;
 
-    const registerToggleDefinitionPanelHandler = useCallback(
-        (handler: (tab: SchemaDesignerDefinitionPanelTab) => void) => {
-            toggleDefinitionPanelHandlerRef.current = handler;
+            if (!panel) {
+                setActiveTab(tab);
+                return;
+            }
 
-            return () => {
-                if (toggleDefinitionPanelHandlerRef.current === handler) {
-                    toggleDefinitionPanelHandlerRef.current = undefined;
-                }
-            };
+            const isCollapsed = panel.isCollapsed();
+            const isSameTab = activeTab === tab;
+
+            if (isCollapsed) {
+                setActiveTab(tab);
+                panel.openPanel(25);
+                return;
+            }
+
+            if (isSameTab) {
+                panel.closePanel();
+                return;
+            }
+
+            setActiveTab(tab);
         },
-        [],
+        [activeTab],
     );
 
     return (
@@ -65,10 +82,11 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
             value={{
                 code,
                 setCode,
+                activeTab,
+                setActiveTab,
                 isChangesPanelVisible,
                 setIsChangesPanelVisible,
                 toggleDefinitionPanel,
-                registerToggleDefinitionPanelHandler,
                 definitionPaneRef,
             }}>
             {children}
