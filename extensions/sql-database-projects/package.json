@@ -410,11 +410,6 @@
                     "group": "1_dbProjectsFirst@5"
                 },
                 {
-                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
-                    "group": "1_dbProjectsFirst@6"
-                },
-                {
                     "command": "sqlDatabaseProjects.newItem",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ || viewItem == databaseProject.itemType.folder",
                     "group": "2_dbProjects_newMain@1"
@@ -505,9 +500,14 @@
                     "group": "9_dbProjectsLast@7"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "9_dbProjectsLast@8"
+                },
+                {
+                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "9_dbProjectsLast@9"
                 },
                 {
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
