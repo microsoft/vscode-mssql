@@ -62,9 +62,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "5px",
     },
-    fullWidthDivider: {
-        width: "100vh",
-    },
     columnInput: {
         minWidth: "150px",
         maxWidth: "150px",

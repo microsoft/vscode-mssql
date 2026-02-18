@@ -19,15 +19,6 @@ import {
 import { useSchemaDesignerChangeContext } from "./schemaDesignerChangeContext";
 
 const useStyles = makeStyles({
-    container: {
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "var(--vscode-editor-background)",
-        minHeight: 0,
-        overflow: "hidden",
-    },
     headerActions: {
         display: "flex",
         alignItems: "center",
