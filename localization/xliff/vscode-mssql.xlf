@@ -6757,7 +6757,7 @@
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.flatFileImport">
-      <source xml:lang="en">Import flat file (Preview)</source>
+      <source xml:lang="en">Import Flat File (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Profiler (Preview)</source>
