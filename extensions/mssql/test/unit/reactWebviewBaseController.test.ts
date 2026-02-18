@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
-import { stubTelemetry } from "./utils";
+import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     ColorThemeChangeNotification,
@@ -51,9 +51,9 @@ suite("ReactWebviewController Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        sandbox.restore();
-        sinon.reset();
         stubTelemetry(sandbox);
+        vscodeWrapper = stubVscodeWrapper(sandbox);
+        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
 
         configChangeHandlers = [];
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").callsFake(() => {
@@ -282,15 +282,7 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-const vscodeWrapper = sinon.createStubInstance(VscodeWrapper);
-const outputChannel = sinon.stub({
-    append: () => sinon.stub(),
-    appendLine: () => sinon.stub(),
-}) as unknown as vscode.OutputChannel;
-
-sinon.stub(vscodeWrapper, "outputChannel").get(() => {
-    return outputChannel;
-});
+let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
 class TestWebviewController extends ReactWebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
