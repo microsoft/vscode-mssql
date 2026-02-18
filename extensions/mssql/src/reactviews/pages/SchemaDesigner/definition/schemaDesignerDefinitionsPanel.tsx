@@ -16,8 +16,14 @@ import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
 
 export const SchemaDesignerDefinitionsPanel = () => {
-    const context = useContext(SchemaDesignerContext);
-    const changeContext = useSchemaDesignerChangeContext();
+    const {
+        isInitialized,
+        baselineRevision,
+        schemaRevision,
+        getDefinition,
+        getBaselineDefinition,
+    } = useContext(SchemaDesignerContext);
+    const { setShowChangesHighlight } = useSchemaDesignerChangeContext();
     const {
         setCode,
         initializeBaselineDefinition,
@@ -39,15 +45,15 @@ export const SchemaDesignerDefinitionsPanel = () => {
     }, [activeTab, isDefinitionPanelVisible, setIsChangesPanelVisible]);
 
     useEffect(() => {
-        if (!context.isInitialized) {
+        if (!isInitialized) {
             return;
         }
 
         const rafId = requestAnimationFrame(() => {
             void (async () => {
                 const [script, baselineScript] = await Promise.all([
-                    context.getDefinition(),
-                    context.getBaselineDefinition(),
+                    getDefinition(),
+                    getBaselineDefinition(),
                 ]);
                 initializeBaselineDefinition(baselineScript);
                 setCode(script);
@@ -58,11 +64,12 @@ export const SchemaDesignerDefinitionsPanel = () => {
             cancelAnimationFrame(rafId);
         };
     }, [
-        context,
-        context.baselineRevision,
-        context.isInitialized,
-        context.schemaRevision,
+        baselineRevision,
+        getBaselineDefinition,
+        getDefinition,
         initializeBaselineDefinition,
+        isInitialized,
+        schemaRevision,
         setCode,
     ]);
 
@@ -78,25 +85,24 @@ export const SchemaDesignerDefinitionsPanel = () => {
 
         if (activeTab === SchemaDesignerDefinitionPanelTab.Script && isPanelVisible) {
             setTimeout(async () => {
-                const script = await context.getDefinition();
+                const script = await getDefinition();
                 setCode(script);
             }, 0);
         }
 
         if (!isPanelVisible || activeTab !== SchemaDesignerDefinitionPanelTab.Changes) {
-            changeContext.setShowChangesHighlight(false);
+            setShowChangesHighlight(false);
             return;
         }
 
-        changeContext.setShowChangesHighlight(true);
+        setShowChangesHighlight(true);
     }, [
         activeTab,
-        changeContext,
-        context,
         definitionPaneRef,
-        initializeBaselineDefinition,
+        getDefinition,
         isDefinitionPanelVisible,
         setCode,
+        setShowChangesHighlight,
     ]);
 
     return (
@@ -111,7 +117,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
             onPanelVisibilityChange={(isVisible) => {
                 setIsDefinitionPanelVisible(isVisible);
                 if (!isVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
-                    changeContext.setShowChangesHighlight(false);
+                    setShowChangesHighlight(false);
                 }
             }}
         />

@@ -340,7 +340,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     // Get the script from the server
-    const getDefinition = async () => {
+    const getDefinition = useCallback(async () => {
         const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
@@ -349,9 +349,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             updatedSchema: schema,
         });
         return result.script;
-    };
+    }, [extensionRpc, reactFlow]);
 
-    const getBaselineDefinition = async () => {
+    const getBaselineDefinition = useCallback(async () => {
         if (baselineDefinitionRef.current !== undefined) {
             return baselineDefinitionRef.current;
         }
@@ -371,7 +371,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
         baselineDefinitionRef.current = result.script;
         return result.script;
-    };
+    }, [extensionRpc]);
 
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {

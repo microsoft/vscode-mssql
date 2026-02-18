@@ -58,9 +58,7 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
         SchemaDesignerDefinitionPanelTab.Script,
     );
     const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
-    const definitionPaneRef = useRef<DefinitionPanelController | null>(
-        undefined as unknown as DefinitionPanelController | null,
-    );
+    const definitionPaneRef = useRef<DefinitionPanelController | null>(null);
 
     const toggleDefinitionPanel = useCallback(
         (tab: SchemaDesignerDefinitionPanelTab) => {
@@ -91,7 +89,7 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
     );
 
     const initializeBaselineDefinition = useCallback((value: string) => {
-        setBaselineDefinition((currentValue) => (currentValue === "" ? value : currentValue));
+        setBaselineDefinition(value);
     }, []);
 
     return (
