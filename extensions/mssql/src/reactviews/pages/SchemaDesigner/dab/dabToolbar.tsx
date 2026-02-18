@@ -14,10 +14,9 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { useContext } from "react";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { useDabContext } from "./dabContext";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -88,7 +87,7 @@ const useStyles = makeStyles({
 
 export function DabToolbar() {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useDabContext();
     const {
         dabConfig,
         updateDabApiTypes,
