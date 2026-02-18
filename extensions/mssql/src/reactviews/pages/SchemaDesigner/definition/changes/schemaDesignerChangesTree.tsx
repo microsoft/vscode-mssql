@@ -422,7 +422,13 @@ export const SchemaDesignerChangesTree = ({
                         const actionBadge = getActionBadge(change.action);
                         const revertInfo = getCanRevert(change);
                         return (
-                            <TreeItem key={flatTreeItem.value} {...treeItemProps}>
+                            <TreeItem
+                                key={flatTreeItem.value}
+                                {...treeItemProps}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onReveal(change);
+                                }}>
                                 <TreeItemLayout
                                     className={mergeClasses(
                                         classes.treeItemLayout,
