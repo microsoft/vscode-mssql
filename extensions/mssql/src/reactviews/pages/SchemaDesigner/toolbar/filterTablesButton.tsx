@@ -21,7 +21,6 @@ import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
-import eventBus from "../schemaDesignerEvents";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export function FilterTablesButton() {
@@ -161,12 +160,14 @@ export function FilterTablesButton() {
     }, [selectedTables, showTableRelationships]);
 
     useEffect(() => {
-        eventBus.on("getScript", () =>
-            requestAnimationFrame(() => {
-                loadTables();
-            }),
-        );
-    }, []);
+        const rafId = requestAnimationFrame(() => {
+            loadTables();
+        });
+
+        return () => {
+            cancelAnimationFrame(rafId);
+        };
+    }, [context.schemaRevision]);
 
     // Function to highlight text based on search
     const highlightText = (text: string, searchText: string) => {

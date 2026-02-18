@@ -22,7 +22,7 @@ import {
     Key20Regular,
     Table20Regular,
 } from "@fluentui/react-icons";
-import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
+import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../../diff/diffUtils";
 import { SchemaDesignerChangeDetailsPopover } from "./schemaDesignerChangeDetailsPopover";
 
 export interface FlatTreeItem extends HeadlessFlatTreeItemProps {
@@ -107,28 +107,6 @@ const useStyles = makeStyles({
         fontSize: "11px",
         fontWeight: 600,
         flexShrink: 0,
-    },
-    actionBadgeWithBackground: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minWidth: "16px",
-        height: "16px",
-        borderRadius: "3px",
-        fontSize: "11px",
-        fontWeight: 600,
-    },
-    actionBadgeAddedBg: {
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 25%, transparent)",
-    },
-    actionBadgeModifiedBg: {
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 25%, transparent)",
-    },
-    actionBadgeDeletedBg: {
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 25%, transparent)",
     },
     actionBadgeButton: {
         minWidth: "20px",
@@ -422,7 +400,13 @@ export const SchemaDesignerChangesTree = ({
                         const actionBadge = getActionBadge(change.action);
                         const revertInfo = getCanRevert(change);
                         return (
-                            <TreeItem key={flatTreeItem.value} {...treeItemProps}>
+                            <TreeItem
+                                key={flatTreeItem.value}
+                                {...treeItemProps}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onReveal(change);
+                                }}>
                                 <TreeItemLayout
                                     className={mergeClasses(
                                         classes.treeItemLayout,

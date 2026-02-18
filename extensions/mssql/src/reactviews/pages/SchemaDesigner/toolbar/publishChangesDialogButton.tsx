@@ -26,6 +26,7 @@ import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useMarkdownStyles } from "../../../common/styles";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -66,9 +67,10 @@ export function PublishChangesDialogButton() {
     const classes = useStyles();
     const markdownClasses = useMarkdownStyles();
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
-    const hasSchemaChanges = (context?.schemaChangesCount ?? 0) > 0;
+    const hasSchemaChanges = changeContext.schemaChangesCount > 0;
     if (!context) {
         return undefined;
     }

@@ -21,6 +21,12 @@ import {
 } from "react";
 
 const useStyles = makeStyles({
+    panelContentRoot: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+    },
     header: {
         display: "flex",
         justifyContent: "space-between",
@@ -35,11 +41,11 @@ const useStyles = makeStyles({
         gap: "3px",
     },
     tabContent: {
-        flex: "1 1 0",
+        flex: "1 1 auto",
         width: "100%",
-        height: "100%",
         display: "flex",
-        overflow: "auto",
+        minHeight: 0,
+        overflow: "hidden",
     },
     definitionPanelScriptTab: {
         width: "100%",
@@ -214,55 +220,57 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
             }}
             onExpand={() => onPanelVisibilityChange?.(true)}
             onCollapse={() => onPanelVisibilityChange?.(false)}>
-            <div className={classes.header}>
-                <div className={classes.headerTabList}>
-                    <TabList
-                        size="small"
-                        selectedValue={selectedTab}
-                        onTabSelect={(_event, data) => {
-                            if (!setActiveTab) {
-                                return;
-                            }
-                            setActiveTab(data.value as DefinitionTabIdentifier<TCustomTabId>);
-                        }}>
-                        {tabs.map((tab) => (
-                            <Tab value={tab.id} key={tab.id}>
-                                {tab.label}
-                            </Tab>
-                        ))}
-                    </TabList>
+            <div className={classes.panelContentRoot}>
+                <div className={classes.header}>
+                    <div className={classes.headerTabList}>
+                        <TabList
+                            size="small"
+                            selectedValue={selectedTab}
+                            onTabSelect={(_event, data) => {
+                                if (!setActiveTab) {
+                                    return;
+                                }
+                                setActiveTab(data.value as DefinitionTabIdentifier<TCustomTabId>);
+                            }}>
+                            {tabs.map((tab) => (
+                                <Tab value={tab.id} key={tab.id}>
+                                    {tab.label}
+                                </Tab>
+                            ))}
+                        </TabList>
+                    </div>
+                    <Toolbar className={classes.headerToolbar}>
+                        {activeTabDefinition?.headerActions}
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            onClick={() => {
+                                if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
+                                    panelRef.current?.resize(DEFAULTPANEL_SIZE);
+                                } else {
+                                    panelRef.current?.resize(MAXIMUMPANEL_SIZE);
+                                }
+                            }}
+                            title={expandCollapseButtonLabel}
+                            icon={expandCollapseButtonIcon}
+                        />
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            title={locConstants.schemaDesigner.close}
+                            icon={<FluentIcons.Dismiss12Regular />}
+                            onClick={() => {
+                                if (panelRef.current) {
+                                    panelRef.current.collapse();
+                                }
+                                onClose?.();
+                                onPanelVisibilityChange?.(false);
+                            }}
+                        />
+                    </Toolbar>
                 </div>
-                <Toolbar className={classes.headerToolbar}>
-                    {activeTabDefinition?.headerActions}
-                    <Button
-                        size="small"
-                        appearance="subtle"
-                        onClick={() => {
-                            if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
-                                panelRef.current?.resize(DEFAULTPANEL_SIZE);
-                            } else {
-                                panelRef.current?.resize(MAXIMUMPANEL_SIZE);
-                            }
-                        }}
-                        title={expandCollapseButtonLabel}
-                        icon={expandCollapseButtonIcon}
-                    />
-                    <Button
-                        size="small"
-                        appearance="subtle"
-                        title={locConstants.schemaDesigner.close}
-                        icon={<FluentIcons.Dismiss12Regular />}
-                        onClick={() => {
-                            if (panelRef.current) {
-                                panelRef.current.collapse();
-                            }
-                            onClose?.();
-                            onPanelVisibilityChange?.(false);
-                        }}
-                    />
-                </Toolbar>
+                <div className={classes.tabContent}>{activeTabDefinition?.content}</div>
             </div>
-            <div className={classes.tabContent}>{activeTabDefinition?.content}</div>
         </Panel>
     );
 };

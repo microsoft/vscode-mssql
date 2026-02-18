@@ -1106,6 +1106,11 @@ export class LocConstants {
                 searchPlaceholder: l10n.t("Search changes..."),
                 noSearchResults: l10n.t("No changes match your search."),
 
+                // View mode segmented control
+                viewModeAriaLabel: l10n.t("Changes view mode"),
+                viewModeSchemaChanges: l10n.t("Schema Changes"),
+                viewModeSchemaDiff: l10n.t("Schema Diff"),
+
                 // Tooltips
                 revealTooltip: l10n.t("Navigate to this item in the diagram"),
                 revertTooltip: l10n.t("Revert this change to its original state"),
