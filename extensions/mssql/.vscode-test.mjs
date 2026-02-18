@@ -1,13 +1,14 @@
-import * as testCli from "@vscode/test-cli";
+import { defineConfig } from "@vscode/test-cli";
+import { createMochaConfig } from "../../scripts/vscode-test-config.mjs";
 
-export default testCli.defineConfig([
+export default defineConfig([
     {
         label: "Unit Tests",
         files: "out/test/**/*.test.js",
         version: "insiders",
-        mocha: {
+        mocha: createMochaConfig({
             ui: "tdd",
             timeout: 6_000,
-        },
+        }),
     },
 ]);
