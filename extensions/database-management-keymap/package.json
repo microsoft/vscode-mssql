@@ -64,7 +64,7 @@
                 "when": "editorTextFocus && editorLangId == 'sql'"
             },
             {
-                "command": "mssql.objectExplorerNewQuery",
+                "command": "mssql.newQuery",
                 "key": "ctrl+n",
                 "mac": "cmd+n"
             },
