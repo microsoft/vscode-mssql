@@ -85,5 +85,8 @@
                 "linux": "shift+meta+r"
             }
         ]
+    },
+    "devDependencies": {
+        "@vscode/vsce": "^3.1.1"
     }
 }
