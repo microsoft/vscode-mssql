@@ -9,10 +9,11 @@ import {
     AzureSubscription,
     AzureTenant,
     getConfiguredAuthProviderId,
+    getUnauthenticatedTenants,
+    signInToTenant,
 } from "@microsoft/vscode-azext-azureauth";
-import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
-import { Azure as Loc } from "../constants/locConstants";
+import { Azure as Loc, Common as LocCommon } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
@@ -25,12 +26,33 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
-import { configSelectedAzureSubscriptions } from "../constants/constants";
+import { configSelectedAzureSubscriptions, https } from "../constants/constants";
 import { Logger } from "../models/logger";
-import { IMssqlAzureSubscription } from "../sharedInterfaces/azureAccountManagement";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
+import {
+    Database,
+    ManagedDatabase,
+    ManagedInstance,
+    Server,
+    SqlManagementClient,
+    TrackedResource,
+} from "@azure/arm-sql";
+import { PagedAsyncIterableIterator } from "@azure/core-paging";
+import {
+    BlobContainer,
+    StorageAccount,
+    StorageAccountsListKeysResponse,
+    StorageManagementClient,
+} from "@azure/arm-storage";
+import {
+    BlobServiceClient,
+    ContainerClient,
+    BlobItem,
+    StorageSharedKeyCredential,
+} from "@azure/storage-blob";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
+export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
 
 //#region VS Code integration
 
@@ -175,63 +197,323 @@ export class VsCodeAzureHelper {
      */
     public static async getSubscriptionsForTenant(
         tenant: AzureTenant,
-    ): Promise<IMssqlAzureSubscription[]> {
+    ): Promise<AzureSubscription[]> {
         const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
         const allSubs = await auth.getSubscriptions(false);
         // Filter subscriptions by tenant
         const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
-        return subs.map((sub) => ({
-            subscriptionId: sub.subscriptionId,
-            displayName: sub.name,
-        }));
+        return subs;
     }
 
-    public static async fetchResourcesForSubscription(
+    public static async fetchSqlResourcesForSubscription<
+        TServer extends TrackedResource,
+        TDatabase extends TrackedResource,
+    >(
         sub: AzureSubscription,
-    ): Promise<GenericResourceExpanded[]> {
-        const client = new ResourceManagementClient(sub.credential, sub.subscriptionId, {
+        listServers: (
+            sqlManagementClient: SqlManagementClient,
+        ) => () => PagedAsyncIterableIterator<TServer>,
+        listDatabases: (
+            sqlManagementClient: SqlManagementClient,
+        ) => (
+            resourceGroupName: string,
+            serverName: string,
+        ) => PagedAsyncIterableIterator<TDatabase>,
+    ): Promise<{
+        servers: TServer[];
+        databases: (TDatabase & { server: string })[];
+    }> {
+        const sql = new SqlManagementClient(sub.credential, sub.subscriptionId, {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
-        const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
-        return resources;
+
+        const servers = await listAllIterator(listServers(sql)());
+        const databases: (TDatabase & { server: string })[] = [];
+
+        for (const server of servers) {
+            const newDbs = await listAllIterator(
+                listDatabases(sql)(extractFromResourceId(server.id, "resourceGroups"), server.name),
+            );
+
+            databases.push(
+                ...newDbs.map((db) => {
+                    return {
+                        ...db,
+                        server: server.name, // add server name to database for later use
+                    };
+                }),
+            );
+        }
+
+        return { servers, databases };
     }
 
+    /**
+     * Fetches the Azure SQL servers and databases (including Managed Instances) for a given subscription.
+     * Managed Instances with public endpoints enabled have separate entries for public and private endpoints.
+     */
     public static async fetchServersFromAzure(
         sub: AzureSubscription,
     ): Promise<AzureSqlServerInfo[]> {
-        const result: AzureSqlServerInfo[] = [];
+        const sqlDbResources = await this.fetchSqlResourcesForSubscription<Server, Database>(
+            sub,
+            (sql) => sql.servers.list.bind(sql.servers),
+            (sql) => sql.databases.listByServer.bind(sql.databases),
+        );
 
-        const resources = await this.fetchResourcesForSubscription(sub);
+        const miResources = await this.fetchSqlResourcesForSubscription<
+            ManagedInstance,
+            ManagedDatabase
+        >(
+            sub,
+            (sql) => sql.managedInstances.list.bind(sql.managedInstances),
+            (sql) => sql.managedDatabases.listByInstance.bind(sql.managedDatabases),
+        );
 
-        // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
-        // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases"'
-        // no idea why, so we're fetching all resources and filtering them ourselves
+        const sqlDbMap = this.populateServerMap(
+            sub,
+            sqlDbResources.servers,
+            sqlDbResources.databases,
+        );
 
-        const servers = resources.filter((r) => r.type === serverResourceType);
-        const databases = resources.filter((r) => r.type === databaseResourceType);
+        const miMap = this.populateManagedInstanceMap(
+            sub,
+            miResources.servers,
+            miResources.databases,
+        );
+
+        return Array.from(sqlDbMap.values()).concat(Array.from(miMap.values()));
+    }
+
+    /**
+     * Fetches the storage accounts for a given subscription.
+     * @param sub The subscription to fetch storage accounts for.
+     * @param storageClient storage client for testing purposes
+     * @returns A list of storage accounts.
+     */
+    public static async fetchStorageAccountsForSubscription(
+        sub: AzureSubscription,
+        storageClient?: StorageManagementClient,
+    ): Promise<StorageAccount[]> {
+        try {
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
+
+            return listAllIterator(storage.storageAccounts.list());
+        } catch (error) {
+            console.error("Error fetching storage accounts for subscription:", error);
+            throw new Error(error.message);
+        }
+    }
+
+    /**
+     * Fetches the blob containers for a given storage account.
+     * @param sub The subscription to fetch blob containers for.
+     * @param storageAccount The storage account to fetch blob containers for.
+     * @param storageClient storage client for testing purposes
+     * @returns A list of blob containers.
+     */
+    public static async fetchBlobContainersForStorageAccount(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+        storageClient?: StorageManagementClient,
+    ): Promise<BlobContainer[]> {
+        try {
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
+
+            const storageAccountResourceGroup = extractFromResourceId(
+                storageAccount.id,
+                "resourceGroups",
+            );
+
+            // get resource group for storage account
+            return listAllIterator(
+                storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
+            );
+        } catch (error) {
+            console.error("Error fetching blob containers for storage account:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Fetches blobs for a given blob container using storage account keys.
+     * @param sub Azure subscription
+     * @param storageAccount Storage account
+     * @param container Blob container
+     * @param blobClient Blob service client for testing purposes
+     * @returns A list of blobs.
+     */
+    public static async fetchBlobsForContainer(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+        container: BlobContainer,
+        blobClient?: BlobServiceClient,
+    ): Promise<BlobItem[]> {
+        try {
+            const keys = await this.getStorageAccountKeys(sub, storageAccount);
+            const accountKey = keys.keys?.[0]?.value;
+
+            if (!accountKey) {
+                throw new Error("No storage account key returned.");
+            }
+
+            // get cloud endpoint from provider settings and construct blob service endpoint url
+            const cloudEndpoint =
+                getCloudProviderSettings().settings.azureStorageResource.endpoint.substring(
+                    https.length,
+                );
+
+            const accountName = storageAccount.name;
+            const blobEndpoint = `${https}${accountName}.${cloudEndpoint}`;
+
+            // Create shared key credential
+            const credential = new StorageSharedKeyCredential(accountName, accountKey);
+
+            // Create blob service client using key-based auth
+            const blobServiceClient = blobClient ?? new BlobServiceClient(blobEndpoint, credential);
+
+            const containerClient: ContainerClient = blobServiceClient.getContainerClient(
+                container.name,
+            );
+
+            const blobs: BlobItem[] = [];
+
+            for await (const blob of containerClient.listBlobsFlat()) {
+                blobs.push(blob);
+            }
+
+            return blobs;
+        } catch (error) {
+            console.error("Error fetching blobs for container:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Gets the storage account keys for a given storage account.
+     * @param sub The subscription to fetch storage account keys for.
+     * @param storageAccount The storage account to fetch keys for.
+     * @param storageClient storage client for testing purposes
+     * @returns A list of storage account keys.
+     */
+    public static async getStorageAccountKeys(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+        storageClient?: StorageManagementClient,
+    ): Promise<StorageAccountsListKeysResponse> {
+        try {
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
+
+            const storageAccountResourceGroup = extractFromResourceId(
+                storageAccount.id,
+                "resourceGroups",
+            );
+
+            return await storage.storageAccounts.listKeys(
+                storageAccountResourceGroup,
+                storageAccount.name,
+            );
+        } catch (error) {
+            console.error("Error fetching storage account keys:", error);
+            throw error;
+        }
+    }
+
+    private static populateManagedInstanceMap(
+        subscription: AzureSubscription,
+        servers: ManagedInstance[],
+        databases: (ManagedDatabase & { server: string })[],
+    ): Map<string, AzureSqlServerInfo> {
+        const serverMap = this.populateServerMap(subscription, servers, databases);
+
+        // Managed Instances may need to be split into public and private endpoints.
+        // Split and label them only if the public endpoint is enabled
 
         for (const server of servers) {
-            result.push({
+            const serverEntry = serverMap.get(server.name.toLowerCase());
+            if (serverEntry) {
+                const publicEndpointEnabled =
+                    (server.publicDataEndpointEnabled as boolean) ?? false;
+
+                if (publicEndpointEnabled) {
+                    // Create a separate entry for the public endpoint
+
+                    // Public endpoint URI is the private FQDN, but with ".public" inserted after the server name and on port 3342
+                    const publicServerUri =
+                        serverEntry.uri?.replace(`${server.name}.`, `${server.name}.public.`) +
+                        `,${MANAGED_INSTANCE_PUBLIC_PORT}`;
+
+                    const publicServerEntry: AzureSqlServerInfo = {
+                        ...serverEntry,
+                        server: `${serverEntry.server} (${LocCommon.publicString})`,
+                        uri: publicServerUri,
+                    };
+                    serverMap.set(publicServerEntry.server.toLowerCase(), publicServerEntry);
+
+                    // Label the existing endpoint as private
+                    serverEntry.server = `${serverEntry.server} (${LocCommon.privateString})`;
+                }
+            }
+        }
+
+        return serverMap;
+    }
+
+    private static populateServerMap(
+        subscription: AzureSubscription,
+        servers: Server[],
+        databases: (Database & { server: string })[],
+    ): Map<string, AzureSqlServerInfo> {
+        const serverMap = new Map<string, AzureSqlServerInfo>();
+
+        for (const server of servers) {
+            serverMap.set(server.name.toLowerCase(), {
                 server: server.name,
                 databases: [],
                 location: server.location,
                 resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
-                subscription: `${sub.name} (${sub.subscriptionId})`,
-                uri: buildServerUri(server),
+                subscription: `${subscription.name} (${subscription.subscriptionId})`,
+                uri: server.fullyQualifiedDomainName,
             });
         }
 
         for (const database of databases) {
-            const serverName = extractFromResourceId(database.id, "servers");
-            const server = result.find((s) => s.server === serverName);
+            const serverName = database.server;
+            const server = serverMap.get(serverName.toLowerCase());
+
             if (server) {
-                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+                const databaseName = database.name;
+
+                if (databaseName) {
+                    server.databases.push(databaseName);
+                }
             }
         }
 
-        return result;
+        return serverMap;
     }
 }
+
+/**
+ * Re-exported Azure auth helpers from vscode-azext-azureauth.
+ * Allows for stubbing in unit tests.
+ */
+export const VsCodeAzureAuth = {
+    getUnauthenticatedTenants: getUnauthenticatedTenants,
+    signInToTenant: signInToTenant,
+};
 
 /**
  *  * @returns true if the user selected subscriptions, false if they canceled the selection quickpick
@@ -307,9 +589,6 @@ export async function getSubscriptionQuickPickItems(
 
     return groupQuickPickItems(quickPickItems);
 }
-
-const serverResourceType = "Microsoft.Sql/servers";
-const databaseResourceType = "Microsoft.Sql/servers/databases";
 
 //#endregion
 
@@ -396,7 +675,7 @@ export async function getTenants(
 
         return tenants.map((tenant) => {
             return {
-                displayName: tenant.displayName,
+                displayName: `${tenant.displayName} (${tenant.id})`,
                 value: tenant.id,
             };
         });
@@ -503,13 +782,25 @@ export function extractFromResourceId(resourceId: string, property: string): str
     return resourceId.substring(startIndex, endIndex);
 }
 
-export function buildServerUri(serverResource: GenericResourceExpanded): string {
-    const suffix = serverResource.kind.includes("analytics")
-        ? getCloudProviderSettings().settings.sqlResource.analyticsDnsSuffix
-        : getCloudProviderSettings().settings.sqlResource.dnsSuffix;
+/**
+ * Gets the default tenant ID for the given account and tenants.
+ * @param accountId The account ID.
+ * @param tenants The list of tenants for the account.
+ * @returns The default tenant ID.
+ */
+export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): string {
+    if (accountId === "" || tenants.length === 0) return "";
 
-    // Construct the URI based on the server kind
-    return `${serverResource.name}${suffix}`;
+    // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
+    const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(accountId);
+
+    // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
+    // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
+    return tenants.some((t) => t.tenantId === homeTenantId)
+        ? homeTenantId
+        : tenants.length > 0
+          ? tenants[0].tenantId
+          : "";
 }
 
 //#endregion

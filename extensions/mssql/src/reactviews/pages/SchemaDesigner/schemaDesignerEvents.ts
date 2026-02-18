@@ -7,8 +7,9 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { TypedEventEmitter } from "../../common/eventEmitter";
 
 export type MyEvents = {
-    getScript: () => void;
-    openCodeDrawer: () => void;
+    refreshFlowState: () => void;
+    revealForeignKeyEdges: (foreignKeyId: string) => void;
+    clearEdgeSelection: () => void;
     editTable: (
         table: SchemaDesigner.Table,
         schema: SchemaDesigner.Schema,

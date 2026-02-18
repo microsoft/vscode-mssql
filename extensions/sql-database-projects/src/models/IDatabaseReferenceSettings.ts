@@ -3,37 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Uri } from 'vscode';
-import { SystemDatabase, SystemDbReferenceType } from '../common/typeHelper';
+import { Uri } from "vscode";
+import { SystemDatabase, SystemDbReferenceType } from "../common/typeHelper";
 
 export interface IDatabaseReferenceSettings {
-	databaseVariableLiteralValue?: string;
-	suppressMissingDependenciesErrors: boolean;
+    databaseVariableLiteralValue?: string;
+    suppressMissingDependenciesErrors: boolean;
 }
 
 export interface ISystemDatabaseReferenceSettings extends IDatabaseReferenceSettings {
-	systemDb: SystemDatabase;
-	systemDbReferenceType: SystemDbReferenceType;
+    systemDb: SystemDatabase;
+    systemDbReferenceType: SystemDbReferenceType;
 }
 
 export interface IUserDatabaseReferenceSettings extends IDatabaseReferenceSettings {
-	databaseName?: string;
-	databaseVariable?: string;
-	serverName?: string;
-	serverVariable?: string;
+    databaseName?: string;
+    databaseVariable?: string;
+    serverName?: string;
+    serverVariable?: string;
 }
 
 export interface IDacpacReferenceSettings extends IUserDatabaseReferenceSettings {
-	dacpacFileLocation: Uri;
+    dacpacFileLocation: Uri;
 }
 
 export interface IProjectReferenceSettings extends IUserDatabaseReferenceSettings {
-	projectRelativePath: Uri | undefined;
-	projectName: string;
-	projectGuid: string;
+    projectRelativePath: Uri | undefined;
+    projectName: string;
+    projectGuid: string;
 }
 
 export interface INugetPackageReferenceSettings extends IUserDatabaseReferenceSettings {
-	packageName: string;
-	packageVersion: string;
+    packageName: string;
+    packageVersion: string;
 }

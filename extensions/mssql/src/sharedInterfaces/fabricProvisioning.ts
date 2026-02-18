@@ -68,15 +68,10 @@ export interface FabricProvisioningFormItemSpec
         FabricProvisioningFormItemSpec
     > {
     componentWidth: string;
-    isAdvancedOption: boolean;
 }
 
 export interface FabricProvisioningContextProps
-    extends FormContextProps<
-        FabricProvisioningFormState,
-        FabricProvisioningState,
-        FabricProvisioningFormItemSpec
-    > {
+    extends FormContextProps<FabricProvisioningFormState> {
     /**
      * Reload fabric environment
      * Used when account/ tenant is changed

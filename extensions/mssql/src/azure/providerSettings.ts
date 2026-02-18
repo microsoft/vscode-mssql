@@ -67,6 +67,11 @@ export const publicAzureProviderSettings: IProviderSettings = {
             resource: "AzureKeyVault",
             endpoint: "https://vault.azure.net/",
         },
+        azureStorageResource: {
+            id: "storage",
+            resource: "AzureStorage",
+            endpoint: "https://blob.core.windows.net/",
+        },
     },
     fabric: {
         fabricApiUriBase: "https://api.fabric.microsoft.com/v1/",
@@ -115,6 +120,11 @@ const usGovernmentCloudProviderSettings: IProviderSettings = {
             id: "vault",
             resource: "AzureKeyVault",
             endpoint: "https://vault.usgovcloudapi.net/",
+        },
+        azureStorageResource: {
+            id: "storage",
+            resource: "AzureStorage",
+            endpoint: "https://blob.core.usgovcloudapi.net/",
         },
     },
     fabric: {
@@ -165,6 +175,11 @@ const chinaCloudProviderSettings: IProviderSettings = {
             resource: "AzureKeyVault",
             endpoint: "https://vault.chinacloudapi.cn/",
         },
+        azureStorageResource: {
+            id: "storage",
+            resource: "AzureStorage",
+            endpoint: "https://blob.core.chinacloudapi.cn/",
+        },
     },
     fabric: {
         fabricApiUriBase: undefined,
@@ -195,6 +210,7 @@ interface MssqlEnvironmentAdditions {
     fabricSqlDbDnsSuffix?: string;
     fabricDataWarehouseDnsSuffix?: string;
     dynamicsCrmDnsSuffix?: string;
+    azureStorageEndpoint?: string;
 }
 
 interface MssqlEnvironment extends AzureEnvironments.Environment, MssqlEnvironmentAdditions {
@@ -243,6 +259,11 @@ function getCustomCloudProviderSettings(): IProviderSettings {
                 id: "vault",
                 resource: "AzureKeyVault",
                 endpoint: customCloud.keyVaultEndpoint,
+            },
+            azureStorageResource: {
+                id: "storage",
+                resource: "AzureStorage",
+                endpoint: customCloud.azureStorageEndpoint,
             },
         },
         fabric: {

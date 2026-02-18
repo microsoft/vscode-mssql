@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { FirewallService } from "../../src/firewall/firewallService";
@@ -16,6 +18,8 @@ import {
     ICreateFirewallRuleParams,
 } from "../../src/models/contracts/firewall/firewallRequest";
 import * as Constants from "../../src/constants/constants";
+
+chai.use(sinonChai);
 
 suite("Firewall Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,8 +50,7 @@ suite("Firewall Service Tests", () => {
         const handleResult = await firewallService.handleFirewallRule(12345, "firewall error!");
 
         expect(handleResult).to.deep.equal(mockResponse);
-        sinon.assert.calledOnceWithExactly(
-            client.sendResourceRequest,
+        expect(client.sendResourceRequest).to.have.been.calledOnceWithExactly(
             HandleFirewallRuleRequest.type,
             {
                 errorCode: 12345,
@@ -76,8 +79,7 @@ suite("Firewall Service Tests", () => {
         const result = await firewallService.createFirewallRule(request);
 
         expect(result).to.deep.equal(mockResponse);
-        sinon.assert.calledOnceWithExactly(
-            client.sendResourceRequest,
+        expect(client.sendResourceRequest).to.have.been.calledOnceWithExactly(
             CreateFirewallRuleRequest.type,
             request,
         );

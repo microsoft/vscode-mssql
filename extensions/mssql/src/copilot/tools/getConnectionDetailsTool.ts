@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getDisplayNameForTool } from "./toolsUtils";
 import { IConnectionInfo } from "vscode-mssql";
 import { getErrorMessage } from "../../utils/utils";
 
@@ -84,13 +85,19 @@ export class GetConnectionDetailsTool extends ToolBase<GetConnectionDetailsToolP
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.getConnectionDetailsToolConfirmationTitle}`,
             message: new vscode.MarkdownString(
-                loc.getConnectionDetailsToolConfirmationMessage(connectionId),
+                loc.getConnectionDetailsToolConfirmationMessage(displayName, connectionId),
             ),
         };
-        const invocationMessage = loc.getConnectionDetailsToolInvocationMessage(connectionId);
+        const invocationMessage = loc.getConnectionDetailsToolInvocationMessage(
+            displayName,
+            connectionId,
+        );
         return { invocationMessage, confirmationMessages };
     }
 }

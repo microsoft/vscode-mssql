@@ -47,9 +47,7 @@ export function getNewResultPaneViewColumn(
         case "next":
         default:
             const currentEditor = vscode.window.visibleTextEditors.find((editor) => {
-                return (
-                    editor.document.uri.toString(true) === uri && editor.viewColumn !== undefined
-                );
+                return editor.document.uri.toString() === uri && editor.viewColumn !== undefined;
             });
             if (!currentEditor) {
                 return vscode.ViewColumn.One;
@@ -533,4 +531,20 @@ export function shouldIncludeHeaders(includeHeaders: boolean): boolean {
     }
     // else get config option from vscode config
     return vscode.workspace.getConfiguration().get<boolean>(Constants.copyIncludeHeaders);
+}
+
+export function bucketizeRowCount(rowCount: number): number {
+    if (rowCount < 50) {
+        return 50;
+    } else if (rowCount < 100) {
+        return 100;
+    } else if (rowCount < 500) {
+        return 500;
+    } else if (rowCount < 1000) {
+        return 1000;
+    } else if (rowCount < 5000) {
+        return 5000;
+    } else {
+        return 10000;
+    }
 }

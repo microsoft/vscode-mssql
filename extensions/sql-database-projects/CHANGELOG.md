@@ -2,9 +2,28 @@
 
 All notable changes to the SQL Database Projects extension will be documented in this file.
 
-*The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).*
+_The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)._
 
 ## [Unreleased]
+
+## [1.5.7] - 2026-02-27
+
+- Publish dialog is now generally available (GA).
+- Added five new SQL object templates: Schema, Table-Valued Function, Trigger, Database Trigger, and Sequence.
+- Fixed an issue where the SQL project build task was being created at the project level instead of the workspace level.
+- Fixed an issue where system dacpac files were missing from the BuildDirectory, causing build failures for projects with system database references.
+- Fixed an issue where adding a DbFabric/FabricDw NuGet package reference through the database reference incorrectly displayed the master system database as msdb.
+- Fixed an issue where deleting DbFabric/FabricDw master NuGet package references from the SQL project database references failed.
+
+## [1.5.6] - 2026-01-28
+
+- Added a new 'Target platform' selector when creating an Azure SQL database project.
+- Added an icon and 'Publish Project' header to the Publish (preview) dialog.
+- Added both 'Publish' and 'Publish (Preview)' options to the context menu, allowing users to choose between the classic quickpick flow and the new dialog experience.
+- Resolved an issue where SQL project telemetry events were not being captured consistently.
+- Fixed a macOS issue where the new Publish (preview) dialog could not locate the DACPAC file.
+- Fixed a problem where selecting 'View changes in schema compare' from 'Update project from database' did not automatically launch Schema Compare.
+- Resolved a build failure that occurred when the Windows terminal default profile was set to Git Bash.
 
 ## [1.5.5] - 2025-11-18
 

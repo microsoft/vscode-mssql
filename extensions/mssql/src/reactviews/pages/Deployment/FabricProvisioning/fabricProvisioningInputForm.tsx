@@ -4,14 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import {
-    Button,
-    makeStyles,
-    OptionOnSelectData,
-    SelectionEvents,
-    Spinner,
-    tokens,
-} from "@fluentui/react-components";
+import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
@@ -30,12 +23,16 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
+import {
+    renderColorSwatch,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../../sharedInterfaces/form";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -74,7 +71,9 @@ const useStyles = makeStyles({
 export const FabricProvisioningInputForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
-    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
+    const fabricProvisioningState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as FabricProvisioningState;
 
     if (!context || !fabricProvisioningState) return undefined;
 
@@ -112,6 +111,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         FabricProvisioningContextProps
                     >
                         context={context}
+                        formState={fabricProvisioningState.formState}
                         component={component}
                         idx={index}
                     />
@@ -150,6 +150,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         FabricProvisioningContextProps
                     >
                         context={context}
+                        formState={fabricProvisioningState.formState}
                         component={
                             fabricProvisioningState.formComponents[
                                 "accountId"
@@ -157,7 +158,10 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         }
                         idx={0}
                         componentProps={{
-                            onOptionSelect: (_event: SelectionEvents, data: OptionOnSelectData) => {
+                            onOptionSelect: (
+                                _event: { type: string },
+                                data: { optionValue?: string },
+                            ) => {
                                 context.formAction({
                                     propertyName: "accountId",
                                     isAction: false,
@@ -175,6 +179,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         FabricProvisioningContextProps
                     >
                         context={context}
+                        formState={fabricProvisioningState.formState}
                         component={
                             fabricProvisioningState.formComponents[
                                 "groupId"
@@ -193,6 +198,9 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                     });
                                 }
                             },
+                            renderDecoration: (option: SearchableDropdownOptions) => {
+                                return renderColorSwatch(option.color);
+                            },
                         }}
                     />
                     {fabricProvisioningState.formState.accountId && (
@@ -203,6 +211,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             FabricProvisioningContextProps
                         >
                             context={context}
+                            formState={fabricProvisioningState.formState}
                             component={
                                 fabricProvisioningState.formComponents[
                                     "tenantId"
@@ -211,8 +220,8 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             idx={0}
                             componentProps={{
                                 onOptionSelect: (
-                                    _event: SelectionEvents,
-                                    data: OptionOnSelectData,
+                                    _event: { type: string },
+                                    data: { optionValue?: string },
                                 ) => {
                                     context.formAction({
                                         propertyName: "tenantId",
@@ -233,6 +242,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                 FabricProvisioningContextProps
                             >
                                 context={context}
+                                formState={fabricProvisioningState.formState}
                                 component={
                                     fabricProvisioningState.formComponents[
                                         "workspace"

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebviewContextProps } from "./webview";
+import { CoreRPCs } from "./webview";
 
 export interface FormState<
     TForm,
@@ -14,11 +14,10 @@ export interface FormState<
     formComponents: Partial<Record<keyof TForm, TFormItemSpec>>;
 }
 
-export interface FormContextProps<
-    TForm,
-    TState extends FormState<TForm, TState, TFormItemSpec>,
-    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-> extends WebviewContextProps<TState> {
+/**
+ * FormContextProps without state - for use with VscodeWebviewProvider2 and selectors
+ */
+export interface FormContextProps<TForm> extends CoreRPCs {
     formAction: (event: FormEvent<TForm>) => void;
 }
 
@@ -84,6 +83,11 @@ export interface FormItemSpec<
      * Validation state and message for the form item
      */
     validation?: FormItemValidationState;
+
+    /**
+     * Whether the form item is an advanced option
+     */
+    isAdvancedOption?: boolean;
 }
 
 export interface FormItemValidationState {

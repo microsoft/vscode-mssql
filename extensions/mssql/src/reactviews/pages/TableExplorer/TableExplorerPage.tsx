@@ -7,14 +7,11 @@ import React, { useRef } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
-import {
-    DesignerDefinitionPane,
-    DesignerDefinitionTabs,
-} from "../../common/designerDefinitionPane";
+import { DefinitionPanel, DesignerDefinitionTabs } from "../../common/definitionPanel";
 import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
@@ -75,13 +72,14 @@ const useStyles = makeStyles({
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind } = useVscodeWebview();
 
     // Use selectors to access specific state properties
     const resultSet = useTableExplorerSelector((s) => s.resultSet);
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
+    const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
 
@@ -135,9 +133,9 @@ export const TableExplorerPage: React.FC = () => {
                                             ref={gridRef}
                                             resultSet={resultSet}
                                             themeKind={themeKind}
-                                            pageSize={10}
                                             currentRowCount={currentRowCount}
                                             failedCells={failedCells}
+                                            deletedRows={deletedRows}
                                             onDeleteRow={context?.deleteRow}
                                             onUpdateCell={context?.updateCell}
                                             onRevertCell={context?.revertCell}
@@ -145,6 +143,7 @@ export const TableExplorerPage: React.FC = () => {
                                             onLoadSubset={context?.loadSubset}
                                             onCellChangeCountChanged={handleCellChangeCountChanged}
                                             onDeletionCountChanged={handleDeletionCountChanged}
+                                            onSaveResults={context?.saveResults}
                                         />
                                     )}
                                 </div>
@@ -156,11 +155,15 @@ export const TableExplorerPage: React.FC = () => {
                     {showScriptPane && (
                         <>
                             <PanelResizeHandle className={classes.resizeHandle} />
-                            <DesignerDefinitionPane
-                                script={updateScript || `-- ${loc.tableExplorer.noPendingChanges}`}
-                                themeKind={themeKind}
-                                openInEditor={() => context.openScriptInEditor()}
-                                copyToClipboard={() => context.copyScriptToClipboard()}
+                            <DefinitionPanel
+                                scriptTab={{
+                                    value:
+                                        updateScript || `-- ${loc.tableExplorer.noPendingChanges}`,
+                                    themeKind,
+                                    language: "sql",
+                                    openInEditor: () => context.openScriptInEditor(),
+                                    copyToClipboard: () => context.copyScriptToClipboard(),
+                                }}
                                 activeTab={DesignerDefinitionTabs.Script}
                                 onClose={() => context.toggleScriptPane()}
                             />

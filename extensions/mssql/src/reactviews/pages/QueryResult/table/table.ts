@@ -18,6 +18,7 @@ import {
     GetFiltersRequest,
     GetGridScrollPositionRequest,
     ResultSetSummary,
+    ResultsGridAutoSizeStyle,
     SetColumnWidthsRequest,
     SetGridScrollPositionNotification,
     SortProperties,
@@ -37,7 +38,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 }
 
 export const MAX_COLUMN_WIDTH_PX = 400;
-export const MIN_COLUMN_WIDTH_PX = 30;
+export const MIN_COLUMN_WIDTH_PX = 50;
 export const ACTIONBAR_WIDTH_PX = 30;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
@@ -77,7 +78,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         keyBindings: WebviewKeyBindings,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
-        autoSizeColumns: boolean = false,
+        autoSizeColumnsMode: ResultsGridAutoSizeStyle = ResultsGridAutoSizeStyle.HeadersAndData,
         themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {
         this.linkHandler = linkHandler;
@@ -164,10 +165,19 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
         this.registerPlugin(this._copyKeybindPlugin);
 
+        const autoSizeOnRender = autoSizeColumnsMode !== ResultsGridAutoSizeStyle.Off;
+        const includeHeadersInCalculation =
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeaderOnly;
+        const includeDataInCalculation =
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.DataOnly;
         this._autoColumnSizePlugin = new AutoColumnSize(
             {
                 maxWidth: MAX_COLUMN_WIDTH_PX,
-                autoSizeOnRender: autoSizeColumns,
+                autoSizeOnRender: autoSizeOnRender,
+                includeHeaderWidthInCalculation: includeHeadersInCalculation,
+                includeDataWidthInCalculation: includeDataInCalculation,
             },
             this.context,
         );
@@ -454,6 +464,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public updateRowCount() {
         this.withRenderPreservingSelection(() => {
             this._grid.updateRowCount();
+            this._grid.render();
             if (this._autoscroll) {
                 this._grid.scrollRowIntoView(this._data.getLength() - 1, false);
             }
@@ -603,84 +614,19 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             );
         }
 
+        /**
+         * We only want to apply null cell styles when the row is not hovered,
+         * to ensure that hover styles are visible even on null cells.
+         */
         if (styles.nullCellBackground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { background-color: ${styles.nullCellBackground}; }`,
+                `.monaco-table.${this.idPrefix} .slick-row:not(:hover) .cell-null { background-color: ${styles.nullCellBackground}; }`,
             );
         }
 
         if (styles.nullCellForeground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { color: ${styles.nullCellForeground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverBackground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { background-color: ${styles.nullCellHoverBackground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverForeground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { color: ${styles.nullCellHoverForeground}; }`,
-            );
-        }
-
-        if (styles.nullCellSelectionBackground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { background-color: ${styles.nullCellSelectionBackground}; }`,
-            );
-        }
-
-        if (styles.nullCellSelectionForeground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { color: ${styles.nullCellSelectionForeground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverSelectionBackground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { background-color: ${styles.nullCellHoverSelectionBackground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverSelectionForeground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { color: ${styles.nullCellHoverSelectionForeground}; }`,
-            );
-        }
-
-        if (styles.nullCellSelectionActiveBackground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active { background-color: ${styles.nullCellSelectionActiveBackground}; }`,
-            );
-        }
-
-        if (styles.nullCellSelectionActiveForeground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active { color: ${styles.nullCellSelectionActiveForeground}; }`,
-            );
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { background-color: ${styles.nullCellSelectionActiveBackground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverForeground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { color: ${styles.nullCellHoverForeground}; }`,
-            );
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { color: ${styles.nullCellHoverForeground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverBackground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { background-color: ${styles.nullCellHoverBackground}; }`,
-            );
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { background-color: ${styles.nullCellHoverBackground}; }`,
+                `.monaco-table.${this.idPrefix} .slick-row:not(:hover) .cell-null { color: ${styles.nullCellForeground}; }`,
             );
         }
 

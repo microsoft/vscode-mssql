@@ -103,7 +103,7 @@ export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>
  * @returns A unique string key for the URI.
  */
 export function getUriKey(uri: vscode.Uri): string {
-    return uri?.toString(true);
+    return uri?.toString();
 }
 
 /**
@@ -203,4 +203,16 @@ export function formatXml(xml: string): string {
             return xml; // return unformatted XML on error
         }
     }
+}
+
+/**
+ * This function adds one year to the current date and returns it in the UTC format.
+ * It's used to pass an expiration date argument to the create shared access signature RPC.
+ * It returns the date in the UTC format for locale time zone independence.
+ * @returns next year's UTC date
+ */
+export function getExpirationDateForSas(): string {
+    const today = new Date();
+    const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+    return nextYear.toUTCString();
 }

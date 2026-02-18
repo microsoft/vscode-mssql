@@ -16,6 +16,7 @@ const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
 const EXTENSION_CONFIG = {
     mssql: "vscode-mssql",
     "sql-database-projects": "sql-database-projects",
+    "data-workspace": "data-workspace",
 };
 
 /**

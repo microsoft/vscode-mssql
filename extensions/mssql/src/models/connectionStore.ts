@@ -226,10 +226,8 @@ export class ConnectionStore {
      *
      * @returns
      */
-    public async getProfilePickListItems(
-        getWorkspaceProfiles: boolean,
-    ): Promise<IConnectionCredentialsQuickPickItem[]> {
-        return await this.loadProfiles(getWorkspaceProfiles);
+    public async getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
+        return await this.loadProfiles();
     }
 
     public async addSavedPassword(
@@ -367,7 +365,7 @@ export class ConnectionStore {
         profile: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<IConnectionProfile> {
-        await this._connectionConfig.populateMissingConnectionIds(profile);
+        this._connectionConfig.populateMissingConnectionMetadata(profile);
 
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;
@@ -672,7 +670,7 @@ export class ConnectionStore {
     ): Promise<IConnectionProfileWithSource[]> {
         let connResults: IConnectionProfileWithSource[] = [];
 
-        const connections = await this._connectionConfig.getConnections(true);
+        const connections = await this._connectionConfig.getConnections();
 
         const configConnections = connections.map((c) => {
             const conn = c as IConnectionProfileWithSource;
@@ -740,11 +738,6 @@ export class ConnectionStore {
         return ConnectionMatcher.findMatchingProfile(connProfile, savedConnections);
     }
 
-    /** Gets the groupId for connections  */
-    public get rootGroupId(): string {
-        return this.connectionConfig.getRootGroup().id;
-    }
-
     public async getConnectionQuickpickItems(
         includeRecentConnections: boolean = false,
     ): Promise<IConnectionCredentialsQuickPickItem[]> {
@@ -758,11 +751,8 @@ export class ConnectionStore {
         return output;
     }
 
-    private async loadProfiles(
-        loadWorkspaceProfiles: boolean,
-    ): Promise<IConnectionCredentialsQuickPickItem[]> {
-        let connections: IConnectionProfile[] =
-            await this._connectionConfig.getConnections(loadWorkspaceProfiles);
+    private async loadProfiles(): Promise<IConnectionCredentialsQuickPickItem[]> {
+        let connections: IConnectionProfile[] = await this._connectionConfig.getConnections();
         let quickPickItems = connections.map((c) =>
             this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile),
         );

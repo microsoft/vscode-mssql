@@ -450,7 +450,6 @@ declare module "vscode-mssql" {
             targetFolderStructure: ExtractTarget,
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<SchemaComparePublishProjectResult>;
-        schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
         includeExcludeNode(
             operationId: string,
             diffEntry: DiffEntry,
@@ -534,6 +533,10 @@ declare module "vscode-mssql" {
             packageFilePath: string,
             createStreamingJobTsql: string,
         ): Thenable<ValidateStreamingJobResult>;
+        parseTSqlScript(
+            filePath: string,
+            databaseSchemaProvider: string,
+        ): Thenable<ParseTSqlScriptResult>;
         savePublishProfile(
             profilePath: string,
             databaseName: string,
@@ -541,6 +544,7 @@ declare module "vscode-mssql" {
             sqlCommandVariableValues?: Map<string, string>,
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
+        getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
     }
 
     /**
@@ -556,15 +560,15 @@ declare module "vscode-mssql" {
      */
     export interface ISqlProjectsService {
         /**
-		 * Add a dacpac reference to a project
-		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param dacpacPath Path to the .dacpac file
-		 * @param suppressMissingDependencies Whether to suppress missing dependencies
-		 * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
-		 * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
-			 If this is set, DatabaseVariable must also be set.
-		 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
-		 */
+         * Add a dacpac reference to a project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param dacpacPath Path to the .dacpac file
+         * @param suppressMissingDependencies Whether to suppress missing dependencies
+         * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
+         * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
+             If this is set, DatabaseVariable must also be set.
+         * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
+         */
         addDacpacReference(
             projectUri: string,
             dacpacPath: string,
@@ -575,16 +579,16 @@ declare module "vscode-mssql" {
         ): Promise<ResultStatus>;
 
         /**
-		 * Add a SQL Project reference to a project
-		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param projectPath Path to the referenced .sqlproj file
-		 * @param projectGuid GUID for the referenced SQL project
-		 * @param suppressMissingDependencies Whether to suppress missing dependencies
-		 * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
-		 * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
-			 If this is set, DatabaseVariable must also be set.
-		 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
-		 */
+         * Add a SQL Project reference to a project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param projectPath Path to the referenced .sqlproj file
+         * @param projectGuid GUID for the referenced SQL project
+         * @param suppressMissingDependencies Whether to suppress missing dependencies
+         * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
+         * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
+             If this is set, DatabaseVariable must also be set.
+         * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
+         */
         addSqlProjectReference(
             projectUri: string,
             projectPath: string,
@@ -612,16 +616,16 @@ declare module "vscode-mssql" {
         ): Promise<ResultStatus>;
 
         /**
-		 * Add a nuget package database reference to a project
-		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param packageName Name of the referenced nuget package
-		 * @param packageVersion Version of the referenced nuget package
-		 * @param suppressMissingDependencies Whether to suppress missing dependencies
-		 * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
-		 * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
-			 If this is set, DatabaseVariable must also be set.
-		 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
-		 */
+         * Add a nuget package database reference to a project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param packageName Name of the referenced nuget package
+         * @param packageVersion Version of the referenced nuget package
+         * @param suppressMissingDependencies Whether to suppress missing dependencies
+         * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
+         * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
+             If this is set, DatabaseVariable must also be set.
+         * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
+         */
         addNugetPackageReference(
             projectUri: string,
             packageName: string,
@@ -745,14 +749,14 @@ declare module "vscode-mssql" {
         closeProject(projectUri: string): Promise<ResultStatus>;
 
         /**
-		 * Create a new SQL project
-		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param sqlProjectType Type of SQL Project: SDK-style or Legacy
-		 * @param databaseSchemaProvider Database schema provider for the project, in the format
-			 "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider".
-			 Case sensitive.
-		 * @param buildSdkVersion Version of the Microsoft.Build.Sql SDK for the project, if overriding the default
-		 */
+         * Create a new SQL project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param sqlProjectType Type of SQL Project: SDK-style or Legacy
+         * @param databaseSchemaProvider Database schema provider for the project, in the format
+             "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider".
+             Case sensitive.
+         * @param buildSdkVersion Version of the Microsoft.Build.Sql SDK for the project, if overriding the default
+         */
         createProject(
             projectUri: string,
             sqlProjectType: ProjectType,
@@ -1235,6 +1239,114 @@ declare module "vscode-mssql" {
     }
 
     /**
+     * Action SqlPackage is being run for - matches CommandLineToolAction enum in SqlPackage
+     */
+    export const enum CommandLineToolAction {
+        Extract = "Extract",
+        DeployReport = "DeployReport",
+        DriftReport = "DriftReport",
+        Publish = "Publish",
+        Script = "Script",
+        Export = "Export",
+        Import = "Import",
+    }
+
+    /**
+     * Masking mode for data operations - matches MaskMode enum in SqlTools Service
+     */
+    export enum MaskMode {
+        Masked = "Masked",
+        Unmasked = "Unmasked",
+    }
+
+    /**
+     * Command-line arguments for SqlPackage operations - matches SqlPackageCommandLineArguments in SqlTools Service
+     * Contains source/target paths, connection strings, profile paths, etc.
+     */
+    export interface SqlPackageCommandLineArguments {
+        action: CommandLineToolAction;
+        quiet?: boolean;
+        diagnostics?: boolean;
+        maxParallelism?: number;
+        diagnosticsFile?: string;
+        diagnosticsPackageFile?: string;
+        diagnosticsLevel?: CommandLineDiagnosticsLevel;
+        overwriteFiles?: boolean;
+
+        // Source connection parameters
+        sourceServerName?: string;
+        sourceDatabaseName?: string;
+        sourceUser?: string;
+        sourcePassword?: string;
+        sourceTimeout?: number;
+        sourceEncryptConnection?: EncryptOption;
+        sourceHostNameInCertificate?: string;
+        sourceTrustServerCertificate?: boolean;
+        sourceConnectionString?: string;
+        sourceFile?: string;
+        modelFilePath?: string;
+
+        // Target connection parameters
+        targetServerName?: string;
+        targetDatabaseName?: string;
+        targetUser?: string;
+        targetPassword?: string;
+        targetTimeout?: number;
+        targetEncryptConnection?: EncryptOption;
+        targetHostNameInCertificate?: string;
+        targetTrustServerCertificate?: boolean;
+        targetConnectionString?: string;
+        targetFile?: string;
+
+        // Additional operation parameters
+        properties?: string[];
+        variables?: string[];
+        profile?: string;
+        outputPath?: string;
+        deployScriptPath?: string;
+        deployReportPath?: string;
+        referencePaths?: string[];
+
+        // Authentication
+        azureKeyVaultAuthMethod?: KeyVaultAuthType;
+        threadMaxStackSize?: number;
+        accessToken?: string;
+        universalAuthentication?: boolean;
+        tenantId?: string;
+        azureCloudConfig?: string;
+        clientId?: string;
+        secret?: string;
+
+        // Nested CommandLineProperties object
+        commandLineProperties?: {
+            encryptedPassword?: string;
+            [key: string]: any;
+        };
+    }
+
+    /**
+     * Parameters for generating a SqlPackage command - matches SqlPackageCommandParams in SqlTools Service
+     */
+    export interface SqlPackageCommandParams {
+        commandLineArguments: SqlPackageCommandLineArguments;
+        deploymentOptions?: DeploymentOptions;
+        extractOptions?: any;
+        exportOptions?: any;
+        importOptions?: any;
+        variables?: { [key: string]: string };
+        maskMode?: MaskMode;
+    }
+
+    /**
+     * Result from SqlPackage command generation - matches SqlPackageCommandResult in SqlTools Service
+     */
+    export interface SqlPackageCommandResult {
+        command: string | null;
+        success: boolean;
+        errorMessage: string;
+    }
+
+    /**
      * ResultStatus from d.ts
      */
     export interface ResultStatus {
@@ -1254,7 +1366,30 @@ declare module "vscode-mssql" {
         deploymentOptions: DeploymentOptions;
     }
 
-    export interface ValidateStreamingJobResult extends ResultStatus {}
+    export interface ValidateStreamingJobResult extends ResultStatus { }
+
+    export interface ParseTSqlScriptResult {
+        containsCreateTableStatement: boolean;
+    }
+
+    /**
+     * Parameters for getting deployment options based on scenario
+     */
+    export interface GetDeploymentOptionsParams {
+        /**
+         * Specifies the scenario for which to retrieve default deployment options.
+         * Deployment (default): Returns DacFx native defaults (for Publish operations).
+         * SchemaCompare: Returns modified defaults.
+         */
+        scenario?: DeploymentScenario;
+    }
+
+    /**
+     * Result containing deployment options for the requested scenario
+     */
+    export interface GetDeploymentOptionsResult extends ResultStatus {
+        defaultDeploymentOptions: DeploymentOptions;
+    }
 
     export interface ExportParams {
         databaseName: string;
@@ -1314,6 +1449,11 @@ declare module "vscode-mssql" {
     export interface ValidateStreamingJobParams {
         packageFilePath: string;
         createStreamingJobTsql: string;
+    }
+
+    export interface ParseTSqlScriptParams {
+        filePath: string;
+        databaseSchemaProvider: string;
     }
 
     export interface SchemaCompareConnectionInfo {
@@ -1646,9 +1786,9 @@ declare module "vscode-mssql" {
          */
         platform: string;
         /**
-		 * Output path for build, defaulted to "bin/Debug" if not specified.
-			 May be absolute or relative.
-		 */
+         * Output path for build, defaulted to "bin/Debug" if not specified.
+             May be absolute or relative.
+         */
         outputPath: string;
         /**
          * Default collation for the project, defaulted to SQL_Latin1_General_CP1_CI_AS if not specified

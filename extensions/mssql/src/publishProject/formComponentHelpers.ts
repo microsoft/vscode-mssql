@@ -14,7 +14,7 @@ import {
     PublishFormFields,
 } from "../sharedInterfaces/publishDialog";
 import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
-import { validateSqlServerPassword } from "../deployment/dockerUtils";
+import { validateSqlServerPassword } from "../deployment/sqlServerContainer";
 
 /**
  * Generate publish target options based on project target version
@@ -58,14 +58,15 @@ export function generatePublishFormComponents(
             propertyName: PublishFormFields.ServerName,
             label: Loc.ServerLabel,
             required: true,
-            type: FormItemType.Input,
+            type: FormItemType.SearchableDropdown,
+            options: [],
             placeholder: Loc.ServerConnectionPlaceholder,
         },
         databaseName: {
             propertyName: PublishFormFields.DatabaseName,
             label: Loc.DatabaseLabel,
             required: true,
-            type: FormItemType.Dropdown,
+            type: FormItemType.SearchableDropdown,
             options: initialDatabaseName
                 ? [{ displayName: initialDatabaseName, value: initialDatabaseName }]
                 : [],
@@ -142,16 +143,7 @@ export function generatePublishFormComponents(
         },
         acceptContainerLicense: {
             propertyName: PublishFormFields.AcceptContainerLicense,
-            label: `<span>
-						${Common.accept}
-						<a
-							href="${constants.licenseAgreementUrl}"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							${Loc.SqlServerLicenseAgreement}
-						</a>
-					</span>`,
+            label: `<span>${Common.accept} <a href="${constants.licenseAgreementUrl}" target="_blank" rel="noopener noreferrer">${Loc.SqlServerLicenseAgreement}</a></span>`,
             required: true,
             type: FormItemType.Checkbox,
             validate: (_state: PublishDialogState, value) => {

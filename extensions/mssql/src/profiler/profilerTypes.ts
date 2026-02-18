@@ -1,0 +1,337 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Base interface for rows that can be indexed in the RingBuffer
+ */
+export interface IndexedRow {
+    /** Unique identifier for synchronization (UUID from SQL Tools Service) */
+    id: string;
+}
+
+/**
+ * Represents a profiler event row captured from SQL Server
+ */
+export interface EventRow extends IndexedRow {
+    /** Event sequence number from SQL Tools Service */
+    eventNumber: number;
+    /** Timestamp when the event occurred */
+    timestamp: Date;
+    /** The type/class of the event (e.g., "SQL:BatchCompleted", "RPC:Completed") */
+    eventClass: string;
+    /** The SQL text or command text */
+    textData: string;
+    /** Name of the database where the event occurred */
+    databaseName: string;
+    /** Server Process ID */
+    spid: number | undefined;
+    /** Duration in microseconds */
+    duration: number | undefined;
+    /** CPU time in milliseconds */
+    cpu: number | undefined;
+    /** Logical reads */
+    reads: number | undefined;
+    /** Logical writes */
+    writes: number | undefined;
+    /** Additional event-specific data */
+    additionalData: Record<string, string>;
+}
+
+/**
+ * Session type - file-based or live connection
+ */
+export enum SessionType {
+    /** Reading from an XEL file */
+    File = "file",
+    /** Live profiling session connected to server */
+    Live = "live",
+}
+
+/**
+ * Session state
+ */
+export enum SessionState {
+    /** Session is running and receiving events */
+    Running = "running",
+    /** Session is paused (not receiving events) */
+    Paused = "paused",
+    /** Session is stopped */
+    Stopped = "stopped",
+    /** Session has not been started yet */
+    NotStarted = "notStarted",
+    /** Session is being created on the server */
+    Creating = "creating",
+    /** Session creation or operation failed */
+    Failed = "failed",
+}
+
+/**
+ * Engine type for profiler session templates
+ */
+export enum EngineType {
+    /** On-premises SQL Server (Standalone) */
+    Standalone = "Standalone",
+    /** Azure SQL Database */
+    AzureSQLDB = "AzureSQLDB",
+}
+
+/**
+ * View template configuration for displaying events
+ */
+export interface ViewTemplate {
+    /** Unique identifier for the view */
+    id: string;
+    /** Name of the view template */
+    name: string;
+    /** Description of the view */
+    description?: string;
+    /** Columns to display */
+    columns: ViewColumn[];
+}
+
+/**
+ * Data type for a view column - determines filtering behavior
+ */
+export enum ColumnDataType {
+    /** String/text data - supports all string operators */
+    String = "string",
+    /** Numeric data - supports comparison operators */
+    Number = "number",
+    /** Date/time data - supports comparison operators with date parsing */
+    DateTime = "datetime",
+}
+
+/**
+ * Column configuration in a view template
+ */
+export interface ViewColumn {
+    /** Field name used as the column key */
+    field: string;
+    /** Data type for the column (defaults to String) */
+    type?: ColumnDataType;
+    /** Display header */
+    header: string;
+    /** Column width in pixels */
+    width?: number;
+    /** Whether the column is visible */
+    visible?: boolean;
+    /** Whether the column is sortable */
+    sortable?: boolean;
+    /** Whether the column is filterable */
+    filterable?: boolean;
+    /**
+     * Filter type for the column: determines the filter UI and available operators.
+     * Defaults to Text for string columns if not specified.
+     */
+    filterType?: FilterType;
+    /**
+     * Array of XEvent field names that map to this column.
+     * When converting an event row, the first matching field will be used.
+     */
+    eventsMapped: string[];
+}
+
+/**
+ * Profiler session template with view association
+ */
+export interface ProfilerTemplate {
+    /** Unique identifier for the template */
+    id: string;
+    /** Template name */
+    name: string;
+    /** Description of the template */
+    description?: string;
+    /** Engine type this template is for */
+    engineType: EngineType;
+    /** Default view ID to use with this template */
+    defaultView: string;
+    /** T-SQL CREATE EVENT SESSION statement (use {sessionName} as placeholder) */
+    createStatement: string;
+    /** List of XEvent names captured by this template */
+    eventsCaptured: string[];
+}
+
+/**
+ * Template ID constants
+ */
+export const TEMPLATE_ID_STANDARD_ONPREM = "Standard_OnPrem";
+export const TEMPLATE_ID_STANDARD_AZURE = "Standard_Azure";
+export const TEMPLATE_ID_TSQL_ONPREM = "TSQL_OnPrem";
+export const TEMPLATE_ID_TSQL_AZURE = "TSQL_Azure";
+export const TEMPLATE_ID_TSQL_LOCKS_ONPREM = "TSQL_Locks_OnPrem";
+export const TEMPLATE_ID_TSQL_DURATION_ONPREM = "TSQL_Duration_OnPrem";
+
+/**
+ * View ID constants
+ */
+export const VIEW_ID_STANDARD = "Standard View";
+export const VIEW_ID_TSQL = "TSQL View";
+export const VIEW_ID_TUNING = "Tuning View";
+export const VIEW_ID_TSQL_LOCKS = "TSQL_Locks View";
+export const VIEW_ID_TSQL_DURATION = "TSQL_Duration View";
+
+/**
+ * EventRow field name constants for type-safe field access
+ */
+export const FIELD_TIMESTAMP = "timestamp";
+export const FIELD_ADDITIONAL_DATA = "additionalData";
+
+/**
+ * JavaScript typeof result constants
+ */
+export const TYPE_NUMBER = "number";
+
+/**
+ * Configuration structure for profiler templates and views.
+ * Note: viewToSessionMap and sessionToViewMap are computed at runtime
+ * from the templates' defaultView property to avoid drift.
+ */
+export interface ProfilerConfig {
+    /** Available view templates */
+    views: ViewTemplate[];
+    /** Available session templates */
+    templates: ProfilerTemplate[];
+}
+
+/**
+ * A row formatted for display in a specific view
+ */
+export interface ViewRow {
+    /** Unique row identifier */
+    id: string;
+    /** Dynamic fields based on view columns */
+    [field: string]: string | number | undefined;
+}
+
+/**
+ * Filter operators for client-side filtering.
+ * These operators provide ADS-style parity for filtering.
+ */
+export enum FilterOperator {
+    /** Equal comparison */
+    Equals = "equals",
+    /** Not equal comparison */
+    NotEquals = "notEquals",
+    /** Less than comparison */
+    LessThan = "lessThan",
+    /** Less than or equal comparison */
+    LessThanOrEqual = "lessThanOrEqual",
+    /** Greater than comparison */
+    GreaterThan = "greaterThan",
+    /** Greater than or equal comparison */
+    GreaterThanOrEqual = "greaterThanOrEqual",
+    /** Field is null or undefined */
+    IsNull = "isNull",
+    /** Field is not null and not undefined */
+    IsNotNull = "isNotNull",
+    /** Field contains the value as a substring (case-insensitive) */
+    Contains = "contains",
+    /** Field does not contain the value as a substring */
+    NotContains = "notContains",
+    /** Field starts with the value (case-insensitive) */
+    StartsWith = "startsWith",
+    /** Field does not start with the value */
+    NotStartsWith = "notStartsWith",
+    /** Field ends with the value (case-insensitive) */
+    EndsWith = "endsWith",
+    /** Field does not end with the value */
+    NotEndsWith = "notEndsWith",
+    /** Field value is one of a set of values (OR logic within a single column) */
+    In = "in",
+}
+
+/**
+ * Type hint for filter value parsing
+ */
+export enum FilterTypeHint {
+    /** String/text data */
+    String = "string",
+    /** Numeric data */
+    Number = "number",
+    /** Date data (without time) */
+    Date = "date",
+    /** Date/time data */
+    DateTime = "datetime",
+    /** Boolean data */
+    Boolean = "boolean",
+}
+
+/**
+ * A single filter clause for client-side filtering.
+ * Multiple clauses are combined with AND logic.
+ */
+export interface FilterClause {
+    /** The field/column name to filter on */
+    field: string;
+    /** The comparison operator */
+    operator: FilterOperator;
+    /** The value to compare against (not used for IsNull/IsNotNull) */
+    value?: string | number | boolean;
+    /** Set of values for the In operator (OR logic within a single column) */
+    values?: string[];
+    /** Optional type hint for value parsing */
+    typeHint?: FilterTypeHint;
+}
+
+/**
+ * Filter type for columns.
+ * Determines the filter UI and operators available for a column.
+ */
+export enum FilterType {
+    /** Show a searchable checkbox list of distinct values (e.g., EventClass, DatabaseName) */
+    Categorical = "categorical",
+    /** Show text operator input (contains/starts with/ends with) for long text (e.g., TextData) */
+    Text = "text",
+    /** Show numeric operator input (equals/greater than/less than, etc.) */
+    Numeric = "numeric",
+    /** Show date/time operator input (equals/greater than/less than, etc.) */
+    Date = "date",
+}
+
+/**
+ * Filter state for a profiler session.
+ * Each session has its own independent filter state.
+ */
+export interface FilterState {
+    /** Whether filtering is currently enabled */
+    enabled: boolean;
+    /** Array of filter clauses (combined with AND logic) */
+    clauses: FilterClause[];
+    /** Quick filter search term (cross-column case-insensitive contains) */
+    quickFilter?: string;
+}
+
+/**
+ * Sort direction for profiler grid columns
+ */
+export enum SortDirection {
+    /** Ascending order (A-Z, 0-9, oldest-newest) */
+    ASC = "asc",
+    /** Descending order (Z-A, 9-0, newest-oldest) */
+    DESC = "desc",
+}
+
+/**
+ * Sort state for the profiler grid.
+ * Only one column can be sorted at a time.
+ */
+export interface SortState {
+    /** The field/column being sorted */
+    field: string;
+    /** The sort direction */
+    direction: SortDirection;
+}
+
+/**
+ * Information about a file-based profiler session
+ */
+export interface XelFileInfo {
+    /** Full file path */
+    filePath: string;
+    /** File name without path */
+    fileName: string;
+    /** File size in bytes */
+    fileSize?: number;
+}

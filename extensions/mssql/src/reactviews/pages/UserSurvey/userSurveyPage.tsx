@@ -27,6 +27,7 @@ import {
 import { useContext, useState } from "react";
 
 import { UserSurveyContext } from "./userSurveryStateProvider";
+import { useUserSurveySelector } from "./userSurveySelector";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -68,13 +69,18 @@ const useStyles = makeStyles({
 
 export const UserSurveyPage = () => {
     const classes = useStyles();
-    const userSurveryProvider = useContext(UserSurveyContext);
+    const context = useContext(UserSurveyContext);
+    const questions = useUserSurveySelector((s) => s?.questions);
+    const title = useUserSurveySelector((s) => s?.title);
+    const subtitle = useUserSurveySelector((s) => s?.subtitle);
+    const submitButtonText = useUserSurveySelector((s) => s?.submitButtonText);
+    const cancelButtonText = useUserSurveySelector((s) => s?.cancelButtonText);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
     const [userAnswers, setUserAnswers] = useState<Answers>({});
 
     const updateSubmitButtonState = () => {
-        for (let i = 0; i < userSurveryProvider!.state!.questions.length; i++) {
-            const question = userSurveryProvider!.state!.questions[i];
+        for (let i = 0; i < questions!.length; i++) {
+            const question = questions![i];
             // if question is not divider and not required, skip
             if (question.type === "divider") {
                 continue;
@@ -96,7 +102,7 @@ export const UserSurveyPage = () => {
         updateSubmitButtonState();
     };
 
-    if (!userSurveryProvider?.state) {
+    if (!context || !questions) {
         return undefined;
     }
 
@@ -107,12 +113,11 @@ export const UserSurveyPage = () => {
                     style={{
                         marginBottom: "30px",
                     }}>
-                    {userSurveryProvider.state.title ??
-                        locConstants.userFeedback.microsoftWouldLikeYourFeedback}
+                    {title ?? locConstants.userFeedback.microsoftWouldLikeYourFeedback}
                 </h2>
-                {userSurveryProvider.state.subtitle && <p>{userSurveryProvider.state.subtitle}</p>}
+                {subtitle && <p>{subtitle}</p>}
 
-                {userSurveryProvider.state.questions.map((question, index) => {
+                {questions.map((question, index) => {
                     switch (question.type) {
                         case "nsat":
                             return (
@@ -149,13 +154,11 @@ export const UserSurveyPage = () => {
                         <Button
                             appearance="primary"
                             disabled={isSubmitDisabled}
-                            onClick={() => userSurveryProvider.submit(userAnswers)}>
-                            {userSurveryProvider.state.submitButtonText ??
-                                locConstants.userFeedback.submit}
+                            onClick={() => context.submit(userAnswers)}>
+                            {submitButtonText ?? locConstants.userFeedback.submit}
                         </Button>
-                        <Button onClick={() => userSurveryProvider.cancel()}>
-                            {userSurveryProvider.state.cancelButtonText ??
-                                locConstants.common.cancel}
+                        <Button onClick={() => context.cancel()}>
+                            {cancelButtonText ?? locConstants.common.cancel}
                         </Button>
                     </div>
                 </div>
@@ -172,7 +175,7 @@ export const UserSurveyPage = () => {
                     </Popover>
                     <Link
                         onClick={() => {
-                            userSurveryProvider.openPrivacyStatement();
+                            context.openPrivacyStatement();
                         }}>
                         {locConstants.userFeedback.privacyStatement}
                     </Link>

@@ -36,9 +36,13 @@ import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import {
+    ActivityObject,
+    ActivityStatus,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
@@ -47,6 +51,7 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
+import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -178,7 +183,6 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(
                 this,
-                this._connectionStore,
                 this._accountStore,
                 prompter,
                 this.vscodeWrapper,
@@ -395,6 +399,30 @@ export default class ConnectionManager {
         connProfile: IConnectionProfile,
     ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore }> {
         return this.connectionStore.findMatchingProfile(connProfile);
+    }
+
+    /**
+     * For Azure MFA connections, ensures the accountId is present in the connection info.
+     * If accountId is missing, attempts to find it from saved connection profiles.
+     * Ex: This is needed when opening connections from stored profiles like .scmp and publish.xml files.
+     * @param connectionInfo The connection info to populate with accountId if missing (modified in place)
+     * @returns true if accountId was found and populated, false otherwise
+     */
+    public async ensureAccountIdForAzureMfa(connectionInfo: IConnectionInfo): Promise<boolean> {
+        const matchResult = await this.findMatchingProfile(new ConnectionProfile(connectionInfo));
+
+        // Only use the accountId if we have a strong match (at least server-level match)
+        // to avoid using the wrong account for connections to the same server
+        if (
+            matchResult &&
+            matchResult.profile &&
+            matchResult.profile.accountId &&
+            matchResult.score >= Utils.MatchScore.Server
+        ) {
+            connectionInfo.accountId = matchResult.profile.accountId;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -874,13 +902,6 @@ export default class ConnectionManager {
                 this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
             }
 
-            // Free any search metadata cached for this connection
-            try {
-                DatabaseObjectSearchService.clearCache(fileUri);
-            } catch {
-                // best-effort cleanup; ignore errors
-            }
-
             this.removeActiveConnection(fileUri);
             return result;
         } else if (this.isConnecting(fileUri)) {
@@ -909,15 +930,13 @@ export default class ConnectionManager {
                 .map((key) => {
                     try {
                         key = vscode.Uri.parse(key).toString();
-                    } catch (error) {
-                        // ignore errors from invalid URIs. Most probably an OE based key
-                        this._logger.verbose(
-                            "Error parsing URI, most probably an OE based key:",
-                            getErrorMessage(error),
-                        );
+                    } catch {
+                        // ignore invalid URIs (for example OE-only keys) in context resource list
+                        return undefined;
                     }
                     return key;
-                }),
+                })
+                .filter((key): key is string => !!key),
         );
     }
 
@@ -1014,6 +1033,13 @@ export default class ConnectionManager {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
+            // Send telemetry to identify code paths where accountId is missing
+            sendErrorEvent(
+                TelemetryViews.ConnectionManager,
+                TelemetryActions.Connect,
+                new Error("Azure MFA connection missing accountId in confirmEntraTokenValidity"),
+                true, // includeErrorMessage
+            );
             throw new Error(LocalizedConstants.cannotConnect);
         }
 
@@ -1106,12 +1132,16 @@ export default class ConnectionManager {
         if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
-            if (Utils.isEmpty(password)) {
+            if (
+                Utils.isEmpty(password) &&
+                !(connectionCreds as IConnectionProfile).emptyPasswordInput
+            ) {
                 password = await this.connectionStore.lookupPassword(connectionCreds);
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
-                    if (!password) {
-                        return false;
+                    // If user provided empty password, set the flag to avoid re-prompting
+                    if (password === undefined || password === "") {
+                        (connectionCreds as IConnectionProfile).emptyPasswordInput = true;
                     }
                 }
 
@@ -1133,6 +1163,24 @@ export default class ConnectionManager {
         await this.connectionStore.saveProfilePasswordIfNeeded(profile);
     }
 
+    public async checkForDockerConnection(profile: IConnectionProfile): Promise<string> {
+        if (!profile.containerName) {
+            const serverInfo = this.getServerInfo(profile);
+            let machineName = "";
+            if (serverInfo) {
+                machineName = (serverInfo as any)["machineName"];
+            }
+            const containerName = await checkIfConnectionIsDockerContainer(machineName);
+            if (containerName) {
+                profile.containerName = containerName;
+                // if the connection is a docker container, make sure to set the container name for future use
+                await this.connectionStore.saveProfile(profile);
+                return containerName;
+            }
+        }
+        return "";
+    }
+
     /**
      * Creates a new connection with provided credentials.
      * @param fileUri file URI for the connection. If not provided, a new URI will be generated.
@@ -1152,16 +1200,31 @@ export default class ConnectionManager {
     ): Promise<boolean> {
         const { shouldHandleErrors = true, connectionSource = "" } = options;
 
+        const connectionActivity = startActivity(
+            TelemetryViews.ConnectionManager,
+            TelemetryActions.Connect,
+            undefined, // Default correlation id
+            {
+                serverTypes: getServerTypes(credentials).join(","),
+                cloudType: getCloudId(),
+                connectionSource: connectionSource,
+            },
+            undefined,
+            true, // include call stack
+        );
+
         if (!fileUri) {
             fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${Utils.generateGuid()}`;
         }
 
-        credentials = await this.prepareConnectionInfo(credentials);
+        credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
         connectionInfo.connecting = true;
+
+        this._connections[fileUri] = connectionInfo;
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
@@ -1187,31 +1250,36 @@ export default class ConnectionManager {
             connectionCompletePromise,
         );
 
-        let initRequest: boolean;
+        let initResponse: boolean;
+        let initRequestCompleted = false;
         try {
-            initRequest = await this.client.sendRequest(
+            setTimeout(() => {
+                if (!initRequestCompleted) {
+                    connectionActivity.update({
+                        longRunningIntialization: "true",
+                    });
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            initResponse = await this.client.sendRequest(
                 ConnectionContracts.ConnectionRequest.type,
                 connectParams,
             );
+            initRequestCompleted = true;
         } catch (error) {
+            initRequestCompleted = true;
+            this.removeActiveConnection(fileUri);
+            connectionCompletePromise.reject(error);
+            this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
+            delete this._connections[fileUri];
             /**
              * If the initial connection attempt fails, log the error and return false.
              * We don’t invoke error callbacks here because the failure happens before
              * the SQL client even starts connecting. At this stage there’s nothing to
              * retry or recover from.
              */
-            sendErrorEvent(
-                TelemetryViews.ConnectionManager,
-                TelemetryActions.Connect,
+            connectionActivity.endFailed(
                 error,
-                true, // includeErrorMessage,
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    serverTypes: getServerTypes(credentials).join(","),
-                    cloudType: getCloudId(),
-                    connectionSource: connectionSource,
-                },
+                false, // Do not include error message as it might contain sensitive info
             );
             return false;
         }
@@ -1222,28 +1290,21 @@ export default class ConnectionManager {
          * the SQL client even starts connecting. At this stage there’s nothing to
          * retry or recover from.
          */
-        if (!initRequest) {
-            sendErrorEvent(
-                TelemetryViews.ConnectionManager,
-                TelemetryActions.Connect,
-                new Error("Failed to initiate connection"),
-                true, // includeErrorMessage,
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    serverTypes: getServerTypes(credentials).join(","),
-                    cloudType: getCloudId(),
-                    connectionSource: connectionSource,
-                },
+        if (!initResponse) {
+            const initialConnectionError = new Error("Failed to initiate connection");
+            this.removeActiveConnection(fileUri);
+            connectionCompletePromise.reject(initialConnectionError);
+            this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
+            delete this._connections[fileUri];
+            connectionActivity.endFailed(
+                initialConnectionError,
+                true, // include error message
             );
             return false;
         }
 
-        // Connection was initiated successfully.
-        sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
-            serverTypes: getServerTypes(credentials).join(","),
-            cloudType: getCloudId(),
-            connectionSource: connectionSource,
+        connectionActivity.update({
+            connectionInitiated: "true",
         });
 
         const result = await connectionCompletePromise.promise;
@@ -1258,15 +1319,28 @@ export default class ConnectionManager {
              */
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
+            connectionActivity.end(
+                ActivityStatus.Succeeded,
+                undefined,
+                undefined,
+                connectionInfo?.credentials,
+                result?.serverInfo,
+            );
             return true;
         } else {
+            let errorType = "";
             if (shouldHandleErrors) {
                 const errorHandlingResult = await this.handleConnectionErrors(
                     result,
                     connectionInfo.credentials,
                 );
 
+                errorType = errorHandlingResult?.errorHandled;
+                connectionActivity.update({
+                    retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                });
                 if (errorHandlingResult.isHandled) {
+                    connectionActivity.end(ActivityStatus.Retrying);
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });
@@ -1286,18 +1360,17 @@ export default class ConnectionManager {
                 ),
             );
             this._onConnectionsChangedEmitter.fire();
-            sendErrorEvent(
-                TelemetryViews.ConnectionPrompt,
-                TelemetryActions.CreateConnectionResult,
+            connectionActivity.endFailed(
                 new Error(result.errorMessage),
-                false,
-                result.errorNumber?.toString(),
+                false, // Do not include error message
+                result.errorNumber?.toString() ?? errorType,
                 undefined,
                 {
                     containsError: "true",
+                    errorType,
                 },
                 undefined,
-                connectionInfo.credentials as IConnectionProfile,
+                connectionInfo.credentials,
                 result.serverInfo,
             );
             return false;
@@ -1309,21 +1382,53 @@ export default class ConnectionManager {
      * @param credentials The connection info to prepare
      * @returns The prepared connection info
      */
-    public async prepareConnectionInfo(credentials: IConnectionInfo): Promise<IConnectionInfo> {
+    public async prepareConnectionInfo(
+        credentials: IConnectionInfo,
+        telemetryActivity?: ActivityObject,
+    ): Promise<IConnectionInfo> {
+        const telemetryActivityErrorType = "ConnectionPreparationError";
         // Verify that the connection info has server or connection string
         if (!credentials.server && !credentials.connectionString) {
+            const error = new Error(LocalizedConstants.serverNameMissing);
+            telemetryActivity?.endFailed(
+                error,
+                true, // includeErrorMessage
+                "MissingServerName",
+                telemetryActivityErrorType,
+                undefined,
+            );
             throw new Error(LocalizedConstants.serverNameMissing);
         }
 
         // Handle Entra token validity
         if (credentials.authenticationType === Constants.azureMfa) {
-            await this.confirmEntraTokenValidity(credentials);
+            try {
+                await this.confirmEntraTokenValidity(credentials);
+            } catch (error) {
+                telemetryActivity?.endFailed(
+                    error,
+                    false, // do not include error message
+                    "EntraTokenValidityConfirmationFailed",
+                    telemetryActivityErrorType,
+                    undefined,
+                );
+                throw error;
+            }
         }
 
         // Handle password-based credentials
         const passwordResult = await this.handlePasswordBasedCredentials(credentials);
         if (!passwordResult) {
-            throw new Error(LocalizedConstants.cannotConnect);
+            // User cancelled the password prompt
+            const passwordError = new Error(LocalizedConstants.cannotConnect);
+            telemetryActivity?.endFailed(
+                passwordError,
+                true, // includeErrorMessage
+                "PasswordHandlingFailed",
+                telemetryActivityErrorType,
+                undefined,
+            );
+            throw passwordError;
         }
 
         // Handle connection string-based credentials
@@ -1341,6 +1446,10 @@ export default class ConnectionManager {
         ) {
             credentials.azureAccountToken = undefined;
         }
+
+        telemetryActivity?.update({
+            connectionPrepared: "true",
+        });
         return credentials;
     }
 
@@ -1408,10 +1517,14 @@ export default class ConnectionManager {
             ),
         );
         sendActionEvent(
-            TelemetryViews.ConnectionPrompt,
+            TelemetryViews.ConnectionManager,
             TelemetryActions.CreateConnectionResult,
-            undefined,
-            undefined,
+            {
+                connectedEngineEditionId: String(result.serverInfo.engineEditionId),
+            },
+            {
+                connectedEngineEditionId: result.serverInfo.engineEditionId,
+            },
             newCredentials as IConnectionProfile,
             result.serverInfo,
         );
@@ -1581,12 +1694,50 @@ export default class ConnectionManager {
             new ConnectionContracts.CancelConnectParams();
         cancelParams.ownerUri = fileUri;
 
-        const result = await this.client.sendRequest(
-            ConnectionContracts.CancelConnectRequest.type,
-            cancelParams,
+        const cancelActivity = startActivity(
+            TelemetryViews.ConnectionManager,
+            TelemetryActions.CancelConnection,
         );
-        if (result) {
-            this.statusView.setNotConnected(fileUri);
+        let cancelRequestCompleted = false;
+        setTimeout(() => {
+            if (!cancelRequestCompleted) {
+                cancelActivity.endFailed(
+                    new Error("Cancellation timed out"),
+                    true, // include error message
+                );
+            }
+        }, Constants.stsImmediateActivityTimeout);
+
+        try {
+            const result = await this.client.sendRequest(
+                ConnectionContracts.CancelConnectRequest.type,
+                cancelParams,
+            );
+            cancelRequestCompleted = true;
+            if (result) {
+                this.statusView.setNotConnected(fileUri);
+                cancelActivity.end(ActivityStatus.Succeeded);
+                // Force cleanup of promises and state
+                const completionPromise = this._uriToConnectionCompleteParamsMap.get(fileUri);
+                if (completionPromise) {
+                    completionPromise.reject(new Error("Connection cancelled"));
+                    this._uriToConnectionCompleteParamsMap.delete(fileUri);
+                }
+                this.removeActiveConnection(fileUri);
+            } else {
+                cancelActivity.endFailed(
+                    new Error(
+                        "Failed to cancel connection. Most likely connection already established.",
+                    ),
+                    true, // include error message
+                );
+            }
+        } catch (error) {
+            cancelRequestCompleted = true;
+            cancelActivity.endFailed(
+                error,
+                false, // do not include error message
+            );
         }
     }
 
@@ -1612,7 +1763,7 @@ export default class ConnectionManager {
     }
 
     public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
-        let docUri: string = doc.uri.toString(true);
+        let docUri: string = doc.uri.toString();
 
         // If this file isn't connected, then don't do anything
         if (!this.isConnected(docUri)) {
@@ -1624,7 +1775,7 @@ export default class ConnectionManager {
     }
 
     public onDidOpenTextDocument(doc: vscode.TextDocument): void {
-        let uri = doc.uri.toString(true);
+        let uri = doc.uri.toString();
         if (doc.languageId === "sql" && typeof this._connections[uri] === "undefined") {
             this.statusView.setNotConnected(uri);
         }

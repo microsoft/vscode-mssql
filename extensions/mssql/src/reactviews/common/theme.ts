@@ -39,7 +39,8 @@ export function webviewTheme(themeKind: ColorThemeKind): fluentui.Theme {
          */
         colorNeutralBackground1Hover: "var(--vscode-dropdown-background)",
         colorNeutralForeground1Hover: "var(--vscode-editor-foreground)",
-        colorNeutralBackgroundInverted: "var(--vscode-editor-selectionBackground)",
+        colorNeutralBackgroundInverted: "var(--vscode-editor-background)",
+
         /**
          * Background color for a pressed state of a secondary button.
          */
@@ -135,5 +136,9 @@ export function webviewTheme(themeKind: ColorThemeKind): fluentui.Theme {
          * Color for the background of a toggle button when it is selected.
          */
         colorNeutralBackground1Selected: "var(--vscode-list-inactiveSelectionBackground)",
+        /**
+         * Foreground color for toast body text.
+         */
+        colorNeutralForegroundInverted2: "var(--vscode-editor-foreground)",
     };
 }

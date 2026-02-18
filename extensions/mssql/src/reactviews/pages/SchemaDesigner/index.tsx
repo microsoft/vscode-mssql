@@ -7,15 +7,139 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
+import { useEffect, useState } from "react";
+import { makeStyles, Toolbar, ToolbarButton, tokens } from "@fluentui/react-components";
+import * as FluentIcons from "@fluentui/react-icons";
+import { DabPage } from "./dab/dabPage";
+import { locConstants } from "../../common/locConstants";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+
+const useStyles = makeStyles({
+    root: {
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "row",
+    },
+    nav: {
+        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground2,
+        boxSizing: "border-box",
+    },
+    content: {
+        flex: 1,
+        minWidth: 0,
+        height: "100%",
+        display: "flex",
+    },
+});
+
+const MainLayout = () => {
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const stateActiveView = useSchemaDesignerSelector((s) => s?.activeView);
+    const isDabEnabled = enableDAB ?? false;
+    const [activeView, setActiveView] = useState<SchemaDesigner.SchemaDesignerActiveView>(() =>
+        getActiveViewFromState(stateActiveView),
+    );
+    const classes = useStyles();
+    const schemaDesignerLabel = locConstants.schemaDesigner.schemaDesignerNavLabel;
+    const dabLabel = locConstants.schemaDesigner.dabNavLabel;
+
+    useEffect(() => {
+        setActiveView(getActiveViewFromState(stateActiveView));
+    }, [stateActiveView]);
+
+    if (isDabEnabled) {
+        return (
+            <div className={classes.root}>
+                <div className={classes.nav}>
+                    <Toolbar vertical>
+                        <ToolbarButton
+                            appearance={
+                                activeView ===
+                                SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                                    ? "primary"
+                                    : "subtle"
+                            }
+                            icon={<FluentIcons.TableRegular />}
+                            onClick={() =>
+                                setActiveView(
+                                    SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
+                                )
+                            }
+                            title={schemaDesignerLabel}
+                            aria-label={schemaDesignerLabel}
+                        />
+                        <ToolbarButton
+                            appearance={
+                                activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
+                                    ? "primary"
+                                    : "subtle"
+                            }
+                            icon={<FluentIcons.DatabaseSearch24Regular />}
+                            onClick={() =>
+                                setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
+                            }
+                            title={dabLabel}
+                            aria-label={dabLabel}
+                        />
+                    </Toolbar>
+                </div>
+                <div className={classes.content}>
+                    <div
+                        style={{
+                            height: "100%",
+                            width: "100%",
+                            flex: 1,
+                            minWidth: 0,
+                            maxWidth: "100%",
+                            display:
+                                activeView ===
+                                SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                                    ? "block"
+                                    : "none",
+                        }}>
+                        <SchemaDesignerPage />
+                    </div>
+                    <div
+                        style={{
+                            height: "100%",
+                            width: "100%",
+                            flex: 1,
+                            minWidth: 0,
+                            maxWidth: "100%",
+                            display:
+                                activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
+                                    ? "block"
+                                    : "none",
+                        }}>
+                        <DabPage activeView={activeView} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return <SchemaDesignerPage />;
+};
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <ReactFlowProvider>
             <SchemaDesignerStateProvider>
-                <SchemaDesignerPage />
+                <MainLayout />
             </SchemaDesignerStateProvider>
         </ReactFlowProvider>
     </VscodeWebviewProvider>,
 );
+
+const getActiveViewFromState = (
+    view?: SchemaDesigner.SchemaDesignerActiveView,
+): SchemaDesigner.SchemaDesignerActiveView => {
+    return view === SchemaDesigner.SchemaDesignerActiveView.Dab
+        ? SchemaDesigner.SchemaDesignerActiveView.Dab
+        : SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner;
+};

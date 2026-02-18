@@ -5,6 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { ConnectButton } from "./components/connectButton.component";
 import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
@@ -30,6 +31,23 @@ export const azureLogoColor = () => {
 
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
+    const formState = useConnectionDialogSelector((s) => s.formState);
+    const azureServers = useConnectionDialogSelector((s) => s.azureServers);
+    const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
+    const loadingAzureAccountsStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureAccountsStatus,
+    );
+    const azureSubscriptions = useConnectionDialogSelector((s) => s.azureSubscriptions);
+    const azureTenantSignInCounts = useConnectionDialogSelector((s) => s.azureTenantSignInCounts);
+    const azureTenantStatus = useConnectionDialogSelector((s) => s.azureTenantStatus);
+    const loadingAzureSubscriptionsStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureSubscriptionsStatus,
+    );
+    const loadingAzureServersStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureServersStatus,
+    );
+    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     if (context === undefined) {
         return undefined;
     }
@@ -61,7 +79,7 @@ export const AzureBrowsePage = () => {
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     function setSelectedServerWithFormState(server: string | undefined) {
-        if (server === undefined && context?.state.formState.server === "") {
+        if (server === undefined && formState.server === "") {
             return; // avoid unnecessary updates
         }
 
@@ -70,7 +88,7 @@ export const AzureBrowsePage = () => {
         let serverUri = "";
 
         if (server) {
-            const srv = context?.state.azureServers.find((s) => s.server === server);
+            const srv = azureServers.find((s) => s.server === server);
             serverUri = srv?.uri || "";
         }
 
@@ -78,13 +96,13 @@ export const AzureBrowsePage = () => {
     }
 
     function getAzureAccountsText(): string {
-        switch (context!.state.azureAccounts.length) {
+        switch (azureAccounts.length) {
             case 0:
                 return Loc.azure.notSignedIn;
             case 1:
-                return context!.state.azureAccounts[0].name;
+                return azureAccounts[0].name;
             default:
-                return Loc!.azure.nAccounts(context!.state.azureAccounts.length);
+                return Loc!.azure.nAccounts(azureAccounts.length);
         }
     }
 
@@ -92,9 +110,7 @@ export const AzureBrowsePage = () => {
 
     // subscriptions
     useEffect(() => {
-        const subs = removeDuplicates(
-            context.state.azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`),
-        );
+        const subs = removeDuplicates(azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`));
         setSubscriptions(subs.sort());
 
         updateComboboxSelection(
@@ -104,11 +120,11 @@ export const AzureBrowsePage = () => {
             subs,
             DefaultSelectionMode.AlwaysSelectNone,
         );
-    }, [context.state.azureSubscriptions]);
+    }, [azureSubscriptions]);
 
     // resource groups
     useEffect(() => {
-        let activeServers = context.state.azureServers;
+        let activeServers = azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -126,11 +142,11 @@ export const AzureBrowsePage = () => {
             rgs,
             DefaultSelectionMode.AlwaysSelectNone,
         );
-    }, [subscriptions, selectedSubscription, context.state.azureServers]);
+    }, [subscriptions, selectedSubscription, azureServers]);
 
     // locations
     useEffect(() => {
-        let activeServers = context.state.azureServers;
+        let activeServers = azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -155,15 +171,15 @@ export const AzureBrowsePage = () => {
             locs,
             DefaultSelectionMode.AlwaysSelectNone,
         );
-    }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
+    }, [resourceGroups, selectedResourceGroup, azureServers]);
 
     // servers
     useEffect(() => {
-        if (context.state.loadingAzureAccountsStatus !== ApiStatus.Loaded) {
+        if (loadingAzureAccountsStatus !== ApiStatus.Loaded) {
             return; // should not be visible if not signed in
         }
 
-        let activeServers = context.state.azureServers;
+        let activeServers = azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -196,7 +212,7 @@ export const AzureBrowsePage = () => {
                 DefaultSelectionMode.SelectFirstIfAny,
             );
         }
-    }, [locations, selectedLocation, context.state.azureServers]);
+    }, [locations, selectedLocation, azureServers]);
 
     // databases
     useEffect(() => {
@@ -204,9 +220,7 @@ export const AzureBrowsePage = () => {
             return; // should not be visible if no server is selected
         }
 
-        const server = context.state.azureServers.find(
-            (server) => server.server === selectedServer,
-        );
+        const server = azureServers.find((server) => server.server === selectedServer);
 
         if (!server) {
             return;
@@ -224,12 +238,35 @@ export const AzureBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    const hasAccounts = (context.state.azureAccounts?.length ?? 0) > 0;
+    const hasAccounts = (azureAccounts?.length ?? 0) > 0;
+    const tenantCounts = azureTenantSignInCounts;
+    const tenantStatus = azureTenantStatus ?? [];
+    const shouldShowTenantPrompt =
+        tenantCounts !== undefined &&
+        tenantCounts.totalTenants > 0 &&
+        tenantCounts.signedInTenants < tenantCounts.totalTenants;
+    const tenantTooltipContent =
+        tenantStatus.length === 0 ? (
+            <span>{Loc.connectionDialog.noTenantsSignedIn}</span>
+        ) : (
+            <div>
+                {tenantStatus.map((status) => (
+                    <div key={status.accountId} style={{ marginBottom: "6px" }}>
+                        <strong>{status.accountName}</strong>
+                        <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+                            {status.signedInTenants.map((tenant) => (
+                                <li key={`${status.accountId}-${tenant}`}>{tenant}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        );
 
     return (
         <div>
             <EntraSignInEmpty
-                loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                loadAccountStatus={loadingAzureAccountsStatus}
                 hasAccounts={hasAccounts}
                 brandImageSource={azureLogoColor()}
                 signInText={Loc.connectionDialog.signIntoAzureToBrowse}
@@ -239,46 +276,71 @@ export const AzureBrowsePage = () => {
                     context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
                 }
             />
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
+            {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <div
                         className={formStyles.formComponentDiv}
                         style={{ marginTop: "0", marginBottom: "12px" }}>
                         <Field orientation="horizontal">
-                            <Tooltip
-                                content={
+                            <span>
+                                <Tooltip
+                                    content={
+                                        <>
+                                            {azureAccounts.length === 0 && (
+                                                <span>
+                                                    {Loc.azure.clickToSignIntoAnAzureAccount}
+                                                </span>
+                                            )}
+                                            {azureAccounts.length > 0 && (
+                                                <>
+                                                    {Loc.azure.currentlySignedInAs}
+                                                    <br />
+                                                    <ul>
+                                                        {azureAccounts.map((account) => (
+                                                            <li key={account.id}>{account.name}</li>
+                                                        ))}
+                                                    </ul>
+                                                </>
+                                            )}
+                                        </>
+                                    }
+                                    relationship="description">
+                                    <Link
+                                        onClick={() => {
+                                            context.signIntoAzureForBrowse(
+                                                ConnectionInputMode.AzureBrowse,
+                                            );
+                                        }}
+                                        inline>
+                                        {getAzureAccountsText()}
+                                        {" • "}
+                                        {azureAccounts.length === 0
+                                            ? Loc.azure.signIntoAzure
+                                            : Loc.azure.addAccount}
+                                    </Link>
+                                </Tooltip>
+                                {shouldShowTenantPrompt && (
                                     <>
-                                        {context.state.azureAccounts.length === 0 && (
-                                            <span>{Loc.azure.clickToSignIntoAnAzureAccount}</span>
-                                        )}
-                                        {context.state.azureAccounts.length > 0 && (
-                                            <>
-                                                {Loc.azure.currentlySignedInAs}
-                                                <br />
-                                                <ul>
-                                                    {context.state.azureAccounts.map((account) => (
-                                                        <li key={account.id}>{account.name}</li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
+                                        {" • "}
+                                        <Tooltip
+                                            content={tenantTooltipContent}
+                                            relationship="description">
+                                            <Link
+                                                onClick={() =>
+                                                    context.signIntoAzureTenantForBrowse()
+                                                }
+                                                inline>
+                                                {Loc.connectionDialog.azureTenantSignInStatus(
+                                                    tenantCounts!.signedInTenants,
+                                                    tenantCounts!.totalTenants,
+                                                )}
+                                                {" • "}
+                                                {Loc.connectionDialog.signIntoTenantLink}
+                                            </Link>
+                                        </Tooltip>
                                     </>
-                                }
-                                relationship="description">
-                                <Link
-                                    onClick={() => {
-                                        context.signIntoAzureForBrowse(
-                                            ConnectionInputMode.AzureBrowse,
-                                        );
-                                    }}
-                                    inline>
-                                    {getAzureAccountsText()}
-                                    {" • "}
-                                    {context.state.azureAccounts.length === 0
-                                        ? Loc.azure.signIntoAzure
-                                        : Loc.azure.addAccount}
-                                </Link>
-                            </Tooltip>
+                                )}
+                            </span>
                         </Field>
                     </div>
                     <AzureFilterCombobox
@@ -295,8 +357,7 @@ export const AzureBrowsePage = () => {
                                     }}
                                     size="small"
                                 />
-                                {context.state.loadingAzureSubscriptionsStatus ===
-                                ApiStatus.Loading ? (
+                                {loadingAzureSubscriptionsStatus === ApiStatus.Loading ? (
                                     <Spinner size="tiny" />
                                 ) : undefined}
                             </>
@@ -380,7 +441,7 @@ export const AzureBrowsePage = () => {
                         label={Loc.connectionDialog.serverLabel}
                         required
                         decoration={
-                            context.state.loadingAzureServersStatus === ApiStatus.Loading ? (
+                            loadingAzureServersStatus === ApiStatus.Loading ? (
                                 <Spinner size="tiny" />
                             ) : undefined
                         }
@@ -405,7 +466,8 @@ export const AzureBrowsePage = () => {
                                 ConnectionDialogContextProps
                             >
                                 context={context}
-                                component={context.state.formComponents["trustServerCertificate"]!}
+                                formState={formState}
+                                component={formComponents["trustServerCertificate"]!}
                                 idx={0}
                                 props={{ orientation: "horizontal" }}
                             />
@@ -428,7 +490,7 @@ export const AzureBrowsePage = () => {
                                         ),
                                 }}
                             />
-                            {context.state.connectionComponents.mainOptions
+                            {mainOptions
                                 .filter(
                                     // filter out inputs that are manually placed above
                                     (opt) =>
@@ -438,9 +500,7 @@ export const AzureBrowsePage = () => {
                                 )
                                 .map((inputName, idx) => {
                                     const component =
-                                        context.state.formComponents[
-                                            inputName as keyof IConnectionDialogProfile
-                                        ];
+                                        formComponents[inputName as keyof IConnectionDialogProfile];
                                     if (component?.hidden !== false) {
                                         return undefined;
                                     }
@@ -454,6 +514,7 @@ export const AzureBrowsePage = () => {
                                         >
                                             key={idx}
                                             context={context}
+                                            formState={formState}
                                             component={component}
                                             idx={idx}
                                             props={{ orientation: "horizontal" }}

@@ -10,7 +10,6 @@ import { AzureLoginStatus } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 
 export import TextEditor = vscode.TextEditor;
-export import ConfigurationTarget = vscode.ConfigurationTarget;
 
 export default class VscodeWrapper {
     /**
@@ -65,7 +64,7 @@ export default class VscodeWrapper {
             typeof vscode.window.activeTextEditor !== "undefined" &&
             typeof vscode.window.activeTextEditor.document !== "undefined"
         ) {
-            return vscode.window.activeTextEditor.document.uri.toString(true);
+            return vscode.window.activeTextEditor.document.uri.toString();
         }
         return undefined;
     }
@@ -380,7 +379,7 @@ export default class VscodeWrapper {
         extensionName: string,
         resource: string,
         value: any,
-        target: ConfigurationTarget = ConfigurationTarget.Global,
+        target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global,
     ): Thenable<void> {
         return this.getConfiguration(extensionName).update(resource, value, target);
     }

@@ -55,7 +55,9 @@ suite("TableDesignerWebviewController tests", () => {
         mockConnectionManager.createConnectionDetails.returns(mockConnectionDetails as any);
         mockConnectionManager.getConnectionString.resolves(mockConnectionDetails.connectionString);
         mockConnectionManager.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
-        mockConnectionManager.confirmEntraTokenValidity.resolves();
+        mockConnectionManager.prepareConnectionInfo.callsFake((connInfo) =>
+            Promise.resolve(connInfo),
+        );
 
         treeNode = sandbox.createStubInstance(TreeNodeInfo);
         sandbox.stub(treeNode, "nodeType").get(() => "Table");
@@ -210,8 +212,8 @@ suite("TableDesignerWebviewController tests", () => {
 
         secondStub.restore(); // Cleanup
         const errorMessage = "error message";
-        sinon.stub(mockTableDesignerService, "processTableEdit").rejects(new Error(errorMessage));
-        const errorStub = sinon.stub(vscode.window, "showErrorMessage");
+        sandbox.stub(mockTableDesignerService, "processTableEdit").rejects(new Error(errorMessage));
+        const errorStub = sandbox.stub(vscode.window, "showErrorMessage");
 
         result = await controller["_reducerHandlers"].get("processTableEdit")(
             callState,

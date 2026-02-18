@@ -18,11 +18,11 @@ import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
-import { deepEqual } from "../../common/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
+import isEqual from "lodash/isEqual";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -57,7 +57,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         return undefined;
     }
 
-    const { themeKind, keyBindings } = useVscodeWebview2();
+    const { themeKind, keyBindings } = useVscodeWebview();
 
     const uri = useQueryResultSelector((state) => state.uri);
     if (!uri) {
@@ -68,11 +68,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             (state) => state.inMemoryDataProcessingThreshold,
         ) ?? 5000;
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
-    const autoSizeColumns = useQueryResultSelector((state) => state.autoSizeColumns);
+    const autoSizeColumnsMode =
+        useQueryResultSelector((state) => state.autoSizeColumnsMode) ??
+        qr.ResultsGridAutoSizeStyle.HeadersAndData;
 
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
-        (a, b) => deepEqual(a, b), // Deep equality check to avoid unnecessary re-renders
+        (a, b) => isEqual(a, b), // Deep equality check to avoid unnecessary re-renders
     );
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -242,7 +244,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 keyBindings,
                 tableOptions,
                 props.gridParentRef,
-                autoSizeColumns,
+                autoSizeColumnsMode,
                 themeKind,
             );
 

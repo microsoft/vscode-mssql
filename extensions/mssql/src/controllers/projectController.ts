@@ -55,7 +55,9 @@ export class ProjectController {
                 vscode.TaskScope.Workspace,
                 taskDefinition.label,
                 taskDefinition.type,
-                new vscode.ShellExecution(taskDefinition.command, args, { cwd: projectDir }),
+                new vscode.ProcessExecution(taskDefinition.command, args, {
+                    cwd: projectDir,
+                }),
                 taskDefinition.problemMatcher,
             );
 

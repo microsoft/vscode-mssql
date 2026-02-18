@@ -10,7 +10,8 @@ import * as path from "path";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
 import { DOMParser } from "@xmldom/xmldom";
-import { getSqlServerContainerVersions, dockerLogger } from "../deployment/dockerUtils";
+import { dockerLogger } from "../docker/dockerUtils";
+import { getSqlServerContainerVersions } from "../deployment/sqlServerContainer";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
@@ -140,9 +141,12 @@ export async function readProjectProperties(
         // Calculate DACPAC output path
         const projectDir = path.dirname(projectFilePath);
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
-        const outputPath = path.isAbsolute(result.outputPath)
-            ? result.outputPath
-            : path.join(projectDir, result.outputPath);
+        // Normalize path separators for cross-platform compatibility
+        // path.normalize doesn't convert backslashes, so using a regex replace here
+        const normalizedOutputPath = result.outputPath.replace(/\\/g, "/");
+        const outputPath = path.isAbsolute(normalizedOutputPath)
+            ? normalizedOutputPath
+            : path.join(projectDir, normalizedOutputPath);
         const dacpacOutputPath = path.join(
             outputPath,
             `${projectName}${constants.DacpacExtension}`,
@@ -153,6 +157,7 @@ export async function readProjectProperties(
             targetVersion: version,
             projectFilePath: projectFilePath,
             dacpacOutputPath: dacpacOutputPath,
+            projectName: projectName,
         };
     } catch {
         return undefined;
@@ -369,6 +374,31 @@ export async function parsePublishProfileXml(
     } catch (error) {
         throw new Error(`Failed to parse publish profile: ${error}`);
     }
+}
+
+/**
+ * Updates the database name in a SQL Server connection string.
+ * Replaces the "Initial Catalog" or "Database" parameter value while preserving the original quoting style.
+ * @param connectionString The connection string to update
+ * @param databaseName The new database name to use
+ * @returns The updated connection string with the new database name
+ */
+export function updateDatabaseInConnectionString(
+    connectionString: string,
+    databaseName: string,
+): string {
+    return connectionString.replace(
+        constants.catalogPairPattern,
+        (_match, lead, key, valDq, valSq) => {
+            const newVal =
+                valDq !== undefined
+                    ? `"${databaseName}"`
+                    : valSq !== undefined
+                      ? `'${databaseName}'`
+                      : databaseName;
+            return `${lead}${key}=${newVal}`;
+        },
+    );
 }
 
 /**

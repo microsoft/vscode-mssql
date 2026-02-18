@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import * as utilUtils from "../../src/utils/utils";
+import * as vscode from "vscode";
 
 suite("Utility Tests - parseTimeString", () => {
     test("should return false if nothing passed", () => {
@@ -97,23 +98,23 @@ suite("Utility tests - getSignInQuickPickItems", () => {
 
     test("first quick pick item should be Azure Sign In", () => {
         let signInItem = quickPickItems[0];
-        assert.notEqual(signInItem.label, undefined);
-        assert.notEqual(signInItem.description, undefined);
-        assert.equal(signInItem.command, Constants.cmdAzureSignIn);
+        expect(signInItem.label).to.not.equal(undefined);
+        expect(signInItem.description).to.not.equal(undefined);
+        expect(signInItem.command).to.equal(Constants.cmdAzureSignIn);
     });
 
     test("second quick pick item should be Azure Sign In With Device Code", () => {
         let signInWithDeviceCodeItem = quickPickItems[1];
-        assert.notEqual(signInWithDeviceCodeItem.label, undefined);
-        assert.notEqual(signInWithDeviceCodeItem.description, undefined);
-        assert.equal(signInWithDeviceCodeItem.command, Constants.cmdAzureSignInWithDeviceCode);
+        expect(signInWithDeviceCodeItem.label).to.not.equal(undefined);
+        expect(signInWithDeviceCodeItem.description).to.not.equal(undefined);
+        expect(signInWithDeviceCodeItem.command).to.equal(Constants.cmdAzureSignInWithDeviceCode);
     });
 
     test("third quick pick item should be Azure Sign In to Azure Cloud", () => {
         let signInToAzureCloudItem = quickPickItems[2];
-        assert.notEqual(signInToAzureCloudItem.label, undefined);
-        assert.notEqual(signInToAzureCloudItem.description, undefined);
-        assert.equal(signInToAzureCloudItem.command, Constants.cmdAzureSignInToCloud);
+        expect(signInToAzureCloudItem.label).to.not.equal(undefined);
+        expect(signInToAzureCloudItem.description).to.not.equal(undefined);
+        expect(signInToAzureCloudItem.command).to.equal(Constants.cmdAzureSignInToCloud);
     });
 });
 
@@ -125,7 +126,7 @@ suite.skip("Utility tests - Timer Class", () => {
         let p = new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 let duration = timer.getDuration();
-                assert.isAbove(duration, 0);
+                expect(duration).to.be.greaterThan(0);
                 resolve();
             }, 100);
         });
@@ -138,7 +139,7 @@ suite.skip("Utility tests - Timer Class", () => {
         let p = new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 let newDuration = timer.getDuration();
-                assert.notEqual(duration, newDuration);
+                expect(duration).to.not.equal(newDuration);
                 resolve();
             }, 100);
         });
@@ -174,6 +175,54 @@ suite("Utility tests - parseEnum", () => {
     });
 });
 
+suite("Utility tests - getUriKey", () => {
+    test("encodes literal percent characters in file paths", () => {
+        const uri = vscode.Uri.file("/tmp/path%20to%20workspace/test.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        // A literal '%' in the original path should be encoded as '%25', turning '%20' into '%2520'.
+        expect(key).to.contain("%2520");
+    });
+
+    test("normalizes encoded forward slashes and preserves encoded backslashes in filenames", () => {
+        const uri = vscode.Uri.parse("file:///tmp/report%2Fname%5Cwith%5Cseparators.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        // '%2F' is normalized to '/', so the filename segment is split by a forward slash.
+        expect(key).to.contain("/report/name");
+        // Encoded backslashes remain percent-encoded in the URI string key.
+        expect(key.toLowerCase()).to.contain("%5c");
+    });
+
+    test("encodes multiple consecutive percent characters", () => {
+        const uri = vscode.Uri.file("/tmp/multi%%%percent.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        // Each consecutive '%' should be encoded independently.
+        expect(key).to.contain("%25%25%25");
+    });
+
+    test("supports uri schemes other than file", () => {
+        const uri = vscode.Uri.parse("untitled:query%20buffer.sql");
+        const key = utilUtils.getUriKey(uri);
+
+        // getUriKey should return the URI's canonical string representation for non-file schemes too.
+        expect(key).to.equal(uri.toString());
+        // Scheme prefix should be preserved to avoid collisions across URI types.
+        expect(key).to.match(/^untitled:/);
+    });
+
+    test("handles empty and nullish uri values", () => {
+        const emptyPathUri = vscode.Uri.from({ scheme: "file", path: "" });
+
+        // Empty but valid URIs should still round-trip via toString().
+        expect(utilUtils.getUriKey(emptyPathUri)).to.equal(emptyPathUri.toString());
+        // Nullish inputs should not throw and should return undefined.
+        expect(utilUtils.getUriKey(undefined as unknown as vscode.Uri)).to.equal(undefined);
+        expect(utilUtils.getUriKey(null as unknown as vscode.Uri)).to.equal(undefined);
+    });
+});
+
 type Sample = {
     token?: string;
     expiresOn?: number;
@@ -204,7 +253,7 @@ suite("removeUndefinedProperties", () => {
     test("returns empty object when source is undefined", () => {
         const result = utilUtils.removeUndefinedProperties<Sample>(undefined);
 
-        assert.deepStrictEqual(result, {});
+        expect(result).to.deep.equal({});
     });
 });
 

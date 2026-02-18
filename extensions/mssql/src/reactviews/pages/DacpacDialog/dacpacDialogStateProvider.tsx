@@ -6,7 +6,7 @@
 import React, { createContext, ReactNode } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 
 /**
@@ -104,7 +104,7 @@ interface DacpacDialogProviderProps {
 }
 
 const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<dacpacDialog.DacpacDialogWebviewState, void>();
+    const { extensionRpc } = useVscodeWebview<dacpacDialog.DacpacDialogWebviewState, void>();
 
     // Operation execution methods
     const deployDacpac = async (params: dacpacDialog.DeployDacpacParams) => {

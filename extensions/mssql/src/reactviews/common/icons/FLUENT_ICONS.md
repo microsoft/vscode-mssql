@@ -2,19 +2,15 @@
 
 1. Clean up
    Fluent icons are constructed with an array of paths, but without any `fill-rule` or `clip-rule` entries. You can use the free/OSS Inkscape to clean this up easily:
-
     1. Open your SVG
-
         - File → Open… and load your SVG.
         - Make sure your shape with fill-rule="evenodd" is visible.
 
     2. Select the path(s)
-
         - Use the Select tool (S) and click the object.
         - If it’s a compound path, you may need Object → Ungroup first.
 
     3. Convert the shape into geometry that respects the evenodd fill
-
         - With the path selected, go to:
             - Path → Break Apart (Shift+Ctrl+K)
             - This splits the path into its component sub-paths.

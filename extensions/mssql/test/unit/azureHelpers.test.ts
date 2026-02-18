@@ -4,21 +4,29 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
+import * as armSql from "@azure/arm-sql";
+import * as armStorage from "@azure/arm-storage";
 import {
     mockAccounts,
-    mockAzureResourceList,
+    mockSqlDbList,
     mockAzureResources,
+    mockManagedInstanceList,
     mockSubscriptions,
     mockTenants,
 } from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
-import { GenericResourceExpanded } from "@azure/arm-resources";
+import * as utils from "../../src/utils/utils";
+import { BlobServiceClient } from "@azure/storage-blob";
+
+chai.use(sinonChai);
 
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -37,17 +45,13 @@ suite("Azure Helpers", () => {
 
     suite("VsCodeAzureHelpers", () => {
         test("getAccounts", async () => {
-            sandbox.stub(vscode.authentication, "getAccounts").resolves([
-                ...mockAccounts,
-                {
-                    id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA.BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
-                    label: "notSignedIn@notSignedInDomain.com",
-                },
-            ]);
+            sandbox
+                .stub(vscode.authentication, "getAccounts")
+                .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
 
             sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
                 getTenants: (account) => {
-                    if (account.id === mockAccounts[0].id) {
+                    if (account.id === mockAccounts.signedInAccount.id) {
                         return Promise.resolve(mockTenants);
                     }
                     return Promise.reject("Not signed in");
@@ -58,9 +62,9 @@ suite("Azure Helpers", () => {
                 true /* onlyAllowedForExtension */,
             );
 
-            expect(accounts, "Only signed-in accounts should be returned").to.deep.equal(
-                mockAccounts,
-            );
+            expect(accounts, "Only signed-in accounts should be returned").to.deep.equal([
+                mockAccounts.signedInAccount,
+            ]);
         });
 
         test("signIn", async () => {
@@ -107,12 +111,12 @@ suite("Azure Helpers", () => {
         });
 
         test("getTenantsForAccount", async () => {
-            const account = mockAccounts[0];
+            const account = mockAccounts.signedInAccount;
 
             sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
                 getTenants: (account) => {
                     // only the first account is signed in for this mock
-                    if (account.id === mockAccounts[0].id) {
+                    if (account.id === mockAccounts.signedInAccount.id) {
                         return Promise.resolve(
                             mockTenants.filter((t) => t.account.id === account.id),
                         );
@@ -135,7 +139,7 @@ suite("Azure Helpers", () => {
             const subscriptions =
                 await azureHelpers.VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
             expect(subscriptions).to.have.lengthOf(1);
-            expect(subscriptions[0].displayName).to.equal(mockSubscriptions[0].name);
+            expect(subscriptions[0].name).to.equal(mockSubscriptions[0].name);
         });
     });
 
@@ -197,38 +201,288 @@ suite("Azure Helpers", () => {
 
     test("fetchServersFromAzure", async () => {
         sandbox
-            .stub(azureHelpers.VsCodeAzureHelper, "fetchResourcesForSubscription")
-            .resolves(mockAzureResourceList);
+            .stub(azureHelpers.VsCodeAzureHelper, "fetchSqlResourcesForSubscription")
+            .callsFake(async (sub, listServers /*, listDatabasesFactory */) => {
+                const fnText = String(listServers);
+                if (fnText.includes("managedInstances")) {
+                    return mockManagedInstanceList;
+                } else {
+                    return mockSqlDbList;
+                }
+            });
 
         const servers = await azureHelpers.VsCodeAzureHelper.fetchServersFromAzure(
             mockSubscriptions[0],
         );
 
-        expect(servers).to.have.lengthOf(2);
+        expect(servers).to.have.lengthOf(4); // 1 SQL DB servers + 1 Synapse + 2 MI servers (public and private endpoints)
         expect(servers[0].server).to.equal(mockAzureResources.azureSqlDbServer.name);
         expect(servers[0].databases).to.deep.equal(["master", "testDatabase"]);
         expect(servers[1].server).to.equal(mockAzureResources.azureSynapseAnalyticsServer.name);
+        const managedInstances = servers.filter((s) =>
+            s.server.startsWith(mockAzureResources.azureManagedInstance.name),
+        );
+
+        expect(managedInstances).to.have.lengthOf(2);
+        expect(managedInstances[0].server).to.equal(
+            `${mockAzureResources.azureManagedInstance.name} (Private)`,
+        );
+        expect(managedInstances[0].databases).to.deep.equal(["managedInstanceDb"]);
+        expect(managedInstances[0].uri).to.equal(
+            `${mockAzureResources.azureManagedInstance.name}.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net`,
+        );
+
+        expect(managedInstances[1].server).to.equal(
+            `${mockAzureResources.azureManagedInstance.name} (Public)`,
+        );
+        expect(managedInstances[1].databases).to.deep.equal(["managedInstanceDb"]);
+        expect(managedInstances[1].uri).to.equal(
+            `${mockAzureResources.azureManagedInstance.name}.public.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net,${azureHelpers.MANAGED_INSTANCE_PUBLIC_PORT}`,
+        );
     });
 
-    test("buildServerUri", () => {
-        const serverResource = {
-            name: "test-server",
-            kind: "v12",
-        } as GenericResourceExpanded;
-
-        // Case: Azure SQL DB server
-        const uri = azureHelpers.buildServerUri(serverResource);
-        expect(uri).to.equal(
-            "test-server.database.windows.net",
-            "Expected URI for Azure SQL DB is incorrect",
+    test("fetchSqlResourcesForSubscription", async () => {
+        sandbox.stub(armSql, "SqlManagementClient").callsFake(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            (credential: any, subscriptionId: string, options?: any) => {
+                return {} as armSql.SqlManagementClient;
+            },
         );
 
-        // Case: Azure Synapse server
-        serverResource.kind = "v12,analytics";
-        const analyticsUri = azureHelpers.buildServerUri(serverResource);
-        expect(analyticsUri).to.equal(
-            "test-server.sql.azuresynapse.net",
-            "Expected URI for Azure Synapse is incorrect",
+        const listServersFactory = sandbox.stub().callsFake(
+            () =>
+                async function* () {
+                    yield mockAzureResources.azureSqlDbServer;
+                } as unknown as any,
         );
+
+        const listDatabasesFactory = sandbox.stub().callsFake(
+            () =>
+                async function* (_resourceGroup?: string, _serverName?: string) {
+                    yield mockAzureResources.azureSqlDbDatabase1;
+                    yield mockAzureResources.azureSqlDbDatabase2;
+                } as unknown as any,
+        );
+
+        const result = await azureHelpers.VsCodeAzureHelper.fetchSqlResourcesForSubscription(
+            mockSubscriptions[0],
+            listServersFactory,
+            listDatabasesFactory,
+        );
+
+        const expectedResult = {
+            servers: [mockAzureResources.azureSqlDbServer],
+            databases: [
+                {
+                    ...mockAzureResources.azureSqlDbDatabase1,
+                    server: mockAzureResources.azureSqlDbServer.name,
+                },
+                {
+                    ...mockAzureResources.azureSqlDbDatabase2,
+                    server: mockAzureResources.azureSqlDbServer.name,
+                },
+            ],
+        };
+
+        expect(result).to.deep.equal(expectedResult);
+        expect(listServersFactory).to.have.been.calledOnce;
+        expect(listDatabasesFactory).to.have.been.calledOnce;
+    });
+
+    test("fetchStorageAccountsForSubscription", async () => {
+        const mockAccounts = [mockAzureResources.storageAccount];
+
+        const clientStub = {
+            storageAccounts: {
+                list: sinon.stub().resolves(mockAccounts),
+            },
+        };
+
+        const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
+
+        // Stub the class constructor to return your stub instance
+        const storageStub = sinon
+            .stub(armStorage, "StorageManagementClient")
+            .callsFake(() => clientStub);
+
+        let result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
+            mockSubscriptions[0],
+            clientStub as unknown as armStorage.StorageManagementClient,
+        );
+
+        expect(result).to.deep.equal(mockAccounts);
+        expect(listStub.calledOnce, "listAllIterator should be called once").to.be.true;
+        expect(
+            clientStub.storageAccounts.list.calledOnce,
+            "storageAccounts.list should be called once",
+        ).to.be.true;
+
+        clientStub.storageAccounts.list = sinon.stub().rejects(new Error("Test error"));
+
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
+                mockSubscriptions[0],
+                clientStub as unknown as armStorage.StorageManagementClient,
+            );
+            expect.fail("Expected fetchStorageAccountsForSubscription to throw");
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
+
+        storageStub.restore();
+        listStub.restore();
+    });
+
+    test("fetchBlobContainersForStorageAccount", async () => {
+        const mockBlobs = [mockAzureResources.blobContainer];
+
+        const clientStub = {
+            blobContainers: {
+                list: sinon.stub().resolves(mockBlobs),
+            },
+        };
+
+        // Stub the class constructor to return your stub instance
+        const storageStub = sinon
+            .stub(armStorage, "StorageManagementClient")
+            .callsFake(() => clientStub);
+
+        const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
+
+        let result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            clientStub as unknown as armStorage.StorageManagementClient,
+        );
+
+        expect(result).to.deep.equal([mockAzureResources.blobContainer]);
+        expect(listStub.calledOnce, "listAllIterator should be called once").to.be.true;
+        expect(
+            clientStub.blobContainers.list.calledOnce,
+            "blobContainers.list should be called once",
+        ).to.be.true;
+
+        clientStub.blobContainers.list = sinon.stub().rejects(new Error("Test error"));
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                clientStub as unknown as armStorage.StorageManagementClient,
+            );
+            expect.fail("Expected fetchBlobContainersForStorageAccount to throw");
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
+
+        storageStub.restore();
+        listStub.restore();
+    });
+
+    test("getStorageAccountKeys", async () => {
+        const mockKeys: armStorage.StorageAccountKey[] = [
+            { keyName: "key1", value: "value1" },
+            { keyName: "key2", value: "value2" },
+        ];
+
+        const clientStub = {
+            storageAccounts: {
+                listKeys: sinon
+                    .stub()
+                    .resolves({ keys: mockKeys } as armStorage.StorageAccountsListKeysResponse),
+            },
+        };
+
+        // Stub the class constructor to return your stub instance
+        const storageStub = sinon
+            .stub(armStorage, "StorageManagementClient")
+            .callsFake(() => clientStub);
+
+        let result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            clientStub as unknown as armStorage.StorageManagementClient,
+        )) as armStorage.StorageAccountsListKeysResponse;
+
+        expect(result.keys).to.deep.equal(mockKeys);
+        expect(
+            clientStub.storageAccounts.listKeys.calledOnce,
+            "storageAccounts.listKeys should be called once",
+        ).to.be.true;
+
+        clientStub.storageAccounts.listKeys = sinon.stub().rejects(new Error("Test error"));
+
+        try {
+            result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                clientStub as unknown as armStorage.StorageManagementClient,
+            )) as armStorage.StorageAccountsListKeysResponse;
+            expect.fail("Expected getStorageAccountKeys to throw");
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
+
+        storageStub.restore();
+    });
+
+    test("fetchBlobsForContainer", async () => {
+        const mockBlobs = [mockAzureResources.blob];
+
+        const listBlobsFlatStub = sinon.stub().returns({
+            [Symbol.asyncIterator]: async function* () {
+                for (const blob of mockBlobs) {
+                    yield blob;
+                }
+            },
+        });
+
+        const containerClientStub = {
+            listBlobsFlat: listBlobsFlatStub,
+        };
+
+        const clientStub = {
+            getContainerClient: sinon.stub().returns(containerClientStub),
+        };
+
+        // Stub the class constructor to return your stub instance
+        const sasKeyStub = sinon
+            .stub(azureHelpers.VsCodeAzureHelper, "getStorageAccountKeys")
+            .resolves({
+                keys: [{ keyName: "key1", value: "value1" }],
+            } as armStorage.StorageAccountsListKeysResponse);
+
+        let result = await azureHelpers.VsCodeAzureHelper.fetchBlobsForContainer(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            mockAzureResources.blobContainer,
+            clientStub as unknown as BlobServiceClient,
+        );
+
+        expect(result).to.deep.equal(mockBlobs);
+        expect(
+            clientStub.getContainerClient().listBlobsFlat.calledOnce,
+            "listBlobsFlat should be called once",
+        ).to.be.true;
+
+        const testError = new Error("Test error");
+        clientStub.getContainerClient().listBlobsFlat = sinon.stub().returns({
+            [Symbol.asyncIterator]: async function* () {
+                throw testError;
+            },
+        });
+
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchBlobsForContainer(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                mockAzureResources.blobContainer,
+                clientStub as unknown as BlobServiceClient,
+            );
+            expect.fail("Expected fetchBlobsForContainer to throw");
+        } catch (e) {
+            expect(e).to.equal(testError);
+        }
+
+        sasKeyStub.restore();
     });
 });

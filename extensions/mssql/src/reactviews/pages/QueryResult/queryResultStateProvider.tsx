@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactNode, createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { getCoreRPCs2 } from "../../common/utils";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
@@ -14,10 +14,10 @@ import {
     QueryResultReducers,
     QueryResultViewMode,
     QueryResultWebviewState,
-    SortProperties,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 import GridContextMenu from "./table/plugins/GridContextMenu";
+import HeaderContextMenu, { HeaderContextMenuAction } from "./table/plugins/HeaderContextMenu";
 import ColumnMenuPopup, {
     ColumnMenuPopupAnchorRect,
     FilterListItem,
@@ -31,13 +31,8 @@ export interface ColumnFilterPopupOptions {
     items: FilterListItem[];
     initialSelected: FilterValue[];
     onApply: (selected: FilterValue[]) => Promise<void>;
-    onClearSort: () => Promise<void>;
     onClear: () => Promise<void>;
     onDismiss: () => void;
-    onSortAscending: () => Promise<void>;
-    onSortDescending: () => Promise<void>;
-    currentSort: SortProperties;
-    onResize: () => void;
 }
 
 /**
@@ -68,6 +63,13 @@ export interface QueryResultReactProvider
     hideGridContextMenu: () => void;
     showColumnFilterPopup: (options: ColumnFilterPopupOptions) => void;
     hideColumnMenuPopup: () => void;
+    // Header context menu control
+    showHeaderContextMenu: (
+        x: number,
+        y: number,
+        onAction: (action: HeaderContextMenuAction) => void | Promise<void>,
+    ) => void;
+    hideHeaderContextMenu: () => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -97,7 +99,7 @@ interface QueryResultProviderProps {
 }
 
 const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<QueryResultWebviewState, QueryResultReducers>();
+    const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
     // Grid context menu state
     const [menuState, setMenuState] = useState<{
         open: boolean;
@@ -109,6 +111,13 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
     const [filterPopupState, setFilterPopupState] = useState<ColumnFilterPopupOptions | undefined>(
         undefined,
     );
+
+    const [headerMenuState, setHeaderMenuState] = useState<{
+        open: boolean;
+        x: number;
+        y: number;
+        onAction?: (action: HeaderContextMenuAction) => void | Promise<void>;
+    }>({ open: false, x: 0, y: 0 });
 
     const [resizeDialogState, setResizeDialogState] = useState<ResizeColumnDialogState>({
         open: false,
@@ -133,10 +142,14 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         setMenuState((s) => (s.open ? { ...s, open: false } : s));
     }, []);
 
+    const hideHeaderContextMenu = useCallback(() => {
+        setHeaderMenuState((s) => (s.open ? { ...s, open: false } : s));
+    }, []);
+
     const commands = useMemo<QueryResultReactProvider>(
         () => ({
             extensionRpc,
-            ...getCoreRPCs2<QueryResultReducers>(extensionRpc),
+            ...getCoreRPCs<QueryResultReducers>(extensionRpc),
             setResultTab: (tabId: QueryResultPaneTabs) => {
                 extensionRpc.action("setResultTab", { tabId });
             },
@@ -160,6 +173,15 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                 });
             },
             hideColumnMenuPopup: hideFilterPopup,
+            // Header context menu API
+            showHeaderContextMenu: (x: number, y: number, onAction) => {
+                hideFilterPopup();
+                hideHeaderContextMenu();
+                setHeaderMenuState({ open: true, x, y, onAction });
+            },
+            hideHeaderContextMenu: () => {
+                setHeaderMenuState((s) => ({ ...s, open: false }));
+            },
 
             openFileThroughLink: (content: string, type: string) => {
                 extensionRpc.action("openFileThroughLink", { content, type });
@@ -210,7 +232,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                 }));
             },
         }),
-        [extensionRpc, hideFilterPopup],
+        [extensionRpc, hideFilterPopup, hideHeaderContextMenu],
     );
 
     // Close context menu when focus leaves the webview or it becomes hidden
@@ -218,6 +240,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         const closeOverlays = () => {
             hideContextMenu();
             hideFilterPopup();
+            hideHeaderContextMenu();
         };
         const handleVisibilityChange = () => {
             if (document.visibilityState === "hidden") {
@@ -230,7 +253,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             window.removeEventListener("blur", closeOverlays);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
-    }, [hideFilterPopup]);
+    }, [hideFilterPopup, hideContextMenu, hideHeaderContextMenu]);
     return (
         <QueryResultCommandsContext.Provider value={commands}>
             {children}
@@ -244,6 +267,18 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                         setMenuState((s) => ({ ...s, open: false }));
                     }}
                     onClose={() => setMenuState((s) => ({ ...s, open: false }))}
+                />
+            )}
+            {headerMenuState.open && (
+                <HeaderContextMenu
+                    x={headerMenuState.x}
+                    y={headerMenuState.y}
+                    open={headerMenuState.open}
+                    onAction={async (action) => {
+                        await headerMenuState.onAction?.(action);
+                        setHeaderMenuState((s) => ({ ...s, open: false }));
+                    }}
+                    onClose={() => setHeaderMenuState((s) => ({ ...s, open: false }))}
                 />
             )}
             {filterPopupState && (
@@ -262,14 +297,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     onDismiss={() => {
                         hideFilterPopup();
                     }}
-                    onClearSort={filterPopupState.onClearSort}
-                    onSortAscending={filterPopupState.onSortAscending}
-                    onSortDescending={filterPopupState.onSortDescending}
-                    onResize={() => {
-                        hideFilterPopup();
-                        filterPopupState.onResize();
-                    }}
-                    currentSort={filterPopupState.currentSort}
                 />
             )}
             {resizeDialogState.open && (

@@ -124,6 +124,7 @@ export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConn
         description: spec.description,
         color: spec.color,
         id: Utils.generateGuid(),
+        configSource: vscode.ConfigurationTarget.Global,
     };
 }
 

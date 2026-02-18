@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as assert from "assert";
 
 import StatusView from "../../src/views/statusView";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { IServerInfo } from "vscode-mssql";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import { IConnectionGroup, IConnectionProfile } from "../../src/models/interfaces";
 import { expect } from "chai";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { ConfigurationTarget } from "vscode";
 
 suite("Status View Tests", () => {
     test("updateStatusMessage should not immediately update status message for definition request", async () => {
@@ -28,11 +28,11 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, "");
+        expect(actualStatusMessage).to.equal("");
 
         await new Promise((resolve) => {
             setTimeout(() => {
-                assert.equal(actualStatusMessage, expectedStatusMessage);
+                expect(actualStatusMessage).to.equal(expectedStatusMessage);
                 resolve(undefined);
             }, 600);
         });
@@ -53,11 +53,11 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, "");
+        expect(actualStatusMessage).to.equal("");
 
         await new Promise((resolve) => {
             setTimeout(() => {
-                assert.equal(actualStatusMessage, expectedStatusMessage);
+                expect(actualStatusMessage).to.equal(expectedStatusMessage);
                 resolve(undefined);
             }, 600);
         });
@@ -78,7 +78,7 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, expectedStatusMessage);
+        expect(actualStatusMessage).to.equal(expectedStatusMessage);
         statusView.dispose();
     });
 
@@ -95,7 +95,7 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, expectedStatusMessage);
+        expect(actualStatusMessage).to.equal(expectedStatusMessage);
         statusView.dispose();
     });
 
@@ -112,7 +112,7 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, expectedStatusMessage);
+        expect(actualStatusMessage).to.equal(expectedStatusMessage);
         statusView.dispose();
     });
 
@@ -122,10 +122,11 @@ suite("Status View Tests", () => {
 
         const testFileUri = "untitledFile";
 
-        const testGroup = {
+        const testGroup: IConnectionGroup = {
             name: "Test Group",
             id: "test-group-id",
             color: "#FF0000",
+            configSource: ConfigurationTarget.Global,
         };
 
         const testConn = {

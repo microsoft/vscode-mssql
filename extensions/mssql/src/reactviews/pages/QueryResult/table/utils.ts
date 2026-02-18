@@ -3,28 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISlickRange, ResultSetSummary } from "../../../../sharedInterfaces/queryResult";
+import {
+    ISlickRange,
+    ResultSetSummary,
+    SortProperties,
+} from "../../../../sharedInterfaces/queryResult";
 import { FilterableColumn } from "./interfaces";
 
 export const SLICKGRID_ROW_ID_PROP = "_mssqlRowId";
 
 function hasSortOrFilterApplied(grid: Slick.Grid<any>): boolean {
-    const sortedColumns = grid.getSortColumns();
-
     const columns = grid.getColumns() as FilterableColumn<any>[];
 
-    return columns.some((column) => {
+    const result = columns.some((column) => {
         if (!column) {
             return false;
         }
 
         const isFiltered = column?.filterValues?.length ?? 0 > 0;
-        const isSorted = sortedColumns?.some(
-            (sort) => sort.columnId === column.id && sort.sortAsc !== undefined,
-        );
+        const isSorted = column.sorted !== undefined && column.sorted !== SortProperties.NONE;
 
         return isFiltered || isSorted;
     });
+    return result;
 }
 
 function getActualRowIndex(grid: Slick.Grid<any>, displayRow: number): number | undefined {

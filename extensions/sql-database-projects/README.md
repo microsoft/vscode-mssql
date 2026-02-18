@@ -6,7 +6,7 @@ Database source control where objects are stored as code, integrating with build
 
 SQL Database Projects for Azure Data Studio and VS Code provides a way to design, edit, and publish objects to SQL databases from a source controlled project. For a complete development workflow, build and deploy your database projects in CI/CD pipelines, such as [GitHub Actions](https://github.com/azure/sql-action) or Azure DevOps.
 
-![SQL project lifecycle](https://github.com/Microsoft/vscode-mssql/raw/main/sql-database-projects/images/sqlproj-lifecycle.png)
+![SQL project lifecycle](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/images/sqlproj-lifecycle.png)
 
 📕 Learn more about SQL Database Projects in the documentation: https://aka.ms/sqlprojects
 
@@ -18,18 +18,20 @@ The extension will prompt to install the [.NET SDK](https://aka.ms/sqlprojects-d
 
 1. Create a new database project by going to the Database Projects view or by searching for Database Projects: New in the command palette.
 2. Add `.sql` files to the project to define database objects. For example, creating a file `Product.sql` in the SQL project folder to add a table named `Product`:
-  ```sql
-  CREATE TABLE [dbo].[Product](
-      [ProductID] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
-      [ProductName] [nvarchar](200) NOT NULL
-  );
-  ```
+
+```sql
+CREATE TABLE [dbo].[Product](
+    [ProductID] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [ProductName] [nvarchar](200) NOT NULL
+);
+```
+
 3. Build the SQL project to validate the SQL syntax and object references. In the Database Projects view, right-click the database project's root node and select Build.
 4. Building the project created a `.dacpac` file in the output folder. This file contains the schema of the database project and can be deployed to a SQL Server or Azure SQL instance.
 
 📕 Dive in further with this complete tutorial for [creating and deploying a SQL project](https://learn.microsoft.com/sql/tools/sql-database-projects/tutorials/create-deploy-sql-project?pivots=sq1-visual-studio-code).
 
-![AdventureWorks SQL project](https://github.com/Microsoft/vscode-mssql/raw/main/sql-database-projects/images/readme-sqlproj.png)
+![AdventureWorks SQL project](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/images/readme-sqlproj.png)
 
 ## Features
 
@@ -82,4 +84,4 @@ Please report issues and feature requests [here.](https://github.com/microsoft/v
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 
-Licensed under the [MIT License](https://github.com/Microsoft/vscode-mssql/raw/main/sql-database-projects/LICENSE.txt).
+Licensed under the [MIT License](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/LICENSE.txt).

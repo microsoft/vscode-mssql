@@ -30,6 +30,13 @@
     <None Include="folder1\Script.PostDeployment2.sql" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="queries/**" />
+    <None Include="scripts/file?.sql" />
+    <None Include="Script[123].sql" />
+    <None Include="data[a-z].txt" />
+    <None Include="test[!_]*.sql" />
+  </ItemGroup>
+  <ItemGroup>
     <ArtifactReference Condition="'$(NetCoreBuild)' == 'true'" Include="$(SystemDacpacsLocation)\SystemDacpacs\150\master.dacpac">
       <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
       <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>

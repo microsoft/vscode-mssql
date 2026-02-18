@@ -74,15 +74,18 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             const expectedInitialState: AddFirewallRuleState = {
                 serverName: serverName,
                 isSignedIn: true,
-                accounts: azureHelperStubs.mockAccounts.map((a) => {
+                accounts: [azureHelperStubs.mockAccounts.signedInAccount].map((a) => {
                     return {
                         accountId: a.id,
                         displayName: a.label,
                     };
                 }),
                 tenants: {
-                    [azureHelperStubs.mockAccounts[0].id]: azureHelperStubs.mockTenants
-                        .filter((t) => t.account.id === azureHelperStubs.mockAccounts[0].id)
+                    [azureHelperStubs.mockAccounts.signedInAccount.id]: azureHelperStubs.mockTenants
+                        .filter(
+                            (t) =>
+                                t.account.id === azureHelperStubs.mockAccounts.signedInAccount.id,
+                        )
                         .map((t) => {
                             return {
                                 displayName: t.displayName,

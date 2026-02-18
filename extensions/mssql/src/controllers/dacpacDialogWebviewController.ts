@@ -27,7 +27,6 @@ import {
     DatabaseNameValidationError,
     ConnectionMatcher,
 } from "../models/utils";
-import { PlatformInformation } from "../models/platform";
 import { UserSurvey } from "../nps/userSurvey";
 import { getErrorMessage } from "../utils/utils";
 
@@ -35,28 +34,8 @@ import { getErrorMessage } from "../utils/utils";
 export const DACPAC_EXTENSION = ".dacpac";
 export const BACPAC_EXTENSION = ".bacpac";
 
-// VS Code command constants
-const REVEAL_FILE_IN_OS_COMMAND = "revealFileInOS";
-
 // View ID constant for NPS survey
-const DACPAC_DIALOG_VIEW_ID = "dacpacDialog";
-
-/**
- * Gets the OS-specific localized text for the "Reveal/Open" file button
- * @returns The appropriate localized string based on the operating system
- */
-function getRevealInOsButtonText(): string {
-    const platformInfo = new PlatformInformation(process.platform, process.arch, undefined);
-
-    if (platformInfo.isMacOS) {
-        return LocConstants.DacpacDialog.RevealInFinder;
-    } else if (platformInfo.isLinux) {
-        return LocConstants.DacpacDialog.OpenContainingFolder;
-    } else {
-        // Windows or any other platform
-        return LocConstants.DacpacDialog.RevealInExplorer;
-    }
-}
+const DACPAC_DIALOG_VIEW_ID = "DacpacDialog";
 
 /**
  * Controller for the DacpacDialog webview.
@@ -352,10 +331,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             if (result.success) {
                 this.logger.verbose("Deploy DACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
-                // Show success notification for Deploy operation
-                void this.vscodeWrapper.showInformationMessage(
-                    LocConstants.DacpacDialog.DeploySuccessWithDatabase(params.databaseName),
-                );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_deploy`,
@@ -417,22 +392,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             if (result.success) {
                 this.logger.verbose("Extract DACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
-                // Show success notification with OS-specific "Reveal/Open" button for Extract operation
-                const fileName = path.basename(params.packageFilePath);
-                const revealButtonText = getRevealInOsButtonText();
-                void this.vscodeWrapper
-                    .showInformationMessage(
-                        LocConstants.DacpacDialog.ExtractSuccessWithFile(fileName),
-                        revealButtonText,
-                    )
-                    .then((selection) => {
-                        if (selection === revealButtonText) {
-                            void vscode.commands.executeCommand(
-                                REVEAL_FILE_IN_OS_COMMAND,
-                                vscode.Uri.file(params.packageFilePath),
-                            );
-                        }
-                    });
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_extract`,
@@ -492,10 +451,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             if (result.success) {
                 this.logger.verbose("Import BACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
-                // Show success notification for Import operation
-                void this.vscodeWrapper.showInformationMessage(
-                    LocConstants.DacpacDialog.ImportSuccessWithDatabase(params.databaseName),
-                );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_import`,
@@ -555,22 +510,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             if (result.success) {
                 this.logger.verbose("Export BACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
-                // Show success notification with OS-specific "Reveal/Open" button for Export operation
-                const fileName = path.basename(params.packageFilePath);
-                const revealButtonText = getRevealInOsButtonText();
-                void this.vscodeWrapper
-                    .showInformationMessage(
-                        LocConstants.DacpacDialog.ExportSuccessWithFile(fileName),
-                        revealButtonText,
-                    )
-                    .then((selection) => {
-                        if (selection === revealButtonText) {
-                            void vscode.commands.executeCommand(
-                                REVEAL_FILE_IN_OS_COMMAND,
-                                vscode.Uri.file(params.packageFilePath),
-                            );
-                        }
-                    });
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_export`,

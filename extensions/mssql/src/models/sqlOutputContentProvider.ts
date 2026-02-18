@@ -23,6 +23,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -106,11 +107,27 @@ export class SqlOutputContentProvider {
         );
 
         /**
+         * Command to toggle the actual execution plan for the active query result
+         */
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdToggleActualPlan, async () => {
+                const uri = this._vscodeWrapper.activeTextEditorUri;
+
+                if (!uri) {
+                    return;
+                }
+
+                const isCurrentlyEnabled = this._actualPlanStatuses.includes(uri);
+                this.onToggleActualPlan(!isCurrentlyEnabled);
+            }),
+        );
+
+        /**
          * Command that reveals the query result
          */
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdrevealQueryResult, (uri: vscode.Uri) => {
-                this.revealQueryResult(uri.toString(true));
+                this.revealQueryResult(uri.toString());
             }),
         );
     }
@@ -331,7 +348,11 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        await runner.runStatement(selection.startLine, selection.startColumn);
+        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+        await runner.runStatement(selection.startLine, selection.startColumn, {
+            includeActualExecutionPlanXml: includeExecutionPlanXml,
+        });
     }
 
     private async initializeRunnerAndWebviewState(
@@ -348,6 +369,10 @@ export class SqlOutputContentProvider {
         if (!queryRunner) {
             return;
         }
+
+        // Clear previous grid state (filters, sorts, column widths) for this URI
+        store.deleteUriState(uri);
+
         this._queryResultWebviewController.addQueryResultState(
             uri,
             title,
@@ -715,14 +740,19 @@ export class SqlOutputContentProvider {
      * @param doc   The document that was closed
      */
     public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
-        const closedDocumentUri = doc.uri.toString(true);
+        const closedDocumentUri = doc.uri.toString();
 
         for (let [key, _value] of this._queryResultsMap.entries()) {
             if (closedDocumentUri === key) {
                 /**
                  * If the result is in a webview view, immediately dispose the runner
-                 * For panel results, we wait until the panel is closed to dispose the runner
+                 * For panel based results, we just cancel the query but keep the results
+                 * available until the user closes the panel
                  */
+                if (this._queryResultWebviewController.hasPanel(key)) {
+                    await _value.queryRunner.cancel();
+                    continue;
+                }
                 await this.cleanupRunner(key);
             }
         }
@@ -931,7 +961,7 @@ export class SqlOutputContentProvider {
     }
 
     private updateWebviewState(uri: string, state: qr.QueryResultWebviewState): void {
-        const activeEditorUri: string = vscode.window.activeTextEditor?.document.uri.toString(true);
+        const activeEditorUri: string = vscode.window.activeTextEditor?.document.uri.toString();
         // Update the state in cache first.
         this._queryResultWebviewController.setQueryResultState(uri, state);
         // Set the state to the right webview.
