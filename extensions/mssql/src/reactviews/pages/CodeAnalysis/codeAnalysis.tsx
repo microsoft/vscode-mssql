@@ -176,7 +176,10 @@ function CodeAnalysisDialog() {
                                     </TableCell>
                                     {/* Cell: Configured severity for the current rule */}
                                     <TableCell className={styles.tableCell}>
-                                        <Dropdown value={rule.severity}>
+                                        <Dropdown
+                                            value={
+                                                rule.severity || CodeAnalysisRuleSeverity.Warning
+                                            }>
                                             {codeAnalysisSeverityOptions.map((severity) => (
                                                 <Option key={severity} value={severity}>
                                                     {severity}
@@ -202,7 +205,7 @@ function CodeAnalysisDialog() {
                         {commonLoc.cancel}
                     </Button>
                     <Button appearance="primary" disabled onClick={() => undefined}>
-                        {commonLoc.save}
+                        {commonLoc.apply}
                     </Button>
                 </div>
             </div>

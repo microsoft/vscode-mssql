@@ -37,5 +37,5 @@ export const enum DeploymentScenario {
 export const enum RuleSeverity {
     Error = "Error",
     Warning = "Warning",
-    None = "None",
+    Disabled = "Disabled",
 }

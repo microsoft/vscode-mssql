@@ -6,7 +6,7 @@
 export const CodeAnalysisRuleSeverity = {
     Error: "Error",
     Warning: "Warning",
-    None: "None",
+    Disabled: "Disabled",
 } as const;
 
 /**
