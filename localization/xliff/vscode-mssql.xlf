@@ -925,6 +925,13 @@
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
     </trans-unit>
+    <trans-unit id="++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975">
+      <source xml:lang="en">Code Analysis</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d09445114806a6fe8a7faaeca21eb7f879a1b94fa056c9c06abde171f5c36f5f">
+      <source xml:lang="en">Code Analysis - {0}</source>
+      <note>{0} is the name of the database project</note>
+    </trans-unit>
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
     </trans-unit>
