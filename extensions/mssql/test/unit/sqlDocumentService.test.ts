@@ -386,7 +386,7 @@ suite("SqlDocumentService Tests", () => {
 
         // Ensure no extraneous function is called (save doesn't directly call connection manager)
         expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
-        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
+        expect(connectionManager.transferConnectionToFile).to.not.have.been.called;
 
         // Check that internal state was set correctly (uses getUriKey internally)
         expect(sqlDocumentService["_lastSavedUri"]).to.equal(newDocument.uri.toString());
@@ -618,8 +618,9 @@ suite("SqlDocumentService Tests", () => {
             docUriCallback = doc.uri.toString();
         });
 
-        connectionManager.copyConnectionToFile.callsFake(async (doc, _newDoc) => {
+        connectionManager.transferConnectionToFile.callsFake(async (doc, _newDoc) => {
             docUriCallback = doc;
+            return true;
         });
     }
     function mockTextDocument(
