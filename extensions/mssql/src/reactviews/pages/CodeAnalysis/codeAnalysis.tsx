@@ -20,7 +20,6 @@ import {
     tokens,
     Option,
 } from "@fluentui/react-components";
-import { DismissRegular } from "@fluentui/react-icons";
 import { CodeAnalysisContext } from "./codeAnalysisStateProvider";
 import { useCodeAnalysisSelector } from "./codeAnalysisSelector";
 import { LocConstants } from "../../common/locConstants";
@@ -108,6 +107,22 @@ function CodeAnalysisDialog() {
     const styles = useStyles();
     const loc = LocConstants.getInstance().codeAnalysis;
     const context = useContext(CodeAnalysisContext);
+    const headerColumns = [
+        // Column: rule enabled state
+        {
+            key: "enabledRule",
+            label: loc.enabledColumnLabel,
+            className: `${styles.tableHeaderCell} ${styles.checkboxCell}`,
+        },
+        // Column: rule identifier and display name
+        { key: "rule", label: loc.ruleColumnLabel, className: styles.tableHeaderCell },
+        // Column: configured rule severity
+        {
+            key: "severity",
+            label: loc.severityColumnLabel,
+            className: `${styles.tableHeaderCell} ${styles.severityCell}`,
+        },
+    ];
 
     const projectName = useCodeAnalysisSelector((s) => s.projectName);
     const isLoading = useCodeAnalysisSelector((s) => s.isLoading);
@@ -138,20 +153,11 @@ function CodeAnalysisDialog() {
                     <Table className={styles.table}>
                         <TableHeader>
                             <TableRow>
-                                {/* Column: Rule enabled state */}
-                                <TableHeaderCell
-                                    className={`${styles.tableHeaderCell} ${styles.checkboxCell}`}>
-                                    Enabled
-                                </TableHeaderCell>
-                                {/* Column: Rule */}
-                                <TableHeaderCell className={styles.tableHeaderCell}>
-                                    Rule
-                                </TableHeaderCell>
-                                {/* Column: Configured rule severity */}
-                                <TableHeaderCell
-                                    className={`${styles.tableHeaderCell} ${styles.severityCell}`}>
-                                    Severity
-                                </TableHeaderCell>
+                                {headerColumns.map((column) => (
+                                    <TableHeaderCell key={column.key} className={column.className}>
+                                        {column.label}
+                                    </TableHeaderCell>
+                                ))}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -186,11 +192,14 @@ function CodeAnalysisDialog() {
             <div className={styles.footer}>
                 <Text className={styles.statusText}>{rules?.length ?? 0} rules</Text>
                 <div className={styles.footerButtons}>
-                    <Button
-                        appearance="secondary"
-                        icon={<DismissRegular />}
-                        onClick={() => context.close()}>
+                    <Button appearance="subtle" disabled onClick={() => undefined}>
+                        Reset to Defaults
+                    </Button>
+                    <Button appearance="secondary" onClick={() => context.close()}>
                         Cancel
+                    </Button>
+                    <Button appearance="primary" disabled onClick={() => undefined}>
+                        Save
                     </Button>
                 </div>
             </div>

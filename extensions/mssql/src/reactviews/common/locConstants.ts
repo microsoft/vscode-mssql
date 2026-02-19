@@ -202,6 +202,9 @@ export class LocConstants {
                     comment: ["{0} is the name of the database project"],
                 }),
             loadingCodeAnalysisRules: l10n.t("Loading code analysis rules..."),
+            enabledColumnLabel: l10n.t("Enabled"),
+            ruleColumnLabel: l10n.t("Rule"),
+            severityColumnLabel: l10n.t("Severity"),
         };
     }
 
