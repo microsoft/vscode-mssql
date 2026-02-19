@@ -17,6 +17,7 @@ const DownloadTimeoutMs = 20000;
  * Class includes method for making http request
  */
 export class HttpClient {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/naming-convention
     private static cache: Map<string, any> = new Map();
 
     /**
@@ -25,6 +26,7 @@ export class HttpClient {
      * @param useCache if true and result is already cached the cached value will be returned
      * @returns result of http GET request
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static async getRequest(url: string, useCache = false): Promise<any> {
         if (useCache) {
             if (HttpClient.cache.has(url)) {
@@ -118,8 +120,6 @@ export class HttpClient {
                 reject(err);
             });
 
-            stream.pipe(writer);
-
             writer.on("close", () => {
                 resolve();
             });
@@ -128,6 +128,8 @@ export class HttpClient {
                 stream.destroy(err);
                 reject(err);
             });
+
+            stream.pipe(writer);
         });
     }
 }
