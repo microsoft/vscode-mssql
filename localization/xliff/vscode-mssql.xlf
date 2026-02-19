@@ -2632,6 +2632,9 @@
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
+      <source xml:lang="en">Filter entities...</source>
+    </trans-unit>
     <trans-unit id="++CODE++d82276b4dc4d7c1934c610624dcd96caaaf8d372027329bba940c1bcdd633a4b">
       <source xml:lang="en">Filter events by column values</source>
     </trans-unit>

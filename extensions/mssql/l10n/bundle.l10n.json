@@ -770,6 +770,7 @@
     "MCP": "MCP",
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
+    "Filter entities...": "Filter entities...",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
