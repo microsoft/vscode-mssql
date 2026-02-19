@@ -181,6 +181,11 @@
                 "icon": "images/databaseProjectToolbar.svg"
             },
             {
+                "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                "title": "%sqlDatabaseProjects.configureCodeAnalysisSettings%",
+                "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
                 "command": "sqlDatabaseProjects.addDatabaseReference",
                 "title": "%sqlDatabaseProjects.addDatabaseReference%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -320,6 +325,10 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase"
+                },
+                {
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                    "when": "false"
                 },
                 {
                     "command": "sqlDatabaseProjects.addDatabaseReference",
@@ -491,9 +500,14 @@
                     "group": "9_dbProjectsLast@7"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "9_dbProjectsLast@8"
+                },
+                {
+                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "9_dbProjectsLast@9"
                 },
                 {
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
