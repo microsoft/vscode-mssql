@@ -144,7 +144,7 @@ suite("SqlDocumentService Tests", () => {
             newQueryStub.restore();
         }
 
-        expect(connectionManager.onNewConnection).to.not.have.been.called;
+        expect(connectionManager.promptToConnect).to.not.have.been.called;
     });
 
     test("handleNewQueryCommand uses CopyLastActive when last active connection exists", async () => {
@@ -655,7 +655,7 @@ suite("SqlDocumentService Tests", () => {
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnect = mockConnectionManager.connect;
-            mockOnNewConnection = mockConnectionManager.onNewConnection;
+            mockOnNewConnection = mockConnectionManager.promptToConnect;
             mockGetConnectionInfoFromUri = mockConnectionManager.getConnectionInfoFromUri;
 
             mockConnect.resolves(true);

@@ -230,8 +230,8 @@ suite("MainController Tests", function () {
 
             // Mock onNewConnection to track if it's called
             let onNewConnectionCalled = false;
-            const originalOnNewConnection = mainController.onNewConnection.bind(mainController);
-            mainController.onNewConnection = async () => {
+            const originalOnNewConnection = mainController.promptToConnect.bind(mainController);
+            mainController.promptToConnect = async () => {
                 onNewConnectionCalled = true;
                 return true;
             };
@@ -253,7 +253,7 @@ suite("MainController Tests", function () {
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
             } finally {
-                mainController.onNewConnection = originalOnNewConnection;
+                mainController.promptToConnect = originalOnNewConnection;
             }
         });
 
@@ -307,8 +307,8 @@ suite("MainController Tests", function () {
 
             // Mock onNewConnection to verify it's called
             let onNewConnectionCalled = false;
-            const originalOnNewConnection = mainController.onNewConnection.bind(mainController);
-            mainController.onNewConnection = async () => {
+            const originalOnNewConnection = mainController.promptToConnect.bind(mainController);
+            mainController.promptToConnect = async () => {
                 onNewConnectionCalled = true;
                 return true;
             };
@@ -325,7 +325,7 @@ suite("MainController Tests", function () {
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
             } finally {
-                mainController.onNewConnection = originalOnNewConnection;
+                mainController.promptToConnect = originalOnNewConnection;
             }
         });
 
@@ -343,8 +343,8 @@ suite("MainController Tests", function () {
 
             // Mock onNewConnection
             let onNewConnectionCalled = false;
-            const originalOnNewConnection = mainController.onNewConnection.bind(mainController);
-            mainController.onNewConnection = async () => {
+            const originalOnNewConnection = mainController.promptToConnect.bind(mainController);
+            mainController.promptToConnect = async () => {
                 onNewConnectionCalled = true;
                 return true;
             };
@@ -361,7 +361,7 @@ suite("MainController Tests", function () {
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
             } finally {
-                mainController.onNewConnection = originalOnNewConnection;
+                mainController.promptToConnect = originalOnNewConnection;
             }
         });
     });

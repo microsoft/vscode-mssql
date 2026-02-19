@@ -479,7 +479,7 @@ export default class SqlDocumentService implements vscode.Disposable {
 
             case ConnectionStrategy.PromptForConnection:
             default:
-                const credentials = await this._connectionMgr.onNewConnection();
+                const credentials = await this._connectionMgr.promptToConnect();
                 return { shouldConnect: true, connectionInfo: Utils.deepClone(credentials) };
         }
     }

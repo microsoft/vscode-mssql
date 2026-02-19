@@ -990,7 +990,7 @@ export default class ConnectionManager {
      * then prompts the user to select a connection via quickpick
      * @returns the connection profile selected by the user, or undefined if canceled
      */
-    public async onNewConnection(): Promise<IConnectionInfo> {
+    public async promptToConnect(): Promise<IConnectionInfo> {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!fileUri) {
             // A text document needs to be open before we can connect
@@ -1782,21 +1782,40 @@ export default class ConnectionManager {
     }
 
     /**
-     * Copies the connection info from one file to another, optionally disconnecting the old file.
-     * @param oldFileUri File to copy the connection info from
-     * @param newFileUri File to copy the connection info to
-     * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
-     * @returns
+     * Moves the connection from one URI to another.
+     * @param oldFileUri File URI to transfer connection info from
+     * @param newFileUri File URI to transfer connection info to
+     * @returns true if a transfer occurred; otherwise false
      */
-    public async copyConnectionToFile(oldFileUri: string, newFileUri: string): Promise<void> {
-        // Is the new file connected or the old file not connected?
-        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
-            return;
+    public async transferConnectionToFile(
+        oldFileUri: string,
+        newFileUri: string,
+    ): Promise<boolean> {
+        if (!oldFileUri || !newFileUri || oldFileUri === newFileUri) {
+            return false;
         }
 
-        // Connect the saved uri and disconnect the untitled uri on successful connection
-        let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
-        await this.connect(newFileUri, creds);
+        // If old isn't connected or new is already connected, there is nothing to transfer.
+        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
+            return false;
+        }
+
+        const creds: IConnectionInfo | undefined = this._connections[oldFileUri]?.credentials;
+        if (!creds) {
+            return false;
+        }
+
+        const didConnect = await this.connect(newFileUri, creds);
+        if (!didConnect) {
+            return false;
+        }
+
+        // Best effort cleanup of old URI after successful transfer.
+        if (this.isConnected(oldFileUri)) {
+            await this.disconnect(oldFileUri);
+        }
+
+        return true;
     }
 
     public async refreshAzureAccountToken(uri: string): Promise<void> {
