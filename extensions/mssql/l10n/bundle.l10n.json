@@ -107,6 +107,7 @@
     "Refresh": "Refresh",
     "Show password": "Show password",
     "Hide password": "Hide password",
+    "Save": "Save",
     "Dismiss": "Dismiss",
     "Error": "Error",
     "Get Started": "Get Started",
@@ -496,7 +497,6 @@
     },
     "Add new column": "Add new column",
     "Table": "Table",
-    "Save": "Save",
     "Add": "Add",
     "Add new foreign key": "Add new foreign key",
     "Foreign Key {0}/{0} is the index of the foreign key": {
