@@ -2838,17 +2838,17 @@ export class Profiler {
         });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Profiler (Preview): No session");
-    public static statusBarTooltip = l10n.t("Profiler (Preview) Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
+    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
 
     // Panel titles
     public static panelTitleWithSession = (name: string) =>
         l10n.t({
-            message: "Profiler (Preview): {0}",
+            message: "Query Profiler (Preview): {0}",
             args: [name],
             comment: ["{0} is the file name or session name"],
         });
-    public static panelTitleDefault = l10n.t("Profiler (Preview)");
+    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
