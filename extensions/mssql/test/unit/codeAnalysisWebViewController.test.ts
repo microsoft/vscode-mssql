@@ -13,6 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { CodeAnalysisWebViewController } from "../../src/codeAnalysis/codeAnalysisWebViewController";
 import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
 import { LocConstants as ReactLoc } from "../../src/reactviews/common/locConstants";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
 
 chai.use(sinonChai);
@@ -48,6 +49,16 @@ suite("CodeAnalysisWebViewController Tests", () => {
         return {
             panelStub,
             telemetryStubs,
+        };
+    }
+
+    function getInternalController() {
+        return controller as unknown as {
+            loadRules: () => Promise<void>;
+            _reducerHandlers: Map<
+                string,
+                (state: unknown, payload: unknown) => Promise<unknown> | unknown
+            >;
         };
     }
 
@@ -92,5 +103,67 @@ suite("CodeAnalysisWebViewController Tests", () => {
             controller.state.projectName,
         );
         expect(headerTitle).to.equal("Code Analysis - MyProject");
+    });
+
+    test("close reducer handler disposes the webview panel", async () => {
+        const { panelStub } = createController();
+        const internalController = getInternalController();
+        const closeHandler = internalController._reducerHandlers.get("close");
+
+        expect(closeHandler).to.not.be.undefined;
+        await closeHandler?.(controller.state, {});
+
+        expect(panelStub.dispose).to.have.been.calledOnce;
+    });
+
+    test("loadRules handles errors, sets errorMessage, and fires error telemetry", async () => {
+        const { telemetryStubs } = createController();
+        const internalController = getInternalController();
+
+        const updateStateStub = sandbox.stub(controller, "updateState");
+        updateStateStub.onFirstCall().throws(new Error("load error"));
+
+        telemetryStubs.sendErrorEvent.resetHistory();
+
+        await internalController.loadRules();
+
+        expect(controller.state.isLoading).to.be.false;
+        expect(controller.state.errorMessage).to.equal("load error");
+        expect(telemetryStubs.sendErrorEvent).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisRulesLoadError,
+            sinon.match.instanceOf(Error),
+            false,
+        );
+    });
+
+    test("successful rules load fires CodeAnalysisRulesLoaded telemetry event", async () => {
+        const { telemetryStubs } = createController();
+        const internalController = getInternalController();
+
+        telemetryStubs.sendActionEvent.resetHistory();
+
+        await internalController.loadRules();
+
+        expect(telemetryStubs.sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisRulesLoaded,
+            sinon.match.has("ruleCount"),
+        );
+    });
+
+    test("isLoading state transitions correctly during loadRules", async () => {
+        createController();
+        const internalController = getInternalController();
+
+        const loadingStates: boolean[] = [];
+        const updateStateStub = sandbox.stub(controller, "updateState").callsFake(() => {
+            loadingStates.push(controller.state.isLoading);
+        });
+
+        await internalController.loadRules();
+
+        expect(updateStateStub.callCount).to.equal(2);
+        expect(loadingStates).to.deep.equal([true, false]);
     });
 });

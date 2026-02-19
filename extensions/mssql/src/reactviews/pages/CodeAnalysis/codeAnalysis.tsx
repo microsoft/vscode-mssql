@@ -114,15 +114,15 @@ function CodeAnalysisDialog() {
         // Column: rule enabled state
         {
             key: "enabledRule",
-            label: loc.enabledColumnLabel,
+            label: loc.enabled,
             className: `${styles.tableHeaderCell} ${styles.checkboxCell}`,
         },
         // Column: rule identifier and display name
-        { key: "rule", label: loc.ruleColumnLabel, className: styles.tableHeaderCell },
+        { key: "rule", label: loc.rule, className: styles.tableHeaderCell },
         // Column: configured rule severity
         {
             key: "severity",
-            label: loc.severityColumnLabel,
+            label: loc.severity,
             className: `${styles.tableHeaderCell} ${styles.severityCell}`,
         },
     ];
@@ -151,7 +151,7 @@ function CodeAnalysisDialog() {
                         <Spinner label={loc.loadingCodeAnalysisRules} />
                     </div>
                 ) : rules.length === 0 ? (
-                    <div className={styles.emptyState}>No code analysis rules available.</div>
+                    <div className={styles.emptyState}>{loc.noCodeAnalysisRulesAvailable}</div>
                 ) : (
                     <Table className={styles.table}>
                         <TableHeader>
@@ -193,7 +193,7 @@ function CodeAnalysisDialog() {
 
             {/* Footer */}
             <div className={styles.footer}>
-                <Text className={styles.statusText}>{rules?.length ?? 0} rules</Text>
+                <Text className={styles.statusText}>{loc.rulesCount(rules?.length ?? 0)}</Text>
                 <div className={styles.footerButtons}>
                     <Button appearance="subtle" disabled onClick={() => undefined}>
                         {schemaCompareLoc.reset}
