@@ -3,14 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Checkbox, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
-import { useEffect, useMemo } from "react";
+import { Button, Checkbox, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import {
+    ChevronDown16Regular,
+    ChevronRight16Regular,
+    Settings16Regular,
+} from "@fluentui/react-icons";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
-import { DabEntityTile } from "./dabEntityTile";
 import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
+import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { Dab } from "../../../../sharedInterfaces/dab";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useDabContext } from "./dabContext";
 
@@ -25,33 +31,93 @@ const useStyles = makeStyles({
     content: {
         flex: 1,
         overflow: "auto",
-        padding: "15px",
+        padding: "0 15px 15px",
     },
-    schemaSection: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        marginBottom: "20px",
+    entityTable: {
+        display: "grid",
+        gridTemplateColumns: "68px minmax(120px, 2fr) minmax(120px, 3fr) auto auto auto auto 40px",
+        alignItems: "center",
+        width: "100%",
     },
-    schemaHeader: {
+    headerRow: {
+        gridColumn: "1 / -1",
+        display: "grid",
+        gridTemplateColumns: "subgrid",
+        alignItems: "center",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        position: "sticky" as const,
+        top: 0,
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: 2,
+    },
+    headerCell: {
+        padding: "6px 12px",
+        fontSize: "12px",
+        fontWeight: 600,
+        color: tokens.colorNeutralForeground3,
+    },
+    headerCellCenter: {
+        padding: "6px 12px",
+        fontSize: "12px",
+        fontWeight: 600,
+        color: tokens.colorNeutralForeground3,
+        textAlign: "center" as const,
+    },
+    schemaRow: {
+        gridColumn: "1 / -1",
         display: "flex",
         alignItems: "center",
         gap: "8px",
+        padding: "8px 12px",
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        cursor: "pointer",
     },
     schemaLabel: {
-        fontSize: "16px",
+        fontSize: "14px",
         fontWeight: 600,
         color: tokens.colorNeutralForeground1,
     },
     schemaDivider: {
         flex: 1,
-        height: "1px",
-        backgroundColor: tokens.colorNeutralStroke2,
     },
-    entityGrid: {
+    entityRow: {
+        gridColumn: "1 / -1",
+        display: "grid",
+        gridTemplateColumns: "subgrid",
+        alignItems: "center",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
+    },
+    entityCell: {
+        padding: "6px 12px",
+    },
+    entityCheckboxCell: {
+        padding: "6px 12px 6px 36px",
+    },
+    entityCellCenter: {
+        padding: "6px 12px",
         display: "flex",
-        flexWrap: "wrap",
-        gap: "12px",
+        justifyContent: "center",
+    },
+    entityCellDisabled: {
+        opacity: 0.6,
+    },
+    entityName: {
+        fontWeight: 600,
+        fontSize: "13px",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
+    sourceText: {
+        fontSize: "12px",
+        color: tokens.colorNeutralForeground3,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
+    settingsButton: {
+        minWidth: "auto",
     },
     loadingContainer: {
         display: "flex",
@@ -91,8 +157,23 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         toggleDabEntity,
         toggleDabEntityAction,
         updateDabEntitySettings,
-        dabSchemaFilter,
+        dabTextFilter,
     } = context;
+
+    const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
+    const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
+
+    const toggleSchemaCollapsed = useCallback((schemaName: string) => {
+        setCollapsedSchemas((prev) => {
+            const next = new Set(prev);
+            if (next.has(schemaName)) {
+                next.delete(schemaName);
+            } else {
+                next.add(schemaName);
+            }
+            return next;
+        });
+    }, []);
 
     // Initialize DAB config when schema is first initialized
     useEffect(() => {
@@ -111,16 +192,24 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         }
     }, [activeView]);
 
-    // Filter entities based on schema filter
+    // Filter entities based on text filter
     const filteredEntities = useMemo(() => {
         if (!dabConfig) {
             return [];
         }
-        if (dabSchemaFilter.length === 0) {
+        if (!dabTextFilter.trim()) {
             return dabConfig.entities;
         }
-        return dabConfig.entities.filter((e) => dabSchemaFilter.includes(e.schemaName));
-    }, [dabConfig, dabSchemaFilter]);
+        const lower = dabTextFilter.toLowerCase().trim();
+        return dabConfig.entities.filter((e) => {
+            const entityName = e.advancedSettings.entityName.toLowerCase();
+            const schemaName = e.schemaName.toLowerCase();
+            const source = `${e.schemaName}.${e.tableName}`.toLowerCase();
+            return (
+                entityName.includes(lower) || schemaName.includes(lower) || source.includes(lower)
+            );
+        });
+    }, [dabConfig, dabTextFilter]);
 
     // Group filtered entities by schema
     const entitiesBySchema = useMemo(() => {
@@ -133,6 +222,14 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         }
         return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
     }, [filteredEntities]);
+
+    // Look up settings entity from config to stay fresh
+    const settingsEntity = useMemo(() => {
+        if (!settingsEntityId || !dabConfig) {
+            return null;
+        }
+        return dabConfig.entities.find((e) => e.id === settingsEntityId) ?? null;
+    }, [settingsEntityId, dabConfig]);
 
     // Show loading state while schema is being initialized
     if (!isInitialized) {
@@ -158,6 +255,20 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         );
     }
 
+    const allActions = [
+        Dab.EntityAction.Create,
+        Dab.EntityAction.Read,
+        Dab.EntityAction.Update,
+        Dab.EntityAction.Delete,
+    ];
+
+    const actionLabels: Record<Dab.EntityAction, string> = {
+        [Dab.EntityAction.Create]: locConstants.schemaDesigner.create,
+        [Dab.EntityAction.Read]: locConstants.schemaDesigner.read,
+        [Dab.EntityAction.Update]: locConstants.schemaDesigner.update,
+        [Dab.EntityAction.Delete]: locConstants.common.delete,
+    };
+
     return (
         <div className={classes.root}>
             <DabDeploymentDialog />
@@ -171,62 +282,168 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                     <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
                                 </div>
                             ) : (
-                                entitiesBySchema.map(([schemaName, entities]) => {
-                                    const enabledCount = entities.filter((e) => e.isEnabled).length;
-                                    const allChecked = enabledCount === entities.length;
-                                    const noneChecked = enabledCount === 0;
-                                    return (
-                                        <div key={schemaName} className={classes.schemaSection}>
-                                            <div className={classes.schemaHeader}>
-                                                <Checkbox
-                                                    checked={
-                                                        allChecked
-                                                            ? true
-                                                            : noneChecked
-                                                              ? false
-                                                              : "mixed"
-                                                    }
-                                                    onChange={(_, data) => {
-                                                        const enable =
-                                                            data.checked === true ||
-                                                            data.checked === "mixed";
-                                                        for (const entity of entities) {
-                                                            toggleDabEntity(entity.id, enable);
-                                                        }
-                                                    }}
-                                                />
-                                                <Text className={classes.schemaLabel}>
-                                                    {schemaName}
-                                                </Text>
-                                                <div className={classes.schemaDivider} />
-                                            </div>
-                                            <div className={classes.entityGrid}>
-                                                {entities.map((entity) => (
-                                                    <DabEntityTile
-                                                        key={entity.id}
-                                                        entity={entity}
-                                                        onToggleEnabled={(isEnabled) =>
-                                                            toggleDabEntity(entity.id, isEnabled)
-                                                        }
-                                                        onToggleAction={(action, isEnabled) =>
-                                                            toggleDabEntityAction(
-                                                                entity.id,
-                                                                action,
-                                                                isEnabled,
-                                                            )
-                                                        }
-                                                        onUpdateSettings={(settings) =>
-                                                            updateDabEntitySettings(
-                                                                entity.id,
-                                                                settings,
-                                                            )
-                                                        }
-                                                    />
-                                                ))}
-                                            </div>
+                                <div className={classes.entityTable}>
+                                    {/* Column Headers */}
+                                    <div className={classes.headerRow}>
+                                        <div />
+                                        <div className={classes.headerCell}>
+                                            {locConstants.schemaDesigner.entityName}
                                         </div>
-                                    );
-                                })
+                                        <div className={classes.headerCell}>
+                                            {locConstants.schemaDesigner.sourceTable}
+                                        </div>
+                                        {allActions.map((action) => (
+                                            <div key={action} className={classes.headerCellCenter}>
+                                                {actionLabels[action]}
+                                            </div>
+                                        ))}
+                                        <div />
+                                    </div>
+
+                                    {/* Schema groups with entity rows */}
+                                    {entitiesBySchema.map(([schemaName, entities]) => {
+                                        const enabledCount = entities.filter(
+                                            (e) => e.isEnabled,
+                                        ).length;
+                                        const allChecked = enabledCount === entities.length;
+                                        const noneChecked = enabledCount === 0;
+                                        const isCollapsed = collapsedSchemas.has(schemaName);
+
+                                        return (
+                                            <>
+                                                {/* Schema separator row */}
+                                                <div
+                                                    key={`schema-${schemaName}`}
+                                                    className={classes.schemaRow}
+                                                    onClick={() =>
+                                                        toggleSchemaCollapsed(schemaName)
+                                                    }>
+                                                    {isCollapsed ? (
+                                                        <ChevronRight16Regular />
+                                                    ) : (
+                                                        <ChevronDown16Regular />
+                                                    )}
+                                                    <Checkbox
+                                                        checked={
+                                                            allChecked
+                                                                ? true
+                                                                : noneChecked
+                                                                  ? false
+                                                                  : "mixed"
+                                                        }
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onChange={(_, data) => {
+                                                            const enable =
+                                                                data.checked === true ||
+                                                                data.checked === "mixed";
+                                                            for (const entity of entities) {
+                                                                toggleDabEntity(entity.id, enable);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Text className={classes.schemaLabel}>
+                                                        {schemaName}
+                                                    </Text>
+                                                    <div className={classes.schemaDivider} />
+                                                </div>
+
+                                                {/* Entity rows (hidden when collapsed) */}
+                                                {!isCollapsed &&
+                                                    entities.map((entity) => {
+                                                        const disabledClass = !entity.isEnabled
+                                                            ? classes.entityCellDisabled
+                                                            : "";
+                                                        return (
+                                                            <div
+                                                                key={entity.id}
+                                                                className={classes.entityRow}>
+                                                                <div
+                                                                    className={
+                                                                        classes.entityCheckboxCell
+                                                                    }>
+                                                                    <Checkbox
+                                                                        checked={entity.isEnabled}
+                                                                        onChange={(_, data) =>
+                                                                            toggleDabEntity(
+                                                                                entity.id,
+                                                                                data.checked ===
+                                                                                    true,
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div
+                                                                    className={`${classes.entityCell} ${disabledClass}`}>
+                                                                    <Text
+                                                                        className={
+                                                                            classes.entityName
+                                                                        }>
+                                                                        {
+                                                                            entity.advancedSettings
+                                                                                .entityName
+                                                                        }
+                                                                    </Text>
+                                                                </div>
+                                                                <div
+                                                                    className={`${classes.entityCell} ${disabledClass}`}>
+                                                                    <Text
+                                                                        className={
+                                                                            classes.sourceText
+                                                                        }>
+                                                                        {entity.schemaName}.
+                                                                        {entity.tableName}
+                                                                    </Text>
+                                                                </div>
+                                                                {allActions.map((action) => (
+                                                                    <div
+                                                                        key={action}
+                                                                        className={`${classes.entityCellCenter} ${disabledClass}`}>
+                                                                        <Checkbox
+                                                                            checked={entity.enabledActions.includes(
+                                                                                action,
+                                                                            )}
+                                                                            disabled={
+                                                                                !entity.isEnabled
+                                                                            }
+                                                                            onChange={(_, data) =>
+                                                                                toggleDabEntityAction(
+                                                                                    entity.id,
+                                                                                    action,
+                                                                                    data.checked ===
+                                                                                        true,
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                                <div className={classes.entityCell}>
+                                                                    <Button
+                                                                        appearance="subtle"
+                                                                        icon={<Settings16Regular />}
+                                                                        size="small"
+                                                                        className={
+                                                                            classes.settingsButton
+                                                                        }
+                                                                        disabled={!entity.isEnabled}
+                                                                        onClick={() =>
+                                                                            setSettingsEntityId(
+                                                                                entity.id,
+                                                                            )
+                                                                        }
+                                                                        title={
+                                                                            locConstants
+                                                                                .schemaCompare
+                                                                                .settings
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -234,6 +451,23 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                 <PanelResizeHandle className={classes.resizeHandle} />
                 <DabDefinitionsPanel />
             </PanelGroup>
+
+            {/* Single settings dialog instance */}
+            {settingsEntity && (
+                <DabEntitySettingsDialog
+                    entity={settingsEntity}
+                    open={!!settingsEntity}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setSettingsEntityId(null);
+                        }
+                    }}
+                    onApply={(settings) => {
+                        updateDabEntitySettings(settingsEntity.id, settings);
+                        setSettingsEntityId(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

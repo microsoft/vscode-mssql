@@ -1144,6 +1144,7 @@ export class LocConstants {
             all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
+            filterEntities: l10n.t("Filter entities..."),
             nOfMEnabled: (enabled: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} enabled",
