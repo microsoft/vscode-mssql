@@ -228,11 +228,11 @@ suite("MainController Tests", function () {
             // Close all editors first
             await vscode.commands.executeCommand("workbench.action.closeAllEditors");
 
-            // Mock onNewConnection to track if it's called
-            let onNewConnectionCalled = false;
-            const originalOnNewConnection = mainController.promptToConnect.bind(mainController);
+            // Mock promptToConnect to track if it's called
+            let promptToConnectCalled = false;
+            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
             mainController.promptToConnect = async () => {
-                onNewConnectionCalled = true;
+                promptToConnectCalled = true;
                 return true;
             };
 
@@ -240,9 +240,9 @@ suite("MainController Tests", function () {
                 const result = await mainController.onNewQueryWithConnection();
 
                 expect(result).to.equal(true);
-                expect(onNewConnectionCalled).to.equal(
+                expect(promptToConnectCalled).to.equal(
                     true,
-                    "Expected onNewConnection to be called",
+                    "Expected promptToConnect to be called",
                 );
 
                 // Verify a SQL editor was opened
@@ -253,7 +253,7 @@ suite("MainController Tests", function () {
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
             } finally {
-                mainController.promptToConnect = originalOnNewConnection;
+                mainController.promptToConnect = originalPromptToConnect;
             }
         });
 
@@ -305,11 +305,11 @@ suite("MainController Tests", function () {
             // Mock already connected
             connectionManager.isConnected.withArgs(uri).returns(true);
 
-            // Mock onNewConnection to verify it's called
-            let onNewConnectionCalled = false;
-            const originalOnNewConnection = mainController.promptToConnect.bind(mainController);
+            // Mock promptToConnect to verify it's called
+            let promptToConnectCalled = false;
+            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
             mainController.promptToConnect = async () => {
-                onNewConnectionCalled = true;
+                promptToConnectCalled = true;
                 return true;
             };
 
@@ -317,15 +317,15 @@ suite("MainController Tests", function () {
                 const result = await mainController.onNewQueryWithConnection(false, true);
 
                 expect(result).to.equal(true);
-                expect(onNewConnectionCalled).to.equal(
+                expect(promptToConnectCalled).to.equal(
                     true,
-                    "Expected onNewConnection to be called despite already being connected",
+                    "Expected promptToConnect to be called despite already being connected",
                 );
 
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
             } finally {
-                mainController.promptToConnect = originalOnNewConnection;
+                mainController.promptToConnect = originalPromptToConnect;
             }
         });
 
@@ -341,11 +341,11 @@ suite("MainController Tests", function () {
             // Mock NOT connected
             connectionManager.isConnected.withArgs(uri).returns(false);
 
-            // Mock onNewConnection
-            let onNewConnectionCalled = false;
-            const originalOnNewConnection = mainController.promptToConnect.bind(mainController);
+            // Mock promptToConnect
+            let promptToConnectCalled = false;
+            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
             mainController.promptToConnect = async () => {
-                onNewConnectionCalled = true;
+                promptToConnectCalled = true;
                 return true;
             };
 
@@ -353,15 +353,15 @@ suite("MainController Tests", function () {
                 const result = await mainController.onNewQueryWithConnection();
 
                 expect(result).to.equal(true);
-                expect(onNewConnectionCalled).to.equal(
+                expect(promptToConnectCalled).to.equal(
                     true,
-                    "Expected onNewConnection to be called for disconnected editor",
+                    "Expected promptToConnect to be called for disconnected editor",
                 );
 
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
             } finally {
-                mainController.promptToConnect = originalOnNewConnection;
+                mainController.promptToConnect = originalPromptToConnect;
             }
         });
     });
@@ -546,6 +546,53 @@ suite("MainController Tests", function () {
             expect(connectionManager.createConnectionDetails).to.not.have.been.called;
             expect(connectionManager.getConnectionString).to.not.have.been.called;
             expect(clipboardWriteTextStub).to.not.have.been.called;
+        });
+    });
+
+    suite("ensureReadyToExecuteQuery Tests", () => {
+        test("returns false and shows info message when connection is in progress", async () => {
+            const testUri = "file:///test/connecting.sql";
+
+            // Stub the private _vscodeWrapper so ensureActiveSqlFile passes
+            // and the isConnecting path is exercised
+            const originalWrapper = (mainController as any)._vscodeWrapper;
+            const showInfoStub = sandbox.stub().resolves();
+            (mainController as any)._vscodeWrapper = {
+                activeTextEditorUri: testUri,
+                isEditingSqlFile: true,
+                showInformationMessage: showInfoStub,
+            };
+
+            // connectionManager is already a stub from the outer setup
+            connectionManager.isConnected.withArgs(testUri).returns(false);
+            connectionManager.isConnecting.withArgs(testUri).returns(true);
+
+            // Mock promptToConnect to detect if it's accidentally called
+            let promptToConnectCalled = false;
+            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
+            mainController.promptToConnect = async () => {
+                promptToConnectCalled = true;
+                return true;
+            };
+
+            try {
+                const result = await mainController.ensureReadyToExecuteQuery();
+
+                expect(result).to.equal(
+                    false,
+                    "Should return false when connection is in progress",
+                );
+                expect(showInfoStub).to.have.been.calledOnceWith(
+                    LocalizedConstants.msgConnectionInProgress,
+                );
+                expect(promptToConnectCalled).to.equal(
+                    false,
+                    "promptToConnect should not be called when connection is already in progress",
+                );
+            } finally {
+                (mainController as any)._vscodeWrapper = originalWrapper;
+                mainController.promptToConnect = originalPromptToConnect;
+            }
         });
     });
 

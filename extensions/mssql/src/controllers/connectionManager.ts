@@ -1805,7 +1805,11 @@ export default class ConnectionManager {
             return false;
         }
 
-        const didConnect = await this.connect(newFileUri, creds);
+        // Deep-clone credentials so that connect()/prepareConnectionInfo() mutations
+        // (e.g. token/password updates) don't affect the old connection's state
+        // if the transfer fails.
+        const clonedCreds: IConnectionInfo = Utils.deepClone(creds);
+        const didConnect = await this.connect(newFileUri, clonedCreds);
         if (!didConnect) {
             return false;
         }
