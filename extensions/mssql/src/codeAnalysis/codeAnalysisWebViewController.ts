@@ -91,9 +91,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
      */
     private async loadRules(): Promise<void> {
         try {
-            this.state.isLoading = true;
             this.state.errorMessage = undefined;
-            this.updateState();
 
             // Placeholder data until code analysis rules are loaded from the service.
             const rules: SqlCodeAnalysisRule[] = [

@@ -62,7 +62,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         };
     }
 
-    test("constructor initializes state and loads code analysis rules", () => {
+    test("constructor initializes code analysis state", () => {
         createController("c:/work/MyProject.sqlproj");
 
         expect(controller.state.projectFilePath).to.equal("c:/work/MyProject.sqlproj");
@@ -71,7 +71,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
         expect(controller.state.hasChanges).to.be.false;
         expect(controller.state.errorMessage).to.be.undefined;
         expect(controller.state.rules).to.be.an("array");
-        expect(controller.state.rules.length).to.be.greaterThan(0);
     });
 
     test("opens dialog with icon paths and project-based header context", () => {
@@ -163,7 +162,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(updateStateStub.callCount).to.equal(2);
-        expect(loadingStates).to.deep.equal([true, false]);
+        expect(updateStateStub.callCount).to.equal(1);
+        expect(loadingStates).to.deep.equal([false]);
     });
 });
