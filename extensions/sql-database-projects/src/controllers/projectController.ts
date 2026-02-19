@@ -2380,11 +2380,6 @@ export class ProjectsController {
         try {
             const project = await this.getProjectFromContext(context);
 
-            if (!project) {
-                void vscode.window.showErrorMessage(constants.noProjectContext);
-                return;
-            }
-
             TelemetryReporter.createActionEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.configureCodeAnalysisSettings,

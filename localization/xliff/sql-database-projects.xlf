@@ -505,9 +505,6 @@
     <trans-unit id="++CODE++3579208a7b43a25bc936763f617afcbd477eca466e85cc62c381423149058572">
       <source xml:lang="en">No data sources in this project</source>
     </trans-unit>
-    <trans-unit id="++CODE++8c09beea78e2e75b49b466c1a3e42d10eec2ba47762b9b2962d6291877b6155d">
-      <source xml:lang="en">No database project found in the current context.</source>
-    </trans-unit>
     <trans-unit id="++CODE++b9594558be6542faa968aced22d890827c17bb8f852db18c8642093756b72da2">
       <source xml:lang="en">No {0} found</source>
     </trans-unit>

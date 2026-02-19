@@ -462,7 +462,6 @@ export const prePostDeployCount = l10n.t(
 export const invalidProjectReload = l10n.t(
     "Cannot access provided database project. Only valid, open database projects can be reloaded.",
 );
-export const noProjectContext = l10n.t("No database project found in the current context.");
 export const externalStreamingJobValidationPassed = l10n.t(
     "Validation of external streaming job passed.",
 );
