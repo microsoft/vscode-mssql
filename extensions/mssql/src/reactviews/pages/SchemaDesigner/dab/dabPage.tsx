@@ -78,6 +78,13 @@ const useStyles = makeStyles({
         fontWeight: 600,
         color: tokens.colorNeutralForeground1,
     },
+    schemaCount: {
+        fontSize: "11px",
+        color: tokens.colorNeutralForeground3,
+        backgroundColor: tokens.colorNeutralBackground1,
+        padding: "1px 6px",
+        borderRadius: "10px",
+    },
     schemaDivider: {
         flex: 1,
     },
@@ -292,11 +299,46 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                         <div className={classes.headerCell}>
                                             {locConstants.schemaDesigner.sourceTable}
                                         </div>
-                                        {allActions.map((action) => (
-                                            <div key={action} className={classes.headerCellCenter}>
-                                                {actionLabels[action]}
-                                            </div>
-                                        ))}
+                                        {allActions.map((action) => {
+                                            const enabledEntities = filteredEntities.filter(
+                                                (e) => e.isEnabled,
+                                            );
+                                            const withAction = enabledEntities.filter((e) =>
+                                                e.enabledActions.includes(action),
+                                            );
+                                            const allHave =
+                                                enabledEntities.length > 0 &&
+                                                withAction.length === enabledEntities.length;
+                                            const noneHave = withAction.length === 0;
+                                            return (
+                                                <div
+                                                    key={action}
+                                                    className={classes.headerCellCenter}>
+                                                    <Checkbox
+                                                        checked={
+                                                            allHave
+                                                                ? true
+                                                                : noneHave
+                                                                  ? false
+                                                                  : "mixed"
+                                                        }
+                                                        label={actionLabels[action]}
+                                                        onChange={(_, data) => {
+                                                            const enable =
+                                                                data.checked === true ||
+                                                                data.checked === "mixed";
+                                                            for (const entity of enabledEntities) {
+                                                                toggleDabEntityAction(
+                                                                    entity.id,
+                                                                    action,
+                                                                    enable,
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                         <div />
                                     </div>
 
@@ -343,6 +385,9 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                     />
                                                     <Text className={classes.schemaLabel}>
                                                         {schemaName}
+                                                    </Text>
+                                                    <Text className={classes.schemaCount}>
+                                                        {enabledCount}/{entities.length}
                                                     </Text>
                                                     <div className={classes.schemaDivider} />
                                                 </div>
