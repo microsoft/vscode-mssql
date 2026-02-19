@@ -1936,6 +1936,9 @@ export class LocConstants {
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
+            keymapTooltip: l10n.t(
+                "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.",
+            ),
             keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
             importedConnectionGroups: (count: number) =>
                 count === 1
