@@ -2781,10 +2781,12 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t("New Profiler Session - Select Template");
+    public static newSessionSelectTemplate = l10n.t(
+        "New Query Profiler (Preview) - Select Template",
+    );
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Profiler Session - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",

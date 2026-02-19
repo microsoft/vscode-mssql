@@ -3665,11 +3665,11 @@
     <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
       <source xml:lang="en">New Password</source>
     </trans-unit>
-    <trans-unit id="++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746">
-      <source xml:lang="en">New Profiler Session - Enter Name</source>
+    <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
+      <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e">
-      <source xml:lang="en">New Profiler Session - Select Template</source>
+    <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
+      <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
     </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>

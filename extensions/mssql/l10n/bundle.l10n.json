@@ -2893,10 +2893,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
