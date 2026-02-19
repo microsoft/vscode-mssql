@@ -29,7 +29,7 @@ import {
 import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
-import { enter, keydown } from "../constants";
+import { EventType, KeyCode } from "../keys";
 
 export const useFormStyles = makeStyles({
     formRoot: {
@@ -419,8 +419,8 @@ export function generateFormComponent<
                         if (
                             isFreeform &&
                             !optionDisplayName &&
-                            event.type === keydown &&
-                            (event as React.KeyboardEvent).key === enter
+                            event.type === EventType.Keydown &&
+                            (event as React.KeyboardEvent).key === KeyCode.Enter
                         ) {
                             return;
                         }
