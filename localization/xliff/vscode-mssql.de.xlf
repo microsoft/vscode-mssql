@@ -2351,6 +2351,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Don't show this again</source>
         <target state="translated">Diese Meldung nicht mehr anzeigen</target>
       </trans-unit>
+      <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
+        <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
+        <target state="new">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
         <source xml:lang="en">Downloading the Data API Builder container image</source>
         <target state="new">Downloading the Data API Builder container image</target>
