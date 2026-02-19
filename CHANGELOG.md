@@ -7,17 +7,14 @@
 
 ### What's new in 1.40.0
 
-- Added Backup Database (Preview) and Restore Database (Preview) functionality, bringing key database management capabilities from Azure Data Studio to the MSSQL extension
-- Improved SQL Profiler (Preview) with inline column filters and an embedded event details panel
-- Updated the Publish SQL Project dialog to be enabled by default, with server selection now presented as a dropdown and improved script generation options
-- Added support for SQL Server 2025 containers on ARM-based macOS devices, removing previous ARM blocking logic; local container deployment now automatically selects an available port when the default port is in use
-- Updated the Azure tenant selection to display tenant IDs alongside tenant names to improve disambiguation for users with multiple tenants
-- Fixed an issue where workspace-level `mssql.connections` and `mssql.connectionGroups` settings were being ignored
-- Fixed multiple issues where query results would not display or would show a blank screen
-- Fixed an issue where the Table Designer would fail to load
-- Fixed multiple SQL Database Projects issues including Fabric SQL project database reference deletion, moving `.sql` files within a project, unresolved system database references, missing `SystemDacpacs` after extension updates, `Microsoft.Build.Sql.dll` extraction failures, `.vscode/tasks.json` placement when creating a project in an existing workspace, and incorrect dacpac display names for Fabric Warehouse references
-- Fixed an issue where the Azure Data Studio Migration Toolkit was missing the Settings and key bindings import section
-- Improved provisioning time when connecting to a SQL database in Fabric
+- Added the Global Object Search dialog, enabling users to easily search for objects across their entire schema
+- Added Backup Database and Restore Database dialogs (both Preview) allowing users to backup to and restore from .BAK files
+- Added Flat File Import dialog (Preview) allowing users to import data from CSV files
+- Added Create, Rename, and Drop Database dialogs (Preview) enabling users to manage their databases
+- Added SQL Profiler (Preview) to support users in monitoring and analyzing their database performance
+- Added support for SQL Server 2025 containers on ARM-based macOS devices
+- Added the ability to import connection confiugration settings from Azure Data Studio to the Migration Toolkit Dialog
+- Fixed several SQL Database Projects issues including Fabric SQL project database reference deletion, unresolved system database references, and `tasks.json` placement when creating a project in an existing workspace
 
 ## Version 1.39.0
 
