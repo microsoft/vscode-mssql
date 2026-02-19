@@ -20,6 +20,7 @@ import {
     GetLocalizationRequest,
     GetStateRequest,
     GetThemeRequest,
+    KeyBindingsChangeNotification,
     LoadStatsNotification,
     StateChangeNotification,
     WebviewKeyBindings,
@@ -87,13 +88,15 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
     const extensionRpc = WebviewRpc.getInstance<Reducers>(vscodeApi);
 
     const [theme, setTheme] = useState(ColorThemeKind.Light);
-    const [keyBindings, setKeyBindings] = useState<WebviewKeyBindings>({} as WebviewKeyBindings);
+    const [keyBindings, setKeyBindings] = useState<WebviewKeyBindings>(() =>
+        parseWebviewKeyboardShortcutConfig(),
+    );
     const [localization, setLocalization] = useState<boolean>(false);
     const [EOL, setEOL] = useState<string>(getEOL());
 
     const stateRef = useRef<State | undefined>(undefined);
     const listenersRef = useRef(new Set<() => void>());
-    const [hasInitialState, setHasInitialState] = useState(false);
+    const [isBootstrapComplete, setIsBootstrapComplete] = useState(false);
 
     const getSnapshot = useCallback(() => {
         // Return a safe default while not initialized to prevent useSyncExternalStore from erroring
@@ -120,8 +123,11 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 
         extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
             stateRef.current = params;
-            setHasInitialState(true);
             emit();
+        });
+
+        extensionRpc.onNotification(KeyBindingsChangeNotification.type, (params) => {
+            setKeyBindings(parseWebviewKeyboardShortcutConfig(params));
         });
 
         async function bootstrap() {
@@ -146,7 +152,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                     console.error("EOL bootstrap failed:", error);
                 }
 
-                setHasInitialState(true);
+                setIsBootstrapComplete(true);
                 emit();
 
                 // Non-critical initialization should not block first render.
@@ -192,7 +198,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                 if (stateRef.current === undefined) {
                     stateRef.current = {} as State;
                 }
-                setHasInitialState(true);
+                setIsBootstrapComplete(true);
                 emit();
             }
         }
@@ -219,8 +225,8 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                 }}
                 theme={webviewTheme(theme)}>
                 {
-                    // don't render webview until initial state is available
-                    hasInitialState && stateRef.current !== undefined && children
+                    // don't render webview until bootstrap has completed
+                    isBootstrapComplete && stateRef.current !== undefined && children
                 }
             </FluentProvider>
         </VscodeWebviewContext.Provider>
