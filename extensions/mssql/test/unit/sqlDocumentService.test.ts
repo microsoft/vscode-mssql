@@ -505,7 +505,7 @@ suite("SqlDocumentService Tests", () => {
 
         // Stub getConnectionInfo: script1 is connected, others are not
         (connectionManager.getConnectionInfo as any).callsFake((uri: string) => {
-            if (uri === script1.uri.toString(true)) {
+            if (uri === script1.uri.toString()) {
                 return {
                     connectionId: "conn1",
                     credentials: { server: "localhost" },
@@ -522,7 +522,7 @@ suite("SqlDocumentService Tests", () => {
 
         // Open a new external SQL file -> should auto-connect
         await sqlDocumentService.onDidOpenTextDocument(script2);
-        expect(connectStub).to.have.been.calledOnceWithExactly(script2.uri.toString(true), {
+        expect(connectStub).to.have.been.calledOnceWithExactly(script2.uri.toString(), {
             server: "localhost",
         });
         connectStub.resetHistory();
