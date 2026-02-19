@@ -570,24 +570,49 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
-                    "command": "mssql.renameDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
-                },
-                {
-                    "command": "mssql.dropDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@4"
-                },
-                {
                     "command": "mssql.searchDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@5"
+                    "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "2_MSSQL_serverDbActions@4"
+                },
+                {
+                    "command": "mssql.renameDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@5"
+                },
+                {
+                    "command": "mssql.dropDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@6"
+                },
+                {
+                    "command": "mssql.backupDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@7"
+                },
+                {
+                    "command": "mssql.restoreDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "2_MSSQL_serverDbActions@8"
+                },
+                {
+                    "command": "mssql.restoreDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@8"
+                },
+                {
+                    "command": "mssql.flatFileImport",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
+                    "group": "2_MSSQL_serverDbActions@9"
+                },
+                {
+                    "command": "mssql.flatFileImport",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
@@ -766,31 +791,6 @@
                 {
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/"
-                },
-                {
-                    "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
-                },
-                {
-                    "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
-                },
-                {
-                    "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
-                },
-                {
-                    "command": "mssql.restoreDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
-                },
-                {
-                    "command": "mssql.restoreDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
                 }
             ],
             "commandPalette": [
