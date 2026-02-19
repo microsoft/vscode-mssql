@@ -8877,8 +8877,8 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <target state="translated">Importar BACPAC</target>
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
-        <source xml:lang="en">Import flat file (Preview)</source>
-        <target state="new">Import flat file (Preview)</target>
+        <source xml:lang="en">Import Flat File (Preview)</source>
+        <target state="new">Import Flat File (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Profiler (Preview)</source>
