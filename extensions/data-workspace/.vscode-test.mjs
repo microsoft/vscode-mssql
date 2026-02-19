@@ -1,15 +1,7 @@
 import { defineConfig } from "@vscode/test-cli";
+import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-test-config.mjs";
 
-const mocha = {
-    timeout: 10_000,
-    reporter: "mocha-multi-reporters",
-    reporterOptions: {
-        reporterEnabled: "dot, mocha-junit-reporter",
-        mochaJunitReporterReporterOptions: {
-            mochaFile: "test-reports/test-results-ext.xml",
-        },
-    },
-};
+const mocha = createMochaConfig({ timeout: 10_000 });
 
 export default defineConfig({
     tests: [
@@ -22,8 +14,5 @@ export default defineConfig({
             mocha,
         },
     ],
-    coverage: {
-        reporter: ["text-summary", "html", "lcov", "cobertura"],
-        output: "coverage",
-    },
+    coverage: defaultCoverageConfig,
 });

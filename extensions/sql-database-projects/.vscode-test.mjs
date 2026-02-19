@@ -1,16 +1,10 @@
 import { defineConfig } from "@vscode/test-cli";
+import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-test-config.mjs";
 
-const mocha = {
+const mocha = createMochaConfig({
     timeout: 30_000,
     require: ["./out/test/stubs/moduleShims.js"],
-    reporter: "mocha-multi-reporters",
-    reporterOptions: {
-        reporterEnabled: "dot, mocha-junit-reporter",
-        mochaJunitReporterReporterOptions: {
-            mochaFile: "test-reports/test-results-ext.xml",
-        },
-    },
-};
+});
 
 export default defineConfig({
     tests: [
@@ -24,8 +18,5 @@ export default defineConfig({
             mocha,
         },
     ],
-    coverage: {
-        reporter: ["text-summary", "html", "lcov", "cobertura"],
-        output: "coverage",
-    },
+    coverage: defaultCoverageConfig,
 });

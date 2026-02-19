@@ -98,7 +98,9 @@
 
 /* Sort icon — descending (single down arrow) — light theme */
 .vscode-light #profilerGrid .slick-header-sortbutton.sorted-desc,
-.vscode-high-contrast.vscode-high-contrast-light #profilerGrid .slick-header-sortbutton.sorted-desc {
+.vscode-high-contrast.vscode-high-contrast-light
+    #profilerGrid
+    .slick-header-sortbutton.sorted-desc {
     background-image: url("../../media/sort_desc.svg");
 }
 /* Filter button base styling */
@@ -146,8 +148,8 @@
 
 /* Column header with active filter — color the text to match funnel icon */
 #profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
-    color: #75BEFF;
+    color: #75beff;
 }
 .vscode-light #profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
-    color: #007ACC;
+    color: #007acc;
 }
