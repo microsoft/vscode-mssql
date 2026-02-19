@@ -435,11 +435,13 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             }),
 
             targetDatabaseName: createFormItem({
-                type: FormItemType.Dropdown,
+                type: FormItemType.Combobox,
                 propertyName: "targetDatabaseName",
                 label: LocConstants.RestoreDatabase.targetDatabase,
-                required: true,
                 options: [],
+                componentProps: {
+                    freeform: true,
+                },
             }),
 
             accountId: createFormItem({
@@ -756,7 +758,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         restoreViewModel.restorePlan = plan;
 
         const sourceDatabaseName = plan.planDetails.sourceDatabaseName.currentValue;
-        const targetDatabaseName = plan.planDetails.targetDatabaseName.currentValue;
 
         if (
             sourceDatabaseName &&
@@ -767,14 +768,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             state.formState.sourceDatabaseName = sourceDatabaseName;
         }
 
-        if (
-            targetDatabaseName &&
-            state.formComponents["targetDatabaseName"].options.some(
-                (o) => o.value === targetDatabaseName,
-            )
-        ) {
-            state.formState.targetDatabaseName = targetDatabaseName;
-        }
+        state.formState.targetDatabaseName =
+            plan.planDetails.targetDatabaseName.currentValue || state.formState.targetDatabaseName;
+
         state.formState.standbyFile = plan.planDetails.standbyFile?.currentValue || "";
         state.formState.tailLogBackupFile = plan.planDetails.tailLogBackupFile?.currentValue || "";
 
