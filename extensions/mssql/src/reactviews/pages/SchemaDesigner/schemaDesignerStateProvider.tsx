@@ -18,7 +18,7 @@ import {
     registerSchemaDesignerDabToolHandlers,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { ApiStatus, CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -59,6 +59,7 @@ import {
     removeEdgesForForeignKey,
 } from "./schemaDesignerEdgeUtils";
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 import {
     normalizeColumn,
@@ -79,9 +80,9 @@ import {
     PendingAiItem,
     PendingAiTableGroup,
 } from "./aiLedger/operations";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
-export interface SchemaDesignerContextProps
-    extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
+export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
@@ -145,6 +146,7 @@ export interface SchemaDesignerContextProps
     undoAiLedgerTable: (tableId: string) => Promise<boolean>;
     undoAiLedgerChange: (change: SchemaChange) => Promise<boolean>;
     undoAllAiLedger: () => Promise<boolean>;
+    canUndoAiLedgerChange: (change: SchemaChange) => CanRevertResult;
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -169,6 +171,19 @@ export interface SchemaDesignerContextProps
     dabConfigRequestId: number;
     generateDabConfig: () => Promise<void>;
     openDabConfigInEditor: (configContent: string) => void;
+    // DAB Deployment state
+    dabDeploymentState: Dab.DabDeploymentState;
+    openDabDeploymentDialog: () => void;
+    closeDabDeploymentDialog: () => void;
+    setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
+    updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
+    validateDabDeploymentParams: (
+        containerName: string,
+        port: number,
+    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
+    runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
+    resetDabDeploymentState: () => void;
+    retryDabDeploymentSteps: () => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -181,11 +196,11 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const webviewContext = useVscodeWebview<
+    const { extensionRpc, vscodeApi } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const { state, extensionRpc, themeKind, keyBindings } = webviewContext;
+    const coreRPCs = getCoreRPCs(extensionRpc);
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
@@ -273,7 +288,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Persist pending AI ledger across webview restore/reload.
     useEffect(() => {
         try {
-            const persisted = webviewContext.vscodeApi.getState() as
+            const persisted = vscodeApi.getState() as
                 | {
                       schemaDesignerAiLedger?: {
                           version: number;
@@ -290,15 +305,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         } finally {
             setAiLedgerHydrated(true);
         }
-    }, [webviewContext.vscodeApi]);
+    }, [vscodeApi]);
 
     useEffect(() => {
         if (!aiLedgerHydrated) {
             return;
         }
         try {
-            const current = (webviewContext.vscodeApi.getState() as Record<string, unknown>) ?? {};
-            webviewContext.vscodeApi.setState({
+            const current = (vscodeApi.getState() as Record<string, unknown>) ?? {};
+            vscodeApi.setState({
                 ...current,
                 schemaDesignerAiLedger: {
                     version: 1,
@@ -308,7 +323,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         } catch {
             // Ignore persistence errors.
         }
-    }, [aiLedger, aiLedgerHydrated, webviewContext.vscodeApi]);
+    }, [aiLedger, aiLedgerHydrated, vscodeApi]);
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(NULL_VALUE);
@@ -317,6 +332,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+    const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
+        Dab.createDefaultDeploymentState(),
+    );
 
     useEffect(() => {
         dabConfigRef.current = dabConfig;
@@ -503,11 +521,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
             onAiEditsApplied,
             onAiEditsApplyingStateChanged: (isApplying) => {
-                suppressAiLedgerAutoClearRef.current += isApplying ? 1 : -1;
-                suppressAiLedgerAutoClearRef.current = Math.max(
-                    0,
-                    suppressAiLedgerAutoClearRef.current,
-                );
+                // Guard: only decrement if >0 to prevent underflow from
+                // mismatched calls (e.g. if an error path calls false twice).
+                if (isApplying) {
+                    suppressAiLedgerAutoClearRef.current += 1;
+                } else if (suppressAiLedgerAutoClearRef.current > 0) {
+                    suppressAiLedgerAutoClearRef.current -= 1;
+                }
             },
         });
     }, [
@@ -1114,6 +1134,157 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setAiLedger([]);
     }, []);
 
+    // Helper to check FK validity using the current schema state
+    const validateForeignKeyRestoration = (
+        foreignKey: SchemaDesigner.ForeignKey,
+        targetTable: SchemaDesigner.Table | undefined,
+        sourceTable: SchemaDesigner.Table,
+    ): CanRevertResult => {
+        const cannotRestoreFkReason =
+            locConstants.schemaDesigner.changesPanel.cannotRevertForeignKey;
+
+        if (
+            !targetTable ||
+            foreignKey.columns.length === 0 ||
+            foreignKey.columns.length !== foreignKey.referencedColumns.length
+        ) {
+            return { canRevert: false, reason: cannotRestoreFkReason };
+        }
+
+        const sourceHasAllColumns = foreignKey.columns.every((columnName) =>
+            sourceTable.columns.some((column) => column.name === columnName),
+        );
+        if (!sourceHasAllColumns) {
+            return { canRevert: false, reason: cannotRestoreFkReason };
+        }
+
+        const targetHasAllColumns = foreignKey.referencedColumns.every((columnName) =>
+            targetTable.columns.some((column) => column.name === columnName),
+        );
+        if (!targetHasAllColumns) {
+            return { canRevert: false, reason: cannotRestoreFkReason };
+        }
+
+        return { canRevert: true };
+    };
+
+    const validatePendingAiUndoItem = useCallback(
+        (item: PendingAiItem, schema: SchemaDesigner.Schema): CanRevertResult => {
+            const cannotUndoReason = locConstants.schemaDesigner.cannotUndoAiChange;
+
+            const table = schema.tables.find((candidate) => candidate.id === item.tableId);
+
+            switch (item.category) {
+                case ChangeCategory.Table: {
+                    const baselineTable = item.baselineSnapshot as SchemaDesigner.Table | null;
+                    if (item.action === ChangeAction.Add) {
+                        return { canRevert: true };
+                    }
+                    if (!baselineTable) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    return { canRevert: true };
+                }
+                case ChangeCategory.Column: {
+                    if (!table) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    const baselineColumn = item.baselineSnapshot as SchemaDesigner.Column | null;
+                    const currentColumn = item.currentSnapshot as SchemaDesigner.Column | null;
+                    const columnId = item.objectId ?? currentColumn?.id ?? baselineColumn?.id;
+                    if (!columnId) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    if (
+                        (item.action === ChangeAction.Delete ||
+                            item.action === ChangeAction.Modify) &&
+                        !baselineColumn
+                    ) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    if (
+                        item.action === ChangeAction.Modify &&
+                        !table.columns.some((column) => column.id === columnId)
+                    ) {
+                        // The column must exist to be modified back
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    return { canRevert: true };
+                }
+                case ChangeCategory.ForeignKey: {
+                    if (!table) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+                    const baselineForeignKey =
+                        item.baselineSnapshot as SchemaDesigner.ForeignKey | null;
+                    const currentForeignKey =
+                        item.currentSnapshot as SchemaDesigner.ForeignKey | null;
+                    const foreignKeyId =
+                        item.objectId ?? currentForeignKey?.id ?? baselineForeignKey?.id;
+                    if (!foreignKeyId) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+
+                    if (item.action === ChangeAction.Add) {
+                        return { canRevert: true };
+                    }
+
+                    if (!baselineForeignKey) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+
+                    if (
+                        item.action === ChangeAction.Modify &&
+                        !table.foreignKeys.some((fk) => fk.id === foreignKeyId)
+                    ) {
+                        return { canRevert: false, reason: cannotUndoReason };
+                    }
+
+                    // Find the referenced table in the CURRENT schema
+                    // If the baseline FK pointed to Table A, Table A must exist now to restore strict FK integrity.
+                    const referencedTable = schema.tables.find(
+                        (candidateTable) =>
+                            candidateTable.schema === baselineForeignKey.referencedSchemaName &&
+                            candidateTable.name === baselineForeignKey.referencedTableName,
+                    );
+
+                    return validateForeignKeyRestoration(
+                        baselineForeignKey,
+                        referencedTable,
+                        table,
+                    );
+                }
+                default:
+                    return { canRevert: false, reason: cannotUndoReason };
+            }
+        },
+        [],
+    );
+
+    const canUndoAiLedgerChange = useCallback(
+        (change: SchemaChange): CanRevertResult => {
+            const group = aiLedger.find((entry) => entry.tableId === change.tableId);
+            if (!group) {
+                return {
+                    canRevert: false,
+                    reason: locConstants.schemaDesigner.cannotUndoAiChange,
+                };
+            }
+
+            const itemKey = toAiLedgerItemKey(change.category, change.tableId, change.objectId);
+            const item = group.items.find((candidate) => candidate.key === itemKey);
+            if (!item) {
+                return {
+                    canRevert: false,
+                    reason: locConstants.schemaDesigner.cannotUndoAiChange,
+                };
+            }
+
+            return validatePendingAiUndoItem(item, extractSchema());
+        },
+        [aiLedger, extractSchema, validatePendingAiUndoItem],
+    );
+
     const applyUndoForAiLedgerItem = useCallback(
         async (item: PendingAiItem): Promise<boolean> => {
             const schema = extractSchema();
@@ -1198,6 +1369,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     if (!foreignKeyId) {
                         return false;
                     }
+                    const validation = validatePendingAiUndoItem(item, schema);
+                    if (!validation.canRevert) {
+                        return false;
+                    }
 
                     let nextForeignKeys = [...(table.foreignKeys ?? [])];
                     if (item.action === ChangeAction.Add) {
@@ -1211,6 +1386,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         }
                     } else {
                         if (!baselineForeignKey) {
+                            return false;
+                        }
+                        if (!nextForeignKeys.some((fk) => fk.id === foreignKeyId)) {
                             return false;
                         }
                         nextForeignKeys = nextForeignKeys.map((fk) =>
@@ -1232,7 +1410,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     return false;
             }
         },
-        [extractSchema, deleteTable, updateTable, addTable],
+        [extractSchema, deleteTable, updateTable, addTable, validatePendingAiUndoItem],
     );
 
     const applyUndoForAiLedgerItems = useCallback(
@@ -1310,9 +1488,48 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     );
 
     const collectCascadeUndoItems = useCallback(
-        (group: PendingAiTableGroup, item: PendingAiItem): PendingAiItem[] => {
+        (
+            group: PendingAiTableGroup,
+            item: PendingAiItem,
+            allGroups: PendingAiTableGroup[],
+        ): PendingAiItem[] => {
             if (item.category === ChangeCategory.Table) {
-                return [...group.items];
+                const scopedItems = [...group.items];
+                if (item.action !== ChangeAction.Modify) {
+                    return scopedItems;
+                }
+
+                const baselineTable = item.baselineSnapshot as SchemaDesigner.Table | null;
+                const currentTable = item.currentSnapshot as SchemaDesigner.Table | null;
+                if (!baselineTable || !currentTable) {
+                    return scopedItems;
+                }
+
+                const matchesTableRef = (
+                    foreignKey: SchemaDesigner.ForeignKey | null,
+                    schemaName: string,
+                    tableName: string,
+                ) =>
+                    !!foreignKey &&
+                    foreignKey.referencedSchemaName === schemaName &&
+                    foreignKey.referencedTableName === tableName;
+
+                const relatedForeignKeys = allGroups
+                    .flatMap((candidateGroup) => candidateGroup.items)
+                    .filter((candidate) => candidate.category === ChangeCategory.ForeignKey)
+                    .filter((candidate) => {
+                        const baselineFk =
+                            candidate.baselineSnapshot as SchemaDesigner.ForeignKey | null;
+                        const currentFk =
+                            candidate.currentSnapshot as SchemaDesigner.ForeignKey | null;
+
+                        return (
+                            matchesTableRef(baselineFk, baselineTable.schema, baselineTable.name) ||
+                            matchesTableRef(currentFk, currentTable.schema, currentTable.name)
+                        );
+                    });
+
+                return [...scopedItems, ...relatedForeignKeys];
             }
 
             if (item.category !== ChangeCategory.Column) {
@@ -1359,8 +1576,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
+            const tableItem = group.items.find((item) => item.category === ChangeCategory.Table);
+            const cascadeItems = tableItem
+                ? collectCascadeUndoItems(group, tableItem, aiLedger)
+                : [...group.items];
+            const uniqueItems = [
+                ...new Map(cascadeItems.map((entry) => [entry.key, entry])).values(),
+            ];
+
             suppressAiLedgerAutoClearRef.current += 1;
-            const success = await applyUndoForAiLedgerItems([...group.items]).finally(() => {
+            const success = await applyUndoForAiLedgerItems(uniqueItems).finally(() => {
                 suppressAiLedgerAutoClearRef.current = Math.max(
                     0,
                     suppressAiLedgerAutoClearRef.current - 1,
@@ -1370,14 +1595,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
+            const removedKeys = new Set(uniqueItems.map((entry) => entry.key));
             setAiLedger((previousLedger) =>
-                previousLedger.filter((entry) => entry.tableId !== tableId),
+                previousLedger
+                    .map((entry) => ({
+                        ...entry,
+                        items: entry.items.filter((candidate) => !removedKeys.has(candidate.key)),
+                    }))
+                    .filter((entry) => entry.items.length > 0),
             );
             eventBus.emit("pushState");
             eventBus.emit("getScript");
             return true;
         },
-        [aiLedger, applyUndoForAiLedgerItems],
+        [aiLedger, applyUndoForAiLedgerItems, collectCascadeUndoItems],
     );
 
     const undoAiLedgerChange = useCallback(
@@ -1393,7 +1624,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
-            const cascadeItems = collectCascadeUndoItems(group, item);
+            const cascadeItems = collectCascadeUndoItems(group, item, aiLedger);
             const uniqueItems = [
                 ...new Map(cascadeItems.map((entry) => [entry.key, entry])).values(),
             ];
@@ -1413,14 +1644,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setAiLedger((previousLedger) =>
                 previousLedger
                     .map((entry) => {
-                        if (entry.tableId !== group.tableId) {
-                            return entry;
-                        }
-
-                        if (item.category === ChangeCategory.Table) {
-                            return { ...entry, items: [] };
-                        }
-
                         const remainingItems = entry.items.filter(
                             (candidate) => !removedKeys.has(candidate.key),
                         );
@@ -1889,16 +2112,163 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
-    const isDabEnabled = () => state?.enableDAB ?? false;
+    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const isDabEnabled = () => dabEnabled ?? false;
+
+    // DAB Deployment functions
+    const openDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: true,
+            dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+        }));
+    }, []);
+
+    const closeDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: false,
+        }));
+    }, []);
+
+    const setDabDeploymentDialogStep = useCallback((step: Dab.DabDeploymentDialogStep) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            dialogStep: step,
+        }));
+    }, []);
+
+    const updateDabDeploymentParams = useCallback((params: Partial<Dab.DabDeploymentParams>) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            params: {
+                ...prev.params,
+                ...params,
+            },
+        }));
+    }, []);
+
+    const validateDabDeploymentParams = useCallback(
+        async (
+            containerName: string,
+            port: number,
+        ): Promise<Dab.ValidateDeploymentParamsResponse> => {
+            return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
+                containerName,
+                port,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const updateDeploymentStepStatus = useCallback(
+        (
+            step: Dab.DabDeploymentStepOrder,
+            status: ApiStatus,
+            message?: string,
+            fullErrorText?: string,
+            errorLink?: string,
+            errorLinkText?: string,
+        ) => {
+            setDabDeploymentState((prev) => ({
+                ...prev,
+                stepStatuses: prev.stepStatuses.map((s) =>
+                    s.step === step
+                        ? { ...s, status, message, fullErrorText, errorLink, errorLinkText }
+                        : s,
+                ),
+            }));
+        },
+        [],
+    );
+
+    const runDabDeploymentStep = useCallback(
+        async (step: Dab.DabDeploymentStepOrder) => {
+            // Mark step as running
+            updateDeploymentStepStatus(step, ApiStatus.Loading);
+
+            // For container start step, verify DAB config is available
+            if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    "DAB configuration is not available.",
+                );
+                return;
+            }
+
+            // Run the step via extension (extension will generate config content as needed)
+            const response = await extensionRpc.sendRequest(Dab.RunDeploymentStepRequest.type, {
+                step,
+                params: dabDeploymentState.params,
+                config: dabConfig ?? undefined,
+            });
+
+            if (response.success) {
+                // Update step status to completed and advance to next step
+                setDabDeploymentState((prev) => {
+                    const updatedStatuses = prev.stepStatuses.map((s) =>
+                        s.step === step ? { ...s, status: ApiStatus.Loaded } : s,
+                    );
+
+                    // If this was the last step, set completion state
+                    if (step === Dab.DabDeploymentStepOrder.checkContainer) {
+                        return {
+                            ...prev,
+                            stepStatuses: updatedStatuses,
+                            currentDeploymentStep: step + 1,
+                            isDeploying: false,
+                            apiUrl: response.apiUrl,
+                            dialogStep: Dab.DabDeploymentDialogStep.Complete,
+                        };
+                    }
+
+                    return {
+                        ...prev,
+                        stepStatuses: updatedStatuses,
+                        currentDeploymentStep: step + 1,
+                    };
+                });
+            } else {
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    response.error,
+                    response.fullErrorText,
+                    response.errorLink,
+                    response.errorLinkText,
+                );
+            }
+        },
+        [dabConfig, dabDeploymentState.params, extensionRpc, updateDeploymentStepStatus],
+    );
+
+    const resetDabDeploymentState = useCallback(() => {
+        setDabDeploymentState(Dab.createDefaultDeploymentState());
+    }, []);
+
+    const retryDabDeploymentSteps = useCallback(() => {
+        // Reset only deployment steps (pullImage, startContainer, checkContainer)
+        // while keeping prerequisite steps as completed
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
+            stepStatuses: prev.stepStatuses.map((s) => {
+                if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
+                    return { ...s, status: ApiStatus.NotStarted, message: undefined };
+                }
+                return s;
+            }),
+            error: undefined,
+            apiUrl: undefined,
+        }));
+    }, []);
 
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewContext),
+                ...coreRPCs,
                 extensionRpc,
-                state,
-                themeKind,
-                keyBindings,
                 schemaNames,
                 datatypes,
                 findTableText,
@@ -1955,6 +2325,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 undoAiLedgerTable,
                 undoAiLedgerChange,
                 undoAllAiLedger,
+                canUndoAiLedgerChange,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,
@@ -1976,6 +2347,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfigRequestId,
                 generateDabConfig,
                 openDabConfigInEditor,
+                // DAB Deployment state
+                dabDeploymentState,
+                openDabDeploymentDialog,
+                closeDabDeploymentDialog,
+                setDabDeploymentDialogStep,
+                updateDabDeploymentParams,
+                validateDabDeploymentParams,
+                runDabDeploymentStep,
+                resetDabDeploymentState,
+                retryDabDeploymentSteps,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

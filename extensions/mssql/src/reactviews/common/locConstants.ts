@@ -30,6 +30,7 @@ export class LocConstants {
                     comment: ["{0} is the action being confirmed"],
                 }),
             close: l10n.t("Close"),
+            copy: l10n.t("Copy"),
             apply: l10n.t("Apply"),
             next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
@@ -65,6 +66,7 @@ export class LocConstants {
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
+            previous: l10n.t("Previous"),
         };
     }
 
@@ -962,9 +964,14 @@ export class LocConstants {
             pendingAiTabLabel: l10n.t("Pending AI Changes"),
             pendingAiEmptyTitle: l10n.t("No pending AI changes"),
             pendingAiEmptySubtitle: l10n.t("Apply AI edits to track pending AI changes here."),
+            failedToCreateForeignKey: l10n.t("Failed to create foreign key"),
             keep: l10n.t("Keep"),
             keepAiChangeTooltip: l10n.t("Keep this AI change"),
             undoAiChangeTooltip: l10n.t("Undo this AI change"),
+            undoAiChangeUnavailableTitle: l10n.t("Unable to undo AI change"),
+            cannotUndoAiChange: l10n.t("Cannot undo this AI change in the current schema state"),
+            previousAiChange: l10n.t("Previous AI change"),
+            nextAiChange: l10n.t("Next AI change"),
             keepAll: l10n.t("Keep All"),
             undoAll: l10n.t("Undo All"),
             aiLedgerDeletedSuffix: l10n.t("(deleted)"),
@@ -1202,6 +1209,45 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+
+            // DAB Deployment Dialog
+            deployDabContainer: l10n.t("Deploy DAB Container"),
+            localContainerDeployment: l10n.t("Local Container Deployment"),
+            deployDabContainerDescription: l10n.t(
+                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+            ),
+            requirements: l10n.t("Requirements:"),
+            dockerDesktopRequirement: l10n.t(
+                "Docker Desktop must be installed and running on your machine.",
+            ),
+            containerSettings: l10n.t("Container Settings"),
+            containerName: l10n.t("Container Name"),
+            containerNameRequired: l10n.t("Container name is required"),
+            containerNameInvalid: l10n.t(
+                "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
+            ),
+            containerNameHint: l10n.t("Name for the Docker container running DAB"),
+            port: l10n.t("Port"),
+            portInvalid: l10n.t("Port must be between 1 and 65535"),
+            portHint: l10n.t("Port to expose the API on (default: 5000)"),
+            deploymentComplete: l10n.t("Deployment Complete"),
+            deploymentFailed: l10n.t("Deployment Failed"),
+            dabContainerRunning: l10n.t("DAB container is running!"),
+            apiAvailableAt: l10n.t("Your API is available at:"),
+
+            // DAB Deployment Steps
+            checkingDockerInstallation: l10n.t("Checking Docker installation"),
+            verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
+            startingDockerDesktop: l10n.t("Starting Docker Desktop"),
+            ensuringDockerDesktopRunning: l10n.t("Ensuring Docker Desktop is running"),
+            checkingDockerEngine: l10n.t("Checking Docker engine"),
+            verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
+            pullingDabImage: l10n.t("Pulling DAB container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            startingDabContainer: l10n.t("Starting DAB container"),
+            creatingAndStartingContainer: l10n.t("Creating and starting the container"),
+            checkingContainerReadiness: l10n.t("Checking container readiness"),
+            verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
         };
     }
 
@@ -1684,6 +1730,78 @@ export class LocConstants {
         };
     }
 
+    public get searchDatabase() {
+        return {
+            // Page titles and headers
+            title: l10n.t("Search Database Objects"),
+            loading: l10n.t("Loading database objects"),
+            connectingTo: (serverName: string) =>
+                l10n.t({
+                    message: "Connecting to {0}...",
+                    args: [serverName],
+                    comment: ["{0} is the server name"],
+                }),
+            defaultError: l10n.t("An error occurred while loading data."),
+            errorLoadingDatabaseObjects: l10n.t("Error loading database objects"),
+            searching: l10n.t("Searching..."),
+            objectsFound: (count: number) =>
+                l10n.t({
+                    message: "{0} objects found",
+                    args: [count],
+                    comment: ["{0} is the number of objects found"],
+                }),
+
+            // Filter labels
+            database: l10n.t("Database"),
+            objectTypes: l10n.t("Object Types"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            storedProcedures: l10n.t("Stored Procedures"),
+            functions: l10n.t("Functions"),
+            schemas: l10n.t("Schemas"),
+            all: l10n.t("All"),
+            none: l10n.t("None"),
+
+            // Type names (singular, for display)
+            typeTable: l10n.t("Table"),
+            typeView: l10n.t("View"),
+            typeStoredProcedure: l10n.t("Stored Procedure"),
+            typeFunction: l10n.t("Function"),
+
+            // Toolbar
+            searchPlaceholder: l10n.t(
+                "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
+            ),
+
+            // Results table headers
+            name: l10n.t("Name"),
+            schema: l10n.t("Schema"),
+            type: l10n.t("Type"),
+            actions: l10n.t("Actions"),
+
+            // Empty state
+            noObjectsFound: l10n.t("No objects found"),
+            tryAdjustingFilters: l10n.t("Try adjusting your search or filters"),
+
+            // Column header filters
+            filterByName: l10n.t("Filter by name"),
+            filterBySchema: l10n.t("Filter by schema"),
+            filterByType: l10n.t("Filter by type"),
+            filterColumnAriaLabel: (columnName: string) => l10n.t("Filter {0}", columnName),
+            selectAll: l10n.t("Select All"),
+
+            // Action menu items
+            selectTop1000: l10n.t("Select Top 1000"),
+            scriptAsCreate: l10n.t("Script as Create"),
+            scriptAsDrop: l10n.t("Script as Drop"),
+            scriptAsAlter: l10n.t("Script as Alter"),
+            scriptAsExecute: l10n.t("Script as Execute"),
+            editData: l10n.t("Edit Data"),
+            modifyTable: l10n.t("Modify Table"),
+            copyObjectName: l10n.t("Copy Object Name"),
+        };
+    }
+
     // SlickGrid-specific localization strings
     public get slickGrid() {
         return {
@@ -1750,9 +1868,9 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration - Connections"),
+            title: l10n.t("Azure Data Studio Migration"),
             subtitle: l10n.t(
-                "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+                "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
             configInputLabel: l10n.t("Azure Data Studio settings file"),
             configInputDescription: l10n.t(
@@ -1845,6 +1963,57 @@ export class LocConstants {
             entraSignInDialogMessage: l10n.t(
                 "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
             ),
+            settingsHeader: l10n.t("Settings and Keybindings"),
+            settingsCollapse: l10n.t("Collapse settings"),
+            settingsExpand: l10n.t("Expand settings"),
+            importSettingsCheckboxLabel: l10n.t(
+                "Import connection configuration settings from Azure Data Studio",
+            ),
+            viewSettingsButton: l10n.t("View settings"),
+            viewSettingsDialogTitle: l10n.t("Configuration to Import"),
+            settingsKeyColumn: l10n.t("Setting"),
+            settingsValueColumn: l10n.t("Value"),
+            noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            keymapCallout: l10n.t(
+                "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+            ),
+            keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
+            importedConnectionGroups: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection group imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connection groups imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (plural)"],
+                      }),
+            importedConnections: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connections imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (plural)"],
+                      }),
+            importedSettings: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} setting imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} settings imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (plural)"],
+                      }),
         };
     }
 
@@ -1918,11 +2087,14 @@ export class LocConstants {
             resume: l10n.t("Resume"),
             clear: l10n.t("Clear Data"),
             autoScroll: l10n.t("Auto-scroll"),
+            filter: l10n.t("Filter..."),
+            clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
             selectSessionLabel: l10n.t("Select Session:"),
             viewLabel: l10n.t("View:"),
             selectASession: l10n.t("Select a session..."),
+            readOnlyFileLabel: l10n.t("File (Read-Only)"),
 
             // Tooltips
             creatingSessionTooltip: l10n.t("Creating session..."),
@@ -1938,12 +2110,50 @@ export class LocConstants {
             clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+            filterTooltip: l10n.t("Filter events by column values"),
+            sortTooltip: l10n.t("Sort column"),
+            clearFilterTooltip: l10n.t("Clear all filters and show all events"),
+            clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
+
+            // Filter operators
+            operatorEquals: l10n.t("="),
+            operatorNotEquals: l10n.t("<>"),
+            operatorLessThan: l10n.t("<"),
+            operatorLessThanOrEqual: l10n.t("<="),
+            operatorGreaterThan: l10n.t(">"),
+            operatorGreaterThanOrEqual: l10n.t(">="),
+            operatorIsNull: l10n.t("Is Null"),
+            operatorIsNotNull: l10n.t("Is Not Null"),
+            operatorContains: l10n.t("Contains"),
+            operatorNotContains: l10n.t("Not Contains"),
+            operatorStartsWith: l10n.t("Starts With"),
+            operatorNotStartsWith: l10n.t("Not Starts With"),
+            operatorIn: l10n.t("In"),
+
+            // Filter status
+            filterActive: l10n.t("Filter active"),
+            filterActiveTooltip: (filteredCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "Showing {0} of {1} events",
+                    args: [filteredCount, totalCount],
+                    comment: ["{0} is filtered count, {1} is total count"],
+                }),
+            readOnlyDisabledTooltip: l10n.t("Not available for read-only file sessions"),
+            sessionActiveCannotChangeTooltip: l10n.t("Cannot change session while active"),
+            xelFileReadOnlyDisconnectedTooltip: (fileName: string) =>
+                l10n.t({
+                    message:
+                        "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+                    args: [fileName],
+                    comment: ["{0} is the XEL file name"],
+                }),
 
             // Session states
             stateRunning: l10n.t("Running"),
             statePaused: l10n.t("Paused"),
             stateStopped: l10n.t("Stopped"),
             stateNotStarted: l10n.t("Not Started"),
+            stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
             noSession: l10n.t("Profiler: No session"),
@@ -1954,6 +2164,151 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of events"],
                 }),
+
+            // Filter popover
+            filterColumnHeader: (columnName: string) =>
+                l10n.t({
+                    message: "Filter: {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            operatorEndsWith: l10n.t("Ends With"),
+            operatorNotEndsWith: l10n.t("Not Ends With"),
+            applyFilter: l10n.t("Apply"),
+            clearColumnFilter: l10n.t("Clear"),
+            searchValues: l10n.t("Search values..."),
+            enterText: l10n.t("Enter text..."),
+            enterNumber: l10n.t("Enter a number..."),
+            enterDate: l10n.t("Enter a date..."),
+            selectAll: l10n.t("Select All"),
+            deselectAll: l10n.t("Deselect All"),
+            numericFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Example: Find queries with {0} > 100",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            textFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Search within {0} text content",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            noResultsMatchFilter: l10n.t("No results match the current filters"),
+            noDataToDisplay: l10n.t("No data to display."),
+
+            // Quick filter
+            quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
+            clearAllFilters: l10n.t("Clear All Filters"),
+            clearAllFiltersTooltip: l10n.t("Clear quick filter and all column filters"),
+
+            // Popover
+            closePopover: l10n.t("Close"),
+            emptyCategory: l10n.t("(empty)"),
+            selectedCount: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0}/{1}",
+                    args: [selected, total],
+                    comment: ["{0} is selected count", "{1} is total count"],
+                }),
+            enterDateFormat: l10n.t("YYYY-MM-DD HH:mm:ss"),
+            dateFormatError: l10n.t("Use format: YYYY-MM-DD HH:mm:ss[.SSS]"),
+            filterValue: l10n.t("Filter value"),
+            filterOperator: l10n.t("Filter operator"),
+
+            // Validation
+            validationValueRequired: l10n.t("Value is required"),
+            validationMustBeNumber: l10n.t("Must be a valid number"),
+
+            // Active filters bar
+            filterNoneSelected: l10n.t("none selected"),
+            filterCountSelected: (count: number) =>
+                l10n.t({
+                    message: "{0} selected",
+                    args: [count],
+                    comment: ["{0} is the number of selected filter values"],
+                }),
+            activeFiltersLabel: l10n.t("Active filters:"),
+            filterBadge: (columnName: string, desc: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [columnName, desc],
+                    comment: ["{0} is the column name", "{1} is the filter description"],
+                }),
+            removeFilter: (columnName: string) =>
+                l10n.t({
+                    message: "Remove filter for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            // Details panel
+            detailsPanel: {
+                textTab: l10n.t("Text"),
+                detailsTab: l10n.t("Details"),
+                openInEditor: l10n.t("Open in Editor"),
+                maximize: l10n.t("Maximize"),
+                restore: l10n.t("Restore"),
+                noEventSelected: l10n.t("No event selected"),
+                noTextData: l10n.t("No text data available"),
+                openInEditorTooltip: l10n.t("Open text data in a new editor"),
+                copyTooltip: l10n.t("Copy text data to clipboard"),
+                maximizeTooltip: l10n.t("Maximize details panel"),
+                restoreTooltip: l10n.t("Restore panel size"),
+                closeTooltip: l10n.t("Close details panel"),
+                textTabAriaLabel: l10n.t("Text tab - displays SQL text data"),
+                detailsTabAriaLabel: l10n.t("Details tab - displays all event properties"),
+                editorAriaLabel: l10n.t("Read-only SQL text editor"),
+                propertiesListAriaLabel: l10n.t("Event properties list"),
+                copiedToClipboard: l10n.t("Copied to clipboard"),
+                detailsPanelTabsAriaLabel: l10n.t("Details panel tabs"),
+                detailsPanelActionsAriaLabel: l10n.t("Details panel actions"),
+                eventDetailsAriaLabel: (eventName: string) =>
+                    l10n.t({
+                        message: "Event details for {0}",
+                        args: [eventName],
+                        comment: ["{0} is the name of the profiler event"],
+                    }),
+            },
+            // Export
+            exportToCsv: l10n.t("Export to CSV"),
+            exportTooltip: l10n.t("Export all captured events to a CSV file"),
+            noEventsToExport: l10n.t("No events to export"),
+            defaultExportFileName: l10n.t("profiler_events"),
+        };
+    }
+
+    public get flatFileImport() {
+        return {
+            importFile: l10n.t("Import File"),
+            stepOne: l10n.t("Step 1: Specify Input File"),
+            loadingFlatFileImport: l10n.t("Loading flat file import..."),
+            loadingTablePreview: l10n.t("Loading table preview..."),
+            browse: l10n.t("Browse"),
+            stepTwo: l10n.t("Step 2: Preview Data"),
+            operationPreviewText: l10n.t(
+                "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+            ),
+            stepThree: l10n.t("Step 3: Modify Columns"),
+            columnName: l10n.t("Column Name"),
+            dataType: l10n.t("Data Type"),
+            allowNulls: l10n.t("Allow Nulls"),
+            primaryKey: l10n.t("Primary Key"),
+            importData: l10n.t("Import Data"),
+            stepFour: l10n.t("Step 4: Summary"),
+            importInformation: l10n.t("Import Information"),
+            importStatus: l10n.t("Import Status"),
+            objectType: l10n.t("Object Type"),
+            name: l10n.t("Name"),
+            serverName: l10n.t("Server Name"),
+            databaseName: l10n.t("Database Name"),
+            tableName: l10n.t("Table Name"),
+            tableSchema: l10n.t("Table Schema"),
+            fileToBeImported: l10n.t("File to be imported"),
+            importingData: l10n.t("Importing data..."),
+            importSuccessful: l10n.t("File imported successfully"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            importNewFile: l10n.t("Import New File"),
         };
     }
 }

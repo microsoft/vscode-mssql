@@ -11,7 +11,6 @@ import * as Mocha from "mocha";
 
 let NYC: any;
 try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     NYC = require("nyc");
 } catch {
     // NYC is optional for local runs; coverage will be skipped if unavailable

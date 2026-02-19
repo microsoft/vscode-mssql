@@ -104,6 +104,7 @@ export interface DesignerDefinitionCustomTab {
     label: string;
     content: ReactNode;
     actions?: DesignerDefinitionTabActions;
+    headerActions?: ReactNode;
 }
 
 export interface DesignerDefinitionTabActions {
@@ -175,7 +176,9 @@ export const DesignerDefinitionPane = forwardRef<
         const resolvedHeaderActions =
             selectedCustomTabActions?.toolbarActions ??
             selectedTabActions?.toolbarActions ??
-            headerActions;
+            (selectedTab === DesignerDefinitionTabs.Script
+                ? headerActions
+                : (activeCustomTab?.headerActions ?? headerActions));
 
         useImperativeHandle(
             ref,
@@ -211,8 +214,8 @@ export const DesignerDefinitionPane = forwardRef<
                 ref={panelRef}
                 onResize={(size) => {
                     onPanelVisibilityChange?.(size > 0);
-                    if (size === MAXIMUMPANEL_SIZE) {
-                        setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
+                    if (size > DEFAULTPANEL_SIZE + 1) {
+                        setExpandCollapseButtonLabel(locConstants.tableDesigner.restorePanelSize);
                         setExpandCollapseButtonIcon(<FluentIcons.ChevronDown12Filled />);
                     } else {
                         setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
@@ -271,7 +274,9 @@ export const DesignerDefinitionPane = forwardRef<
                                     size="small"
                                     appearance="subtle"
                                     onClick={() => {
-                                        if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
+                                        const currentSize = panelRef.current?.getSize() ?? 0;
+                                        const shouldRestore = currentSize > DEFAULTPANEL_SIZE + 1;
+                                        if (shouldRestore) {
                                             panelRef.current?.resize(DEFAULTPANEL_SIZE);
                                         } else {
                                             panelRef.current?.resize(MAXIMUMPANEL_SIZE);

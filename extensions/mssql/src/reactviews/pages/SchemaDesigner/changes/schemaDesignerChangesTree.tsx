@@ -35,6 +35,7 @@ export interface FlatTreeItem extends HeadlessFlatTreeItemProps {
     change?: SchemaChange;
     tableId: string;
     content: string;
+    suppressPendingAiActions?: boolean;
 }
 
 type SchemaDesignerChangesTreeProps = {
@@ -56,9 +57,12 @@ type SchemaDesignerChangesTreeProps = {
     onKeep?: (change: SchemaChange) => void;
     getCanKeep?: (change: SchemaChange) => { canKeep: boolean; reason?: string };
     activeChangeId?: string;
+    /** Increment this counter to trigger a scroll-into-view for the `activeChangeId`. */
+    scrollToActiveVersion?: number;
     isPendingAiTab?: boolean;
 };
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 
 const useStyles = makeStyles({
@@ -310,13 +314,14 @@ export const SchemaDesignerChangesTree = ({
     onKeep,
     getCanKeep,
     activeChangeId,
+    scrollToActiveVersion,
     isPendingAiTab = false,
 }: SchemaDesignerChangesTreeProps) => {
     const classes = useStyles();
     const treeContainerRef = useRef<HTMLDivElement | null>(NULL_VALUE);
 
     useEffect(() => {
-        if (!activeChangeId) {
+        if (!activeChangeId || !scrollToActiveVersion) {
             return;
         }
 
@@ -330,7 +335,7 @@ export const SchemaDesignerChangesTree = ({
             `[data-schema-designer-change-id="${activeChangeId}"]`,
         );
         target?.scrollIntoView({ block: "nearest" });
-    }, [activeChangeId]);
+    }, [activeChangeId, scrollToActiveVersion]);
 
     const renderChangeIcon = (category: ChangeCategory) => {
         switch (category) {
@@ -472,13 +477,17 @@ export const SchemaDesignerChangesTree = ({
                         const actionBadge = getActionBadge(change.action);
                         const revertInfo = getCanRevert(change);
                         const keepInfo = getCanKeep ? getCanKeep(change) : { canKeep: true };
+                        const suppressPendingAiActions =
+                            isPendingAiTab && item.suppressPendingAiActions === true;
                         return (
                             <TreeItem key={flatTreeItem.value} {...treeItemProps}>
                                 <TreeItemLayout
                                     className={mergeClasses(
                                         classes.treeItemLayout,
                                         classes.changeItemLayout,
-                                        isPendingAiTab && classes.pendingAiChangeItemLayout,
+                                        isPendingAiTab &&
+                                            !item.parentValue &&
+                                            classes.pendingAiChangeItemLayout,
                                         change.id === activeChangeId &&
                                             classes.activeChangeItemLayout,
                                     )}
@@ -514,20 +523,22 @@ export const SchemaDesignerChangesTree = ({
                                                     </span>
                                                 </Tooltip>
                                             )}
-                                            <Tooltip
-                                                content={loc.revealTooltip}
-                                                relationship="label">
-                                                <ToolbarButton
-                                                    appearance="subtle"
-                                                    aria-label={loc.reveal}
-                                                    icon={<Eye16Regular />}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onReveal(change);
-                                                    }}
-                                                />
-                                            </Tooltip>
-                                            {onKeep && (
+                                            {!suppressPendingAiActions && (
+                                                <Tooltip
+                                                    content={loc.revealTooltip}
+                                                    relationship="label">
+                                                    <ToolbarButton
+                                                        appearance="subtle"
+                                                        aria-label={loc.reveal}
+                                                        icon={<Eye16Regular />}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onReveal(change);
+                                                        }}
+                                                    />
+                                                </Tooltip>
+                                            )}
+                                            {!suppressPendingAiActions && onKeep && (
                                                 <Tooltip
                                                     content={
                                                         keepInfo.canKeep
@@ -548,24 +559,26 @@ export const SchemaDesignerChangesTree = ({
                                                     />
                                                 </Tooltip>
                                             )}
-                                            <Tooltip
-                                                content={
-                                                    revertInfo.canRevert
-                                                        ? loc.revertTooltip
-                                                        : (revertInfo.reason ?? "")
-                                                }
-                                                relationship="label">
-                                                <ToolbarButton
-                                                    appearance="subtle"
-                                                    aria-label={loc.revert}
-                                                    icon={<ArrowUndo16Regular />}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onRevert(change);
-                                                    }}
-                                                    disabled={!revertInfo.canRevert}
-                                                />
-                                            </Tooltip>
+                                            {!suppressPendingAiActions && (
+                                                <Tooltip
+                                                    content={
+                                                        revertInfo.canRevert
+                                                            ? loc.revertTooltip
+                                                            : (revertInfo.reason ?? "")
+                                                    }
+                                                    relationship="label">
+                                                    <ToolbarButton
+                                                        appearance="subtle"
+                                                        aria-label={loc.revert}
+                                                        icon={<ArrowUndo16Regular />}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onRevert(change);
+                                                        }}
+                                                        disabled={!revertInfo.canRevert}
+                                                    />
+                                                </Tooltip>
+                                            )}
                                             {change.action === ChangeAction.Modify ? (
                                                 <SchemaDesignerChangeDetailsPopover
                                                     change={change}

@@ -1,0 +1,18 @@
+# Localization files
+*.xlf
+
+# Build outputs
+node_modules/
+out/
+dist/
+coverage/
+
+# Service binaries
+sqltoolsservice/
+
+# Generated files
+*.d.ts
+
+# Package lock files
+yarn.lock
+package-lock.json

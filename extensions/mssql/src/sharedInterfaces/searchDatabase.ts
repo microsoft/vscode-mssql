@@ -1,0 +1,141 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { ApiStatus } from "./webview";
+import { MetadataType } from "./metadata";
+
+/**
+ * Script types available for SearchDatabase actions
+ */
+export type ScriptType = "SELECT" | "CREATE" | "DROP" | "ALTER" | "EXECUTE";
+
+/**
+ * Represents a database object in search results
+ */
+export interface SearchResultItem {
+    name: string;
+    schema: string;
+    type: MetadataType;
+    typeName: string; // Friendly display name (e.g., "Table", "View", "Stored Procedure")
+    metadataTypeName: string; // Scripting type name (e.g., "Table", "View", "StoredProcedure")
+    fullName: string; // schema.name
+}
+
+/**
+ * Filter settings for object types
+ */
+export interface ObjectTypeFilters {
+    tables: boolean;
+    views: boolean;
+    storedProcedures: boolean;
+    functions: boolean;
+}
+
+/**
+ * Search type prefix mappings used for shorthand search syntax (e.g. "t:Users" to search tables).
+ * Shared between the React frontend (filter UI) and the backend controller (search parsing).
+ */
+export const SEARCH_TYPE_PREFIXES: {
+    prefix: string;
+    metadataType: MetadataType;
+    filterKey: keyof ObjectTypeFilters;
+}[] = [
+    { prefix: "t:", metadataType: MetadataType.Table, filterKey: "tables" },
+    { prefix: "v:", metadataType: MetadataType.View, filterKey: "views" },
+    { prefix: "f:", metadataType: MetadataType.Function, filterKey: "functions" },
+    { prefix: "sp:", metadataType: MetadataType.SProc, filterKey: "storedProcedures" },
+];
+
+/**
+ * State for the Search Database webview
+ */
+export interface SearchDatabaseWebViewState {
+    // Connection info
+    serverName: string;
+    connectionUri: string;
+
+    // Database selection
+    selectedDatabase: string;
+    availableDatabases: string[];
+
+    // Search state
+    searchTerm: string;
+    isSearching: boolean;
+
+    // Filter state
+    objectTypeFilters: ObjectTypeFilters;
+    availableSchemas: string[];
+    selectedSchemas: string[];
+
+    // Results
+    searchResults: SearchResultItem[];
+    totalResultCount: number;
+
+    // UI state
+    loadStatus: ApiStatus;
+    errorMessage?: string;
+}
+
+/**
+ * Context methods available to React components
+ */
+export interface SearchDatabaseContextProps {
+    // Search
+    search: (searchTerm: string) => void;
+    clearSearch: () => void;
+
+    // Filters
+    setDatabase: (database: string) => void;
+    toggleObjectTypeFilter: (objectType: keyof ObjectTypeFilters) => void;
+    setObjectTypeFilters: (filters: ObjectTypeFilters) => void;
+    toggleSchemaFilter: (schema: string) => void;
+    setSchemaFilters: (schemas: string[]) => void;
+    selectAllSchemas: () => void;
+    clearSchemaSelection: () => void;
+
+    // Object Actions
+    scriptObject: (object: SearchResultItem, scriptType: ScriptType) => void;
+    editData: (object: SearchResultItem) => void;
+    modifyTable: (object: SearchResultItem) => void;
+    copyObjectName: (object: SearchResultItem) => void;
+
+    // Data refresh
+    refreshDatabases: () => void;
+    refreshResults: () => void;
+
+    // Initialization
+    retry: () => void;
+}
+
+/**
+ * Reducer action payloads
+ */
+export interface SearchDatabaseReducers {
+    // Search
+    search: { searchTerm: string };
+    clearSearch: {};
+
+    // Filters
+    setDatabase: { database: string };
+    toggleObjectTypeFilter: { objectType: keyof ObjectTypeFilters };
+    setObjectTypeFilters: { filters: ObjectTypeFilters };
+    toggleSchemaFilter: { schema: string };
+    setSchemaFilters: { schemas: string[] };
+    selectAllSchemas: {};
+    clearSchemaSelection: {};
+
+    // Object Actions
+    scriptObject: { object: SearchResultItem; scriptType: ScriptType };
+    editData: { object: SearchResultItem };
+    modifyTable: { object: SearchResultItem };
+    copyObjectName: { object: SearchResultItem };
+
+    // Data refresh
+    refreshDatabases: {};
+    refreshResults: {};
+
+    // Initialization
+    retry: {};
+}

@@ -910,7 +910,7 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
         });
 
-        test("prevents reverting FK modification when referenced table no longer exists", () => {
+        test("prevents reverting FK modification when referenced table no longer exists (rename scenario)", () => {
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
             currentSchema.tables[0].name = "members"; // Rename users table
 

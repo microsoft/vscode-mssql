@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     makeStyles,
     TreeItemValue,
@@ -18,7 +18,8 @@ import { describeChange } from "../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
-import { getVisiblePendingAiSchemaChanges } from "../aiLedger/ledgerUtils";
+import { getVisiblePendingAiItems, toPendingAiSchemaChange } from "../aiLedger/ledgerUtils";
+import { buildPendingAiFlatTreeItems } from "./pendingAiFlatTreeBuilder";
 
 const useStyles = makeStyles({
     container: {
@@ -51,6 +52,7 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
     const [activePendingAiChangeId, setActivePendingAiChangeId] = useState<string | undefined>(
         undefined,
     );
+    const scrollToActiveVersionRef = useRef(0);
 
     const loc = locConstants.schemaDesigner.changesPanel;
     const pendingAiTabLabel = locConstants.schemaDesigner.pendingAiTabLabel;
@@ -155,21 +157,26 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
         return describeChange(change);
     }, []);
 
-    const pendingAiChanges = useMemo(
-        () => getVisiblePendingAiSchemaChanges(context.aiLedger),
+    const pendingAiItems = useMemo(
+        () => getVisiblePendingAiItems(context.aiLedger),
         [context.aiLedger],
     );
-    const pendingAiFilteredChanges = useMemo(() => {
+    const pendingAiChangeEntries = useMemo(
+        () => pendingAiItems.map((item) => ({ item, change: toPendingAiSchemaChange(item) })),
+        [pendingAiItems],
+    );
+
+    const pendingAiFilteredEntries = useMemo(() => {
         const lowerSearch = pendingAiSearchText.toLowerCase().trim();
         const hasSearchText = lowerSearch.length > 0;
         const hasActionFilter = pendingAiActionFilters.length > 0;
         const hasCategoryFilter = pendingAiCategoryFilters.length > 0;
 
         if (!hasSearchText && !hasActionFilter && !hasCategoryFilter) {
-            return pendingAiChanges;
+            return pendingAiChangeEntries;
         }
 
-        return pendingAiChanges.filter((change) => {
+        return pendingAiChangeEntries.filter(({ change }) => {
             if (hasActionFilter && !pendingAiActionFilters.includes(change.action)) {
                 return false;
             }
@@ -219,9 +226,14 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
         getChangeDescription,
         pendingAiActionFilters,
         pendingAiCategoryFilters,
-        pendingAiChanges,
+        pendingAiChangeEntries,
         pendingAiSearchText,
     ]);
+
+    const pendingAiFilteredChanges = useMemo(
+        () => pendingAiFilteredEntries.map((entry) => entry.change),
+        [pendingAiFilteredEntries],
+    );
 
     const toFlatTreeItems = useCallback(
         (groups: TableChangeGroup[], prefix: "baseline" | "ai"): FlatTreeItem[] => {
@@ -257,15 +269,8 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
     );
 
     const pendingAiFlatTreeItems = useMemo(
-        () =>
-            pendingAiFilteredChanges.map((change) => ({
-                value: `ai-change-${change.id}`,
-                nodeType: "change" as const,
-                change,
-                tableId: change.tableId,
-                content: getChangeDescription(change),
-            })),
-        [getChangeDescription, pendingAiFilteredChanges],
+        () => buildPendingAiFlatTreeItems(pendingAiFilteredEntries, getChangeDescription),
+        [getChangeDescription, pendingAiFilteredEntries],
     );
 
     useEffect(() => {
@@ -282,11 +287,19 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
         },
     });
 
-    const pendingAiFlatTree = useHeadlessFlatTree_unstable(pendingAiFlatTreeItems);
+    const pendingAiFlatTree = useHeadlessFlatTree_unstable(pendingAiFlatTreeItems, {
+        defaultOpenItems: new Set(
+            pendingAiFlatTreeItems
+                .filter((item) => item.nodeType === "table")
+                .map((item) => item.value),
+        ),
+    });
 
     useEffect(() => {
         const handleActivePendingAiChangeUpdated = (changeId: string | undefined) => {
             setActivePendingAiChangeId(changeId);
+            // Programmatic navigation — request scroll-into-view.
+            scrollToActiveVersionRef.current += 1;
         };
         eventBus.on("activePendingAiChangeUpdated", handleActivePendingAiChangeUpdated);
         return () => {
@@ -374,10 +387,16 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
     );
 
     const getCanUndoAiChange = useCallback(
-        (_change: SchemaChange) => ({
-            canRevert: !isApplyingAiAction,
-        }),
-        [isApplyingAiAction],
+        (change: SchemaChange) => {
+            if (isApplyingAiAction) {
+                return {
+                    canRevert: false,
+                    reason: locConstants.schemaDesigner.cannotUndoAiChange,
+                };
+            }
+            return context.canUndoAiLedgerChange(change);
+        },
+        [context, isApplyingAiAction],
     );
 
     const hasNoChanges = context.structuredSchemaChanges.length === 0;
@@ -385,7 +404,7 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
     const hasActiveFiltersOrSearch =
         searchText.trim() !== "" || actionFilters.length > 0 || categoryFilters.length > 0;
     const hasNoResults = baselineFilteredGroups.length === 0 && !hasNoChanges;
-    const hasPendingAiChanges = pendingAiChanges.length > 0;
+    const hasPendingAiChanges = pendingAiItems.length > 0;
     const hasPendingAiFilters =
         pendingAiActionFilters.length > 0 || pendingAiCategoryFilters.length > 0;
     const hasPendingAiFiltersOrSearch =
@@ -512,6 +531,7 @@ export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelPr
                             searchText={pendingAiSearchText}
                             ariaLabel={pendingAiTabLabel}
                             activeChangeId={activePendingAiChangeId}
+                            scrollToActiveVersion={scrollToActiveVersionRef.current}
                             isPendingAiTab={true}
                             loc={{
                                 ...loc,

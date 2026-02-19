@@ -25,7 +25,6 @@ const useStyles = makeStyles({
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
-
     if (!context) {
         return undefined;
     }

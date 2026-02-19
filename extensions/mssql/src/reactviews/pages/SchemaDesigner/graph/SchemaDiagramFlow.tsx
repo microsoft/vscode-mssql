@@ -80,6 +80,7 @@ const NODE_TYPES: NodeTypes = {
     tableNode: SchemaDesignerTableNode,
 };
 
+// Workaround: ESLint bans `null` literals; produce null at runtime to satisfy the rule.
 const NULL_VALUE = JSON.parse("null") as null;
 
 /**
@@ -461,10 +462,19 @@ export const SchemaDesignerFlow = () => {
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
             <Toast appearance="inverted">
-                <ToastTitle>Failed to create foreign key</ToastTitle>
+                <ToastTitle>{locConstants.schemaDesigner.failedToCreateForeignKey}</ToastTitle>
                 <ToastBody>{errorMessage}</ToastBody>
             </Toast>,
             { pauseOnHover: true, intent: "error" },
+        );
+
+    const showPendingAiUndoBlockedNotification = (reason?: string) =>
+        dispatchToast(
+            <Toast appearance="inverted">
+                <ToastTitle>{locConstants.schemaDesigner.undoAiChangeUnavailableTitle}</ToastTitle>
+                <ToastBody>{reason ?? locConstants.schemaDesigner.cannotUndoAiChange}</ToastBody>
+            </Toast>,
+            { pauseOnHover: true, intent: "warning" },
         );
 
     /**
@@ -628,12 +638,19 @@ export const SchemaDesignerFlow = () => {
     };
 
     const handleUndoActivePendingAiChange = async () => {
-        if (!activePendingAiChange || isApplyingPendingAiAction) {
+        if (
+            !activePendingAiChange ||
+            isApplyingPendingAiAction ||
+            !activePendingAiUndoState.canRevert
+        ) {
             return;
         }
         setIsApplyingPendingAiAction(true);
         try {
-            await context.undoAiLedgerChange(activePendingAiChange);
+            const didUndo = await context.undoAiLedgerChange(activePendingAiChange);
+            if (!didUndo) {
+                showPendingAiUndoBlockedNotification(activePendingAiUndoState.reason);
+            }
         } finally {
             setIsApplyingPendingAiAction(false);
         }
@@ -648,12 +665,20 @@ export const SchemaDesignerFlow = () => {
     };
 
     const handleUndoPendingAiEdgeChange = async () => {
-        if (!pendingAiEdgeToolbarState || isApplyingPendingAiAction) {
+        if (
+            !pendingAiEdgeToolbarState ||
+            isApplyingPendingAiAction ||
+            !pendingAiEdgeUndoState.canRevert
+        ) {
             return;
         }
         setIsApplyingPendingAiAction(true);
         try {
-            await context.undoAiLedgerChange(pendingAiEdgeToolbarState.change);
+            const didUndo = await context.undoAiLedgerChange(pendingAiEdgeToolbarState.change);
+            if (!didUndo) {
+                showPendingAiUndoBlockedNotification(pendingAiEdgeUndoState.reason);
+                return;
+            }
             setPendingAiEdgeToolbarState(NULL_VALUE);
         } finally {
             setIsApplyingPendingAiAction(false);
@@ -671,6 +696,26 @@ export const SchemaDesignerFlow = () => {
         setActivePendingAiChangeId(nextChange.id);
         revealChangeInDiagram(nextChange);
     };
+
+    const activePendingAiUndoState = useMemo(() => {
+        if (!activePendingAiChange) {
+            return {
+                canRevert: false,
+                reason: locConstants.schemaDesigner.cannotUndoAiChange,
+            };
+        }
+        return context.canUndoAiLedgerChange(activePendingAiChange);
+    }, [activePendingAiChange, context]);
+
+    const pendingAiEdgeUndoState = useMemo(() => {
+        if (!pendingAiEdgeToolbarState) {
+            return {
+                canRevert: false,
+                reason: locConstants.schemaDesigner.cannotUndoAiChange,
+            };
+        }
+        return context.canUndoAiLedgerChange(pendingAiEdgeToolbarState.change);
+    }, [context, pendingAiEdgeToolbarState]);
 
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
@@ -858,35 +903,11 @@ export const SchemaDesignerFlow = () => {
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
             {showPendingAiFloatingToolbar && (
-                <div
-                    style={{
-                        position: "absolute",
-                        left: "50%",
-                        bottom: "14px",
-                        transform: "translateX(-50%)",
-                        zIndex: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "6px 8px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--vscode-editorWidget-border)",
-                        backgroundColor: "var(--vscode-editorWidget-background)",
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
-                    }}>
+                <div className="sd-pending-ai-floating-toolbar">
                     <Tooltip
                         content={locConstants.schemaDesigner.pendingAiTabLabel}
                         relationship="label">
-                        <span
-                            aria-label={locConstants.schemaDesigner.pendingAiTabLabel}
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: "20px",
-                                height: "20px",
-                                color: "var(--vscode-textLink-foreground)",
-                            }}>
+                        <span aria-label={locConstants.schemaDesigner.pendingAiTabLabel}>
                             <Sparkle16Regular />
                         </span>
                     </Tooltip>
@@ -895,39 +916,48 @@ export const SchemaDesignerFlow = () => {
                         appearance="primary"
                         onClick={handleKeepActivePendingAiChange}
                         disabled={!activePendingAiChange || isApplyingPendingAiAction}>
-                        Keep
+                        {locConstants.schemaDesigner.keep}
                     </Button>
-                    <Button
-                        size="small"
-                        appearance="subtle"
-                        onClick={() => {
-                            void handleUndoActivePendingAiChange();
-                        }}
-                        disabled={!activePendingAiChange || isApplyingPendingAiAction}>
-                        {locConstants.schemaDesigner.undo}
-                    </Button>
+                    <Tooltip
+                        content={
+                            activePendingAiUndoState.canRevert
+                                ? locConstants.schemaDesigner.undo
+                                : (activePendingAiUndoState.reason ?? "")
+                        }
+                        relationship="label">
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            onClick={() => {
+                                void handleUndoActivePendingAiChange();
+                            }}
+                            disabled={
+                                !activePendingAiChange ||
+                                isApplyingPendingAiAction ||
+                                !activePendingAiUndoState.canRevert
+                            }>
+                            {locConstants.schemaDesigner.undo}
+                        </Button>
+                    </Tooltip>
                     <Button
                         size="small"
                         appearance="subtle"
                         onClick={handleRevealActivePendingAiChange}
                         disabled={!activePendingAiChange}>
-                        Reveal
+                        {locConstants.schemaDesigner.changesPanel.reveal}
                     </Button>
                     <Divider vertical />
-                    <span
-                        style={{
-                            fontSize: "12px",
-                            color: "var(--vscode-descriptionForeground)",
-                            minWidth: "56px",
-                            textAlign: "center",
-                        }}>
-                        {`${activePendingAiIndex + 1} of ${pendingAiChanges.length}`}
+                    <span className="sd-pending-ai-floating-toolbar__counter">
+                        {locConstants.common.searchResultSummary(
+                            activePendingAiIndex + 1,
+                            pendingAiChanges.length,
+                        )}
                     </span>
                     <Button
                         size="small"
                         appearance="subtle"
                         icon={<ArrowUp16Regular />}
-                        aria-label="Previous AI change"
+                        aria-label={locConstants.schemaDesigner.previousAiChange}
                         onClick={() => navigatePendingAiChange(-1)}
                         disabled={pendingAiChanges.length === 0}
                     />
@@ -935,7 +965,7 @@ export const SchemaDesignerFlow = () => {
                         size="small"
                         appearance="subtle"
                         icon={<ArrowDown16Regular />}
-                        aria-label="Next AI change"
+                        aria-label={locConstants.schemaDesigner.nextAiChange}
                         onClick={() => navigatePendingAiChange(1)}
                         disabled={pendingAiChanges.length === 0}
                     />
@@ -944,26 +974,14 @@ export const SchemaDesignerFlow = () => {
             {pendingAiEdgeToolbarState && (
                 <div
                     ref={edgeUndoWrapperRef}
+                    className="sd-edge-tooltip-wrapper"
                     style={{
-                        position: "absolute",
                         left: pendingAiEdgeToolbarState.position.x,
                         top: pendingAiEdgeToolbarState.position.y,
-                        zIndex: 5,
-                        padding: "10px",
                     }}
                     onMouseLeave={() => setPendingAiEdgeToolbarState(NULL_VALUE)}>
-                    <div
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "6px 8px",
-                            borderRadius: "8px",
-                            border: "1px solid var(--vscode-editorWidget-border)",
-                            backgroundColor: "var(--vscode-editorWidget-background)",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        }}>
-                        <Tooltip content={"Keep"} relationship="label">
+                    <div className="sd-edge-tooltip-inner">
+                        <Tooltip content={locConstants.schemaDesigner.keep} relationship="label">
                             <Button
                                 size="small"
                                 appearance="primary"
@@ -975,12 +993,20 @@ export const SchemaDesignerFlow = () => {
                                 }}
                             />
                         </Tooltip>
-                        <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
+                        <Tooltip
+                            content={
+                                pendingAiEdgeUndoState.canRevert
+                                    ? locConstants.schemaDesigner.undo
+                                    : (pendingAiEdgeUndoState.reason ?? "")
+                            }
+                            relationship="label">
                             <Button
                                 size="small"
                                 appearance="subtle"
                                 icon={<ArrowUndo16Regular />}
-                                disabled={isApplyingPendingAiAction}
+                                disabled={
+                                    isApplyingPendingAiAction || !pendingAiEdgeUndoState.canRevert
+                                }
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     void handleUndoPendingAiEdgeChange();
@@ -993,12 +1019,10 @@ export const SchemaDesignerFlow = () => {
             {edgeUndoState && (
                 <div
                     ref={edgeUndoWrapperRef}
+                    className="sd-edge-tooltip-wrapper"
                     style={{
-                        position: "absolute",
                         left: edgeUndoState.position.x,
                         top: edgeUndoState.position.y,
-                        zIndex: 5,
-                        padding: "10px",
                     }}
                     onMouseLeave={() => setEdgeUndoState(NULL_VALUE)}>
                     <Tooltip

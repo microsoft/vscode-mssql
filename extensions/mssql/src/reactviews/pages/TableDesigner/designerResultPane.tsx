@@ -7,10 +7,14 @@ import {
     DesignerIssue,
     DesignerResultPaneTabs,
     InputBoxProperties,
+    TableDesignerReducers,
+    TableDesignerWebviewState,
     TableProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useContext, useEffect, useState } from "react";
 import {
     DesignerDefinitionPane,
@@ -24,9 +28,13 @@ const TABLE_DESIGNER_ISSUES_TAB = "tableDesignerIssues";
 
 export const DesignerResultPane = () => {
     const context = useContext(TableDesignerContext);
-    const state = context?.state;
+    const view = useTableDesignerSelector((s) => s?.view);
+    const model = useTableDesignerSelector((s) => s?.model);
+    const tabStates = useTableDesignerSelector((s) => s?.tabStates);
+    const issues = useTableDesignerSelector((s) => s?.issues);
+    const { themeKind } = useVscodeWebview<TableDesignerWebviewState, TableDesignerReducers>();
 
-    if (!state) {
+    if (!context) {
         return undefined;
     }
 
@@ -34,10 +42,10 @@ export const DesignerResultPane = () => {
         const issuePath = issue.propertyPath ?? [];
         context?.log(`focusing on ${issuePath}`);
 
-        if (!state?.view?.tabs) {
+        if (!view?.tabs) {
             return;
         }
-        const containingTab = state.view.tabs.find((tab) => {
+        const containingTab = view.tabs.find((tab) => {
             return tab.components.find((c) => {
                 return c.propertyName === issuePath[0];
             });
@@ -57,7 +65,7 @@ export const DesignerResultPane = () => {
             if (!tableComponent) {
                 return;
             }
-            tableModel = state.model![tableComponent.propertyName];
+            tableModel = model![tableComponent.propertyName];
             if (!tableModel) {
                 return;
             }
@@ -123,16 +131,16 @@ export const DesignerResultPane = () => {
     const [definitionTab, setDefinitionTab] = useState<DesignerDefinitionTabValue>(
         DesignerDefinitionTabs.Script,
     );
-    const issuesCount = state?.issues?.length ?? 0;
+    const issuesCount = issues?.length ?? 0;
     const hasIssues = issuesCount > 0;
 
     useEffect(() => {
         setDefinitionTab(
-            state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script
+            tabStates!.resultPaneTab === DesignerResultPaneTabs.Script
                 ? DesignerDefinitionTabs.Script
                 : TABLE_DESIGNER_ISSUES_TAB,
         );
-    }, [state.tabStates!.resultPaneTab]);
+    }, [tabStates!.resultPaneTab]);
 
     useEffect(() => {
         if (!hasIssues && definitionTab === TABLE_DESIGNER_ISSUES_TAB) {
@@ -144,9 +152,9 @@ export const DesignerResultPane = () => {
         <DesignerDefinitionPane
             ref={context?.definitionPaneRef}
             copyToClipboard={context?.copyScriptAsCreateToClipboard}
-            themeKind={context?.themeKind}
+            themeKind={themeKind}
             openInEditor={context?.scriptAsCreate}
-            script={(state?.model!["script"] as InputBoxProperties).value ?? ""}
+            script={(model!["script"] as InputBoxProperties).value ?? ""}
             activeTab={definitionTab}
             setActiveTab={setDefinitionTab}
             customTabs={
@@ -157,7 +165,7 @@ export const DesignerResultPane = () => {
                               label: locConstants.tableDesigner.issuesTabHeader(issuesCount),
                               content: (
                                   <DesignerIssuesTab
-                                      issues={state.issues!}
+                                      issues={issues!}
                                       onIssueAction={openAndFocusIssueComponent}
                                   />
                               ),

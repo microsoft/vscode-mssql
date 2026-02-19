@@ -14,25 +14,25 @@ import { defaultProjectSaveLocation } from "../common/projectLocationHelper";
  * @returns The selected project file URI, or undefined if cancelled
  */
 export async function browseForProject(
-  workspaceService: IWorkspaceService,
+    workspaceService: IWorkspaceService,
 ): Promise<vscode.Uri | undefined> {
-  const filters: { [name: string]: string[] } = {};
-  const projectTypes = await workspaceService.getAllProjectTypes();
-  filters[constants.AllProjectTypes] = [
-    ...new Set(projectTypes.map((type) => type.projectFileExtension)),
-  ];
-  projectTypes.forEach((type) => {
-    filters[type.displayName] = [type.projectFileExtension];
-  });
+    const filters: { [name: string]: string[] } = {};
+    const projectTypes = await workspaceService.getAllProjectTypes();
+    filters[constants.AllProjectTypes] = [
+        ...new Set(projectTypes.map((type) => type.projectFileExtension)),
+    ];
+    projectTypes.forEach((type) => {
+        filters[type.displayName] = [type.projectFileExtension];
+    });
 
-  const fileUris = await vscode.window.showOpenDialog({
-    canSelectFiles: true,
-    canSelectFolders: false,
-    canSelectMany: false,
-    openLabel: constants.SelectProjectFileActionName,
-    filters: filters,
-    defaultUri: defaultProjectSaveLocation(),
-  });
+    const fileUris = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: constants.SelectProjectFileActionName,
+        filters: filters,
+        defaultUri: defaultProjectSaveLocation(),
+    });
 
-  return fileUris?.[0];
+    return fileUris?.[0];
 }

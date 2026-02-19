@@ -18,6 +18,8 @@ import { SegmentedControl } from "../../common/segmentedControl";
 import { SchemaDesignerChangesPanel } from "./changes/schemaDesignerChangesPanel";
 import { SchemaDesignerChangesCodeDiff } from "./changes/schemaDesignerChangesCodeDiff";
 import { getVisiblePendingAiSchemaChanges } from "./aiLedger/ledgerUtils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
 enum SchemaDesignerDefinitionCustomTabs {
     Changes = "changes",
@@ -94,6 +96,11 @@ const PendingAiTabToolbarActions = ({
 };
 
 export const SchemaDesignerDefinitionsPanel = () => {
+    const context = useContext(SchemaDesignerContext);
+    const { themeKind } = useVscodeWebview<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
     const classes = useStyles();
     const {
         aiLedger,
@@ -108,8 +115,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
         setChangesPanelTab,
         setIsChangesPanelVisible,
         setShowChangesHighlight,
-        themeKind,
-    } = useContext(SchemaDesignerContext);
+    } = context;
     const [code, setCode] = useState<string>("");
     const [baselineCode, setBaselineCode] = useState<string>("");
     const [activeTab, setActiveTab] = useState<SchemaDesignerDefinitionTab>(
@@ -125,6 +131,10 @@ export const SchemaDesignerDefinitionsPanel = () => {
         undefined as unknown as DesignerDefinitionPaneRef | null,
     );
     const codeDiffRequestIdRef = useRef(0);
+    const activeTabRef = useRef(activeTab);
+    activeTabRef.current = activeTab;
+    const changesPanelTabRef = useRef(changesPanelTab);
+    changesPanelTabRef.current = changesPanelTab;
 
     const pendingAiChangesCount = useMemo(
         () => getVisiblePendingAiSchemaChanges(aiLedger).length,
@@ -199,7 +209,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
                 return;
             }
 
-            if (activeTab === DesignerDefinitionTabs.Script) {
+            if (activeTabRef.current === DesignerDefinitionTabs.Script) {
                 definitionPaneRef.current.closePanel();
                 setIsChangesPanelVisible(false);
                 setShowChangesHighlight(false);
@@ -232,12 +242,12 @@ export const SchemaDesignerDefinitionsPanel = () => {
                 return;
             }
 
-            if (activeTab !== SchemaDesignerDefinitionCustomTabs.Changes) {
+            if (activeTabRef.current !== SchemaDesignerDefinitionCustomTabs.Changes) {
                 activateChangesTab("baseline");
                 return;
             }
 
-            if (changesPanelTab !== "baseline") {
+            if (changesPanelTabRef.current !== "baseline") {
                 setChangesPanelTab("baseline");
                 return;
             }
@@ -261,9 +271,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
     }, [
         activateChangesTab,
         activateScriptTab,
-        activeTab,
         refreshScript,
-        changesPanelTab,
         setChangesPanelTab,
         setIsChangesPanelVisible,
         setShowChangesHighlight,

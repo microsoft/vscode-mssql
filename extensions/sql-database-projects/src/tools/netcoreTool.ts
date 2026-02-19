@@ -21,16 +21,16 @@ import {
 import * as utils from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
 
-export const DBProjectConfigurationKey: string = "sqlDatabaseProjects";
-export const NetCoreInstallLocationKey: string = "netCoreSDKLocation";
-export const DotnetInstallLocationKey: string = "dotnetSDK Location";
-export const NetCoreDoNotAskAgainKey: string = "netCoreDoNotAsk";
+export const DBProjectConfigurationKey = "sqlDatabaseProjects";
+export const NetCoreInstallLocationKey = "netCoreSDKLocation";
+export const DotnetInstallLocationKey = "dotnetSDK Location";
+export const NetCoreDoNotAskAgainKey = "netCoreDoNotAsk";
 export const NetCoreMacDefaultPath = "/usr/local/share";
 export const NetCoreLinuxDefaultPath = "/usr/share";
-export const winPlatform: string = "win32";
-export const macPlatform: string = "darwin";
-export const linuxPlatform: string = "linux";
-export const minSupportedNetCoreVersionForBuild: string = "8.0.0";
+export const winPlatform = "win32";
+export const macPlatform = "darwin";
+export const linuxPlatform = "linux";
+export const minSupportedNetCoreVersionForBuild = "8.0.0";
 
 export const enum netCoreInstallState {
     netCoreNotPresent,
@@ -182,7 +182,7 @@ export class NetCoreTool extends ShellExecutionHelper {
         try {
             const spawn = child_process.spawn;
             let child: child_process.ChildProcessWithoutNullStreams;
-            let isSupported: boolean = false;
+            let isSupported = false;
             const stdoutBuffers: Buffer[] = [];
 
             child = spawn("dotnet --version", [], {
