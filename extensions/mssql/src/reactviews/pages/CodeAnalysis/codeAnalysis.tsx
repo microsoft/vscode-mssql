@@ -105,7 +105,10 @@ const useStyles = makeStyles({
 
 function CodeAnalysisDialog() {
     const styles = useStyles();
-    const loc = LocConstants.getInstance().codeAnalysis;
+    const locConstants = LocConstants.getInstance();
+    const loc = locConstants.codeAnalysis;
+    const commonLoc = locConstants.common;
+    const schemaCompareLoc = locConstants.schemaCompare;
     const context = useContext(CodeAnalysisContext);
     const headerColumns = [
         // Column: rule enabled state
@@ -193,13 +196,13 @@ function CodeAnalysisDialog() {
                 <Text className={styles.statusText}>{rules?.length ?? 0} rules</Text>
                 <div className={styles.footerButtons}>
                     <Button appearance="subtle" disabled onClick={() => undefined}>
-                        Reset to Defaults
+                        {schemaCompareLoc.reset}
                     </Button>
                     <Button appearance="secondary" onClick={() => context.close()}>
-                        Cancel
+                        {commonLoc.cancel}
                     </Button>
                     <Button appearance="primary" disabled onClick={() => undefined}>
-                        Save
+                        {commonLoc.save}
                     </Button>
                 </div>
             </div>
