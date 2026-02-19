@@ -30,3 +30,12 @@ export const enum DeploymentScenario {
      */
     SchemaCompare = 1,
 }
+
+/**
+ * Code analysis rule severity levels.
+ */
+export const enum RuleSeverity {
+    Error = "Error",
+    Warning = "Warning",
+    None = "None",
+}

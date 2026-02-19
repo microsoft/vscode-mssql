@@ -193,6 +193,18 @@ export class LocConstants {
         };
     }
 
+    public get codeAnalysis() {
+        return {
+            codeAnalysisTitle: (projectName: string) =>
+                l10n.t({
+                    message: "Code Analysis - {0}",
+                    args: [projectName],
+                    comment: ["{0} is the name of the database project"],
+                }),
+            loadingCodeAnalysisRules: l10n.t("Loading code analysis rules..."),
+        };
+    }
+
     public get firewallRules() {
         return {
             createNewFirewallRuleFor: (serverName: string) =>

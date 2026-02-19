@@ -35,6 +35,7 @@ const config = {
         createDatabaseDialog: "src/reactviews/pages/ObjectManagement/createDatabaseIndex.tsx",
         dropDatabaseDialog: "src/reactviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
+        codeAnalysis: "src/reactviews/pages/CodeAnalysis/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         searchDatabase: "src/reactviews/pages/SearchDatabase/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
