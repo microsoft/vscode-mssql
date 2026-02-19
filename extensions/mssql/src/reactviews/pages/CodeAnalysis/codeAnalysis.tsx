@@ -176,7 +176,7 @@ function CodeAnalysisDialog() {
                                     </TableCell>
                                     {/* Cell: Configured severity for the current rule */}
                                     <TableCell className={styles.tableCell}>
-                                        <Dropdown value={rule.severity} disabled>
+                                        <Dropdown value={rule.severity}>
                                             {codeAnalysisSeverityOptions.map((severity) => (
                                                 <Option key={severity} value={severity}>
                                                     {severity}
