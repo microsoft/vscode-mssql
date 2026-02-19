@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ToolbarButton, Tooltip } from "@fluentui/react-components";
+import { Button, Tooltip } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import {
@@ -16,13 +16,15 @@ export function ViewDefinitionsButton() {
 
     return (
         <Tooltip content={locConstants.schemaDesigner.definition} relationship="label">
-            <ToolbarButton
+            <Button
                 appearance="subtle"
-                icon={<FluentIcons.Code20Filled />}
+                size="small"
+                icon={<FluentIcons.Code16Filled />}
                 onClick={() => {
                     toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Script);
-                }}
-            />
+                }}>
+                {locConstants.schemaDesigner.definition}
+            </Button>
         </Tooltip>
     );
 }
