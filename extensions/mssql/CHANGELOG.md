@@ -1,11 +1,30 @@
 # Change Log
 
+## Version 1.40.0
+
+- Release date: February 25, 2026
+- Release status: GA
+
+### What's new in 1.40.0
+
+- Added Backup Database (Preview) and Restore Database (Preview) functionality, bringing key database management capabilities from Azure Data Studio to the MSSQL extension
+- Improved SQL Profiler (Preview) with inline column filters and an embedded event details panel
+- Updated the Publish SQL Project dialog to be enabled by default, with server selection now presented as a dropdown and improved script generation options
+- Added support for SQL Server 2025 containers on ARM-based macOS devices, removing previous ARM blocking logic; local container deployment now automatically selects an available port when the default port is in use
+- Updated the Azure tenant selection to display tenant IDs alongside tenant names to improve disambiguation for users with multiple tenants
+- Fixed an issue where workspace-level `mssql.connections` and `mssql.connectionGroups` settings were being ignored
+- Fixed multiple issues where query results would not display or would show a blank screen
+- Fixed an issue where the Table Designer would fail to load
+- Fixed multiple SQL Database Projects issues including Fabric SQL project database reference deletion, moving `.sql` files within a project, unresolved system database references, missing `SystemDacpacs` after extension updates, `Microsoft.Build.Sql.dll` extraction failures, `.vscode/tasks.json` placement when creating a project in an existing workspace, and incorrect dacpac display names for Fabric Warehouse references
+- Fixed an issue where the Azure Data Studio Migration Toolkit was missing the Settings and key bindings import section
+- Improved provisioning time when connecting to a SQL database in Fabric
+
 ## Version 1.39.0
 
 - Release date: January 28, 2026
 - Release status: GA
 
-### What’s new in 1.39.0
+### What's new in 1.39.0
 
 - Added the Azure Data Studio Migration Toolkit to help to import existing Azure Data Studio connections and connection groups into the MSSQL extension
 - Enabled Table Explorer/Edit Data, Data-Tier Application Dialog, and Publish Project feature previews default
@@ -20,7 +39,7 @@
 - Release date: December 16, 2025
 - Release status: GA
 
-### What’s new in 1.38.0
+### What's new in 1.38.0
 
 - Improved the experience for deleting rows in Edit Data
 - Updated the query results grid sorting and filter options
@@ -43,7 +62,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: December 1, 2025
 - Release status: GA
 
-### What’s new in 1.37.1
+### What's new in 1.37.1
 
 - Fixed an issue where the results grid may have flickering scrollbars for some users
 
@@ -71,7 +90,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: September 11, 2025
 - Release status: GA
 
-### What’s new in 1.36.0
+### What's new in 1.36.0
 
 - Introduced Fabric Connectivity (Public Preview) to browse Fabric workspaces and connect to SQL databases or SQL analytics endpoints directly from the Connection dialog
 - Introduced SQL database in Fabric provisioning (Public Preview) to create Fabric SQL databases from the Deployments page with capacity awareness and automatic connection on completion
@@ -87,7 +106,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: August 20, 2025
 - Release status: GA
 
-### What’s new in 1.35.0
+### What's new in 1.35.0
 
 - Released general availability of Schema Designer, Schema Compare, and Local SQL Server Container
 - Fixed an issue where Microsoft Entra ID sign-in in the Connection Dialog could result in empty account or tenant dropdowns
@@ -103,7 +122,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: August 13, 2025
 - Release status: GA
 
-### What’s new in 1.34.1
+### What's new in 1.34.1
 
 - Fixed bug in GitHub Copilot Ask Mode related to explicit GPT-4o model selection
 - Fixed bug in Local Container Deployment where Apple Silicon Mac users may be unable to pull SQL Server images
@@ -113,7 +132,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: July 23, 2025
 - Release status: GA
 
-### What’s new in 1.34.0
+### What's new in 1.34.0
 
 - Expanded GitHub Copilot Agent Mode to support running T-SQL queries, listing database objects, switching databases, and retrieving connection details
 - Fixed GitHub Copilot chat participant repeating previous prompts when switching database connections
@@ -130,7 +149,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: June 18, 2025
 - Release status: GA
 
-### What’s new in 1.33.0
+### What's new in 1.33.0
 
 - Introduced Local SQL Server Containers (Public Preview) for local development — spin up SQL Server containers in seconds inside VS Code with SQL Server 2025 by default, no Docker commands needed
 - Introduced GitHub Copilot Agent Mode (Public Preview) to connect, disconnect, or switch databases, and explore and visualize schemas with smart, context-aware suggestions
@@ -156,7 +175,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: May 19, 2025
 - Release status: GA
 
-### What’s new in 1.32.0
+### What's new in 1.32.0
 
 - Released general availability of the modern UI—new Connection dialog, Object Explorer filtering, Table Designer, Query Results pane, and Query Plan Visualizer
 - Introduced GitHub Copilot integration (Preview) for AI‑powered SQL assistance—generate T‑SQL and ORM code, explore schemas, optimize queries, and streamline database development workflows
@@ -172,7 +191,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: May 2, 2025
 - Release status: GA
 
-### What’s new in 1.31.1
+### What's new in 1.31.1
 
 - Resolved an issue related to tokens with local logging in some instances
 
@@ -181,7 +200,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: April 30, 2025
 - Release status: GA
 
-### What’s new in 1.31.0
+### What's new in 1.31.0
 
 - Introduced Schema Compare (Preview) to visually compare and script out schema differences
 - Enhanced Query Results experience with live execution timing summary metrics and stability improvements on large result sets
@@ -194,7 +213,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 - Release date: March 31, 2025
 - Release status: GA
 
-### What’s new in 1.30.0
+### What's new in 1.30.0
 
 - Enabled new UI enhancements by default for improved development experience
 - Improved reliability in Connection Dialog and Connections view
