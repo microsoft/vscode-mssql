@@ -116,6 +116,7 @@ const specialKeyMap: Record<string, KeyResolution> = {
 };
 
 const FUNCTION_KEY_REGEX = /^f([1-9]|1[0-2])$/;
+const WEBVIEW_ACTIONS = Object.values(WebviewAction) as WebviewAction[];
 
 /**
  * Normalizes the raw keyboard shortcut string into tokens.
@@ -236,16 +237,15 @@ function getDefaultConfig(): WebviewKeyBindingConfiguration {
  * @returns Parsed webview shortcuts
  */
 export function parseWebviewKeyboardShortcutConfig(
-    config: WebviewKeyBindingConfiguration,
+    config?: WebviewKeyBindingConfiguration,
 ): WebviewKeyBindings {
     const webviewKeyBinding = {} as WebviewKeyBindings;
-    config = { ...getDefaultConfig(), ...config };
-    Object.keys(config).forEach((key) => {
-        const keyType = key as WebviewAction;
-        webviewKeyBinding[keyType] = getShortcutInfo(
-            config[key as keyof WebviewKeyBindingConfiguration],
-        );
+    const mergedConfig = { ...getDefaultConfig(), ...(config ?? {}) };
+
+    WEBVIEW_ACTIONS.forEach((action) => {
+        webviewKeyBinding[action] = getShortcutInfo(mergedConfig[action]);
     });
+
     return webviewKeyBinding;
 }
 
