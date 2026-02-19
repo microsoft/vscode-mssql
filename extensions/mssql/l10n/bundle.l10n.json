@@ -197,6 +197,8 @@
         "comment": ["{0} is the name of the database project"]
     },
     "Loading code analysis rules...": "Loading code analysis rules...",
+    "Enabled": "Enabled",
+    "Rule": "Rule",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -1506,7 +1508,6 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
-    "Enabled": "Enabled",
     "Disabled": "Disabled",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
