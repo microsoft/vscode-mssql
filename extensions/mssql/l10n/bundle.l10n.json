@@ -198,6 +198,11 @@
         "comment": ["{0} is the name of the database project"]
     },
     "Loading code analysis rules...": "Loading code analysis rules...",
+    "No code analysis rules available.": "No code analysis rules available.",
+    "{0} rules/{0} is the number of code analysis rules": {
+        "message": "{0} rules",
+        "comment": ["{0} is the number of code analysis rules"]
+    },
     "Enabled": "Enabled",
     "Rule": "Rule",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
