@@ -8,7 +8,7 @@
 ### What's new in 1.40.0
 
 - Added the Global Object Search dialog, enabling users to easily search for objects across their entire database
-- Added Backup Database and Restore Database dialogs (both Preview) allowing users to backup locally or to URL, and to restore from database, .BAK file, or URL.
+- Added Backup Database and Restore Database dialogs (both Preview) allowing users to back up locally or to URL, and to restore from database, .BAK file, or URL.
 - Added Flat File Import dialog (Preview) allowing users to import data from CSV and TXT files
 - Added Create, Rename, and Drop Database dialogs (Preview) enabling users to easily manage their databases
 - Added Query Profiler (Preview) to support users in monitoring and analyzing their database performance

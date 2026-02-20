@@ -2941,7 +2941,6 @@
         "message": "Query Profiler (Preview): {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Query Profiler (Preview)": "Query Profiler (Preview)",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
