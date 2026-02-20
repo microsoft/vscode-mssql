@@ -9,7 +9,7 @@ runs:
         echo "Installing Yarn"
         npm install --global yarn@1.22.19
         echo "Installing VSCE"
-        npm install --global vsce@2.9.2
+        npm install --global @vscode/vsce@3.7.1
 
     - name: SqlProj - Install extension dependencies
       shell: bash
