@@ -17,8 +17,9 @@ export function ViewDefinitionsButton() {
                 icon={<FluentIcons.Code16Filled />}
                 onClick={() => {
                     eventBus.emit("openCodeDrawer");
-                }}
-            />
+                }}>
+                {locConstants.schemaDesigner.definition}
+            </Button>
         </Tooltip>
     );
 }
