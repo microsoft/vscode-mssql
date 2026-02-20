@@ -26,6 +26,7 @@ export const serverLabel = "Server";
 export const disconnectedDockerContainer = "disconnectedDockerContainer";
 export const dockerContainer = "DockerContainer";
 export const dockerContainerDatabase = "DockerContainerDatabase";
+export const databasesSubNodeType = "Databases";
 export const folderLabel = "Folder";
 export const database_green = "Database_green";
 export const database_red = "Database_red";
