@@ -170,6 +170,68 @@ export const DabPage = ({ activeView }: DabPageProps) => {
     const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
 
+    const handleGridKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (
+            e.key !== "ArrowUp" &&
+            e.key !== "ArrowDown" &&
+            e.key !== "ArrowLeft" &&
+            e.key !== "ArrowRight"
+        ) {
+            return;
+        }
+
+        const target = e.target as HTMLElement;
+        const cell = target.closest("[data-grid-row]") as HTMLElement;
+        if (!cell) {
+            return;
+        }
+
+        const row = parseInt(cell.dataset.gridRow!);
+        const col = parseInt(cell.dataset.gridCol!);
+        let nextRow = row;
+        let nextCol = col;
+
+        switch (e.key) {
+            case "ArrowUp":
+                nextRow--;
+                break;
+            case "ArrowDown":
+                nextRow++;
+                break;
+            case "ArrowLeft":
+                nextCol--;
+                break;
+            case "ArrowRight":
+                nextCol++;
+                break;
+        }
+
+        e.preventDefault();
+        const grid = e.currentTarget as HTMLElement;
+
+        let nextCell: HTMLElement | null = null;
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            const delta = e.key === "ArrowDown" ? 1 : -1;
+            for (let r = nextRow; r >= 0; r += delta) {
+                nextCell = grid.querySelector(`[data-grid-row="${r}"][data-grid-col="${nextCol}"]`);
+                if (nextCell) {
+                    break;
+                }
+            }
+        } else {
+            nextCell = grid.querySelector(
+                `[data-grid-row="${nextRow}"][data-grid-col="${nextCol}"]`,
+            );
+        }
+
+        if (nextCell) {
+            const focusable = nextCell.querySelector("input, button") as HTMLElement;
+            if (focusable) {
+                focusable.focus();
+            }
+        }
+    }, []);
+
     const toggleSchemaCollapsed = useCallback((schemaName: string) => {
         setCollapsedSchemas((prev) => {
             const next = new Set(prev);
@@ -276,6 +338,8 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         [Dab.EntityAction.Delete]: locConstants.common.delete,
     };
 
+    let gridRowIndex = 0;
+
     return (
         <div className={classes.root}>
             <DabDeploymentDialog />
@@ -289,17 +353,20 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                     <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
                                 </div>
                             ) : (
-                                <div className={classes.entityTable}>
+                                <div
+                                    className={classes.entityTable}
+                                    role="grid"
+                                    onKeyDown={handleGridKeyDown}>
                                     {/* Column Headers */}
-                                    <div className={classes.headerRow}>
-                                        <div />
-                                        <div className={classes.headerCell}>
+                                    <div className={classes.headerRow} role="row">
+                                        <div role="columnheader" />
+                                        <div className={classes.headerCell} role="columnheader">
                                             {locConstants.schemaDesigner.entityName}
                                         </div>
-                                        <div className={classes.headerCell}>
+                                        <div className={classes.headerCell} role="columnheader">
                                             {locConstants.schemaDesigner.sourceTable}
                                         </div>
-                                        {allActions.map((action) => {
+                                        {allActions.map((action, actionIndex) => {
                                             const enabledEntities = filteredEntities.filter(
                                                 (e) => e.isEnabled,
                                             );
@@ -313,7 +380,10 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                             return (
                                                 <div
                                                     key={action}
-                                                    className={classes.headerCellCenter}>
+                                                    className={classes.headerCellCenter}
+                                                    role="columnheader"
+                                                    data-grid-row={0}
+                                                    data-grid-col={actionIndex + 1}>
                                                     <Checkbox
                                                         checked={
                                                             allHave
@@ -339,7 +409,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                 </div>
                                             );
                                         })}
-                                        <div />
+                                        <div role="columnheader" />
                                     </div>
 
                                     {/* Schema groups with entity rows */}
@@ -357,6 +427,9 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                 <div
                                                     key={`schema-${schemaName}`}
                                                     className={classes.schemaRow}
+                                                    role="row"
+                                                    data-grid-row={++gridRowIndex}
+                                                    data-grid-col={0}
                                                     onClick={() =>
                                                         toggleSchemaCollapsed(schemaName)
                                                     }>
@@ -398,14 +471,19 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                         const disabledClass = !entity.isEnabled
                                                             ? classes.entityCellDisabled
                                                             : "";
+                                                        const rowIdx = ++gridRowIndex;
                                                         return (
                                                             <div
                                                                 key={entity.id}
-                                                                className={classes.entityRow}>
+                                                                className={classes.entityRow}
+                                                                role="row">
                                                                 <div
                                                                     className={
                                                                         classes.entityCheckboxCell
-                                                                    }>
+                                                                    }
+                                                                    role="gridcell"
+                                                                    data-grid-row={rowIdx}
+                                                                    data-grid-col={0}>
                                                                     <Checkbox
                                                                         checked={entity.isEnabled}
                                                                         onChange={(_, data) =>
@@ -418,6 +496,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                                     />
                                                                 </div>
                                                                 <div
+                                                                    role="gridcell"
                                                                     className={`${classes.entityCell} ${disabledClass}`}>
                                                                     <Text
                                                                         className={
@@ -430,6 +509,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                                     </Text>
                                                                 </div>
                                                                 <div
+                                                                    role="gridcell"
                                                                     className={`${classes.entityCell} ${disabledClass}`}>
                                                                     <Text
                                                                         className={
@@ -439,29 +519,43 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                                                                         {entity.tableName}
                                                                     </Text>
                                                                 </div>
-                                                                {allActions.map((action) => (
-                                                                    <div
-                                                                        key={action}
-                                                                        className={`${classes.entityCellCenter} ${disabledClass}`}>
-                                                                        <Checkbox
-                                                                            checked={entity.enabledActions.includes(
-                                                                                action,
-                                                                            )}
-                                                                            disabled={
-                                                                                !entity.isEnabled
+                                                                {allActions.map(
+                                                                    (action, actionIndex) => (
+                                                                        <div
+                                                                            key={action}
+                                                                            role="gridcell"
+                                                                            data-grid-row={rowIdx}
+                                                                            data-grid-col={
+                                                                                actionIndex + 1
                                                                             }
-                                                                            onChange={(_, data) =>
-                                                                                toggleDabEntityAction(
-                                                                                    entity.id,
+                                                                            className={`${classes.entityCellCenter} ${disabledClass}`}>
+                                                                            <Checkbox
+                                                                                checked={entity.enabledActions.includes(
                                                                                     action,
-                                                                                    data.checked ===
-                                                                                        true,
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    </div>
-                                                                ))}
-                                                                <div className={classes.entityCell}>
+                                                                                )}
+                                                                                disabled={
+                                                                                    !entity.isEnabled
+                                                                                }
+                                                                                onChange={(
+                                                                                    _,
+                                                                                    data,
+                                                                                ) =>
+                                                                                    toggleDabEntityAction(
+                                                                                        entity.id,
+                                                                                        action,
+                                                                                        data.checked ===
+                                                                                            true,
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    ),
+                                                                )}
+                                                                <div
+                                                                    className={classes.entityCell}
+                                                                    role="gridcell"
+                                                                    data-grid-row={rowIdx}
+                                                                    data-grid-col={5}>
                                                                     <Button
                                                                         appearance="subtle"
                                                                         icon={<Settings16Regular />}
