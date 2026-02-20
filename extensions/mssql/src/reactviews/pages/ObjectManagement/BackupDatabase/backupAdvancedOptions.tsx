@@ -21,10 +21,14 @@ import { useContext, useState } from "react";
 import { FormField } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
 import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
-import { BackupDatabaseViewModel, BackupType, MediaSet } from "../../../../sharedInterfaces/backup";
+import {
+    BackupDatabaseFormState,
+    BackupDatabaseViewModel,
+    BackupType,
+    MediaSet,
+} from "../../../../sharedInterfaces/backup";
 import {
     ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
@@ -51,10 +55,11 @@ export const AdvancedOptionsDrawer = ({
 
     const backupViewModel = viewModel.model as BackupDatabaseViewModel;
 
-    const advancedOptionsByGroup: Record<string, ObjectManagementFormItemSpec[]> = Object.values(
-        formComponents,
-    )
-        .filter((component): component is ObjectManagementFormItemSpec =>
+    const advancedOptionsByGroup: Record<
+        string,
+        ObjectManagementFormItemSpec<BackupDatabaseFormState>[]
+    > = Object.values(formComponents)
+        .filter((component): component is ObjectManagementFormItemSpec<BackupDatabaseFormState> =>
             Boolean(component && component.isAdvancedOption),
         )
         .reduce(
@@ -66,10 +71,10 @@ export const AdvancedOptionsDrawer = ({
                 acc[group].push(component);
                 return acc;
             },
-            {} as Record<string, ObjectManagementFormItemSpec[]>,
+            {} as Record<string, ObjectManagementFormItemSpec<BackupDatabaseFormState>[]>,
         );
 
-    function isOptionVisible(option: ObjectManagementFormItemSpec) {
+    function isOptionVisible(option: ObjectManagementFormItemSpec<BackupDatabaseFormState>) {
         if (searchSettingsText) {
             return (
                 option.label.toLowerCase().includes(searchSettingsText.toLowerCase()) ||
@@ -170,9 +175,9 @@ export const AdvancedOptionsDrawer = ({
                                                             option.propertyName,
                                                         ) && (
                                                             <FormField<
-                                                                ObjectManagementFormState,
-                                                                ObjectManagementWebviewState,
-                                                                ObjectManagementFormItemSpec,
+                                                                BackupDatabaseFormState,
+                                                                ObjectManagementWebviewState<BackupDatabaseFormState>,
+                                                                ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                                                                 BackupDatabaseContextProps
                                                             >
                                                                 key={idx}

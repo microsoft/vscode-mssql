@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dialog, DialogBody, DialogSurface, makeStyles } from "@fluentui/react-components";
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
-import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
 import { DabDeploymentConfirmation } from "./dabDeploymentConfirmation";
 import { DabDeploymentPrerequisites } from "./dabDeploymentPrerequisites";
 import { DabDeploymentInputForm } from "./dabDeploymentInputForm";
 import { DabDeploymentProgress } from "./dabDeploymentProgress";
 import { DabDeploymentComplete } from "./dabDeploymentComplete";
 import { getPrereqSteps, getDeploySteps } from "./dabDeploymentUtils";
+import { useDabContext } from "../dabContext";
 
 const useStyles = makeStyles({
     surface: {
@@ -25,7 +25,7 @@ const useStyles = makeStyles({
 
 export const DabDeploymentDialog = () => {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useDabContext();
     const {
         dabDeploymentState,
         closeDabDeploymentDialog,

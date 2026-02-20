@@ -41,7 +41,8 @@ import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
     AdsMigrationSetting,
-    AzureDataStudioMigrationBrowseForConfigRequest,
+    BrowseForConfigRequest,
+    OpenKeymapLinkNotification as OpenKeymapLinkNotification,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     EntraSignInDialogProps,
@@ -148,6 +149,7 @@ export const AzureDataStudioMigrationPage = () => {
         connectionSelection.selected,
         connectionSelection.total,
     );
+    const hasDetectedSettings = settings.length > 0;
 
     const toggleConnectionGroup = (groupId: string, checked: boolean) => {
         extensionRpc.action("setConnectionGroupSelections", { groupId, selected: checked });
@@ -173,10 +175,7 @@ export const AzureDataStudioMigrationPage = () => {
     };
 
     const handleBrowseForConfig = async () => {
-        const result = await extensionRpc.sendRequest(
-            AzureDataStudioMigrationBrowseForConfigRequest.type,
-            undefined,
-        );
+        const result = await extensionRpc.sendRequest(BrowseForConfigRequest.type, undefined);
         if (result) {
             setConfigPath(result);
         }
@@ -359,6 +358,30 @@ export const AzureDataStudioMigrationPage = () => {
         );
     };
 
+    const renderSettingsRow = () => {
+        return (
+            <div>
+                <Checkbox
+                    checked={hasDetectedSettings ? importSettings : false}
+                    disabled={!hasDetectedSettings}
+                    onChange={(_, data) => {
+                        setImportSettings(data.checked === true);
+                        extensionRpc.action("setImportSettings", {
+                            importSettings: data.checked === true,
+                        });
+                    }}
+                    label={LocMigration.importSettingsCheckboxLabel}
+                />
+                <Button
+                    appearance="secondary"
+                    disabled={!hasDetectedSettings}
+                    onClick={() => extensionRpc.action("openViewSettingsDialog")}>
+                    {LocMigration.viewSettingsButton}
+                </Button>
+            </div>
+        );
+    };
+
     const dialogContent =
         dialog?.type === "entraSignIn" ? (
             <EntraSignInDialog
@@ -470,34 +493,39 @@ export const AzureDataStudioMigrationPage = () => {
                         {!settingsCollapsed && (
                             <>
                                 <div className={classes.settingsRow}>
-                                    <Checkbox
-                                        checked={importSettings}
-                                        onChange={(_, data) => {
-                                            setImportSettings(data.checked === true);
-                                            extensionRpc.action("setImportSettings", {
-                                                importSettings: data.checked === true,
-                                            });
-                                        }}
-                                        label={LocMigration.importSettingsCheckboxLabel}
-                                    />
-                                    <Button
-                                        appearance="secondary"
-                                        disabled={!importSettings || settings.length === 0}
-                                        onClick={() =>
-                                            extensionRpc.action("openViewSettingsDialog")
-                                        }>
-                                        {LocMigration.viewSettingsButton}
-                                    </Button>
+                                    {hasDetectedSettings ? (
+                                        renderSettingsRow()
+                                    ) : (
+                                        <>
+                                            <Tooltip
+                                                content={
+                                                    LocMigration.noCustomizedSettingsFoundInAds
+                                                }
+                                                relationship="label"
+                                                positioning={"before"}>
+                                                {renderSettingsRow()}
+                                            </Tooltip>
+                                            <Body1 className={classes.summaryText}>
+                                                ℹ️ {LocMigration.noCustomizedSettingsFoundInAds}
+                                            </Body1>
+                                        </>
+                                    )}
                                 </div>
                                 <Body1 className={classes.summaryText}>
                                     {LocMigration.keymapCallout}{" "}
-                                    <Link
-                                        href="https://aka.ms/vscode-mssql-keymap"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        inline>
-                                        {LocMigration.keymapCalloutLink}
-                                    </Link>
+                                    <Tooltip
+                                        content={LocMigration.keymapTooltip}
+                                        relationship="label">
+                                        <Link
+                                            onClick={() =>
+                                                void extensionRpc.sendNotification(
+                                                    OpenKeymapLinkNotification.type,
+                                                )
+                                            }
+                                            inline>
+                                            {LocMigration.keymapCalloutLink}
+                                        </Link>
+                                    </Tooltip>
                                 </Body1>
                             </>
                         )}

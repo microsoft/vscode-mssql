@@ -5,15 +5,15 @@
 
 import { Input, makeStyles } from "@fluentui/react-components";
 import { Search16Regular } from "@fluentui/react-icons";
-import { locConstants } from "../../../common/locConstants";
-import { ChangeAction, ChangeCategory } from "../diff/diffUtils";
+import { locConstants } from "../../../../common/locConstants";
+import { ChangeAction, ChangeCategory } from "../../diff/diffUtils";
 import { SchemaDesignerChangesFilterButton } from "./schemaDesignerChangesFilterButton";
 
 const useStyles = makeStyles({
     searchContainer: {
-        padding: "8px",
-        borderBottom: "1px solid var(--vscode-editorWidget-border)",
-        flexShrink: 0,
+        padding: 0,
+        borderBottom: 0,
+        minWidth: "320px",
     },
     searchInput: {
         width: "100%",
@@ -21,7 +21,7 @@ const useStyles = makeStyles({
     },
 });
 
-type SchemaDesignerChangesFiltersProps = {
+type SchemaDesignerChangesToolbarProps = {
     searchText: string;
     onSearchTextChange: (value: string) => void;
     selectedActions: ChangeAction[];
@@ -32,7 +32,7 @@ type SchemaDesignerChangesFiltersProps = {
     onClearFilters: () => void;
 };
 
-export const SchemaDesignerChangesFilters = ({
+export const SchemaDesignerChangesToolbar = ({
     searchText,
     onSearchTextChange,
     selectedActions,
@@ -41,7 +41,7 @@ export const SchemaDesignerChangesFilters = ({
     onToggleCategory,
     hasActiveFilters,
     onClearFilters,
-}: SchemaDesignerChangesFiltersProps) => {
+}: SchemaDesignerChangesToolbarProps) => {
     const classes = useStyles();
 
     return (

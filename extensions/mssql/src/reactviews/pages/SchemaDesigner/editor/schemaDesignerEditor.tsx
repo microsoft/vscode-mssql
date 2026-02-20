@@ -22,35 +22,6 @@ const useStyles = makeStyles({
         flex: "1",
         overflow: "hidden",
     },
-    tablePanel: {
-        display: "flex",
-        flexDirection: "column",
-        padding: "5px 0px",
-        gap: "5px",
-        overflow: "hidden",
-        maxHeight: "calc(100% - 10px)",
-    },
-    tablePanelRow: {
-        display: "flex",
-        flexDirection: "row",
-        flex: "1",
-        gap: "5px",
-        padding: "0px 5px",
-    },
-    dataTypeDropdown: {
-        minWidth: "110px",
-        maxWidth: "110px",
-        "> button": {
-            textOverflow: "ellipsis",
-        },
-    },
-    foreignKeyContainer: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "5px",
-        padding: "5px",
-        borderTop: "1px solid",
-    },
 });
 
 export const SchemaDesignerEditor = () => {

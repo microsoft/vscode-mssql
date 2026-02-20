@@ -1174,6 +1174,34 @@ suite("ProjectsController", function (): void {
                     "should pass the correct project file path",
                 );
             });
+
+            test("configureCodeAnalysisSettings should invoke mssql.configureCodeAnalysisSettings command with correct project path", async function (): Promise<void> {
+                const proj = await testUtils.createTestProject(
+                    this.test,
+                    baselines.openProjectFileBaseline,
+                );
+                const expectedProjectPath = proj.projectFilePath;
+
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                const projController = new ProjectsController(testContext.outputChannel);
+                await projController.configureCodeAnalysisSettings(proj);
+
+                expect(
+                    executeCommandStub.calledOnce,
+                    "executeCommand should be called exactly once",
+                ).to.be.true;
+                expect(executeCommandStub.firstCall.args[0]).to.equal(
+                    constants.mssqlConfigureCodeAnalysisSettingsCommand,
+                    "should invoke the mssql configureCodeAnalysisSettings command",
+                );
+                expect(executeCommandStub.firstCall.args[1]).to.equal(
+                    expectedProjectPath,
+                    "should pass the correct project file path",
+                );
+            });
         });
     });
 

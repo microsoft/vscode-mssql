@@ -490,7 +490,7 @@ export default class StatusView implements vscode.Disposable {
 
     private onDidCloseTextDocument(doc: vscode.TextDocument): void {
         // Remove the status bar associated with the document
-        this.destroyStatusBar(doc.uri.toString(true));
+        this.destroyStatusBar(doc.uri.toString());
     }
 
     private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {

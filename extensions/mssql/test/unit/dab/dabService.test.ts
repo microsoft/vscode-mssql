@@ -7,7 +7,8 @@ import * as sinon from "sinon";
 import { expect } from "chai";
 import { DabService } from "../../../src/services/dabService";
 import { Dab } from "../../../src/sharedInterfaces/dab";
-import * as dockerUtils from "../../../src/deployment/dockerUtils";
+import * as dockerUtils from "../../../src/docker/dockerUtils";
+import * as dabContainer from "../../../src/dab/dabContainer";
 
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
     return {
@@ -369,7 +370,7 @@ suite("DabService Tests", () => {
         });
 
         test("should run pullImage step successfully", async () => {
-            sandbox.stub(dockerUtils, "pullDabContainerImage").resolves({ success: true });
+            sandbox.stub(dabContainer, "pullDabContainerImage").resolves({ success: true });
 
             const result = await dabService.runDeploymentStep(Dab.DabDeploymentStepOrder.pullImage);
 
@@ -378,7 +379,7 @@ suite("DabService Tests", () => {
 
         test("should return error when pullImage fails", async () => {
             sandbox
-                .stub(dockerUtils, "pullDabContainerImage")
+                .stub(dabContainer, "pullDabContainerImage")
                 .resolves({ success: false, error: "Network error" });
 
             const result = await dabService.runDeploymentStep(Dab.DabDeploymentStepOrder.pullImage);
@@ -389,7 +390,7 @@ suite("DabService Tests", () => {
 
         test("should run startContainer step successfully with valid params", async () => {
             sandbox
-                .stub(dockerUtils, "startDabDockerContainer")
+                .stub(dabContainer, "startDabDockerContainer")
                 .resolves({ success: true, port: 5000 });
 
             const params: Dab.DabDeploymentParams = {
@@ -439,7 +440,7 @@ suite("DabService Tests", () => {
 
         test("should run checkContainer step successfully", async () => {
             sandbox
-                .stub(dockerUtils, "checkIfDabContainerIsReady")
+                .stub(dabContainer, "checkIfDabContainerIsReady")
                 .resolves({ success: true, port: 5000 });
 
             const params: Dab.DabDeploymentParams = {
@@ -475,8 +476,8 @@ suite("DabService Tests", () => {
 
     suite("validateDeploymentParams", () => {
         test("should return valid result when both container name and port are available", async () => {
-            sandbox.stub(dockerUtils, "validateDabContainerName").resolves("my-dab-container");
-            sandbox.stub(dockerUtils, "findAvailableDabPort").resolves(5000);
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("my-dab-container");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5000);
 
             const result = await dabService.validateDeploymentParams("my-dab-container", 5000);
 
@@ -489,8 +490,8 @@ suite("DabService Tests", () => {
         });
 
         test("should return invalid result when container name is already taken", async () => {
-            sandbox.stub(dockerUtils, "validateDabContainerName").resolves("my-dab-container_2");
-            sandbox.stub(dockerUtils, "findAvailableDabPort").resolves(5000);
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("my-dab-container_2");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5000);
 
             const result = await dabService.validateDeploymentParams("my-dab-container", 5000);
 
@@ -500,8 +501,8 @@ suite("DabService Tests", () => {
         });
 
         test("should return invalid result when port is already in use", async () => {
-            sandbox.stub(dockerUtils, "validateDabContainerName").resolves("my-dab-container");
-            sandbox.stub(dockerUtils, "findAvailableDabPort").resolves(5001);
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("my-dab-container");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5001);
 
             const result = await dabService.validateDeploymentParams("my-dab-container", 5000);
 
@@ -511,8 +512,8 @@ suite("DabService Tests", () => {
         });
 
         test("should return both invalid when container name and port are unavailable", async () => {
-            sandbox.stub(dockerUtils, "validateDabContainerName").resolves("dab-container_3");
-            sandbox.stub(dockerUtils, "findAvailableDabPort").resolves(5002);
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("dab-container_3");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5002);
 
             const result = await dabService.validateDeploymentParams("dab-container", 5000);
 
@@ -523,8 +524,8 @@ suite("DabService Tests", () => {
         });
 
         test("should handle empty container name for auto-generation", async () => {
-            sandbox.stub(dockerUtils, "validateDabContainerName").resolves("dab-container");
-            sandbox.stub(dockerUtils, "findAvailableDabPort").resolves(5000);
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("dab-container");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5000);
 
             const result = await dabService.validateDeploymentParams("", 5000);
 
@@ -536,7 +537,7 @@ suite("DabService Tests", () => {
 
     suite("stopDeployment", () => {
         test("should stop and remove container successfully", async () => {
-            sandbox.stub(dockerUtils, "stopAndRemoveDabContainer").resolves({ success: true });
+            sandbox.stub(dabContainer, "stopAndRemoveDabContainer").resolves({ success: true });
 
             const result = await dabService.stopDeployment("test-container");
 
@@ -546,7 +547,7 @@ suite("DabService Tests", () => {
 
         test("should return error when stop fails", async () => {
             sandbox
-                .stub(dockerUtils, "stopAndRemoveDabContainer")
+                .stub(dabContainer, "stopAndRemoveDabContainer")
                 .resolves({ success: false, error: "Container not found" });
 
             const result = await dabService.stopDeployment("nonexistent-container");
@@ -557,7 +558,7 @@ suite("DabService Tests", () => {
 
         test("should handle undefined success as false", async () => {
             sandbox
-                .stub(dockerUtils, "stopAndRemoveDabContainer")
+                .stub(dabContainer, "stopAndRemoveDabContainer")
                 .resolves({ success: undefined as any });
 
             const result = await dabService.stopDeployment("test-container");
