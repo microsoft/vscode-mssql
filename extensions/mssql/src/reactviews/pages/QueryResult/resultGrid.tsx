@@ -187,7 +187,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             });
 
             const div = document.createElement("div");
-            div.id = "grid";
+            div.id = `grid-${props.gridId}`;
             div.className = "grid-panel";
             div.style.display = "inline-block";
 
@@ -316,7 +316,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         updateTableKeyBindings();
     }, [keyBindings]);
 
-    return <div id="gridContainter" ref={gridContainerRef}></div>;
+    return <div id={`gridContainter-${props.gridId}`} ref={gridContainerRef}></div>;
 });
 
 /**
