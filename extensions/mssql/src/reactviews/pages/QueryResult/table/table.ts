@@ -67,7 +67,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _isScrollStateRestored: boolean = false;
     private _isColumnWidthRestored: boolean = false;
     private _notifyScrollPositionDebounced?: ReturnType<typeof debounce>;
-    private _scrollListener?: ReturnType<typeof DOM.addDisposableListener>;
     private readonly _scrollPositionNotificationDebounceDelayMs: number = 100;
 
     constructor(
@@ -234,6 +233,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             }
 
             const viewport = this._grid.getViewport();
+            this._lastScrollAt = Date.now();
             void this.context.extensionRpc.sendNotification(
                 SetGridScrollPositionNotification.type,
                 {
@@ -248,22 +248,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             notifyScrollPosition,
             this._scrollPositionNotificationDebounceDelayMs,
         );
-        const viewportElement = this._grid.getContainerNode()?.querySelector(".slick-viewport");
-        if (viewportElement) {
-            this._scrollListener = DOM.addDisposableListener(
-                viewportElement,
-                DOM.EventType.SCROLL,
-                () => {
-                    this._lastScrollAt = Date.now();
-                    if (!this._isScrollStateRestored) {
-                        return;
-                    }
-
-                    this._notifyScrollPositionDebounced?.();
-                },
-                { passive: true },
-            );
-        }
+        this._grid.onScroll.subscribe(() => {
+            this._lastScrollAt = Date.now();
+            this._notifyScrollPositionDebounced?.();
+        });
 
         this.style(styles);
         // this.registerPlugin(new MouseWheelSupport());
@@ -471,8 +459,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public dispose() {
         this._notifyScrollPositionDebounced?.cancel();
         this._notifyScrollPositionDebounced = undefined;
-        this._scrollListener?.dispose();
-        this._scrollListener = undefined;
         this._container.remove();
     }
 
