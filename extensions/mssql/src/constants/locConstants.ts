@@ -137,6 +137,9 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
     });
 }
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
+export let msgConnectionInProgress = l10n.t(
+    "A connection is already being established. Please wait for it to complete before running a query.",
+);
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
     'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.',

@@ -240,11 +240,11 @@ export default class MainController implements vscode.Disposable {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
             this._event.on(Constants.cmdConnect, () => {
-                void this.runAndLogErrors(this.onNewConnection());
+                void this.runAndLogErrors(this.promptToConnect());
             });
             this.registerCommand(Constants.cmdChangeConnection);
             this._event.on(Constants.cmdChangeConnection, () => {
-                void this.runAndLogErrors(this.onNewConnection());
+                void this.runAndLogErrors(this.promptToConnect());
             });
             this.registerCommand(Constants.cmdDisconnect);
             this._event.on(Constants.cmdDisconnect, () => {
@@ -430,7 +430,7 @@ export default class MainController implements vscode.Disposable {
                 }
                 // create new connection
                 if (!this.connectionManager.isConnected(uri)) {
-                    await this.onNewConnection();
+                    await this.promptToConnect();
                     sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
                 }
 
@@ -2237,9 +2237,9 @@ export default class MainController implements vscode.Disposable {
     /**
      * Let users pick from a list of connections
      */
-    public async onNewConnection(): Promise<boolean> {
+    public async promptToConnect(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            let credentials = await this._connectionMgr.onNewConnection();
+            let credentials = await this._connectionMgr.promptToConnect();
             if (credentials) {
                 try {
                     await this.createObjectExplorerSession(credentials);
@@ -2299,7 +2299,7 @@ export default class MainController implements vscode.Disposable {
 
         // Connect if needed
         if (shouldConnect) {
-            return await this.onNewConnection();
+            return await this.promptToConnect();
         }
 
         return true;
@@ -2399,7 +2399,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (!(await this.checkIsReadyToExecuteQuery())) {
+            if (!(await this.ensureReadyToExecuteQuery())) {
                 return;
             }
 
@@ -2441,7 +2441,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (!(await this.checkIsReadyToExecuteQuery())) {
+            if (!(await this.ensureReadyToExecuteQuery())) {
                 return;
             }
 
@@ -2478,11 +2478,6 @@ export default class MainController implements vscode.Disposable {
                 };
             }
 
-            // create new connection
-            if (!this.connectionManager.isConnected(uri)) {
-                await this.onNewConnection();
-                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
-            }
             // check if current connection is still valid / active - if not, refresh azure account token
             await this._connectionMgr.refreshAzureAccountToken(uri);
 
@@ -2502,20 +2497,29 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Checks if there's an active SQL file that has a connection associated with it.
-     * @returns true if the file is a SQL file and has a connection, false otherwise
+     * Ensures the active editor is a connected SQL file, prompting the user to
+     * change the language mode or pick a connection if needed.
+     * @returns true if the editor is ready to execute queries, false if the user canceled
      */
-    public async checkIsReadyToExecuteQuery(): Promise<boolean> {
-        if (!(await this.checkForActiveSqlFile())) {
+    public async ensureReadyToExecuteQuery(): Promise<boolean> {
+        if (!(await this.ensureActiveSqlFile())) {
             return false;
         }
 
-        if (this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+        const uri = this._vscodeWrapper.activeTextEditorUri;
+        if (this._connectionMgr.isConnected(uri)) {
             return true;
         }
 
-        const result = await this.onNewConnection();
+        if (this._connectionMgr.isConnecting(uri)) {
+            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgConnectionInProgress);
+            return false;
+        }
 
+        const result = await this.promptToConnect();
+        if (result) {
+            sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+        }
         return result;
     }
 
@@ -2584,10 +2588,11 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Checks if the current document is a SQL file
-     * @returns true if the current document is a SQL file, false if not or if there's no active document
+     * Ensures the active document is a SQL file, prompting the user to change
+     * the language mode if it isn't.
+     * @returns true if the active document is (now) a SQL file, false if there's no active document or the user declined
      */
-    private async checkForActiveSqlFile(): Promise<boolean> {
+    private async ensureActiveSqlFile(): Promise<boolean> {
         if (!this.validateTextDocumentHasFocus()) {
             return false;
         }

@@ -1577,6 +1577,7 @@
         "comment": ["{0} is the error number", "{1} is the error message"]
     },
     "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
+    "A connection is already being established. Please wait for it to complete before running a query.": "A connection is already being established. Please wait for it to complete before running a query.",
     "Confirm to clear recent connections list": "Confirm to clear recent connections list",
     "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
     "Choose a connection profile from the list below": "Choose a connection profile from the list below",
