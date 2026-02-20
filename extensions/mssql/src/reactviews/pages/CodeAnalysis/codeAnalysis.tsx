@@ -360,7 +360,7 @@ export const CodeAnalysisDialog = () => {
                         {commonLoc.cancel}
                     </Button>
                     <Button appearance="primary" disabled onClick={() => undefined}>
-                        {commonLoc.save}
+                        {commonLoc.apply}
                     </Button>
                 </div>
             </div>

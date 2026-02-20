@@ -204,7 +204,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await loadPromise;
 
-        expect(updateStateStub.callCount).to.equal(2);
-        expect(loadingStates).to.deep.equal([true, false]);
+        expect(updateStateStub.callCount).to.equal(1);
+        expect(loadingStates).to.deep.equal([false]);
     });
 });

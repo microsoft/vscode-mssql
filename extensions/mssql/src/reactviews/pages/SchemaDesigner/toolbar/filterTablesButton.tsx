@@ -14,7 +14,6 @@ import {
     List,
     Switch,
     Tooltip,
-    ToolbarButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
@@ -245,14 +244,16 @@ export function FilterTablesButton() {
                 <Tooltip
                     content={locConstants.schemaDesigner.filter(selectedTables.length)}
                     relationship="label">
-                    <ToolbarButton
+                    <Button
                         appearance="subtle"
-                        icon={<FluentIcons.Filter20Regular />}
+                        size="small"
+                        icon={<FluentIcons.Filter16Regular />}
                         onClick={() => {
                             loadTables();
                             setIsFilterMenuOpen(!isFilterMenuOpen);
-                        }}
-                    />
+                        }}>
+                        {locConstants.schemaDesigner.filter(selectedTables.length)}
+                    </Button>
                 </Tooltip>
             </MenuTrigger>
 
