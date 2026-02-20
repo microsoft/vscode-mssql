@@ -197,6 +197,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                         context={context}
                         formState={formState}
                         component={component}
+                        componentProps={component.componentProps}
                         idx={index}
                     />
                 </div>
