@@ -6492,6 +6492,12 @@
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>
     </trans-unit>
+    <trans-unit id="mssql.notebooks.changeConnection">
+      <source xml:lang="en">Change Notebook Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.changeDatabase">
+      <source xml:lang="en">Change Notebook Database</source>
+    </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
     </trans-unit>
@@ -6557,6 +6563,9 @@
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
       <source xml:lang="en">Create Database (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.createNotebook">
+      <source xml:lang="en">Create SQL Notebook</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
