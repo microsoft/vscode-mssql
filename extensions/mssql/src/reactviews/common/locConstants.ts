@@ -1942,6 +1942,9 @@ export class LocConstants {
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
+            keymapTooltip: l10n.t(
+                "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.",
+            ),
             keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
             importedConnectionGroups: (count: number) =>
                 count === 1
@@ -2126,8 +2129,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler (Preview): No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",
