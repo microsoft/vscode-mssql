@@ -2120,8 +2120,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler (Preview): No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",
