@@ -4802,13 +4802,13 @@ Erreur :
         <source xml:lang="en">New Password</source>
         <target state="translated">Nouveau mot de passe</target>
       </trans-unit>
-      <trans-unit id="++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746">
-        <source xml:lang="en">New Profiler Session - Enter Name</source>
-        <target state="translated">Nouvelle session Profiler – Nommez-la</target>
+      <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
+        <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
+        <target state="new">New Query Profiler (Preview) - Enter Name</target>
       </trans-unit>
-      <trans-unit id="++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e">
-        <source xml:lang="en">New Profiler Session - Select Template</source>
-        <target state="translated">Nouvelle session de Profiler – Sélectionner un modèle</target>
+      <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
+        <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
+        <target state="new">New Query Profiler (Preview) - Select Template</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -5661,23 +5661,6 @@ Erreur :
         <source xml:lang="en">Profile removed successfully</source>
         <target state="translated">Profil supprimé</target>
       </trans-unit>
-      <trans-unit id="++CODE++d84b637d5440c2f5eb8841e2a95adba3c9c0e125f236247909b1dc9370ccb2e5">
-        <source xml:lang="en">Profiler (Preview)</source>
-        <target state="new">Profiler (Preview)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++7588abb8e4f54abd6334cd99857a2e0afe5837c4ec99b93b71a83f22c41b24e9">
-        <source xml:lang="en">Profiler (Preview) Session Status</source>
-        <target state="new">Profiler (Preview) Session Status</target>
-      </trans-unit>
-      <trans-unit id="++CODE++5640eb18ea3269209f858ed3558038b039748660b2265e258b49180fcda197b3">
-        <source xml:lang="en">Profiler (Preview): No session</source>
-        <target state="new">Profiler (Preview): No session</target>
-      </trans-unit>
-      <trans-unit id="++CODE++51fed159a1fcbc4520e312d333417a1e182a92233045cb4d8cf7a9b35e5dbaf2">
-        <source xml:lang="en">Profiler (Preview): {0}</source>
-        <note>{0} is the file name or session name</note>
-        <target state="new">Profiler (Preview): {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
         <source xml:lang="en">Profiler events exported successfully to {0}</source>
         <note>{0} is the file path</note>
@@ -5809,6 +5792,23 @@ Erreur :
         <source xml:lang="en">Query Plan ({0})</source>
         <note>{0} is the number of query plans</note>
         <target state="translated">Plan de requête ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
+        <source xml:lang="en">Query Profiler (Preview)</source>
+        <target state="new">Query Profiler (Preview)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
+        <source xml:lang="en">Query Profiler (Preview) Session Status</source>
+        <target state="new">Query Profiler (Preview) Session Status</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
+        <source xml:lang="en">Query Profiler (Preview): No session</source>
+        <target state="new">Query Profiler (Preview): No session</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
+        <source xml:lang="en">Query Profiler (Preview): {0}</source>
+        <note>{0} is the file name or session name</note>
+        <target state="new">Query Profiler (Preview): {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -8885,8 +8885,8 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <target state="new">Import Flat File (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Profiler (Preview)</source>
-        <target state="new">Launch Profiler (Preview)</target>
+        <source xml:lang="en">Launch Query Profiler (Preview)</source>
+        <target state="new">Launch Query Profiler (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -8990,10 +8990,6 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <source xml:lang="en">Open New Query and Connect</source>
         <target state="translated">Ouvrir une nouvelle requête et se connecter</target>
       </trans-unit>
-      <trans-unit id="mssql.profiler.openXelFile">
-        <source xml:lang="en">Open Profiler (Preview) XEL File</source>
-        <target state="new">Open Profiler (Preview) XEL File</target>
-      </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
         <target state="translated">Ouvrir la requête</target>
@@ -9001,6 +8997,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       <trans-unit id="mssql.commandPaletteQueryHistory">
         <source xml:lang="en">Open Query History in Command Palette</source>
         <target state="translated">Ouvrir Historique des requêtes dans la palette de commandes</target>
+      </trans-unit>
+      <trans-unit id="mssql.profiler.openXelFile">
+        <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
+        <target state="new">Open Query Profiler (Preview) XEL File</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode</source>
