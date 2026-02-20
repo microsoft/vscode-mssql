@@ -1281,6 +1281,7 @@
     "No customized settings found": "No customized settings found",
     "No customized settings found in Azure Data Studio": "No customized settings found in Azure Data Studio",
     "Looking for Azure Data Studio key bindings, like F5 to execute queries?": "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+    "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.": "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.",
     "Install the MSSQL Database Management Keymap extension": "Install the MSSQL Database Management Keymap extension",
     "{0} connection group imported/{0} is the number of connection groups imported (singular)": {
         "message": "{0} connection group imported",
@@ -1401,8 +1402,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Profiler (Preview): No session": "Profiler (Preview): No session",
-    "Profiler (Preview) Session Status": "Profiler (Preview) Session Status",
+    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
+    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -1587,6 +1588,7 @@
         "comment": ["{0} is the error number", "{1} is the error message"]
     },
     "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
+    "A connection is already being established. Please wait for it to complete before running a query.": "A connection is already being established. Please wait for it to complete before running a query.",
     "Confirm to clear recent connections list": "Confirm to clear recent connections list",
     "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
     "Choose a connection profile from the list below": "Choose a connection profile from the list below",
@@ -2904,10 +2906,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
@@ -2939,11 +2941,11 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
-    "Profiler (Preview): {0}/{0} is the file name or session name": {
-        "message": "Profiler (Preview): {0}",
+    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
+        "message": "Query Profiler (Preview): {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Profiler (Preview)": "Profiler (Preview)",
+    "Query Profiler (Preview)": "Query Profiler (Preview)",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]

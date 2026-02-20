@@ -107,7 +107,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         });
 
         mockContentProvider.onDidCloseTextDocument.callsFake(async (doc: vscode.TextDocument) => {
-            const uri = doc.uri.toString(true);
+            const uri = doc.uri.toString();
             const entry = ensureRunnerState(uri);
             entry.flaggedForDeletion = true;
         });

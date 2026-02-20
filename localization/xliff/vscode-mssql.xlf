@@ -63,6 +63,9 @@
     <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
       <source xml:lang="en">A SQL editor must have focus before executing this command</source>
     </trans-unit>
+    <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
+      <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
       <source xml:lang="en">A database with this name already exists on the server</source>
     </trans-unit>
@@ -1796,6 +1799,9 @@
     </trans-unit>
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
+      <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
     </trans-unit>
     <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
       <source xml:lang="en">Downloading the Data API Builder container image</source>
@@ -3672,11 +3678,11 @@
     <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
       <source xml:lang="en">New Password</source>
     </trans-unit>
-    <trans-unit id="++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746">
-      <source xml:lang="en">New Profiler Session - Enter Name</source>
+    <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
+      <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e">
-      <source xml:lang="en">New Profiler Session - Select Template</source>
+    <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
+      <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
     </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
@@ -4324,19 +4330,6 @@
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
     </trans-unit>
-    <trans-unit id="++CODE++d84b637d5440c2f5eb8841e2a95adba3c9c0e125f236247909b1dc9370ccb2e5">
-      <source xml:lang="en">Profiler (Preview)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7588abb8e4f54abd6334cd99857a2e0afe5837c4ec99b93b71a83f22c41b24e9">
-      <source xml:lang="en">Profiler (Preview) Session Status</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5640eb18ea3269209f858ed3558038b039748660b2265e258b49180fcda197b3">
-      <source xml:lang="en">Profiler (Preview): No session</source>
-    </trans-unit>
-    <trans-unit id="++CODE++51fed159a1fcbc4520e312d333417a1e182a92233045cb4d8cf7a9b35e5dbaf2">
-      <source xml:lang="en">Profiler (Preview): {0}</source>
-      <note>{0} is the file name or session name</note>
-    </trans-unit>
     <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
       <source xml:lang="en">Profiler events exported successfully to {0}</source>
       <note>{0} is the file path</note>
@@ -4438,6 +4431,19 @@
     <trans-unit id="++CODE++bebc9b760db9e5ba55f2632c57871653521c9094223eeb46476e3d7d49218b89">
       <source xml:lang="en">Query Plan ({0})</source>
       <note>{0} is the number of query plans</note>
+    </trans-unit>
+    <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
+      <source xml:lang="en">Query Profiler (Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
+      <source xml:lang="en">Query Profiler (Preview) Session Status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
+      <source xml:lang="en">Query Profiler (Preview): No session</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
+      <source xml:lang="en">Query Profiler (Preview): {0}</source>
+      <note>{0} is the file name or session name</note>
     </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
@@ -6780,7 +6786,7 @@
       <source xml:lang="en">Import Flat File (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-      <source xml:lang="en">Launch Profiler (Preview)</source>
+      <source xml:lang="en">Launch Query Profiler (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
@@ -6854,14 +6860,14 @@
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>
     </trans-unit>
-    <trans-unit id="mssql.profiler.openXelFile">
-      <source xml:lang="en">Open Profiler (Preview) XEL File</source>
-    </trans-unit>
     <trans-unit id="mssql.openQueryHistory">
       <source xml:lang="en">Open Query</source>
     </trans-unit>
     <trans-unit id="mssql.commandPaletteQueryHistory">
       <source xml:lang="en">Open Query History in Command Palette</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.openXelFile">
+      <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
       <source xml:lang="en">Open in Copilot Agent mode</source>
