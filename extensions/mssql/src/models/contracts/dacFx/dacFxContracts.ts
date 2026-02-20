@@ -92,3 +92,12 @@ export namespace GetDeploymentOptionsRequest {
         void
     >("dacfx/getDeploymentOptions");
 }
+
+export namespace GetCodeAnalysisRulesRequest {
+    export const type = new RequestType<
+        mssql.GetCodeAnalysisRulesParams,
+        mssql.GetCodeAnalysisRulesResult,
+        void,
+        void
+    >("dacfx/getCodeAnalysisRules");
+}

@@ -28,6 +28,7 @@ export const CodeAnalysisStateProvider: React.FC<{ children: React.ReactNode }> 
     const value = useMemo<CodeAnalysisContextProps>(
         () => ({
             close: () => extensionRpc.action("close", {}),
+            closeMessage: () => extensionRpc.action("closeMessage", {}),
             extensionRpc,
             themeKind,
         }),

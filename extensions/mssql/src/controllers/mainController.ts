@@ -2819,6 +2819,7 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._vscodeWrapper,
             projectFilePath,
+            this.dacFxService,
         );
 
         codeAnalysisWebView.revealToForeground();
