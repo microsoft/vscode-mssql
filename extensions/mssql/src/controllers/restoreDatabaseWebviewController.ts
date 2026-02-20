@@ -320,13 +320,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                     ?.filter((_, index) => payload.selectedBackupSets.includes(index))
                     .map((backupSet) => backupSet.id) ?? [];
 
-            if (restoreViewModel.selectedBackupSets.length) {
-                state.formState.closeExistingConnections = true;
-            } else {
-                state.formState.closeExistingConnections =
-                    restoreViewModel.restorePlan.planDetails.closeExistingConnections.defaultValue;
-            }
-
             return this.updateViewModel(restoreViewModel, state);
         });
 
