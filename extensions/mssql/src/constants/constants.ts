@@ -136,6 +136,7 @@ export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigrati
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
+export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
 export const cmdFlatFileImport = "mssql.flatFileImport";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
