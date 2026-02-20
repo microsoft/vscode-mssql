@@ -15,12 +15,7 @@ runs:
         sudo service xvfb start
 
     - name: MSSQL - Install tools
-      shell: bash
-      run: |
-        echo "Installing Yarn"
-        npm install --global yarn@1.22.19
-        echo "Installing VSCE"
-        npm install --global @vscode/vsce@3.7.1
+      uses: ./.github/actions/setup-tools
 
     - name: MSSQL - Install extension dependencies
       shell: bash

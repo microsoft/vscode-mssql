@@ -18,17 +18,8 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-
-      - name: Install tools
-        run: |
-          echo "Installing Yarn"
-          npm install --global yarn@1.22.19
-          echo "Installing VSCE"
-          npm install --global @vscode/vsce@3.7.1
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
 
       - name: Install root dependencies
         run: |

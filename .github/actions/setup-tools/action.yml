@@ -1,0 +1,18 @@
+name: Setup Build Tools
+description: Sets up Node.js, Yarn, and VSCE with consistent versions.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: "22"
+
+    - name: Install Yarn and VSCE
+      shell: bash
+      run: |
+        echo "Installing Yarn 1.22.19"
+        npm install --global yarn@1.22.19
+        echo "Installing VSCE 3.7.1"
+        npm install --global @vscode/vsce@3.7.1
