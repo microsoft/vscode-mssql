@@ -194,6 +194,7 @@ export const Profiler: React.FC = () => {
     const detailsPanelRef = useRef<ImperativePanelHandle | null>(null);
     const [isDetailsPanelMaximized, setIsDetailsPanelMaximized] = useState(false);
     const showDetailsPanel = selectedEvent !== undefined;
+    const resizeRafRef = useRef<number | null>(null);
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | undefined>(undefined);
     const autoScrollRef = useRef(autoScroll);
@@ -224,6 +225,42 @@ export const Profiler: React.FC = () => {
     useEffect(() => {
         isPopoverOpenRef.current = isPopoverOpen;
     }, [isPopoverOpen]);
+
+    /**
+     * Schedules a deferred full SlickGrid resize using requestAnimationFrame.
+     * Uses resizerService.resizeGrid() which:
+     *   1. Reads the container's (#profilerGridContainer) current inner height
+     *   2. Sets the grid DOM element's style.height to match
+     *   3. Calls grid.resizeCanvas() to recalculate the internal viewport
+     * This is the same resize path that fires on window resize / container
+     * observation and is the only way to get the grid to shrink/grow its
+     * outer element when the available space changes.
+     *
+     * Multiple calls within the same animation frame are coalesced.
+     */
+    const scheduleGridResize = useCallback(() => {
+        if (resizeRafRef.current !== null) {
+            cancelAnimationFrame(resizeRafRef.current);
+        }
+        resizeRafRef.current = requestAnimationFrame(() => {
+            resizeRafRef.current = null;
+            const resizerService = reactGridRef.current?.resizerService;
+            if (resizerService) {
+                // Full resize: measure container → set grid height → resizeCanvas
+                void resizerService.resizeGrid();
+            }
+        });
+    }, []);
+
+    // Clean up pending rAF on unmount
+    useEffect(() => {
+        return () => {
+            if (resizeRafRef.current !== null) {
+                cancelAnimationFrame(resizeRafRef.current);
+            }
+        };
+    }, []);
+
     // Resize grid panel when details panel visibility changes
     useEffect(() => {
         if (gridPanelRef.current) {
@@ -237,7 +274,9 @@ export const Profiler: React.FC = () => {
                 setIsDetailsPanelMaximized(false);
             }
         }
-    }, [showDetailsPanel]);
+        // Ensure SlickGrid redraws after the panel layout settles
+        scheduleGridResize();
+    }, [showDetailsPanel, scheduleGridResize]);
 
     // Handle clear when clearGeneration changes (ensures RingBuffer is cleared before we reset local index)
     useEffect(() => {
@@ -750,6 +789,9 @@ export const Profiler: React.FC = () => {
             autoResize: {
                 container: "#profilerGridContainer",
                 calculateAvailableSizeBy: "container",
+                resizeDetection: "container",
+                bottomPadding: 0,
+                minHeight: 50,
             },
             enableAutoResize: true,
             enableCellNavigation: true,
@@ -908,16 +950,18 @@ export const Profiler: React.FC = () => {
             if (isDetailsPanelMaximized) {
                 detailsPanelRef.current.resize(50);
             } else {
-                detailsPanelRef.current.resize(95);
+                detailsPanelRef.current.resize(80);
             }
             setIsDetailsPanelMaximized(!isDetailsPanelMaximized);
+            scheduleGridResize();
         }
-    }, [isDetailsPanelMaximized]);
+    }, [isDetailsPanelMaximized, scheduleGridResize]);
 
     const handleCloseDetailsPanel = useCallback(() => {
         setIsDetailsPanelMaximized(false);
         closeDetailsPanel();
-    }, [closeDetailsPanel]);
+        scheduleGridResize();
+    }, [closeDetailsPanel, scheduleGridResize]);
 
     // Handle row selection (click or keyboard navigation) to show details in the panel
     const handleRowSelection = useCallback(
@@ -1012,8 +1056,11 @@ export const Profiler: React.FC = () => {
                     onClear={handlePopoverClear}
                 />
             )}
-            <PanelGroup direction="vertical" className={classes.panelGroup}>
-                <Panel ref={gridPanelRef} defaultSize={100} minSize={10}>
+            <PanelGroup
+                direction="vertical"
+                className={classes.panelGroup}
+                onLayout={scheduleGridResize}>
+                <Panel ref={gridPanelRef} defaultSize={100} minSize={20}>
                     <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                         <SlickgridReact
                             gridId="profilerGrid"
@@ -1033,7 +1080,8 @@ export const Profiler: React.FC = () => {
                         <Panel
                             ref={detailsPanelRef}
                             defaultSize={50}
-                            minSize={10}
+                            minSize={15}
+                            maxSize={80}
                             className={classes.detailsPanelContainer}>
                             <ProfilerDetailsPanel
                                 selectedEvent={selectedEvent}
@@ -1127,10 +1175,14 @@ const useStyles = makeStyles({
         flexDirection: "column",
     },
     resizeHandle: {
-        height: "4px",
+        height: "6px",
         backgroundColor: "var(--vscode-editorWidget-border)",
         cursor: "row-resize",
+        flexShrink: 0,
         "&:hover": {
+            backgroundColor: "var(--vscode-focusBorder)",
+        },
+        "&:active": {
             backgroundColor: "var(--vscode-focusBorder)",
         },
     },
