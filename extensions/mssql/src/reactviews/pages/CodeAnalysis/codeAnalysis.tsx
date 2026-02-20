@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import {
     Button,
     Checkbox,
     Dropdown,
+    Option,
     Spinner,
     Table,
     TableBody,
@@ -18,20 +19,24 @@ import {
     Text,
     makeStyles,
     tokens,
-    Option,
 } from "@fluentui/react-components";
 import { CodeAnalysisContext } from "./codeAnalysisStateProvider";
 import { useCodeAnalysisSelector } from "./codeAnalysisSelector";
 import { LocConstants } from "../../common/locConstants";
-import { CodeAnalysisRuleSeverity } from "../../../sharedInterfaces/codeAnalysis";
+import {
+    SqlCodeAnalysisRule,
+    CodeAnalysisRuleSeverity,
+} from "../../../sharedInterfaces/codeAnalysis";
+import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { DialogHeader } from "../../common/dialogHeader.component";
+import { DialogMessage } from "../../common/dialogMessage";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
-
-const codeAnalysisSeverityOptions = Object.values(CodeAnalysisRuleSeverity);
+const SEVERITY_OPTIONS = Object.values(CodeAnalysisRuleSeverity);
 
 const useStyles = makeStyles({
+    // --- Layout ---
     root: {
         display: "flex",
         flexDirection: "column",
@@ -47,6 +52,8 @@ const useStyles = makeStyles({
         minHeight: 0,
         overflow: "auto",
     },
+
+    // --- Table ---
     table: {
         width: "100%",
         borderCollapse: "collapse",
@@ -55,21 +62,53 @@ const useStyles = makeStyles({
     tableHeaderCell: {
         textAlign: "left",
         fontWeight: tokens.fontWeightSemibold,
-        padding: "8px",
+        padding: "3px 8px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         backgroundColor: tokens.colorNeutralBackground3,
     },
-    checkboxCell: {
-        width: "44px",
-    },
     severityCell: {
-        width: "180px",
+        width: "30%",
     },
     tableCell: {
-        padding: "8px",
+        padding: "2px 8px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         fontSize: tokens.fontSizeBase200,
     },
+
+    // --- Category row ---
+    groupHeaderCell: {
+        padding: "3px 8px",
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground2,
+    },
+    categoryHeaderCellClickable: {
+        cursor: "pointer",
+        userSelect: "none",
+    },
+    categoryHeaderContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+    categoryToggleButton: {
+        minWidth: "20px",
+        padding: "0px 2px",
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightSemibold,
+        lineHeight: "1",
+    },
+
+    // --- Rule row ---
+    childRuleContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        paddingLeft: "56px",
+    },
+
+    // --- States ---
     spinnerContainer: {
         display: "flex",
         justifyContent: "center",
@@ -81,6 +120,8 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
     },
+
+    // --- Footer ---
     footer: {
         display: "flex",
         flexDirection: "row",
@@ -103,40 +144,86 @@ const useStyles = makeStyles({
     },
 });
 
-function CodeAnalysisDialog() {
+export const CodeAnalysisDialog = () => {
     const styles = useStyles();
     const locConstants = LocConstants.getInstance();
     const loc = locConstants.codeAnalysis;
     const commonLoc = locConstants.common;
     const schemaCompareLoc = locConstants.schemaCompare;
-    const context = useContext(CodeAnalysisContext);
-    const headerColumns = [
-        // Column: rule enabled state
-        {
-            key: "enabledRule",
-            label: loc.enabled,
-            className: `${styles.tableHeaderCell} ${styles.checkboxCell}`,
-        },
-        // Column: rule identifier and display name
-        { key: "rule", label: loc.rule, className: styles.tableHeaderCell },
-        // Column: configured rule severity
-        {
-            key: "severity",
-            label: loc.severity,
-            className: `${styles.tableHeaderCell} ${styles.severityCell}`,
-        },
-    ];
 
+    const context = useContext(CodeAnalysisContext);
     const projectName = useCodeAnalysisSelector((s) => s.projectName);
     const isLoading = useCodeAnalysisSelector((s) => s.isLoading);
     const rules = useCodeAnalysisSelector((s) => s.rules);
+    const message = useCodeAnalysisSelector((s) => s.message);
+
+    const [localRules, setLocalRules] = useState<SqlCodeAnalysisRule[]>(rules);
+    const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        setLocalRules(rules);
+    }, [rules]);
+
+    // --- Grouping ---
+    const groupedRules = new Map<string, SqlCodeAnalysisRule[]>();
+    localRules.forEach((rule) => {
+        const category = rule.category;
+        const bucket = groupedRules.get(category) ?? [];
+        bucket.push(rule);
+        groupedRules.set(category, bucket);
+    });
+    const groupedRuleEntries = Array.from(groupedRules.entries()).sort(([a], [b]) =>
+        a.localeCompare(b),
+    );
+
+    // --- Handlers ---
+    const getCategoryCheckedState = (
+        categoryRules: SqlCodeAnalysisRule[],
+    ): true | false | "mixed" => {
+        if (categoryRules.every((r) => r.enabled)) return true;
+        if (categoryRules.some((r) => r.enabled)) return "mixed";
+        return false;
+    };
+
+    const toggleRule = (ruleId: string, enabled: boolean) => {
+        setLocalRules((prev) => prev.map((r) => (r.ruleId === ruleId ? { ...r, enabled } : r)));
+    };
+
+    const toggleCategoryRules = (category: string, enabled: boolean) => {
+        setLocalRules((prev) => prev.map((r) => (r.category === category ? { ...r, enabled } : r)));
+    };
+
+    const toggleCategoryCollapsed = (category: string) => {
+        setCollapsedCategories((prev) => {
+            const next = new Set(prev);
+            next.has(category) ? next.delete(category) : next.add(category);
+            return next;
+        });
+    };
+
+    const changeSeverity = (ruleId: string, severity: string) => {
+        setLocalRules((prev) =>
+            prev.map((r) =>
+                r.ruleId === ruleId
+                    ? { ...r, severity, enabled: severity !== CodeAnalysisRuleSeverity.Disabled }
+                    : r,
+            ),
+        );
+    };
+
+    const loadingSpinner = (
+        <div className={styles.spinnerContainer}>
+            <Spinner label={loc.loadingCodeAnalysisRules} />
+        </div>
+    );
+
     if (!context) {
-        return <div>Loading...</div>;
+        return loadingSpinner;
     }
 
     return (
         <div className={styles.root}>
-            {/* Header */}
+            {/* Dialog Header */}
             <DialogHeader
                 iconLight={codeAnalysisIconLight}
                 iconDark={codeAnalysisIconDark}
@@ -144,47 +231,118 @@ function CodeAnalysisDialog() {
                 themeKind={context.themeKind}
             />
 
+            {/* Error message bar */}
+            {message && (
+                <DialogMessage
+                    message={message}
+                    onMessageButtonClicked={() => {}}
+                    onCloseMessage={() => context.closeMessage()}
+                />
+            )}
+
             {/* Rules table */}
             <div className={styles.rulesContainer}>
                 {isLoading ? (
-                    <div className={styles.spinnerContainer}>
-                        <Spinner label={loc.loadingCodeAnalysisRules} />
-                    </div>
-                ) : rules.length === 0 ? (
+                    loadingSpinner
+                ) : localRules.length === 0 ? (
                     <div className={styles.emptyState}>{loc.noCodeAnalysisRulesAvailable}</div>
                 ) : (
                     <Table className={styles.table}>
+                        <colgroup>
+                            <col />
+                            <col className={styles.severityCell} />
+                        </colgroup>
                         <TableHeader>
                             <TableRow>
-                                {headerColumns.map((column) => (
-                                    <TableHeaderCell key={column.key} className={column.className}>
-                                        {column.label}
-                                    </TableHeaderCell>
-                                ))}
+                                <TableHeaderCell className={styles.tableHeaderCell}>
+                                    {loc.rules}
+                                </TableHeaderCell>
+                                <TableHeaderCell
+                                    className={`${styles.tableHeaderCell} ${styles.severityCell}`}>
+                                    {loc.severity}
+                                </TableHeaderCell>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {rules.map((rule) => (
-                                <TableRow key={rule.ruleId}>
-                                    {/* Cell: Whether the current rule is enabled */}
-                                    <TableCell className={styles.tableCell}>
-                                        <Checkbox checked={rule.enabled} disabled />
-                                    </TableCell>
-                                    {/* Cell: Rule */}
-                                    <TableCell className={styles.tableCell}>
-                                        {rule.shortRuleId}: {rule.displayName}
-                                    </TableCell>
-                                    {/* Cell: Configured severity for the current rule */}
-                                    <TableCell className={styles.tableCell}>
-                                        <Dropdown value={rule.severity}>
-                                            {codeAnalysisSeverityOptions.map((severity) => (
-                                                <Option key={severity} value={severity}>
-                                                    {severity}
-                                                </Option>
-                                            ))}
-                                        </Dropdown>
-                                    </TableCell>
-                                </TableRow>
+                            {groupedRuleEntries.map(([category, categoryRules]) => (
+                                <Fragment key={category}>
+                                    {/* Category row */}
+                                    <TableRow>
+                                        <TableCell
+                                            className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
+                                            onDoubleClick={() => toggleCategoryCollapsed(category)}>
+                                            <div className={styles.categoryHeaderContent}>
+                                                <Button
+                                                    appearance="subtle"
+                                                    className={styles.categoryToggleButton}
+                                                    icon={
+                                                        collapsedCategories.has(category) ? (
+                                                            <ChevronRight20Regular />
+                                                        ) : (
+                                                            <ChevronDown20Regular />
+                                                        )
+                                                    }
+                                                    onDoubleClick={(e) => e.stopPropagation()}
+                                                    onClick={() =>
+                                                        toggleCategoryCollapsed(category)
+                                                    }
+                                                />
+                                                <Checkbox
+                                                    checked={getCategoryCheckedState(categoryRules)}
+                                                    onDoubleClick={(e) => e.stopPropagation()}
+                                                    onChange={(_e, data) =>
+                                                        toggleCategoryRules(
+                                                            category,
+                                                            !!data.checked,
+                                                        )
+                                                    }
+                                                />
+                                                <Text weight="semibold">{category}</Text>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className={styles.groupHeaderCell} />
+                                    </TableRow>
+
+                                    {/* Rule rows */}
+                                    {!collapsedCategories.has(category) &&
+                                        categoryRules.map((rule) => (
+                                            <TableRow key={rule.ruleId}>
+                                                <TableCell className={styles.tableCell}>
+                                                    <div className={styles.childRuleContent}>
+                                                        <Checkbox
+                                                            checked={rule.enabled}
+                                                            onChange={(_e, data) =>
+                                                                toggleRule(
+                                                                    rule.ruleId,
+                                                                    !!data.checked,
+                                                                )
+                                                            }
+                                                        />
+                                                        <Text>
+                                                            {rule.shortRuleId}: {rule.displayName}
+                                                        </Text>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className={styles.tableCell}>
+                                                    <Dropdown
+                                                        value={rule.severity}
+                                                        selectedOptions={[rule.severity]}
+                                                        onOptionSelect={(_e, data) =>
+                                                            changeSeverity(
+                                                                rule.ruleId,
+                                                                data.optionValue ?? rule.severity,
+                                                            )
+                                                        }>
+                                                        {SEVERITY_OPTIONS.map((severity) => (
+                                                            <Option key={severity} value={severity}>
+                                                                {severity}
+                                                            </Option>
+                                                        ))}
+                                                    </Dropdown>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                </Fragment>
                             ))}
                         </TableBody>
                     </Table>
@@ -193,7 +351,7 @@ function CodeAnalysisDialog() {
 
             {/* Footer */}
             <div className={styles.footer}>
-                <Text className={styles.statusText}>{loc.rulesCount(rules?.length ?? 0)}</Text>
+                <Text className={styles.statusText}>{loc.rulesCount(localRules?.length ?? 0)}</Text>
                 <div className={styles.footerButtons}>
                     <Button appearance="subtle" disabled onClick={() => undefined}>
                         {schemaCompareLoc.reset}
@@ -208,7 +366,7 @@ function CodeAnalysisDialog() {
             </div>
         </div>
     );
-}
+};
 
 export default function CodeAnalysisPage() {
     return <CodeAnalysisDialog />;

@@ -34,8 +34,8 @@ export const enum DeploymentScenario {
 /**
  * Code analysis rule severity levels.
  */
-export const enum RuleSeverity {
-    Error = "Error",
-    Warning = "Warning",
-    None = "None",
-}
+export const CodeAnalysisRuleSeverity = {
+    Error: "Error",
+    Warning: "Warning",
+    Disabled: "Disabled",
+} as const;

@@ -210,8 +210,7 @@ export class LocConstants {
                     args: [ruleCount],
                     comment: ["{0} is the number of code analysis rules"],
                 }),
-            enabled: l10n.t("Enabled"),
-            rule: l10n.t("Rule"),
+            rules: l10n.t("Rules"),
             severity: l10n.t("Severity"),
         };
     }

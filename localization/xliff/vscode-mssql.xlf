@@ -2417,6 +2417,9 @@
     <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
       <source xml:lang="en">Failed to list databases</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b231621413a53ac597977d0754cfc55a3063d534bb85a873370e98a9b8856dd">
+      <source xml:lang="en">Failed to load code analysis rules</source>
+    </trans-unit>
     <trans-unit id="++CODE++d1167662f9f4ae95339878cfc71934cb03fce7f402dd7648b10e281fad1a6c4e">
       <source xml:lang="en">Failed to load data: {0}</source>
       <note>{0} is the error message</note>
@@ -4708,11 +4711,11 @@
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
     </trans-unit>
-    <trans-unit id="++CODE++62845f31a2fe00be3ebaaeb93f5b27af82ab81dfcbaa1871c76f596cd98cf3c9">
-      <source xml:lang="en">Rule</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
       <source xml:lang="en">Rule name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3">
+      <source xml:lang="en">Rules</source>
     </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>

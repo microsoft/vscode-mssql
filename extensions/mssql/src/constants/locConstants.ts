@@ -1477,6 +1477,7 @@ export class PublishProject {
 
 export class CodeAnalysis {
     public static Title = l10n.t("Code Analysis");
+    public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
 }
 
 export class SchemaCompare {

@@ -203,8 +203,7 @@
         "message": "{0} rules",
         "comment": ["{0} is the number of code analysis rules"]
     },
-    "Enabled": "Enabled",
-    "Rule": "Rule",
+    "Rules": "Rules",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -1513,6 +1512,7 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
+    "Enabled": "Enabled",
     "Disabled": "Disabled",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
@@ -2292,6 +2292,7 @@
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Code Analysis": "Code Analysis",
+    "Failed to load code analysis rules": "Failed to load code analysis rules",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

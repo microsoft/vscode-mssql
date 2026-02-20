@@ -11,13 +11,15 @@ import {
     CodeAnalysisState,
     CodeAnalysisReducers,
     SqlCodeAnalysisRule,
+    CodeAnalysisRuleSeverity,
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
-import { RuleSeverity } from "../enums";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { DacFxService } from "../services/dacFxService";
+import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
 
 /**
  * Controller for the Code Analysis dialog webview
@@ -30,6 +32,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        private dacFxService: DacFxService,
     ) {
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
 
@@ -74,6 +77,17 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
         void this.loadRules();
     }
 
+    private normalizeSeverity(severity: string | undefined): string {
+        switch (severity?.toLowerCase()) {
+            case "error":
+                return CodeAnalysisRuleSeverity.Error;
+            case "none":
+                return CodeAnalysisRuleSeverity.Disabled;
+            default:
+                return CodeAnalysisRuleSeverity.Warning;
+        }
+    }
+
     /**
      * Register RPC handlers for webview actions
      */
@@ -84,6 +98,10 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             this.panel.dispose();
             return state;
         });
+        // Clear message bar
+        this.registerReducer("closeMessage", async (state) => {
+            return { ...state, message: undefined };
+        });
     }
 
     /**
@@ -92,19 +110,33 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     private async loadRules(): Promise<void> {
         try {
             this.state.isLoading = true;
-            this.state.errorMessage = undefined;
+            this.state.message = undefined;
             this.updateState();
 
-            // Placeholder data until code analysis rules are loaded from the service.
-            const rules: SqlCodeAnalysisRule[] = [
-                {
-                    ruleId: "Microsoft.Rules.Data.SR0001",
-                    shortRuleId: "SR0001",
-                    displayName: "Avoid SELECT *",
-                    severity: RuleSeverity.Warning,
-                    enabled: true,
-                },
-            ];
+            const rulesResult = await this.dacFxService.getCodeAnalysisRules();
+            if (!rulesResult.success) {
+                this.state.isLoading = false;
+                this.state.message = {
+                    message: rulesResult.errorMessage || Loc.failedToLoadRules,
+                    intent: "error",
+                } as DialogMessageSpec;
+                this.updateState();
+                return;
+            }
+
+            const rules: SqlCodeAnalysisRule[] = (rulesResult.rules ?? []).map((rule) => {
+                const severity = this.normalizeSeverity(rule.severity);
+                return {
+                    ruleId: rule.ruleId,
+                    shortRuleId: rule.shortRuleId,
+                    displayName: rule.displayName,
+                    severity,
+                    enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
+                    category: rule.category,
+                    description: rule.description,
+                    ruleScope: rule.ruleScope,
+                };
+            });
 
             this.state.rules = rules;
             this.state.isLoading = false;
@@ -112,11 +144,14 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
 
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisRulesLoaded, {
                 ruleCount: rules.length.toString(),
-                categoryCount: "0",
+                categoryCount: new Set(rules.map((rule) => rule.category || "")).size.toString(),
             });
         } catch (error) {
             this.state.isLoading = false;
-            this.state.errorMessage = getErrorMessage(error);
+            this.state.message = {
+                message: getErrorMessage(error),
+                intent: "error",
+            } as DialogMessageSpec;
             this.updateState();
 
             sendErrorEvent(
