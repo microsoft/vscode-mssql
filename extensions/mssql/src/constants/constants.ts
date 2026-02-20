@@ -137,6 +137,10 @@ export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const cmdFlatFileImport = "mssql.flatFileImport";
+export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
+export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
+export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
+
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";

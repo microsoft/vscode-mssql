@@ -279,5 +279,8 @@
     "mssql.profiler.xelEditorDisplayName": "SQL Server Extended Events Log",
     "mssql.backupDatabase": "Backup Database (Preview)",
     "mssql.restoreDatabase": "Restore Database (Preview)",
-    "mssql.flatFileImport": "Import Flat File (Preview)"
+    "mssql.flatFileImport": "Import Flat File (Preview)",
+    "mssql.notebooks.createNotebook": "Create SQL Notebook",
+    "mssql.notebooks.changeDatabase": "Change Notebook Database",
+    "mssql.notebooks.changeConnection": "Change Notebook Connection"
 }

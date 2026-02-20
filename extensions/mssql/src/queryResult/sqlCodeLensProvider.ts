@@ -29,6 +29,11 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         document: vscode.TextDocument,
         _token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
+        // Defer to notebook-specific code lens provider for notebook cells
+        if (document.uri.scheme === "vscode-notebook-cell") {
+            return [];
+        }
+
         const shouldShowActiveConnection = vscode.workspace
             .getConfiguration()
             .get<boolean>(Constants.configShowActiveConnectionAsCodeLensSuggestion);
