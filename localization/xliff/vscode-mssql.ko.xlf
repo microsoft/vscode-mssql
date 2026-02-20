@@ -13,27 +13,27 @@
       <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
         <source xml:lang="en">'{0}' started.</source>
         <note>{0} is the service name</note>
-        <target state="new">'{0}' started.</target>
+        <target state="translated">'{0}'이(가) 시작되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++77d57e39b407cbca2770fb31b55c148c757f4f84d1e2ce824c7d5cf9412a6298">
         <source xml:lang="en">&gt;</source>
-        <target state="new">&gt;</target>
+        <target state="translated">&gt;</target>
       </trans-unit>
       <trans-unit id="++CODE++0dd9aaac823c795196de2c13a409f5adf2652723f32be4c32c2831fcf47fdf51">
         <source xml:lang="en">&gt;=</source>
-        <target state="new">&gt;=</target>
+        <target state="translated">&gt;=</target>
       </trans-unit>
       <trans-unit id="++CODE++3885ff5ae3386f58e4f1f1363d4863d8c9a5f280fe15e346ad7c78a09529637a">
         <source xml:lang="en">&lt;</source>
-        <target state="new">&lt;</target>
+        <target state="translated">&lt;</target>
       </trans-unit>
       <trans-unit id="++CODE++5db520ece127b89d67ed03b42b26dfc85e0e9e55c8e16e33e58bf2fc7a484b23">
         <source xml:lang="en">&lt;&gt;</source>
-        <target state="new">&lt;&gt;</target>
+        <target state="translated">&lt;&gt;</target>
       </trans-unit>
       <trans-unit id="++CODE++53047fb5d5fdae95544c86b244ac7919f3bcb3fed509de00e7fd91c093698974">
         <source xml:lang="en">&lt;=</source>
-        <target state="new">&lt;=</target>
+        <target state="translated">&lt;=</target>
       </trans-unit>
       <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
         <source xml:lang="en">&lt;Default&gt;</source>
@@ -78,11 +78,15 @@
       </trans-unit>
       <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
         <source xml:lang="en">=</source>
-        <target state="new">=</target>
+        <target state="translated">=</target>
       </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         <target state="translated">이 명령을 실행하기 전에 SQL 편집기에 포커스가 있어야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
+        <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
+        <target state="new">A connection is already being established. Please wait for it to complete before running a query.</target>
       </trans-unit>
       <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
         <source xml:lang="en">A database with this name already exists on the server</source>
@@ -126,7 +130,7 @@
       </trans-unit>
       <trans-unit id="++CODE++52ae6aab4cdc82d0d33bc1d81946e10fb184e12e0d7e77149aa6b5d7dc60bd3b">
         <source xml:lang="en">Access to the XEL file was denied.</source>
-        <target state="new">Access to the XEL file was denied.</target>
+        <target state="translated">XEL 파일에 대한 액세스가 거부되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -156,7 +160,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
         <source xml:lang="en">Active filters:</source>
-        <target state="new">Active filters:</target>
+        <target state="translated">활성 필터:</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -272,7 +276,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
         <source xml:lang="en">Advanced restore options</source>
-        <target state="new">Advanced restore options</target>
+        <target state="translated">고급 복원 옵션</target>
       </trans-unit>
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
@@ -439,7 +443,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++34ab1d94f3f0ea49596bfd3fdbba6358a366ecd259be4bf46543ee58caad0614">
         <source xml:lang="en">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</source>
-        <target state="new">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</target>
+        <target state="translated">현재 세션을 닫으시겠어요? 캡처된 모든 이벤트가 사라집니다. 닫기 전에 도구 모음에서 이벤트를 CSV로 내보낼 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
         <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -667,7 +671,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
-        <target state="new">Backup File</target>
+        <target state="translated">백업 파일</target>
       </trans-unit>
       <trans-unit id="++CODE++88c034e88df7490dfba55dcc2b7bb315853dfd7c098859b0ffc57305276067a0">
         <source xml:lang="en">Backup Files</source>
@@ -691,7 +695,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++55f5bbd2445f982b9d79752bd9a713b9a00708684504bdd581d4db0be4476091">
         <source xml:lang="en">Backup sets to restore</source>
-        <target state="new">Backup sets to restore</target>
+        <target state="translated">복원할 백업 세트</target>
       </trans-unit>
       <trans-unit id="++CODE++c29bc3a4b89534cd7d948252743e5d9efa498244ba82fb6839a8ceaa26b12c41">
         <source xml:lang="en">Backup the tail of the log</source>
@@ -720,7 +724,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++24bafb0b2477f80fafd003f8104d90cb0a4ccf72dd30290872be59d153168476">
         <source xml:lang="en">Blob</source>
-        <target state="new">Blob</target>
+        <target state="translated">Blob</target>
       </trans-unit>
       <trans-unit id="++CODE++3bf71473ff495ab4a9690ac9038833f16a653b91035bc92de727390d919f5854">
         <source xml:lang="en">Blob Container</source>
@@ -732,11 +736,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++1b44eb64ce4dfb86012871e80751e6bb4dbba15132ea65db6b5b4c16f0d3c9f2">
         <source xml:lang="en">Blob does not contain a valid database backup</source>
-        <target state="new">Blob does not contain a valid database backup</target>
+        <target state="translated">Blob에 유효한 데이터베이스 백업이 포함되어 있지 않습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++7385d063677f43714fbd217363885c3059c6fce8bc61082e7a96e22a2d0996dc">
         <source xml:lang="en">Blob is required</source>
-        <target state="new">Blob is required</target>
+        <target state="translated">Blob이 필요함</target>
       </trans-unit>
       <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
         <source xml:lang="en">Block this extension from accessing your connections</source>
@@ -748,7 +752,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ecc77aec6ef08eda8ac83e4a4062c7509261b6fadd0f7939f483aed310bea9e3">
         <source xml:lang="en">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
-        <target state="new">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</target>
+        <target state="translated">Azure Data Studio에 저장된 연결, 그룹 및 구성을 MSSQL 확장으로 가져와 친숙한 환경을 경험해 보세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
         <source xml:lang="en">Browse</source>
@@ -768,7 +772,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c8bb105f01017ced7bd39ba3dd2e7a2d276f16f202f5c29a2c2e51ff0eb31fc3">
         <source xml:lang="en">Browse files</source>
-        <target state="new">Browse files</target>
+        <target state="translated">파일 찾아보기</target>
       </trans-unit>
       <trans-unit id="++CODE++2f95c7d9dd257b91376a5bd75a57121de6f9b0cabcb2dbc09591aed6c206ee43">
         <source xml:lang="en">Browse forvpath</source>
@@ -804,7 +808,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ec5bba01c0ecebae4bcbcf149b4aa52c4eea045c03875f558224d2965fb0dd8d">
         <source xml:lang="en">CSV/TXT Files (*.csv;*.txt)</source>
-        <target state="new">CSV/TXT Files (*.csv;*.txt)</target>
+        <target state="translated">CSV/TXT 파일(*.csv, *.txt)</target>
       </trans-unit>
       <trans-unit id="++CODE++d9a998bc5b0b1a8720c33d843590e55895977f19f6d8f56e440c778b673ab17a">
         <source xml:lang="en">Calling tool: {0} with {1}.</source>
@@ -849,7 +853,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++4dfa72354bcd12e5cf7c9f4bf75d9136658d8614d8372e2191526fd10e855efd">
         <source xml:lang="en">Cannot change session while active</source>
-        <target state="new">Cannot change session while active</target>
+        <target state="translated">세션이 활성 상태일 때는 변경할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++78caadaa3d12c39131d70d9b85b2aa5b4fdc874138c7fa884349a843312e02c7">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -872,7 +876,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++33006e40439b93db7f082f388bbbb20f56d76f840597c3929027c24aa07fd9eb">
         <source xml:lang="en">Cannot generate script without a restore plan</source>
-        <target state="new">Cannot generate script without a restore plan</target>
+        <target state="translated">복원 계획이 없으면 스크립트를 생성할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++01adf8aae81a6ef23bd48a183bc221def8cebdf0dc5490668df49f07e3eb3615">
         <source xml:lang="en">Cannot include {0}. Excluded dependents exist</source>
@@ -952,7 +956,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a49c556a0c0853ed9f434360953ce0088ffa041d83bff7c0ba57f7ce9c668186">
         <source xml:lang="en">Changes view mode</source>
-        <target state="new">Changes view mode</target>
+        <target state="translated">보기 모드 변경</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
@@ -986,11 +990,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c4d0dafd128387fb1c4553a2fe77c141f1fffdf1f10f4d605e40b8517d80c56d">
         <source xml:lang="en">Checking Docker engine</source>
-        <target state="new">Checking Docker engine</target>
+        <target state="translated">Docker 엔진을 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++a50cb68f78c39490b180c6145c6ed95e4a691961e5aa7b8253ce9567281c73ba">
         <source xml:lang="en">Checking Docker installation</source>
-        <target state="new">Checking Docker installation</target>
+        <target state="translated">Docker 설치를 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++75fa3318f66944d01336b10cbb1e3c08afc6e230d849ee6fff4f4dba7f19489c">
         <source xml:lang="en">Checking Docker prerequisites...</source>
@@ -998,7 +1002,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a03fe5c6bd995e5dd1d1f1972329ecc85747bd329900c6fbd46344bd110d9a7d">
         <source xml:lang="en">Checking container readiness</source>
-        <target state="new">Checking container readiness</target>
+        <target state="translated">컨테이너 준비 상태를 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
         <source xml:lang="en">Checking if Docker is installed</source>
@@ -1096,7 +1100,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++209d178dae312190122119feaf037ac343e2cb4f298ee03d7254fcc71da5e50a">
         <source xml:lang="en">Clear All Filters</source>
-        <target state="new">Clear All Filters</target>
+        <target state="translated">모든 필터 지우기</target>
       </trans-unit>
       <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
         <source xml:lang="en">Clear Data</source>
@@ -1104,7 +1108,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++910bda6aed78b23e29c53e12a4f1da7d4cad3793e138ab7839990e2ce507b68e">
         <source xml:lang="en">Clear Filter</source>
-        <target state="new">Clear Filter</target>
+        <target state="translated">필터 지우기</target>
       </trans-unit>
       <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
         <source xml:lang="en">Clear Filters</source>
@@ -1136,7 +1140,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2e05d0864b79bf5feb3776495d63cfde72a56aac038a6557620b5107b06fa701">
         <source xml:lang="en">Clear all filters and show all events</source>
-        <target state="new">Clear all filters and show all events</target>
+        <target state="translated">모든 필터를 지우고 모든 이벤트 표시</target>
       </trans-unit>
       <trans-unit id="++CODE++2c41036cefbc864e021ed1f12d45fe960a9ac85b8586d9338a1e3f9a2dcd65a1">
         <source xml:lang="en">Clear all grouping</source>
@@ -1156,7 +1160,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a">
         <source xml:lang="en">Clear quick filter and all column filters</source>
-        <target state="new">Clear quick filter and all column filters</target>
+        <target state="translated">빠른 필터와 모든 열 필터 지우기</target>
       </trans-unit>
       <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
         <source xml:lang="en">Clear token cache</source>
@@ -1196,15 +1200,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++4f60d43fe743cd7aa4af117f641730b9e28e8aab2e3334b2c12bfd0c25e610d6">
         <source xml:lang="en">Close Without Export</source>
-        <target state="new">Close Without Export</target>
+        <target state="translated">내보내지 않고 닫기</target>
       </trans-unit>
       <trans-unit id="++CODE++c89401adf57129e294dc62c01819ce24126217a0f529f17047cda53ec2482829">
         <source xml:lang="en">Close details panel</source>
-        <target state="new">Close details panel</target>
+        <target state="translated">세부 정보 창 닫기</target>
       </trans-unit>
       <trans-unit id="++CODE++91304710b1b6a6920866a02b1d89f45c23c81ff5e8fe03ede29099da34498d54">
         <source xml:lang="en">Close existing connections to destination database</source>
-        <target state="new">Close existing connections to destination database</target>
+        <target state="translated">대상 데이터베이스에 대한 기존 연결 닫기</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
@@ -1244,7 +1248,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
         <source xml:lang="en">Collapse settings</source>
-        <target state="new">Collapse settings</target>
+        <target state="translated">설정 접기</target>
       </trans-unit>
       <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
         <source xml:lang="en">Collation</source>
@@ -1355,7 +1359,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
         <source xml:lang="en">Configuration to Import</source>
-        <target state="new">Configuration to Import</target>
+        <target state="translated">가져올 구성</target>
       </trans-unit>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
@@ -1634,7 +1638,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++69f2cb7dd2107d62b752a7de5d918a0b657147558a767c02175920d2b510a997">
         <source xml:lang="en">Container Settings</source>
-        <target state="new">Container Settings</target>
+        <target state="translated">컨테이너 설정</target>
       </trans-unit>
       <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
         <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
@@ -1646,19 +1650,19 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
         <source xml:lang="en">Container name and port are required to check container readiness.</source>
-        <target state="new">Container name and port are required to check container readiness.</target>
+        <target state="translated">컨테이너 준비 상태를 확인하려면 컨테이너 이름과 포트가 필요합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c988a04c68ad84375f618514201df662f5e213301f897d4f937005ded7b3b6ac">
         <source xml:lang="en">Container name is invalid or already in use</source>
-        <target state="new">Container name is invalid or already in use</target>
+        <target state="translated">컨테이너 이름이 잘못되었거나 이미 사용 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ee060d909ac8f92d5b43012fb61218d44b303601dca7b271908151aa6ae86b17">
         <source xml:lang="en">Container name is required</source>
-        <target state="new">Container name is required</target>
+        <target state="translated">컨테이너 이름은 필수입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
         <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
-        <target state="new">Container name, port, and config content are required to start the container.</target>
+        <target state="translated">컨테이너를 시작하려면 컨테이너 이름, 포트, 그리고 구성 내용이 필요합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
         <source xml:lang="en">Containment Type</source>
@@ -1687,7 +1691,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d37078fe6a1faa15fc48c293dd1d4c37698eb0cfafae8ca1c456b0cc4600db11">
         <source xml:lang="en">Copied to clipboard</source>
-        <target state="new">Copied to clipboard</target>
+        <target state="translated">클립보드에 복사됨</target>
       </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
@@ -1747,7 +1751,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
         <source xml:lang="en">Copy text data to clipboard</source>
-        <target state="new">Copy text data to clipboard</target>
+        <target state="translated">텍스트 데이터를 클립보드에 복사</target>
       </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
@@ -1768,7 +1772,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++8e37fe747290a9e6bd0f4c835aa52f83374d72f86dcb2401289668294314aab6">
         <source xml:lang="en">Could not connect to database: {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Could not connect to database: {0}</target>
+        <target state="translated">{0} 데이터베이스에 연결할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
         <source xml:lang="en">Could not find scripting metadata for {0} '{1}'.</source>
@@ -1778,7 +1782,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
         <source xml:lang="en">Could not load restore plan</source>
-        <target state="new">Could not load restore plan</target>
+        <target state="translated">복원 계획을 로드할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
@@ -1888,7 +1892,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9365b2c6708531c8df9ee555c58dcb675690a166106fe78638a3cd5c8472ff57">
         <source xml:lang="en">Creating and starting the container</source>
-        <target state="new">Creating and starting the container</target>
+        <target state="translated">컨테이너를 만들고 시작하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
         <source xml:lang="en">Creating and starting your SQL Server container</source>
@@ -1941,11 +1945,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
         <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
-        <target state="new">DAB container failed to become ready within the timeout period.</target>
+        <target state="translated">시간 제한 기간 내에 DAB 컨테이너를 준비하지 못했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++4e639b73088f5575d27eeb76cc69d222f4587c494af6bebace73a891c65491a3">
         <source xml:lang="en">DAB container is running!</source>
-        <target state="new">DAB container is running!</target>
+        <target state="translated">컨테이너가 실행 중입니다!</target>
       </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
@@ -1995,7 +1999,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++b38a72417c43cfd4c4b1d08d6877fe572934f1c8b321347af7ff1d06a47b2238">
         <source xml:lang="en">Data file folder</source>
-        <target state="new">Data file folder</target>
+        <target state="translated">데이터 파일 폴더</target>
       </trans-unit>
       <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
         <source xml:lang="en">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</source>
@@ -2052,7 +2056,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9a3b60430561d2e64fd2ce48fdd216da6e79a93e147f7ec6a7702c5658d28f97">
         <source xml:lang="en">Database is required</source>
-        <target state="new">Database is required</target>
+        <target state="translated">데이터베이스는 필수 항목임</target>
       </trans-unit>
       <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
         <source xml:lang="en">Database list</source>
@@ -2084,7 +2088,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
         <source xml:lang="en">Database the table is created in</source>
-        <target state="new">Database the table is created in</target>
+        <target state="translated">테이블이 생성된 데이터베이스</target>
       </trans-unit>
       <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
         <source xml:lang="en">Default</source>
@@ -2167,7 +2171,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++242bc6248a8996f225d777aea89e819b3a97184f0b646a727fc7ee6f4698a2d0">
         <source xml:lang="en">Deploy DAB Container</source>
-        <target state="new">Deploy DAB Container</target>
+        <target state="translated">DAB 컨테이너 배포</target>
       </trans-unit>
       <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
         <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
@@ -2195,7 +2199,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a6587d759edaef774b88015d9298a0965eeec92561af3c20bc4171eecdf27f5b">
         <source xml:lang="en">Deployment Complete</source>
-        <target state="new">Deployment Complete</target>
+        <target state="translated">배포 완료</target>
       </trans-unit>
       <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
         <source xml:lang="en">Deployment Failed</source>
@@ -2219,7 +2223,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
         <source xml:lang="en">Deselect All</source>
-        <target state="new">Deselect All</target>
+        <target state="translated">모두 선택 취소</target>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -2231,15 +2235,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++1afc642a5d662904513b79d29425d71c74aecd4fd5b0b4446b048f174dd56eb4">
         <source xml:lang="en">Details panel actions</source>
-        <target state="new">Details panel actions</target>
+        <target state="translated">세부 정보 패널 작업</target>
       </trans-unit>
       <trans-unit id="++CODE++9c4d0829a683ee613c0189343791967620efc401efb10c1d3e22549b980ea881">
         <source xml:lang="en">Details panel tabs</source>
-        <target state="new">Details panel tabs</target>
+        <target state="translated">세부 정보 패널 탭</target>
       </trans-unit>
       <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
         <source xml:lang="en">Details tab - displays all event properties</source>
-        <target state="new">Details tab - displays all event properties</target>
+        <target state="translated">세부 정보 탭 - 모든 이벤트 속성을 표시합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
         <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
@@ -2329,7 +2333,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
         <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
-        <target state="new">Docker Desktop must be installed and running on your machine.</target>
+        <target state="translated">Docker Desktop이 여러분의 컴퓨터에 설치되어 실행 중이어야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ca9d6623e40335fc13a80d426d2dd39b8c8a8b656c66b0d973cee8d5d49e4d9">
         <source xml:lang="en">Docker failed to start within the timeout period. Please manually start Docker and try again.</source>
@@ -2357,7 +2361,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
         <source xml:lang="en">Downloading the Data API Builder container image</source>
-        <target state="new">Downloading the Data API Builder container image</target>
+        <target state="translated">데이터 API Builder 컨테이너 이미지를 다운로드하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
         <source xml:lang="en">Drop</source>
@@ -2494,7 +2498,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++11c21b54b49bcb3c27b1f9371f18ba2da2f6c80cf2cb66a608ff8396ade41518">
         <source xml:lang="en">Ensuring Docker Desktop is running</source>
-        <target state="new">Ensuring Docker Desktop is running</target>
+        <target state="translated">Docker Desktop이 실행 중인지 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
         <source xml:lang="en">Enter Database Description</source>
@@ -2506,7 +2510,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a1afcfa3e45c63a614a4d0646298473382e20d077466ce245a0f991dbe7f0a22">
         <source xml:lang="en">Enter a date...</source>
-        <target state="new">Enter a date...</target>
+        <target state="translated">날짜 입력...</target>
       </trans-unit>
       <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
         <source xml:lang="en">Enter a name for the new profiler session</source>
@@ -2514,7 +2518,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
         <source xml:lang="en">Enter a number...</source>
-        <target state="new">Enter a number...</target>
+        <target state="translated">숫자 입력...</target>
       </trans-unit>
       <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
         <source xml:lang="en">Enter application name</source>
@@ -2566,7 +2570,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
         <source xml:lang="en">Enter text...</source>
-        <target state="new">Enter text...</target>
+        <target state="translated">텍스트 입력...</target>
       </trans-unit>
       <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
         <source xml:lang="en">Enter the SQL Login password for user '{0}'.</source>
@@ -2635,11 +2639,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2">
         <source xml:lang="en">Error fetching schemas for the selected database.</source>
-        <target state="new">Error fetching schemas for the selected database.</target>
+        <target state="translated">선택한 데이터베이스의 스키마를 가져오는 중 오류가 발생했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++4561f39368038f0a735649f745939796bec6caf45d87dd948f211edd4045b3b4">
         <source xml:lang="en">Error fetching the table preview.</source>
-        <target state="new">Error fetching the table preview.</target>
+        <target state="translated">테이블 미리 보기를 가져오는 중 오류가 발생했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
         <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
@@ -2764,16 +2768,16 @@ Error:
       <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
         <source xml:lang="en">Event details for {0}</source>
         <note>{0} is the name of the profiler event</note>
-        <target state="new">Event details for {0}</target>
+        <target state="translated">{0}의 이벤트 세부 정보</target>
       </trans-unit>
       <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
         <source xml:lang="en">Event properties list</source>
-        <target state="new">Event properties list</target>
+        <target state="translated">이벤트 속성 목록</target>
       </trans-unit>
       <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
         <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
         <note>{0} is the column name</note>
-        <target state="new">Example: Find queries with {0} &gt; 100</target>
+        <target state="translated">예: {0} &gt; 100인 쿼리 찾기</target>
       </trans-unit>
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
@@ -2857,7 +2861,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580">
         <source xml:lang="en">Expand settings</source>
-        <target state="new">Expand settings</target>
+        <target state="translated">설정 펼치기</target>
       </trans-unit>
       <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
         <source xml:lang="en">Expiration</source>
@@ -2881,7 +2885,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6832602b10532fa027a10d02a440c8197c4257d1ffbface9da25585ffa7bc19a">
         <source xml:lang="en">Export &amp; Close</source>
-        <target state="new">Export &amp; Close</target>
+        <target state="translated">내보내기 및 닫기</target>
       </trans-unit>
       <trans-unit id="++CODE++59be81f2f62e6ced348ccc806b1a50d9370c0f19a8bb5f7fbf8a801d4c93bdca">
         <source xml:lang="en">Export BACPAC</source>
@@ -2889,7 +2893,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037">
         <source xml:lang="en">Export all captured events to a CSV file</source>
-        <target state="new">Export all captured events to a CSV file</target>
+        <target state="translated">캡처된 모든 이벤트를 CSV 파일로 내보내기</target>
       </trans-unit>
       <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
         <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
@@ -2925,7 +2929,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++312cd31b86c8f1e8bfe2bee53392337f74d6268be0bfcef0e28a57b2ef861473">
         <source xml:lang="en">Extended Events Log Files</source>
-        <target state="new">Extended Events Log Files</target>
+        <target state="translated">확장 이벤트 로그 파일</target>
       </trans-unit>
       <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
         <source xml:lang="en">Extract DACPAC</source>
@@ -3087,7 +3091,7 @@ Error:
       <trans-unit id="++CODE++3d684643f87e0c69e5874b8f73f9d077a608623cbe90234d6bca8030d79b5e96">
         <source xml:lang="en">Failed to export profiler events: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to export profiler events: {0}</target>
+        <target state="translated">프로파일러 이벤트 내보내기에 실패했습니다. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
         <source xml:lang="en">Failed to export results: {0}</source>
@@ -3154,7 +3158,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++75a86f33876b52fd9ce7e4c568a7ca35b392f02f2523ec303a5764f9ea5e946a">
         <source xml:lang="en">Failed to import file.</source>
-        <target state="new">Failed to import file.</target>
+        <target state="translated">파일을 가져오지 못했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e3d920bce049a4644ce154bb0d5751edf90ddee5dbfd34ccc55ab53c065c6dfb">
         <source xml:lang="en">Failed to launch profiler: {0}</source>
@@ -3191,7 +3195,7 @@ Error:
       <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
         <source xml:lang="en">Failed to open XEL file: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open XEL file: {0}</target>
+        <target state="translated">XEL 파일을 열지 못했습니다. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -3210,11 +3214,11 @@ Error:
       <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
         <source xml:lang="en">Failed to open text in editor: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open text in editor: {0}</target>
+        <target state="translated">편집기에서 텍스트를 열지 못했습니다. {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
         <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
-        <target state="new">Failed to pull DAB container image. Please check your network connection.</target>
+        <target state="translated">DAB 컨테이너 이미지를 가져오지 못했습니다. 네트워크 연결을 확인하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
@@ -3275,15 +3279,15 @@ Error:
         <source xml:lang="en">Failed to start '{0}': {1}</source>
         <note>{0} is the service name
 {1} is the error message</note>
-        <target state="new">Failed to start '{0}': {1}</target>
+        <target state="translated">'{0}'을(를) 시작하지 못했습니다. {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++69844cf3a734ae7ea156a613f4d02d35df0d04fcda909d938898102ee51f61af">
         <source xml:lang="en">Failed to start DAB container.</source>
-        <target state="new">Failed to start DAB container.</target>
+        <target state="translated">컨테이너를 시작하지 못했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++4b3b2ad10c0a631a51cd924996fff46c30bbf9c35362f3aaa9f61b6006c660f1">
         <source xml:lang="en">Failed to start DAB container. Please check the Docker logs for details.</source>
-        <target state="new">Failed to start DAB container. Please check the Docker logs for details.</target>
+        <target state="translated">컨테이너를 시작하지 못했습니다. 자세한 내용은 Docker 로그를 확인하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
         <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
@@ -3305,7 +3309,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b">
         <source xml:lang="en">Failed to stop and remove DAB container.</source>
-        <target state="new">Failed to stop and remove DAB container.</target>
+        <target state="translated">DAB 컨테이너를 중지하고 제거하지 못했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
         <source xml:lang="en">Failed to stop {0}.</source>
@@ -3352,7 +3356,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++31931e62a8801e325b804a8294c1fe6b3fbdc62f18681f8f026f141510e20b91">
         <source xml:lang="en">File (Read-Only)</source>
-        <target state="new">File (Read-Only)</target>
+        <target state="translated">파일(읽기 전용)</target>
       </trans-unit>
       <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
         <source xml:lang="en">File Name</source>
@@ -3364,11 +3368,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++995935b22cda9b6dfbbd92c71e406c7bd23c9ed98b4548ad67a6214fe9e38c34">
         <source xml:lang="en">File imported successfully</source>
-        <target state="new">File imported successfully</target>
+        <target state="translated">파일을 성공적으로 가져왔습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++a3a4d0c022524969abf24005eb7836117737d6afe6a3a64cff6e900fb06a7aa6">
         <source xml:lang="en">File is required</source>
-        <target state="new">File is required</target>
+        <target state="translated">파일이 필요함</target>
       </trans-unit>
       <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
         <source xml:lang="en">File name is required</source>
@@ -3384,16 +3388,16 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++de4c053ce93fdab8261214c50e808306b000f07b8f37d19f843d0462e59f035e">
         <source xml:lang="en">File to be imported</source>
-        <target state="new">File to be imported</target>
+        <target state="translated">가져올 파일</target>
       </trans-unit>
       <trans-unit id="++CODE++ea1df05210c29d1e19a43b81680faf3bb72b5a1b908420e1e241480385362b74">
         <source xml:lang="en">File type</source>
-        <target state="new">File type</target>
+        <target state="translated">파일 형식</target>
       </trans-unit>
       <trans-unit id="++CODE++292821207be79b58287b4b662fae199f02125b60c143fa64266353a60de54bf8">
         <source xml:lang="en">File: {0}</source>
         <note>{0} is the file name</note>
-        <target state="new">File: {0}</target>
+        <target state="translated">파일: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
         <source xml:lang="en">Files</source>
@@ -3430,7 +3434,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8303b392b5ebd96463b39a2d278551d266b1ee0a5a4a707daa49a142fdfedcc5">
         <source xml:lang="en">Filter active</source>
-        <target state="new">Filter active</target>
+        <target state="translated">필터 활성</target>
       </trans-unit>
       <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
         <source xml:lang="en">Filter by keyword</source>
@@ -3454,7 +3458,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d82276b4dc4d7c1934c610624dcd96caaaf8d372027329bba940c1bcdd633a4b">
         <source xml:lang="en">Filter events by column values</source>
-        <target state="new">Filter events by column values</target>
+        <target state="translated">열 값으로 이벤트 필터링</target>
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
@@ -3462,7 +3466,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
         <source xml:lang="en">Filter operator</source>
-        <target state="new">Filter operator</target>
+        <target state="translated">필터 연산자</target>
       </trans-unit>
       <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
         <source xml:lang="en">Filter shortcuts</source>
@@ -3470,7 +3474,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d9542a271957e5da6241a181f50baa24e710645a5007dfa3e45c27bbad587791">
         <source xml:lang="en">Filter value</source>
-        <target state="new">Filter value</target>
+        <target state="translated">필터 값</target>
       </trans-unit>
       <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
         <source xml:lang="en">Filter {0}</source>
@@ -3478,12 +3482,12 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
         <source xml:lang="en">Filter...</source>
-        <target state="new">Filter...</target>
+        <target state="translated">필터...</target>
       </trans-unit>
       <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
         <source xml:lang="en">Filter: {0}</source>
         <note>{0} is the column name</note>
-        <target state="new">Filter: {0}</target>
+        <target state="translated">필터: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -3548,7 +3552,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
         <source xml:lang="en">Folder is required</source>
-        <target state="new">Folder is required</target>
+        <target state="translated">폴더가 필요함</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -3881,27 +3885,27 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
         <source xml:lang="en">Import Data</source>
-        <target state="new">Import Data</target>
+        <target state="translated">데이터 가져오기</target>
       </trans-unit>
       <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
         <source xml:lang="en">Import File</source>
-        <target state="new">Import File</target>
+        <target state="translated">파일 가져오기</target>
       </trans-unit>
       <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
         <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="new">Import Flat File (Preview)</target>
+        <target state="translated">플랫 파일 가져오기(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
         <source xml:lang="en">Import Information</source>
-        <target state="new">Import Information</target>
+        <target state="translated">정보 가져오기</target>
       </trans-unit>
       <trans-unit id="++CODE++79e6ae7e99e1a20fac22d0e96d3c6655da33fa78e816b9cb389c74e94963eddc">
         <source xml:lang="en">Import New File</source>
-        <target state="new">Import New File</target>
+        <target state="translated">새 파일 가져오기</target>
       </trans-unit>
       <trans-unit id="++CODE++1e4a87f0347e3ffdfda399805853364283c57e23e938222c1aac71399a458148">
         <source xml:lang="en">Import Status</source>
-        <target state="new">Import Status</target>
+        <target state="translated">가져오기 상태</target>
       </trans-unit>
       <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
         <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
@@ -3917,7 +3921,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++12c9bd2df1fb0a4bd74d299e36eaeec5884e1497a0292853a8ac0ec456b9031c">
         <source xml:lang="en">Import connection configuration settings from Azure Data Studio</source>
-        <target state="new">Import connection configuration settings from Azure Data Studio</target>
+        <target state="translated">Azure Data Studio에서 연결 구성 설정을 가져오세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
         <source xml:lang="en">Import failed: {0}</source>
@@ -3926,7 +3930,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a08ed3bdb12bc70103aac4b9c62d71981854c89e6d7a4a0a60ae4b0a16d392af">
         <source xml:lang="en">Import file is required</source>
-        <target state="new">Import file is required</target>
+        <target state="translated">파일 가져오기는 필수 항목임</target>
       </trans-unit>
       <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
         <source xml:lang="en">Import from Azure Data Studio</source>
@@ -3946,7 +3950,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1055660e603fb86aa34b3b67aa1e5ac0d1f7d5bf303fb151808544c699012c05">
         <source xml:lang="en">Importing data...</source>
-        <target state="new">Importing data...</target>
+        <target state="translated">데이터를 가져오는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
         <source xml:lang="en">Importing selections</source>
@@ -3954,7 +3958,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8bc1d53cc57c24b79bf7c260b1f3b29973caab7b8f501c33016b321ebfc274f1">
         <source xml:lang="en">In</source>
-        <target state="new">In</target>
+        <target state="translated">포함</target>
       </trans-unit>
       <trans-unit id="++CODE++edc1807b28e26d830c47aea48d193d0a4a8d3f07dfc4cb3b11f43eabe698f01e">
         <source xml:lang="en">In case you missed it</source>
@@ -4006,7 +4010,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
         <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
-        <target state="new">Install the MSSQL Database Management Keymap extension</target>
+        <target state="translated">MSSQL 데이터베이스 관리 키맵 확장 기능 설치</target>
       </trans-unit>
       <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
         <source xml:lang="en">Instant Container Setup</source>
@@ -4075,7 +4079,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++47c0fe12afa4bfe2a7a1d5bc84764f66b6794e02c1f5c5372cca55e0a0c8d6a9">
         <source xml:lang="en">Invalid table type</source>
-        <target state="new">Invalid table type</target>
+        <target state="translated">잘못된 테이블 형식</target>
       </trans-unit>
       <trans-unit id="++CODE++d1a326f448eac64b9ec46d31b9dce63a30f305179abc83e734c8d960bcaa9631">
         <source xml:lang="en">Is Computed</source>
@@ -4091,11 +4095,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d477e89f1ae8255f0a2c539022a215feccd9d6569476d9b2c2287ef9cfc29554">
         <source xml:lang="en">Is Not Null</source>
-        <target state="new">Is Not Null</target>
+        <target state="translated">Null이 아님</target>
       </trans-unit>
       <trans-unit id="++CODE++adeeb108b9ef8dd2f4e3aa374b581719b1f82cae3e2223497b4cd350ca1aa167">
         <source xml:lang="en">Is Null</source>
-        <target state="new">Is Null</target>
+        <target state="translated">Null임</target>
       </trans-unit>
       <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
         <source xml:lang="en">Is Persisted</source>
@@ -4148,7 +4152,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
         <source xml:lang="en">Leave the source database in the restoring state</source>
-        <target state="new">Leave the source database in the restoring state</target>
+        <target state="translated">원본 데이터베이스를 복원 중 상태로 유지</target>
       </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
@@ -4347,7 +4351,7 @@ Error:
       <trans-unit id="++CODE++1e57b1efd93fb21b1f6b28af4b5a85b873f5145021fba55cec9dccd8298b6c74">
         <source xml:lang="en">Loading XEL file: {0}</source>
         <note>{0} is the file name</note>
-        <target state="new">Loading XEL file: {0}</target>
+        <target state="translated">XEL 파일 로드 중: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
         <source xml:lang="en">Loading backup database...</source>
@@ -4380,7 +4384,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2dd2f1e34594bff7a420c8f7f69d7933114f5f4e7efd583f515691dea65b63d8">
         <source xml:lang="en">Loading flat file import...</source>
-        <target state="new">Loading flat file import...</target>
+        <target state="translated">플랫 파일 가져오기 로드 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
         <source xml:lang="en">Loading local containers...</source>
@@ -4388,11 +4392,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9939a413e6f35f632ac5745748127482e1422e46a473769ae9804605e5ac946a">
         <source xml:lang="en">Loading restore database...</source>
-        <target state="new">Loading restore database...</target>
+        <target state="translated">데이터베이스 복원을 불러오는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++1c788560f58c375421709b1043b077ad8ff165a22efc6bc32bed8cc90a75b626">
         <source xml:lang="en">Loading restore plan...</source>
-        <target state="new">Loading restore plan...</target>
+        <target state="translated">복원 계획을 로드하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
@@ -4400,7 +4404,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++11915518f7318632b91b797ca08f2be829f1364847dda216d397370f2287a83a">
         <source xml:lang="en">Loading schemas...</source>
-        <target state="new">Loading schemas...</target>
+        <target state="translated">스키마 로드 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
         <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
@@ -4413,7 +4417,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e96fc8b40ca909f818f5677d99cd419b69170253e04fc2848ec08fe2b31c6b0f">
         <source xml:lang="en">Loading table preview...</source>
-        <target state="new">Loading table preview...</target>
+        <target state="translated">테이블 미리 보기를 로드하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -4437,7 +4441,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
         <source xml:lang="en">Local Container Deployment</source>
-        <target state="new">Local Container Deployment</target>
+        <target state="translated">로컬 컨테이너 배포</target>
       </trans-unit>
       <trans-unit id="++CODE++8b40b52b182ad6e53db8c7a2b46b81c4daa05a4737719ec9e7290f3407d9b20d">
         <source xml:lang="en">Local SQL Server Container</source>
@@ -4461,19 +4465,19 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1aa90f6c7d9e7a123d71457bdbe1f733cbe0170eb978723ecf13717f64403cda">
         <source xml:lang="en">Location of the file to be imported</source>
-        <target state="new">Location of the file to be imported</target>
+        <target state="translated">가져올 파일의 위치</target>
       </trans-unit>
       <trans-unit id="++CODE++9113b512a7294a5909b6024e3a11f8c0be79f286e9dccc963697c1128534ec23">
         <source xml:lang="en">Log file folder</source>
-        <target state="new">Log file folder</target>
+        <target state="translated">로그 파일 폴더</target>
       </trans-unit>
       <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
         <source xml:lang="en">Logical file name</source>
-        <target state="new">Logical file name</target>
+        <target state="translated">논리적 파일 이름</target>
       </trans-unit>
       <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
         <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
-        <target state="new">Looking for Azure Data Studio key bindings, like F5 to execute queries?</target>
+        <target state="translated">쿼리를 실행할 때 사용하는 F5 같은 Azure Data Studio 키 바인딩을 찾고 계신가요?</target>
       </trans-unit>
       <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
         <source xml:lang="en">MCP</source>
@@ -4543,7 +4547,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d0dc4d4fffaa64f945179fe8a9e183b128196f798714a40a1ab8aacc822de3cf">
         <source xml:lang="en">Maximize details panel</source>
-        <target state="new">Maximize details panel</target>
+        <target state="translated">세부 정보 패널 최대화</target>
       </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
@@ -4716,11 +4720,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730">
         <source xml:lang="en">Must be a valid number</source>
-        <target state="new">Must be a valid number</target>
+        <target state="translated">유효한 숫자여야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
         <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
-        <target state="new">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</target>
+        <target state="translated">영숫자로 시작하고 영숫자, 밑줄, 마침표 또는 하이픈만 포함해야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
@@ -4740,7 +4744,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b82c5cef7aaff3d8d682ade902e1ed86c30c2206d3291b70c464bca8b9632e1e">
         <source xml:lang="en">Name for the Docker container running DAB</source>
-        <target state="new">Name for the Docker container running DAB</target>
+        <target state="translated">DAB를 실행하는 Docker 컨테이너 이름</target>
       </trans-unit>
       <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
         <source xml:lang="en">Name of the primary key.</source>
@@ -4820,7 +4824,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++853562aba61600b2977f2c1e36ed27382069409f9497ac880dd6e8b39b87ca42">
         <source xml:lang="en">New Table Name</source>
-        <target state="new">New Table Name</target>
+        <target state="translated">새 테이블 이름</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
@@ -4900,7 +4904,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
         <source xml:lang="en">No backup sets found in the restore plan</source>
-        <target state="new">No backup sets found in the restore plan</target>
+        <target state="translated">복원 계획에 백업 세트가 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++5a501b68d2cdd923a92baada7e109fff2c662ad392adf151f69f1f3d32e2180c">
         <source xml:lang="en">No blob containers found</source>
@@ -4908,7 +4912,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++28d115b213708bfb6e9ca13caa6f043eda00d3c142d15889922f76dfc0a70669">
         <source xml:lang="en">No blobs found</source>
-        <target state="new">No blobs found</target>
+        <target state="translated">Blob이 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
@@ -4957,11 +4961,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd">
         <source xml:lang="en">No customized settings found</source>
-        <target state="new">No customized settings found</target>
+        <target state="translated">사용자 지정 설정을 찾을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++748aaa52ba139eff31671120a62f62da0a7917d030b5f9ced8c6deab4da68352">
         <source xml:lang="en">No customized settings found in Azure Data Studio</source>
-        <target state="new">No customized settings found in Azure Data Studio</target>
+        <target state="translated">Azure Data Studio에서 사용자 지정 설정을 찾을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
@@ -4969,11 +4973,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1">
         <source xml:lang="en">No data to display.</source>
-        <target state="new">No data to display.</target>
+        <target state="translated">표시할 데이터가 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++b15c8fb94bc966c85617c43fecf9a75b8a24edc609b0b410743efbcea68da5a9">
         <source xml:lang="en">No database files found in the restore plan</source>
-        <target state="new">No database files found in the restore plan</target>
+        <target state="translated">복원 계획에서 데이터베이스 파일을 찾을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
@@ -4990,7 +4994,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
         <source xml:lang="en">No databases found to import into.</source>
-        <target state="new">No databases found to import into.</target>
+        <target state="translated">정보를 가져올 데이터베이스를 찾을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -5002,15 +5006,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
         <source xml:lang="en">No event selected</source>
-        <target state="new">No event selected</target>
+        <target state="translated">선택한 이벤트가 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
         <source xml:lang="en">No events to export</source>
-        <target state="new">No events to export</target>
+        <target state="translated">내보낼 이벤트가 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
         <source xml:lang="en">No filter is currently active</source>
-        <target state="new">No filter is currently active</target>
+        <target state="translated">현재 활성화된 필터가 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -5060,7 +5064,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d6f175c0cc2e82f1f69f421b3776d1a306fc92dbce166cbf045a4d8e31f5608e">
         <source xml:lang="en">No results match the current filters</source>
-        <target state="new">No results match the current filters</target>
+        <target state="translated">현재 필터와 일치하는 결과가 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
         <source xml:lang="en">No results to display</source>
@@ -5080,7 +5084,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++db1fdd083d2ee48c5a7d1d3998a8421b63f0810c496428e3b4168399952e2683">
         <source xml:lang="en">No schemas found</source>
-        <target state="new">No schemas found</target>
+        <target state="translated">스키마를 찾을 수 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
         <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
@@ -5120,7 +5124,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d">
         <source xml:lang="en">No text data available</source>
-        <target state="new">No text data available</target>
+        <target state="translated">텍스트 데이터를 사용할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
@@ -5168,7 +5172,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6b63db09b404fbb32d9a1c00b76e17be0b11b81dac474a8aa6dc39fb0304cee6">
         <source xml:lang="en">Not available for read-only file sessions</source>
-        <target state="new">Not available for read-only file sessions</target>
+        <target state="translated">읽기 전용 파일 세션에서는 사용할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
         <source xml:lang="en">Not contains</source>
@@ -5271,7 +5275,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
         <source xml:lang="en">Open File</source>
-        <target state="new">Open File</target>
+        <target state="translated">파일 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -5315,7 +5319,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
         <source xml:lang="en">Open text data in a new editor</source>
-        <target state="new">Open text data in a new editor</target>
+        <target state="translated">새 편집기에서 텍스트 데이터 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -5363,7 +5367,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
         <source xml:lang="en">Original file name</source>
-        <target state="new">Original file name</target>
+        <target state="translated">원본 파일 이름</target>
       </trans-unit>
       <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
         <source xml:lang="en">Output file</source>
@@ -5384,7 +5388,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8a873e7be0e559e455bc3cc7bd48853f012838942cceed6ba93199f5e85d7674">
         <source xml:lang="en">Overwrite the existing database</source>
-        <target state="new">Overwrite the existing database</target>
+        <target state="translated">기존 데이터베이스 덮어쓰기</target>
       </trans-unit>
       <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
         <source xml:lang="en">Owner</source>
@@ -5472,7 +5476,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
         <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
-        <target state="new">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</target>
+        <target state="translated">벡터 검색 및 JSON 개선과 같은 기본 제공 AI 기능이 포함된 SQL Server 2025를 비롯한 여러 SQL Server 버전 중에서 선택하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
         <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -5480,11 +5484,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
         <source xml:lang="en">Please choose a file</source>
-        <target state="new">Please choose a file</target>
+        <target state="translated">파일을 선택하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++ea887fcdc3b25d5c543a6c7f3fb1e675e63420d492f1064f29d9d81be8efcca5">
         <source xml:lang="en">Please choose a folder</source>
-        <target state="new">Please choose a folder</target>
+        <target state="translated">폴더를 선택하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
@@ -5508,11 +5512,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++97e21e287e76c2e2a8d7afb697d6adac3ce000b545bab266716d7140da0dfdee">
         <source xml:lang="en">Please choose at least one backup set to restore</source>
-        <target state="new">Please choose at least one backup set to restore</target>
+        <target state="translated">복원할 백업 세트를 하나 이상 선택해 주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++73b47d5625538a6827bfe1cec364ebd2ee036c3e0139035e60510754704d0bb9">
         <source xml:lang="en">Please ensure the file is not open in another application before importing</source>
-        <target state="new">Please ensure the file is not open in another application before importing</target>
+        <target state="translated">가져오기 전에 파일이 다른 애플리케이션에서 열려 있지 않은지 확인해 주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
@@ -5556,16 +5560,16 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++186d06201f857df30733b51de403c7e7199e855dbf359eefe8c35389ba8440aa">
         <source xml:lang="en">Port must be between 1 and 65535</source>
-        <target state="new">Port must be between 1 and 65535</target>
+        <target state="translated">포트는 1에서 65535 사이여야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++de9d0069c353909a19960efae7bb5fd1e1462dfa95644ed05a3b1f9609c63f38">
         <source xml:lang="en">Port to expose the API on (default: 5000)</source>
-        <target state="new">Port to expose the API on (default: 5000)</target>
+        <target state="translated">API를 노출할 포트(기본값: 5000)</target>
       </trans-unit>
       <trans-unit id="++CODE++3a58feb1e22248ce4bb3611c187647b0c0f63250987596ac368c0191403c6367">
         <source xml:lang="en">Port {0} is already in use</source>
         <note>{0} is the port number</note>
-        <target state="new">Port {0} is already in use</target>
+        <target state="translated">포트 '{0}'이(가) 이미 사용 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -5583,7 +5587,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
         <source xml:lang="en">Preserve the replication settings</source>
-        <target state="new">Preserve the replication settings</target>
+        <target state="translated">복제 설정을 유지합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
@@ -5664,17 +5668,17 @@ Error:
       <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
         <source xml:lang="en">Profiler events exported successfully to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Profiler events exported successfully to {0}</target>
+        <target state="translated">프로파일러 이벤트를 {0}에 성공적으로 내보냈습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++7a9b119953ead192b4e7b7566d7d84fd0ce1077b116269a1b10c5116270196ba">
         <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection</source>
         <note>{0} is the file name</note>
-        <target state="new">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection</target>
+        <target state="translated">프로파일러가 XEL 파일 '{0}'에 대해 읽기 전용이면서 연결이 끊긴 모드입니다. 데이터베이스 연결 없이는 라이브 세션을 시작하거나 만들 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++60742f4dd435c44f26e028ce8aa7d1566518d55d1df0daf788d744ccf87c3394">
         <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.</source>
         <note>{0} is the file name</note>
-        <target state="new">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.</target>
+        <target state="translated">프로파일러가 XEL 파일 '{0}'에 대해 읽기 전용이면서 연결이 끊긴 모드입니다. 데이터베이스 연결 없이는 라이브 세션을 시작하거나 만들 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
         <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
@@ -5769,7 +5773,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++dac6f3f6dc8268df14288406b10ad3eb311b7488bb2932e5d97baf42c0409f46">
         <source xml:lang="en">Pulling DAB container image</source>
-        <target state="new">Pulling DAB container image</target>
+        <target state="translated">DAB 컨테이너 이미지를 가져오는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
         <source xml:lang="en">Pulling SQL Server Image</source>
@@ -5830,7 +5834,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
         <source xml:lang="en">Quick filter all columns...</source>
-        <target state="new">Quick filter all columns...</target>
+        <target state="translated">모든 열 빠른 필터링...</target>
       </trans-unit>
       <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
         <source xml:lang="en">REST API</source>
@@ -5838,15 +5842,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++98963b78cde061b1c1406ce97e7a38d2e7f4adaa459517174e2d54269fa47c7c">
         <source xml:lang="en">RESTORE WITH NORECOVERY</source>
-        <target state="new">RESTORE WITH NORECOVERY</target>
+        <target state="translated">WITH NORECOVERY 복원</target>
       </trans-unit>
       <trans-unit id="++CODE++8860d5149119450315a671bdc91d483cd2acf4cbd124eaca14234fb32e278db5">
         <source xml:lang="en">RESTORE WITH RECOVERY</source>
-        <target state="new">RESTORE WITH RECOVERY</target>
+        <target state="translated">WITH RECOVERY 복원</target>
       </trans-unit>
       <trans-unit id="++CODE++581627cba40f213340516f0d39805addaf361c69917155ec912ee6ec7b272a18">
         <source xml:lang="en">RESTORE WITH STANDBY</source>
-        <target state="new">RESTORE WITH STANDBY</target>
+        <target state="translated">WITH STANDBY 복원</target>
       </trans-unit>
       <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
         <source xml:lang="en">Read</source>
@@ -5866,16 +5870,16 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
         <source xml:lang="en">Read-Only</source>
-        <target state="new">Read-Only</target>
+        <target state="translated">읽기 전용</target>
       </trans-unit>
       <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
         <source xml:lang="en">Read-only SQL text editor</source>
-        <target state="new">Read-only SQL text editor</target>
+        <target state="translated">읽기 전용 SQL 텍스트 편집기</target>
       </trans-unit>
       <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
         <source xml:lang="en">Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.</source>
         <note>{0} is the XEL file name</note>
-        <target state="new">Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.</target>
+        <target state="translated">'{0}'은 읽기 전용 연결이 끊긴 모드입니다. 데이터베이스 연결 없이는 라이브 세션을 만들거나 시작할 수 없어요.</target>
       </trans-unit>
       <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
         <source xml:lang="en">Ready for import</source>
@@ -5911,7 +5915,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2098dff03cd74580320592a1308c8be37e30454e389e06fc2ddf1315b4e48551">
         <source xml:lang="en">Recovery state</source>
-        <target state="new">Recovery state</target>
+        <target state="translated">복구 상태</target>
       </trans-unit>
       <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
         <source xml:lang="en">Redo</source>
@@ -5949,7 +5953,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++df5c131161a52277f378b1ef01786bab0e114c3a30f9574c9f4b325ad50e4ad3">
         <source xml:lang="en">Relocate all files</source>
-        <target state="new">Relocate all files</target>
+        <target state="translated">모든 파일 재배치</target>
       </trans-unit>
       <trans-unit id="++CODE++b69ef66763bd411348c2bf030ab4cd0881dc36c538ce1a05966e92b927d2675c">
         <source xml:lang="en">Remind Me Later</source>
@@ -5974,7 +5978,7 @@ Error:
       <trans-unit id="++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6">
         <source xml:lang="en">Remove filter for {0}</source>
         <note>{0} is the column name</note>
-        <target state="new">Remove filter for {0}</target>
+        <target state="translated">{0} 필터 제거</target>
       </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
@@ -6007,7 +6011,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++98fe17bca293f3dccd1fbe14ff7b0f12d73ba72e6a3e47310982e8de208f560f">
         <source xml:lang="en">Requirements:</source>
-        <target state="new">Requirements:</target>
+        <target state="translated">요구 사항:</target>
       </trans-unit>
       <trans-unit id="++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43">
         <source xml:lang="en">Requires user authentication</source>
@@ -6045,7 +6049,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
         <source xml:lang="en">Restore Database</source>
-        <target state="new">Restore Database</target>
+        <target state="translated">데이터베이스 복원</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
@@ -6053,7 +6057,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++40ccebe29df0e54f847460888e462fd442b6e9bdcb26616e76dd5effec4ac876">
         <source xml:lang="en">Restore as</source>
-        <target state="new">Restore as</target>
+        <target state="translated">다음으로 복원</target>
       </trans-unit>
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
@@ -6065,7 +6069,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++059715b1246f29c5dd30aa69328e5185f7f5153f5c40a1c3951e16505df5542f">
         <source xml:lang="en">Restrict access to the restored database</source>
-        <target state="new">Restrict access to the restored database</target>
+        <target state="translated">복원된 데이터베이스에 대한 액세스 제한</target>
       </trans-unit>
       <trans-unit id="++CODE++a1519957e8b397de6037c8e8a9a1af37009bf6d89fa0f388b1e4b3dc76179e64">
         <source xml:lang="en">Result Set Batch {0} - Query {1}</source>
@@ -6395,7 +6399,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a">
         <source xml:lang="en">Schema Changes</source>
-        <target state="new">Schema Changes</target>
+        <target state="translated">스키마 변경</target>
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
@@ -6420,7 +6424,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
         <source xml:lang="en">Schema Diff</source>
-        <target state="new">Schema Diff</target>
+        <target state="translated">스키마 차이</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
@@ -6440,7 +6444,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
         <source xml:lang="en">Schema is required</source>
-        <target state="new">Schema is required</target>
+        <target state="translated">스키마는 필수 항목임</target>
       </trans-unit>
       <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
         <source xml:lang="en">Schema visualization opened.</source>
@@ -6525,12 +6529,12 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
         <source xml:lang="en">Search values...</source>
-        <target state="new">Search values...</target>
+        <target state="translated">값 검색...</target>
       </trans-unit>
       <trans-unit id="++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7">
         <source xml:lang="en">Search within {0} text content</source>
         <note>{0} is the column name</note>
-        <target state="new">Search within {0} text content</target>
+        <target state="translated">{0} 텍스트 내용 내에서 검색</target>
       </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
@@ -6590,7 +6594,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++9c45112cd31fb7a7714eec60cbd1753f5b6f99943a8161954bd8bebade74f489">
         <source xml:lang="en">Select XEL File</source>
-        <target state="new">Select XEL File</target>
+        <target state="translated">XEL 파일 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
         <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -6602,7 +6606,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6b9d5b628f428f37eab209c2891cb7abacf5ea95f486bfab6907e6d3f418d572">
         <source xml:lang="en">Select a blob</source>
-        <target state="new">Select a blob</target>
+        <target state="translated">Blob 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++9573efb4cae60bea64a44f60c5b4cec045be244f211127eb0fd6d556d27449f1">
         <source xml:lang="en">Select a blob container</source>
@@ -6626,7 +6630,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++74bed7b49a5d8b99451913d44c2a60cce198c1d94b408e4f19a09ce0cc1d2a47">
         <source xml:lang="en">Select a folder</source>
-        <target state="new">Select a folder</target>
+        <target state="translated">폴더 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
         <source xml:lang="en">Select a profiler template</source>
@@ -6700,7 +6704,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++1dd75b0dd68914e185b547fe475e416fe18bc8a68709129eada033866baf612c">
         <source xml:lang="en">Select file to import</source>
-        <target state="new">Select file to import</target>
+        <target state="translated">가져올 파일 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
@@ -6749,7 +6753,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
         <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
-        <target state="new">Selected backup file does not contain a valid database backup</target>
+        <target state="translated">선택한 백업 파일에 유효한 데이터베이스 백업이 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -6762,7 +6766,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ab56b110c247b1a29510788bdf844c63ca571d71be93c7e98c9715b095f7f507">
         <source xml:lang="en">Server Connections</source>
-        <target state="new">Server Connections</target>
+        <target state="translated">서버 연결</target>
       </trans-unit>
       <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
         <source xml:lang="en">Server Edition</source>
@@ -6770,7 +6774,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++bc4816425ebe8079c4f9aef802a1507b5c519d415762a5cb6549fc4c1cc6dee7">
         <source xml:lang="en">Server Name</source>
-        <target state="new">Server Name</target>
+        <target state="translated">서버 이름</target>
       </trans-unit>
       <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
         <source xml:lang="en">Server Version</source>
@@ -6844,7 +6848,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
         <source xml:lang="en">Setting</source>
-        <target state="new">Setting</target>
+        <target state="translated">설정</target>
       </trans-unit>
       <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
         <source xml:lang="en">Setting up</source>
@@ -6860,7 +6864,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
         <source xml:lang="en">Settings and Keybindings</source>
-        <target state="new">Settings and Keybindings</target>
+        <target state="translated">설정 및 키 바인딩</target>
       </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
@@ -6943,7 +6947,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++f2dabec2cf9b7f24f2e1ea799fac8dda0eda5f1ecb9109abc5211c31f5dc5bbb">
         <source xml:lang="en">Showing {0} of {1} events</source>
         <note>{0} is filtered count, {1} is total count</note>
-        <target state="new">Showing {0} of {1} events</target>
+        <target state="translated">{0}개 이벤트 중 {1}개 표시</target>
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
@@ -7036,7 +7040,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e320e8c6ef9cc79399346a80f7074742cbc9e7ad78b2592c81929cf08b17f9ed">
         <source xml:lang="en">Sort column</source>
-        <target state="new">Sort column</target>
+        <target state="translated">열 정렬</target>
       </trans-unit>
       <trans-unit id="++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807">
         <source xml:lang="en">Sort descending</source>
@@ -7076,7 +7080,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++042beab64062efc6a2e69013111afa772e5cb23c39d380bc06cc12b9bf4c8042">
         <source xml:lang="en">Standby file</source>
-        <target state="new">Standby file</target>
+        <target state="translated">대기 파일</target>
       </trans-unit>
       <trans-unit id="++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644">
         <source xml:lang="en">Start</source>
@@ -7114,7 +7118,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
         <source xml:lang="en">Starting '{0}'...</source>
         <note>{0} is the service name</note>
-        <target state="new">Starting '{0}'...</target>
+        <target state="translated">'{0}' 시작하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
@@ -7122,11 +7126,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++d1b24d5bbf5df0c21eb556a585b4c43387f0582dc39fffcdac7fe563361e7366">
         <source xml:lang="en">Starting DAB container</source>
-        <target state="new">Starting DAB container</target>
+        <target state="translated">DAB 컨테이너를 시작하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f">
         <source xml:lang="en">Starting Docker Desktop</source>
-        <target state="new">Starting Docker Desktop</target>
+        <target state="translated">Docker 데스크톱을 시작하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
         <source xml:lang="en">Starting Docker...</source>
@@ -7151,19 +7155,19 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6b3ad0a81a146978929aa5ff3cfeb5e1f1b6658c48ca1bed10ba991ca3be97c8">
         <source xml:lang="en">Step 1: Specify Input File</source>
-        <target state="new">Step 1: Specify Input File</target>
+        <target state="translated">1단계: 입력 파일 지정</target>
       </trans-unit>
       <trans-unit id="++CODE++64e67d642ec0bb6b76227ac3a15c8338599c92129010ee19d0de12a997fa3006">
         <source xml:lang="en">Step 2: Preview Data</source>
-        <target state="new">Step 2: Preview Data</target>
+        <target state="translated">2단계: 데이터 미리 보기</target>
       </trans-unit>
       <trans-unit id="++CODE++c4733c9b09467407fd987c336994bf9bfef9175b2eca699bab566e0373572578">
         <source xml:lang="en">Step 3: Modify Columns</source>
-        <target state="new">Step 3: Modify Columns</target>
+        <target state="translated">3단계: 열 수정</target>
       </trans-unit>
       <trans-unit id="++CODE++ebb5f7790ae1660e99a26a345411dcead3a0e54d906277838b984a64aacdd2fd">
         <source xml:lang="en">Step 4: Summary</source>
-        <target state="new">Step 4: Summary</target>
+        <target state="translated">4단계: 요약</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -7322,11 +7326,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++77f37933f34ccf53cb9126d1a6cd95ac5b1b7c5df2f940fe66d1be7e20108847">
         <source xml:lang="en">Table Name</source>
-        <target state="new">Table Name</target>
+        <target state="translated">표 이름</target>
       </trans-unit>
       <trans-unit id="++CODE++f95cb857da039127b754a5f2c8af4bcf9f023fb4dd3c9eb2a0181957fd0b8fdf">
         <source xml:lang="en">Table Schema</source>
-        <target state="new">Table Schema</target>
+        <target state="translated">테이블 스키마</target>
       </trans-unit>
       <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
         <source xml:lang="en">Table added to schema designer successfully.</source>
@@ -7354,7 +7358,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ff490dd9f89998ccb0379e44509170c44b5aad8684bf118d6bf96e5b5dd3f87c">
         <source xml:lang="en">Table name is required</source>
-        <target state="new">Table name is required</target>
+        <target state="translated">테이블 이름이 필요합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
         <source xml:lang="en">Table updated in schema designer successfully.</source>
@@ -7366,11 +7370,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++51ce7311bb14de484f1ef7778458ba51f5948e01fc4a51fd53cd0437b188b2db">
         <source xml:lang="en">Tail-log backup</source>
-        <target state="new">Tail-log backup</target>
+        <target state="translated">비상 로그 백업</target>
       </trans-unit>
       <trans-unit id="++CODE++375a0c721bdb9d0f485347df573ad3355ab16cab0f96cef4a2c02eb329829f78">
         <source xml:lang="en">Tail-log backup file</source>
-        <target state="new">Tail-log backup file</target>
+        <target state="translated">비상 로그 백업 파일</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -7378,7 +7382,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++07080ed580a25638b50eb21b524d3f1e8530bf3c0d3d4949a33bcc5bc189e757">
         <source xml:lang="en">Take tail-log backup before restore</source>
-        <target state="new">Take tail-log backup before restore</target>
+        <target state="translated">복원하기 전에 비상 로그 백업 수행</target>
       </trans-unit>
       <trans-unit id="++CODE++978354db0c00fc78c3a5524f462a73bc425df3fb2767e51a5f46352ae26ae6f9">
         <source xml:lang="en">Target</source>
@@ -7426,7 +7430,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
         <source xml:lang="en">Text</source>
-        <target state="new">Text</target>
+        <target state="translated">텍스트</target>
       </trans-unit>
       <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
         <source xml:lang="en">Text View</source>
@@ -7434,7 +7438,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
         <source xml:lang="en">Text tab - displays SQL text data</source>
-        <target state="new">Text tab - displays SQL text data</target>
+        <target state="translated">텍스트 탭 - SQL 텍스트 데이터를 표시합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -7443,7 +7447,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
-        <target state="new">The XEL file was not found.</target>
+        <target state="translated">XEL 파일을 찾을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -7560,7 +7564,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
         <source xml:lang="en">The selected file is not a valid XEL file.</source>
-        <target state="new">The selected file is not a valid XEL file.</target>
+        <target state="translated">선택한 파일은 올바른 XEL 파일이 아닙니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -7588,7 +7592,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
         <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
-        <target state="new">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</target>
+        <target state="translated">이 작업을 통해 입력 파일 구조를 분석하여 최대 처음 50개 행을 대상으로 아래의 미리 보기가 생성되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -7596,7 +7600,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
         <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
-        <target state="new">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</target>
+        <target state="translated">이 작업은 Docker를 사용해 로컬에 데이터 API 작성기 컨테이너를 배포합니다. 컨테이너는 구성에 따라 REST 및 GraphQL API를 노출합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -7681,7 +7685,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
         <source xml:lang="en">URL</source>
-        <target state="new">URL</target>
+        <target state="translated">URL</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -7738,7 +7742,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++cd50aadb6084f5609d08480385c3e9bc12846606183a1654310b4cdbeb953855">
         <source xml:lang="en">Unknown deployment step: {0}</source>
         <note>{0} is the deployment step number</note>
-        <target state="new">Unknown deployment step: {0}</target>
+        <target state="translated">알 수 없는 배포 단계: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
@@ -7806,7 +7810,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++db3264529da0968f55cf4d37e71f355fcda342a20fe7cbb114d534807215f634">
         <source xml:lang="en">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</source>
-        <target state="new">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</target>
+        <target state="translated">형식: YYYY-MM-DD HH:mm:ss[.SSS] 사용</target>
       </trans-unit>
       <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
         <source xml:lang="en">Use the default server setting</source>
@@ -7847,19 +7851,19 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++4c0f47c92a61b83f5a3505071ff1ba53361768bccee0021da6a0d341daa653a1">
         <source xml:lang="en">Uses the WITH KEEP_REPLICATION option during restore</source>
-        <target state="new">Uses the WITH KEEP_REPLICATION option during restore</target>
+        <target state="translated">복원할 때 WITH KEEP_REPLICATION 옵션을 사용합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++9e4a4354e5c89ecd3ec303922c8d6e8c2b57859e5ef52f93537c615259c60ef4">
         <source xml:lang="en">Uses the WITH NORECOVERY option during restore</source>
-        <target state="new">Uses the WITH NORECOVERY option during restore</target>
+        <target state="translated">복원 시 WITH NORECOVERY 옵션을 사용합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++43bf1ecd6eaed2d7c8dd00d8c3e4efe964e84f5c548dd8951260334912636368">
         <source xml:lang="en">Uses the WITH REPLACE option during restore</source>
-        <target state="new">Uses the WITH REPLACE option during restore</target>
+        <target state="translated">복원 시 WITH REPLACE 옵션을 사용합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++65ae913d6e4b65d9fd4e5dadb2105c2fa92c333afb13006d3254bff50ff418b2">
         <source xml:lang="en">Uses the WITH RESTRICTED_USER option during restore</source>
-        <target state="new">Uses the WITH RESTRICTED_USER option during restore</target>
+        <target state="translated">복원할 때 WITH RESTRICTED_USER 옵션을 사용합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
         <source xml:lang="en">Using {0} ({1})...</source>
@@ -7886,7 +7890,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
         <source xml:lang="en">Value is required</source>
-        <target state="new">Value is required</target>
+        <target state="translated">값 필요</target>
       </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
@@ -7894,15 +7898,15 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++c3c67860a7ed33d60abb06ff29ebf03be5f1db11b3ed71566467dc8a55add424">
         <source xml:lang="en">Verifying Docker engine is ready</source>
-        <target state="new">Verifying Docker engine is ready</target>
+        <target state="translated">Docker 엔진이 준비되었는지 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++bba88aa8201682fe4d61d60b4a68cce37fef65f62111ab2d3ef125630e2b9c57">
         <source xml:lang="en">Verifying Docker is installed on your system</source>
-        <target state="new">Verifying Docker is installed on your system</target>
+        <target state="translated">시스템에 Docker가 설치되어 있는지 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++231f6c3aeb3c4c3fccb71154ec11eea4e310360cd379f33c6530bef5fa2c7efd">
         <source xml:lang="en">Verifying the API is ready to accept requests</source>
-        <target state="new">Verifying the API is ready to accept requests</target>
+        <target state="translated">API가 요청을 수락할 준비가 되었는지 확인하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
         <source xml:lang="en">Very Dissatisfied</source>
@@ -7930,7 +7934,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
         <source xml:lang="en">View settings</source>
-        <target state="new">View settings</target>
+        <target state="translated">설정 보기</target>
       </trans-unit>
       <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
         <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
@@ -8006,7 +8010,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++54a82587ded9d34e040e4db9f860f3e0b0e6285ca43651e9cfca8dbc65bd3ab0">
         <source xml:lang="en">YYYY-MM-DD HH:mm:ss</source>
-        <target state="new">YYYY-MM-DD HH:mm:ss</target>
+        <target state="translated">YYYY-MM-DD HH:mm:ss</target>
       </trans-unit>
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
@@ -8027,7 +8031,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
         <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
-        <target state="new">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</target>
+        <target state="translated">내보내지 않은 프로파일러 이벤트를 캡처했습니다. 지금 닫으면 캡처된 모든 이벤트가 사라집니다. CSV 파일로 내보내시겠어요?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -8047,7 +8051,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++f86597d07cc9ee182bac4dce2a2850eb6cc8509b3199ec6ab9d6e3e89fff8aae">
         <source xml:lang="en">Your API is available at:</source>
-        <target state="new">Your API is available at:</target>
+        <target state="translated">API는 다음 위치에서 사용할 수 있습니다:</target>
       </trans-unit>
       <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
         <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
@@ -8150,7 +8154,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
         <source xml:lang="en">none selected</source>
-        <target state="new">none selected</target>
+        <target state="translated">선택한 항목 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
         <source xml:lang="en">of</source>
@@ -8158,7 +8162,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
         <source xml:lang="en">profiler_events</source>
-        <target state="new">profiler_events</target>
+        <target state="translated">profiler_events</target>
       </trans-unit>
       <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
         <source xml:lang="en">resource group</source>
@@ -8242,22 +8246,22 @@ Query: {2}</source>
       <trans-unit id="++CODE++f5b9a5e5e605057aa53be69b163fecc2183dcc3350e0366142ead290ae058b81">
         <source xml:lang="en">{0} connection group imported</source>
         <note>{0} is the number of connection groups imported (singular)</note>
-        <target state="new">{0} connection group imported</target>
+        <target state="translated">{0}개의 연결 그룹을 가져왔음</target>
       </trans-unit>
       <trans-unit id="++CODE++f12c66806d4a524f59f2d92f0f60c743727758060a54d3d4404abc8c09a3e766">
         <source xml:lang="en">{0} connection groups imported</source>
         <note>{0} is the number of connection groups imported (plural)</note>
-        <target state="new">{0} connection groups imported</target>
+        <target state="translated">{0}개의 연결 그룹을 가져왔음</target>
       </trans-unit>
       <trans-unit id="++CODE++0fdafb5c26d9b0676b97c877261cc5ffcbbe40b53f2ed0863f213e2d5cd1713f">
         <source xml:lang="en">{0} connection imported</source>
         <note>{0} is the number of connections imported (singular)</note>
-        <target state="new">{0} connection imported</target>
+        <target state="translated">{0}개의 연결을 가져왔습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++440129f90fc8b26515c43b81f41d4243fca747b73149d34a9c33df4f75d9a85d">
         <source xml:lang="en">{0} connections imported</source>
         <note>{0} is the number of connections imported (plural)</note>
-        <target state="new">{0} connections imported</target>
+        <target state="translated">{0}개의 연결을 가져왔습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
@@ -8346,7 +8350,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
         <source xml:lang="en">{0} selected</source>
         <note>{0} is the number of selected filter values</note>
-        <target state="new">{0} selected</target>
+        <target state="translated">{0}개 선택됨</target>
       </trans-unit>
       <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
         <source xml:lang="en">{0} selected</source>
@@ -8356,12 +8360,12 @@ Query: {2}</source>
       <trans-unit id="++CODE++95fa4a329ceeda46847f23c83d8b2df1c86ab5e6ec17645bd1ade313919d0481">
         <source xml:lang="en">{0} setting imported</source>
         <note>{0} is the number of settings imported (singular)</note>
-        <target state="new">{0} setting imported</target>
+        <target state="translated">{0}개의 설정을 가져왔습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
         <source xml:lang="en">{0} settings imported</source>
         <note>{0} is the number of settings imported (plural)</note>
-        <target state="new">{0} settings imported</target>
+        <target state="translated">{0}개의 설정을 가져왔습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
@@ -8400,12 +8404,12 @@ Query: {2}</source>
         <source xml:lang="en">{0}/{1}</source>
         <note>{0} is selected count
 {1} is total count</note>
-        <target state="new">{0}/{1}</target>
+        <target state="translated">{0}/{1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0e4e17db5444ca9044df0967a4cb1cf74b4b906c65abc091feee77da17bda1bb">
         <source xml:lang="en">{0}/{1} events</source>
         <note>{0} is the filtered count, {1} is the total count</note>
-        <target state="new">{0}/{1} events</target>
+        <target state="translated">이벤트 {0}/{1}개</target>
       </trans-unit>
       <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
         <source xml:lang="en">{0}: {1}</source>
@@ -8417,7 +8421,7 @@ Query: {2}</source>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the column name
 {1} is the filter description</note>
-        <target state="new">{0}: {1}</target>
+        <target state="translated">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
         <source xml:lang="en">{0}: {1}</source>
@@ -8882,7 +8886,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
         <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="new">Import Flat File (Preview)</target>
+        <target state="translated">플랫 파일 가져오기(미리 보기)</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)</source>
@@ -9064,7 +9068,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
         <source xml:lang="en">Restore Database (Preview)</source>
-        <target state="new">Restore Database (Preview)</target>
+        <target state="translated">데이터베이스 복원(미리 보기)</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -9096,7 +9100,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.profiler.xelEditorDisplayName">
         <source xml:lang="en">SQL Server Extended Events Log</source>
-        <target state="new">SQL Server Extended Events Log</target>
+        <target state="translated">SQL Server 확장 이벤트 로그</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
@@ -9328,7 +9332,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.toggleActualPlan">
         <source xml:lang="en">Toggle Actual Plan</source>
-        <target state="new">Toggle Actual Plan</target>
+        <target state="translated">실제 계획 토글</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
