@@ -12,7 +12,6 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
-    ToolbarButton,
     Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -44,7 +43,12 @@ export function AutoArrangeButton() {
         <Dialog>
             <DialogTrigger>
                 <Tooltip content={locConstants.schemaDesigner.autoArrange} relationship="label">
-                    <ToolbarButton appearance="subtle" icon={<FluentIcons.Flowchart20Regular />} />
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.Flowchart16Regular />}>
+                        {locConstants.schemaDesigner.autoArrange}
+                    </Button>
                 </Tooltip>
             </DialogTrigger>
             <DialogSurface>
