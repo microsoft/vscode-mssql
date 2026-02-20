@@ -1387,8 +1387,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Profiler (Preview): No session": "Profiler (Preview): No session",
-    "Profiler (Preview) Session Status": "Profiler (Preview) Session Status",
+    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
+    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -2890,10 +2890,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
@@ -2925,11 +2925,11 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
-    "Profiler (Preview): {0}/{0} is the file name or session name": {
-        "message": "Profiler (Preview): {0}",
+    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
+        "message": "Query Profiler (Preview): {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Profiler (Preview)": "Profiler (Preview)",
+    "Query Profiler (Preview)": "Query Profiler (Preview)",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
