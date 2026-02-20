@@ -105,26 +105,16 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Load code analysis rules from the DacFx service
+     * Fetches rules from the DacFx service and maps them to the UI view model.
+     * Throws on service failure or mapping errors — caught by loadRules.
      */
-    private async loadRules(): Promise<void> {
+    private async fetchRulesFromDacFx(): Promise<SqlCodeAnalysisRule[]> {
         try {
-            this.state.isLoading = true;
-            this.state.message = undefined;
-            this.updateState();
-
             const rulesResult = await this.dacFxService.getCodeAnalysisRules();
             if (!rulesResult.success) {
-                this.state.isLoading = false;
-                this.state.message = {
-                    message: rulesResult.errorMessage || Loc.failedToLoadRules,
-                    intent: "error",
-                } as DialogMessageSpec;
-                this.updateState();
-                return;
+                throw new Error(rulesResult.errorMessage || Loc.failedToLoadRules);
             }
-
-            const rules: SqlCodeAnalysisRule[] = (rulesResult.rules ?? []).map((rule) => {
+            return (rulesResult.rules ?? []).map((rule) => {
                 const severity = this.normalizeSeverity(rule.severity);
                 return {
                     ruleId: rule.ruleId,
@@ -137,6 +127,22 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     ruleScope: rule.ruleScope,
                 };
             });
+        } catch (error) {
+            throw new Error(`${Loc.failedToLoadRules}: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
+     * Load code analysis rules from the DacFx service
+     */
+    private async loadRules(): Promise<void> {
+        try {
+            this.state.isLoading = true;
+            this.state.message = undefined;
+            this.updateState();
+
+            // Get the static code analysis rules from dacfx
+            const rules = await this.fetchRulesFromDacFx();
 
             this.state.rules = rules;
             this.state.isLoading = false;
