@@ -803,6 +803,8 @@ export const Profiler: React.FC = () => {
             enableGridMenu: false, // Hide grid menu (hamburger menu)
             enableHeaderMenu: false, // Hide header menu (column hide/show)
             enableAutoTooltip: true, // Enable tooltips to show cell values on hover
+            enableExcelCopyBuffer: true, // Enable cell range selection (multi-cell select + copy)
+            enableTextSelectionOnCells: false, // Disable native text selection so cell range selection works
             rowHeight: 25,
             headerRowHeight: 30,
             showHeaderRow: false,
