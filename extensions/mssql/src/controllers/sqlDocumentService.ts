@@ -274,13 +274,17 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
+        const docUri = getUriKey(doc.uri);
+
+        // Only SQL documents should run the rename/save open delay and auto-connect logic.
+        if (doc.languageId !== Constants.languageId) {
+            this._newUriFromRenameOrSave.delete(docUri);
+            return;
+        }
 
         // Only wait for in-flight new-query creates for untitled SQL documents.
         // This avoids delaying normal file opens behind unrelated create flows.
-        if (
-            doc.languageId === Constants.languageId &&
-            doc.uri.scheme === LocalizedConstants.untitledScheme
-        ) {
+        if (doc.uri.scheme === LocalizedConstants.untitledScheme) {
             await this.waitForOngoingCreates();
         }
 
@@ -291,28 +295,19 @@ export default class SqlDocumentService implements vscode.Disposable {
          * the new saved/renamed document. If it is, we skip auto-connecting
          */
         await new Promise((resolve) => setTimeout(resolve, waitTimeMsOnOpenAfterSaveOrRename));
-        if (this._newUriFromRenameOrSave.has(getUriKey(doc.uri))) {
-            this._newUriFromRenameOrSave.delete(getUriKey(doc.uri));
+        if (this._newUriFromRenameOrSave.has(docUri)) {
+            this._newUriFromRenameOrSave.delete(docUri);
             return;
         }
-        if (
-            this._lastActiveConnectionInfo &&
-            doc.languageId === Constants.languageId &&
-            !this._ownedDocuments.has(doc)
-        ) {
+        if (this._lastActiveConnectionInfo && !this._ownedDocuments.has(doc)) {
             await this._connectionMgr.connect(
-                getUriKey(doc.uri),
+                docUri,
                 Utils.deepClone(this._lastActiveConnectionInfo),
             );
         }
 
-        if (doc && doc.languageId === Constants.languageId) {
-            // set encoding to false
-            this._statusview?.languageFlavorChanged(
-                getUriKey(doc.uri),
-                Constants.mssqlProviderName,
-            );
-        }
+        // set encoding to false
+        this._statusview?.languageFlavorChanged(docUri, Constants.mssqlProviderName);
     }
 
     /**
