@@ -13,6 +13,8 @@ import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
 import { parseBatches } from "./batchParser";
 import * as formatter from "./resultFormatter";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 
 export class SqlNotebookController implements vscode.Disposable {
     private readonly controller: vscode.NotebookController;
@@ -145,6 +147,9 @@ export class SqlNotebookController implements vscode.Disposable {
                     notebook,
                     vscode.NotebookControllerAffinity.Preferred,
                 );
+                sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.KernelSelected, {
+                    detectionMethod: "kernelspec",
+                });
                 return;
             }
         }
@@ -163,6 +168,9 @@ export class SqlNotebookController implements vscode.Disposable {
                 notebook,
                 vscode.NotebookControllerAffinity.Preferred,
             );
+            sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.KernelSelected, {
+                detectionMethod: "languageInfo",
+            });
             return;
         }
 
@@ -178,6 +186,9 @@ export class SqlNotebookController implements vscode.Disposable {
                 notebook,
                 vscode.NotebookControllerAffinity.Preferred,
             );
+            sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.KernelSelected, {
+                detectionMethod: "allCellsSql",
+            });
         }
     }
 
@@ -318,8 +329,16 @@ export class SqlNotebookController implements vscode.Disposable {
         let cancelled = false;
         const cancelListener = execution.token.onCancellationRequested(() => {
             cancelled = true;
+            sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.CancelCellExecution);
             void connMgr.cancelExecution();
         });
+
+        const activity = startActivity(
+            TelemetryViews.SqlNotebooks,
+            TelemetryActions.ExecuteCell,
+            undefined,
+            { batchCount: String(batches.length), isMagicCommand: "false" },
+        );
 
         try {
             for (const batch of batches) {
@@ -389,7 +408,13 @@ export class SqlNotebookController implements vscode.Disposable {
             }
 
             execution.replaceOutput(outputs);
-            execution.end(!cancelled, Date.now());
+            if (cancelled) {
+                execution.end(false, Date.now());
+                activity.end(ActivityStatus.Canceled);
+            } else {
+                execution.end(true, Date.now());
+                activity.end(ActivityStatus.Succeeded);
+            }
         } catch (err: any) {
             if (cancelled) {
                 outputs.push(
@@ -415,6 +440,7 @@ export class SqlNotebookController implements vscode.Disposable {
             }
             execution.replaceOutput(outputs);
             execution.end(false, Date.now());
+            activity.endFailed(new Error("Cell execution failed"));
         } finally {
             cancelListener.dispose();
         }
@@ -430,6 +456,8 @@ export class SqlNotebookController implements vscode.Disposable {
         const firstLine = lines[0].trim();
         const parts = firstLine.split(/\s+/);
         const command = parts[0].substring(2).toLowerCase(); // strip %%
+
+        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.MagicCommand, { command });
 
         try {
             switch (command) {
@@ -621,6 +649,10 @@ export class SqlNotebookController implements vscode.Disposable {
     }
 
     async createNotebookWithConnection(connectionInfo?: IConnectionInfo): Promise<void> {
+        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.CreateNotebook, {
+            source: connectionInfo ? "objectExplorer" : "commandPalette",
+        });
+
         const cellData = new vscode.NotebookCellData(vscode.NotebookCellKind.Code, "", "sql");
         const notebookData = new vscode.NotebookData([cellData]);
         const notebook = await vscode.workspace.openNotebookDocument(

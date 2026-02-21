@@ -10,6 +10,8 @@ import { ConnectionSharingService } from "../connectionSharing/connectionSharing
 import { ConnectionRequest, ConnectParams } from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 
 /**
  * Manages the active database connection for a notebook.
@@ -94,34 +96,46 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * Used by %%connect and as fallback when no connection exists.
      */
     async promptAndConnect(): Promise<string> {
-        const pickListItems = await this.connectionMgr.connectionStore.getPickListItems();
-        const connectionInfo =
-            await this.connectionMgr.connectionUI.promptForConnection(pickListItems);
-        if (!connectionInfo) {
-            throw new Error(LocalizedConstants.Notebooks.noConnectionSelected);
-        }
-
-        this.log.info(
-            `[promptAndConnect] server=${connectionInfo.server}, database=${connectionInfo.database}`,
+        const activity = startActivity(
+            TelemetryViews.SqlNotebooks,
+            TelemetryActions.NotebookConnect,
+            undefined,
+            { method: "prompt" },
         );
-        const uri = await this.connectInternal(connectionInfo);
-        this.log.info(`[promptAndConnect] connect() → URI=${uri}`);
-
-        // Verify the actual database
         try {
-            const actualDb = await this.queryActualDatabase(uri);
-            this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
-            this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
-        } catch {
-            this.connectionLabel = formatConnectionLabel(
-                connectionInfo.server,
-                connectionInfo.database,
-            );
-        }
+            const pickListItems = await this.connectionMgr.connectionStore.getPickListItems();
+            const connectionInfo =
+                await this.connectionMgr.connectionUI.promptForConnection(pickListItems);
+            if (!connectionInfo) {
+                throw new Error(LocalizedConstants.Notebooks.noConnectionSelected);
+            }
 
-        this.connectionUri = uri;
-        this.connectionInfo = connectionInfo;
-        return uri;
+            this.log.info(
+                `[promptAndConnect] server=${connectionInfo.server}, database=${connectionInfo.database}`,
+            );
+            const uri = await this.connectInternal(connectionInfo);
+            this.log.info(`[promptAndConnect] connect() → URI=${uri}`);
+
+            // Verify the actual database
+            try {
+                const actualDb = await this.queryActualDatabase(uri);
+                this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
+                this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
+            } catch {
+                this.connectionLabel = formatConnectionLabel(
+                    connectionInfo.server,
+                    connectionInfo.database,
+                );
+            }
+
+            this.connectionUri = uri;
+            this.connectionInfo = connectionInfo;
+            activity.end(ActivityStatus.Succeeded);
+            return uri;
+        } catch (err) {
+            activity.endFailed(new Error("Connection prompt failed or was cancelled"));
+            throw err;
+        }
     }
 
     /**
@@ -130,50 +144,65 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * with USE [database] if needed.
      */
     async connectWith(connectionInfo: IConnectionInfo): Promise<string> {
-        const server = connectionInfo.server;
-        const database = connectionInfo.database;
-        this.log.info(`[connectWith] server=${server}, database=${database}`);
-
-        const uri = await this.connectInternal(connectionInfo);
-        this.log.info(`[connectWith] connect() → URI=${uri}`);
-
-        // Verify we're on the correct database.
-        let actualDb = "(unknown)";
+        const activity = startActivity(
+            TelemetryViews.SqlNotebooks,
+            TelemetryActions.NotebookConnect,
+            undefined,
+            { method: "objectExplorer" },
+        );
         try {
-            actualDb = await this.queryActualDatabase(uri);
-            this.log.info(
-                `[connectWith] Actual DB: ${actualDb}, Expected: ${database || "(none)"}`,
-            );
+            const server = connectionInfo.server;
+            const database = connectionInfo.database;
+            this.log.info(`[connectWith] server=${server}, database=${database}`);
 
-            if (
-                database &&
-                actualDb.toLowerCase() !== database.toLowerCase() &&
-                actualDb !== "(unknown)"
-            ) {
-                // Wrong database — disconnect and reconnect with correct DB
-                this.log.info(`[connectWith] Database mismatch! Reconnecting with [${database}]`);
-                this.connectionSharingService.disconnect(uri);
-                const fixedInfo = { ...connectionInfo, database };
-                const newUri = await this.connectInternal(fixedInfo);
-                actualDb = await this.queryActualDatabase(newUri);
-                this.log.info(`[connectWith] After reconnect: ${actualDb}, URI=${newUri}`);
-                this.connectionUri = newUri;
-                this.connectionInfo = { ...connectionInfo, database: actualDb };
-                this.connectionLabel = formatConnectionLabel(server, actualDb);
-                return newUri;
+            const uri = await this.connectInternal(connectionInfo);
+            this.log.info(`[connectWith] connect() → URI=${uri}`);
+
+            // Verify we're on the correct database.
+            let actualDb = "(unknown)";
+            try {
+                actualDb = await this.queryActualDatabase(uri);
+                this.log.info(
+                    `[connectWith] Actual DB: ${actualDb}, Expected: ${database || "(none)"}`,
+                );
+
+                if (
+                    database &&
+                    actualDb.toLowerCase() !== database.toLowerCase() &&
+                    actualDb !== "(unknown)"
+                ) {
+                    // Wrong database — disconnect and reconnect with correct DB
+                    this.log.info(
+                        `[connectWith] Database mismatch! Reconnecting with [${database}]`,
+                    );
+                    this.connectionSharingService.disconnect(uri);
+                    const fixedInfo = { ...connectionInfo, database };
+                    const newUri = await this.connectInternal(fixedInfo);
+                    actualDb = await this.queryActualDatabase(newUri);
+                    this.log.info(`[connectWith] After reconnect: ${actualDb}, URI=${newUri}`);
+                    this.connectionUri = newUri;
+                    this.connectionInfo = { ...connectionInfo, database: actualDb };
+                    this.connectionLabel = formatConnectionLabel(server, actualDb);
+                    activity.end(ActivityStatus.Succeeded);
+                    return newUri;
+                }
+            } catch (err: any) {
+                this.log.info(`[connectWith] DB verification failed: ${err.message}`);
+                if (database) {
+                    actualDb = database;
+                }
             }
-        } catch (err: any) {
-            this.log.info(`[connectWith] DB verification failed: ${err.message}`);
-            if (database) {
-                actualDb = database;
-            }
+
+            this.connectionUri = uri;
+            this.connectionInfo = { ...connectionInfo, database: actualDb };
+            // Use the VERIFIED database name, not the possibly-stale profile value
+            this.connectionLabel = formatConnectionLabel(server, actualDb);
+            activity.end(ActivityStatus.Succeeded);
+            return uri;
+        } catch (err) {
+            activity.endFailed(new Error("Failed to connect with provided connection profile"));
+            throw err;
         }
-
-        this.connectionUri = uri;
-        this.connectionInfo = { ...connectionInfo, database: actualDb };
-        // Use the VERIFIED database name, not the possibly-stale profile value
-        this.connectionLabel = formatConnectionLabel(server, actualDb);
-        return uri;
     }
 
     /**
@@ -196,6 +225,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
         this.log.info(`[changeDatabase] Switching to [${database}]`);
+
+        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookChangeDatabase);
 
         // Disconnect current connection
         if (this.connectionUri) {
@@ -241,6 +272,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     disconnect(): void {
         this.log.info(`[disconnect] URI=${this.connectionUri ?? "none"}`);
         if (this.connectionUri) {
+            sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookDisconnect);
             this.connectionSharingService.disconnect(this.connectionUri);
         }
         this.connectionUri = undefined;

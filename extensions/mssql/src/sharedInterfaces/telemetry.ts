@@ -46,6 +46,7 @@ export enum TelemetryViews {
     FlatFile = "FlatFile",
     Profiler = "Profiler",
     Restore = "Restore",
+    SqlNotebooks = "SqlNotebooks",
 }
 
 export enum TelemetryActions {
@@ -239,6 +240,15 @@ export enum TelemetryActions {
     GetRestorePlan = "GetRestorePlan",
     ScriptRestore = "ScriptRestore",
     GetRestoreParams = "GetRestoreParams",
+    // SQL Notebooks
+    CreateNotebook = "CreateNotebook",
+    ExecuteCell = "ExecuteCell",
+    MagicCommand = "MagicCommand",
+    NotebookConnect = "NotebookConnect",
+    NotebookDisconnect = "NotebookDisconnect",
+    NotebookChangeDatabase = "NotebookChangeDatabase",
+    CancelCellExecution = "CancelCellExecution",
+    KernelSelected = "KernelSelected",
 }
 
 /**
