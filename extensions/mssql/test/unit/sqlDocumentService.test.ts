@@ -77,11 +77,13 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService["_connectionManager"] = connectionManager;
 
         // Stub SqlOutputContentProvider methods used during tests to avoid side effects
-        mainController["_outputContentProvider"] = {
+        const mockOutputContentProvider = {
             onDidCloseTextDocument: sandbox.stub().resolves(),
             updateQueryRunnerUri: sandbox.stub().resolves(),
             onUntitledFileSaved: sandbox.stub(),
         } as any;
+        mainController["_outputContentProvider"] = mockOutputContentProvider;
+        sqlDocumentService["_outputContentProvider"] = mockOutputContentProvider;
 
         // Mock SqlToolsServerClient instance
         const mockDiagnosticCollection = {
@@ -304,6 +306,136 @@ suite("SqlDocumentService Tests", () => {
         mockUpdateUri.restore();
     });
 
+    test("onDidCloseTextDocument should skip processing when document is being renamed or saved", async () => {
+        const doc = mockTextDocument("file:///old.sql");
+        const docKey = doc.uri.toString();
+
+        // Simulate a rename/save in progress by adding the URI to the set
+        sqlDocumentService["_uriBeingRenamedOrSaved"].add(docKey);
+
+        await sqlDocumentService.onDidCloseTextDocument(doc);
+
+        // Should have skipped processing - no calls to connectionManager or outputContentProvider
+        expect(connectionManager.onDidCloseTextDocument).to.not.have.been.called;
+        expect(mainController["_outputContentProvider"].onDidCloseTextDocument).to.not.have.been
+            .called;
+
+        // The URI should be removed from the set after processing
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(docKey)).to.be.false;
+    });
+
+    test("onWillSaveTextDocument should transfer state when saving an untitled document", async () => {
+        const untitledDoc = {
+            uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:Untitled-1`),
+            languageId: Constants.languageId,
+            lineCount: 1,
+            getText: () => "SELECT 1",
+        } as vscode.TextDocument;
+
+        const savedDoc = {
+            uri: vscode.Uri.parse("file:///saved.sql"),
+            languageId: Constants.languageId,
+            lineCount: 1,
+            getText: () => "SELECT 1",
+        } as vscode.TextDocument;
+
+        // Make the untitled doc appear in workspace.textDocuments
+        sandbox.stub(vscode.workspace, "textDocuments").value([untitledDoc]);
+
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+
+        const event = {
+            document: savedDoc,
+            reason: vscode.TextDocumentSaveReason.Manual,
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.TextDocumentWillSaveEvent;
+
+        await sqlDocumentService.onWillSaveTextDocument(event);
+
+        // updateUri should have been called to transfer state
+        expect(mockUpdateUri).to.have.been.calledOnce;
+        // The untitled URI should be in the set to skip close event
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(untitledDoc.uri.toString())).to.be
+            .true;
+        // The new URI should be tracked to skip auto-connect on open
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(savedDoc.uri.toString())).to.be
+            .true;
+
+        mockUpdateUri.restore();
+    });
+
+    test("onWillSaveTextDocument should not transfer state when no matching untitled document exists", async () => {
+        const savedDoc = {
+            uri: vscode.Uri.parse("file:///existing.sql"),
+            languageId: Constants.languageId,
+            lineCount: 5,
+            getText: () => "SELECT * FROM table1",
+        } as vscode.TextDocument;
+
+        // No untitled documents in workspace
+        sandbox.stub(vscode.workspace, "textDocuments").value([]);
+
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+
+        const event = {
+            document: savedDoc,
+            reason: vscode.TextDocumentSaveReason.Manual,
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.TextDocumentWillSaveEvent;
+
+        await sqlDocumentService.onWillSaveTextDocument(event);
+
+        expect(mockUpdateUri).to.not.have.been.called;
+
+        mockUpdateUri.restore();
+    });
+
+    test("onWillRenameFiles should transfer state for each renamed file", async () => {
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+
+        const oldUri = vscode.Uri.parse("file:///old-name.sql");
+        const newUri = vscode.Uri.parse("file:///new-name.sql");
+
+        const event = {
+            files: [{ oldUri, newUri }],
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.FileWillRenameEvent;
+
+        await sqlDocumentService.onWillRenameFiles(event);
+
+        expect(mockUpdateUri).to.have.been.calledOnceWith(oldUri.toString(), newUri.toString());
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(oldUri.toString())).to.be.true;
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(newUri.toString())).to.be.true;
+
+        mockUpdateUri.restore();
+    });
+
+    test("onWillRenameFiles should handle multiple file renames", async () => {
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+
+        const files = [
+            {
+                oldUri: vscode.Uri.parse("file:///a.sql"),
+                newUri: vscode.Uri.parse("file:///a-renamed.sql"),
+            },
+            {
+                oldUri: vscode.Uri.parse("file:///b.sql"),
+                newUri: vscode.Uri.parse("file:///b-renamed.sql"),
+            },
+        ];
+
+        const event = {
+            files,
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.FileWillRenameEvent;
+
+        await sqlDocumentService.onWillRenameFiles(event);
+
+        expect(mockUpdateUri).to.have.been.calledTwice;
+
+        mockUpdateUri.restore();
+    });
+
     // Open document event test
     test("onDidOpenTextDocument should propagate the function to the connectionManager", async () => {
         // Call onDidOpenTextDocument to test its side effects
@@ -476,6 +608,24 @@ suite("SqlDocumentService Tests", () => {
         expect(waitStub).to.have.been.calledOnce;
         waitStub.restore();
     });
+
+    test("onDidOpenTextDocument should skip auto-connect for recently renamed or saved documents", async () => {
+        const doc = mockTextDocument("file:///just-saved.sql");
+        const docKey = doc.uri.toString();
+
+        // Simulate that this document was just renamed/saved
+        sqlDocumentService["_newUriFromRenameOrSave"].add(docKey);
+        sqlDocumentService["_lastActiveConnectionInfo"] = {
+            server: "localhost",
+        } as any;
+
+        await sqlDocumentService.onDidOpenTextDocument(doc);
+
+        // Should not have tried to connect since this is a recently renamed/saved file
+        expect(connectionManager.connect).to.not.have.been.called;
+        // The URI should be removed from the set after processing
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(docKey)).to.be.false;
+    }).timeout(5000);
 
     test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {
         const hideStatusBarStub = sandbox.stub();
