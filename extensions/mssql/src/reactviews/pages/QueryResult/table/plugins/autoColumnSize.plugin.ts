@@ -8,7 +8,6 @@
 import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
 import { deepClone } from "../../../../common/utils";
-import debounce from "lodash/debounce";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { mixin } from "../objects";
 import { MAX_COLUMN_WIDTH_PX, MIN_COLUMN_WIDTH_PX } from "../table";
@@ -30,7 +29,6 @@ const defaultOptions: IAutoColumnSizeOptions = {
 };
 
 const NUM_ROWS_TO_SCAN = 50;
-const ON_POST_RENDER_DEBOUNCE_DELAY_MS = 120;
 
 export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private _grid!: Slick.Grid<T>;
@@ -38,10 +36,6 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     private _context!: CanvasRenderingContext2D;
     private _options: IAutoColumnSizeOptions;
     private _onPostEventHandler = new Slick.EventHandler();
-    private readonly _debouncedPostRender = debounce(
-        () => this.onPostRender(),
-        ON_POST_RENDER_DEBOUNCE_DELAY_MS,
-    );
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
@@ -53,11 +47,9 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     public init(grid: Slick.Grid<T>) {
         this._grid = grid;
         if (this._options.autoSizeOnRender) {
-            this._onPostEventHandler.subscribe(this._grid.onRendered, () => {
-                this._debouncedPostRender();
-            });
+            this._onPostEventHandler.subscribe(this._grid.onRendered, () => this.onPostRender());
             this._onPostEventHandler.subscribe(this._grid.onViewportChanged, () => {
-                this._debouncedPostRender();
+                setTimeout(() => this.onPostRender(), 10);
             });
         }
 
@@ -69,12 +61,11 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     }
 
     public destroy() {
-        this._debouncedPostRender.cancel();
         this._$container.off();
     }
 
     public autosizeColumns() {
-        this._debouncedPostRender();
+        this.onPostRender();
     }
 
     /**
@@ -112,7 +103,7 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         );
         if (!headerColumnsQuery || !headerColumnsQuery.length) {
             // If headers aren't ready, try again in a short while
-            this._debouncedPostRender();
+            setTimeout(() => this.onPostRender(), 50);
             return;
         }
 

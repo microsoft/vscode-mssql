@@ -417,6 +417,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public rerenderGrid() {
         this.withRenderPreservingSelection(() => {
             this._grid.updateRowCount();
+            this._grid.setColumns(this._grid.getColumns());
             this._grid.invalidateAllRows();
             this._grid.render();
         });
