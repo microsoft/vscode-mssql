@@ -314,8 +314,27 @@ export class SqlNotebookController implements vscode.Disposable {
         const batches = parseBatches(code);
         const outputs: vscode.NotebookCellOutput[] = [];
 
+        // Cancellation support
+        let cancelled = false;
+        const cancelListener = execution.token.onCancellationRequested(() => {
+            cancelled = true;
+            void connMgr.cancelExecution();
+        });
+
         try {
             for (const batch of batches) {
+                if (cancelled) {
+                    outputs.push(
+                        new vscode.NotebookCellOutput([
+                            vscode.NotebookCellOutputItem.text(
+                                LocalizedConstants.Notebooks.executionCancelled,
+                                "text/plain",
+                            ),
+                        ]),
+                    );
+                    break;
+                }
+
                 const result = await connMgr.executeQuery(batch);
                 const messages = (result.messages ?? [])
                     .filter((m) => !m.isError)
@@ -370,21 +389,34 @@ export class SqlNotebookController implements vscode.Disposable {
             }
 
             execution.replaceOutput(outputs);
-            execution.end(true, Date.now());
+            execution.end(!cancelled, Date.now());
         } catch (err: any) {
-            // Show SQL errors as plain text — no JS stack trace
-            outputs.push(
-                new vscode.NotebookCellOutput([
-                    vscode.NotebookCellOutputItem.text(
-                        LocalizedConstants.Notebooks.errorPrefix(
-                            err.message || LocalizedConstants.Notebooks.queryExecutionFailed,
+            if (cancelled) {
+                outputs.push(
+                    new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.text(
+                            LocalizedConstants.Notebooks.executionCancelled,
+                            "text/plain",
                         ),
-                        "text/plain",
-                    ),
-                ]),
-            );
+                    ]),
+                );
+            } else {
+                // Show SQL errors as plain text — no JS stack trace
+                outputs.push(
+                    new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.text(
+                            LocalizedConstants.Notebooks.errorPrefix(
+                                err.message || LocalizedConstants.Notebooks.queryExecutionFailed,
+                            ),
+                            "text/plain",
+                        ),
+                    ]),
+                );
+            }
             execution.replaceOutput(outputs);
             execution.end(false, Date.now());
+        } finally {
+            cancelListener.dispose();
         }
     }
 

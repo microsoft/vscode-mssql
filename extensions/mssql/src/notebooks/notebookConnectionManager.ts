@@ -256,6 +256,24 @@ export class NotebookConnectionManager implements vscode.Disposable {
         return this.connectionInfo;
     }
 
+    getConnectionUri(): string | undefined {
+        return this.connectionUri;
+    }
+
+    /**
+     * Best-effort cancellation: sends QueryCancelRequest to STS.
+     * SimpleExecuteRequest may not support cancellation, so this is best-effort.
+     */
+    async cancelExecution(): Promise<void> {
+        if (this.connectionUri) {
+            try {
+                await this.connectionSharingService.cancelQuery(this.connectionUri);
+            } catch (err: any) {
+                this.log.warn(`[cancelExecution] Cancel request failed: ${err.message}`);
+            }
+        }
+    }
+
     /**
      * Register a cell document URI with STS so IntelliSense
      * (completions, hover, diagnostics) works for notebook cells.
