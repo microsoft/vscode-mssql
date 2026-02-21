@@ -227,6 +227,18 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap.clear();
     });
 
+    test("updateQueryRunnerUri should not throw when query result state does not exist", async () => {
+        const oldUri = "untitled:Untitled-1";
+        const newUri = "file:///test.sql";
+        const sendNotificationStub = sandbox
+            .stub(contentProvider.queryResultWebviewController, "sendNotification")
+            .resolves();
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(sendNotificationStub).to.not.have.been.called;
+    });
+
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
         let title = "Test_Title";
         let uri = testUri;

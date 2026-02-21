@@ -716,6 +716,10 @@ export class SqlOutputContentProvider {
             queryRunner.updateQueryRunnerUri(oldUri, newUri);
         }
 
+        if (!this._queryResultWebviewController.hasQueryResultState(oldUri)) {
+            return;
+        }
+
         let state = this._queryResultWebviewController.getQueryResultState(oldUri);
         if (state) {
             state.uri = newUri;
