@@ -330,11 +330,17 @@ export class SqlNotebookController implements vscode.Disposable {
                             ]),
                         );
                     }
-                    const html = formatter.toHtml(result.columnInfo, result.rows);
                     const plain = formatter.toPlain(result.columnInfo, result.rows);
                     outputs.push(
                         new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text(html, "text/html"),
+                            vscode.NotebookCellOutputItem.json(
+                                {
+                                    columnInfo: result.columnInfo,
+                                    rows: result.rows,
+                                    rowCount: result.rowCount,
+                                },
+                                "application/vnd.mssql.query-result",
+                            ),
                             vscode.NotebookCellOutputItem.text(plain, "text/plain"),
                         ]),
                     );

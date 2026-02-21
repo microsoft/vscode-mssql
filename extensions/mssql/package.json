@@ -58,12 +58,14 @@
         "build:extension-bundle": "node scripts/bundle-extension.js",
         "build:webviews": "tsc -p tsconfig.react.json",
         "build:webviews-bundle": "node scripts/bundle-reactviews.js",
+        "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node scripts/bundle-extension.js --watch",
         "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
         "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
-        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle",
+        "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
+        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "../../node_modules/.bin/eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
@@ -311,6 +313,16 @@
                     }
                 ],
                 "priority": "default"
+            }
+        ],
+        "notebookRenderer": [
+            {
+                "id": "ms-mssql.sql-result-renderer",
+                "displayName": "SQL Query Results",
+                "entrypoint": "./dist/notebookRenderer.js",
+                "mimeTypes": [
+                    "application/vnd.mssql.query-result"
+                ]
             }
         ],
         "languages": [

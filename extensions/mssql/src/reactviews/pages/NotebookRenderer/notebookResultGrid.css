@@ -1,0 +1,78 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.notebook-result-grid-container {
+    width: 100%;
+    max-height: 500px;
+    overflow: auto;
+    position: relative;
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: var(--vscode-editor-font-size, 12px);
+}
+
+.notebook-result-grid-container .grid-panel {
+    width: 100%;
+    height: 100%;
+}
+
+.notebook-result-grid-container .row-count-label {
+    padding: 4px 8px;
+    font-style: italic;
+    color: var(--vscode-descriptionForeground, #858585);
+    font-size: 12px;
+}
+
+/* SlickGrid theme overrides for notebook renderer */
+.notebook-result-grid-container .slick-header-column.ui-state-default {
+    background-color: var(--vscode-keybindingTable-headerBackground, #eee);
+    color: var(--vscode-foreground, inherit);
+    border-right: 1px solid var(--vscode-panel-border, silver);
+    border-bottom: 1px solid var(--vscode-panel-border, #bbb);
+}
+
+.notebook-result-grid-container .slick-cell {
+    border-right: 1px dotted var(--vscode-panel-border, silver);
+    border-bottom: 1px solid var(--vscode-panel-border, silver);
+    color: var(--vscode-foreground, inherit);
+}
+
+.notebook-result-grid-container .slick-cell.cell-null {
+    background-color: var(--vscode-mssql-resultsGridNullBackground, transparent);
+    color: var(--vscode-mssql-resultsGridNullForeground, inherit);
+}
+
+.notebook-result-grid-container .slick-cell.active {
+    background-color: var(--vscode-list-activeSelectionBackground, #094771);
+    color: var(--vscode-list-activeSelectionForeground, #fff);
+}
+
+.notebook-result-grid-container .slick-cell.selected {
+    background-color: var(--vscode-list-inactiveSelectionBackground, #37373d);
+}
+
+.notebook-result-grid-container .slick-row:hover .slick-cell {
+    background-color: var(--vscode-list-hoverBackground, transparent);
+}
+
+.notebook-result-grid-container .slick-sort-indicator-asc::after {
+    content: " \25B2";
+    font-size: 8px;
+}
+
+.notebook-result-grid-container .slick-sort-indicator-desc::after {
+    content: " \25BC";
+    font-size: 8px;
+}
+
+.notebook-result-grid-container .slick-cell .grid-cell-value-container.missing-value {
+    font-style: italic;
+}
+
+/* Cell range selection decoration */
+.notebook-result-grid-container .slick-range-decorator {
+    border: 2px dashed var(--vscode-focusBorder, #007fd4);
+    z-index: 10;
+    position: absolute;
+}
