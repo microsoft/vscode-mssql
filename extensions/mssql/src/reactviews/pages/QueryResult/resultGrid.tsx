@@ -22,7 +22,6 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
-import isEqual from "lodash/isEqual";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -74,7 +73,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
-        (a, b) => isEqual(a, b), // Deep equality check to avoid unnecessary re-renders
+        (a, b) => {
+            // Only re-render if row count has changed. ids and column info are immutable and will not change on new data arrival, so we can ignore them for re-rendering purposes.
+            return a?.rowCount === b?.rowCount;
+        },
     );
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
