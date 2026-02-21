@@ -8,7 +8,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 ## Explore and Learn
 
-[![MSSQL Extension Demo Playlist](images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
+[![MSSQL Extension Demo Playlist](https://github.com/microsoft/vscode-mssql/raw/main/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
 
 - [Watch the demos](https://aka.ms/vscode-mssql-demos): Explore key features through our YouTube playlist
 - [Watch the GitHub Copilot demos](https://aka.ms/vscode-mssql-copilot-demos): Learn how to use GitHub Copilot to write, explain, and refactor your database schema
