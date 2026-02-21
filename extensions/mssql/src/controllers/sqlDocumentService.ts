@@ -33,7 +33,10 @@ const waitTimeMsOnOpenAfterSaveOrRename = 500;
  * is used to identify untitled documents that have been saved to disk.
  */
 function getDocumentSignature(document: vscode.TextDocument): string {
-    return `${document.languageId} - ${document.lineCount} lines - ${document.getText()}`;
+    const maxLinesToCheck = 100; // Limit content length to avoid performance issues with very large documents
+    return `${document.languageId} - ${document.lineCount} lines - ${document.getText(
+        new vscode.Range(0, 0, Math.min(document.lineCount, maxLinesToCheck), 0),
+    )}`;
 }
 
 /**
