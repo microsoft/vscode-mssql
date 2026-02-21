@@ -25,6 +25,7 @@ import { HttpHelper } from "../../src/http/httpHelper";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 
 chai.use(sinonChai);
 
@@ -708,6 +709,32 @@ suite("MainController Tests", function () {
             await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
 
             expect(clipboardWriteTextStub).to.not.have.been.called;
+        });
+    });
+
+    suite("Schema Designer Copilot Agent Command", () => {
+        const flushAsyncHandlers = async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        };
+
+        test("shows error when no active schema designer exists", async () => {
+            const showErrorMessageStub = sandbox.stub().resolves(undefined);
+            (mainController as any)._vscodeWrapper = {
+                showErrorMessage: showErrorMessageStub,
+            };
+            const findChatOpenAgentCommandStub = sandbox.stub(
+                mainController as any,
+                "findChatOpenAgentCommand",
+            );
+            (SchemaDesignerWebviewManager.getInstance() as any)._activeDesigner = undefined;
+
+            (mainController as any)._event.emit(Constants.cmdSchemaDesignerOpenCopilotAgent);
+            await flushAsyncHandlers();
+
+            expect(findChatOpenAgentCommandStub).to.not.have.been.called;
+            expect(showErrorMessageStub).to.have.been.calledOnceWith(
+                LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
+            );
         });
     });
 });
