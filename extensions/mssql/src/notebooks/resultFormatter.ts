@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { IDbColumn, DbCellValue } from "vscode-mssql";
+import * as LocalizedConstants from "../constants/locConstants";
 
 const MAX_ROWS_DISPLAY = 500;
 const MAX_COLUMN_WIDTH = 200;
@@ -64,7 +65,7 @@ export function toHtml(columns: IDbColumn[], rows: DbCellValue[][]): string {
         })
         .join("\n");
 
-    let countMsg = `${rows.length} row(s)`;
+    let countMsg = LocalizedConstants.Notebooks.rowCountPlain(rows.length);
     if (isTruncated) {
         countMsg += ` (showing first ${MAX_ROWS_DISPLAY})`;
     }
@@ -116,7 +117,7 @@ export function toHtml(columns: IDbColumn[], rows: DbCellValue[][]): string {
 
 export function toPlain(columns: IDbColumn[], rows: DbCellValue[][]): string {
     if (rows.length === 0) {
-        return "(0 rows)";
+        return LocalizedConstants.Notebooks.zeroRows;
     }
 
     const displayRows = rows.slice(0, MAX_ROWS_DISPLAY);
@@ -138,6 +139,6 @@ export function toPlain(columns: IDbColumn[], rows: DbCellValue[][]): string {
         const line = row.map((cell, i) => cellDisplayValue(cell).padEnd(widths[i])).join(" | ");
         lines.push(line);
     }
-    lines.push(`(${rows.length} row(s))`);
+    lines.push(LocalizedConstants.Notebooks.rowCountPlain(rows.length));
     return lines.join("\n");
 }

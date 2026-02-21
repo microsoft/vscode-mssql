@@ -9,6 +9,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { ConnectionRequest, ConnectParams } from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
+import * as LocalizedConstants from "../constants/locConstants";
 
 /**
  * Manages the active database connection for a notebook.
@@ -63,7 +64,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             connectionSource: "sqlNotebooks",
         });
         if (!success) {
-            throw new Error("Connection failed.");
+            throw new Error(LocalizedConstants.Notebooks.connectionFailed);
         }
         return uri;
     }
@@ -97,7 +98,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const connectionInfo =
             await this.connectionMgr.connectionUI.promptForConnection(pickListItems);
         if (!connectionInfo) {
-            throw new Error("No connection selected.");
+            throw new Error(LocalizedConstants.Notebooks.noConnectionSelected);
         }
 
         this.log.info(
@@ -180,7 +181,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     async listDatabases(): Promise<string[]> {
         if (!this.connectionUri) {
-            throw new Error("No active connection.");
+            throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
         return this.connectionMgr.listDatabases(this.connectionUri);
     }
@@ -192,7 +193,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     async changeDatabase(database: string): Promise<void> {
         if (!this.connectionInfo) {
-            throw new Error("No active connection.");
+            throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
         this.log.info(`[changeDatabase] Switching to [${database}]`);
 
@@ -225,7 +226,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     async executeQuery(sql: string): Promise<SimpleExecuteResult> {
         if (!this.connectionUri) {
-            throw new Error("No active connection.");
+            throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
         return this.connectionSharingService.executeSimpleQuery(this.connectionUri, sql);
     }
@@ -248,7 +249,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     }
 
     getConnectionLabel(): string {
-        return this.connectionLabel || "Not connected";
+        return this.connectionLabel || LocalizedConstants.Notebooks.notConnected;
     }
 
     getConnectionInfo(): IConnectionInfo | undefined {

@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
@@ -36,7 +37,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
         this.controller.supportedLanguages = ["sql"];
         this.controller.supportsExecutionOrder = true;
-        this.controller.description = "Execute SQL against SQL Server / Azure SQL";
+        this.controller.description = LocalizedConstants.Notebooks.controllerDescription;
         this.controller.executeHandler = this.executeCells.bind(this);
 
         // Status bar item shows the SQL Notebooks connection (authoritative source)
@@ -241,12 +242,13 @@ export class SqlNotebookController implements vscode.Disposable {
         const mgr = this.connections.get(notebook.uri.toString());
         if (mgr?.isConnected()) {
             this.statusBarItem.text = `$(database) ${mgr.getConnectionLabel()}`;
-            this.statusBarItem.tooltip = "SQL Notebooks: click to change database";
+            this.statusBarItem.tooltip =
+                LocalizedConstants.Notebooks.statusBarClickToChangeDatabase;
             this.statusBarItem.command = Constants.cmdNotebooksChangeDatabase;
             this.statusBarItem.show();
         } else {
-            this.statusBarItem.text = "$(database) SQL: Not connected";
-            this.statusBarItem.tooltip = "SQL Notebooks: click to connect";
+            this.statusBarItem.text = `$(database) ${LocalizedConstants.Notebooks.statusBarNotConnected}`;
+            this.statusBarItem.tooltip = LocalizedConstants.Notebooks.statusBarClickToConnect;
             this.statusBarItem.command = Constants.cmdNotebooksChangeConnection;
             this.statusBarItem.show();
         }
@@ -297,7 +299,9 @@ export class SqlNotebookController implements vscode.Disposable {
             execution.replaceOutput([
                 new vscode.NotebookCellOutput([
                     vscode.NotebookCellOutputItem.text(
-                        `Error: ${err.message || "Connection failed"}`,
+                        LocalizedConstants.Notebooks.errorPrefix(
+                            err.message || LocalizedConstants.Notebooks.connectionFailed,
+                        ),
                         "text/plain",
                     ),
                 ]),
@@ -355,8 +359,8 @@ export class SqlNotebookController implements vscode.Disposable {
                     // INSERT, UPDATE, DELETE, DDL — no messages, no result set
                     const msg =
                         result.rowCount >= 0
-                            ? `(${result.rowCount} row(s) affected)`
-                            : "(Command completed successfully)";
+                            ? LocalizedConstants.Notebooks.rowsAffected(result.rowCount)
+                            : LocalizedConstants.Notebooks.commandCompletedSuccessfully;
                     outputs.push(
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(msg, "text/plain"),
@@ -372,7 +376,9 @@ export class SqlNotebookController implements vscode.Disposable {
             outputs.push(
                 new vscode.NotebookCellOutput([
                     vscode.NotebookCellOutputItem.text(
-                        `Error: ${err.message || "Query execution failed"}`,
+                        LocalizedConstants.Notebooks.errorPrefix(
+                            err.message || LocalizedConstants.Notebooks.queryExecutionFailed,
+                        ),
                         "text/plain",
                     ),
                 ]),
@@ -399,7 +405,10 @@ export class SqlNotebookController implements vscode.Disposable {
                     connMgr.disconnect();
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text("Disconnected.", "text/plain"),
+                            vscode.NotebookCellOutputItem.text(
+                                LocalizedConstants.Notebooks.disconnected,
+                                "text/plain",
+                            ),
                         ]),
                     ]);
                     execution.end(true, Date.now());
@@ -426,7 +435,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(
-                                `Connected to ${info}`,
+                                LocalizedConstants.Notebooks.connectedTo(info),
                                 "text/plain",
                             ),
                         ]),
@@ -449,19 +458,19 @@ export class SqlNotebookController implements vscode.Disposable {
                                 label: db,
                                 description:
                                     db.toLowerCase() === currentDb.toLowerCase()
-                                        ? "(current)"
+                                        ? LocalizedConstants.Notebooks.currentDatabaseLabel
                                         : undefined,
                             })),
                             {
-                                title: "Select Database",
-                                placeHolder: "Choose a database",
+                                title: LocalizedConstants.Notebooks.selectDatabase,
+                                placeHolder: LocalizedConstants.Notebooks.chooseDatabasePlaceholder,
                             },
                         );
                         if (!picked) {
                             execution.replaceOutput([
                                 new vscode.NotebookCellOutput([
                                     vscode.NotebookCellOutputItem.text(
-                                        "No database selected.",
+                                        LocalizedConstants.Notebooks.noDatabaseSelected,
                                         "text/plain",
                                     ),
                                 ]),
@@ -477,7 +486,9 @@ export class SqlNotebookController implements vscode.Disposable {
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(
-                                `Switched to ${connMgr.getConnectionLabel()}`,
+                                LocalizedConstants.Notebooks.switchedTo(
+                                    connMgr.getConnectionLabel(),
+                                ),
                                 "text/plain",
                             ),
                         ]),
@@ -490,7 +501,9 @@ export class SqlNotebookController implements vscode.Disposable {
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.error(
-                                new Error(`Unknown magic command: %%${command}`),
+                                new Error(
+                                    LocalizedConstants.Notebooks.unknownMagicCommand(command),
+                                ),
                             ),
                         ]),
                     ]);
@@ -514,7 +527,7 @@ export class SqlNotebookController implements vscode.Disposable {
     async changeDatabaseInteractive(): Promise<void> {
         const notebook = vscode.window.activeNotebookEditor?.notebook;
         if (!notebook) {
-            vscode.window.showWarningMessage("No active notebook.");
+            vscode.window.showWarningMessage(LocalizedConstants.Notebooks.noActiveNotebook);
             return;
         }
 
@@ -535,11 +548,14 @@ export class SqlNotebookController implements vscode.Disposable {
         const picked = await vscode.window.showQuickPick(
             databases.map((db) => ({
                 label: db,
-                description: db.toLowerCase() === currentDb.toLowerCase() ? "(current)" : undefined,
+                description:
+                    db.toLowerCase() === currentDb.toLowerCase()
+                        ? LocalizedConstants.Notebooks.currentDatabaseLabel
+                        : undefined,
             })),
             {
-                title: "Select Database",
-                placeHolder: "Choose a database",
+                title: LocalizedConstants.Notebooks.selectDatabase,
+                placeHolder: LocalizedConstants.Notebooks.chooseDatabasePlaceholder,
             },
         );
 
@@ -560,7 +576,7 @@ export class SqlNotebookController implements vscode.Disposable {
     async changeConnectionInteractive(): Promise<void> {
         const notebook = vscode.window.activeNotebookEditor?.notebook;
         if (!notebook) {
-            vscode.window.showWarningMessage("No active notebook.");
+            vscode.window.showWarningMessage(LocalizedConstants.Notebooks.noActiveNotebook);
             return;
         }
 
@@ -595,7 +611,9 @@ export class SqlNotebookController implements vscode.Disposable {
             const label = connMgr.getConnectionLabel();
             this.updateStatusBar(notebook);
             this.codeLensProvider.refresh();
-            vscode.window.showInformationMessage(`SQL Notebook connected to ${label}`);
+            vscode.window.showInformationMessage(
+                LocalizedConstants.Notebooks.notebookConnectedTo(label),
+            );
         }
     }
 

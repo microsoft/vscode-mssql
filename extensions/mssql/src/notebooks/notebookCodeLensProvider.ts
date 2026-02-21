@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 
 /**
@@ -57,7 +58,7 @@ export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode
                 new vscode.CodeLens(range, {
                     title: `$(database) ${label}`,
                     command: Constants.cmdNotebooksChangeDatabase,
-                    tooltip: "Click to change database",
+                    tooltip: LocalizedConstants.Notebooks.codeLensClickToChangeDatabase,
                 }),
             ];
         }
@@ -65,7 +66,7 @@ export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode
         // Not connected — show a connect prompt
         return [
             new vscode.CodeLens(range, {
-                title: "$(plug) Connect to SQL Server",
+                title: `$(plug) ${LocalizedConstants.Notebooks.codeLensConnectToSqlServer}`,
                 command: Constants.cmdNotebooksChangeConnection,
             }),
         ];

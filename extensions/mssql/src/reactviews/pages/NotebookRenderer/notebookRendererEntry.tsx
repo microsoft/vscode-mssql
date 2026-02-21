@@ -5,6 +5,7 @@
 
 import $ from "jquery";
 import { createRoot, Root } from "react-dom/client";
+import * as l10n from "@vscode/l10n";
 import { NotebookResultGrid, NotebookResultGridProps } from "./notebookResultGrid";
 
 window.jQuery = $ as any;
@@ -69,7 +70,7 @@ export const activate: ActivationFunction = (_context: RendererContext) => {
                     rowCount: parsed.rowCount,
                 };
             } catch {
-                element.textContent = "Error: Failed to parse query result data.";
+                element.textContent = l10n.t("Error: Failed to parse query result data.");
                 return;
             }
 
