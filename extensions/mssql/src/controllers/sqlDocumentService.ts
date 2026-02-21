@@ -285,6 +285,9 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
+        // set encoding to false
+        this._statusview?.languageFlavorChanged(docUri, Constants.mssqlProviderName);
+
         // Only wait for in-flight new-query creates for untitled SQL documents.
         // This avoids delaying normal file opens behind unrelated create flows.
         if (doc.uri.scheme === LocalizedConstants.untitledScheme) {
@@ -308,9 +311,6 @@ export default class SqlDocumentService implements vscode.Disposable {
                 Utils.deepClone(this._lastActiveConnectionInfo),
             );
         }
-
-        // set encoding to false
-        this._statusview?.languageFlavorChanged(docUri, Constants.mssqlProviderName);
     }
 
     /**
