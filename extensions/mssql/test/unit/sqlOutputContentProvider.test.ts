@@ -239,6 +239,29 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(sendNotificationStub).to.not.have.been.called;
     });
 
+    test("updateQueryRunnerUri should transfer state when query result state exists", async () => {
+        const oldUri = "untitled:Untitled-2";
+        const newUri = "file:///transferred.sql";
+        const mockState = { uri: oldUri, messages: [] };
+
+        // Add state for the old URI
+        contentProvider.queryResultWebviewController.addQueryResultState(oldUri, mockState as any);
+
+        const sendNotificationStub = sandbox
+            .stub(contentProvider.queryResultWebviewController, "sendNotification")
+            .resolves();
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        // Should have sent notification with updated state
+        expect(sendNotificationStub).to.have.been.calledOnce;
+        // The old URI state should be deleted
+        expect(contentProvider.queryResultWebviewController.hasQueryResultState(oldUri)).to.be
+            .false;
+        // The new URI state should exist with updated uri
+        expect(contentProvider.queryResultWebviewController.hasQueryResultState(newUri)).to.be.true;
+    });
+
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
         let title = "Test_Title";
         let uri = testUri;
