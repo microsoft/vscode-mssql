@@ -22,6 +22,13 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { IConnectionProfile } from "../models/interfaces";
 
 /**
+ * Time to wait after opening a document to check if it's the
+ * result of a save or rename operation. This is needed to avoid auto-connecting
+ * a document that was just transferred an active connection.
+ */
+const waitTimeMsOnOpenAfterSaveOrRename = 500;
+
+/**
  * Gets document signature based on language, line count and text content. This
  * is used to identify untitled documents that have been saved to disk.
  */
@@ -84,13 +91,13 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         this._disposables.push(
             vscode.workspace.onWillSaveTextDocument(async (event) => {
-                await this.onWillSaveTextDocument(event);
+                event.waitUntil(await this.onWillSaveTextDocument(event));
             }),
         );
 
         this._disposables.push(
             vscode.workspace.onWillRenameFiles(async (event) => {
-                await this.onWillRenameFiles(event);
+                event.waitUntil(await this.onWillRenameFiles(event));
             }),
         );
 
@@ -189,7 +196,7 @@ export default class SqlDocumentService implements vscode.Disposable {
      * and query runner state to the new URI of the document after it's saved.
      * @param event The event representing the document that is about to be saved
      */
-    public async onWillSaveTextDocument(event: vscode.TextDocumentWillSaveEvent): Promise<void> {
+    public async onWillSaveTextDocument(event: vscode.TextDocumentWillSaveEvent): Promise<any> {
         const newDocumentSignature = getDocumentSignature(event.document);
         const untitledDocumentWithSameSignature = vscode.workspace.textDocuments.find(
             (doc) =>
@@ -210,7 +217,7 @@ export default class SqlDocumentService implements vscode.Disposable {
      * Called by vscode when files are about to be renamed. We use this event to transfer connection
      * and query runner state to the new URI of the document after it's renamed.
      */
-    public async onWillRenameFiles(event: vscode.FileWillRenameEvent): Promise<void> {
+    public async onWillRenameFiles(event: vscode.FileWillRenameEvent): Promise<any> {
         for (const file of event.files) {
             const oldUri = getUriKey(file.oldUri);
             const newUri = getUriKey(file.newUri);
@@ -283,7 +290,7 @@ export default class SqlDocumentService implements vscode.Disposable {
          * 0.5 seconds for those events to finish and check if open document is
          * the new saved/renamed document. If it is, we skip auto-connecting
          */
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, waitTimeMsOnOpenAfterSaveOrRename));
         if (this._newUriFromRenameOrSave.has(getUriKey(doc.uri))) {
             this._newUriFromRenameOrSave.delete(getUriKey(doc.uri));
             return;
