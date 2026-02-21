@@ -547,6 +547,44 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            this.registerCommand(Constants.cmdSchemaDesignerOpenCopilotAgent);
+            this._event.on(Constants.cmdSchemaDesignerOpenCopilotAgent, async () => {
+                const sendSchemaDesignerChatEntryTelemetry = (
+                    success: boolean,
+                    reason?: "noActiveDesigner" | "chatCommandMissing",
+                ) => {
+                    sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
+                        entryPoint: "schemaDesignerToolbar",
+                        mode: "agent",
+                        success: success.toString(),
+                        ...(reason ? { reason } : {}),
+                    });
+                };
+
+                if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
+                    sendSchemaDesignerChatEntryTelemetry(false, "noActiveDesigner");
+                    this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
+                    );
+                    return;
+                }
+
+                const chatCommand = await this.findChatOpenAgentCommand();
+                if (!chatCommand) {
+                    sendSchemaDesignerChatEntryTelemetry(false, "chatCommandMissing");
+                    this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
+                    );
+                    return;
+                }
+
+                await vscode.commands.executeCommand(
+                    chatCommand,
+                    Prompts.schemaDesignerAgentPrompt,
+                );
+                sendSchemaDesignerChatEntryTelemetry(true);
+            });
+
             // -- NEW QUERY WITH CONNECTION (Copilot) --
             this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
             this._event.on(

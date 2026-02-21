@@ -78,6 +78,7 @@ export const cmdDropDatabase = "mssql.dropDatabase";
 export const cmdRenameDatabase = "mssql.renameDatabase";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
+export const cmdSchemaDesignerOpenCopilotAgent = "mssql.schemaDesigner.openCopilotAgent";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
 export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
 export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
