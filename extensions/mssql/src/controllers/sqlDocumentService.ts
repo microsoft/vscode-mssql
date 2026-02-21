@@ -285,9 +285,6 @@ export default class SqlDocumentService implements vscode.Disposable {
          */
         await new Promise((resolve) => setTimeout(resolve, 500));
         if (this._newUriFromRenameOrSave.has(getUriKey(doc.uri))) {
-            console.log(
-                `Document ${doc.uri.toString()} was just renamed or saved, skipping auto-connect and state transfer on open.`,
-            );
             this._newUriFromRenameOrSave.delete(getUriKey(doc.uri));
             return;
         }
