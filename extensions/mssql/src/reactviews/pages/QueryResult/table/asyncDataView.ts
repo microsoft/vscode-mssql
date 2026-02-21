@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDisposableDataProvider } from "./dataProvider";
-import { v4 as uuid } from "uuid";
 
 export interface IObservableCollection<T> {
     getLength(): number;
@@ -22,7 +21,7 @@ class DataWindow<T> {
     private _data: T[] | undefined;
     private _length: number = 0;
     private _offsetFromDataSource: number = -1;
-    private _currentRequestId: string = uuid();
+    private _currentRequestId: number = 0;
 
     // private cancellationToken = new CancellationTokenSource();
 
@@ -68,7 +67,7 @@ class DataWindow<T> {
         this._data = undefined;
 
         // Increment request ID to invalidate any pending requests
-        this._currentRequestId = uuid();
+        this._currentRequestId++;
         const currentRequestId = this._currentRequestId;
 
         if (length === 0) {
