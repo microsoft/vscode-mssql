@@ -86,7 +86,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
         <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
-        <target state="new">A connection is already being established. Please wait for it to complete before running a query.</target>
+        <target state="translated">연결이 이미 진행 중입니다. 완료되기를 기다렸다가 쿼리를 실행해 주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
         <source xml:lang="en">A database with this name already exists on the server</source>
@@ -594,13 +594,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Azure 코드 부여</target>
       </trans-unit>
-      <trans-unit id="++CODE++cbf1176900b828464cac58d4ab7b00aa01cb741cabb584e87ddc6835b0c9d223">
-        <source xml:lang="en">Azure Data Studio Connection Migration Toolkit</source>
-        <target state="translated">Azure Data Studio 연결 마이그레이션 도구 키트</target>
-      </trans-unit>
       <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Azure Data Studio Migration</target>
+      </trans-unit>
+      <trans-unit id="++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6">
+        <source xml:lang="en">Azure Data Studio Migration Toolkit - Now Including Keymap!</source>
+        <target state="new">Azure Data Studio Migration Toolkit - Now Including Keymap!</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -660,6 +660,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Back to preview</source>
         <target state="translated">미리 보기로 돌아가기</target>
       </trans-unit>
+      <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
+        <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
+        <target state="new">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</target>
+      </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
         <target state="translated">백업</target>
@@ -704,6 +708,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
         <source xml:lang="en">Backup to a new media set</source>
         <target state="translated">새 미디어 세트에 백업</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
+        <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
+        <target state="new">Backup/Restore Dialogs (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -896,6 +904,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">되돌릴 수 없음: 참조된 테이블 또는 열이 삭제되었습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
+        <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
+        <target state="new">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1872,6 +1884,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">{0}에 대한 새 방화벽 규칙 만들기</target>
       </trans-unit>
+      <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
+        <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
+        <target state="new">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
         <note>{0} is the qualified table name</note>
@@ -2037,6 +2053,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
         <source xml:lang="en">Database Details</source>
         <target state="translated">데이터베이스 세부 정보</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
+        <source xml:lang="en">Database Management Dialogs (Preview)</source>
+        <target state="new">Database Management Dialogs (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -2357,7 +2377,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
-        <target state="new">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</target>
+        <target state="translated">키맵 확장을 다운로드하면 Azure Data Studio에서 키 매핑을 자동으로 가져올 수 있습니다. 이 변경 사항은 키보드 바로 가기 기본 설정에 반영됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
         <source xml:lang="en">Downloading the Data API Builder container image</source>
@@ -3752,6 +3772,10 @@ Error:
         <source xml:lang="en">GitHub Copilot survey</source>
         <target state="translated">GitHub Copilot 설문 조사</target>
       </trans-unit>
+      <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
+        <source xml:lang="en">Global Object Search</source>
+        <target state="new">Global Object Search</target>
+      </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
         <note>{0} is the part input
@@ -4631,9 +4655,9 @@ Error:
         <source xml:lang="en">Microsoft would like your feedback</source>
         <target state="translated">Microsoft는 여러분의 의견을 기다리고 있습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++7513be31d093689a83a5840217b05b63313b201192c5e2e9d590c86f52353a0e">
-        <source xml:lang="en">Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.</source>
-        <target state="translated">Azure Data Studio에 저장된 연결 및 연결 그룹을 MSSQL 확장 프로그램으로 마이그레이션합니다. 이 안내형 환경 덕분에 최소한의 설정으로 익숙한 환경에서 계속 작업할 수 있습니다.</target>
+      <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
+        <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
+        <target state="new">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -4808,11 +4832,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
         <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
-        <target state="new">New Query Profiler (Preview) - Enter Name</target>
+        <target state="translated">새 Query Profiler(미리 보기) - 이름 입력</target>
       </trans-unit>
       <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
         <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
-        <target state="new">New Query Profiler (Preview) - Select Template</target>
+        <target state="translated">새 Query Profiler(미리 보기) - 템플릿 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -5799,20 +5823,20 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
         <source xml:lang="en">Query Profiler (Preview)</source>
-        <target state="new">Query Profiler (Preview)</target>
+        <target state="translated">Query Profiler(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
         <source xml:lang="en">Query Profiler (Preview) Session Status</source>
-        <target state="new">Query Profiler (Preview) Session Status</target>
+        <target state="translated">Query Profiler(미리 보기) 세션 상태</target>
       </trans-unit>
       <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
         <source xml:lang="en">Query Profiler (Preview): No session</source>
-        <target state="new">Query Profiler (Preview): No session</target>
+        <target state="translated">Query Profiler(미리 보기): 세션 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
         <source xml:lang="en">Query Profiler (Preview): {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="new">Query Profiler (Preview): {0}</target>
+        <target state="translated">Query Profiler(미리 보기) 시작: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -6225,9 +6249,9 @@ Query: {2}</source>
         <source xml:lang="en">SQL Database</source>
         <target state="translated">SQL 데이터베이스</target>
       </trans-unit>
-      <trans-unit id="++CODE++11f1ce06685908adfd2a88a77c9de4148392e6667521c7ff01845de7c8822849">
-        <source xml:lang="en">SQL Database Projects – Publish Dialog (Preview)</source>
-        <target state="translated">SQL Database 프로젝트 – 게시 대화 상자(미리 보기)</target>
+      <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
+        <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
+        <target state="new">SQL Database Projects – Publish Dialog</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -6510,6 +6534,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">연결 그룹 검색</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
+        <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
+        <target state="new">Search for database objects — tables, views, stored procedures, and more — across your entire database.</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -8890,7 +8918,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="new">Launch Query Profiler (Preview)</target>
+        <target state="translated">Query Profiler(미리 보기) 시작</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9004,7 +9032,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.profiler.openXelFile">
         <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
-        <target state="new">Open Query Profiler (Preview) XEL File</target>
+        <target state="translated">Query Profiler(미리 보기) XEL 파일 열기</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode</source>

@@ -594,13 +594,13 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Concessão de Código do Azure</target>
       </trans-unit>
-      <trans-unit id="++CODE++cbf1176900b828464cac58d4ab7b00aa01cb741cabb584e87ddc6835b0c9d223">
-        <source xml:lang="en">Azure Data Studio Connection Migration Toolkit</source>
-        <target state="translated">Kit de Ferramentas para Migração de Conexão do Azure Data Studio</target>
-      </trans-unit>
       <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Migração do Azure Data Studio</target>
+      </trans-unit>
+      <trans-unit id="++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6">
+        <source xml:lang="en">Azure Data Studio Migration Toolkit - Now Including Keymap!</source>
+        <target state="new">Azure Data Studio Migration Toolkit - Now Including Keymap!</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -660,6 +660,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Back to preview</source>
         <target state="translated">Voltar à versão prévia</target>
       </trans-unit>
+      <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
+        <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
+        <target state="new">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</target>
+      </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
         <target state="translated">Backup</target>
@@ -704,6 +708,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
         <source xml:lang="en">Backup to a new media set</source>
         <target state="translated">Backup para um novo conjunto de mídias</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
+        <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
+        <target state="new">Backup/Restore Dialogs (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -896,6 +904,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">Não é possível reverter: a tabela ou coluna referenciada foi excluída</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
+        <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
+        <target state="new">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1872,6 +1884,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">Criar nova regra de firewall para {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
+        <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
+        <target state="new">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
         <note>{0} is the qualified table name</note>
@@ -2037,6 +2053,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
         <source xml:lang="en">Database Details</source>
         <target state="translated">Detalhes do Banco de Dados</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
+        <source xml:lang="en">Database Management Dialogs (Preview)</source>
+        <target state="new">Database Management Dialogs (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -3752,6 +3772,10 @@ Erro:
         <source xml:lang="en">GitHub Copilot survey</source>
         <target state="translated">Pesquisa do GitHub Copilot</target>
       </trans-unit>
+      <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
+        <source xml:lang="en">Global Object Search</source>
+        <target state="new">Global Object Search</target>
+      </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
         <note>{0} is the part input
@@ -4631,9 +4655,9 @@ Erro:
         <source xml:lang="en">Microsoft would like your feedback</source>
         <target state="translated">A Microsoft gostaria de receber seus comentários</target>
       </trans-unit>
-      <trans-unit id="++CODE++7513be31d093689a83a5840217b05b63313b201192c5e2e9d590c86f52353a0e">
-        <source xml:lang="en">Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.</source>
-        <target state="translated">Migre conexões salvas e grupos de conexões do Azure Data Studio para a extensão MSSQL. Essa experiência guiada ajuda você a continuar trabalhando com ambientes familiares com configuração mínima.</target>
+      <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
+        <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
+        <target state="new">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -6225,9 +6249,9 @@ Consulta: {2}</target>
         <source xml:lang="en">SQL Database</source>
         <target state="translated">Banco de Dados SQL</target>
       </trans-unit>
-      <trans-unit id="++CODE++11f1ce06685908adfd2a88a77c9de4148392e6667521c7ff01845de7c8822849">
-        <source xml:lang="en">SQL Database Projects – Publish Dialog (Preview)</source>
-        <target state="translated">Projetos do Banco de Dados SQL – Caixa de diálogo de Publicação (Versão Prévia)</target>
+      <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
+        <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
+        <target state="new">SQL Database Projects – Publish Dialog</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -6510,6 +6534,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Pesquisar grupos de conexões</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
+        <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
+        <target state="new">Search for database objects — tables, views, stored procedures, and more — across your entire database.</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
