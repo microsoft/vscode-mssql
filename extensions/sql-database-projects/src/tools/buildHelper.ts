@@ -54,7 +54,7 @@ export class BuildHelper {
 
     public async ensureDacFxDllsPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
         const sdkName = "Microsoft.Build.Sql";
-        const microsoftBuildSqlDefaultVersion = "2.0.0"; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
+        const microsoftBuildSqlDefaultVersion = "2.1.0"; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
 
         const dacFxBuildFiles: string[] = [
             "Microsoft.Build.Sql.dll",
