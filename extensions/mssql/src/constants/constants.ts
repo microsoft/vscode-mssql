@@ -66,6 +66,7 @@ export const cmdExtractDacpac = "mssql.dacpacDialog.extract";
 export const cmdImportBacpac = "mssql.dacpacDialog.import";
 export const cmdExportBacpac = "mssql.dacpacDialog.export";
 export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
+export const cmdConfigureCodeAnalysisSettings = "mssql.configureCodeAnalysisSettings";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -392,3 +393,6 @@ export const operationIdExportBacpac = "ExportOperation";
 export const operationIdExtractDacpac = "ExtractOperation";
 export const operationIdImportBacpac = "ImportOperation";
 export const operationIdDeployDacpac = "DeployOperation";
+
+// Code Analysis Constants
+export const codeAnalysisViewId = "codeAnalysis";
