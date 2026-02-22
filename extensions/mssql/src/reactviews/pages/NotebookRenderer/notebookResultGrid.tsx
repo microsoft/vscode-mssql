@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useEffect, useRef } from "react";
-import { TableDataView } from "../QueryResult/table/tableDataView";
+import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
+import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
-import { defaultTableStyles } from "../QueryResult/table/interfaces";
+import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
 import type { IDbColumn, DbCellValue } from "../../../sharedInterfaces/queryResult";
 import "./notebookResultGrid.css";
 import "../../media/slickgrid.css";
@@ -41,7 +42,7 @@ function measureTextWidth(text: string, font: string): number {
  * Compute optimal column widths by sampling header + data values.
  */
 function computeColumnWidths(columns: IDbColumn[], rows: DbCellValue[][], font: string): number[] {
-    const padding = 20; // cell padding + sort indicator space
+    const padding = 20 + FilterButtonWidth; // cell padding + sort/filter button space
     const maxSampleRows = 50;
     const sampleRows = rows.slice(0, maxSampleRows);
 
@@ -121,18 +122,20 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
             return dataRow;
         });
 
-        // Create TableDataView for in-memory data with sorting
+        // Create TableDataView for in-memory data with sorting and filtering
         const cellValueGetter = (data: any) => {
             if (!data || data.isNull) {
                 return undefined;
             }
             return data.displayValue?.trim() === "" ? "" : data.displayValue;
         };
+        const filterFn = (data: Slick.SlickData[], columns: Slick.Column<Slick.SlickData>[]) =>
+            defaultFilter(data, columns as FilterableColumn<Slick.SlickData>[], cellValueGetter);
         const tableDataView = new TableDataView<Slick.SlickData>(
             gridData,
             undefined,
             undefined,
-            undefined,
+            filterFn,
             cellValueGetter,
         );
         dataViewRef.current = tableDataView;
@@ -189,22 +192,20 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
             enableColumnReorder: false,
         };
 
-        // Create grid
-        const grid = new Slick.Grid(gridDiv, tableDataView, columns, gridOptions);
+        // Create grid with empty columns, register plugins, then set columns.
+        // This ensures plugins are subscribed to onHeaderCellRendered before
+        // headers are rendered.
+        const grid = new Slick.Grid(gridDiv, tableDataView, [], gridOptions);
         gridRef.current = grid;
 
-        // Register row number column plugin
+        // Register plugins
         grid.registerPlugin(rowNumberColumn);
 
-        // Wire up sorting
-        grid.onSort.subscribe(
-            (_e: Slick.DOMEvent, args: Slick.OnSortEventArgs<Slick.SlickData>) => {
-                void tableDataView.sort(args).then(() => {
-                    grid.invalidateAllRows();
-                    grid.render();
-                });
-            },
-        );
+        const headerMenu = new NotebookHeaderMenu<Slick.SlickData>();
+        grid.registerPlugin(headerMenu);
+
+        // Now set columns — this triggers header rendering with plugins active
+        grid.setColumns(columns);
 
         // Ctrl+C / Cmd+C copy handler
         gridDiv.addEventListener("keydown", (e: KeyboardEvent) => {
