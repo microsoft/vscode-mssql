@@ -288,12 +288,6 @@ export default class SqlDocumentService implements vscode.Disposable {
         // set encoding to false
         this._statusview?.languageFlavorChanged(docUri, Constants.mssqlProviderName);
 
-        // Only wait for in-flight new-query creates for untitled SQL documents.
-        // This avoids delaying normal file opens behind unrelated create flows.
-        if (doc.uri.scheme === LocalizedConstants.untitledScheme) {
-            await this.waitForOngoingCreates();
-        }
-
         /**
          * Since there is no reliable way to detect if this open is a result of
          * untitled document being saved to disk or being renamed, we wait for
@@ -305,7 +299,24 @@ export default class SqlDocumentService implements vscode.Disposable {
             this._newUriFromRenameOrSave.delete(docUri);
             return;
         }
-        if (this._lastActiveConnectionInfo && !this._ownedDocuments.has(doc)) {
+
+        await this.waitForOngoingCreates();
+
+        // This becomes a no-op if the there is no last active connection.
+        if (!this._lastActiveConnectionInfo) {
+            return;
+        }
+
+        /**
+         * If the document is connected now, beccause the user didn't waitForOngoingCreates
+         * or other checks to complete we don't want to overwrite that connection by
+         * auto-connecting. So we skip it.
+         */
+        if (
+            !this._ownedDocuments.has(doc) &&
+            !this._connectionMgr.isConnected(docUri) &&
+            !this._connectionMgr.isConnecting(docUri)
+        ) {
             await this._connectionMgr.connect(
                 docUri,
                 Utils.deepClone(this._lastActiveConnectionInfo),
