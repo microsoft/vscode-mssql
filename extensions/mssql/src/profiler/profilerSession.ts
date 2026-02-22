@@ -6,9 +6,10 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { RingBuffer } from "./ringBuffer";
-import { EventRow, Filter, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
+import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
+import { Logger } from "../models/logger";
 
 /**
  * Default event buffer capacity
@@ -40,6 +41,8 @@ export interface ProfilerSessionOptions {
     readOnly?: boolean;
     /** Maximum number of events to buffer */
     bufferCapacity?: number;
+    /** Engine type label for telemetry (e.g. "SQLServer", "AzureSQLDB") */
+    engineType?: string;
 }
 
 /**
@@ -75,9 +78,6 @@ export class ProfilerSession {
     /** Event buffer */
     public readonly events: RingBuffer<EventRow>;
 
-    /** Active filters applied to the session */
-    public filters: Filter[];
-
     /** View configuration for displaying events */
     public viewConfig: ViewTemplate;
 
@@ -95,6 +95,18 @@ export class ProfilerSession {
 
     /** Whether the session can be paused (determined by server) */
     public canPause: boolean = false;
+
+    /** Engine type label for telemetry */
+    public readonly engineType: string;
+
+    /** Timestamp (epoch ms) when profiling actually started; set by session manager */
+    public startedAt: number = 0;
+
+    /** Whether events have been exported (e.g. CSV) during this session */
+    public exported: boolean = false;
+
+    /** Whether the buffer-overflow warning has already fired for this session */
+    public bufferOverflowWarned: boolean = false;
 
     /** Current state of the session */
     private _state: SessionState;
@@ -121,12 +133,21 @@ export class ProfilerSession {
     private _onSessionStopped: ((errorMessage?: string) => void) | undefined;
     /** Counter for generating sequential event numbers when service doesn't provide them */
     private _eventNumberCounter: number = 0;
+
+    /** Logger for diagnostic output */
+    private readonly _logger: Logger | undefined;
     /**
      * Creates a new ProfilerSession.
      * @param options - Session configuration options
      * @param profilerService - Reference to the profiler service for RPC calls
+     * @param logger - Optional logger for diagnostic output
      */
-    constructor(options: ProfilerSessionOptions, profilerService: ProfilerService) {
+    constructor(
+        options: ProfilerSessionOptions,
+        profilerService: ProfilerService,
+        logger?: Logger,
+    ) {
+        this._logger = logger;
         this.id = options.id;
         this.ownerUri = options.ownerUri;
         this.sessionName = options.sessionName;
@@ -134,13 +155,11 @@ export class ProfilerSession {
         this.templateName = options.templateName;
         this.readOnly = options.readOnly ?? false;
         this._profilerService = profilerService;
+        this.engineType = options.engineType ?? "Standalone";
 
         // Initialize event buffer with indexed fields
         const capacity = options.bufferCapacity ?? DEFAULT_BUFFER_CAPACITY;
         this.events = new RingBuffer<EventRow>(capacity, INDEXED_FIELDS);
-
-        // Initialize filters
-        this.filters = [];
 
         // Initialize view config
         this.viewConfig = options.viewConfig ?? this.getDefaultViewConfig();
@@ -502,29 +521,6 @@ export class ProfilerSession {
     }
 
     /**
-     * Sets the active filters for querying events.
-     * @param filters - The filters to apply
-     */
-    setFilters(filters: Filter[]): void {
-        this.filters = filters;
-    }
-
-    /**
-     * Adds a filter to the active filters.
-     * @param filter - The filter to add
-     */
-    addFilter(filter: Filter): void {
-        this.filters.push(filter);
-    }
-
-    /**
-     * Clears all active filters.
-     */
-    clearFilters(): void {
-        this.filters = [];
-    }
-
-    /**
      * Disposes of the session and cleans up resources.
      * If the session is running, stops it first to clean up server-side XEvent session.
      */
@@ -535,7 +531,7 @@ export class ProfilerSession {
                 await this.stopProfiling();
             } catch (e) {
                 // Log but don't throw - we still want to clean up client resources
-                console.error(`Error stopping profiling session during dispose: ${e}`);
+                this._logger?.error(`Error stopping profiling session during dispose: ${e}`);
             }
         }
 
@@ -662,7 +658,6 @@ export class ProfilerSession {
             templateName: this.templateName,
             state: this._state,
             eventCount: this.events.size,
-            filters: this.filters,
             viewConfig: this.viewConfig,
             createdAt: this.createdAt,
             lastEventTimestamp: this.lastEventTimestamp,

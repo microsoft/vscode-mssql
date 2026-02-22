@@ -71,7 +71,7 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Get the singleton instance
+     * Get the singleton instance.
      */
     public static get instance(): ProfilerConfigService {
         if (!ProfilerConfigService._instance) {
@@ -177,7 +177,7 @@ export class ProfilerConfigService {
         // Try each mapped event field until we find a value
         for (const mappedField of column.eventsMapped) {
             const value = this.getFieldValue(event, mappedField);
-            if (value !== null && value !== undefined && value !== "") {
+            if (value) {
                 return value;
             }
         }
@@ -199,7 +199,7 @@ export class ProfilerConfigService {
         // Check if it's a direct property of EventRow
         if (field in event && field !== FIELD_ADDITIONAL_DATA) {
             const value = (event as unknown as Record<string, unknown>)[field];
-            if (value === undefined || value === null) {
+            if (value === undefined) {
                 return undefined;
             }
             // Format specific fields

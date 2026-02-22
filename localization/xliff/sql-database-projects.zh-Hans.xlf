@@ -1326,6 +1326,10 @@
         <source xml:lang="en">Close Database Project</source>
         <target state="translated">关闭数据库项目</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
+        <source xml:lang="en">Code Analysis Settings (Preview)</source>
+        <target state="translated">Code Analysis 设置(预览版)</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
         <source xml:lang="en">Convert to SDK-style project</source>
         <target state="translated">转换为 SDK 样式项目</target>

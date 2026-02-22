@@ -2,7 +2,7 @@
     "name": "sql-database-projects-vscode",
     "displayName": "SQL Database Projects",
     "description": "Enables users to develop and publish database schemas for MSSQL Databases",
-    "version": "1.5.7",
+    "version": "1.5.8",
     "publisher": "ms-mssql",
     "preview": false,
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/sql-database-projects/README.md",
@@ -39,7 +39,7 @@
         "watch": "yarn build:prepare && run-p -l watch:extension",
         "lint": "eslint ./src",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
-        "test": "yarn build && node ./out/test/runTest.js",
+        "test": "yarn build && vscode-test --coverage",
         "package": "yarn build && vsce package --no-yarn"
     },
     "capabilities": {
@@ -181,6 +181,11 @@
                 "icon": "images/databaseProjectToolbar.svg"
             },
             {
+                "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                "title": "%sqlDatabaseProjects.configureCodeAnalysisSettings%",
+                "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
                 "command": "sqlDatabaseProjects.addDatabaseReference",
                 "title": "%sqlDatabaseProjects.addDatabaseReference%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -320,6 +325,10 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase"
+                },
+                {
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                    "when": "false"
                 },
                 {
                     "command": "sqlDatabaseProjects.addDatabaseReference",
@@ -491,9 +500,14 @@
                     "group": "9_dbProjectsLast@7"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "9_dbProjectsLast@8"
+                },
+                {
+                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "9_dbProjectsLast@9"
                 },
                 {
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
@@ -558,13 +572,12 @@
     "dependencies": {
         "@microsoft/ads-extension-telemetry": "^3.0.1",
         "@xmldom/xmldom": "0.8.4",
-        "ajv": "^6.12.6",
+        "ajv": "^8.18.0",
         "axios": "^1.13.5",
         "extract-zip": "^2.0.1",
         "fast-glob": "^3.2.7",
         "fs-extra": "^5.0.0",
         "promisify-child-process": "^3.1.1",
-        "request": "^2.88.2",
         "semver": "^7.5.2",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
@@ -577,7 +590,6 @@
         "@types/fs-extra": "^5.0.0",
         "@types/mocha": "^7.0.2",
         "@types/node": "^22.13.14",
-        "@types/request": "^2.48.8",
         "@types/semver": "^7.3.1",
         "@types/sinon": "^9.0.4",
         "@types/sinon-chai": "^4.0.0",
@@ -587,7 +599,7 @@
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
         "@vscode/l10n-dev": "^0.0.35",
-        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.1.1",
         "chai": "^5.3.3",
@@ -595,6 +607,8 @@
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",
         "mocha": "^9.2.2",
+        "mocha-junit-reporter": "^2.2.1",
+        "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",
         "nyc": "^17.1.0",
         "prettier": "^3.3.3",

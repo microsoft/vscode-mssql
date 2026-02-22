@@ -97,7 +97,7 @@ import {
     deleteContainer,
     prepareForDockerContainerCommand,
     stopContainer,
-} from "../deployment/dockerUtils";
+} from "../docker/dockerUtils";
 import { ProfilerController } from "../profiler/profilerController";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
@@ -118,6 +118,7 @@ import { FlatFileClient } from "../flatFile/flatFileClient";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
 import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
+import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -239,11 +240,11 @@ export default class MainController implements vscode.Disposable {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
             this._event.on(Constants.cmdConnect, () => {
-                void this.runAndLogErrors(this.onNewConnection());
+                void this.runAndLogErrors(this.promptToConnect());
             });
             this.registerCommand(Constants.cmdChangeConnection);
             this._event.on(Constants.cmdChangeConnection, () => {
-                void this.runAndLogErrors(this.onNewConnection());
+                void this.runAndLogErrors(this.promptToConnect());
             });
             this.registerCommand(Constants.cmdDisconnect);
             this._event.on(Constants.cmdDisconnect, () => {
@@ -429,7 +430,7 @@ export default class MainController implements vscode.Disposable {
                 }
                 // create new connection
                 if (!this.connectionManager.isConnected(uri)) {
-                    await this.onNewConnection();
+                    await this.promptToConnect();
                     sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
                 }
 
@@ -1208,6 +1209,25 @@ export default class MainController implements vscode.Disposable {
 
         const escapeSingleQuotes = (value: string): string => value.replace(/'/g, "''");
 
+        /**
+         * Checks if the given node is a server node that is scoped to a database.
+         */
+        const isDatabaseScopedServerNode = (node: TreeNodeInfo): boolean =>
+            node.nodeType === Constants.serverLabel &&
+            (node.context.subType === Constants.databaseString ||
+                node.context.subType === Constants.dockerContainerDatabase);
+
+        const isNodeOfTypeAndSubType = (
+            node: TreeNodeInfo,
+            type: string,
+            subType?: string,
+        ): boolean =>
+            node.context.type === type &&
+            (subType === undefined || node.context.subType === subType);
+
+        const isDatabasesFolderNode = (node: TreeNodeInfo): boolean =>
+            isNodeOfTypeAndSubType(node, Constants.folderLabel, Constants.databasesSubNodeType);
+
         const findServerNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
             let current = node;
             while (current) {
@@ -1217,6 +1237,54 @@ export default class MainController implements vscode.Disposable {
                 current = current.parentNode;
             }
             return undefined;
+        };
+
+        const findNodeInChildren = (
+            children?: vscode.TreeItem[],
+            type: string = Constants.folderLabel,
+            subType?: string,
+        ): TreeNodeInfo | undefined =>
+            children?.find(
+                (child): child is TreeNodeInfo =>
+                    child instanceof TreeNodeInfo && isNodeOfTypeAndSubType(child, type, subType),
+            );
+
+        const refreshAndExpandFolder = async (
+            parentNode: TreeNodeInfo,
+            folderSubType: string,
+            folderNode?: TreeNodeInfo,
+        ): Promise<void> => {
+            let resolvedFolderNode = folderNode;
+            if (!resolvedFolderNode && parentNode.sessionId) {
+                const parentChildren = await this._objectExplorerProvider.expandNode(
+                    parentNode,
+                    parentNode.sessionId,
+                );
+                resolvedFolderNode = findNodeInChildren(
+                    parentChildren,
+                    Constants.folderLabel,
+                    folderSubType,
+                );
+            }
+
+            if (!resolvedFolderNode) {
+                await refreshNodeChildren(parentNode);
+                return;
+            }
+
+            await refreshNodeChildren(resolvedFolderNode);
+            if (resolvedFolderNode.sessionId) {
+                await this._objectExplorerProvider.expandNode(
+                    resolvedFolderNode,
+                    resolvedFolderNode.sessionId,
+                );
+            }
+
+            if (this.objectExplorerTree) {
+                await this.objectExplorerTree.reveal(resolvedFolderNode, {
+                    expand: true,
+                });
+            }
         };
 
         this._context.subscriptions.push(
@@ -1231,11 +1299,10 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const isDatabasesFolder =
-                        targetNode.context.type === Constants.folderLabel &&
-                        targetNode.context.subType === "Databases";
+                    const isDatabasesFolder = isDatabasesFolderNode(targetNode);
                     const serverNode =
-                        targetNode.nodeType === Constants.serverLabel
+                        targetNode.nodeType === Constants.serverLabel &&
+                        !isDatabaseScopedServerNode(targetNode)
                             ? targetNode
                             : isDatabasesFolder
                               ? findServerNode(targetNode)
@@ -1273,7 +1340,19 @@ export default class MainController implements vscode.Disposable {
                     controller.revealToForeground();
                     const createdDatabase = await controller.dialogResult.promise;
                     if (createdDatabase) {
-                        await refreshNodeChildren(isDatabasesFolder ? targetNode : serverNode);
+                        if (isDatabasesFolder) {
+                            await refreshAndExpandFolder(
+                                serverNode,
+                                Constants.databasesSubNodeType,
+                                targetNode,
+                            );
+                        } else {
+                            await refreshNodeChildren(serverNode);
+                            await refreshAndExpandFolder(
+                                serverNode,
+                                Constants.databasesSubNodeType,
+                            );
+                        }
                     }
                 },
             ),
@@ -1723,40 +1802,40 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdBackupDatabase,
                     async (node: TreeNodeInfo) => {
                         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-
-                        let ownerUri = node.sessionId;
-                        if (node.nodeType === Constants.databaseString) {
-                            const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
-
-                            // Create a new temp connection for the database if we are not already connected
-                            // This lets sts know the context of the database we are backing up; otherwise,
-                            // sts will assume the master database context
-                            await this.connectionManager.connect(databaseConnectionUri, {
-                                ...node.connectionProfile,
-                                database: databaseName,
-                            });
-
-                            ownerUri = databaseConnectionUri;
-                        }
-
                         const reactPanel = new BackupDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
                             this.objectManagementService,
+                            this._connectionMgr,
                             this.fileBrowserService,
                             this.azureBlobService,
-                            ownerUri,
-                            node.connectionProfile.server || "",
+                            node.connectionProfile,
+                            node.sessionId,
                             databaseName,
                         );
                         reactPanel.revealToForeground();
+                    },
+                ),
+            );
 
-                        // Disconnect the temp database connection when the backup panel is closed
-                        reactPanel.onDisposed(() => {
-                            if (ownerUri !== node.sessionId) {
-                                void this.connectionManager.disconnect(ownerUri);
-                            }
-                        });
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRestoreDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
+                        const reactPanel = new RestoreDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this.objectManagementService,
+                            this._connectionMgr,
+                            this.fileBrowserService,
+                            this.azureBlobService,
+                            node.connectionProfile,
+                            node.sessionId,
+                            databaseName,
+                        );
+                        reactPanel.revealToForeground();
                     },
                 ),
             );
@@ -2236,9 +2315,9 @@ export default class MainController implements vscode.Disposable {
     /**
      * Let users pick from a list of connections
      */
-    public async onNewConnection(): Promise<boolean> {
+    public async promptToConnect(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            let credentials = await this._connectionMgr.onNewConnection();
+            let credentials = await this._connectionMgr.promptToConnect();
             if (credentials) {
                 try {
                     await this.createObjectExplorerSession(credentials);
@@ -2298,7 +2377,7 @@ export default class MainController implements vscode.Disposable {
 
         // Connect if needed
         if (shouldConnect) {
-            return await this.onNewConnection();
+            return await this.promptToConnect();
         }
 
         return true;
@@ -2398,7 +2477,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (!(await this.checkIsReadyToExecuteQuery())) {
+            if (!(await this.ensureReadyToExecuteQuery())) {
                 return;
             }
 
@@ -2440,7 +2519,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (!(await this.checkIsReadyToExecuteQuery())) {
+            if (!(await this.ensureReadyToExecuteQuery())) {
                 return;
             }
 
@@ -2477,11 +2556,6 @@ export default class MainController implements vscode.Disposable {
                 };
             }
 
-            // create new connection
-            if (!this.connectionManager.isConnected(uri)) {
-                await this.onNewConnection();
-                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
-            }
             // check if current connection is still valid / active - if not, refresh azure account token
             await this._connectionMgr.refreshAzureAccountToken(uri);
 
@@ -2501,20 +2575,29 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Checks if there's an active SQL file that has a connection associated with it.
-     * @returns true if the file is a SQL file and has a connection, false otherwise
+     * Ensures the active editor is a connected SQL file, prompting the user to
+     * change the language mode or pick a connection if needed.
+     * @returns true if the editor is ready to execute queries, false if the user canceled
      */
-    public async checkIsReadyToExecuteQuery(): Promise<boolean> {
-        if (!(await this.checkForActiveSqlFile())) {
+    public async ensureReadyToExecuteQuery(): Promise<boolean> {
+        if (!(await this.ensureActiveSqlFile())) {
             return false;
         }
 
-        if (this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+        const uri = this._vscodeWrapper.activeTextEditorUri;
+        if (this._connectionMgr.isConnected(uri)) {
             return true;
         }
 
-        const result = await this.onNewConnection();
+        if (this._connectionMgr.isConnecting(uri)) {
+            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgConnectionInProgress);
+            return false;
+        }
 
+        const result = await this.promptToConnect();
+        if (result) {
+            sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+        }
         return result;
     }
 
@@ -2583,10 +2666,11 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Checks if the current document is a SQL file
-     * @returns true if the current document is a SQL file, false if not or if there's no active document
+     * Ensures the active document is a SQL file, prompting the user to change
+     * the language mode if it isn't.
+     * @returns true if the active document is (now) a SQL file, false if there's no active document or the user declined
      */
-    private async checkForActiveSqlFile(): Promise<boolean> {
+    private async ensureActiveSqlFile(): Promise<boolean> {
         if (!this.validateTextDocumentHasFocus()) {
             return false;
         }

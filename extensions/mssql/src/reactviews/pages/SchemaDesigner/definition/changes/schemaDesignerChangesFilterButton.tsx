@@ -20,8 +20,8 @@ import {
     Key20Regular,
     Table20Regular,
 } from "@fluentui/react-icons";
-import { locConstants } from "../../../common/locConstants";
-import { ChangeAction, ChangeCategory } from "../diff/diffUtils";
+import { locConstants } from "../../../../common/locConstants";
+import { ChangeAction, ChangeCategory } from "../../diff/diffUtils";
 
 // Static style objects - defined outside component to avoid recreation on each render
 const ACTION_CHECKED_STYLES = {

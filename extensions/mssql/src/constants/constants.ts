@@ -26,6 +26,7 @@ export const serverLabel = "Server";
 export const disconnectedDockerContainer = "disconnectedDockerContainer";
 export const dockerContainer = "DockerContainer";
 export const dockerContainerDatabase = "DockerContainerDatabase";
+export const databasesSubNodeType = "Databases";
 export const folderLabel = "Folder";
 export const database_green = "Database_green";
 export const database_red = "Database_red";
@@ -135,6 +136,8 @@ export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
+export const cmdRestoreDatabase = "mssql.restoreDatabase";
+export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
 export const cmdFlatFileImport = "mssql.flatFileImport";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
@@ -188,6 +191,8 @@ export const dropDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
 export const backupDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
+export const restoreDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/restore-statements-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";

@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Checkbox, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
-import { useContext, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTile } from "./dabEntityTile";
 import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { useDabContext } from "./dabContext";
 
 const useStyles = makeStyles({
     root: {
@@ -81,7 +81,7 @@ interface DabPageProps {
 
 export const DabPage = ({ activeView }: DabPageProps) => {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useDabContext();
 
     const {
         dabConfig,

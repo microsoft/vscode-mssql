@@ -367,14 +367,12 @@ suite("DacpacDialogWebviewController", () => {
     suite("Browse File Operations", () => {
         let showOpenDialogStub: sinon.SinonStub;
         let showSaveDialogStub: sinon.SinonStub;
+
         setup(() => {
-            showOpenDialogStub = sinon.stub(vscode.window, "showOpenDialog");
-            showSaveDialogStub = sinon.stub(vscode.window, "showSaveDialog");
+            showOpenDialogStub = sandbox.stub(vscode.window, "showOpenDialog");
+            showSaveDialogStub = sandbox.stub(vscode.window, "showSaveDialog");
         });
-        teardown(() => {
-            showOpenDialogStub.restore();
-            showSaveDialogStub.restore();
-        });
+
         test("browse input file returns file path when file is selected", async () => {
             const mockUri = vscode.Uri.file("C:\\test\\database.dacpac");
             showOpenDialogStub.resolves([mockUri]);
