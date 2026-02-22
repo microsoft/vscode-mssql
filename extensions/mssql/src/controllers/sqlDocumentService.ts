@@ -312,7 +312,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         /**
-         * If the document is connected now, beccause the user didn't waitForOngoingCreates
+         * If the document is connected now, because the user didn't waitForOngoingCreates
          * or other checks to complete we don't want to overwrite that connection by
          * auto-connecting. So we skip it.
          */
