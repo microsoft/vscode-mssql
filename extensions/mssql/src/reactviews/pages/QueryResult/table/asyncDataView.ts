@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDisposableDataProvider } from "./dataProvider";
-import { v4 as uuid } from "uuid";
 
 export interface IObservableCollection<T> {
     getLength(): number;
@@ -22,11 +21,7 @@ class DataWindow<T> {
     private _data: T[] | undefined;
     private _length: number = 0;
     private _offsetFromDataSource: number = -1;
-    private _currentRequestId: string = uuid();
-    private _debounceTimeout: NodeJS.Timeout | undefined;
-    private readonly _getRowsDebounceDelayMs: number = 50;
-    private _lastPositionTime: number = 0;
-    private _consecutivePositionCount: number = 0;
+    private _currentRequestId: number = 0;
 
     // private cancellationToken = new CancellationTokenSource();
 
@@ -38,10 +33,6 @@ class DataWindow<T> {
 
     dispose() {
         this._data = undefined;
-        if (this._debounceTimeout) {
-            clearTimeout(this._debounceTimeout);
-            this._debounceTimeout = undefined;
-        }
         // this.cancellationToken.cancel();
     }
 
@@ -76,59 +67,23 @@ class DataWindow<T> {
         this._data = undefined;
 
         // Increment request ID to invalidate any pending requests
-        this._currentRequestId = uuid();
+        this._currentRequestId++;
         const currentRequestId = this._currentRequestId;
 
         if (length === 0) {
             return;
         }
-
-        // Detect if this is rapid continuous scrolling or a jump to position
-        const now = Date.now();
-        const timeSinceLastPosition = now - this._lastPositionTime;
-        this._lastPositionTime = now;
-
-        // If positions are happening very rapidly (< 100ms apart), it's continuous scrolling
-        if (timeSinceLastPosition < 100) {
-            this._consecutivePositionCount++;
-        } else {
-            this._consecutivePositionCount = 0;
-        }
-
-        // Clear any pending debounced requests
-        if (this._debounceTimeout) {
-            clearTimeout(this._debounceTimeout);
-        }
-
-        const executeLoad = () => {
-            // Double-check that this request is still current
-            if (currentRequestId !== this._currentRequestId) {
-                return; // Window was repositioned again, skip this request
+        this.loadFunction(offset, length).then((data) => {
+            // Only apply data if this request is still current (window hasn't been repositioned)
+            if (currentRequestId === this._currentRequestId) {
+                this._data = data;
+                this.loadCompleteCallback(
+                    this._offsetFromDataSource,
+                    this._offsetFromDataSource + this._length,
+                );
             }
-
-            this.loadFunction(offset, length).then((data) => {
-                // Only apply data if this request is still current (window hasn't been repositioned)
-                if (currentRequestId === this._currentRequestId) {
-                    this._data = data;
-                    this.loadCompleteCallback(
-                        this._offsetFromDataSource,
-                        this._offsetFromDataSource + this._length,
-                    );
-                }
-                // Otherwise, ignore this outdated response to prevent flickering
-            });
-        };
-
-        // If rapid continuous scrolling (3+ rapid events), debounce to reduce load
-        if (this._consecutivePositionCount >= 3) {
-            this._debounceTimeout = setTimeout(() => {
-                this._debounceTimeout = undefined;
-                executeLoad();
-            }, this._getRowsDebounceDelayMs);
-        } else {
-            // Otherwise, load immediately (scrollbar drag, single scroll, or first few scrolls)
-            executeLoad();
-        }
+            // Otherwise, ignore this outdated response to prevent flickering
+        });
     }
 }
 
