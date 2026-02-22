@@ -586,13 +586,13 @@ suite("SqlDocumentService Tests", () => {
         expect(connectStub).to.not.have.been.called;
     });
 
-    test("onDidOpenTextDocument should not wait for ongoing creates for file SQL documents", async () => {
+    test("onDidOpenTextDocument should wait for ongoing creates for file SQL documents", async () => {
         const fileDoc = mockTextDocument("file:///test.sql");
         const waitStub = sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
 
         await sqlDocumentService.onDidOpenTextDocument(fileDoc);
 
-        expect(waitStub).to.not.have.been.called;
+        expect(waitStub).to.have.been.calledOnce;
         waitStub.restore();
     });
 
