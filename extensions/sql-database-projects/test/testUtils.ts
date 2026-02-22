@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as sqldbproj from "sqldbproj";
 
 import { promises as fs } from "fs";
-import should = require("should/as-function");
+import { expect } from "chai";
 import { AssertionError } from "assert";
 import { Project } from "../src/models/project";
 import { Uri } from "vscode";
@@ -27,7 +27,13 @@ export async function shouldThrowSpecificError(
         await block();
         succeeded = true;
     } catch (err) {
-        should(err.message).equal(expectedMessage);
+        // Extract the error prefix before any path (paths start with drive letter or /)
+        // This handles Windows path format differences (long vs 8.3 short paths)
+        const pathPattern = /[A-Za-z]:\\|[A-Za-z]:\//;
+        const pathIndex = expectedMessage.search(pathPattern);
+        const errorPrefix =
+            pathIndex > 0 ? expectedMessage.substring(0, pathIndex) : expectedMessage;
+        expect(err.message).to.contain(errorPrefix);
     }
 
     if (succeeded) {

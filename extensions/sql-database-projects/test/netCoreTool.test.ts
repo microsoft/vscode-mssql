@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
@@ -19,14 +19,16 @@ import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
 
 let testContext: TestContext;
+let sandbox: sinon.SinonSandbox;
 
 suite("NetCoreTool: Net core tests", function (): void {
     teardown(function (): void {
-        sinon.restore();
+        sandbox.restore();
     });
 
     setup(function (): void {
         testContext = createContext();
+        sandbox = sinon.createSandbox();
     });
 
     suiteTeardown(async function (): Promise<void> {
@@ -40,9 +42,9 @@ suite("NetCoreTool: Net core tests", function (): void {
                 .getConfiguration(DBProjectConfigurationKey)
                 .update(DotnetInstallLocationKey, "test value path", true);
             const netcoreTool = new NetCoreTool(testContext.outputChannel);
-            sinon.stub(netcoreTool, "showInstallDialog").returns(Promise.resolve());
-            should(netcoreTool.netcoreInstallLocation).equal("test value path"); // the path in settings should be taken
-            should(await netcoreTool.findOrInstallNetCore()).equal(false); // dotnet can not be present at dummy path in settings
+            sandbox.stub(netcoreTool, "showInstallDialog").returns(Promise.resolve());
+            expect(netcoreTool.netcoreInstallLocation).to.equal("test value path"); // the path in settings should be taken
+            expect(await netcoreTool.findOrInstallNetCore()).to.equal(false); // dotnet can not be present at dummy path in settings
         } finally {
             // clean again
             await vscode.workspace
@@ -53,7 +55,7 @@ suite("NetCoreTool: Net core tests", function (): void {
 
     test("Should find right dotnet default paths", async function (): Promise<void> {
         const netcoreTool = new NetCoreTool(testContext.outputChannel);
-        sinon.stub(netcoreTool, "showInstallDialog").returns(Promise.resolve());
+        sandbox.stub(netcoreTool, "showInstallDialog").returns(Promise.resolve());
         await netcoreTool.findOrInstallNetCore();
 
         if (os.platform() === "win32") {
@@ -61,7 +63,7 @@ suite("NetCoreTool: Net core tests", function (): void {
             let result =
                 !netcoreTool.netcoreInstallLocation ||
                 netcoreTool.netcoreInstallLocation.toLowerCase().startsWith("c:\\program files");
-            should(result).true("dotnet not present in programfiles by default");
+            expect(result, "dotnet not present in programfiles by default").to.be.true;
         }
 
         if (os.platform() === "linux") {
@@ -69,7 +71,7 @@ suite("NetCoreTool: Net core tests", function (): void {
             let result =
                 !netcoreTool.netcoreInstallLocation ||
                 netcoreTool.netcoreInstallLocation.toLowerCase() === "/usr/share/dotnet";
-            should(result).true("dotnet not present in /usr/share");
+            expect(result, "dotnet not present in /usr/share").to.be.true;
         }
 
         if (os.platform() === "darwin") {
@@ -77,7 +79,7 @@ suite("NetCoreTool: Net core tests", function (): void {
             let result =
                 !netcoreTool.netcoreInstallLocation ||
                 netcoreTool.netcoreInstallLocation.toLowerCase() === "/usr/local/share/dotnet";
-            should(result).true("dotnet not present in /usr/local/share");
+            expect(result, "dotnet not present in /usr/local/share").to.be.true;
         }
     });
 
@@ -91,7 +93,7 @@ suite("NetCoreTool: Net core tests", function (): void {
                 undefined,
             );
             const text = await fs.promises.readFile(dummyFile);
-            should(text.toString().trim()).equal("test");
+            expect(text.toString().trim()).to.equal("test");
         } finally {
             try {
                 await fs.promises.unlink(dummyFile);

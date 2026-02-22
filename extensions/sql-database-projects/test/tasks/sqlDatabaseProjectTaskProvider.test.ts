@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as path from "path";
 import * as vscodeMssql from "vscode-mssql";
 import { SqlDatabaseProjectTaskProvider } from "../../src/tasks/sqlDatabaseProjectTaskProvider";
@@ -70,8 +70,8 @@ suite("Sql Database Projects Task Provider", function (): void {
         const tasks = await taskProvider.createTasks();
 
         // Assert: tasks should be defined and have the expected length
-        should(tasks).not.be.undefined();
-        should(tasks).be.Array().and.have.length(2);
+        expect(tasks).to.not.be.undefined;
+        expect(tasks).to.be.an("array").with.length(2);
 
         // Find the build and buildWithCodeAnalysis tasks by name
         const buildTask = tasks.find((t) => t.name === "ProjectA.sqlproj - Build");
@@ -80,45 +80,45 @@ suite("Sql Database Projects Task Provider", function (): void {
         );
 
         // Assert: both tasks should exist
-        should(buildTask).not.be.undefined();
-        should(buildWithCodeAnalysisTask).not.be.undefined();
+        expect(buildTask).to.not.be.undefined;
+        expect(buildWithCodeAnalysisTask).to.not.be.undefined;
 
         // Assert: task names should contain expected substrings
-        should(buildTask?.name).containEql("Build");
-        should(buildWithCodeAnalysisTask?.name).containEql("Build with Code Analysis");
+        expect(buildTask?.name).to.contain("Build");
+        expect(buildWithCodeAnalysisTask?.name).to.contain("Build with Code Analysis");
 
         // Assert: task definitions should have the correct type
-        should(buildTask?.definition.type).equal("sqlproj-build");
-        should(buildWithCodeAnalysisTask?.definition.type).equal("sqlproj-build");
+        expect(buildTask?.definition.type).to.equal("sqlproj-build");
+        expect(buildWithCodeAnalysisTask?.definition.type).to.equal("sqlproj-build");
 
         // Assert: tasks should have the correct workspace folder scope
-        should(buildTask?.scope).equal(workspaceFolder);
-        should(buildWithCodeAnalysisTask?.scope).equal(workspaceFolder);
+        expect(buildTask?.scope).to.equal(workspaceFolder);
+        expect(buildWithCodeAnalysisTask?.scope).to.equal(workspaceFolder);
 
         // Assert: problemMatchers should be arrays and contain the expected matcher
-        should(buildTask?.problemMatchers).be.Array();
-        should(buildWithCodeAnalysisTask?.problemMatchers).be.Array();
-        should(buildTask?.problemMatchers).containEql("$sqlproj-problem-matcher");
-        should(buildWithCodeAnalysisTask?.problemMatchers).containEql("$sqlproj-problem-matcher");
+        expect(buildTask?.problemMatchers).to.be.an("array");
+        expect(buildWithCodeAnalysisTask?.problemMatchers).to.be.an("array");
+        expect(buildTask?.problemMatchers).to.contain("$sqlproj-problem-matcher");
+        expect(buildWithCodeAnalysisTask?.problemMatchers).to.contain("$sqlproj-problem-matcher");
 
         // Assert: build task should have a group with label 'Build'
-        should(buildTask?.group).not.be.undefined();
-        should(buildTask?.group).have.property("label", "Build");
+        expect(buildTask?.group).to.not.be.undefined;
+        expect(buildTask?.group).to.have.property("label", "Build");
 
         // Assert: build task execution should be defined and use 'dotnet' command with 'build' argument
-        should(buildTask?.execution).not.be.undefined();
+        expect(buildTask?.execution).to.not.be.undefined;
         if (buildTask?.execution instanceof vscode.ProcessExecution) {
-            should(buildTask.execution.process).equal("dotnet");
-            should(buildTask.execution.args).not.be.undefined();
-            should(buildTask.execution.args).be.Array();
+            expect(buildTask.execution.process).to.equal("dotnet");
+            expect(buildTask.execution.args).to.not.be.undefined;
+            expect(buildTask.execution.args).to.be.an("array");
             // First arg is 'build' string
             const firstArg = buildTask.execution.args[0];
-            should(firstArg).equal("build");
+            expect(firstArg).to.equal("build");
 
             const argsString = buildTask.execution.args.join(" ");
-            should(argsString).containEql("/p:NetCoreBuild=true");
-            should(argsString).containEql("/p:SystemDacpacsLocation=");
-            should(argsString).not.containEql("/p:NETCoreTargetsPath="); // This should NOT be present for SDK projects
+            expect(argsString).to.contain("/p:NetCoreBuild=true");
+            expect(argsString).to.contain("/p:SystemDacpacsLocation=");
+            expect(argsString).to.not.contain("/p:NETCoreTargetsPath="); // This should NOT be present for SDK projects
         }
     });
 
@@ -133,8 +133,8 @@ suite("Sql Database Projects Task Provider", function (): void {
         const tasks = await taskProvider.createTasks();
 
         // Assert: tasks should be defined but empty
-        should(tasks).not.be.undefined();
-        should(tasks).be.Array().and.have.length(0);
+        expect(tasks).to.not.be.undefined;
+        expect(tasks).to.be.an("array").with.length(0);
     });
 
     test("Should create build and buildWithCodeAnalysis tasks for multiple .sqlproj files with correct properties", async function (): Promise<void> {
@@ -148,10 +148,10 @@ suite("Sql Database Projects Task Provider", function (): void {
         const tasks = await taskProvider.createTasks();
 
         // Assert: tasks should be defined and have the expected length (2 per project)
-        should(tasks).not.be.undefined();
-        should(tasks)
-            .be.Array()
-            .and.have.length(sqlProjUris.length * 2);
+        expect(tasks).to.not.be.undefined;
+        expect(tasks)
+            .to.be.an("array")
+            .with.length(sqlProjUris.length * 2);
 
         for (const uri of sqlProjUris) {
             const projectName = path.basename(uri.fsPath);
@@ -161,42 +161,42 @@ suite("Sql Database Projects Task Provider", function (): void {
             );
 
             // Assert: both tasks should exist
-            should(buildTask).not.be.undefined();
-            should(buildWithCodeAnalysisTask).not.be.undefined();
+            expect(buildTask).to.not.be.undefined;
+            expect(buildWithCodeAnalysisTask).to.not.be.undefined;
 
             // Assert: task names should contain expected substrings
-            should(buildTask?.name).containEql("Build");
-            should(buildWithCodeAnalysisTask?.name).containEql("Build with Code Analysis");
+            expect(buildTask?.name).to.contain("Build");
+            expect(buildWithCodeAnalysisTask?.name).to.contain("Build with Code Analysis");
 
             // Assert: task definitions should have the correct type
-            should(buildTask?.definition.type).equal("sqlproj-build");
-            should(buildWithCodeAnalysisTask?.definition.type).equal("sqlproj-build");
+            expect(buildTask?.definition.type).to.equal("sqlproj-build");
+            expect(buildWithCodeAnalysisTask?.definition.type).to.equal("sqlproj-build");
 
             // Assert: tasks should have the correct workspace folder scope
-            should(buildTask?.scope).equal(workspaceFolder);
-            should(buildWithCodeAnalysisTask?.scope).equal(workspaceFolder);
+            expect(buildTask?.scope).to.equal(workspaceFolder);
+            expect(buildWithCodeAnalysisTask?.scope).to.equal(workspaceFolder);
 
             // Assert: problemMatchers should be arrays and contain the expected matcher
-            should(buildTask?.problemMatchers).be.Array();
-            should(buildWithCodeAnalysisTask?.problemMatchers).be.Array();
-            should(buildTask?.problemMatchers).containEql("$sqlproj-problem-matcher");
-            should(buildWithCodeAnalysisTask?.problemMatchers).containEql(
+            expect(buildTask?.problemMatchers).to.be.an("array");
+            expect(buildWithCodeAnalysisTask?.problemMatchers).to.be.an("array");
+            expect(buildTask?.problemMatchers).to.contain("$sqlproj-problem-matcher");
+            expect(buildWithCodeAnalysisTask?.problemMatchers).to.contain(
                 "$sqlproj-problem-matcher",
             );
 
             // Assert: build task should have a group with label 'Build'
-            should(buildTask?.group).not.be.undefined();
-            should(buildTask?.group).have.property("label", "Build");
+            expect(buildTask?.group).to.not.be.undefined;
+            expect(buildTask?.group).to.have.property("label", "Build");
 
             // Assert: build task execution should be defined and use 'dotnet' command with 'build' argument
-            should(buildTask?.execution).not.be.undefined();
+            expect(buildTask?.execution).to.not.be.undefined;
             if (buildTask?.execution instanceof vscode.ProcessExecution) {
-                should(buildTask.execution.process).equal("dotnet");
-                should(buildTask.execution.args).not.be.undefined();
-                should(buildTask.execution.args).be.Array();
+                expect(buildTask.execution.process).to.equal("dotnet");
+                expect(buildTask.execution.args).to.not.be.undefined;
+                expect(buildTask.execution.args).to.be.an("array");
                 // First arg is 'build' string
                 const firstArg = buildTask.execution.args[0];
-                should(firstArg).equal("build");
+                expect(firstArg).to.equal("build");
             }
         }
     });
@@ -212,31 +212,31 @@ suite("Sql Database Projects Task Provider", function (): void {
         const tasks = await taskProvider.createTasks();
 
         // Assert: tasks should be defined and have the expected length
-        should(tasks).not.be.undefined();
-        should(tasks).be.Array().and.have.length(2);
+        expect(tasks).to.not.be.undefined;
+        expect(tasks).to.be.an("array").with.length(2);
 
         // Find the build task
         const buildTask = tasks.find((t) => t.name === "ProjectA.sqlproj - Build");
 
         // Assert: build task should exist
-        should(buildTask).not.be.undefined();
+        expect(buildTask).to.not.be.undefined;
 
         // Assert: build task execution should contain legacy-style arguments
-        should(buildTask?.execution).not.be.undefined();
+        expect(buildTask?.execution).to.not.be.undefined;
         if (buildTask?.execution instanceof vscode.ProcessExecution) {
-            should(buildTask.execution.process).equal("dotnet");
-            should(buildTask.execution.args).not.be.undefined();
-            should(buildTask.execution.args).be.Array();
+            expect(buildTask.execution.process).to.equal("dotnet");
+            expect(buildTask.execution.args).to.not.be.undefined;
+            expect(buildTask.execution.args).to.be.an("array");
 
             // Verify it contains build command
             const firstArg = buildTask.execution.args[0];
-            should(firstArg).equal("build");
+            expect(firstArg).to.equal("build");
 
             // Verify it contains legacy-style build arguments
             const argsString = buildTask.execution.args.join(" ");
-            should(argsString).containEql("/p:NetCoreBuild=true");
-            should(argsString).containEql("/p:SystemDacpacsLocation=");
-            should(argsString).containEql("/p:NETCoreTargetsPath="); // This is only for legacy projects
+            expect(argsString).to.contain("/p:NetCoreBuild=true");
+            expect(argsString).to.contain("/p:SystemDacpacsLocation=");
+            expect(argsString).to.contain("/p:NETCoreTargetsPath="); // This is only for legacy projects
         }
     });
 });
