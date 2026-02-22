@@ -3,7 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
+import {
+    QueryRunnerState,
+    SqlOutputContentProvider,
+} from "../../src/models/sqlOutputContentProvider";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as stubs from "./stubs";
@@ -98,12 +101,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockContentProvider.runQuery.callsFake(async (_status, uri) => {
             const entry = ensureRunnerState(uri);
             entry.queryRunner.isExecutingQuery = true;
-        });
-
-        mockContentProvider.onUntitledFileSaved.callsFake(async (oldUri, newUri) => {
-            const entry = ensureRunnerState(oldUri);
-            mockMap.delete(oldUri);
-            mockMap.set(newUri, { ...entry, queryRunner: { isExecutingQuery: true } });
         });
 
         mockContentProvider.onDidCloseTextDocument.callsFake(async (doc: vscode.TextDocument) => {
@@ -201,30 +198,22 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap.clear();
     });
 
-    test("onUntitledFileSaved should delete the untitled file and create a new titled file", async () => {
-        let title = "Test_Title";
-        let uri = testUri;
-        let newUri = "Test_URI_New";
-        let querySelection: ISelectionData = {
-            endColumn: 0,
-            endLine: 0,
-            startColumn: 0,
-            startLine: 0,
-        };
+    test("updateQueryRunnerUri should rekey query runner map entries", async () => {
+        const oldUri = "untitled:Untitled-99";
+        const newUri = "file:///renamed.sql";
+        const queryRunner = {
+            updateQueryRunnerUri: sandbox.stub(),
+        } as unknown as QueryRunner;
+        const queryRunnerState = new QueryRunnerState(queryRunner);
+        const queryResultsMap = new Map<string, QueryRunnerState>([[oldUri, queryRunnerState]]);
+        contentProvider.setResultsMap = queryResultsMap;
 
-        // Setup the function to call base and run it
-        await mockContentProvider.runQuery(statusViewInstance, uri, querySelection, title);
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
-        // Ensure all side effects occured as intended
-        expect(mockMap.has(testUri)).to.be.true;
-
-        await mockContentProvider.onUntitledFileSaved(uri, newUri);
-
-        // Check that the first one was replaced by the new one and that there is only one in the map
-        expect(mockMap.has(uri)).to.be.false;
-        expect(mockMap.get(newUri)?.queryRunner.isExecutingQuery).to.be.true;
-        expect(mockMap.size).to.equal(1);
-        mockMap.clear();
+        expect(queryRunner.updateQueryRunnerUri).to.have.been.calledOnceWith(oldUri, newUri);
+        expect(contentProvider.getResultsMap.has(oldUri)).to.be.false;
+        expect(contentProvider.getResultsMap.has(newUri)).to.be.true;
+        expect(contentProvider.getResultsMap.get(newUri)).to.equal(queryRunnerState);
     });
 
     test("updateQueryRunnerUri should not throw when query result state does not exist", async () => {
@@ -247,19 +236,16 @@ suite("SqlOutputProvider Tests using mocks", () => {
         // Add state for the old URI
         contentProvider.queryResultWebviewController.addQueryResultState(oldUri, mockState as any);
 
-        const sendNotificationStub = sandbox
-            .stub(contentProvider.queryResultWebviewController, "sendNotification")
-            .resolves();
-
         await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
-        // Should have sent notification with updated state
-        expect(sendNotificationStub).to.have.been.calledOnce;
         // The old URI state should be deleted
         expect(contentProvider.queryResultWebviewController.hasQueryResultState(oldUri)).to.be
             .false;
         // The new URI state should exist with updated uri
         expect(contentProvider.queryResultWebviewController.hasQueryResultState(newUri)).to.be.true;
+        expect(
+            contentProvider.queryResultWebviewController.getQueryResultState(newUri).uri,
+        ).to.equal(newUri);
     });
 
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {

@@ -80,7 +80,6 @@ suite("SqlDocumentService Tests", () => {
         const mockOutputContentProvider = {
             onDidCloseTextDocument: sandbox.stub().resolves(),
             updateQueryRunnerUri: sandbox.stub().resolves(),
-            onUntitledFileSaved: sandbox.stub(),
         } as any;
         mainController["_outputContentProvider"] = mockOutputContentProvider;
         sqlDocumentService["_outputContentProvider"] = mockOutputContentProvider;
@@ -322,6 +321,14 @@ suite("SqlDocumentService Tests", () => {
 
         // The URI should be removed from the set after processing
         expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(docKey)).to.be.false;
+    });
+
+    test("isUriBeingRenamedOrSaved should reflect tracked URI state", async () => {
+        const uri = "file:///tracked.sql";
+        expect(sqlDocumentService.isUriBeingRenamedOrSaved(uri)).to.be.false;
+
+        sqlDocumentService["_uriBeingRenamedOrSaved"].add(uri);
+        expect(sqlDocumentService.isUriBeingRenamedOrSaved(uri)).to.be.true;
     });
 
     test("onWillSaveTextDocument should transfer state when saving an untitled document", async () => {

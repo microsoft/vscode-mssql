@@ -73,6 +73,10 @@ export default class SqlDocumentService implements vscode.Disposable {
         return this._mainController?.objectExplorerTree;
     }
 
+    public isUriBeingRenamedOrSaved(uri: string): boolean {
+        return this._uriBeingRenamedOrSaved.has(uri);
+    }
+
     private setupListeners(): void {
         this._disposables.push(
             vscode.workspace.onDidCloseTextDocument(async (doc) => {
@@ -549,11 +553,8 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Transfer the connection to the new URI
         await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
 
-        // Call STS  & Query Runner to update URI
+        // Update the URI in the output content provider, which will transfer query runner and webview state to the new URI
         await this._outputContentProvider?.updateQueryRunnerUri(oldUri, newUri);
-
-        // Update the URI in the output content provider query result map
-        this._outputContentProvider?.onUntitledFileSaved(oldUri, newUri);
     }
 }
 

@@ -90,10 +90,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             }),
         );
 
-        // not the best api but it's the best we can do in VSCode
+        // Cleanup state when documents are closed.
         context.subscriptions.push(
-            this.vscodeWrapper.onDidOpenTextDocument((document) => {
+            this.vscodeWrapper.onDidCloseTextDocument((document) => {
                 const uri = getUriKey(document.uri);
+                if (this._sqlDocumentService?.isUriBeingRenamedOrSaved(uri)) {
+                    return;
+                }
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
                 }
