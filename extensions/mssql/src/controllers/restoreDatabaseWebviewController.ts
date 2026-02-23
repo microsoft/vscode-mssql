@@ -43,7 +43,6 @@ import {
     createSasKey,
     disasterRecoveryFormAction,
     getUrl,
-    isAzureSqlDb,
     loadAzureComponentHelper,
     setType,
 } from "./sharedDisasterRecoveryUtils";
@@ -59,6 +58,7 @@ import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
 
 export class RestoreDatabaseWebviewController extends ObjectManagementWebviewController<
     RestoreDatabaseFormState,
@@ -96,7 +96,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         let restoreViewModel = new RestoreDatabaseViewModel();
         this.updateViewModel(restoreViewModel);
 
-        if (isAzureSqlDb(this.profile.server)) {
+        const serverTypes = getServerTypes(this.profile);
+        if (serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql)) {
             restoreViewModel.loadState = ApiStatus.Error;
             restoreViewModel.errorMessage = LocConstants.RestoreDatabase.azureSqlDbNotSupported;
             this.updateViewModel(restoreViewModel);

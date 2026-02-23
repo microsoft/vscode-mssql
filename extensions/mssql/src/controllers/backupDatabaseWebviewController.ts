@@ -60,13 +60,13 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import {
     createSasKey,
     disasterRecoveryFormAction,
-    isAzureSqlDb,
     loadAzureComponentHelper,
     removeBackupFile,
     setType,
 } from "./sharedDisasterRecoveryUtils";
 import { ConnectionProfile } from "../models/connectionProfile";
 import ConnectionManager from "./connectionManager";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
 
 export class BackupDatabaseWebviewController extends ObjectManagementWebviewController<
     BackupDatabaseFormState,
@@ -108,7 +108,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
         backupModel.databaseName = this.databaseName;
 
-        if (isAzureSqlDb(this.profile.server)) {
+        const serverTypes = getServerTypes(this.profile);
+        if (serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql)) {
             backupModel.loadState = ApiStatus.Error;
             this.state.errorMessage = LocConstants.BackupDatabase.azureSqlDbNotSupported;
             this.updateViewModel(backupModel);

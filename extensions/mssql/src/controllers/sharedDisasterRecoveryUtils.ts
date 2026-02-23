@@ -468,10 +468,3 @@ export async function createSasKey(
 
     return state;
 }
-
-export function isAzureSqlDb(serverName: string): boolean {
-    const endpoint = getCloudProviderSettings().settings.sqlResource.endpoint.replace(https, "");
-
-    // remove trailing slash if it exists
-    return serverName.toLowerCase().endsWith(endpoint.substring(0, endpoint.lastIndexOf("/")));
-}
