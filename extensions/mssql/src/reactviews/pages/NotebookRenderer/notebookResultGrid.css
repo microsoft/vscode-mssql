@@ -306,3 +306,60 @@
 .nb-filter-clear-btn:hover {
     background-color: var(--vscode-button-secondaryHoverBackground, #45494e);
 }
+
+/* ── Context menu ──────────────────────────────────────────────────── */
+
+.nb-context-menu {
+    position: fixed;
+    z-index: 100000;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    background-color: var(--vscode-menu-background, var(--vscode-editorWidget-background, #252526));
+    border: 1px solid var(--vscode-menu-border, var(--vscode-editorWidget-border, #454545));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
+    color: var(--vscode-menu-foreground, var(--vscode-foreground, #ccc));
+    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: 13px;
+}
+
+.nb-context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 24px 4px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    gap: 16px;
+}
+
+.nb-context-menu-item:hover {
+    background-color: var(
+        --vscode-menu-selectionBackground,
+        var(--vscode-list-hoverBackground, #094771)
+    );
+    color: var(
+        --vscode-menu-selectionForeground,
+        var(--vscode-list-activeSelectionForeground, #fff)
+    );
+}
+
+.nb-context-menu-label {
+    flex: 1;
+}
+
+.nb-context-menu-shortcut {
+    flex-shrink: 0;
+    opacity: 0.7;
+    font-size: 12px;
+    margin-left: 24px;
+}
+
+.nb-context-menu-separator {
+    height: 1px;
+    margin: 4px 0;
+    background-color: var(
+        --vscode-menu-separatorBackground,
+        var(--vscode-editorWidget-border, #454545)
+    );
+}

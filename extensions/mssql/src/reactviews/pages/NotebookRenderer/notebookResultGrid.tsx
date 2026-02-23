@@ -8,6 +8,7 @@ import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
 import { NotebookCellSelectionModel } from "./notebookCellSelectionModel.plugin";
+import { NotebookContextMenu } from "./notebookContextMenu.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
 import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
 import type { IDbColumn, DbCellValue } from "../../../sharedInterfaces/queryResult";
@@ -211,6 +212,10 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
         });
         grid.setSelectionModel(selectionModel);
 
+        // Register context menu (right-click) with copy operations
+        const contextMenu = new NotebookContextMenu<Slick.SlickData>();
+        grid.registerPlugin(contextMenu);
+
         // Now set columns — this triggers header rendering with plugins active
         grid.setColumns(columns);
 
@@ -219,7 +224,7 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
             if ((e.ctrlKey || e.metaKey) && e.key === "c") {
                 const ranges = grid.getSelectionModel()?.getSelectedRanges();
                 if (!ranges || ranges.length === 0) {
-                    // If no selection model, copy active cell
+                    // If no selection, copy active cell
                     const activeCell = grid.getActiveCell();
                     if (activeCell) {
                         const item = tableDataView.getItem(activeCell.row);
