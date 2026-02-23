@@ -1234,6 +1234,15 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Cloud</source>
         <target state="translated">클라우드</target>
       </trans-unit>
+      <trans-unit id="++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975">
+        <source xml:lang="en">Code Analysis</source>
+        <target state="new">Code Analysis</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d09445114806a6fe8a7faaeca21eb7f879a1b94fa056c9c06abde171f5c36f5f">
+        <source xml:lang="en">Code Analysis - {0}</source>
+        <note>{0} is the name of the database project</note>
+        <target state="new">Code Analysis - {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
         <target state="translated">축소</target>
@@ -2466,6 +2475,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">서버 인증서 신뢰 활성화</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
+        <source xml:lang="en">Enable {0}</source>
+        <note>{0} is the rule identifier, e.g. SR0001</note>
+        <target state="new">Enable {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
         <source xml:lang="en">Enabled</source>
@@ -4381,6 +4395,10 @@ Error:
         <source xml:lang="en">Loading backup database...</source>
         <target state="translated">백업 데이터베이스를 로드하는 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++f42dc68b6c07746e76ce1891ba437df7a1d82524ba74c2ef4c9c770bfe5b787f">
+        <source xml:lang="en">Loading code analysis rules...</source>
+        <target state="new">Loading code analysis rules...</target>
+      </trans-unit>
       <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
         <source xml:lang="en">Loading database objects</source>
         <target state="translated">데이터베이스 개체 로드 중</target>
@@ -4949,6 +4967,10 @@ Error:
       <trans-unit id="++CODE++9b1d0a5f102cd0f86d612e1c6b0860d5e918d9bb28966b29acbf500dd9df5b70">
         <source xml:lang="en">No changes yet.</source>
         <target state="translated">아직 변경되지 않았습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38">
+        <source xml:lang="en">No code analysis rules available.</source>
+        <target state="new">No code analysis rules available.</target>
       </trans-unit>
       <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
         <source xml:lang="en">No connection credentials found</source>
@@ -6196,9 +6218,17 @@ Error:
         <source xml:lang="en">Rows per page</source>
         <target state="translated">페이지당 행</target>
       </trans-unit>
+      <trans-unit id="++CODE++62845f31a2fe00be3ebaaeb93f5b27af82ab81dfcbaa1871c76f596cd98cf3c9">
+        <source xml:lang="en">Rule</source>
+        <target state="new">Rule</target>
+      </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
         <target state="translated">규칙 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3">
+        <source xml:lang="en">Rules</source>
+        <target state="new">Rules</target>
       </trans-unit>
       <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
         <source xml:lang="en">Run Query</source>
@@ -6901,6 +6931,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
         <target state="translated">심각도</target>
+      </trans-unit>
+      <trans-unit id="++CODE++96a25dbc9f2e88758412917d948b79e1d95b419209b5bbd641b4b790474fa1b7">
+        <source xml:lang="en">Severity for {0}</source>
+        <note>{0} is the rule identifier, e.g. SR0001</note>
+        <target state="new">Severity for {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
         <source xml:lang="en">Show All</source>
@@ -8378,6 +8413,11 @@ Query: {2}</source>
         <source xml:lang="en">{0} rows selected, click to load summary</source>
         <note>{0} is the number of rows to fetch summary statistics for</note>
         <target state="translated">{0}개 행이 선택되었습니다. 요약을 보려면 클릭하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf927568d4b7bc9996db21639e81c140affb7858a0b68db0cfc6e502b022f98c">
+        <source xml:lang="en">{0} rules</source>
+        <note>{0} is the number of code analysis rules</note>
+        <target state="new">{0} rules</target>
       </trans-unit>
       <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
         <source xml:lang="en">{0} selected</source>
