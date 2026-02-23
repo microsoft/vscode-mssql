@@ -1885,6 +1885,10 @@
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
+    <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
+      <source xml:lang="en">Enable all rules in {0}</source>
+      <note>{0} is the category name, e.g. Design</note>
+    </trans-unit>
     <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
       <source xml:lang="en">Enable {0}</source>
       <note>{0} is the rule identifier, e.g. SR0001</note>
@@ -4630,6 +4634,9 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
+    <trans-unit id="++CODE++e240e635ff6dce4ff2ac0b90a84889cff420f2c9a56014543e78f366681820db">
+      <source xml:lang="en">Reset to defaults</source>
+    </trans-unit>
     <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
       <source xml:lang="en">Resize</source>
     </trans-unit>
@@ -5834,6 +5841,9 @@
     </trans-unit>
     <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
       <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++13ab4d13c1cf84a4c7d3beca87da01edab8fe96d2302f7d6a3572ee489d03cdd">
+      <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Continue?</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
