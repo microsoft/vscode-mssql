@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import {
     Button,
     Checkbox,
@@ -149,7 +149,6 @@ export const CodeAnalysisDialog = () => {
     const locConstants = LocConstants.getInstance();
     const loc = locConstants.codeAnalysis;
     const commonLoc = locConstants.common;
-    const schemaCompareLoc = locConstants.schemaCompare;
 
     const context = useContext(CodeAnalysisContext);
     const projectName = useCodeAnalysisSelector((s) => s.projectName);
@@ -165,16 +164,15 @@ export const CodeAnalysisDialog = () => {
     }, [rules]);
 
     // --- Grouping ---
-    const groupedRules = new Map<string, SqlCodeAnalysisRule[]>();
-    localRules.forEach((rule) => {
-        const category = rule.category;
-        const bucket = groupedRules.get(category) ?? [];
-        bucket.push(rule);
-        groupedRules.set(category, bucket);
-    });
-    const groupedRuleEntries = Array.from(groupedRules.entries()).sort(([a], [b]) =>
-        a.localeCompare(b),
-    );
+    const groupedRuleEntries = useMemo(() => {
+        const groupedRules = new Map<string, SqlCodeAnalysisRule[]>();
+        localRules.forEach((rule) => {
+            const bucket = groupedRules.get(rule.category) ?? [];
+            bucket.push(rule);
+            groupedRules.set(rule.category, bucket);
+        });
+        return Array.from(groupedRules.entries()).sort(([a], [b]) => a.localeCompare(b));
+    }, [localRules]);
 
     // --- Handlers ---
     const getCategoryCheckedState = (
@@ -288,6 +286,7 @@ export const CodeAnalysisDialog = () => {
                                                     }
                                                 />
                                                 <Checkbox
+                                                    aria-label={loc.enableCategory(category)}
                                                     checked={getCategoryCheckedState(categoryRules)}
                                                     onDoubleClick={(e) => e.stopPropagation()}
                                                     onChange={(_e, data) =>
@@ -310,6 +309,9 @@ export const CodeAnalysisDialog = () => {
                                                 <TableCell className={styles.tableCell}>
                                                     <div className={styles.childRuleContent}>
                                                         <Checkbox
+                                                            aria-label={loc.enableRule(
+                                                                rule.shortRuleId,
+                                                            )}
                                                             checked={rule.enabled}
                                                             onChange={(_e, data) =>
                                                                 toggleRule(
@@ -354,13 +356,16 @@ export const CodeAnalysisDialog = () => {
                 <Text className={styles.statusText}>{loc.rulesCount(localRules?.length ?? 0)}</Text>
                 <div className={styles.footerButtons}>
                     <Button appearance="subtle" disabled onClick={() => undefined}>
-                        {schemaCompareLoc.reset}
+                        {loc.reset}
                     </Button>
                     <Button appearance="secondary" onClick={() => context.close()}>
                         {commonLoc.cancel}
                     </Button>
-                    <Button appearance="primary" disabled onClick={() => undefined}>
+                    <Button appearance="secondary" disabled onClick={() => undefined}>
                         {commonLoc.apply}
+                    </Button>
+                    <Button appearance="primary" disabled onClick={() => undefined}>
+                        {commonLoc.ok}
                     </Button>
                 </div>
             </div>

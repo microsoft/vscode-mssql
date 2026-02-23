@@ -68,6 +68,7 @@ export class LocConstants {
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
+            ok: l10n.t("OK"),
         };
     }
 
@@ -218,12 +219,23 @@ export class LocConstants {
                     args: [ruleId],
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
+            enableCategory: (category: string) =>
+                l10n.t({
+                    message: "Enable all rules in {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
             severityForRule: (ruleId: string) =>
                 l10n.t({
                     message: "Severity for {0}",
                     args: [ruleId],
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
+            reset: l10n.t("Reset"),
+            resetConfirmationTitle: l10n.t("Reset to defaults"),
+            resetConfirmationMessage: l10n.t(
+                "This will reset all rules to their default severity. This cannot be undone. Continue?",
+            ),
         };
     }
 
