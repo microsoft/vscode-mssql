@@ -69,6 +69,7 @@ import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWe
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 import { PublishProjectWebViewController } from "../publishProject/publishProjectWebViewController";
+import { CodeAnalysisWebViewController } from "../codeAnalysis/codeAnalysisWebViewController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
@@ -564,6 +565,16 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdPublishDatabaseProject,
                     async (projectFilePath: string) => {
                         await this.onPublishDatabaseProject(projectFilePath);
+                    },
+                ),
+            );
+
+            // -- CODE ANALYSIS --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdConfigureCodeAnalysisSettings,
+                    async (projectFilePath: string) => {
+                        await this.onConfigureCodeAnalysisSettings(projectFilePath);
                     },
                 ),
             );
@@ -2873,6 +2884,22 @@ export default class MainController implements vscode.Disposable {
         );
 
         publishProjectWebView.revealToForeground();
+    }
+
+    /**
+     * Handler for the Open Code Analysis command.
+     * Accepts the project file path as an argument.
+     * This method launches the Code Analysis UI for the specified database project.
+     * @param projectFilePath The file path of the database project.
+     */
+    public async onConfigureCodeAnalysisSettings(projectFilePath: string): Promise<void> {
+        const codeAnalysisWebView = new CodeAnalysisWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            projectFilePath,
+        );
+
+        codeAnalysisWebView.revealToForeground();
     }
 
     /**
