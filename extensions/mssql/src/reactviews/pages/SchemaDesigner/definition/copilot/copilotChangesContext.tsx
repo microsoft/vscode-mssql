@@ -375,12 +375,6 @@ const getOperationCategory = (operation: CopilotOperation): CopilotEntityCategor
 const getChangeEntityId = (change: CopilotChange): string | undefined =>
     ((change.after ?? change.before) as { id?: string } | undefined)?.id;
 
-const getChangeSignature = (change: CopilotChange): string => {
-    const beforeId = (change.before as { id?: string } | undefined)?.id ?? "";
-    const afterId = (change.after as { id?: string } | undefined)?.id ?? "";
-    return `${change.operation}:${change.tableId ?? ""}:${beforeId}:${afterId}`;
-};
-
 const getGroupedIndexes = (changes: CopilotChange[], index: number): number[] => {
     if (index < 0 || index >= changes.length) {
         return [];
@@ -833,8 +827,7 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             }
 
             const currentSchema = schemaDesignerContext.extractSchema();
-            const indexes = getGroupedIndexes(trackedChanges, index);
-            const undoRequest = getUndoRequestForIndexes(trackedChanges, indexes, currentSchema);
+            const undoRequest = getUndoRequestForIndexes(trackedChanges, [index], currentSchema);
             return Boolean(undoRequest);
         },
         [schemaDesignerContext, trackedChanges],
@@ -847,16 +840,11 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             }
 
             const currentSchema = schemaDesignerContext.extractSchema();
-            const indexes = getGroupedIndexes(trackedChanges, index);
-            const undoRequest = getUndoRequestForIndexes(trackedChanges, indexes, currentSchema);
+            const undoRequest = getUndoRequestForIndexes(trackedChanges, [index], currentSchema);
             if (!undoRequest) {
                 return false;
             }
 
-            const groupSignatures = indexes.map((changeIndex) =>
-                getChangeSignature(trackedChanges[changeIndex]),
-            );
-            const groupId = trackedChanges[index]?.groupId;
             const response = await applyEdits(undoRequest, false);
             const appliedEdits =
                 response.appliedEdits ?? (response.success ? undoRequest.edits.length : 0);
@@ -865,24 +853,8 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
                 return false;
             }
 
-            if (groupId) {
-                setTrackedChanges((currentTrackedChanges) =>
-                    currentTrackedChanges.filter((change) => change.groupId !== groupId),
-                );
-                return true;
-            }
-
-            const pending = [...groupSignatures];
             setTrackedChanges((currentTrackedChanges) =>
-                currentTrackedChanges.filter((change) => {
-                    const signature = getChangeSignature(change);
-                    const pendingIndex = pending.indexOf(signature);
-                    if (pendingIndex === -1) {
-                        return true;
-                    }
-                    pending.splice(pendingIndex, 1);
-                    return false;
-                }),
+                currentTrackedChanges.filter((_, i) => i !== index),
             );
 
             return true;

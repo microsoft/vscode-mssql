@@ -710,6 +710,11 @@
 {1} is the connection ID
 {2} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++03e884ddf92692afa483662c376c0ddbe134c6b0e73c8506a40d7731d2f9fe3d">
+      <source xml:lang="en">Change {0} of {1}</source>
+      <note>{0} is the current change number
+{1} is the total number of changes</note>
+    </trans-unit>
     <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
       <source xml:lang="en">Changed Tables</source>
     </trans-unit>
@@ -1301,6 +1306,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
       <source xml:lang="en">Copilot Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++623971e6013bb7ca0de198ee8a596add57884bbf22821d9574acab573cd8ca7a">
+      <source xml:lang="en">Copilot Changes ({0})</source>
+      <note>{0} is the number of copilot changes</note>
     </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
@@ -4551,6 +4560,9 @@
     <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
       <source xml:lang="en">Refresh dataset</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
+      <source xml:lang="en">Reject</source>
+    </trans-unit>
     <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
       <source xml:lang="en">Reliability</source>
     </trans-unit>
@@ -4706,6 +4718,9 @@
     </trans-unit>
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
+      <source xml:lang="en">Reviewing Copilot Change</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -5257,9 +5272,8 @@
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
     </trans-unit>
-    <trans-unit id="++CODE++dcbf82a20d3f8aa6064bc6fb7d8fdbca30e2444075d3055ccf3346f8be51dc26">
-      <source xml:lang="en">Show Changes ({0})</source>
-      <note>{0} is the number of schema changes</note>
+    <trans-unit id="++CODE++edd969c69f64aff645b3027bab51746e3b4b8bbafdc573981df42125e9e85dbe">
+      <source xml:lang="en">Show Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
       <source xml:lang="en">Show Confirm Password</source>
