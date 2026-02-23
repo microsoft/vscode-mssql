@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as Contracts from "../models/contracts";
-import { ICredentialStore } from "./icredentialstore";
+import { ICredentialStore, StoredCredential } from "./icredentialstore";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
@@ -30,7 +29,7 @@ export class CredentialStore implements ICredentialStore {
      * @param credentialId the ID uniquely identifying this credential
      * @returns Promise that resolved to the credential, or undefined if not found
      */
-    public async readCredential(credentialId: string): Promise<Contracts.Credential> {
+    public async readCredential(credentialId: string): Promise<StoredCredential> {
         const vscodeCodeCred = await this._secretStorage.get(credentialId);
         if (vscodeCodeCred === undefined) {
             this._logger.info(
@@ -43,16 +42,13 @@ export class CredentialStore implements ICredentialStore {
             `Retrieved credential for id ${credentialId} from VS Code Secret Storage.`,
         );
 
-        let cred: Contracts.Credential = new Contracts.Credential();
-        cred.credentialId = credentialId;
-        cred.password = vscodeCodeCred;
-        return cred;
+        return {
+            credentialId,
+            password: vscodeCodeCred,
+        };
     }
 
-    public async saveCredential(credentialId: string, password: any): Promise<boolean> {
-        let cred: Contracts.Credential = new Contracts.Credential();
-        cred.credentialId = credentialId;
-        cred.password = password;
+    public async saveCredential(credentialId: string, password: string): Promise<boolean> {
         await this._secretStorage.store(credentialId, password);
         return true;
     }

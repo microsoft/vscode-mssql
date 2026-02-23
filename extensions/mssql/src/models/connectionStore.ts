@@ -8,7 +8,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as ConnInfo from "./connectionInfo";
 import * as Utils from "./utils";
-import * as Contracts from "./contracts";
 import ValidationException from "../utils/validationException";
 import { ConnectionCredentials } from "./connectionCredentials";
 import {
@@ -19,7 +18,7 @@ import {
     IConnectionProfileWithSource,
     IConnectionGroup,
 } from "./interfaces";
-import { ICredentialStore } from "../credentialstore/icredentialstore";
+import { ICredentialStore, StoredCredential } from "../credentialstore/icredentialstore";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
@@ -148,7 +147,6 @@ export class ConnectionStore {
     /**
      * Creates a formatted credential usable for uniquely identifying a SQL Connection.
      * This string can be decoded but is not optimized for this.
-     * @deprecated Use formatCredentialIdForCred instead.
      * @param server name of the server - required
      * @param database name of the database - optional
      * @param user name of the user - optional
@@ -271,7 +269,7 @@ export class ConnectionStore {
         isConnectionString: boolean = false,
     ): Promise<string> {
         const profile = connectionCredentials as IConnectionProfile;
-        let savedCredential: Contracts.Credential;
+        let savedCredential: StoredCredential;
 
         // Generate credential ID using profile's id (new format)
         const credentialId = ConnectionStore.formatCredentialIdForCred(
