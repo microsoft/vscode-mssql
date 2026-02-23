@@ -8,6 +8,7 @@ import {
     Button,
     Checkbox,
     Dropdown,
+    Option,
     Spinner,
     Table,
     TableBody,
@@ -18,7 +19,6 @@ import {
     Text,
     makeStyles,
     tokens,
-    Option,
 } from "@fluentui/react-components";
 import { CodeAnalysisContext } from "./codeAnalysisStateProvider";
 import { useCodeAnalysisSelector } from "./codeAnalysisSelector";
@@ -29,9 +29,10 @@ import { DialogHeader } from "../../common/dialogHeader.component";
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
 
-const codeAnalysisSeverityOptions = Object.values(CodeAnalysisRuleSeverity);
+const SEVERITY_OPTIONS = Object.values(CodeAnalysisRuleSeverity);
 
 const useStyles = makeStyles({
+    // --- Layout ---
     root: {
         display: "flex",
         flexDirection: "column",
@@ -47,6 +48,8 @@ const useStyles = makeStyles({
         minHeight: 0,
         overflow: "auto",
     },
+
+    // --- Table ---
     table: {
         width: "100%",
         borderCollapse: "collapse",
@@ -55,21 +58,20 @@ const useStyles = makeStyles({
     tableHeaderCell: {
         textAlign: "left",
         fontWeight: tokens.fontWeightSemibold,
-        padding: "8px",
+        padding: "3px 8px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         backgroundColor: tokens.colorNeutralBackground3,
     },
-    checkboxCell: {
-        width: "44px",
-    },
     severityCell: {
-        width: "180px",
+        width: "30%",
     },
     tableCell: {
-        padding: "8px",
+        padding: "2px 8px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         fontSize: tokens.fontSizeBase200,
     },
+
+    // --- States ---
     spinnerContainer: {
         display: "flex",
         justifyContent: "center",
@@ -81,6 +83,8 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
     },
+
+    // --- Footer ---
     footer: {
         display: "flex",
         flexDirection: "row",
@@ -103,41 +107,31 @@ const useStyles = makeStyles({
     },
 });
 
-function CodeAnalysisDialog() {
+export const CodeAnalysisDialog = () => {
     const styles = useStyles();
     const locConstants = LocConstants.getInstance();
     const loc = locConstants.codeAnalysis;
     const commonLoc = locConstants.common;
     const schemaCompareLoc = locConstants.schemaCompare;
-    const tableDesignerLoc = locConstants.tableDesigner;
-    const context = useContext(CodeAnalysisContext);
-    const headerColumns = [
-        // Column: rule enabled state
-        {
-            key: "enabledRule",
-            label: loc.enabled,
-            className: `${styles.tableHeaderCell} ${styles.checkboxCell}`,
-        },
-        // Column: rule identifier and display name
-        { key: "rule", label: loc.rule, className: styles.tableHeaderCell },
-        // Column: configured rule severity
-        {
-            key: "severity",
-            label: tableDesignerLoc.severity,
-            className: `${styles.tableHeaderCell} ${styles.severityCell}`,
-        },
-    ];
 
+    const context = useContext(CodeAnalysisContext);
     const projectName = useCodeAnalysisSelector((s) => s.projectName);
     const isLoading = useCodeAnalysisSelector((s) => s.isLoading);
     const rules = useCodeAnalysisSelector((s) => s.rules);
+
+    const loadingSpinner = (
+        <div className={styles.spinnerContainer}>
+            <Spinner label={loc.loadingCodeAnalysisRules} />
+        </div>
+    );
+
     if (!context) {
-        return <div>Loading...</div>;
+        return loadingSpinner;
     }
 
     return (
         <div className={styles.root}>
-            {/* Header */}
+            {/* Dialog Header */}
             <DialogHeader
                 iconLight={codeAnalysisIconLight}
                 iconDark={codeAnalysisIconDark}
@@ -148,45 +142,46 @@ function CodeAnalysisDialog() {
             {/* Rules table */}
             <div className={styles.rulesContainer}>
                 {isLoading ? (
-                    <div className={styles.spinnerContainer}>
-                        <Spinner label={loc.loadingCodeAnalysisRules} />
-                    </div>
+                    loadingSpinner
                 ) : rules.length === 0 ? (
                     <div className={styles.emptyState}>{loc.noCodeAnalysisRulesAvailable}</div>
                 ) : (
                     <Table className={styles.table}>
+                        <colgroup>
+                            <col />
+                            <col className={styles.severityCell} />
+                        </colgroup>
                         <TableHeader>
                             <TableRow>
-                                {headerColumns.map((column) => (
-                                    <TableHeaderCell key={column.key} className={column.className}>
-                                        {column.label}
-                                    </TableHeaderCell>
-                                ))}
+                                <TableHeaderCell className={styles.tableHeaderCell}>
+                                    {loc.rules}
+                                </TableHeaderCell>
+                                <TableHeaderCell
+                                    className={`${styles.tableHeaderCell} ${styles.severityCell}`}>
+                                    {loc.severity}
+                                </TableHeaderCell>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {rules.map((rule) => (
                                 <TableRow key={rule.ruleId}>
-                                    {/* Cell: Whether the current rule is enabled */}
                                     <TableCell className={styles.tableCell}>
                                         <Checkbox
                                             checked={rule.enabled}
-                                            disabled
                                             aria-label={loc.enableRule(rule.shortRuleId)}
+                                            disabled
                                         />
+                                        <Text>
+                                            {rule.shortRuleId}: {rule.displayName}
+                                        </Text>
                                     </TableCell>
-                                    {/* Cell: Rule */}
-                                    <TableCell className={styles.tableCell}>
-                                        {rule.shortRuleId}: {rule.displayName}
-                                    </TableCell>
-                                    {/* Cell: Configured severity for the current rule */}
                                     <TableCell className={styles.tableCell}>
                                         <Dropdown
-                                            value={
-                                                rule.severity || CodeAnalysisRuleSeverity.Warning
-                                            }
-                                            aria-label={loc.severityForRule(rule.shortRuleId)}>
-                                            {codeAnalysisSeverityOptions.map((severity) => (
+                                            value={rule.severity}
+                                            selectedOptions={[rule.severity]}
+                                            aria-label={loc.severityForRule(rule.shortRuleId)}
+                                            disabled>
+                                            {SEVERITY_OPTIONS.map((severity) => (
                                                 <Option key={severity} value={severity}>
                                                     {severity}
                                                 </Option>
@@ -217,7 +212,7 @@ function CodeAnalysisDialog() {
             </div>
         </div>
     );
-}
+};
 
 export default function CodeAnalysisPage() {
     return <CodeAnalysisDialog />;

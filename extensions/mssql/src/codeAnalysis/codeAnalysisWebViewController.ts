@@ -14,7 +14,7 @@ import {
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
-import { RuleSeverity } from "../enums";
+import { CodeAnalysisRuleSeverity } from "../enums";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
@@ -99,7 +99,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     ruleId: "Microsoft.Rules.Data.SR0001",
                     shortRuleId: "SR0001",
                     displayName: "Avoid SELECT *",
-                    severity: RuleSeverity.Warning,
+                    severity: CodeAnalysisRuleSeverity.Warning,
                     enabled: true,
                 },
             ];

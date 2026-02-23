@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const CodeAnalysisRuleSeverity = {
-    Error: "Error",
-    Warning: "Warning",
-    Disabled: "Disabled",
-} as const;
+import { CodeAnalysisRuleSeverity } from "../enums";
+
+export { CodeAnalysisRuleSeverity };
 
 /**
  * Represents a SQL code analysis rule

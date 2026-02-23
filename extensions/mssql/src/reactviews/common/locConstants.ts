@@ -212,6 +212,8 @@ export class LocConstants {
                 }),
             enabled: l10n.t("Enabled"),
             rule: l10n.t("Rule"),
+            rules: l10n.t("Rules"),
+            severity: l10n.t("Severity"),
             enableRule: (ruleId: string) =>
                 l10n.t({
                     message: "Enable {0}",
