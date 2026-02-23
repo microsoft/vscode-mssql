@@ -1180,6 +1180,39 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+            toggleAllEntitiesInSchema: (schemaName: string) =>
+                l10n.t({
+                    message: "Toggle all entities in {0}",
+                    args: [schemaName],
+                    comment: ["{0} is the schema name"],
+                }),
+            enableEntity: (entityName: string) =>
+                l10n.t({
+                    message: "Enable {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            actionForEntity: (action: string, entityName: string) =>
+                l10n.t({
+                    message: "{0} action for {1}",
+                    args: [action, entityName],
+                    comment: [
+                        "{0} is the action name (Create, Read, etc.)",
+                        "{1} is the entity name",
+                    ],
+                }),
+            settingsForEntity: (entityName: string) =>
+                l10n.t({
+                    message: "Settings for {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            selectAllAction: (action: string) =>
+                l10n.t({
+                    message: "Select all {0}",
+                    args: [action],
+                    comment: ["{0} is the action name (Create, Read, etc.)"],
+                }),
 
             // DAB Deployment Dialog
             deployDabContainer: l10n.t("Deploy DAB Container"),

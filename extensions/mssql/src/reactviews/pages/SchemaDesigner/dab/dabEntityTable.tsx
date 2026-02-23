@@ -235,6 +235,7 @@ export const DabEntityTable = () => {
                 <Checkbox
                     checked={allHave ? true : noneHave ? false : "mixed"}
                     label={actionLabels[action]}
+                    aria-label={locConstants.schemaDesigner.selectAllAction(actionLabels[action])}
                     onChange={(_, data) => {
                         const enable = data.checked === true || data.checked === "mixed";
                         for (const entity of enabledEntities) {
@@ -253,13 +254,17 @@ export const DabEntityTable = () => {
                 <Checkbox
                     checked={entity.enabledActions.includes(action)}
                     disabled={!entity.isEnabled}
+                    aria-label={locConstants.schemaDesigner.actionForEntity(
+                        actionLabels[action],
+                        entity.advancedSettings.entityName,
+                    )}
                     onChange={(_, data) =>
                         toggleDabEntityAction(entity.id, action, data.checked === true)
                     }
                 />
             );
         },
-        [toggleDabEntityAction],
+        [actionLabels, toggleDabEntityAction],
     );
 
     const renderSchemaRow = useCallback(
@@ -284,6 +289,9 @@ export const DabEntityTable = () => {
                                 {isCollapsed ? <ChevronRight16Regular /> : <ChevronDown16Regular />}
                                 <Checkbox
                                     checked={allChecked ? true : noneChecked ? false : "mixed"}
+                                    aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
+                                        schemaName,
+                                    )}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={(_, data) => {
                                         const enable =
@@ -320,6 +328,9 @@ export const DabEntityTable = () => {
                         <div className={classes.entityCheckboxCell}>
                             <Checkbox
                                 checked={item.entity.isEnabled}
+                                aria-label={locConstants.schemaDesigner.enableEntity(
+                                    item.entity.advancedSettings.entityName,
+                                )}
                                 onChange={(_, data) =>
                                     toggleDabEntity(item.entity.id, data.checked === true)
                                 }
@@ -396,7 +407,12 @@ export const DabEntityTable = () => {
                             className={classes.settingsButton}
                             disabled={!item.entity.isEnabled}
                             onClick={() => setSettingsEntityId(item.entity.id)}
-                            title={locConstants.schemaCompare.settings}
+                            title={locConstants.schemaDesigner.settingsForEntity(
+                                item.entity.advancedSettings.entityName,
+                            )}
+                            aria-label={locConstants.schemaDesigner.settingsForEntity(
+                                item.entity.advancedSettings.entityName,
+                            )}
                         />
                     );
                 },
@@ -428,7 +444,7 @@ export const DabEntityTable = () => {
                 columns={columns}
                 columnSizingOptions={columnSizingOptions}
                 resizableColumns
-                focusMode="none"
+                focusMode="composite"
                 size="small"
                 getRowId={(item) =>
                     item.type === "schema" ? `schema-${item.schemaName}` : item.entity.id
