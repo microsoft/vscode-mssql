@@ -764,6 +764,7 @@
         "message": "{0} change(s)",
         "comment": ["{0} is the number of changes"]
     },
+    "Accept": "Accept",
     "Data API Builder Configuration": "Data API Builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
@@ -1516,7 +1517,6 @@
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
-    "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
     "Drop Database": "Drop Database",
