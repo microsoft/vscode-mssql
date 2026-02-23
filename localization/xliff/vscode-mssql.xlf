@@ -1885,6 +1885,10 @@
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
+      <source xml:lang="en">Enable {0}</source>
+      <note>{0} is the rule identifier, e.g. SR0001</note>
+    </trans-unit>
     <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
       <source xml:lang="en">Enabled</source>
     </trans-unit>
@@ -5266,6 +5270,10 @@
     </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
+    </trans-unit>
+    <trans-unit id="++CODE++96a25dbc9f2e88758412917d948b79e1d95b419209b5bbd641b4b790474fa1b7">
+      <source xml:lang="en">Severity for {0}</source>
+      <note>{0} is the rule identifier, e.g. SR0001</note>
     </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
