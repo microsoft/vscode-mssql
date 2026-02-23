@@ -614,6 +614,14 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Azure MFA</source>
         <target state="translated">Azure MFA</target>
       </trans-unit>
+      <trans-unit id="++CODE++ba5528fbaf5a47fa7cb9ab8214c97d40ed77a42a1258edd947bff8447eb8dabf">
+        <source xml:lang="en">Azure SQL Database is not supported for backup.</source>
+        <target state="new">Azure SQL Database is not supported for backup.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
+        <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
+        <target state="new">Azure SQL Database is not supported for restore.</target>
+      </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Error al iniciar sesión en Azure.</target>
