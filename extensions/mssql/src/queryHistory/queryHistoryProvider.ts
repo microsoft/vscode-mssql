@@ -59,6 +59,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
             tooltip,
             queryString,
             ownerUri,
+            this._connectionManager.getConnectionInfo(ownerUri)?.credentials,
             timeStamp,
             connectionLabel,
             !hasError,
@@ -144,13 +145,27 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         node: QueryHistoryNode,
         isExecute: boolean = false,
     ): Promise<void> {
-        const credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
+        const credentials = node.credentials;
+
+        /**
+         * Making sure we prepare the connection info with password and refreshed token
+         * before we attempt to connect with the credentials.
+         */
+        if (credentials) {
+            await this._connectionManager.prepareConnectionInfo(credentials);
+        }
+
+        const connectionStrategy = credentials
+            ? ConnectionStrategy.CopyConnectionFromInfo
+            : ConnectionStrategy.DoNotConnect;
+
         const editor = await this._sqlDocumentService.newQuery({
             content: node.queryString,
-            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+            connectionStrategy: connectionStrategy,
             connectionInfo: credentials,
         });
-        if (isExecute) {
+
+        if (isExecute && credentials) {
             const uri = getUriKey(editor.document.uri);
             const title = path.basename(editor.document.fileName);
             const queryPromise = new Deferred<boolean>();
@@ -163,8 +178,6 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
                 queryPromise,
             );
             await queryPromise;
-        }
-        if (isExecute) {
             await this._connectionManager.connectionStore.removeRecentlyUsed(
                 credentials as IConnectionProfile,
             );
