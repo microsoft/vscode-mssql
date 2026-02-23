@@ -43,16 +43,19 @@
     color: var(--vscode-mssql-resultsGridNullForeground, inherit);
 }
 
-.notebook-result-grid-container .slick-cell.active {
+.notebook-result-grid-container .slick-cell.selected {
     background-color: var(--vscode-list-activeSelectionBackground, #094771);
     color: var(--vscode-list-activeSelectionForeground, #fff);
 }
 
-.notebook-result-grid-container .slick-cell.selected {
-    background-color: var(--vscode-list-inactiveSelectionBackground, #37373d);
+.notebook-result-grid-container .slick-cell.selected.active {
+    background-color: var(--vscode-list-activeSelectionBackground, #094771);
+    color: var(--vscode-list-activeSelectionForeground, #fff);
+    outline: 1px solid var(--vscode-contrastActiveBorder, transparent);
+    outline-offset: -1px;
 }
 
-.notebook-result-grid-container .slick-row:hover .slick-cell {
+.notebook-result-grid-container .slick-row:hover .slick-cell:not(.selected):not(.active) {
     background-color: var(--vscode-list-hoverBackground, transparent);
 }
 
