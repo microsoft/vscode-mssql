@@ -66,6 +66,7 @@ import {
 } from "./sharedDisasterRecoveryUtils";
 import { ConnectionProfile } from "../models/connectionProfile";
 import ConnectionManager from "./connectionManager";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
 
 export class BackupDatabaseWebviewController extends ObjectManagementWebviewController<
     BackupDatabaseFormState,
@@ -106,6 +107,14 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.updateViewModel(backupModel);
 
         backupModel.databaseName = this.databaseName;
+
+        const serverTypes = getServerTypes(this.profile);
+        if (serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql)) {
+            backupModel.loadState = ApiStatus.Error;
+            this.state.errorMessage = LocConstants.BackupDatabase.azureSqlDbNotSupported;
+            this.updateViewModel(backupModel);
+            return;
+        }
 
         try {
             this.state.ownerUri = await this.createBackupConnectionContext(

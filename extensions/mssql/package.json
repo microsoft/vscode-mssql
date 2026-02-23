@@ -608,6 +608,11 @@
                     "group": "2_MSSQL_serverDbActions@7"
                 },
                 {
+                    "command": "mssql.createDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
+                    "group": "2_MSSQL_serverDbActions@8"
+                },
+                {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
                     "group": "2_MSSQL_serverDbActions@8"

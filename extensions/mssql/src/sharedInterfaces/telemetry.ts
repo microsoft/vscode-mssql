@@ -240,6 +240,9 @@ export enum TelemetryActions {
     GetRestorePlan = "GetRestorePlan",
     ScriptRestore = "ScriptRestore",
     GetRestoreParams = "GetRestoreParams",
+    CodeAnalysisDialogOpened = "CodeAnalysisDialogOpened",
+    CodeAnalysisRulesLoaded = "CodeAnalysisRulesLoaded",
+    CodeAnalysisRulesLoadError = "CodeAnalysisRulesLoadError",
     // SQL Notebooks
     CreateNotebook = "CreateNotebook",
     ExecuteCell = "ExecuteCell",

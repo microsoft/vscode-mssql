@@ -137,6 +137,9 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
     });
 }
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
+export let msgConnectionInProgress = l10n.t(
+    "A connection is already being established. Please wait for it to complete before running a query.",
+);
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
     'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.',
@@ -1578,6 +1581,10 @@ export class PublishProject {
     );
 }
 
+export class CodeAnalysis {
+    public static Title = l10n.t("Code Analysis");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
@@ -2768,13 +2775,31 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
-    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationTitle = l10n.t(
+        "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    );
     public static adsMigrationDescription = l10n.t(
-        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+        "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
     public static editDataTitle = l10n.t("Edit Data (Preview)");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchDescription = l10n.t(
+        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    );
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreDescription = l10n.t(
+        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    );
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementDescription = l10n.t(
+        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    );
+    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerDescription = l10n.t(
+        "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
@@ -2782,7 +2807,7 @@ export class Changelog {
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
     public static sqlProjPublishDescription = l10n.t(
         "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
@@ -2884,10 +2909,12 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t("New Profiler Session - Select Template");
+    public static newSessionSelectTemplate = l10n.t(
+        "New Query Profiler (Preview) - Select Template",
+    );
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Profiler Session - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",
@@ -2941,17 +2968,17 @@ export class Profiler {
         });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Profiler (Preview): No session");
-    public static statusBarTooltip = l10n.t("Profiler (Preview) Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
+    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
 
     // Panel titles
     public static panelTitleWithSession = (name: string) =>
         l10n.t({
-            message: "Profiler (Preview): {0}",
+            message: "Query Profiler (Preview): {0}",
             args: [name],
             comment: ["{0} is the file name or session name"],
         });
-    public static panelTitleDefault = l10n.t("Profiler (Preview)");
+    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
@@ -3125,6 +3152,9 @@ export class BackupDatabase {
             comment: ["{0} is the database name"],
         });
     };
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for backup.",
+    );
 }
 
 export class FlatFileImport {
@@ -3218,5 +3248,9 @@ export class RestoreDatabase {
     );
     public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
         "Please choose at least one backup set to restore",
+    );
+    public static noDatabasesWithBackups = l10n.t("No databases with backups found");
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for restore.",
     );
 }

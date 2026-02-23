@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ToolbarButton, Tooltip } from "@fluentui/react-components";
+import { Button, Tooltip } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -18,13 +18,15 @@ export function AddTableButton() {
 
     return (
         <Tooltip content={locConstants.schemaDesigner.addTable} relationship="label">
-            <ToolbarButton
+            <Button
                 appearance="subtle"
-                icon={<FluentIcons.TableAdd20Regular />}
+                size="small"
+                icon={<FluentIcons.TableAdd16Regular />}
                 onClick={() => {
                     eventBus.emit("newTable", context.extractSchema());
-                }}
-            />
+                }}>
+                {locConstants.schemaDesigner.addTable}
+            </Button>
         </Tooltip>
     );
 }

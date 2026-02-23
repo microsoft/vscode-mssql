@@ -16,7 +16,6 @@ import {
     makeStyles,
     MessageBar,
     Spinner,
-    ToolbarButton,
     Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -90,9 +89,10 @@ export function PublishChangesDialogButton() {
     const triggerButton = () => {
         return (
             <Tooltip content={locConstants.schemaDesigner.publishChanges} relationship="label">
-                <ToolbarButton
+                <Button
                     appearance="primary"
-                    icon={<FluentIcons.Save20Regular />}
+                    size="small"
+                    icon={<FluentIcons.Save16Regular />}
                     disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
                         setState({
@@ -131,7 +131,7 @@ export function PublishChangesDialogButton() {
                         setPublishButtonDisabled(false);
                     }}>
                     {locConstants.schemaDesigner.publishChanges}
-                </ToolbarButton>
+                </Button>
             </Tooltip>
         );
     };

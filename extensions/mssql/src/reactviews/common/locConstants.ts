@@ -56,6 +56,7 @@ export class LocConstants {
             refresh: l10n.t("Refresh"),
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
+            save: l10n.t("Save"),
             dismiss: l10n.t("Dismiss"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
@@ -190,6 +191,41 @@ export class LocConstants {
             publish: l10n.t("Publish"),
             openPublishScript: l10n.t("Open Publish Script"),
             confirmationText: l10n.t("I have read the summary and understand the potential risks."),
+        };
+    }
+
+    public get codeAnalysis() {
+        return {
+            codeAnalysisTitle: (projectName: string) =>
+                l10n.t({
+                    message: "Code Analysis - {0}",
+                    args: [projectName],
+                    comment: ["{0} is the name of the database project"],
+                }),
+            loadingCodeAnalysisRules: l10n.t("Loading code analysis rules..."),
+            noCodeAnalysisRulesAvailable: l10n.t("No code analysis rules available."),
+            rulesCount: (ruleCount: number) =>
+                l10n.t({
+                    message: "{0} rules",
+                    args: [ruleCount],
+                    comment: ["{0} is the number of code analysis rules"],
+                }),
+            enabled: l10n.t("Enabled"),
+            rule: l10n.t("Rule"),
+            rules: l10n.t("Rules"),
+            severity: l10n.t("Severity"),
+            enableRule: (ruleId: string) =>
+                l10n.t({
+                    message: "Enable {0}",
+                    args: [ruleId],
+                    comment: ["{0} is the rule identifier, e.g. SR0001"],
+                }),
+            severityForRule: (ruleId: string) =>
+                l10n.t({
+                    message: "Severity for {0}",
+                    args: [ruleId],
+                    comment: ["{0} is the rule identifier, e.g. SR0001"],
+                }),
         };
     }
 
@@ -2129,8 +2165,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler (Preview): No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",
