@@ -11,7 +11,7 @@ import {
     useSchemaDesignerDefinitionPanelContext,
 } from "./schemaDesignerDefinitionPanelContext";
 import { useSchemaDesignerChangesCustomTab } from "./changes/schemaDesignerChangesTab";
-import { useSchemaDesignerCopilotChangesCustomTab } from "./aiChanges/schemaDesignerCopilotChangesTab";
+import { useSchemaDesignerCopilotChangesCustomTab } from "./copilot/schemaDesignerCopilotChangesTab";
 import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
