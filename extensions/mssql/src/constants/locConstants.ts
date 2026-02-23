@@ -1478,6 +1478,10 @@ export class PublishProject {
     );
 }
 
+export class CodeAnalysis {
+    public static Title = l10n.t("Code Analysis");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");

@@ -107,6 +107,7 @@
     "Refresh": "Refresh",
     "Show password": "Show password",
     "Hide password": "Hide password",
+    "Save": "Save",
     "Dismiss": "Dismiss",
     "Error": "Error",
     "Get Started": "Get Started",
@@ -192,6 +193,27 @@
     "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
     "Publish Changes": "Publish Changes",
     "Open Publish Script": "Open Publish Script",
+    "Code Analysis - {0}/{0} is the name of the database project": {
+        "message": "Code Analysis - {0}",
+        "comment": ["{0} is the name of the database project"]
+    },
+    "Loading code analysis rules...": "Loading code analysis rules...",
+    "No code analysis rules available.": "No code analysis rules available.",
+    "{0} rules/{0} is the number of code analysis rules": {
+        "message": "{0} rules",
+        "comment": ["{0} is the number of code analysis rules"]
+    },
+    "Enabled": "Enabled",
+    "Rule": "Rule",
+    "Rules": "Rules",
+    "Enable {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Severity for {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Severity for {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -489,7 +511,6 @@
     },
     "Add new column": "Add new column",
     "Table": "Table",
-    "Save": "Save",
     "Add": "Add",
     "Add new foreign key": "Add new foreign key",
     "Foreign Key {0}/{0} is the index of the foreign key": {
@@ -1502,7 +1523,6 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
-    "Enabled": "Enabled",
     "Disabled": "Disabled",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
@@ -2282,6 +2302,7 @@
     "Failed to get connection string: {0}": "Failed to get connection string: {0}",
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
+    "Code Analysis": "Code Analysis",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
