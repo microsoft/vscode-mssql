@@ -60,6 +60,7 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import {
     createSasKey,
     disasterRecoveryFormAction,
+    isAzureSqlDb,
     loadAzureComponentHelper,
     removeBackupFile,
     setType,
@@ -106,6 +107,13 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.updateViewModel(backupModel);
 
         backupModel.databaseName = this.databaseName;
+
+        if (isAzureSqlDb(this.profile.server)) {
+            backupModel.loadState = ApiStatus.Error;
+            this.state.errorMessage = LocConstants.BackupDatabase.azureSqlDbNotSupported;
+            this.updateViewModel(backupModel);
+            return;
+        }
 
         try {
             this.state.ownerUri = await this.createBackupConnectionContext(

@@ -3049,6 +3049,9 @@ export class BackupDatabase {
             comment: ["{0} is the database name"],
         });
     };
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for backup.",
+    );
 }
 
 export class FlatFileImport {
@@ -3144,4 +3147,7 @@ export class RestoreDatabase {
         "Please choose at least one backup set to restore",
     );
     public static noDatabasesWithBackups = l10n.t("No databases with backups found");
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for restore.",
+    );
 }

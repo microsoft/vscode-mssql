@@ -43,6 +43,7 @@ import {
     createSasKey,
     disasterRecoveryFormAction,
     getUrl,
+    isAzureSqlDb,
     loadAzureComponentHelper,
     setType,
 } from "./sharedDisasterRecoveryUtils";
@@ -94,6 +95,13 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
     protected async initializeDialog(): Promise<void> {
         let restoreViewModel = new RestoreDatabaseViewModel();
         this.updateViewModel(restoreViewModel);
+
+        if (isAzureSqlDb(this.profile.server)) {
+            restoreViewModel.loadState = ApiStatus.Error;
+            restoreViewModel.errorMessage = LocConstants.RestoreDatabase.azureSqlDbNotSupported;
+            this.updateViewModel(restoreViewModel);
+            return;
+        }
 
         // Default restore type
         restoreViewModel.type = DisasterRecoveryType.Database;
