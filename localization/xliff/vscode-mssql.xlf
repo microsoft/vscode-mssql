@@ -1878,6 +1878,10 @@
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
+    <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
+      <source xml:lang="en">Enable {0}</source>
+      <note>{0} is the entity name</note>
+    </trans-unit>
     <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
       <source xml:lang="en">Enabled</source>
     </trans-unit>
@@ -5118,6 +5122,10 @@
     <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
       <source xml:lang="en">Select all options</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f6908b78d6f2f27272b632f69f324d590acb726493fe644e79cf8d0b01e9f43">
+      <source xml:lang="en">Select all {0}</source>
+      <note>{0} is the action name (Create, Read, etc.)</note>
+    </trans-unit>
     <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
       <source xml:lang="en">Select an account</source>
     </trans-unit>
@@ -5253,6 +5261,10 @@
     </trans-unit>
     <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
       <source xml:lang="en">Settings and Keybindings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b">
+      <source xml:lang="en">Settings for {0}</source>
+      <note>{0} is the entity name</note>
     </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
@@ -5829,6 +5841,10 @@
     <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
       <source xml:lang="en">Toggle Tooltips</source>
     </trans-unit>
+    <trans-unit id="++CODE++782e08de4b6ec5793be8ace39d20ee91bd05ddc327a36e3d736299c6267f75d4">
+      <source xml:lang="en">Toggle all entities in {0}</source>
+      <note>{0} is the schema name</note>
+    </trans-unit>
     <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
       <source xml:lang="en">Toggle dark mode</source>
     </trans-unit>
@@ -6276,6 +6292,11 @@
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
       <note>{0} is the number of accounts</note>
+    </trans-unit>
+    <trans-unit id="++CODE++87b761377cb8a3bdfa0eac508b5e6ac720c61d1410a1e7fef3f93165df3ddd2e">
+      <source xml:lang="en">{0} action for {1}</source>
+      <note>{0} is the action name (Create, Read, etc.)
+{1} is the entity name</note>
     </trans-unit>
     <trans-unit id="++CODE++4f044358b3c661463f0d081556f19d4015b61fa2a493069920dcddeca01a410c">
       <source xml:lang="en">{0} change(s)</source>

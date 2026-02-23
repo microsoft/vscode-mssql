@@ -800,6 +800,26 @@
     "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
+    "Toggle all entities in {0}/{0} is the schema name": {
+        "message": "Toggle all entities in {0}",
+        "comment": ["{0} is the schema name"]
+    },
+    "Enable {0}/{0} is the entity name": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
+        "message": "{0} action for {1}",
+        "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
+    },
+    "Settings for {0}/{0} is the entity name": {
+        "message": "Settings for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Select all {0}/{0} is the action name (Create, Read, etc.)": {
+        "message": "Select all {0}",
+        "comment": ["{0} is the action name (Create, Read, etc.)"]
+    },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
     "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.": "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
