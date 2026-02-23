@@ -12,22 +12,13 @@ import { WebviewRpc } from "../../common/rpc";
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
-import {
-    registerSchemaDesignerApplyEditsHandler,
-    registerSchemaDesignerGetSchemaStateHandler,
-} from "./schemaDesignerRpcHandlers";
+import { registerSchemaDesignerGetSchemaStateHandler } from "./schemaDesignerRpcHandlers";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import { filterDeletedEdges, filterDeletedNodes } from "./diff/deletedVisualUtils";
 import {
     applyColumnRenamesToIncomingForeignKeyEdges,
     buildForeignKeyEdgeId,
 } from "./schemaDesignerEdgeUtils";
-import {
-    normalizeColumn,
-    normalizeTable,
-    waitForNextFrame,
-    validateTable,
-} from "./schemaDesignerToolBatchUtils";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
 import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
@@ -57,6 +48,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    revealTables: (tableIds: string[]) => Promise<void>;
     consumeSkipDeleteConfirmation: () => boolean;
     publishSession: () => Promise<{
         success: boolean;
@@ -77,6 +69,13 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     schemaRevision: number;
     notifySchemaChanged: () => void;
     isDabEnabled: () => boolean;
+    onPushUndoState: () => void;
+    maybeAutoArrangeForToolBatch: (
+        preTableCount: number,
+        postTableCount: number,
+        preForeignKeyCount: number,
+        postForeignKeyCount: number,
+    ) => Promise<void>;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -179,36 +178,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             eventBus.off("redo", handleRedo);
         };
     }, []);
-
-    // Handle bulk edits (schema designer LM tool) from extension
-    useEffect(() => {
-        registerSchemaDesignerApplyEditsHandler({
-            isInitialized,
-            extensionRpc,
-            schemaNames,
-            datatypes,
-            waitForNextFrame,
-            extractSchema,
-            onMaybeAutoArrange: maybeAutoArrangeForToolBatch,
-            addTable,
-            updateTable,
-            deleteTable,
-            normalizeColumn,
-            normalizeTable,
-            validateTable,
-            onPushUndoState,
-            onRequestScriptRefresh: notifySchemaChanged,
-        });
-    }, [
-        isInitialized,
-        extensionRpc,
-        schemaNames,
-        datatypes,
-        reactFlow,
-        onPushUndoState,
-        extractSchema,
-        notifySchemaChanged,
-    ]);
 
     // Respond with the current schema state
     useEffect(() => {
@@ -602,6 +571,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const revealTables = useCallback(
+        async (tableIds: string[]) => {
+            const uniqueTableIds = [...new Set(tableIds)].filter((tableId) => !!tableId);
+            if (uniqueTableIds.length === 0) {
+                return;
+            }
+
+            const nodesToReveal = uniqueTableIds
+                .map((tableId) => reactFlow.getNode(tableId))
+                .filter((node): node is Node<SchemaDesigner.Table> => !!node);
+
+            if (nodesToReveal.length === 0) {
+                return;
+            }
+
+            await reactFlow.fitView({
+                nodes: nodesToReveal,
+            });
+        },
+        [reactFlow],
+    );
+
     const publishSession = async () => {
         const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
@@ -678,6 +669,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                revealTables,
                 consumeSkipDeleteConfirmation,
                 publishSession,
                 isInitialized,
@@ -692,6 +684,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 schemaRevision,
                 notifySchemaChanged,
                 isDabEnabled,
+                onPushUndoState,
+                maybeAutoArrangeForToolBatch,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

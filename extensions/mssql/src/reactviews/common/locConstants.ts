@@ -1135,6 +1135,7 @@ export class LocConstants {
                         comment: ["{0} is the number of changes"],
                     }),
             },
+            accept: l10n.t("Accept"),
 
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),

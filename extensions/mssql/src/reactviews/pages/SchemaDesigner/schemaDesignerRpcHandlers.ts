@@ -10,7 +10,7 @@ import { locConstants } from "../../common/locConstants";
 import { v4 as uuidv4 } from "uuid";
 import { tableUtils } from "./schemaDesignerUtils";
 
-export function registerSchemaDesignerApplyEditsHandler(params: {
+export interface SchemaDesignerApplyEditsHandlerParams {
     isInitialized: boolean;
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
@@ -35,10 +35,13 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     ) => string | undefined;
     onPushUndoState: () => void;
     onRequestScriptRefresh: () => void;
-}) {
+}
+
+export function createSchemaDesignerApplyEditsHandler(
+    params: SchemaDesignerApplyEditsHandlerParams,
+) {
     const {
         isInitialized,
-        extensionRpc,
         schemaNames,
         datatypes,
         waitForNextFrame,
@@ -1015,7 +1018,14 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         }
     };
 
-    extensionRpc.onRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, handleApplyEdits);
+    return handleApplyEdits;
+}
+
+export function registerSchemaDesignerApplyEditsHandler(
+    params: SchemaDesignerApplyEditsHandlerParams,
+) {
+    const handleApplyEdits = createSchemaDesignerApplyEditsHandler(params);
+    params.extensionRpc.onRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, handleApplyEdits);
 }
 
 export function registerSchemaDesignerGetSchemaStateHandler(params: {
