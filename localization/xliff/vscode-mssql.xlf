@@ -54,13 +54,17 @@
       <source xml:lang="en">({0} row(s) affected)</source>
       <note>{0} is the number of rows affected</note>
     </trans-unit>
-    <trans-unit id="++CODE++f7577022eaeae0cf55c56d0897afe68323a83b66ebd019bea29c8961b9eabf28">
-      <source xml:lang="en">({0} row(s))</source>
-      <note>{0} is the number of rows</note>
+    <trans-unit id="++CODE++e4da59cc908db66f1c176e3b1ca74b35f3e1f863a6a07156a2f5516f3991a051">
+      <source xml:lang="en">({0} row)</source>
+      <note>{0} is the number of rows (singular)</note>
     </trans-unit>
     <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
       <source xml:lang="en">({0} rows affected)</source>
       <note>{0} is the number of rows affected</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d7dc6d22bafdce672e9ed0f4266f83ead05837f27d30656b5e480b1893188d5e">
+      <source xml:lang="en">({0} rows)</source>
+      <note>{0} is the number of rows (plural)</note>
     </trans-unit>
     <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
       <source xml:lang="en">+ Add Azure Account</source>

@@ -1892,9 +1892,13 @@
     },
     "(Command completed successfully)": "(Command completed successfully)",
     "(0 rows)": "(0 rows)",
-    "({0} row(s))/{0} is the number of rows": {
-        "message": "({0} row(s))",
-        "comment": ["{0} is the number of rows"]
+    "({0} row)/{0} is the number of rows (singular)": {
+        "message": "({0} row)",
+        "comment": ["{0} is the number of rows (singular)"]
+    },
+    "({0} rows)/{0} is the number of rows (plural)": {
+        "message": "({0} rows)",
+        "comment": ["{0} is the number of rows (plural)"]
     },
     "Disconnected.": "Disconnected.",
     "Connected to {0}/{0} is the connection label": {
