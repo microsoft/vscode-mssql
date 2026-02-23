@@ -3121,4 +3121,5 @@ export class RestoreDatabase {
     public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
         "Please choose at least one backup set to restore",
     );
+    public static noDatabasesWithBackups = l10n.t("No databases with backups found");
 }

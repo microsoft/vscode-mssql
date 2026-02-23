@@ -3090,6 +3090,7 @@
     "Selected backup file does not contain a valid database backup": "Selected backup file does not contain a valid database backup",
     "Cannot generate script without a restore plan": "Cannot generate script without a restore plan",
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
+    "No databases with backups found": "No databases with backups found",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

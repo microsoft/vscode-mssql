@@ -145,9 +145,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreConfigInfo.sourceDatabaseNamesWithBackupSets.includes(this.databaseName)
         ) {
             this.state.formState.sourceDatabaseName = this.databaseName;
-        } else {
+        } else if (restoreConfigInfo.sourceDatabaseNamesWithBackupSets.length > 0) {
             this.state.formState.sourceDatabaseName =
                 restoreConfigInfo.sourceDatabaseNamesWithBackupSets[0];
+        } else {
+            this.state.formComponents["sourceDatabaseName"].placeholder =
+                LocConstants.RestoreDatabase.noDatabasesWithBackups;
         }
 
         // Populate options for target database dropdown based on databases in the server
