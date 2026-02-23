@@ -1885,13 +1885,13 @@
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
-    <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
-      <source xml:lang="en">Enable {0}</source>
-      <note>{0} is the rule identifier, e.g. SR0001</note>
-    </trans-unit>
     <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
       <source xml:lang="en">Enable {0}</source>
       <note>{0} is the entity name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
+      <source xml:lang="en">Enable {0}</source>
+      <note>{0} is the rule identifier, e.g. SR0001</note>
     </trans-unit>
     <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
       <source xml:lang="en">Enabled</source>

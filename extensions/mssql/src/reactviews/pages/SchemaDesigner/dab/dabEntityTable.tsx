@@ -41,7 +41,7 @@ const useStyles = makeStyles({
     header: {
         position: "sticky",
         top: 0,
-        zIndex: 2,
+        zIndex: 1,
         backgroundColor: tokens.colorNeutralBackground1,
     },
     schemaRow: {

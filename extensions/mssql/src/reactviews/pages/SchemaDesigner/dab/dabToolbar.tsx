@@ -13,7 +13,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { Search16Regular } from "@fluentui/react-icons";
+import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
@@ -174,9 +174,22 @@ export function DabToolbar() {
                     className={classes.searchInput}
                     size="small"
                     placeholder={locConstants.schemaDesigner.filterEntities}
+                    aria-label={locConstants.schemaDesigner.filterEntities}
                     value={dabTextFilter}
                     onChange={(_, data) => setDabTextFilter(data.value)}
                     contentBefore={<Search16Regular />}
+                    contentAfter={
+                        dabTextFilter ? (
+                            <Button
+                                appearance="transparent"
+                                icon={<Dismiss16Regular />}
+                                size="small"
+                                aria-label={locConstants.common.clear}
+                                onClick={() => setDabTextFilter("")}
+                                style={{ minWidth: "auto", padding: 0 }}
+                            />
+                        ) : null
+                    }
                 />
                 <Text className={classes.enabledCount}>
                     {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
