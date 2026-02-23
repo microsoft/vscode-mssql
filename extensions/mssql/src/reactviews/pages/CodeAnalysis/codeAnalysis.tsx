@@ -109,6 +109,7 @@ function CodeAnalysisDialog() {
     const loc = locConstants.codeAnalysis;
     const commonLoc = locConstants.common;
     const schemaCompareLoc = locConstants.schemaCompare;
+    const tableDesignerLoc = locConstants.tableDesigner;
     const context = useContext(CodeAnalysisContext);
     const headerColumns = [
         // Column: rule enabled state
@@ -122,7 +123,7 @@ function CodeAnalysisDialog() {
         // Column: configured rule severity
         {
             key: "severity",
-            label: loc.severity,
+            label: tableDesignerLoc.severity,
             className: `${styles.tableHeaderCell} ${styles.severityCell}`,
         },
     ];
@@ -168,7 +169,11 @@ function CodeAnalysisDialog() {
                                 <TableRow key={rule.ruleId}>
                                     {/* Cell: Whether the current rule is enabled */}
                                     <TableCell className={styles.tableCell}>
-                                        <Checkbox checked={rule.enabled} disabled />
+                                        <Checkbox
+                                            checked={rule.enabled}
+                                            disabled
+                                            aria-label={loc.enableRule(rule.shortRuleId)}
+                                        />
                                     </TableCell>
                                     {/* Cell: Rule */}
                                     <TableCell className={styles.tableCell}>
@@ -179,7 +184,8 @@ function CodeAnalysisDialog() {
                                         <Dropdown
                                             value={
                                                 rule.severity || CodeAnalysisRuleSeverity.Warning
-                                            }>
+                                            }
+                                            aria-label={loc.severityForRule(rule.shortRuleId)}>
                                             {codeAnalysisSeverityOptions.map((severity) => (
                                                 <Option key={severity} value={severity}>
                                                     {severity}

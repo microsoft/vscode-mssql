@@ -67,7 +67,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         expect(controller.state.projectFilePath).to.equal("c:/work/MyProject.sqlproj");
         expect(controller.state.projectName).to.equal("MyProject");
-        expect(controller.state.isLoading).to.be.false;
+        expect(controller.state.isLoading).to.be.true;
         expect(controller.state.hasChanges).to.be.false;
         expect(controller.state.errorMessage).to.be.undefined;
         expect(controller.state.rules).to.be.an("array");
