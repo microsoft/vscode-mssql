@@ -90,6 +90,10 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         this.panel.reveal(this._viewColumn, true);
     }
 
+    public updateUri(uri: string): void {
+        this._uri = uri;
+    }
+
     public getQueryResultWebviewViewController(): QueryResultWebviewController {
         return this._queryResultWebviewViewController;
     }

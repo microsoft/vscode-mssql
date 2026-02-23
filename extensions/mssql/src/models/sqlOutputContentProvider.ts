@@ -678,6 +678,9 @@ export class SqlOutputContentProvider {
         }
         const timer = setTimeout(() => {
             try {
+                if (!this._queryResultWebviewController.hasQueryResultState(uri)) {
+                    return;
+                }
                 const state = this._queryResultWebviewController.getQueryResultState(uri);
                 this.updateWebviewState(uri, state);
             } finally {
@@ -687,7 +690,20 @@ export class SqlOutputContentProvider {
         this._stateUpdateTimers.set(uri, timer);
     }
 
+    private migrateThrottledUpdateUri(oldUri: string, newUri: string): void {
+        const timer = this._stateUpdateTimers.get(oldUri);
+        if (!timer || oldUri === newUri) {
+            return;
+        }
+
+        clearTimeout(timer);
+        this._stateUpdateTimers.delete(oldUri);
+        this.scheduleThrottledUpdate(newUri);
+    }
+
     public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
+        this.migrateThrottledUpdateUri(oldUri, newUri);
+
         const queryRunnerState = this._queryResultsMap.get(oldUri);
         if (queryRunnerState) {
             queryRunnerState.queryRunner.updateQueryRunnerUri(oldUri, newUri);
@@ -695,17 +711,7 @@ export class SqlOutputContentProvider {
             this._queryResultsMap.delete(oldUri);
         }
 
-        if (!this._queryResultWebviewController.hasQueryResultState(oldUri)) {
-            return;
-        }
-
-        let state = this._queryResultWebviewController.getQueryResultState(oldUri);
-        if (state) {
-            //Update the URI in the query result webview state
-            state.uri = newUri;
-            this._queryResultWebviewController.setQueryResultState(newUri, state);
-            this._queryResultWebviewController.deleteQueryResultState(oldUri);
-        }
+        this._queryResultWebviewController.updateUri(oldUri, newUri);
     }
 
     /**

@@ -71,6 +71,7 @@ suite("Query Runner tests", () => {
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
+        (QueryRunner as any)._runningQueries = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
             vscode.Uri.parse(value),
@@ -499,6 +500,47 @@ suite("Query Runner tests", () => {
         await queryRunner.toggleSqlCmd();
         expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnce;
         expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
+    });
+
+    test("updateQueryRunnerUri migrates internal URI keyed state while query is executing", () => {
+        const oldUri = "file:///old.sql";
+        const newUri = "file:///new.sql";
+        const queryRunner = createQueryRunner(oldUri, oldUri);
+
+        const deferred = {
+            promise: Promise.resolve(true),
+            resolve: sandbox.stub(),
+            reject: sandbox.stub(),
+        };
+        (queryRunner as any)._uriToQueryPromiseMap.set(oldUri, deferred as any);
+        (queryRunner as any)._uriToQueryStringMap.set(oldUri, "SELECT 1");
+        (queryRunner as any)._isExecuting = true;
+        (QueryRunner as any)._runningQueries = [vscode.Uri.parse(oldUri).fsPath];
+
+        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
+
+        queryRunner.updateQueryRunnerUri(oldUri, newUri);
+
+        expect((queryRunner as any)._uriToQueryPromiseMap.has(oldUri)).to.be.false;
+        expect((queryRunner as any)._uriToQueryPromiseMap.get(newUri)).to.equal(deferred);
+        expect((queryRunner as any)._uriToQueryStringMap.has(oldUri)).to.be.false;
+        expect((queryRunner as any)._uriToQueryStringMap.get(newUri)).to.equal("SELECT 1");
+        expect(testQueryNotificationHandler.unregisterRunner).to.have.been.calledOnceWith(oldUri);
+        expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnceWith(
+            queryRunner,
+            newUri,
+        );
+        expect(queryRunner.uri).to.equal(newUri);
+        expect(testSqlToolsServerClient.sendNotification).to.have.been.calledOnceWith(
+            QueryExecuteContracts.QueryConnectionUriChangeRequest.type,
+            sinon.match({
+                originalOwnerUri: oldUri,
+                newOwnerUri: newUri,
+            }),
+        );
+        expect(executeCommandStub).to.have.been.calledWith("setContext", "mssql.runningQueries", [
+            vscode.Uri.parse(newUri).fsPath,
+        ]);
     });
 
     test("runStatement sends correct request with execution plan options", async () => {

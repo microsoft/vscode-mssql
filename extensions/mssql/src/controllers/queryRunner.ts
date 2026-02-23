@@ -1229,6 +1229,30 @@ export default class QueryRunner {
     }
 
     public updateQueryRunnerUri(oldUri: string, newUri: string): void {
+        if (oldUri === newUri) {
+            return;
+        }
+
+        const pendingPromise = this._uriToQueryPromiseMap.get(oldUri);
+        if (pendingPromise) {
+            this._uriToQueryPromiseMap.set(newUri, pendingPromise);
+            this._uriToQueryPromiseMap.delete(oldUri);
+        }
+
+        const queryString = this._uriToQueryStringMap.get(oldUri);
+        if (queryString !== undefined) {
+            this._uriToQueryStringMap.set(newUri, queryString);
+            this._uriToQueryStringMap.delete(oldUri);
+        }
+
+        // Notification handler map is keyed by owner URI.
+        this._notificationHandler.unregisterRunner(oldUri);
+        if (this._isExecuting) {
+            this._notificationHandler.registerRunner(this, newUri);
+        }
+
+        QueryRunner.replaceRunningQueryUri(oldUri, newUri);
+
         let queryConnectionUriChangeParams: QueryConnectionUriChangeParams = {
             newOwnerUri: newUri,
             originalOwnerUri: oldUri,
@@ -1282,6 +1306,22 @@ export default class QueryRunner {
         const key = vscode.Uri.parse(ownerUri).fsPath;
         QueryRunner._runningQueries.push(key);
         QueryRunner.updateRunningQueries();
+    }
+
+    private static replaceRunningQueryUri(oldUri: string, newUri: string): void {
+        const oldKey = vscode.Uri.parse(oldUri).fsPath;
+        const newKey = vscode.Uri.parse(newUri).fsPath;
+        let hasUpdates = false;
+        QueryRunner._runningQueries = QueryRunner._runningQueries.map((fileName) => {
+            if (fileName === oldKey) {
+                hasUpdates = true;
+                return newKey;
+            }
+            return fileName;
+        });
+        if (hasUpdates) {
+            QueryRunner.updateRunningQueries();
+        }
     }
 
     /**

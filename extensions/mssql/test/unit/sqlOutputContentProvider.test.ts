@@ -248,6 +248,40 @@ suite("SqlOutputProvider Tests using mocks", () => {
         ).to.equal(newUri);
     });
 
+    test("updateQueryRunnerUri should migrate panel mapping to new URI", async () => {
+        const oldUri = "file:///old-panel.sql";
+        const newUri = "file:///new-panel.sql";
+        const panelController = {
+            updateUri: sandbox.stub(),
+        };
+
+        (
+            contentProvider.queryResultWebviewController as any
+        )._queryResultWebviewPanelControllerMap.set(oldUri, panelController as any);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(contentProvider.queryResultWebviewController.hasPanel(oldUri)).to.be.false;
+        expect(contentProvider.queryResultWebviewController.hasPanel(newUri)).to.be.true;
+        expect(panelController.updateUri).to.have.been.calledOnceWith(newUri);
+    });
+
+    test("updateQueryRunnerUri should migrate throttled timers to new URI", async () => {
+        const oldUri = "file:///old-timer.sql";
+        const newUri = "file:///new-timer.sql";
+
+        const oldTimer = setTimeout(() => {}, 1000);
+        (contentProvider as any)._stateUpdateTimers.set(oldUri, oldTimer as any);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect((contentProvider as any)._stateUpdateTimers.has(oldUri)).to.be.false;
+        expect((contentProvider as any)._stateUpdateTimers.has(newUri)).to.be.true;
+
+        clearTimeout((contentProvider as any)._stateUpdateTimers.get(newUri));
+        (contentProvider as any)._stateUpdateTimers.delete(newUri);
+    });
+
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
         let title = "Test_Title";
         let uri = testUri;
