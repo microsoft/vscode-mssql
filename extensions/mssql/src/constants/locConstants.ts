@@ -673,10 +673,17 @@ export class Notebooks {
     public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
     public static zeroRows = l10n.t("(0 rows)");
     public static rowCountPlain(count: number) {
+        if (count === 1) {
+            return l10n.t({
+                message: "({0} row)",
+                args: [count],
+                comment: ["{0} is the number of rows (singular)"],
+            });
+        }
         return l10n.t({
-            message: "({0} row(s))",
+            message: "({0} rows)",
             args: [count],
-            comment: ["{0} is the number of rows"],
+            comment: ["{0} is the number of rows (plural)"],
         });
     }
 
