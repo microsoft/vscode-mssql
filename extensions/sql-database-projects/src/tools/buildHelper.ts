@@ -11,7 +11,7 @@ import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../common/httpClient";
-import { DBProjectConfigurationKey } from "./netcoreTool";
+import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
@@ -69,9 +69,7 @@ export class BuildHelper {
             "Microsoft.SqlServer.Server.dll",
         ];
 
-        const sdkVersion = vscode.workspace
-            .getConfiguration(DBProjectConfigurationKey)
-            .get<string>(constants.microsoftBuildSqlVersionKey)!;
+        const sdkVersion = getMicrosoftBuildSqlVersion(constants.microsoftBuildSqlVersionKey);
 
         const microsoftBuildSqlDllLocation = path.join("tools", "net8.0");
         return this.ensureNugetAndFilesPresence(

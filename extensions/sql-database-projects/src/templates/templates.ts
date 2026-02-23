@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import * as constants from "../common/constants";
-import * as vscode from "vscode";
 import { promises as fs } from "fs";
 import { ItemType } from "sqldbproj";
-import { DBProjectConfigurationKey } from "../tools/netcoreTool";
+import * as constants from "../common/constants";
+import { getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
 
 export let newSqlProjectTemplate: string;
 export let newSdkSqlProjectTemplate: string;
@@ -90,9 +89,7 @@ export async function loadTemplates(templateFolderPath: string) {
                 new Map([
                     [
                         "MICROSOFT_BUILD_SQL_VERSION",
-                        vscode.workspace
-                            .getConfiguration(DBProjectConfigurationKey)
-                            .get<string>(constants.microsoftBuildSqlVersionKey)!,
+                        getMicrosoftBuildSqlVersion(constants.microsoftBuildSqlVersionKey),
                     ],
                 ]),
             )),
