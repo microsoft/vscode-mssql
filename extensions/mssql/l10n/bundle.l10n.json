@@ -79,6 +79,10 @@
     "Expand": "Expand",
     "Collapse": "Collapse",
     "Filter Settings": "Filter Settings",
+    "Select All": "Select All",
+    "Copy": "Copy",
+    "Copy with Headers": "Copy with Headers",
+    "Copy Headers": "Copy Headers",
     "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
@@ -87,7 +91,6 @@
         "comment": ["{0} is the action being confirmed"]
     },
     "Close": "Close",
-    "Copy": "Copy",
     "Apply": "Apply",
     "Next": "Next",
     "Clear Selection": "Clear Selection",
@@ -421,9 +424,6 @@
         "comment": ["{0} is the keyboard shortcut for the query plan tab"]
     },
     "Query Plan": "Query Plan",
-    "Select All": "Select All",
-    "Copy with Headers": "Copy with Headers",
-    "Copy Headers": "Copy Headers",
     "Copy As": "Copy As",
     "Copy as CSV": "Copy as CSV",
     "Copy as JSON": "Copy as JSON",
