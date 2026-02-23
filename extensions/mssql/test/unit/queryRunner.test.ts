@@ -515,6 +515,7 @@ suite("Query Runner tests", () => {
         (queryRunner as any)._uriToQueryPromiseMap.set(oldUri, deferred as any);
         (queryRunner as any)._uriToQueryStringMap.set(oldUri, "SELECT 1");
         (queryRunner as any)._isExecuting = true;
+        (queryRunner as any)._registeredNotificationUris.add(oldUri);
         (QueryRunner as any)._runningQueries = [vscode.Uri.parse(oldUri).fsPath];
 
         const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
@@ -525,11 +526,13 @@ suite("Query Runner tests", () => {
         expect((queryRunner as any)._uriToQueryPromiseMap.get(newUri)).to.equal(deferred);
         expect((queryRunner as any)._uriToQueryStringMap.has(oldUri)).to.be.false;
         expect((queryRunner as any)._uriToQueryStringMap.get(newUri)).to.equal("SELECT 1");
-        expect(testQueryNotificationHandler.unregisterRunner).to.have.been.calledOnceWith(oldUri);
+        expect(testQueryNotificationHandler.unregisterRunner).to.not.have.been.called;
         expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnceWith(
             queryRunner,
             newUri,
         );
+        expect((queryRunner as any)._registeredNotificationUris.has(oldUri)).to.be.true;
+        expect((queryRunner as any)._registeredNotificationUris.has(newUri)).to.be.true;
         expect(queryRunner.uri).to.equal(newUri);
         expect(testSqlToolsServerClient.sendNotification).to.have.been.calledOnceWith(
             QueryExecuteContracts.QueryConnectionUriChangeRequest.type,
@@ -541,6 +544,29 @@ suite("Query Runner tests", () => {
         expect(executeCommandStub).to.have.been.calledWith("setContext", "mssql.runningQueries", [
             vscode.Uri.parse(newUri).fsPath,
         ]);
+    });
+
+    test("handleQueryComplete unregisters all registered notification URI aliases", () => {
+        const queryRunner = createQueryRunner("file:///a.sql", "a.sql");
+        (queryRunner as any)._registeredNotificationUris = new Set([
+            "file:///old.sql",
+            "file:///new.sql",
+        ]);
+
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "file:///new.sql",
+            batchSummaries: [],
+        };
+
+        queryRunner.handleQueryComplete(result);
+
+        expect(testQueryNotificationHandler.unregisterRunner).to.have.been.calledWith(
+            "file:///old.sql",
+        );
+        expect(testQueryNotificationHandler.unregisterRunner).to.have.been.calledWith(
+            "file:///new.sql",
+        );
+        expect((queryRunner as any)._registeredNotificationUris.size).to.equal(0);
     });
 
     test("runStatement sends correct request with execution plan options", async () => {
