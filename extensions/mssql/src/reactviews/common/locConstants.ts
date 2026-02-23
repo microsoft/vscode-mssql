@@ -212,6 +212,18 @@ export class LocConstants {
                 }),
             rules: l10n.t("Rules"),
             severity: l10n.t("Severity"),
+            enableRule: (ruleId: string) =>
+                l10n.t({
+                    message: "Enable {0}",
+                    args: [ruleId],
+                    comment: ["{0} is the rule identifier, e.g. SR0001"],
+                }),
+            severityForRule: (ruleId: string) =>
+                l10n.t({
+                    message: "Severity for {0}",
+                    args: [ruleId],
+                    comment: ["{0} is the rule identifier, e.g. SR0001"],
+                }),
         };
     }
 

@@ -115,6 +115,9 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         expect(controller.state.projectFilePath).to.equal("c:/work/MyProject.sqlproj");
         expect(controller.state.projectName).to.equal("MyProject");
+        // TODO: Currently false because loadRules() uses placeholder data that resolves synchronously.
+        // Once loadRules() makes a real async service call, this should be true immediately
+        // after construction (before the rules response arrives).
         expect(controller.state.isLoading).to.be.false;
         expect(controller.state.hasChanges).to.be.false;
         expect(controller.state.message).to.be.undefined;
