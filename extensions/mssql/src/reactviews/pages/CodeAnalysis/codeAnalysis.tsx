@@ -9,7 +9,6 @@ import {
     Checkbox,
     Dropdown,
     Option,
-    Option,
     Spinner,
     Table,
     TableBody,

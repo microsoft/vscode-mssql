@@ -203,8 +203,6 @@
         "message": "{0} rules",
         "comment": ["{0} is the number of code analysis rules"]
     },
-    "Enabled": "Enabled",
-    "Rule": "Rule",
     "Rules": "Rules",
     "Enable {0}/{0} is the rule identifier, e.g. SR0001": {
         "message": "Enable {0}",
