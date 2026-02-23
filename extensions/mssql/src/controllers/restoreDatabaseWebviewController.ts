@@ -145,9 +145,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreConfigInfo.sourceDatabaseNamesWithBackupSets.includes(this.databaseName)
         ) {
             this.state.formState.sourceDatabaseName = this.databaseName;
-        } else {
+        } else if (restoreConfigInfo.sourceDatabaseNamesWithBackupSets.length > 0) {
             this.state.formState.sourceDatabaseName =
                 restoreConfigInfo.sourceDatabaseNamesWithBackupSets[0];
+        } else {
+            this.state.formComponents["sourceDatabaseName"].placeholder =
+                LocConstants.RestoreDatabase.noDatabasesWithBackups;
         }
 
         // Populate options for target database dropdown based on databases in the server
@@ -319,13 +322,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 restoreViewModel.restorePlan.backupSetsToRestore
                     ?.filter((_, index) => payload.selectedBackupSets.includes(index))
                     .map((backupSet) => backupSet.id) ?? [];
-
-            if (restoreViewModel.selectedBackupSets.length) {
-                state.formState.closeExistingConnections = true;
-            } else {
-                state.formState.closeExistingConnections =
-                    restoreViewModel.restorePlan.planDetails.closeExistingConnections.defaultValue;
-            }
 
             return this.updateViewModel(restoreViewModel, state);
         });
