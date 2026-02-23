@@ -262,6 +262,51 @@ export const DabEntityTable = () => {
         [toggleDabEntityAction],
     );
 
+    const renderSchemaRow = useCallback(
+        (rowId: string | number, schemaName: string, entities: Dab.DabEntityConfig[]) => {
+            const enabledCount = entities.filter((e) => e.isEnabled).length;
+            const allChecked = enabledCount === entities.length;
+            const noneChecked = enabledCount === 0;
+            const isCollapsed = collapsedSchemas.has(schemaName);
+            return (
+                <DataGridRow
+                    key={rowId}
+                    className={`${classes.schemaRow} ${classes.rowNoHighlight}`}
+                    onClick={() => toggleSchemaCollapsed(schemaName)}>
+                    {({ columnId }) => {
+                        if (columnId !== "checkbox") {
+                            return <DataGridCell style={{ display: "none" }} />;
+                        }
+                        return (
+                            <DataGridCell
+                                className={classes.schemaCell}
+                                style={{ flex: "1 1 100%", maxWidth: "none" }}>
+                                {isCollapsed ? <ChevronRight16Regular /> : <ChevronDown16Regular />}
+                                <Checkbox
+                                    checked={allChecked ? true : noneChecked ? false : "mixed"}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(_, data) => {
+                                        const enable =
+                                            data.checked === true || data.checked === "mixed";
+                                        for (const entity of entities) {
+                                            toggleDabEntity(entity.id, enable);
+                                        }
+                                    }}
+                                />
+                                <Text className={classes.schemaLabel}>{schemaName}</Text>
+                                <Text className={classes.schemaCount}>
+                                    {enabledCount}/{entities.length}
+                                </Text>
+                                <div className={classes.schemaDivider} />
+                            </DataGridCell>
+                        );
+                    }}
+                </DataGridRow>
+            );
+        },
+        [classes, collapsedSchemas, toggleSchemaCollapsed, toggleDabEntity],
+    );
+
     const columns = useMemo<TableColumnDefinition<DabTableRow>[]>(
         () => [
             createTableColumn<DabTableRow>({
@@ -398,61 +443,7 @@ export const DabEntityTable = () => {
                 <DataGridBody<DabTableRow>>
                     {({ item, rowId }) => {
                         if (item.type === "schema") {
-                            const enabledCount = item.entities.filter((e) => e.isEnabled).length;
-                            const allChecked = enabledCount === item.entities.length;
-                            const noneChecked = enabledCount === 0;
-                            const isCollapsed = collapsedSchemas.has(item.schemaName);
-                            return (
-                                <DataGridRow
-                                    key={rowId}
-                                    className={`${classes.schemaRow} ${classes.rowNoHighlight}`}
-                                    onClick={() => toggleSchemaCollapsed(item.schemaName)}>
-                                    {({ columnId }) => {
-                                        if (columnId !== "checkbox") {
-                                            return <DataGridCell style={{ display: "none" }} />;
-                                        }
-                                        return (
-                                            <DataGridCell
-                                                className={classes.schemaCell}
-                                                style={{
-                                                    flex: "1 1 100%",
-                                                    maxWidth: "none",
-                                                }}>
-                                                {isCollapsed ? (
-                                                    <ChevronRight16Regular />
-                                                ) : (
-                                                    <ChevronDown16Regular />
-                                                )}
-                                                <Checkbox
-                                                    checked={
-                                                        allChecked
-                                                            ? true
-                                                            : noneChecked
-                                                              ? false
-                                                              : "mixed"
-                                                    }
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    onChange={(_, data) => {
-                                                        const enable =
-                                                            data.checked === true ||
-                                                            data.checked === "mixed";
-                                                        for (const entity of item.entities) {
-                                                            toggleDabEntity(entity.id, enable);
-                                                        }
-                                                    }}
-                                                />
-                                                <Text className={classes.schemaLabel}>
-                                                    {item.schemaName}
-                                                </Text>
-                                                <Text className={classes.schemaCount}>
-                                                    {enabledCount}/{item.entities.length}
-                                                </Text>
-                                                <div className={classes.schemaDivider} />
-                                            </DataGridCell>
-                                        );
-                                    }}
-                                </DataGridRow>
-                            );
+                            return renderSchemaRow(rowId, item.schemaName, item.entities);
                         }
                         return (
                             <DataGridRow key={rowId} className={classes.rowNoHighlight}>
