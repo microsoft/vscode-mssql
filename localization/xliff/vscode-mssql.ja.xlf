@@ -600,7 +600,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6">
         <source xml:lang="en">Azure Data Studio Migration Toolkit - Now Including Keymap!</source>
-        <target state="new">Azure Data Studio Migration Toolkit - Now Including Keymap!</target>
+        <target state="translated">Azure Data Studio 移行ツールキット - キーマップを含むようになりました</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -662,7 +662,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
         <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
-        <target state="new">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</target>
+        <target state="translated">SQL データベースをローカルまたは URL にバックアップし、データベース、.BAK ファイル、または URL から簡単に復元します。</target>
       </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
@@ -711,7 +711,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
         <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
-        <target state="new">Backup/Restore Dialogs (Preview)</target>
+        <target state="translated">バックアップ/復元ダイアログ (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -907,7 +907,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
         <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">ライブの SQL Server XElite イベント セッションをキャプチャして分析し、データベースのパフォーマンスを監視および分析します。</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1886,7 +1886,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
         <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
-        <target state="new">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</target>
+        <target state="translated">新しい管理ダイアログを使用してデータベースの作成、名前の変更、削除を行い、ユーザーがデータベースを簡単に管理できるようにします。</target>
       </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
@@ -2056,7 +2056,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
         <source xml:lang="en">Database Management Dialogs (Preview)</source>
-        <target state="new">Database Management Dialogs (Preview)</target>
+        <target state="translated">データベース管理ダイアログ (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -3774,7 +3774,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
         <source xml:lang="en">Global Object Search</source>
-        <target state="new">Global Object Search</target>
+        <target state="translated">グローバル オブジェクト検索</target>
       </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
@@ -4657,7 +4657,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
         <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
-        <target state="new">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</target>
+        <target state="translated">保存された接続、接続グループ、接続設定を Azure Data Studio から MSSQL 拡張機能に移行します。さらに、MSSQL データ管理キーマップをインストールして、Azure Data Studio で使い慣れたショートカットを追加できます。</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -5019,6 +5019,10 @@ Error:
       <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
         <source xml:lang="en">No databases found to import into.</source>
         <target state="translated">インポート先のデータベースが見つかりません。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
+        <source xml:lang="en">No databases with backups found</source>
+        <target state="new">No databases with backups found</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -6251,7 +6255,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
         <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
-        <target state="new">SQL Database Projects – Publish Dialog</target>
+        <target state="translated">SQL Database プロジェクト – 発行ダイアログ</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -6537,7 +6541,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
         <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
-        <target state="new">Search for database objects — tables, views, stored procedures, and more — across your entire database.</target>
+        <target state="translated">データベース全体でテーブル、ビュー、ストアド プロシージャなどのデータベース オブジェクトを検索します。</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>

@@ -600,7 +600,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6">
         <source xml:lang="en">Azure Data Studio Migration Toolkit - Now Including Keymap!</source>
-        <target state="new">Azure Data Studio Migration Toolkit - Now Including Keymap!</target>
+        <target state="translated">Azure Data Studio 마이그레이션 도구 키트 - 이제 키맵도 포함됩니다!</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -662,7 +662,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
         <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
-        <target state="new">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</target>
+        <target state="translated">SQL 데이터베이스를 로컬이나 URL에 백업하고, 데이터베이스, .BAK 파일, 또는 URL에서 쉽게 복원하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
@@ -711,7 +711,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
         <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
-        <target state="new">Backup/Restore Dialogs (Preview)</target>
+        <target state="translated">백업/복원 대화 상자(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -907,7 +907,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
         <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">실시간 SQL Server XElite 이벤트 세션을 캡처하고 분석해 데이터베이스 성능을 모니터링하고 분석하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1886,7 +1886,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
         <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
-        <target state="new">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</target>
+        <target state="translated">새 관리 대화 상자를 통해 데이터베이스를 쉽게 만들고 이름을 바꾸고 삭제하여 사용자가 손쉽게 데이터베이스를 관리할 수 있게 해 줍니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
@@ -2056,7 +2056,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
         <source xml:lang="en">Database Management Dialogs (Preview)</source>
-        <target state="new">Database Management Dialogs (Preview)</target>
+        <target state="translated">데이터베이스 관리 대화 상자(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -3774,7 +3774,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
         <source xml:lang="en">Global Object Search</source>
-        <target state="new">Global Object Search</target>
+        <target state="translated">글로벌 개체 검색</target>
       </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
@@ -4657,7 +4657,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
         <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
-        <target state="new">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</target>
+        <target state="translated">저장된 연결, 연결 그룹 및 연결 설정을 Azure Data Studio에서 MSSQL 확장 프로그램으로 마이그레이션합니다. 또한 MSSQL 데이터 관리 키맵을 설치해 Azure Data Studio의 익숙한 단축키를 사용할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -5019,6 +5019,10 @@ Error:
       <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
         <source xml:lang="en">No databases found to import into.</source>
         <target state="translated">정보를 가져올 데이터베이스를 찾을 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
+        <source xml:lang="en">No databases with backups found</source>
+        <target state="new">No databases with backups found</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -6251,7 +6255,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
         <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
-        <target state="new">SQL Database Projects – Publish Dialog</target>
+        <target state="translated">SQL Database 프로젝트 – 게시 대화 상자</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -6537,7 +6541,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
         <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
-        <target state="new">Search for database objects — tables, views, stored procedures, and more — across your entire database.</target>
+        <target state="translated">테이블, 뷰, 저장 프로시저 등 데이터베이스 개체를 전체 데이터베이스에서 검색하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>

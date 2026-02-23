@@ -86,7 +86,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
         <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
-        <target state="new">A connection is already being established. Please wait for it to complete before running a query.</target>
+        <target state="translated">È già in corso l'instaurazione di una connessione. Attendere il completamento prima di eseguire una query.</target>
       </trans-unit>
       <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
         <source xml:lang="en">A database with this name already exists on the server</source>
@@ -600,7 +600,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6">
         <source xml:lang="en">Azure Data Studio Migration Toolkit - Now Including Keymap!</source>
-        <target state="new">Azure Data Studio Migration Toolkit - Now Including Keymap!</target>
+        <target state="translated">Azure Data Studio Migration Toolkit - ora con keypad</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -662,7 +662,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
         <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
-        <target state="new">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</target>
+        <target state="translated">Eseguire il backup dei database SQL localmente o su URL e ripristinarli facilmente dal database, da file .BAK o da URL.</target>
       </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
@@ -711,7 +711,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
         <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
-        <target state="new">Backup/Restore Dialogs (Preview)</target>
+        <target state="translated">Finestre di dialogo Backup/Ripristino (anteprima)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -907,7 +907,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
         <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">Acquisire e analizzare in tempo reale le sessioni di eventi XElite di SQL Server per monitorare e analizzare le prestazioni del database.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1886,7 +1886,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
         <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
-        <target state="new">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</target>
+        <target state="translated">Creare, rinominare ed eliminare database con nuove finestre di dialogo di gestione che facilitano la gestione dei database.</target>
       </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
@@ -2056,7 +2056,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
         <source xml:lang="en">Database Management Dialogs (Preview)</source>
-        <target state="new">Database Management Dialogs (Preview)</target>
+        <target state="translated">Finestre di dialogo Gestione database (anteprima)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -2377,7 +2377,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
-        <target state="new">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</target>
+        <target state="translated">Scaricare l'estensione keymap per importare automaticamente le mappature dei tasti da Azure Data Studio. Queste modifiche appariranno nelle preferenze delle scorciatoie da tastiera.</target>
       </trans-unit>
       <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
         <source xml:lang="en">Downloading the Data API Builder container image</source>
@@ -3774,7 +3774,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
         <source xml:lang="en">Global Object Search</source>
-        <target state="new">Global Object Search</target>
+        <target state="translated">Ricerca globale oggetti</target>
       </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
@@ -4657,7 +4657,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
         <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
-        <target state="new">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</target>
+        <target state="translated">Eseguire la migrazione delle connessioni salvate, dei gruppi e delle impostazioni di connessione da Azure Data Studio all'estensione MSSQL. Inoltre, è possibile installare la keymap di Gestione dati MSSQL per aggiungere i collegamenti abituali di Azure Data Studio.</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -4832,11 +4832,11 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
         <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
-        <target state="new">New Query Profiler (Preview) - Enter Name</target>
+        <target state="translated">Nuovo Query Profiler (anteprima) - Immettere il nome</target>
       </trans-unit>
       <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
         <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
-        <target state="new">New Query Profiler (Preview) - Select Template</target>
+        <target state="translated">Nuovo Query Profiler (anteprima) - Selezionare il modello</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -5019,6 +5019,10 @@ Errore:
       <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
         <source xml:lang="en">No databases found to import into.</source>
         <target state="translated">Nessun database trovato in cui eseguire l'importazione.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
+        <source xml:lang="en">No databases with backups found</source>
+        <target state="new">No databases with backups found</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -5823,20 +5827,20 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
         <source xml:lang="en">Query Profiler (Preview)</source>
-        <target state="new">Query Profiler (Preview)</target>
+        <target state="translated">Query Profiler (anteprima)</target>
       </trans-unit>
       <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
         <source xml:lang="en">Query Profiler (Preview) Session Status</source>
-        <target state="new">Query Profiler (Preview) Session Status</target>
+        <target state="translated">Stato sessione di Query Profiler (anteprima)</target>
       </trans-unit>
       <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
         <source xml:lang="en">Query Profiler (Preview): No session</source>
-        <target state="new">Query Profiler (Preview): No session</target>
+        <target state="translated">Query Profiler (anteprima): Nessuna sessione</target>
       </trans-unit>
       <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
         <source xml:lang="en">Query Profiler (Preview): {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="new">Query Profiler (Preview): {0}</target>
+        <target state="translated">Query Profiler (anteprima): {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -6251,7 +6255,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
         <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
-        <target state="new">SQL Database Projects – Publish Dialog</target>
+        <target state="translated">Progetti di database SQL - Finestra di dialogo Pubblica</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -6537,7 +6541,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
         <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
-        <target state="new">Search for database objects — tables, views, stored procedures, and more — across your entire database.</target>
+        <target state="translated">Cercare oggetti del database - tabelle, visualizzazioni, stored procedure e altro - in tutto il database.</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -8918,7 +8922,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="new">Launch Query Profiler (Preview)</target>
+        <target state="translated">Avvia Query Profiler (anteprima)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9032,7 +9036,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.profiler.openXelFile">
         <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
-        <target state="new">Open Query Profiler (Preview) XEL File</target>
+        <target state="translated">Apri file XEL di Query Profiler (anteprima)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode</source>
