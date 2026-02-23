@@ -27,6 +27,7 @@ import {
     CopilotOperation,
     processCopilotChanges,
     reconcileTrackedChangesWithSchema,
+    removeTrackedChangesForEditedEntities,
 } from "./copilotLedger";
 import type { HighlightOverride } from "../changes/useSchemaDesignerChangeState";
 import type { ModifiedColumnHighlight, ModifiedTableHighlight } from "../../diff/diffHighlights";
@@ -804,6 +805,29 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             return reconciled;
         });
     }, [schemaDesignerContext.extractSchema, schemaDesignerContext.schemaRevision]);
+
+    // Auto-remove copilot-tracked changes when the user edits the same entities
+    // through the editor drawer. The drawer emits "userEditedEntities" with the
+    // set of entity IDs that were modified by the user.
+    useEffect(() => {
+        const handleUserEditedEntities = (editedEntityIds: Set<string>) => {
+            setTrackedChanges((currentTrackedChanges) => {
+                const updated = removeTrackedChangesForEditedEntities(
+                    currentTrackedChanges,
+                    editedEntityIds,
+                );
+                if (updated.length === currentTrackedChanges.length) {
+                    return currentTrackedChanges; // No changes removed
+                }
+                return updated;
+            });
+        };
+
+        eventBus.on("userEditedEntities", handleUserEditedEntities);
+        return () => {
+            eventBus.off("userEditedEntities", handleUserEditedEntities);
+        };
+    }, []);
 
     const dismissTrackedChange = useCallback((index: number) => {
         setTrackedChanges((currentTrackedChanges) =>

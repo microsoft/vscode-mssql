@@ -292,7 +292,7 @@ const SchemaDesignerCopilotChangesContent = () => {
     const [undoing, setUndoing] = useState<Record<number, boolean>>({});
 
     const orderedChanges = useMemo(
-        () => trackedChanges.map((change, index) => ({ change, sourceIndex: index })).reverse(),
+        () => trackedChanges.map((change, index) => ({ change, sourceIndex: index })),
         [trackedChanges],
     );
     const virtualizer = useVirtualizer({

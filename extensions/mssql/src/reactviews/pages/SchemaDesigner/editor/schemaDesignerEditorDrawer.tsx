@@ -14,11 +14,12 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { SchemaDesignerEditor } from "./schemaDesignerEditor";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { columnUtils, foreignKeyUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
+import { computeEditedEntityIds } from "../definition/copilot/copilotLedger";
 
 export interface SchemaDesignerEditorContextProps {
     schema: SchemaDesigner.Schema;
@@ -71,6 +72,10 @@ export const SchemaDesignerEditorDrawer = () => {
 
     const [isNewTable, setIsNewTable] = useState(false);
 
+    // Track the original table state when editing begins, so we can detect
+    // which entities the user modified when they save.
+    const originalTableRef = useRef<SchemaDesigner.Table | null>(null);
+
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [warnings, setWarnings] = useState<Record<string, string>>({});
 
@@ -94,6 +99,9 @@ export const SchemaDesignerEditorDrawer = () => {
         ) => {
             // Get table with updated foreign keys
             const updatedTable = context.getTableWithForeignKeys(tableToEdit.id) || tableToEdit;
+
+            // Snapshot the original table for later user-edit detection
+            originalTableRef.current = JSON.parse(JSON.stringify(updatedTable));
 
             // Update state
             setIsEditDrawerOpen(true);
@@ -133,6 +141,16 @@ export const SchemaDesignerEditorDrawer = () => {
         }
 
         if (success) {
+            // Emit user-edited entity IDs so copilot change tracking can
+            // auto-remove changes the user has taken ownership of.
+            if (!isNewTable && originalTableRef.current) {
+                const editedIds = computeEditedEntityIds(originalTableRef.current, table);
+                if (editedIds.size > 0) {
+                    eventBus.emit("userEditedEntities", editedIds);
+                }
+            }
+            originalTableRef.current = null;
+
             setIsEditDrawerOpen(false);
             context.notifySchemaChanged();
             eventBus.emit("pushState"); // Update the history state

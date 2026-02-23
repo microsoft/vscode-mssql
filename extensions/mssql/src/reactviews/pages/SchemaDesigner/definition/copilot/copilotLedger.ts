@@ -300,6 +300,88 @@ function isSameEntityShape(
     return JSON.stringify(left) === JSON.stringify(right);
 }
 
+/**
+ * Computes the set of entity IDs that were modified between an original table
+ * and an updated table. This is used to detect user edits at the entity level
+ * (table, column, FK) so copilot-tracked changes for those entities can be
+ * automatically removed.
+ */
+export function computeEditedEntityIds(
+    originalTable: SchemaDesigner.Table,
+    updatedTable: SchemaDesigner.Table,
+): Set<string> {
+    const editedIds = new Set<string>();
+
+    // Check table-level changes (name, schema)
+    if (originalTable.name !== updatedTable.name || originalTable.schema !== updatedTable.schema) {
+        editedIds.add(originalTable.id);
+    }
+
+    // Check column changes
+    const originalColumnsById = new Map(
+        (originalTable.columns ?? []).filter((c) => c.id).map((c) => [c.id, c]),
+    );
+    const updatedColumnsById = new Map(
+        (updatedTable.columns ?? []).filter((c) => c.id).map((c) => [c.id, c]),
+    );
+
+    // Columns modified or deleted
+    for (const [colId, originalCol] of originalColumnsById) {
+        const updatedCol = updatedColumnsById.get(colId);
+        if (!updatedCol) {
+            // Column was deleted by user
+            editedIds.add(colId);
+        } else if (JSON.stringify(originalCol) !== JSON.stringify(updatedCol)) {
+            // Column was modified by user
+            editedIds.add(colId);
+        }
+    }
+
+    // Check foreign key changes
+    const originalFKsById = new Map(
+        (originalTable.foreignKeys ?? []).filter((fk) => fk.id).map((fk) => [fk.id, fk]),
+    );
+    const updatedFKsById = new Map(
+        (updatedTable.foreignKeys ?? []).filter((fk) => fk.id).map((fk) => [fk.id, fk]),
+    );
+
+    // FKs modified or deleted
+    for (const [fkId, originalFK] of originalFKsById) {
+        const updatedFK = updatedFKsById.get(fkId);
+        if (!updatedFK) {
+            // FK was deleted by user
+            editedIds.add(fkId);
+        } else if (JSON.stringify(originalFK) !== JSON.stringify(updatedFK)) {
+            // FK was modified by user
+            editedIds.add(fkId);
+        }
+    }
+
+    return editedIds;
+}
+
+/**
+ * Removes tracked changes whose entity IDs match any of the user-edited entity IDs.
+ * This is used to auto-remove copilot changes when the user takes ownership of an
+ * entity by editing it directly.
+ */
+export function removeTrackedChangesForEditedEntities(
+    trackedChanges: CopilotChange[],
+    editedEntityIds: Set<string>,
+): CopilotChange[] {
+    if (editedEntityIds.size === 0) {
+        return trackedChanges;
+    }
+
+    return trackedChanges.filter((change) => {
+        const entityId = getEntityId(change);
+        if (!entityId) {
+            return true; // Keep changes without entity IDs
+        }
+        return !editedEntityIds.has(entityId);
+    });
+}
+
 export function reconcileTrackedChangesWithSchema(
     trackedChanges: CopilotChange[],
     currentSchema: SchemaDesigner.Schema,
