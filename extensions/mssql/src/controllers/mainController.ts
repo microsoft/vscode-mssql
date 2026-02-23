@@ -1555,6 +1555,8 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
+                    const database = ObjectExplorerUtils.getDatabaseName(node);
+
                     const flatFileImportDialog = new FlatFileImportWebviewController(
                         this._context,
                         this._vscodeWrapper,
@@ -1563,6 +1565,7 @@ export default class MainController implements vscode.Disposable {
                         this.flatFileProvider,
                         node.connectionProfile,
                         node.sessionId,
+                        database,
                     );
                     flatFileImportDialog.revealToForeground();
                 },
