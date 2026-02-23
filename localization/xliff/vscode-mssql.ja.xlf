@@ -86,7 +86,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
         <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
-        <target state="new">A connection is already being established. Please wait for it to complete before running a query.</target>
+        <target state="translated">接続は既に確立されています。クエリを実行する前に、完了するまでお待ちください。</target>
       </trans-unit>
       <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
         <source xml:lang="en">A database with this name already exists on the server</source>
@@ -594,13 +594,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Azure コードの付与</target>
       </trans-unit>
-      <trans-unit id="++CODE++cbf1176900b828464cac58d4ab7b00aa01cb741cabb584e87ddc6835b0c9d223">
-        <source xml:lang="en">Azure Data Studio Connection Migration Toolkit</source>
-        <target state="translated">Azure Data Studio 接続移行ツールキット</target>
-      </trans-unit>
       <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Azure Data Studio 移行</target>
+      </trans-unit>
+      <trans-unit id="++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6">
+        <source xml:lang="en">Azure Data Studio Migration Toolkit - Now Including Keymap!</source>
+        <target state="new">Azure Data Studio Migration Toolkit - Now Including Keymap!</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -660,6 +660,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Back to preview</source>
         <target state="translated">プレビューに戻る</target>
       </trans-unit>
+      <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
+        <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
+        <target state="new">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</target>
+      </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
         <target state="translated">バックアップ</target>
@@ -704,6 +708,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
         <source xml:lang="en">Backup to a new media set</source>
         <target state="translated">新しいメディア セットにバックアップ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
+        <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
+        <target state="new">Backup/Restore Dialogs (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -897,6 +905,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">元に戻せません: 参照されているテーブルまたは列が削除されています</target>
       </trans-unit>
+      <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
+        <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
+        <target state="new">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</target>
+      </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
         <target state="translated">カスカード</target>
@@ -956,7 +968,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a49c556a0c0853ed9f434360953ce0088ffa041d83bff7c0ba57f7ce9c668186">
         <source xml:lang="en">Changes view mode</source>
-        <target state="new">Changes view mode</target>
+        <target state="translated">変更点の表示モード</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
@@ -1872,6 +1884,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">{0} の新しいファイアウォール規則を作成する</target>
       </trans-unit>
+      <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
+        <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
+        <target state="new">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
         <note>{0} is the qualified table name</note>
@@ -2037,6 +2053,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
         <source xml:lang="en">Database Details</source>
         <target state="translated">データベースの詳細</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
+        <source xml:lang="en">Database Management Dialogs (Preview)</source>
+        <target state="new">Database Management Dialogs (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -2357,7 +2377,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
-        <target state="new">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</target>
+        <target state="translated">キーマップ拡張機能をダウンロードして、Azure Data Studio からキー マッピングを自動的にインポートします。これらの変更はキーボード ショートカットの設定に反映されます。</target>
       </trans-unit>
       <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
         <source xml:lang="en">Downloading the Data API Builder container image</source>
@@ -3752,6 +3772,10 @@ Error:
         <source xml:lang="en">GitHub Copilot survey</source>
         <target state="translated">GitHub Copilot アンケート</target>
       </trans-unit>
+      <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
+        <source xml:lang="en">Global Object Search</source>
+        <target state="new">Global Object Search</target>
+      </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
         <note>{0} is the part input
@@ -4631,9 +4655,9 @@ Error:
         <source xml:lang="en">Microsoft would like your feedback</source>
         <target state="translated">Microsoft にぜひご意見をお聞かせください</target>
       </trans-unit>
-      <trans-unit id="++CODE++7513be31d093689a83a5840217b05b63313b201192c5e2e9d590c86f52353a0e">
-        <source xml:lang="en">Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.</source>
-        <target state="translated">保存された接続と接続グループを Azure Data Studio から MSSQL 拡張機能に移行します。このガイド付きエクスペリエンスは、最小限のセットアップで、使い慣れた環境で作業を続けるのに役立ちます。</target>
+      <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
+        <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
+        <target state="new">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -4808,11 +4832,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f">
         <source xml:lang="en">New Query Profiler (Preview) - Enter Name</source>
-        <target state="new">New Query Profiler (Preview) - Enter Name</target>
+        <target state="translated">新しい Query Profiler (プレビュー) - 名前を入力</target>
       </trans-unit>
       <trans-unit id="++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146">
         <source xml:lang="en">New Query Profiler (Preview) - Select Template</source>
-        <target state="new">New Query Profiler (Preview) - Select Template</target>
+        <target state="translated">新しい Query Profiler (プレビュー) - テンプレートの選択</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -5799,20 +5823,20 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9">
         <source xml:lang="en">Query Profiler (Preview)</source>
-        <target state="new">Query Profiler (Preview)</target>
+        <target state="translated">Query Profiler (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b">
         <source xml:lang="en">Query Profiler (Preview) Session Status</source>
-        <target state="new">Query Profiler (Preview) Session Status</target>
+        <target state="translated">Query Profiler (プレビュー) セッションの状態</target>
       </trans-unit>
       <trans-unit id="++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d">
         <source xml:lang="en">Query Profiler (Preview): No session</source>
-        <target state="new">Query Profiler (Preview): No session</target>
+        <target state="translated">Query Profiler (プレビュー): セッションはありません</target>
       </trans-unit>
       <trans-unit id="++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678">
         <source xml:lang="en">Query Profiler (Preview): {0}</source>
         <note>{0} is the file name or session name</note>
-        <target state="new">Query Profiler (Preview): {0}</target>
+        <target state="translated">Query Profiler (プレビュー): {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -6225,9 +6249,9 @@ Query: {2}</source>
         <source xml:lang="en">SQL Database</source>
         <target state="translated">SQL データベース</target>
       </trans-unit>
-      <trans-unit id="++CODE++11f1ce06685908adfd2a88a77c9de4148392e6667521c7ff01845de7c8822849">
-        <source xml:lang="en">SQL Database Projects – Publish Dialog (Preview)</source>
-        <target state="translated">SQL Database プロジェクト – 発行ダイアログ (プレビュー)</target>
+      <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
+        <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
+        <target state="new">SQL Database Projects – Publish Dialog</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -6399,7 +6423,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a">
         <source xml:lang="en">Schema Changes</source>
-        <target state="new">Schema Changes</target>
+        <target state="translated">スキーマの変更</target>
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
@@ -6424,7 +6448,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
         <source xml:lang="en">Schema Diff</source>
-        <target state="new">Schema Diff</target>
+        <target state="translated">スキーマの差分</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
@@ -6510,6 +6534,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">接続グループの検索</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
+        <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
+        <target state="new">Search for database objects — tables, views, stored procedures, and more — across your entire database.</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -8890,7 +8918,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="new">Launch Query Profiler (Preview)</target>
+        <target state="translated">Query Profiler (プレビュー) の起動</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9004,7 +9032,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.profiler.openXelFile">
         <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
-        <target state="new">Open Query Profiler (Preview) XEL File</target>
+        <target state="translated">Query Profiler (プレビュー) XEL ファイルを開く</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode</source>
