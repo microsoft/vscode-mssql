@@ -528,6 +528,8 @@
         "message": "Filter ({0})",
         "comment": ["{0} is the number of selected tables"]
     },
+    "Chat": "Chat",
+    "Open Copilot Chat": "Open Copilot Chat",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",

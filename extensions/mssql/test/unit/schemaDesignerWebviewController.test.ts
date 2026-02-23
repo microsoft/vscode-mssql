@@ -163,6 +163,26 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(ctrl.schemaDesignerDetails).to.be.undefined;
         });
 
+        test("should set copilot availability to true when Copilot Chat extension is installed", () => {
+            sandbox
+                .stub(vscode.extensions, "getExtension")
+                .withArgs("github.copilot-chat")
+                .returns({} as vscode.Extension<any>);
+
+            const ctrl = createController();
+            expect(ctrl.state.isCopilotChatInstalled).to.be.true;
+        });
+
+        test("should set copilot availability to false when Copilot Chat extension is not installed", () => {
+            sandbox
+                .stub(vscode.extensions, "getExtension")
+                .withArgs("github.copilot-chat")
+                .returns(undefined);
+
+            const ctrl = createController();
+            expect(ctrl.state.isCopilotChatInstalled).to.be.false;
+        });
+
         test("should register all request handlers", () => {
             createController();
 
