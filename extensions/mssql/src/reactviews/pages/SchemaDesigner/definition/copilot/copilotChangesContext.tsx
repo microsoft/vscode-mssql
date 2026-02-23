@@ -28,6 +28,9 @@ import {
     processCopilotChanges,
     reconcileTrackedChangesWithSchema,
 } from "./copilotLedger";
+import type { HighlightOverride } from "../changes/useSchemaDesignerChangeState";
+import type { ModifiedColumnHighlight, ModifiedTableHighlight } from "../../diff/diffHighlights";
+import type { SchemaChange } from "../../diff/diffUtils";
 
 export interface CopilotChangesContextProps {
     trackedChanges: CopilotChange[];
@@ -37,6 +40,8 @@ export interface CopilotChangesContextProps {
     canUndoTrackedChange: (index: number) => boolean;
     revealTrackedChange: (index: number) => void;
     clearTrackedChanges: () => void;
+    /** Highlight override containing copilot-specific highlight sets for the graph */
+    copilotHighlightOverride: HighlightOverride;
 }
 
 const CopilotChangesContext = createContext<CopilotChangesContextProps | undefined>(undefined);
@@ -878,6 +883,169 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
         setTrackedChanges([]);
     }, []);
 
+    /**
+     * Compute copilot-specific highlight sets from trackedChanges.
+     * Builds the same data structures consumed by graph components for
+     * highlighting added/modified tables, columns, and foreign keys.
+     * Also builds a lookup map from entity IDs → change indices for
+     * accept/undo actions on the graph.
+     */
+    const copilotHighlightOverride = useMemo((): HighlightOverride => {
+        const copilotNewTableIds = new Set<string>();
+        const copilotNewColumnIds = new Set<string>();
+        const copilotNewForeignKeyIds = new Set<string>();
+        const copilotModifiedForeignKeyIds = new Set<string>();
+        const copilotModifiedColumnHighlights = new Map<string, ModifiedColumnHighlight>();
+        const copilotModifiedTableHighlights = new Map<string, ModifiedTableHighlight>();
+        // Lookup: entity ID → change index (for accept/undo from graph)
+        const entityToChangeIndex = new Map<string, number>();
+
+        for (let i = 0; i < trackedChanges.length; i++) {
+            const change = trackedChanges[i];
+            const entityId = getChangeEntityId(change);
+            if (!entityId) {
+                continue;
+            }
+
+            entityToChangeIndex.set(entityId, i);
+            const tableId = getTableIdFromChange(change);
+            if (tableId) {
+                entityToChangeIndex.set(`table:${tableId}`, i);
+            }
+
+            switch (change.operation) {
+                case CopilotOperation.AddTable:
+                    copilotNewTableIds.add(entityId);
+                    break;
+                case CopilotOperation.SetTable: {
+                    const before = change.before as SchemaDesigner.Table | undefined;
+                    const after = change.after as SchemaDesigner.Table | undefined;
+                    if (before && after) {
+                        const highlight: ModifiedTableHighlight = {};
+                        if (before.name !== after.name) {
+                            highlight.nameChange = {
+                                oldValue: before.name,
+                                newValue: after.name,
+                            };
+                        }
+                        if (before.schema !== after.schema) {
+                            highlight.schemaChange = {
+                                oldValue: before.schema,
+                                newValue: after.schema,
+                            };
+                        }
+                        if (highlight.nameChange || highlight.schemaChange) {
+                            copilotModifiedTableHighlights.set(entityId, highlight);
+                        }
+                    }
+                    break;
+                }
+                case CopilotOperation.AddColumn:
+                    copilotNewColumnIds.add(entityId);
+                    break;
+                case CopilotOperation.SetColumn: {
+                    const before = change.before as SchemaDesigner.Column | undefined;
+                    const after = change.after as SchemaDesigner.Column | undefined;
+                    if (before && after) {
+                        const highlight: ModifiedColumnHighlight = { hasOtherChanges: false };
+                        if (before.name !== after.name) {
+                            highlight.nameChange = {
+                                oldValue: before.name,
+                                newValue: after.name,
+                            };
+                        }
+                        if (before.dataType !== after.dataType) {
+                            highlight.dataTypeChange = {
+                                oldValue: before.dataType,
+                                newValue: after.dataType,
+                            };
+                        }
+                        // Check for other property changes
+                        const beforeRecord = before as unknown as Record<string, unknown>;
+                        const afterRecord = after as unknown as Record<string, unknown>;
+                        const checkProps = [
+                            "isPrimaryKey",
+                            "allowNull",
+                            "defaultValue",
+                            "length",
+                            "precision",
+                            "scale",
+                            "isIdentity",
+                        ];
+                        for (const prop of checkProps) {
+                            if (
+                                JSON.stringify(beforeRecord[prop]) !==
+                                JSON.stringify(afterRecord[prop])
+                            ) {
+                                highlight.hasOtherChanges = true;
+                                break;
+                            }
+                        }
+                        copilotModifiedColumnHighlights.set(entityId, highlight);
+                    }
+                    break;
+                }
+                case CopilotOperation.AddForeignKey:
+                    copilotNewForeignKeyIds.add(entityId);
+                    break;
+                case CopilotOperation.SetForeignKey:
+                    copilotModifiedForeignKeyIds.add(entityId);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Build accept/undo action handlers that map SchemaChange → copilot index
+        const findChangeIndex = (change: SchemaChange): number | undefined => {
+            // Try objectId first (column/FK), then tableId (table-level)
+            if (change.objectId) {
+                return entityToChangeIndex.get(change.objectId);
+            }
+            return entityToChangeIndex.get(`table:${change.tableId}`);
+        };
+
+        const overrideAcceptChange = (change: SchemaChange): void => {
+            const idx = findChangeIndex(change);
+            if (idx !== undefined) {
+                acceptTrackedChange(idx);
+            }
+        };
+
+        const overrideRevertChange = (change: SchemaChange): void => {
+            const idx = findChangeIndex(change);
+            if (idx !== undefined) {
+                void undoTrackedChange(idx);
+            }
+        };
+
+        const overrideCanRevertChange = (
+            change: SchemaChange,
+        ): { canRevert: boolean; reason?: string } => {
+            const idx = findChangeIndex(change);
+            if (idx === undefined) {
+                return { canRevert: false, reason: "Change not found" };
+            }
+            return { canRevert: canUndoTrackedChange(idx) };
+        };
+
+        return {
+            newTableIds: copilotNewTableIds,
+            newColumnIds: copilotNewColumnIds,
+            newForeignKeyIds: copilotNewForeignKeyIds,
+            modifiedForeignKeyIds: copilotModifiedForeignKeyIds,
+            modifiedColumnHighlights: copilotModifiedColumnHighlights,
+            modifiedTableHighlights: copilotModifiedTableHighlights,
+            deletedColumnsByTable: new Map(),
+            deletedForeignKeyEdges: [],
+            baselineColumnOrderByTable: new Map(),
+            deletedTableNodes: [],
+            acceptChange: overrideAcceptChange,
+            revertChange: overrideRevertChange,
+            canRevertChange: overrideCanRevertChange,
+        };
+    }, [trackedChanges, acceptTrackedChange, undoTrackedChange, canUndoTrackedChange]);
+
     const value = useMemo(
         () => ({
             trackedChanges,
@@ -887,11 +1055,13 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             canUndoTrackedChange,
             revealTrackedChange,
             clearTrackedChanges,
+            copilotHighlightOverride,
         }),
         [
             acceptTrackedChange,
             canUndoTrackedChange,
             clearTrackedChanges,
+            copilotHighlightOverride,
             dismissTrackedChange,
             revealTrackedChange,
             trackedChanges,

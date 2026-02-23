@@ -30,6 +30,7 @@ import {
     ArrowUndo16Regular,
     BranchCompare16Regular,
     BranchCompare16Filled,
+    CheckmarkCircle16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -653,8 +654,25 @@ export const SchemaDesignerFlow = () => {
                         top: edgeUndoState.position.y,
                         zIndex: 5,
                         padding: "10px",
+                        display: "flex",
+                        gap: "4px",
+                        alignItems: "center",
                     }}
                     onMouseLeave={() => setEdgeUndoState(null)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(edgeUndoState.change);
+                                    setEdgeUndoState(null);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             edgeUndoState.canRevert

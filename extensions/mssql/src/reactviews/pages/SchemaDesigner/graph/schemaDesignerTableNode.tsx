@@ -200,6 +200,9 @@ const useStyles = makeStyles({
         transform: "translateY(-50%)",
         zIndex: 2,
         padding: "10px",
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
     },
     columnDiffValueGroup: {
         display: "inline-flex",
@@ -257,6 +260,9 @@ const useStyles = makeStyles({
         right: "-25px",
         zIndex: 11,
         padding: "16px",
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
     },
 });
 
@@ -566,6 +572,19 @@ const TableColumn = ({
                     ref={undoWrapperRef}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(columnChange);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             revertInfo?.canRevert
@@ -814,6 +833,19 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                     ref={undoWrapperRef}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}>
+                    {changeContext.acceptChange && tableChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(tableChange);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             revertInfo?.canRevert

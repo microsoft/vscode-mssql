@@ -15,6 +15,7 @@ import { useSchemaDesignerCopilotChangesCustomTab } from "./copilot/schemaDesign
 import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
+import { useCopilotChangesContext } from "./copilot/copilotChangesContext";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const {
@@ -24,7 +25,8 @@ export const SchemaDesignerDefinitionsPanel = () => {
         getDefinition,
         getBaselineDefinition,
     } = useContext(SchemaDesignerContext);
-    const { setShowChangesHighlight } = useSchemaDesignerChangeContext();
+    const { setShowChangesHighlight, setHighlightOverride } = useSchemaDesignerChangeContext();
+    const { copilotHighlightOverride } = useCopilotChangesContext();
     const {
         setCode,
         initializeBaselineDefinition,
@@ -92,18 +94,34 @@ export const SchemaDesignerDefinitionsPanel = () => {
             }, 0);
         }
 
-        if (!isPanelVisible || activeTab !== SchemaDesignerDefinitionPanelTab.Changes) {
+        if (!isPanelVisible) {
             setShowChangesHighlight(false);
+            setHighlightOverride(null);
             return;
         }
 
-        setShowChangesHighlight(true);
+        if (activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
+            setHighlightOverride(null);
+            setShowChangesHighlight(true);
+            return;
+        }
+
+        if (activeTab === SchemaDesignerDefinitionPanelTab.CopilotChanges) {
+            setHighlightOverride(copilotHighlightOverride);
+            setShowChangesHighlight(true);
+            return;
+        }
+
+        setShowChangesHighlight(false);
+        setHighlightOverride(null);
     }, [
         activeTab,
+        copilotHighlightOverride,
         definitionPaneRef,
         getDefinition,
         isDefinitionPanelVisible,
         setCode,
+        setHighlightOverride,
         setShowChangesHighlight,
     ]);
 
@@ -118,8 +136,9 @@ export const SchemaDesignerDefinitionsPanel = () => {
             }}
             onPanelVisibilityChange={(isVisible) => {
                 setIsDefinitionPanelVisible(isVisible);
-                if (!isVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
+                if (!isVisible) {
                     setShowChangesHighlight(false);
+                    setHighlightOverride(null);
                 }
             }}
         />
