@@ -272,7 +272,22 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
     private registerBackupRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            return await disasterRecoveryFormAction<BackupDatabaseFormState>(state, payload);
+            if (payload.event.propertyName === "backupName") {
+                (state.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty = true;
+            }
+            const updatedState = await disasterRecoveryFormAction<BackupDatabaseFormState>(
+                state,
+                payload,
+            );
+            if (
+                payload.event.propertyName === "backupType" &&
+                !(updatedState.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty
+            ) {
+                const splitBackupName = updatedState.formState.backupName.split("_");
+                splitBackupName[1] = updatedState.formState.backupType;
+                updatedState.formState.backupName = splitBackupName.join("_");
+            }
+            return updatedState;
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
@@ -392,7 +407,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
      */
     private getDefaultBackupFileName(state: BackupDatabaseViewModel): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = state.databaseName;
+        let name = `${state.databaseName}_${BackupType.Full}`;
         if (newFiles.length > 0) {
             name += `_${newFiles.length}`;
         }
