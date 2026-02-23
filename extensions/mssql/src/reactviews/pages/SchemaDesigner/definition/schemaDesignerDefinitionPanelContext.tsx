@@ -9,6 +9,7 @@ import { DefinitionPanelController } from "../../../common/definitionPanel";
 export enum SchemaDesignerDefinitionPanelTab {
     Script = "script",
     Changes = "changes",
+    CopilotChanges = "copilotChanges",
 }
 
 export enum SchemaDesignerChangesViewMode {

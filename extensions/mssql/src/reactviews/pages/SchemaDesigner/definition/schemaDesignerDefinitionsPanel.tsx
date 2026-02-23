@@ -11,6 +11,7 @@ import {
     useSchemaDesignerDefinitionPanelContext,
 } from "./schemaDesignerDefinitionPanelContext";
 import { useSchemaDesignerChangesCustomTab } from "./changes/schemaDesignerChangesTab";
+import { useSchemaDesignerCopilotChangesCustomTab } from "./aiChanges/schemaDesignerCopilotChangesTab";
 import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
@@ -37,7 +38,8 @@ export const SchemaDesignerDefinitionsPanel = () => {
     const isDabEnabled = enableDAB ?? false;
     const scriptTab = useSchemaDesignerScriptTab();
     const changesCustomTab = useSchemaDesignerChangesCustomTab();
-    const customTabs = isDabEnabled ? [changesCustomTab] : [];
+    const copilotChangesCustomTab = useSchemaDesignerCopilotChangesCustomTab();
+    const customTabs = isDabEnabled ? [changesCustomTab, copilotChangesCustomTab] : [];
 
     useEffect(() => {
         const isChangesTabActive = activeTab === SchemaDesignerDefinitionPanelTab.Changes;

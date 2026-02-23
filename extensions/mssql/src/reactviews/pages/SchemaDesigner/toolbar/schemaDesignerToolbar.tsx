@@ -13,6 +13,7 @@ import { AutoArrangeButton } from "./autoArrangeButton";
 import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
 import { ShowChangesButton } from "./showChangesButton";
+import { ShowCopilotChangesButton } from "./showCopilotChangesButton";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
 
@@ -57,6 +58,7 @@ export function SchemaDesignerToolbar() {
                     <>
                         <ToolbarDivider />
                         <ShowChangesButton />
+                        <ShowCopilotChangesButton />
                     </>
                 )}
             </Toolbar>
