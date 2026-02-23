@@ -109,11 +109,12 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
      * Throws on service failure or mapping errors — caught by loadRules.
      */
     private async fetchRulesFromDacFx(): Promise<SqlCodeAnalysisRule[]> {
+        const rulesResult = await this.dacFxService.getCodeAnalysisRules();
+        if (!rulesResult.success) {
+            throw new Error(rulesResult.errorMessage || Loc.failedToLoadRules);
+        }
+
         try {
-            const rulesResult = await this.dacFxService.getCodeAnalysisRules();
-            if (!rulesResult.success) {
-                throw new Error(rulesResult.errorMessage || Loc.failedToLoadRules);
-            }
             return (rulesResult.rules ?? []).map((rule) => {
                 const severity = this.normalizeSeverity(rule.severity);
                 return {
@@ -127,8 +128,8 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     ruleScope: rule.ruleScope,
                 };
             });
-        } catch (error) {
-            throw new Error(`${Loc.failedToLoadRules}: ${getErrorMessage(error)}`);
+        } catch {
+            throw new Error(Loc.failedToLoadRules);
         }
     }
 
