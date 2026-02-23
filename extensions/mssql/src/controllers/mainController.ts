@@ -550,40 +550,7 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommand(SchemaDesigner.openCopilotAgentCommand);
             this._event.on(SchemaDesigner.openCopilotAgentCommand, async () => {
-                const sendSchemaDesignerChatEntryTelemetry = (
-                    success: boolean,
-                    reason?: "noActiveDesigner" | "chatCommandMissing",
-                ) => {
-                    sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
-                        entryPoint: "schemaDesignerToolbar",
-                        mode: "agent",
-                        success: success.toString(),
-                        ...(reason ? { reason } : {}),
-                    });
-                };
-
-                if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
-                    sendSchemaDesignerChatEntryTelemetry(false, "noActiveDesigner");
-                    this._vscodeWrapper.showErrorMessage(
-                        LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
-                    );
-                    return;
-                }
-
-                const chatCommand = await this.findChatOpenAgentCommand();
-                if (!chatCommand) {
-                    sendSchemaDesignerChatEntryTelemetry(false, "chatCommandMissing");
-                    this._vscodeWrapper.showErrorMessage(
-                        LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
-                    );
-                    return;
-                }
-
-                await vscode.commands.executeCommand(
-                    chatCommand,
-                    Prompts.schemaDesignerAgentPrompt,
-                );
-                sendSchemaDesignerChatEntryTelemetry(true);
+                await this.openSchemaDesignerCopilotChat();
             });
 
             // -- NEW QUERY WITH CONNECTION (Copilot) --
@@ -920,6 +887,40 @@ export default class MainController implements vscode.Disposable {
         }
 
         return undefined;
+    }
+
+    private async openSchemaDesignerCopilotChat(): Promise<void> {
+        const sendSchemaDesignerChatEntryTelemetry = (
+            success: boolean,
+            reason?: "noActiveDesigner" | "chatCommandMissing",
+        ) => {
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
+                entryPoint: "schemaDesignerToolbar",
+                mode: "agent",
+                success: success.toString(),
+                ...(reason ? { reason } : {}),
+            });
+        };
+
+        if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
+            sendSchemaDesignerChatEntryTelemetry(false, "noActiveDesigner");
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
+            );
+            return;
+        }
+
+        const chatCommand = await this.findChatOpenAgentCommand();
+        if (!chatCommand) {
+            sendSchemaDesignerChatEntryTelemetry(false, "chatCommandMissing");
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
+            );
+            return;
+        }
+
+        await vscode.commands.executeCommand(chatCommand, Prompts.schemaDesignerAgentPrompt);
+        sendSchemaDesignerChatEntryTelemetry(true);
     }
 
     public get context(): vscode.ExtensionContext {
