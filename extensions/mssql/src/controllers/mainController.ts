@@ -119,6 +119,7 @@ import { FlatFileImportWebviewController } from "./flatFileImportWebviewControll
 import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 
 /**
  * The main controller class that initializes the extension
@@ -547,8 +548,8 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
-            this.registerCommand(Constants.cmdSchemaDesignerOpenCopilotAgent);
-            this._event.on(Constants.cmdSchemaDesignerOpenCopilotAgent, async () => {
+            this.registerCommand(SchemaDesigner.openCopilotAgentCommand);
+            this._event.on(SchemaDesigner.openCopilotAgentCommand, async () => {
                 const sendSchemaDesignerChatEntryTelemetry = (
                     success: boolean,
                     reason?: "noActiveDesigner" | "chatCommandMissing",

@@ -26,6 +26,7 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
+import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 chai.use(sinonChai);
 
@@ -728,7 +729,7 @@ suite("MainController Tests", function () {
             );
             (SchemaDesignerWebviewManager.getInstance() as any)._activeDesigner = undefined;
 
-            (mainController as any)._event.emit(Constants.cmdSchemaDesignerOpenCopilotAgent);
+            (mainController as any)._event.emit(SchemaDesigner.openCopilotAgentCommand);
             await flushAsyncHandlers();
 
             expect(findChatOpenAgentCommandStub).to.not.have.been.called;

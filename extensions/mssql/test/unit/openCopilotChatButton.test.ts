@@ -9,6 +9,7 @@ import * as React from "react";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { locConstants } from "../../src/reactviews/common/locConstants";
+import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { ExecuteCommandRequest } from "../../src/sharedInterfaces/webview";
 
 chai.use(sinonChai);
@@ -78,7 +79,7 @@ suite("OpenCopilotChatButton", () => {
         await buttonElement.props.onClick();
 
         expect(sendRequestStub).to.have.been.calledOnceWith(ExecuteCommandRequest.type, {
-            command: "mssql.schemaDesigner.openCopilotAgent",
+            command: SchemaDesigner.openCopilotAgentCommand,
         });
     });
 });

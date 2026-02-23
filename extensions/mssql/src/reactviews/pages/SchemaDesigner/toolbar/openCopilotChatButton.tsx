@@ -6,12 +6,11 @@
 import { Button, Tooltip } from "@fluentui/react-components";
 import { Chat16Regular } from "@fluentui/react-icons";
 import { useContext } from "react";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { ExecuteCommandRequest } from "../../../../sharedInterfaces/webview";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
-
-const schemaDesignerOpenCopilotAgentCommand = "mssql.schemaDesigner.openCopilotAgent";
 
 export function OpenCopilotChatButton() {
     const context = useContext(SchemaDesignerContext);
@@ -32,7 +31,7 @@ export function OpenCopilotChatButton() {
                 icon={<Chat16Regular />}
                 onClick={async () => {
                     await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                        command: schemaDesignerOpenCopilotAgentCommand,
+                        command: SchemaDesigner.openCopilotAgentCommand,
                     });
                 }}>
                 {locConstants.schemaDesigner.openCopilotForSchemaDesigner}

@@ -6,6 +6,8 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 
 export namespace SchemaDesigner {
+    export const openCopilotAgentCommand = "mssql.schemaDesigner.openCopilotAgent";
+
     /**
      * Represents a schema model
      * This is the schema model that is used to create the schema designer
