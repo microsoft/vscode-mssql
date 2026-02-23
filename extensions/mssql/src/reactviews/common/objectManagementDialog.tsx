@@ -58,6 +58,7 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-editor-background)",
         borderTop: "1px solid var(--vscode-editorGroup-border)",
         padding: "12px 24px",
+        zIndex: 1,
     },
     footerInner: {
         maxWidth: "min(720px, 100%)",

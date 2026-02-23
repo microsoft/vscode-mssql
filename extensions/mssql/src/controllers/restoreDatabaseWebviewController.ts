@@ -145,9 +145,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreConfigInfo.sourceDatabaseNamesWithBackupSets.includes(this.databaseName)
         ) {
             this.state.formState.sourceDatabaseName = this.databaseName;
-        } else {
+        } else if (restoreConfigInfo.sourceDatabaseNamesWithBackupSets.length > 0) {
             this.state.formState.sourceDatabaseName =
                 restoreConfigInfo.sourceDatabaseNamesWithBackupSets[0];
+        } else {
+            this.state.formComponents["sourceDatabaseName"].placeholder =
+                LocConstants.RestoreDatabase.noDatabasesWithBackups;
         }
 
         // Populate options for target database dropdown based on databases in the server
@@ -320,13 +323,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                     ?.filter((_, index) => payload.selectedBackupSets.includes(index))
                     .map((backupSet) => backupSet.id) ?? [];
 
-            if (restoreViewModel.selectedBackupSets.length) {
-                state.formState.closeExistingConnections = true;
-            } else {
-                state.formState.closeExistingConnections =
-                    restoreViewModel.restorePlan.planDetails.closeExistingConnections.defaultValue;
-            }
-
             return this.updateViewModel(restoreViewModel, state);
         });
 
@@ -435,11 +431,13 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             }),
 
             targetDatabaseName: createFormItem({
-                type: FormItemType.Dropdown,
+                type: FormItemType.Combobox,
                 propertyName: "targetDatabaseName",
                 label: LocConstants.RestoreDatabase.targetDatabase,
-                required: true,
                 options: [],
+                componentProps: {
+                    freeform: true,
+                },
             }),
 
             accountId: createFormItem({
@@ -756,7 +754,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         restoreViewModel.restorePlan = plan;
 
         const sourceDatabaseName = plan.planDetails.sourceDatabaseName.currentValue;
-        const targetDatabaseName = plan.planDetails.targetDatabaseName.currentValue;
 
         if (
             sourceDatabaseName &&
@@ -767,14 +764,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             state.formState.sourceDatabaseName = sourceDatabaseName;
         }
 
-        if (
-            targetDatabaseName &&
-            state.formComponents["targetDatabaseName"].options.some(
-                (o) => o.value === targetDatabaseName,
-            )
-        ) {
-            state.formState.targetDatabaseName = targetDatabaseName;
-        }
+        state.formState.targetDatabaseName =
+            plan.planDetails.targetDatabaseName.currentValue || state.formState.targetDatabaseName;
+
         state.formState.standbyFile = plan.planDetails.standbyFile?.currentValue || "";
         state.formState.tailLogBackupFile = plan.planDetails.tailLogBackupFile?.currentValue || "";
 

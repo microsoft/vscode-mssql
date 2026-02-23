@@ -1328,7 +1328,7 @@
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
         <source xml:lang="en">Code Analysis Settings (Preview)</source>
-        <target state="new">Code Analysis Settings (Preview)</target>
+        <target state="translated">Параметры Code Analysis (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
         <source xml:lang="en">Convert to SDK-style project</source>

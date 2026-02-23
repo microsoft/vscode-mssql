@@ -51,7 +51,7 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
 };
 
 const AZURE_DATA_STUDIO_MIGRATION_VIEW_ID = "azureDataStudioMigration";
-const KEYMAP_EXTENSION_LINK = "https://aka.ms/vscode-mssql-keymap";
+const KEYMAP_EXTENSION_ID = "ms-mssql.mssql-database-management-keymap";
 
 const EXCLUDED_SETTINGS = new Set<string>([
     // Exclude logging-related settings
@@ -424,7 +424,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         });
 
         this.onNotification(OpenKeymapLinkNotification.type, async () => {
-            await vscode.env.openExternal(vscode.Uri.parse(KEYMAP_EXTENSION_LINK));
+            await vscode.commands.executeCommand("extension.open", KEYMAP_EXTENSION_ID);
         });
     }
 
