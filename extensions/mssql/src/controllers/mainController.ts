@@ -1220,6 +1220,25 @@ export default class MainController implements vscode.Disposable {
 
         const escapeSingleQuotes = (value: string): string => value.replace(/'/g, "''");
 
+        /**
+         * Checks if the given node is a server node that is scoped to a database.
+         */
+        const isDatabaseScopedServerNode = (node: TreeNodeInfo): boolean =>
+            node.nodeType === Constants.serverLabel &&
+            (node.context.subType === Constants.databaseString ||
+                node.context.subType === Constants.dockerContainerDatabase);
+
+        const isNodeOfTypeAndSubType = (
+            node: TreeNodeInfo,
+            type: string,
+            subType?: string,
+        ): boolean =>
+            node.context.type === type &&
+            (subType === undefined || node.context.subType === subType);
+
+        const isDatabasesFolderNode = (node: TreeNodeInfo): boolean =>
+            isNodeOfTypeAndSubType(node, Constants.folderLabel, Constants.databasesSubNodeType);
+
         const findServerNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
             let current = node;
             while (current) {
@@ -1229,6 +1248,54 @@ export default class MainController implements vscode.Disposable {
                 current = current.parentNode;
             }
             return undefined;
+        };
+
+        const findNodeInChildren = (
+            children?: vscode.TreeItem[],
+            type: string = Constants.folderLabel,
+            subType?: string,
+        ): TreeNodeInfo | undefined =>
+            children?.find(
+                (child): child is TreeNodeInfo =>
+                    child instanceof TreeNodeInfo && isNodeOfTypeAndSubType(child, type, subType),
+            );
+
+        const refreshAndExpandFolder = async (
+            parentNode: TreeNodeInfo,
+            folderSubType: string,
+            folderNode?: TreeNodeInfo,
+        ): Promise<void> => {
+            let resolvedFolderNode = folderNode;
+            if (!resolvedFolderNode && parentNode.sessionId) {
+                const parentChildren = await this._objectExplorerProvider.expandNode(
+                    parentNode,
+                    parentNode.sessionId,
+                );
+                resolvedFolderNode = findNodeInChildren(
+                    parentChildren,
+                    Constants.folderLabel,
+                    folderSubType,
+                );
+            }
+
+            if (!resolvedFolderNode) {
+                await refreshNodeChildren(parentNode);
+                return;
+            }
+
+            await refreshNodeChildren(resolvedFolderNode);
+            if (resolvedFolderNode.sessionId) {
+                await this._objectExplorerProvider.expandNode(
+                    resolvedFolderNode,
+                    resolvedFolderNode.sessionId,
+                );
+            }
+
+            if (this.objectExplorerTree) {
+                await this.objectExplorerTree.reveal(resolvedFolderNode, {
+                    expand: true,
+                });
+            }
         };
 
         this._context.subscriptions.push(
@@ -1243,11 +1310,10 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const isDatabasesFolder =
-                        targetNode.context.type === Constants.folderLabel &&
-                        targetNode.context.subType === "Databases";
+                    const isDatabasesFolder = isDatabasesFolderNode(targetNode);
                     const serverNode =
-                        targetNode.nodeType === Constants.serverLabel
+                        targetNode.nodeType === Constants.serverLabel &&
+                        !isDatabaseScopedServerNode(targetNode)
                             ? targetNode
                             : isDatabasesFolder
                               ? findServerNode(targetNode)
@@ -1285,7 +1351,19 @@ export default class MainController implements vscode.Disposable {
                     controller.revealToForeground();
                     const createdDatabase = await controller.dialogResult.promise;
                     if (createdDatabase) {
-                        await refreshNodeChildren(isDatabasesFolder ? targetNode : serverNode);
+                        if (isDatabasesFolder) {
+                            await refreshAndExpandFolder(
+                                serverNode,
+                                Constants.databasesSubNodeType,
+                                targetNode,
+                            );
+                        } else {
+                            await refreshNodeChildren(serverNode);
+                            await refreshAndExpandFolder(
+                                serverNode,
+                                Constants.databasesSubNodeType,
+                            );
+                        }
                     }
                 },
             ),

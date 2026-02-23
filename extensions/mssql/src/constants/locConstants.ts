@@ -2672,13 +2672,31 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
-    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationTitle = l10n.t(
+        "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    );
     public static adsMigrationDescription = l10n.t(
-        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+        "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
     public static editDataTitle = l10n.t("Edit Data (Preview)");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchDescription = l10n.t(
+        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    );
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreDescription = l10n.t(
+        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    );
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementDescription = l10n.t(
+        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    );
+    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerDescription = l10n.t(
+        "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
@@ -2686,7 +2704,7 @@ export class Changelog {
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
     public static sqlProjPublishDescription = l10n.t(
         "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
