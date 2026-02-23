@@ -31,6 +31,7 @@ import {
 import type { HighlightOverride } from "../changes/useSchemaDesignerChangeState";
 import type { ModifiedColumnHighlight, ModifiedTableHighlight } from "../../diff/diffHighlights";
 import type { SchemaChange } from "../../diff/diffUtils";
+import { locConstants } from "../../../../common/locConstants";
 
 export interface CopilotChangesContextProps {
     trackedChanges: CopilotChange[];
@@ -42,9 +43,48 @@ export interface CopilotChangesContextProps {
     clearTrackedChanges: () => void;
     /** Highlight override containing copilot-specific highlight sets for the graph */
     copilotHighlightOverride: HighlightOverride;
+    /** Current review index (maps to the reversed/ordered list, most recent first) */
+    reviewIndex: number;
+    /** Set the current review index */
+    setReviewIndex: (index: number) => void;
+    /** Navigate to the next change in the review */
+    reviewNext: () => void;
+    /** Navigate to the previous change in the review */
+    reviewPrev: () => void;
+    /** Get the summary text for a tracked change at the given source index */
+    getChangeSummaryText: (sourceIndex: number) => string;
 }
 
 const CopilotChangesContext = createContext<CopilotChangesContextProps | undefined>(undefined);
+
+type CopilotAction = "add" | "delete" | "modify";
+type CopilotEntity = "table" | "column" | "foreignKey";
+
+/** Map a CopilotOperation to its action + entity kind. */
+const getOperationMeta = (
+    operation: CopilotOperation,
+): { action: CopilotAction; entity: CopilotEntity } => {
+    switch (operation) {
+        case CopilotOperation.AddTable:
+            return { action: "add", entity: "table" };
+        case CopilotOperation.DropTable:
+            return { action: "delete", entity: "table" };
+        case CopilotOperation.SetTable:
+            return { action: "modify", entity: "table" };
+        case CopilotOperation.AddColumn:
+            return { action: "add", entity: "column" };
+        case CopilotOperation.DropColumn:
+            return { action: "delete", entity: "column" };
+        case CopilotOperation.SetColumn:
+            return { action: "modify", entity: "column" };
+        case CopilotOperation.AddForeignKey:
+            return { action: "add", entity: "foreignKey" };
+        case CopilotOperation.DropForeignKey:
+            return { action: "delete", entity: "foreignKey" };
+        case CopilotOperation.SetForeignKey:
+            return { action: "modify", entity: "foreignKey" };
+    }
+};
 
 type CopilotTrackedEntity =
     | SchemaDesigner.Table
@@ -778,9 +818,12 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
     }, []);
 
     const acceptTrackedChange = useCallback((index: number) => {
-        setTrackedChanges((currentTrackedChanges) =>
-            removeChangesByIndexGroup(currentTrackedChanges, index),
-        );
+        setTrackedChanges((currentTrackedChanges) => {
+            if (index < 0 || index >= currentTrackedChanges.length) {
+                return currentTrackedChanges;
+            }
+            return currentTrackedChanges.filter((_, i) => i !== index);
+        });
     }, []);
 
     const canUndoTrackedChange = useCallback(
@@ -1046,6 +1089,70 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
         };
     }, [trackedChanges, acceptTrackedChange, undoTrackedChange, canUndoTrackedChange]);
 
+    // ── Review toolbar state ──────────────────────────────────────────
+    const [reviewIndex, setReviewIndex] = useState(0);
+
+    // Clamp reviewIndex when trackedChanges length changes
+    useEffect(() => {
+        setReviewIndex((current) =>
+            trackedChanges.length === 0 ? 0 : Math.min(current, trackedChanges.length - 1),
+        );
+    }, [trackedChanges.length]);
+
+    const reviewNext = useCallback(() => {
+        if (trackedChanges.length === 0) {
+            return;
+        }
+        setReviewIndex((current) => Math.min(current + 1, trackedChanges.length - 1));
+    }, [trackedChanges.length]);
+
+    const reviewPrev = useCallback(() => {
+        setReviewIndex((current) => Math.max(current - 1, 0));
+    }, []);
+
+    /** Build a human-readable summary for a tracked change at the given source index. */
+    const getChangeSummaryText = useCallback(
+        (sourceIndex: number): string => {
+            const change = trackedChanges[sourceIndex];
+            if (!change) {
+                return "";
+            }
+
+            const opMeta = getOperationMeta(change.operation);
+            const actionText =
+                opMeta.action === "add"
+                    ? locConstants.schemaDesigner.changesPanel.added
+                    : opMeta.action === "delete"
+                      ? locConstants.schemaDesigner.changesPanel.deleted
+                      : locConstants.schemaDesigner.changesPanel.modified;
+            const entityText =
+                opMeta.entity === "foreignKey"
+                    ? locConstants.schemaDesigner.changesPanel.foreignKeyCategory
+                    : opMeta.entity === "column"
+                      ? locConstants.schemaDesigner.changesPanel.columnCategory
+                      : locConstants.schemaDesigner.changesPanel.tableCategory;
+
+            const obj = (change.after ?? change.before) as
+                | SchemaDesigner.Table
+                | SchemaDesigner.Column
+                | SchemaDesigner.ForeignKey
+                | undefined;
+
+            let name = "Unknown";
+            if (obj) {
+                if (opMeta.entity === "table") {
+                    const t = obj as SchemaDesigner.Table;
+                    name = `[${t.schema}].[${t.name}]`;
+                } else {
+                    name = (obj as { name?: string }).name ?? "Unknown";
+                }
+            }
+
+            return `${actionText} ${entityText}: ${name}`;
+        },
+        [trackedChanges],
+    );
+
     const value = useMemo(
         () => ({
             trackedChanges,
@@ -1056,6 +1163,11 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             revealTrackedChange,
             clearTrackedChanges,
             copilotHighlightOverride,
+            reviewIndex,
+            setReviewIndex,
+            reviewNext,
+            reviewPrev,
+            getChangeSummaryText,
         }),
         [
             acceptTrackedChange,
@@ -1063,7 +1175,11 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             clearTrackedChanges,
             copilotHighlightOverride,
             dismissTrackedChange,
+            getChangeSummaryText,
             revealTrackedChange,
+            reviewIndex,
+            reviewNext,
+            reviewPrev,
             trackedChanges,
             undoTrackedChange,
         ],

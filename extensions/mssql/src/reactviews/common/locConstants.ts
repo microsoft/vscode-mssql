@@ -943,12 +943,8 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
-            showChangesButtonLabel: (changeCount: number) =>
-                l10n.t({
-                    message: "Show Changes ({0})",
-                    args: [changeCount],
-                    comment: ["{0} is the number of schema changes"],
-                }),
+            showChangesButtonLabel: l10n.t("Show Changes"),
+            showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
@@ -957,7 +953,12 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
-            copilotChangesPanelTitle: l10n.t("Copilot Changes"),
+            copilotChangesPanelTitle: (changeCount: number) =>
+                l10n.t({
+                    message: "Copilot Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of copilot changes"],
+                }),
             noChangesYet: l10n.t("No changes yet."),
             noChangesYetSubtitle: l10n.t("Edit your schema to see changes here."),
             schemaChangeInTable: (qualifiedTableName: string, changeDescription: string) =>
@@ -1136,6 +1137,17 @@ export class LocConstants {
                     }),
             },
             accept: l10n.t("Accept"),
+            reject: l10n.t("Reject"),
+            reviewingCopilotChange: l10n.t("Reviewing Copilot Change"),
+            changeNofM: (current: number, total: number) =>
+                l10n.t({
+                    message: "Change {0} of {1}",
+                    args: [current, total],
+                    comment: [
+                        "{0} is the current change number",
+                        "{1} is the total number of changes",
+                    ],
+                }),
 
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),

@@ -282,10 +282,13 @@ const SchemaDesignerCopilotChangesContent = () => {
         acceptTrackedChange,
         undoTrackedChange,
         canUndoTrackedChange,
+        reviewIndex,
+        setReviewIndex,
     } = useCopilotChangesContext();
     const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
     const listRef = useRef<HTMLDivElement | null>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
+    const activeIndex = reviewIndex;
+    const setActiveIndex = setReviewIndex;
     const [undoing, setUndoing] = useState<Record<number, boolean>>({});
 
     const orderedChanges = useMemo(
@@ -301,11 +304,12 @@ const SchemaDesignerCopilotChangesContent = () => {
     });
     const virtualItems = virtualizer.getVirtualItems();
 
+    // Scroll the card list when the shared reviewIndex changes (e.g. via toolbar nav)
     useEffect(() => {
-        setActiveIndex((current) =>
-            orderedChanges.length === 0 ? 0 : Math.min(current, orderedChanges.length - 1),
-        );
-    }, [orderedChanges.length]);
+        if (activeIndex >= 0 && activeIndex < orderedChanges.length) {
+            virtualizer.scrollToIndex(activeIndex, { align: "auto" });
+        }
+    }, [activeIndex, orderedChanges.length, virtualizer]);
 
     const focusCard = useCallback(
         (index: number) => {
@@ -491,13 +495,16 @@ const SchemaDesignerCopilotChangesContent = () => {
 };
 
 export const useSchemaDesignerCopilotChangesCustomTab = () => {
+    const { trackedChanges } = useCopilotChangesContext();
+    const changeCount = trackedChanges.length;
+
     return useMemo(
         () => ({
             id: SchemaDesignerDefinitionPanelTab.CopilotChanges,
-            label: locConstants.schemaDesigner.copilotChangesPanelTitle || "Copilot Changes",
+            label: locConstants.schemaDesigner.copilotChangesPanelTitle(changeCount),
             headerActions: undefined,
             content: <SchemaDesignerCopilotChangesContent />,
         }),
-        [],
+        [changeCount],
     );
 };

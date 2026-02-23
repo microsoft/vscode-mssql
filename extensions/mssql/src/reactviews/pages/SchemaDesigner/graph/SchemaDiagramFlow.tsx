@@ -66,6 +66,7 @@ import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { CopilotReviewToolbar } from "./copilotReviewToolbar";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -491,6 +492,7 @@ export const SchemaDesignerFlow = () => {
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
+            <CopilotReviewToolbar />
             <ReactFlow
                 nodes={displayNodes}
                 edges={displayEdges}

@@ -42,11 +42,7 @@ export function ShowChangesButton() {
     }
 
     return (
-        <Tooltip
-            content={locConstants.schemaDesigner.showChangesButtonLabel(
-                changeContext.schemaChangesCount,
-            )}
-            relationship="label">
+        <Tooltip content={locConstants.schemaDesigner.showChangesButtonLabel} relationship="label">
             <span className={classes.container}>
                 <Button
                     appearance="subtle"
@@ -55,9 +51,7 @@ export function ShowChangesButton() {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Changes);
                     }}
                     icon={<BranchCompare16Regular />}>
-                    {locConstants.schemaDesigner.showChangesButtonLabel(
-                        changeContext.schemaChangesCount,
-                    )}
+                    {locConstants.schemaDesigner.showChangesButtonLabel}
                 </Button>
                 {changeContext.schemaChangesCount > 0 && (
                     <Badge size="small" className={classes.badge}>
