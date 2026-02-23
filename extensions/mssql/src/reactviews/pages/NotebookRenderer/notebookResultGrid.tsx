@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
+import { NotebookCellSelectionModel } from "./notebookCellSelectionModel.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
 import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
 import type { IDbColumn, DbCellValue } from "../../../sharedInterfaces/queryResult";
@@ -203,6 +204,12 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
 
         const headerMenu = new NotebookHeaderMenu<Slick.SlickData>();
         grid.registerPlugin(headerMenu);
+
+        // Register cell selection model for multi-cell selection
+        const selectionModel = new NotebookCellSelectionModel({
+            hasRowSelector: true,
+        });
+        grid.setSelectionModel(selectionModel);
 
         // Now set columns — this triggers header rendering with plugins active
         grid.setColumns(columns);
