@@ -71,7 +71,7 @@ suite("Query Runner tests", () => {
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
-        (QueryRunner as any)._runningQueries = [];
+        QueryRunner["_runningQueries"] = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
             vscode.Uri.parse(value),
@@ -512,27 +512,27 @@ suite("Query Runner tests", () => {
             resolve: sandbox.stub(),
             reject: sandbox.stub(),
         };
-        (queryRunner as any)._uriToQueryPromiseMap.set(oldUri, deferred as any);
-        (queryRunner as any)._uriToQueryStringMap.set(oldUri, "SELECT 1");
-        (queryRunner as any)._isExecuting = true;
-        (queryRunner as any)._registeredNotificationUris.add(oldUri);
-        (QueryRunner as any)._runningQueries = [vscode.Uri.parse(oldUri).fsPath];
+        queryRunner["_uriToQueryPromiseMap"].set(oldUri, deferred as any);
+        queryRunner["_uriToQueryStringMap"].set(oldUri, "SELECT 1");
+        queryRunner["_isExecuting"] = true;
+        queryRunner["_registeredNotificationUris"].add(oldUri);
+        queryRunner["_runningQueries"] = [vscode.Uri.parse(oldUri).fsPath];
 
         const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
         queryRunner.updateQueryRunnerUri(oldUri, newUri);
 
-        expect((queryRunner as any)._uriToQueryPromiseMap.has(oldUri)).to.be.false;
-        expect((queryRunner as any)._uriToQueryPromiseMap.get(newUri)).to.equal(deferred);
-        expect((queryRunner as any)._uriToQueryStringMap.has(oldUri)).to.be.false;
-        expect((queryRunner as any)._uriToQueryStringMap.get(newUri)).to.equal("SELECT 1");
+        expect(queryRunner["_uriToQueryPromiseMap"].has(oldUri)).to.be.false;
+        expect(queryRunner["_uriToQueryPromiseMap"].get(newUri)).to.equal(deferred);
+        expect(queryRunner["_uriToQueryStringMap"].has(oldUri)).to.be.false;
+        expect(queryRunner["_uriToQueryStringMap"].get(newUri)).to.equal("SELECT 1");
         expect(testQueryNotificationHandler.unregisterRunner).to.not.have.been.called;
         expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnceWith(
             queryRunner,
             newUri,
         );
-        expect((queryRunner as any)._registeredNotificationUris.has(oldUri)).to.be.true;
-        expect((queryRunner as any)._registeredNotificationUris.has(newUri)).to.be.true;
+        expect(queryRunner["_registeredNotificationUris"].has(oldUri)).to.be.true;
+        expect(queryRunner["_registeredNotificationUris"].has(newUri)).to.be.true;
         expect(queryRunner.uri).to.equal(newUri);
         expect(testSqlToolsServerClient.sendNotification).to.have.been.calledOnceWith(
             QueryExecuteContracts.QueryConnectionUriChangeRequest.type,
@@ -548,7 +548,7 @@ suite("Query Runner tests", () => {
 
     test("handleQueryComplete unregisters all registered notification URI aliases", () => {
         const queryRunner = createQueryRunner("file:///a.sql", "a.sql");
-        (queryRunner as any)._registeredNotificationUris = new Set([
+        queryRunner["_registeredNotificationUris"] = new Set([
             "file:///old.sql",
             "file:///new.sql",
         ]);
@@ -566,7 +566,7 @@ suite("Query Runner tests", () => {
         expect(testQueryNotificationHandler.unregisterRunner).to.have.been.calledWith(
             "file:///new.sql",
         );
-        expect((queryRunner as any)._registeredNotificationUris.size).to.equal(0);
+        expect(queryRunner["_registeredNotificationUris"].size).to.equal(0);
     });
 
     test("runStatement sends correct request with execution plan options", async () => {
