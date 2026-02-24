@@ -4,12 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Tooltip, makeStyles, mergeClasses } from "@fluentui/react-components";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    Tooltip,
+    makeStyles,
+    mergeClasses,
+} from "@fluentui/react-components";
 import {
     AddRegular,
     ArrowUndo16Regular,
-    CheckmarkCircle16Filled,
     Checkmark24Regular,
+    CheckmarkCircle16Filled,
     DeleteRegular,
     EditRegular,
 } from "@fluentui/react-icons";
@@ -308,8 +319,13 @@ const SchemaDesignerCopilotChangesContent = () => {
     useEffect(() => {
         if (activeIndex >= 0 && activeIndex < orderedChanges.length) {
             virtualizer.scrollToIndex(activeIndex, { align: "auto" });
+            // Also reveal the corresponding table/FK in the diagram
+            const item = orderedChanges[activeIndex];
+            if (item) {
+                revealTrackedChange(item.sourceIndex);
+            }
         }
-    }, [activeIndex, orderedChanges.length, virtualizer]);
+    }, [activeIndex, orderedChanges, revealTrackedChange, virtualizer]);
 
     const focusCard = useCallback(
         (index: number) => {
@@ -494,17 +510,81 @@ const SchemaDesignerCopilotChangesContent = () => {
     );
 };
 
+const useStyles2 = makeStyles({
+    headerActions: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+});
+
+const CopilotChangesHeaderActions: React.FC = () => {
+    const { acceptAllTrackedChanges, undoAllTrackedChanges, isUndoingAll } =
+        useCopilotChangesContext();
+    const headerClasses = useStyles2();
+    const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
+
+    return (
+        <>
+            <div className={headerClasses.headerActions}>
+                <Button
+                    appearance="primary"
+                    size="small"
+                    disabled={isUndoingAll}
+                    onClick={acceptAllTrackedChanges}>
+                    {locConstants.schemaDesigner.acceptAll}
+                </Button>
+                <Button
+                    appearance="secondary"
+                    size="small"
+                    disabled={isUndoingAll}
+                    onClick={() => setIsUndoDialogOpen(true)}>
+                    {locConstants.schemaDesigner.undoAll}
+                </Button>
+            </div>
+            <Dialog
+                open={isUndoDialogOpen}
+                onOpenChange={(_event, data) => setIsUndoDialogOpen(data.open)}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{locConstants.schemaDesigner.undoAllConfirmation}</DialogTitle>
+                        <DialogContent>
+                            {locConstants.schemaDesigner.undoAllConfirmationContent}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    setIsUndoDialogOpen(false);
+                                    void undoAllTrackedChanges();
+                                }}>
+                                {locConstants.schemaDesigner.undoAll}
+                            </Button>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setIsUndoDialogOpen(false)}>
+                                {locConstants.schemaDesigner.cancel}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+        </>
+    );
+};
+
 export const useSchemaDesignerCopilotChangesCustomTab = () => {
     const { trackedChanges } = useCopilotChangesContext();
     const changeCount = trackedChanges.length;
+    const hasChanges = changeCount > 0;
 
     return useMemo(
         () => ({
             id: SchemaDesignerDefinitionPanelTab.CopilotChanges,
             label: locConstants.schemaDesigner.copilotChangesPanelTitle(changeCount),
-            headerActions: undefined,
+            headerActions: hasChanges ? <CopilotChangesHeaderActions /> : undefined,
             content: <SchemaDesignerCopilotChangesContent />,
         }),
-        [changeCount],
+        [changeCount, hasChanges],
     );
 };

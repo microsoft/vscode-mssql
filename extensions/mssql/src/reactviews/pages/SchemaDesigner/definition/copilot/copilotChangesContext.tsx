@@ -33,6 +33,10 @@ import type { HighlightOverride } from "../changes/useSchemaDesignerChangeState"
 import type { ModifiedColumnHighlight, ModifiedTableHighlight } from "../../diff/diffHighlights";
 import type { SchemaChange } from "../../diff/diffUtils";
 import { locConstants } from "../../../../common/locConstants";
+import {
+    SchemaDesignerDefinitionPanelTab,
+    useSchemaDesignerDefinitionPanelContext,
+} from "../schemaDesignerDefinitionPanelContext";
 
 export interface CopilotChangesContextProps {
     trackedChanges: CopilotChange[];
@@ -42,6 +46,12 @@ export interface CopilotChangesContextProps {
     canUndoTrackedChange: (index: number) => boolean;
     revealTrackedChange: (index: number) => void;
     clearTrackedChanges: () => void;
+    /** Accept all tracked changes (removes them from the list without undoing) */
+    acceptAllTrackedChanges: () => void;
+    /** Undo all tracked changes that can be undone, then clear the rest */
+    undoAllTrackedChanges: () => Promise<void>;
+    /** Whether an undo-all operation is currently in progress */
+    isUndoingAll: boolean;
     /** Highlight override containing copilot-specific highlight sets for the graph */
     copilotHighlightOverride: HighlightOverride;
     /** Current review index (maps to the reversed/ordered list, most recent first) */
@@ -710,8 +720,13 @@ const removeChangesByIndexGroup = (changes: CopilotChange[], index: number): Cop
 
 export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
+    const { toggleDefinitionPanel, definitionPaneRef, setActiveTab } =
+        useSchemaDesignerDefinitionPanelContext();
     const [trackedChanges, setTrackedChanges] = useState<CopilotChange[]>([]);
     const copilotBatchCounterRef = useRef(0);
+
+    // Review toolbar state — declared early so applyEdits can focus new batches
+    const [reviewIndex, setReviewIndex] = useState(0);
 
     const buildApplyEditsHandler = useCallback(
         () =>
@@ -771,15 +786,41 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
                         ...change,
                         groupId,
                     }));
-                    setTrackedChanges((currentTrackedChanges) =>
-                        processCopilotChanges(groupedBatch, currentTrackedChanges, postSchema),
-                    );
+                    setTrackedChanges((currentTrackedChanges) => {
+                        const merged = processCopilotChanges(
+                            groupedBatch,
+                            currentTrackedChanges,
+                            postSchema,
+                        );
+
+                        // Focus on the first item of the new batch
+                        const firstNewIndex = merged.findIndex((c) => c.groupId === groupId);
+                        if (firstNewIndex >= 0) {
+                            setReviewIndex(firstNewIndex);
+                        }
+
+                        return merged;
+                    });
+
+                    // Open the Copilot Changes panel so the user sees the new batch
+                    const panel = definitionPaneRef.current;
+                    if (panel?.isCollapsed()) {
+                        toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.CopilotChanges);
+                    } else {
+                        setActiveTab(SchemaDesignerDefinitionPanelTab.CopilotChanges);
+                    }
                 }
             }
 
             return response;
         },
-        [buildApplyEditsHandler, schemaDesignerContext.extractSchema],
+        [
+            buildApplyEditsHandler,
+            schemaDesignerContext.extractSchema,
+            definitionPaneRef,
+            toggleDefinitionPanel,
+            setActiveTab,
+        ],
     );
 
     useEffect(() => {
@@ -921,6 +962,54 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
     const clearTrackedChanges = useCallback(() => {
         setTrackedChanges([]);
     }, []);
+
+    /** Accept all tracked changes — removes them from the list without undoing. */
+    const acceptAllTrackedChanges = useCallback(() => {
+        setTrackedChanges([]);
+    }, []);
+
+    const [isUndoingAll, setIsUndoingAll] = useState(false);
+
+    /**
+     * Undo all tracked changes smartly:
+     * 1. Process changes in reverse chronological order (newest first) so
+     *    dependent entities (e.g. FKs referencing a newly-added table) are
+     *    removed before the entities they depend on.
+     * 2. Collect undo edits for every change that CAN be undone, skipping
+     *    non-undoable ones (e.g. DropTable).
+     * 3. Apply all collected edits in a single batch.
+     * 4. Clear all tracked changes (including non-undoable ones).
+     */
+    const undoAllTrackedChanges = useCallback(async () => {
+        if (trackedChanges.length === 0) {
+            return;
+        }
+
+        setIsUndoingAll(true);
+        try {
+            const currentSchema = schemaDesignerContext.extractSchema();
+            const edits: SchemaDesigner.SchemaDesignerEdit[] = [];
+
+            // Walk changes newest → oldest so dependent entities are undone first
+            for (let i = trackedChanges.length - 1; i >= 0; i--) {
+                const change = trackedChanges[i];
+                const undoEdits = buildUndoEditsForChange(change, currentSchema);
+                if (undoEdits && undoEdits.length > 0) {
+                    edits.push(...undoEdits);
+                }
+                // Non-undoable changes (e.g. DropTable) are silently skipped
+            }
+
+            if (edits.length > 0) {
+                await applyEdits({ edits }, false);
+            }
+
+            // Clear all tracked changes regardless of undo success
+            setTrackedChanges([]);
+        } finally {
+            setIsUndoingAll(false);
+        }
+    }, [applyEdits, schemaDesignerContext, trackedChanges]);
 
     /**
      * Compute copilot-specific highlight sets from trackedChanges.
@@ -1085,8 +1174,7 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
         };
     }, [trackedChanges, acceptTrackedChange, undoTrackedChange, canUndoTrackedChange]);
 
-    // ── Review toolbar state ──────────────────────────────────────────
-    const [reviewIndex, setReviewIndex] = useState(0);
+    // ── Review toolbar navigation ─────────────────────────────────────
 
     // Clamp reviewIndex when trackedChanges length changes
     useEffect(() => {
@@ -1158,6 +1246,9 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             canUndoTrackedChange,
             revealTrackedChange,
             clearTrackedChanges,
+            acceptAllTrackedChanges,
+            undoAllTrackedChanges,
+            isUndoingAll,
             copilotHighlightOverride,
             reviewIndex,
             setReviewIndex,
@@ -1166,17 +1257,20 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
             getChangeSummaryText,
         }),
         [
+            acceptAllTrackedChanges,
             acceptTrackedChange,
             canUndoTrackedChange,
             clearTrackedChanges,
             copilotHighlightOverride,
             dismissTrackedChange,
             getChangeSummaryText,
+            isUndoingAll,
             revealTrackedChange,
             reviewIndex,
             reviewNext,
             reviewPrev,
             trackedChanges,
+            undoAllTrackedChanges,
             undoTrackedChange,
         ],
     );

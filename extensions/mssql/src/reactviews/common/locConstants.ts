@@ -1137,6 +1137,12 @@ export class LocConstants {
                     }),
             },
             accept: l10n.t("Accept"),
+            acceptAll: l10n.t("Accept All"),
+            undoAll: l10n.t("Undo All"),
+            undoAllConfirmation: l10n.t("Undo All Copilot Changes"),
+            undoAllConfirmationContent: l10n.t(
+                "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
+            ),
             reject: l10n.t("Reject"),
             reviewingCopilotChange: l10n.t("Reviewing Copilot Change"),
             changeNofM: (current: number, total: number) =>
