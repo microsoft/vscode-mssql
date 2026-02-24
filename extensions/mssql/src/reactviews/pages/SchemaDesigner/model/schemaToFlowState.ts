@@ -11,27 +11,6 @@ export interface FlowComponents {
     edges: Edge<SchemaDesigner.ForeignKey>[];
 }
 
-type ForeignKeyInput = SchemaDesigner.ForeignKey & {
-    columnsIds?: string[];
-    referencedColumnsIds?: string[];
-};
-
-const toStrictForeignKey = (foreignKey: ForeignKeyInput): SchemaDesigner.ForeignKey => ({
-    ...foreignKey,
-    columnsIds: foreignKey.columnsIds ?? foreignKey.columnsIds ?? [],
-    referencedColumnsIds: foreignKey.referencedColumnsIds ?? foreignKey.referencedColumnsIds ?? [],
-});
-
-const toStrictSchema = (schema: SchemaDesigner.Schema): SchemaDesigner.Schema => ({
-    tables: (schema.tables ?? []).map((table) => ({
-        ...table,
-        columns: table.columns ?? [],
-        foreignKeys: (table.foreignKeys ?? []).map((foreignKey) =>
-            toStrictForeignKey(foreignKey as ForeignKeyInput),
-        ),
-    })),
-});
-
 export function buildFlowComponentsFromSchema(schema: SchemaDesigner.Schema): FlowComponents {
     if (!schema) {
         return {
@@ -40,8 +19,7 @@ export function buildFlowComponentsFromSchema(schema: SchemaDesigner.Schema): Fl
         };
     }
 
-    const strictSchema = toStrictSchema(schema);
-    const tables = strictSchema.tables ?? [];
+    const tables = schema.tables ?? [];
     const tableById = new Map(tables.map((table) => [table.id, table]));
 
     const nodes: Node<SchemaDesigner.Table>[] = tables.map((table) => ({
