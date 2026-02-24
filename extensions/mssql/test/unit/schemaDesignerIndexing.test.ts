@@ -12,7 +12,7 @@ import {
     getForeignKeyById,
     getTableById,
     getTableByQualifiedName,
-} from "../../src/reactviews/pages/SchemaDesigner/model/schemaDesignerIndexing";
+} from "../../src/reactviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner indexing", () => {
     function buildSchema(): SchemaDesigner.Schema {
