@@ -34,7 +34,7 @@ import { SchemaDesignerChangesEmptyState } from "../changes/schemaDesignerChange
 
 type CopilotAction = "add" | "modify" | "delete";
 type CopilotEntity = "table" | "column" | "foreignKey";
-const CARD_WIDTH_PX = 236;
+const CARD_WIDTH_PX = 200;
 const CARD_GAP_PX = 16;
 const LIST_PADDING_PX = 12;
 const VIRTUAL_OVERSCAN = 4;
@@ -79,7 +79,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "8px",
-        minHeight: "100px",
+        minHeight: "120px",
         transition: "border-color 0.15s ease, box-shadow 0.15s ease",
         "&:hover": {
             border: "1px solid var(--vscode-focusBorder)",
