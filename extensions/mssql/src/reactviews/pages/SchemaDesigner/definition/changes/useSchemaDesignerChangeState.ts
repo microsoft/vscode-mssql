@@ -59,9 +59,9 @@ export interface HighlightOverride {
     modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
     modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
     deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
-    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[];
     baselineColumnOrderByTable: Map<string, string[]>;
-    deletedTableNodes: Node<SchemaDesigner.Table>[];
+    deletedTableNodes: Node<SchemaDesigner.TableWithDeletedFlag>[];
     /** Override for revertChange when copilot highlights are active */
     revertChange?: (change: SchemaChange) => void;
     /** Override for canRevertChange when copilot highlights are active */
@@ -80,9 +80,9 @@ export interface SchemaDesignerChangeContextProps {
     modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
     modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
     deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
-    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[];
     baselineColumnOrderByTable: Map<string, string[]>;
-    deletedTableNodes: Node<SchemaDesigner.Table>[];
+    deletedTableNodes: Node<SchemaDesigner.TableWithDeletedFlag>[];
     schemaChangesCount: number;
     schemaChangesSummary: SchemaChangesSummary | undefined;
     structuredSchemaChanges: SchemaChange[];
@@ -118,12 +118,14 @@ export const useSchemaDesignerChangeState = (
         Map<string, SchemaDesigner.Column[]>
     >(new Map());
     const [deletedForeignKeyEdges, setDeletedForeignKeyEdges] = useState<
-        Edge<SchemaDesigner.ForeignKey>[]
+        Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[]
     >([]);
     const [baselineColumnOrderByTable, setBaselineColumnOrderByTable] = useState<
         Map<string, string[]>
     >(new Map());
-    const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
+    const [deletedTableNodes, setDeletedTableNodes] = useState<
+        Node<SchemaDesigner.TableWithDeletedFlag>[]
+    >([]);
     const [highlightOverride, setHighlightOverride] = useState<HighlightOverride | undefined>(
         undefined,
     );

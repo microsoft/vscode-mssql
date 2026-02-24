@@ -1094,6 +1094,69 @@ suite("SchemaDesignerTool Tests", () => {
             });
         });
 
+        test("normalizes drop+add foreign key pair into set_foreign_key", async () => {
+            const startSchema = mockSchema;
+            const expectedVersion = computeSchemaVersion(startSchema);
+
+            const edits: SchemaDesigner.SchemaDesignerEdit[] = [
+                {
+                    op: "drop_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: { id: "fk-1", name: "" },
+                } as any,
+                {
+                    op: "add_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: {
+                        name: "FK_Orders_Customers_OrderID",
+                        referencedTable: { schema: "dbo", name: "Customers" },
+                        mappings: [{ column: "OrderID", referencedColumn: "CustomerID" }],
+                        onDeleteAction: SchemaDesigner.OnAction.CASCADE,
+                        onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                    },
+                } as any,
+            ];
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.revealToForeground = sandbox.stub() as any;
+            mockDesigner.getSchemaState.resolves(startSchema);
+            mockDesigner.applyEdits.resolves({
+                success: true,
+                appliedEdits: 1,
+                schema: startSchema,
+            });
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion,
+                        edits,
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.receipt.appliedEdits).to.equal(1);
+            expect(parsedResult.receipt.warnings).to.have.length(1);
+            expect(parsedResult.receipt.changes.foreignKeysUpdated).to.have.length(1);
+
+            expect(mockDesigner.applyEdits.calledOnce).to.equal(true);
+            const appliedPayload = mockDesigner.applyEdits.getCall(0).args[0];
+            expect(appliedPayload.edits).to.have.length(1);
+            expect(appliedPayload.edits[0].op).to.equal("set_foreign_key");
+            expect((appliedPayload.edits[0] as any).foreignKey.id).to.equal("fk-1");
+        });
+
         test("includes per-edit op counts and summarizes all edit types", async () => {
             const startSchema = mockSchema;
             const expectedVersion = computeSchemaVersion(startSchema);
@@ -1142,7 +1205,7 @@ suite("SchemaDesignerTool Tests", () => {
                     op: "set_foreign_key",
                     table: { schema: "dbo", name: "Orders" },
                     foreignKey: { name: "FK_Orders_Parent" },
-                    set: { name: "FK_Orders_Parent2" },
+                    name: "FK_Orders_Parent2",
                 } as any,
             ];
 

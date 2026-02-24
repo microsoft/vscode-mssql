@@ -32,80 +32,85 @@ const useStyles = makeStyles({
         borderRadius: "6px",
     },
     surface: {
-        padding: "16px",
-        minWidth: "520px",
+        padding: "10px",
+        minWidth: "460px",
         backgroundColor: "var(--vscode-editorWidget-background)",
         border: "1px solid var(--vscode-editorWidget-border)",
-        borderRadius: "12px",
+        borderRadius: "10px",
         boxShadow: "var(--vscode-widget-shadow)",
     },
     header: {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "12px",
-        marginBottom: "12px",
+        gap: "8px",
+        marginBottom: "8px",
     },
     headerLeft: {
         display: "flex",
         alignItems: "center",
-        gap: "12px",
+        gap: "8px",
         minWidth: 0,
     },
     headerIcon: {
         color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
     },
     headerTitle: {
-        fontSize: "16px",
+        fontSize: "14px",
         fontWeight: 600,
         color: "var(--vscode-foreground)",
     },
     headerBadge: {
-        fontSize: "12px",
+        fontSize: "11px",
         fontWeight: 600,
-        padding: "4px 10px",
-        borderRadius: "8px",
+        padding: "2px 8px",
+        borderRadius: "6px",
         backgroundColor:
             "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 18%, transparent)",
         whiteSpace: "nowrap",
     },
     closeButton: {
-        minWidth: "32px",
-        height: "32px",
-        borderRadius: "8px",
+        minWidth: "24px",
+        height: "24px",
+        borderRadius: "6px",
     },
     gridHeader: {
         display: "grid",
         gridTemplateColumns: "1.1fr 1fr 1fr",
-        gap: "12px",
-        fontSize: "12px",
+        gap: "8px",
+        fontSize: "11px",
         fontWeight: 600,
         color: "var(--vscode-descriptionForeground)",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
-        marginBottom: "8px",
+        marginBottom: "4px",
+    },
+    rowsContainer: {
+        maxHeight: "132px",
+        overflowY: "auto",
+        overflowX: "hidden",
     },
     row: {
         display: "grid",
         gridTemplateColumns: "1.1fr 1fr 1fr",
-        gap: "12px",
+        gap: "8px",
         alignItems: "center",
-        padding: "8px 0",
+        padding: "5px 0",
         borderTop: "1px solid var(--vscode-editorWidget-border)",
     },
     propertyName: {
         color: "var(--vscode-foreground)",
-        fontSize: "13px",
+        fontSize: "12px",
     },
     valuePill: {
-        padding: "4px 10px",
-        borderRadius: "8px",
-        fontSize: "12px",
+        padding: "2px 8px",
+        borderRadius: "6px",
+        fontSize: "11px",
         fontWeight: 600,
         display: "inline-flex",
         alignItems: "center",
-        gap: "6px",
-        minHeight: "24px",
+        gap: "4px",
+        minHeight: "20px",
         width: "fit-content",
     },
     beforeValue: {
@@ -207,19 +212,26 @@ export const SchemaDesignerChangeDetailsPopover = ({
                         {locConstants.schemaDesigner.changesPanel.noPropertyChanges}
                     </div>
                 ) : (
-                    propertyChanges.map((propertyChange) => (
-                        <div key={propertyChange.property} className={classes.row}>
-                            <span className={classes.propertyName}>
-                                {propertyChange.displayName}
-                            </span>
-                            <span className={mergeClasses(classes.valuePill, classes.beforeValue)}>
-                                {formatSchemaDesignerChangeValue(propertyChange.oldValue)}
-                            </span>
-                            <span className={mergeClasses(classes.valuePill, classes.afterValue)}>
-                                {formatSchemaDesignerChangeValue(propertyChange.newValue)}
-                            </span>
-                        </div>
-                    ))
+                    <div className={classes.rowsContainer}>
+                        {propertyChanges.map((propertyChange) => (
+                            <div key={propertyChange.property} className={classes.row}>
+                                <span className={classes.propertyName}>
+                                    {propertyChange.displayName}
+                                </span>
+                                <span
+                                    className={mergeClasses(
+                                        classes.valuePill,
+                                        classes.beforeValue,
+                                    )}>
+                                    {formatSchemaDesignerChangeValue(propertyChange.oldValue)}
+                                </span>
+                                <span
+                                    className={mergeClasses(classes.valuePill, classes.afterValue)}>
+                                    {formatSchemaDesignerChangeValue(propertyChange.newValue)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 )}
             </PopoverSurface>
         </Popover>

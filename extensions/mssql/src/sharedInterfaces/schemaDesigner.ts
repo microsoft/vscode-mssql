@@ -508,6 +508,13 @@ export namespace SchemaDesigner {
         onUpdateAction: number;
     }
 
+    export type ForeignKeySet = Partial<
+        Pick<ForeignKeyCreate, "name" | "onDeleteAction" | "onUpdateAction"> & {
+            referencedTable: TableRef;
+            mappings: ForeignKeyMapping[];
+        }
+    >;
+
     export type SchemaDesignerEdit =
         | { op: "add_table"; table: TableRef; initialColumns?: ColumnCreate[] }
         | { op: "drop_table"; table: TableRef }
@@ -517,17 +524,11 @@ export namespace SchemaDesigner {
         | { op: "set_column"; table: TableRef; column: ColumnRef; set: Partial<ColumnCreate> }
         | { op: "add_foreign_key"; table: TableRef; foreignKey: ForeignKeyCreate }
         | { op: "drop_foreign_key"; table: TableRef; foreignKey: ForeignKeyRef }
-        | {
+        | ({
               op: "set_foreign_key";
               table: TableRef;
               foreignKey: ForeignKeyRef;
-              set: Partial<
-                  Pick<ForeignKeyCreate, "name" | "onDeleteAction" | "onUpdateAction"> & {
-                      referencedTable: TableRef;
-                      mappings: ForeignKeyMapping[];
-                  }
-              >;
-          };
+          } & ForeignKeySet);
 
     export interface ApplyEditsWebviewParams {
         edits: SchemaDesignerEdit[];

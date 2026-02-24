@@ -238,6 +238,7 @@ const propertyLabel = (propertyName: string): string => {
         case "isPrimaryKey":
             return locConstants.schemaDesigner.copilotPrimaryKey;
         case "allowNull":
+        case "isNullable":
             return locConstants.schemaDesigner.copilotAllowNull;
         default:
             return propertyName;
@@ -275,6 +276,7 @@ const getPropertyChanges = (change: CopilotChange): PropertyChange[] => {
             "isPrimaryKey",
             "defaultValue",
             "length",
+            "maxLength",
             "precision",
             "scale",
             "isIdentity",

@@ -429,12 +429,49 @@ suite("schemaDesignerRpcHandlers", () => {
                 op: "set_foreign_key",
                 table: { schema: "dbo", name: "T1" },
                 foreignKey: { name: "FK_missing" },
-                set: { name: "FK_new" },
+                name: "FK_new",
             } as any,
         ]);
 
         expect(result.success).to.equal(false);
         expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key accepts simplified top-level update fields", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_T2_T1",
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [fk] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: { id: "fk1", name: "FK_T2_T1" },
+                name: "FK_T2_T1_Updated",
+                onDeleteAction: SchemaDesigner.OnAction.CASCADE,
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedForeignKey = getSchema()
+            .tables.find((table) => table.id === "t2")
+            ?.foreignKeys.find((foreignKey) => foreignKey.id === "fk1");
+        expect(updatedForeignKey?.name).to.equal("FK_T2_T1_Updated");
+        expect(updatedForeignKey?.onDeleteAction).to.equal(SchemaDesigner.OnAction.CASCADE);
     });
 
     test("add_foreign_key fails when source table is missing (covers resolvedTable.success===false)", async () => {
@@ -490,7 +527,7 @@ suite("schemaDesignerRpcHandlers", () => {
                 op: "set_foreign_key",
                 table: { schema: "dbo", name: "Missing" },
                 foreignKey: { name: "FK_missing" },
-                set: { name: "FK_new" },
+                name: "FK_new",
             } as any,
         ]);
 
@@ -608,7 +645,7 @@ suite("schemaDesignerRpcHandlers", () => {
                 op: "set_foreign_key",
                 table: { schema: "dbo", name: "T2" },
                 foreignKey: { name: "FK_T2_T1" },
-                set: { referencedTable: { schema: "dbo", name: "Missing" } },
+                referencedTable: { schema: "dbo", name: "Missing" },
             } as any,
         ]);
 
@@ -645,7 +682,7 @@ suite("schemaDesignerRpcHandlers", () => {
                 op: "set_foreign_key",
                 table: { schema: "dbo", name: "T2" },
                 foreignKey: { name: "FK_T2_Missing" },
-                set: { mappings: [{ column: "Id", referencedColumn: "Id" }] },
+                mappings: [{ column: "Id", referencedColumn: "Id" }],
             } as any,
         ]);
 
@@ -677,7 +714,7 @@ suite("schemaDesignerRpcHandlers", () => {
                 op: "set_foreign_key",
                 table: { schema: "dbo", name: "T2" },
                 foreignKey: { name: "FK_T2_T1" },
-                set: { mappings: [] },
+                mappings: [],
             } as any,
         ]);
 
@@ -709,7 +746,7 @@ suite("schemaDesignerRpcHandlers", () => {
                 op: "set_foreign_key",
                 table: { schema: "dbo", name: "T2" },
                 foreignKey: { name: "FK_T2_T1" },
-                set: { mappings: [{}] },
+                mappings: [{}],
             } as any,
         ]);
 
