@@ -5,8 +5,6 @@
 
 .notebook-result-grid-container {
     width: 100%;
-    max-height: 500px;
-    overflow: auto;
     position: relative;
     font-family: var(--vscode-editor-font-family, monospace);
     font-size: var(--vscode-editor-font-size, 12px);
