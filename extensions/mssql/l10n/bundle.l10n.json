@@ -766,6 +766,10 @@
         "comment": ["{0} is the number of changes"]
     },
     "Accept": "Accept",
+    "Accept All": "Accept All",
+    "Undo All": "Undo All",
+    "Undo All Copilot Changes": "Undo All Copilot Changes",
+    "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.": "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
     "Reject": "Reject",
     "Reviewing Copilot Change": "Reviewing Copilot Change",
     "Change {0} of {1}/{0} is the current change number{1} is the total number of changes": {

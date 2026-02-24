@@ -90,6 +90,9 @@
     <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
       <source xml:lang="en">Accept</source>
     </trans-unit>
+    <trans-unit id="++CODE++3e86b1723088cc27e8589fe3f3a24b4ceb5d70f2d857414e77ff2580a688724c">
+      <source xml:lang="en">Accept All</source>
+    </trans-unit>
     <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
       <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
     </trans-unit>
@@ -356,6 +359,9 @@
     <trans-unit id="++CODE++8a6ddc1941c7b1576cc5674f2969dde12347408d66861ed151f2ed506588f42c">
       <source xml:lang="en">Are you sure you want to remove {0}?</source>
       <note>{0} is the node label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++aa77fc627924038ff6102753f77884b3fac27ed5e3f422e7b96ea681cb99a417">
+      <source xml:lang="en">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</source>
     </trans-unit>
     <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
       <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -5910,6 +5916,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ee88bcfd6a2821d3cc887bbe2dd847b85c2f59a4b3e217be73ac5222802c95e">
+      <source xml:lang="en">Undo All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47bfaa5d500415abb1304d2f26f8faf8874320419d65476c51968c75a7ba088a">
+      <source xml:lang="en">Undo All Copilot Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
       <source xml:lang="en">Unfreeze columns</source>
