@@ -8,7 +8,7 @@ import type { Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
-import { columnUtils, flowUtils, foreignKeyUtils, tableUtils } from "./schemaDesignerUtils";
+import { columnUtils, foreignKeyUtils, layoutFlowComponents, tableUtils } from "./model";
 
 export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 5;
 export const TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD = 3;
@@ -81,14 +81,40 @@ export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Tabl
     }
 
     const normalizedColumns = table.columns.map((column) => normalizeColumn(column));
+    const columnIdByName = new Map(normalizedColumns.map((column) => [column.name, column.id]));
 
     const normalizedForeignKeys = Array.isArray(table.foreignKeys)
-        ? table.foreignKeys.map((fk) => ({
-              ...fk,
-              id: fk.id || uuidv4(),
-              columns: Array.isArray(fk.columns) ? fk.columns : [],
-              referencedColumns: Array.isArray(fk.referencedColumns) ? fk.referencedColumns : [],
-          }))
+        ? table.foreignKeys.map((fk) => {
+              const legacyForeignKey = fk as unknown as {
+                  columns?: string[];
+                  referencedColumns?: string[];
+                  referencedTableName?: string;
+              };
+
+              const normalizedColumnIds = Array.isArray(fk.columnIds)
+                  ? fk.columnIds
+                  : Array.isArray(legacyForeignKey.columns)
+                    ? legacyForeignKey.columns
+                          .map((columnName) => columnIdByName.get(columnName) ?? "")
+                          .filter((columnId) => columnId !== "")
+                    : [];
+
+              const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnIds)
+                  ? fk.referencedColumnIds
+                  : Array.isArray(legacyForeignKey.referencedColumns)
+                    ? legacyForeignKey.referencedColumns
+                    : [];
+
+              const normalizedReferencedTableId = fk.referencedTableId || "";
+
+              return {
+                  ...fk,
+                  id: fk.id || uuidv4(),
+                  columnIds: normalizedColumnIds,
+                  referencedTableId: normalizedReferencedTableId,
+                  referencedColumnIds: normalizedReferencedColumnIds,
+              };
+          })
         : [];
 
     return {
@@ -115,6 +141,10 @@ export const validateTable = (
         tables: [...schema.tables.filter((t) => t.id !== table.id), table],
     };
 
+    const referencedTableIdByName = new Map(
+        normalizedSchema.tables.map((schemaTable) => [schemaTable.name, schemaTable.id]),
+    );
+
     const nameError = tableUtils.tableNameValidationError(normalizedSchema, table);
     if (nameError) {
         return nameError;
@@ -128,16 +158,41 @@ export const validateTable = (
     }
 
     for (const fk of table.foreignKeys) {
-        if (fk.columns.length === 0 || fk.referencedColumns.length === 0) {
+        const legacyForeignKey = fk as unknown as {
+            referencedTableName?: string;
+        };
+
+        const referencedTableId =
+            fk.referencedTableId ||
+            (legacyForeignKey.referencedTableName
+                ? referencedTableIdByName.get(legacyForeignKey.referencedTableName) || ""
+                : "");
+
+        const normalizedForeignKey: SchemaDesigner.ForeignKey = {
+            ...fk,
+            referencedTableId,
+            columnIds: Array.isArray(fk.columnIds) ? fk.columnIds : [],
+            referencedColumnIds: Array.isArray(fk.referencedColumnIds)
+                ? fk.referencedColumnIds
+                : [],
+        };
+
+        if (
+            normalizedForeignKey.columnIds.length === 0 ||
+            normalizedForeignKey.referencedColumnIds.length === 0
+        ) {
             return locConstants.schemaDesigner.foreignKeyMappingRequired;
         }
-        if (fk.columns.length !== fk.referencedColumns.length) {
+        if (
+            normalizedForeignKey.columnIds.length !==
+            normalizedForeignKey.referencedColumnIds.length
+        ) {
             return locConstants.schemaDesigner.foreignKeyMappingLengthMismatch;
         }
         const foreignKeyErrors = foreignKeyUtils.isForeignKeyValid(
             normalizedSchema.tables,
             table,
-            fk,
+            normalizedForeignKey,
         );
         if (!foreignKeyErrors.isValid) {
             return foreignKeyErrors.errorMessage ?? locConstants.schemaDesigner.invalidForeignKey;
@@ -174,7 +229,7 @@ export function useMaybeAutoArrangeForToolBatch(params: {
 
             const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
             const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-            const generateComponenets = flowUtils.generatePositions(nodes, edges);
+            const generateComponenets = layoutFlowComponents(nodes, edges);
             reactFlow.setNodes(generateComponenets.nodes);
             reactFlow.setEdges(generateComponenets.edges);
             resetView();
