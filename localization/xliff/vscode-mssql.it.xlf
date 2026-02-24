@@ -120,6 +120,10 @@
         <source xml:lang="en">Accept</source>
         <target state="translated">Accetta</target>
       </trans-unit>
+      <trans-unit id="++CODE++3e86b1723088cc27e8589fe3f3a24b4ceb5d70f2d857414e77ff2580a688724c">
+        <source xml:lang="en">Accept All</source>
+        <target state="new">Accept All</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
         <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
         <target state="translated">Accettare il contratto di licenza di SQL Server per distribuire un contenitore Docker di SQL Server</target>
@@ -314,6 +318,10 @@
         <source xml:lang="en">Allow Nulls</source>
         <target state="translated">Consenti valori Null</target>
       </trans-unit>
+      <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
+        <source xml:lang="en">Allow null</source>
+        <target state="new">Allow null</target>
+      </trans-unit>
       <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
         <source xml:lang="en">Allow this extension to access your connections</source>
         <target state="translated">Consentire a questa estensione di accedere alle tue connessioni</target>
@@ -472,6 +480,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Are you sure you want to remove {0}?</source>
         <note>{0} is the node label</note>
         <target state="translated">Rimuovere {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa77fc627924038ff6102753f77884b3fac27ed5e3f422e7b96ea681cb99a417">
+        <source xml:lang="en">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</source>
+        <target state="new">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</target>
       </trans-unit>
       <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
         <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -944,6 +956,12 @@ Seleziona "{0}" per stabilire una connessione.</target>
 {2} is the database name</note>
         <target state="translated">Modificare il database in "{2}" per la connessione "{0}" (ID: {1})?</target>
       </trans-unit>
+      <trans-unit id="++CODE++03e884ddf92692afa483662c376c0ddbe134c6b0e73c8506a40d7731d2f9fe3d">
+        <source xml:lang="en">Change {0} of {1}</source>
+        <note>{0} is the current change number
+{1} is the total number of changes</note>
+        <target state="new">Change {0} of {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
         <target state="translated">Tabelle modificate</target>
@@ -991,6 +1009,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
 {1} is the connection ID
 {2} is the database name</note>
         <target state="translated">Modifica del database in "{2}" per la connessione "{0}" (ID: {1})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++460b3a7da007b7af9d35bca54181dc91382263b2bf133ca214871ca1fed1fc1c">
+        <source xml:lang="en">Chat</source>
+        <target state="new">Chat</target>
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
@@ -1722,6 +1744,15 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Copied to clipboard</source>
         <target state="translated">Copiato negli Appunti</target>
       </trans-unit>
+      <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
+        <source xml:lang="en">Copilot Changes</source>
+        <target state="new">Copilot Changes</target>
+      </trans-unit>
+      <trans-unit id="++CODE++623971e6013bb7ca0de198ee8a596add57884bbf22821d9574acab573cd8ca7a">
+        <source xml:lang="en">Copilot Changes ({0})</source>
+        <note>{0} is the number of copilot changes</note>
+        <target state="new">Copilot Changes ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
         <target state="translated">Copia</target>
@@ -2033,6 +2064,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++b38a72417c43cfd4c4b1d08d6877fe572934f1c8b321347af7ff1d06a47b2238">
         <source xml:lang="en">Data file folder</source>
         <target state="translated">Cartella file di dati</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51fb172a8d569d8820009c7a05d941da1d7ecc21f5248c355fbd7b50899c4c7d">
+        <source xml:lang="en">Data type</source>
+        <target state="new">Data type</target>
       </trans-unit>
       <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
         <source xml:lang="en">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</source>
@@ -3645,6 +3680,10 @@ Errore:
       <trans-unit id="++CODE++3c0d499ad57dfbf4d649d9b69968eb325bd3389658018c1bd887fb1c7a7c9aae">
         <source xml:lang="en">Foreign key column mappings must be the same length.</source>
         <target state="translated">I mapping della colonna chiave esterna devono avere la stessa lunghezza.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++734fe7596bed714a9902c100524bdcd5e92d18970daa3d1f7776394185b7e211">
+        <source xml:lang="en">Foreign keys</source>
+        <target state="new">Foreign keys</target>
       </trans-unit>
       <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
         <source xml:lang="en">Formula</source>
@@ -5331,6 +5370,10 @@ Errore:
         <source xml:lang="en">Open Containing Folder</source>
         <target state="translated">Apri cartella superiore</target>
       </trans-unit>
+      <trans-unit id="++CODE++6bcb323d511607dca30c45a57b338635a4000f776e096397505e7ba5051a410a">
+        <source xml:lang="en">Open Copilot Chat</source>
+        <target state="new">Open Copilot Chat</target>
+      </trans-unit>
       <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
         <source xml:lang="en">Open File</source>
         <target state="translated">Apri file</target>
@@ -5686,6 +5729,10 @@ Errore:
         <source xml:lang="en">Primary Key Columns</source>
         <target state="translated">Colonne chiave primaria</target>
       </trans-unit>
+      <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
+        <source xml:lang="en">Primary key</source>
+        <target state="new">Primary key</target>
+      </trans-unit>
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">Informativa sulla privacy</target>
@@ -5984,6 +6031,18 @@ Errore:
         <note>{0} is the column name</note>
         <target state="translated">Colonna di riferimento '{0}' non trovata</target>
       </trans-unit>
+      <trans-unit id="++CODE++379d2eaa80ebde0d69484f3d26df5ee45336d941fd6173c91708a997f9f017b6">
+        <source xml:lang="en">Referenced columns</source>
+        <target state="new">Referenced columns</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f42e7cb49016fa824e41c1f7fdf957665ad22c0b8621c28b1fe956ecb3af5cde">
+        <source xml:lang="en">Referenced schema</source>
+        <target state="new">Referenced schema</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0ef2471661442a695e9e07fcfc1addd4da56f83fc076649fb2dcfc5b4865fbe2">
+        <source xml:lang="en">Referenced table</source>
+        <target state="new">Referenced table</target>
+      </trans-unit>
       <trans-unit id="++CODE++797ad1e737f00e56b04c2d4140e177a26977d3a90e9ea84cb65016e21c50113f">
         <source xml:lang="en">Referenced table '{0}' not found</source>
         <note>{0} is the table name</note>
@@ -6000,6 +6059,10 @@ Errore:
       <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
         <source xml:lang="en">Refresh dataset</source>
         <target state="translated">Aggiorna set di dati</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
+        <source xml:lang="en">Reject</source>
+        <target state="new">Reject</target>
       </trans-unit>
       <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
         <source xml:lang="en">Reliability</source>
@@ -6205,6 +6268,10 @@ Errore:
       <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">Ripristina valori predefiniti del progetto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
+        <source xml:lang="en">Reviewing Copilot Change</source>
+        <target state="new">Reviewing Copilot Change</target>
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
@@ -6949,10 +7016,9 @@ Query: {2}</target>
         <source xml:lang="en">Show All</source>
         <target state="translated">Mostra tutto</target>
       </trans-unit>
-      <trans-unit id="++CODE++dcbf82a20d3f8aa6064bc6fb7d8fdbca30e2444075d3055ccf3346f8be51dc26">
-        <source xml:lang="en">Show Changes ({0})</source>
-        <note>{0} is the number of schema changes</note>
-        <target state="translated">Mostra modifiche ({0})</target>
+      <trans-unit id="++CODE++edd969c69f64aff645b3027bab51746e3b4b8bbafdc573981df42125e9e85dbe">
+        <source xml:lang="en">Show Changes</source>
+        <target state="new">Show Changes</target>
       </trans-unit>
       <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
         <source xml:lang="en">Show Confirm Password</source>
@@ -7794,6 +7860,14 @@ Query: {2}</target>
         <source xml:lang="en">Undo</source>
         <target state="translated">Annulla</target>
       </trans-unit>
+      <trans-unit id="++CODE++0ee88bcfd6a2821d3cc887bbe2dd847b85c2f59a4b3e217be73ac5222802c95e">
+        <source xml:lang="en">Undo All</source>
+        <target state="new">Undo All</target>
+      </trans-unit>
+      <trans-unit id="++CODE++47bfaa5d500415abb1304d2f26f8faf8874320419d65476c51968c75a7ba088a">
+        <source xml:lang="en">Undo All Copilot Changes</source>
+        <target state="new">Undo All Copilot Changes</target>
+      </trans-unit>
       <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
         <source xml:lang="en">Unfreeze columns</source>
         <target state="translated">Sblocca colonne</target>
@@ -8473,6 +8547,12 @@ Query: {2}</target>
         <note>{0} is the tab name
 {1} is the number of issues</note>
         <target state="translated">{0} {1} problemi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
+        <source xml:lang="en">{0}, +{1} more</source>
+        <note>{0} is the first changed property label
+{1} is the count of additional changed properties</note>
+        <target state="new">{0}, +{1} more</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>
