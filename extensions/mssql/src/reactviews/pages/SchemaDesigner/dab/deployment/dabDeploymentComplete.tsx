@@ -12,8 +12,11 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { Checkmark20Regular, Warning20Regular } from "@fluentui/react-icons";
+import { Checkmark20Regular, Copy16Regular, Warning20Regular } from "@fluentui/react-icons";
+import { useMemo } from "react";
 import { locConstants } from "../../../../common/locConstants";
+import { Dab } from "../../../../../sharedInterfaces/dab";
+import { useDabContext } from "../dabContext";
 
 const useStyles = makeStyles({
     content: {
@@ -46,12 +49,33 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "center",
     },
-    apiUrlContainer: {
-        padding: "12px",
+    apiUrlList: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        width: "100%",
+    },
+    apiUrlRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        padding: "8px 12px",
         backgroundColor: tokens.colorNeutralBackground3,
         borderRadius: "4px",
-        width: "100%",
-        textAlign: "center",
+    },
+    apiLabel: {
+        fontWeight: 600,
+        minWidth: "80px",
+    },
+    apiUrl: {
+        flex: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    copyButton: {
+        minWidth: "auto",
+        flexShrink: 0,
     },
     errorText: {
         color: tokens.colorStatusDangerForeground1,
@@ -65,6 +89,13 @@ interface DabDeploymentCompleteProps {
     onFinish: () => void;
 }
 
+interface ApiEndpoint {
+    type: Dab.ApiType;
+    label: string;
+    url: string;
+    canCopy: boolean;
+}
+
 export const DabDeploymentComplete = ({
     apiUrl,
     error,
@@ -72,7 +103,41 @@ export const DabDeploymentComplete = ({
     onFinish,
 }: DabDeploymentCompleteProps) => {
     const classes = useStyles();
+    const { dabConfig, copyToClipboard } = useDabContext();
     const isSuccess = !error && apiUrl;
+
+    const endpoints = useMemo<ApiEndpoint[]>(() => {
+        if (!apiUrl || !dabConfig) {
+            return [];
+        }
+        const enabledTypes = dabConfig.apiTypes;
+        const result: ApiEndpoint[] = [];
+        if (enabledTypes.includes(Dab.ApiType.Rest)) {
+            result.push({
+                type: Dab.ApiType.Rest,
+                label: locConstants.schemaDesigner.restApi,
+                url: `${apiUrl}/api`,
+                canCopy: true,
+            });
+        }
+        if (enabledTypes.includes(Dab.ApiType.GraphQL)) {
+            result.push({
+                type: Dab.ApiType.GraphQL,
+                label: locConstants.schemaDesigner.graphql,
+                url: `${apiUrl}/graphql`,
+                canCopy: true,
+            });
+        }
+        if (enabledTypes.includes(Dab.ApiType.Mcp)) {
+            result.push({
+                type: Dab.ApiType.Mcp,
+                label: locConstants.schemaDesigner.mcp,
+                url: `${apiUrl}/mcp`,
+                canCopy: false,
+            });
+        }
+        return result;
+    }, [apiUrl, dabConfig]);
 
     return (
         <>
@@ -93,9 +158,29 @@ export const DabDeploymentComplete = ({
                             <Text weight="semibold" size={400}>
                                 {locConstants.schemaDesigner.dabContainerRunning}
                             </Text>
-                            <Text>{locConstants.schemaDesigner.apiAvailableAt}</Text>
-                            <div className={classes.apiUrlContainer}>
-                                <Text weight="semibold">{apiUrl}</Text>
+                            <Text>{locConstants.schemaDesigner.apisAvailableAt}</Text>
+                            <div className={classes.apiUrlList}>
+                                {endpoints.map((ep) => (
+                                    <div key={ep.type} className={classes.apiUrlRow}>
+                                        <Text className={classes.apiLabel}>{ep.label}</Text>
+                                        <Text className={classes.apiUrl}>{ep.url}</Text>
+                                        {ep.canCopy && (
+                                            <Button
+                                                appearance="subtle"
+                                                icon={<Copy16Regular />}
+                                                size="small"
+                                                className={classes.copyButton}
+                                                onClick={() => copyToClipboard(ep.url)}
+                                                aria-label={locConstants.schemaDesigner.copyUrl(
+                                                    ep.label,
+                                                )}
+                                                title={locConstants.schemaDesigner.copyUrl(
+                                                    ep.label,
+                                                )}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </>
                     ) : (
