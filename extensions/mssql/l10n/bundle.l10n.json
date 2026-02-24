@@ -533,6 +533,8 @@
         "message": "Filter ({0})",
         "comment": ["{0} is the number of selected tables"]
     },
+    "Chat": "Chat",
+    "Open Copilot Chat": "Open Copilot Chat",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -3067,6 +3069,7 @@
         "message": "Could not connect to database: {0}",
         "comment": ["{0} is the database name"]
     },
+    "Azure SQL Database is not supported for backup.": "Azure SQL Database is not supported for backup.",
     "Starting '{0}'.../{0} is the service name": {
         "message": "Starting '{0}'...",
         "comment": ["{0} is the service name"]
@@ -3125,6 +3128,7 @@
     "Cannot generate script without a restore plan": "Cannot generate script without a restore plan",
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
     "No databases with backups found": "No databases with backups found",
+    "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

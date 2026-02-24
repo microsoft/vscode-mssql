@@ -768,6 +768,8 @@ export class LocConstants {
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
             publishChanges: l10n.t("Publish Changes"),
+            openCopilotForSchemaDesigner: l10n.t("Chat"),
+            openCopilotForSchemaDesignerTooltip: l10n.t("Open Copilot Chat"),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),

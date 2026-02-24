@@ -11,7 +11,7 @@ import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../common/httpClient";
-import { DBProjectConfigurationKey } from "./netcoreTool";
+import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
@@ -54,8 +54,6 @@ export class BuildHelper {
 
     public async ensureDacFxDllsPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
         const sdkName = "Microsoft.Build.Sql";
-        const microsoftBuildSqlDefaultVersion = "2.0.0"; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
-
         const dacFxBuildFiles: string[] = [
             "Microsoft.Build.Sql.dll",
             "Microsoft.Data.SqlClient.dll",
@@ -71,14 +69,7 @@ export class BuildHelper {
             "Microsoft.SqlServer.Server.dll",
         ];
 
-        // check if the settings has a version specified for Microsoft.Build.Sql, otherwise use default
-        const microsoftBuildSqlVersionConfig =
-            vscode.workspace.getConfiguration(DBProjectConfigurationKey)[
-                constants.microsoftBuildSqlVersionKey
-            ];
-        const sdkVersion = !!microsoftBuildSqlVersionConfig
-            ? microsoftBuildSqlVersionConfig
-            : microsoftBuildSqlDefaultVersion;
+        const sdkVersion = getMicrosoftBuildSqlVersion(constants.microsoftBuildSqlVersionKey);
 
         const microsoftBuildSqlDllLocation = path.join("tools", "net8.0");
         return this.ensureNugetAndFilesPresence(

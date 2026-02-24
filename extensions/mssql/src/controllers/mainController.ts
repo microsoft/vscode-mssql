@@ -120,6 +120,7 @@ import { FlatFileImportWebviewController } from "./flatFileImportWebviewControll
 import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 
 /**
  * The main controller class that initializes the extension
@@ -548,6 +549,11 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            this.registerCommand(SchemaDesigner.openCopilotAgentCommand);
+            this._event.on(SchemaDesigner.openCopilotAgentCommand, async () => {
+                await this.openSchemaDesignerCopilotChat();
+            });
+
             // -- NEW QUERY WITH CONNECTION (Copilot) --
             this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
             this._event.on(
@@ -892,6 +898,40 @@ export default class MainController implements vscode.Disposable {
         }
 
         return undefined;
+    }
+
+    private async openSchemaDesignerCopilotChat(): Promise<void> {
+        const sendSchemaDesignerChatEntryTelemetry = (
+            success: boolean,
+            reason?: "noActiveDesigner" | "chatCommandMissing",
+        ) => {
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
+                entryPoint: "schemaDesignerToolbar",
+                mode: "agent",
+                success: success.toString(),
+                ...(reason ? { reason } : {}),
+            });
+        };
+
+        if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
+            sendSchemaDesignerChatEntryTelemetry(false, "noActiveDesigner");
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
+            );
+            return;
+        }
+
+        const chatCommand = await this.findChatOpenAgentCommand();
+        if (!chatCommand) {
+            sendSchemaDesignerChatEntryTelemetry(false, "chatCommandMissing");
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
+            );
+            return;
+        }
+
+        await vscode.commands.executeCommand(chatCommand, Prompts.schemaDesignerAgentPrompt);
+        sendSchemaDesignerChatEntryTelemetry(true);
     }
 
     public get context(): vscode.ExtensionContext {
@@ -1555,6 +1595,8 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
+                    const database = ObjectExplorerUtils.getDatabaseName(node);
+
                     const flatFileImportDialog = new FlatFileImportWebviewController(
                         this._context,
                         this._vscodeWrapper,
@@ -1563,6 +1605,7 @@ export default class MainController implements vscode.Disposable {
                         this.flatFileProvider,
                         node.connectionProfile,
                         node.sessionId,
+                        database,
                     );
                     flatFileImportDialog.revealToForeground();
                 },
