@@ -1225,6 +1225,7 @@ export default class ConnectionManager {
         connectionInfo.connecting = true;
 
         this._connections[fileUri] = connectionInfo;
+        this._onConnectionsChangedEmitter.fire();
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
