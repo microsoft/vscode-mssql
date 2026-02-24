@@ -724,6 +724,15 @@ export class LocConstants {
             dataType: l10n.t("Type"),
             primaryKey: l10n.t("Primary Key"),
             delete: l10n.t("Delete"),
+            cannotDeleteColumnUsedInForeignKey: l10n.t(
+                "Cannot delete column because it is used by a foreign key.",
+            ),
+            cannotDeleteColumnReferencedByForeignKey: l10n.t(
+                "Cannot delete column because it is referenced by a foreign key.",
+            ),
+            cannotDeleteColumnUsedByForeignKeyRelations: l10n.t(
+                "Cannot delete column because it is part of foreign key relationships.",
+            ),
             newForeignKey: l10n.t("Add new foreign key"),
             foreignKeyIndex: (index: number) =>
                 l10n.t({
