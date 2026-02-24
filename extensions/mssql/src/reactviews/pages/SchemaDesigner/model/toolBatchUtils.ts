@@ -1,0 +1,203 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { v4 as uuidv4 } from "uuid";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { locConstants } from "../../../common/locConstants";
+import { columnUtils } from "./columnUtils";
+import { foreignKeyUtils } from "./foreignKeyUtils";
+import { tableUtils } from "./tableUtils";
+
+export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 5;
+export const TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD = 3;
+
+export const waitForNextFrame = (): Promise<void> =>
+    new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+    });
+
+export const shouldAutoArrangeForToolBatch = (params: {
+    preTableCount: number;
+    postTableCount: number;
+    preForeignKeyCount: number;
+    postForeignKeyCount: number;
+}): boolean => {
+    const { preTableCount, postTableCount, preForeignKeyCount, postForeignKeyCount } = params;
+
+    const tablesAdded = Math.max(0, postTableCount - preTableCount);
+    const foreignKeysAdded = Math.max(0, postForeignKeyCount - preForeignKeyCount);
+
+    return (
+        tablesAdded >= TOOL_AUTO_ARRANGE_TABLE_THRESHOLD ||
+        foreignKeysAdded >= TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD
+    );
+};
+
+export const normalizeColumn = (column: SchemaDesigner.Column): SchemaDesigner.Column => {
+    const dataType = column.dataType || "int";
+    const isPrimaryKey = column.isPrimaryKey ?? false;
+    const isNullable = column.isNullable !== undefined ? column.isNullable : !isPrimaryKey;
+    const normalized: SchemaDesigner.Column = {
+        id: column.id || uuidv4(),
+        name: column.name ?? "",
+        dataType,
+        maxLength: column.maxLength ?? "",
+        precision: column.precision ?? 0,
+        scale: column.scale ?? 0,
+        isPrimaryKey,
+        isIdentity: column.isIdentity ?? false,
+        identitySeed: column.identitySeed ?? 1,
+        identityIncrement: column.identityIncrement ?? 1,
+        isNullable,
+        defaultValue: column.defaultValue ?? "",
+        isComputed: column.isComputed ?? false,
+        computedFormula: column.computedFormula ?? "",
+        computedPersisted: column.computedPersisted ?? false,
+    };
+
+    if (columnUtils.isLengthBasedType(dataType) && normalized.maxLength === "") {
+        normalized.maxLength = columnUtils.getDefaultLength(dataType);
+    }
+    if (columnUtils.isPrecisionBasedType(dataType)) {
+        if (column.precision === undefined) {
+            normalized.precision = columnUtils.getDefaultPrecision(dataType);
+        }
+        if (column.scale === undefined) {
+            normalized.scale = columnUtils.getDefaultScale(dataType);
+        }
+    }
+    if (columnUtils.isTimeBasedWithScale(dataType) && column.scale === undefined) {
+        normalized.scale = columnUtils.getDefaultScale(dataType);
+    }
+
+    return normalized;
+};
+
+export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Table | undefined => {
+    if (!table || !Array.isArray(table.columns)) {
+        return undefined;
+    }
+
+    const normalizedColumns = table.columns.map((column) => normalizeColumn(column));
+    const columnIdByName = new Map(normalizedColumns.map((column) => [column.name, column.id]));
+
+    const normalizedForeignKeys = Array.isArray(table.foreignKeys)
+        ? table.foreignKeys.map((fk) => {
+              const legacyForeignKey = fk as unknown as {
+                  columns?: string[];
+                  referencedColumns?: string[];
+                  referencedTableName?: string;
+              };
+
+              const normalizedColumnIds = Array.isArray(fk.columnIds)
+                  ? fk.columnIds
+                  : Array.isArray(legacyForeignKey.columns)
+                    ? legacyForeignKey.columns
+                          .map((columnName) => columnIdByName.get(columnName) ?? "")
+                          .filter((columnId) => columnId !== "")
+                    : [];
+
+              const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnIds)
+                  ? fk.referencedColumnIds
+                  : Array.isArray(legacyForeignKey.referencedColumns)
+                    ? legacyForeignKey.referencedColumns
+                    : [];
+
+              const normalizedReferencedTableId = fk.referencedTableId || "";
+
+              return {
+                  ...fk,
+                  id: fk.id || uuidv4(),
+                  columnIds: normalizedColumnIds,
+                  referencedTableId: normalizedReferencedTableId,
+                  referencedColumnIds: normalizedReferencedColumnIds,
+              };
+          })
+        : [];
+
+    return {
+        ...table,
+        id: table.id || uuidv4(),
+        columns: normalizedColumns,
+        foreignKeys: normalizedForeignKeys,
+    };
+};
+
+export const validateTable = (
+    schema: SchemaDesigner.Schema,
+    table: SchemaDesigner.Table,
+    schemas: string[],
+): string | undefined => {
+    if (!table.columns || table.columns.length === 0) {
+        return locConstants.schemaDesigner.tableMustHaveColumns;
+    }
+    if (!schemas.includes(table.schema)) {
+        return locConstants.schemaDesigner.schemaNotAvailable(table.schema);
+    }
+
+    const normalizedSchema: SchemaDesigner.Schema = {
+        tables: [...schema.tables.filter((t) => t.id !== table.id), table],
+    };
+
+    const referencedTableIdByName = new Map(
+        normalizedSchema.tables.map((schemaTable) => [schemaTable.name, schemaTable.id]),
+    );
+
+    const nameError = tableUtils.tableNameValidationError(normalizedSchema, table);
+    if (nameError) {
+        return nameError;
+    }
+
+    for (const column of table.columns) {
+        const columnError = columnUtils.isColumnValid(column, table.columns);
+        if (columnError) {
+            return columnError;
+        }
+    }
+
+    for (const fk of table.foreignKeys) {
+        const legacyForeignKey = fk as unknown as {
+            referencedTableName?: string;
+        };
+
+        const referencedTableId =
+            fk.referencedTableId ||
+            (legacyForeignKey.referencedTableName
+                ? referencedTableIdByName.get(legacyForeignKey.referencedTableName) || ""
+                : "");
+
+        const normalizedForeignKey: SchemaDesigner.ForeignKey = {
+            ...fk,
+            referencedTableId,
+            columnIds: Array.isArray(fk.columnIds) ? fk.columnIds : [],
+            referencedColumnIds: Array.isArray(fk.referencedColumnIds)
+                ? fk.referencedColumnIds
+                : [],
+        };
+
+        if (
+            normalizedForeignKey.columnIds.length === 0 ||
+            normalizedForeignKey.referencedColumnIds.length === 0
+        ) {
+            return locConstants.schemaDesigner.foreignKeyMappingRequired;
+        }
+        if (
+            normalizedForeignKey.columnIds.length !==
+            normalizedForeignKey.referencedColumnIds.length
+        ) {
+            return locConstants.schemaDesigner.foreignKeyMappingLengthMismatch;
+        }
+        const foreignKeyErrors = foreignKeyUtils.isForeignKeyValid(
+            normalizedSchema.tables,
+            table,
+            normalizedForeignKey,
+        );
+        if (!foreignKeyErrors.isValid) {
+            return foreignKeyErrors.errorMessage ?? locConstants.schemaDesigner.invalidForeignKey;
+        }
+    }
+
+    return undefined;
+};

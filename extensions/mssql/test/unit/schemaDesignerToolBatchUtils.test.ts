@@ -6,12 +6,13 @@
 import { expect } from "chai";
 import { locConstants } from "../../src/reactviews/common/locConstants";
 import {
+    normalizeTable,
     normalizeColumn,
     shouldAutoArrangeForToolBatch,
     TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD,
     TOOL_AUTO_ARRANGE_TABLE_THRESHOLD,
     validateTable,
-} from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerToolBatchUtils";
+} from "../../src/reactviews/pages/SchemaDesigner/model/toolBatchUtils";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 suite("Schema Designer tool batch utils", () => {
@@ -86,5 +87,50 @@ suite("Schema Designer tool batch utils", () => {
             ["dbo"],
         );
         expect(unknownSchema).to.equal(locConstants.schemaDesigner.schemaNotAvailable("missing"));
+    });
+
+    test("normalizeTable maps legacy FK column names to id-based fields", () => {
+        const sourceId = "c1";
+        const table = {
+            id: "t1",
+            name: "T1",
+            schema: "dbo",
+            columns: [
+                {
+                    id: sourceId,
+                    name: "Id",
+                    dataType: "int",
+                    maxLength: "",
+                    precision: 0,
+                    scale: 0,
+                    isPrimaryKey: true,
+                    isIdentity: false,
+                    identitySeed: 1,
+                    identityIncrement: 1,
+                    isNullable: false,
+                    defaultValue: "",
+                    isComputed: false,
+                    computedFormula: "",
+                    computedPersisted: false,
+                },
+            ],
+            foreignKeys: [
+                {
+                    id: "fk1",
+                    name: "FK_T1_T2",
+                    columns: ["Id"],
+                    referencedTableName: "T2",
+                    referencedColumns: ["rid1"],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            ],
+        } as unknown as SchemaDesigner.Table;
+
+        const normalized = normalizeTable(table);
+        expect(normalized).to.not.equal(undefined);
+        expect(normalized?.foreignKeys[0].columnIds).to.deep.equal([sourceId]);
+        expect(normalized?.foreignKeys[0].referencedColumnIds).to.deep.equal(["rid1"]);
+        expect(normalized?.foreignKeys[0].referencedTableId).to.equal("");
     });
 });
