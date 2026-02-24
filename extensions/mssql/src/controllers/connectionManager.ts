@@ -1655,7 +1655,9 @@ export default class ConnectionManager {
                     LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
                 );
             } else {
-                Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
+                if (message) {
+                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
+                }
             }
             return {
                 isHandled: false,
