@@ -244,10 +244,6 @@ export class LocConstants {
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
             reset: l10n.t("Reset"),
-            resetConfirmationTitle: l10n.t("Reset to defaults"),
-            resetConfirmationMessage: l10n.t(
-                "This will reset all rules to their default severity. This cannot be undone. Continue?",
-            ),
         };
     }
 

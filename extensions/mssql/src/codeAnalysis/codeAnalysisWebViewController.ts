@@ -111,7 +111,8 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     private async fetchRulesFromDacFx(): Promise<SqlCodeAnalysisRule[]> {
         const rulesResult = await this.dacFxService.getCodeAnalysisRules();
         if (!rulesResult.success) {
-            throw new Error(rulesResult.errorMessage || Loc.failedToLoadRules);
+            const detail = rulesResult.errorMessage;
+            throw new Error(detail ? `${Loc.failedToLoadRules}: ${detail}` : Loc.failedToLoadRules);
         }
 
         return (rulesResult.rules ?? []).map((rule) => {
