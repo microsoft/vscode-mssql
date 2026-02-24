@@ -1232,13 +1232,13 @@
                 "command": "mssql.startQueryHistoryCapture",
                 "title": "%mssql.startQueryHistoryCapture%",
                 "category": "MS SQL",
-                "icon": "$(debug-start)"
+                "icon": "$(debug-continue)"
             },
             {
                 "command": "mssql.pauseQueryHistoryCapture",
                 "title": "%mssql.pauseQueryHistoryCapture%",
                 "category": "MS SQL",
-                "icon": "$(debug-stop)"
+                "icon": "$(debug-pause)"
             },
             {
                 "command": "mssql.commandPaletteQueryHistory",

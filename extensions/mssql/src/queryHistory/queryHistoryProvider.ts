@@ -77,10 +77,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
                 (a as QueryHistoryNode).timeStamp.getTime()
             );
         });
-        // Push out the first listing if it crosses limit to maintain
-        // an LRU order
+        // Remove old entries if we are over the limit.
         if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
-            this._queryHistoryNodes.shift();
+            this._queryHistoryNodes.pop();
         }
         this._onDidChangeTreeData.fire(undefined);
     }
