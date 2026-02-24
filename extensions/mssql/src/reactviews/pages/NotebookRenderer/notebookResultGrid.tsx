@@ -26,6 +26,7 @@ const MIN_COLUMN_WIDTH = 80;
 const MAX_COLUMN_WIDTH = 400;
 const MAX_GRID_HEIGHT = 500;
 const HEADER_HEIGHT = 30;
+const HORIZONTAL_SCROLLBAR_HEIGHT = 20;
 
 /**
  * Measure the pixel width of a string using a canvas context.
@@ -165,8 +166,9 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
         });
         columns.unshift(rowNumberColumn.getColumnDefinition());
 
-        // Calculate grid height: rows + header, capped at MAX_GRID_HEIGHT
-        const totalRowsHeight = gridData.length * ROW_HEIGHT + HEADER_HEIGHT;
+        // Calculate grid height: rows + header + scrollbar, capped at MAX_GRID_HEIGHT
+        const totalRowsHeight =
+            gridData.length * ROW_HEIGHT + HEADER_HEIGHT + HORIZONTAL_SCROLLBAR_HEIGHT;
         const gridHeight = Math.min(totalRowsHeight, MAX_GRID_HEIGHT);
 
         // Create grid container div
