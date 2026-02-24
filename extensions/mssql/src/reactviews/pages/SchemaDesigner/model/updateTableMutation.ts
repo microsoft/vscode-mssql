@@ -58,7 +58,8 @@ export function applyUpdateTableMutation(
 
     function getReferencedColumnId(edge: Edge<SchemaDesigner.ForeignKey>): string | undefined {
         return (
-            edge.data?.referencedColumnIds?.[0] ?? getColumnIdFromHandle(edge.targetHandle, "left-")
+            edge.data?.referencedColumnsIds?.[0] ??
+            getColumnIdFromHandle(edge.targetHandle, "left-")
         );
     }
 
@@ -85,8 +86,8 @@ export function applyUpdateTableMutation(
             return;
         }
 
-        foreignKey.columnIds.forEach((sourceColumnId, index) => {
-            const referencedColumnId = foreignKey.referencedColumnIds[index];
+        foreignKey.columnsIds.forEach((sourceColumnId, index) => {
+            const referencedColumnId = foreignKey.referencedColumnsIds[index];
             if (!sourceColumnId || !referencedColumnId) {
                 return;
             }
@@ -107,8 +108,8 @@ export function applyUpdateTableMutation(
                 },
                 data: {
                     ...foreignKey,
-                    columnIds: [sourceColumnId],
-                    referencedColumnIds: [referencedColumnId],
+                    columnsIds: [sourceColumnId],
+                    referencedColumnsIds: [referencedColumnId],
                 },
             });
         });

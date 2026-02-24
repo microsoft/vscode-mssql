@@ -101,7 +101,11 @@ export function buildDeletedForeignKeyEdges({
     const currentNodesByName = new Map<string, Node<SchemaDesigner.TableWithDeletedFlag>>();
     const targetNodes =
         deletedTableNodes.length > 0 ? [...currentNodes, ...deletedTableNodes] : currentNodes;
-    const currentNodesById = new Map(targetNodes.map((node) => [node.id, node]));
+    const currentNodesById = new Map<string, Node<SchemaDesigner.TableWithDeletedFlag>>();
+    for (const node of targetNodes) {
+        currentNodesById.set(node.id, node);
+        currentNodesById.set(node.data.id, node);
+    }
     for (const node of targetNodes) {
         const key = `${node.data.schema}.${node.data.name}`;
         const existing = currentNodesByName.get(key);
@@ -155,8 +159,8 @@ export function buildDeletedForeignKeyEdges({
                 baselineSchema.tables.find((table) => table.id === fk.referencedTableId) ??
                 (referencedTableKey ? baselineTablesByName.get(referencedTableKey) : undefined);
 
-            const normalizedColumnIds = Array.isArray(fk.columnIds)
-                ? fk.columnIds
+            const normalizedColumnIds = Array.isArray(fk.columnsIds)
+                ? fk.columnsIds
                 : (legacyForeignKey.columns ?? [])
                       .map(
                           (columnName) =>
@@ -168,8 +172,8 @@ export function buildDeletedForeignKeyEdges({
                       )
                       .filter((value): value is string => Boolean(value));
 
-            const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnIds)
-                ? fk.referencedColumnIds
+            const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnsIds)
+                ? fk.referencedColumnsIds
                 : (legacyForeignKey.referencedColumns ?? [])
                       .map(
                           (columnName) =>
@@ -206,8 +210,8 @@ export function buildDeletedForeignKeyEdges({
 
                 const deletedForeignKey: SchemaDesigner.ForeignKey & { isDeleted: true } = {
                     ...fk,
-                    columnIds: [columnId],
-                    referencedColumnIds: [referencedColumnId],
+                    columnsIds: [columnId],
+                    referencedColumnsIds: [referencedColumnId],
                     isDeleted: true,
                 };
 

@@ -157,11 +157,11 @@ const ColumnMappingTable = ({
         return map;
     }, [targetTable.columns]);
 
-    const tableItems = foreignKey.columnIds.map((columnId, index) => ({
+    const tableItems = foreignKey.columnsIds.map((columnId, index) => ({
         columnName: selectedColumnById.get(columnId)?.name ?? columnId,
         foreignKeyColumnName:
-            targetColumnById.get(foreignKey.referencedColumnIds[index])?.name ??
-            foreignKey.referencedColumnIds[index],
+            targetColumnById.get(foreignKey.referencedColumnsIds[index])?.name ??
+            foreignKey.referencedColumnsIds[index],
     }));
 
     const [tableColumns] = useState<
@@ -198,17 +198,17 @@ const ColumnMappingTable = ({
                         }))}
                         selectedOption={{
                             text:
-                                selectedColumnById.get(foreignKey.columnIds[mappingIndex])?.name ??
-                                foreignKey.columnIds[mappingIndex],
-                            value: foreignKey.columnIds[mappingIndex],
+                                selectedColumnById.get(foreignKey.columnsIds[mappingIndex])?.name ??
+                                foreignKey.columnsIds[mappingIndex],
+                            value: foreignKey.columnsIds[mappingIndex],
                         }}
                         onSelect={(selected) => {
-                            const updatedColumns = [...foreignKey.columnIds];
+                            const updatedColumns = [...foreignKey.columnsIds];
                             updatedColumns[mappingIndex] = selected.value;
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
-                                columnIds: updatedColumns,
+                                columnsIds: updatedColumns,
                             });
                         }}
                         style={{
@@ -230,17 +230,17 @@ const ColumnMappingTable = ({
                         }))}
                         selectedOption={{
                             text:
-                                targetColumnById.get(foreignKey.referencedColumnIds[mappingIndex])
-                                    ?.name ?? foreignKey.referencedColumnIds[mappingIndex],
-                            value: foreignKey.referencedColumnIds[mappingIndex],
+                                targetColumnById.get(foreignKey.referencedColumnsIds[mappingIndex])
+                                    ?.name ?? foreignKey.referencedColumnsIds[mappingIndex],
+                            value: foreignKey.referencedColumnsIds[mappingIndex],
                         }}
                         onSelect={(selected) => {
-                            const updatedReferencedColumns = [...foreignKey.referencedColumnIds];
+                            const updatedReferencedColumns = [...foreignKey.referencedColumnsIds];
                             updatedReferencedColumns[mappingIndex] = selected.value;
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
-                                referencedColumnIds: updatedReferencedColumns,
+                                referencedColumnsIds: updatedReferencedColumns,
                             });
                         }}
                         style={{
@@ -258,16 +258,16 @@ const ColumnMappingTable = ({
                         appearance="subtle"
                         icon={<DeleteRegular />}
                         onClick={() => {
-                            const updatedColumns = [...foreignKey.columnIds];
-                            const updatedReferencedColumns = [...foreignKey.referencedColumnIds];
+                            const updatedColumns = [...foreignKey.columnsIds];
+                            const updatedReferencedColumns = [...foreignKey.referencedColumnsIds];
 
                             updatedColumns.splice(mappingIndex, 1);
                             updatedReferencedColumns.splice(mappingIndex, 1);
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
-                                columnIds: updatedColumns,
-                                referencedColumnIds: updatedReferencedColumns,
+                                columnsIds: updatedColumns,
+                                referencedColumnsIds: updatedReferencedColumns,
                             });
                         }}
                     />
@@ -363,8 +363,8 @@ const ForeignKeyCard = ({
         const targetColumnId = targetTable.columns[0]?.id || "";
 
         // Add the new mapping
-        updatedForeignKey.columnIds.push(sourceColumnId);
-        updatedForeignKey.referencedColumnIds.push(targetColumnId);
+        updatedForeignKey.columnsIds.push(sourceColumnId);
+        updatedForeignKey.referencedColumnsIds.push(targetColumnId);
 
         onUpdate(index, updatedForeignKey);
     };
@@ -461,8 +461,8 @@ const ForeignKeyCard = ({
                             onUpdate(index, {
                                 ...foreignKey,
                                 referencedTableId: targetTable.id,
-                                referencedColumnIds: [defaultTargetColumn],
-                                columnIds: [context.table.columns[0]?.id || ""],
+                                referencedColumnsIds: [defaultTargetColumn],
+                                columnsIds: [context.table.columns[0]?.id || ""],
                             });
                         }}
                         style={{ minWidth: "auto" }}
@@ -592,9 +592,9 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
                 context.table.foreignKeys,
                 context.schema.tables,
             ),
-            columnIds: [context.table.columns[0]?.id || ""],
+            columnsIds: [context.table.columns[0]?.id || ""],
             referencedTableId: firstTable.id,
-            referencedColumnIds: [firstTable.columns[0]?.id || ""],
+            referencedColumnsIds: [firstTable.columns[0]?.id || ""],
             onDeleteAction: SchemaDesigner.OnAction.CASCADE,
             onUpdateAction: SchemaDesigner.OnAction.CASCADE,
         };

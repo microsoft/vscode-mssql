@@ -94,16 +94,16 @@ export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Tabl
                   referencedTableName?: string;
               };
 
-              const normalizedColumnIds = Array.isArray(fk.columnIds)
-                  ? fk.columnIds
+              const normalizedColumnIds = Array.isArray(fk.columnsIds)
+                  ? fk.columnsIds
                   : Array.isArray(legacyForeignKey.columns)
                     ? legacyForeignKey.columns
                           .map((columnName) => columnIdByName.get(columnName) ?? "")
                           .filter((columnId) => columnId !== "")
                     : [];
 
-              const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnIds)
-                  ? fk.referencedColumnIds
+              const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnsIds)
+                  ? fk.referencedColumnsIds
                   : Array.isArray(legacyForeignKey.referencedColumns)
                     ? legacyForeignKey.referencedColumns
                     : [];
@@ -174,21 +174,21 @@ export const validateTable = (
         const normalizedForeignKey: SchemaDesigner.ForeignKey = {
             ...fk,
             referencedTableId,
-            columnIds: Array.isArray(fk.columnIds) ? fk.columnIds : [],
-            referencedColumnIds: Array.isArray(fk.referencedColumnIds)
-                ? fk.referencedColumnIds
+            columnsIds: Array.isArray(fk.columnsIds) ? fk.columnsIds : [],
+            referencedColumnsIds: Array.isArray(fk.referencedColumnsIds)
+                ? fk.referencedColumnsIds
                 : [],
         };
 
         if (
-            normalizedForeignKey.columnIds.length === 0 ||
-            normalizedForeignKey.referencedColumnIds.length === 0
+            normalizedForeignKey.columnsIds.length === 0 ||
+            normalizedForeignKey.referencedColumnsIds.length === 0
         ) {
             return locConstants.schemaDesigner.foreignKeyMappingRequired;
         }
         if (
-            normalizedForeignKey.columnIds.length !==
-            normalizedForeignKey.referencedColumnIds.length
+            normalizedForeignKey.columnsIds.length !==
+            normalizedForeignKey.referencedColumnsIds.length
         ) {
             return locConstants.schemaDesigner.foreignKeyMappingLengthMismatch;
         }

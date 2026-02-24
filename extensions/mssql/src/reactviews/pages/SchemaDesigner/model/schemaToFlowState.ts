@@ -11,6 +11,27 @@ export interface FlowComponents {
     edges: Edge<SchemaDesigner.ForeignKey>[];
 }
 
+type ForeignKeyInput = SchemaDesigner.ForeignKey & {
+    columnsIds?: string[];
+    referencedColumnsIds?: string[];
+};
+
+const toStrictForeignKey = (foreignKey: ForeignKeyInput): SchemaDesigner.ForeignKey => ({
+    ...foreignKey,
+    columnsIds: foreignKey.columnsIds ?? foreignKey.columnsIds ?? [],
+    referencedColumnsIds: foreignKey.referencedColumnsIds ?? foreignKey.referencedColumnsIds ?? [],
+});
+
+const toStrictSchema = (schema: SchemaDesigner.Schema): SchemaDesigner.Schema => ({
+    tables: (schema.tables ?? []).map((table) => ({
+        ...table,
+        columns: table.columns ?? [],
+        foreignKeys: (table.foreignKeys ?? []).map((foreignKey) =>
+            toStrictForeignKey(foreignKey as ForeignKeyInput),
+        ),
+    })),
+});
+
 export function buildFlowComponentsFromSchema(schema: SchemaDesigner.Schema): FlowComponents {
     if (!schema) {
         return {
@@ -19,26 +40,32 @@ export function buildFlowComponentsFromSchema(schema: SchemaDesigner.Schema): Fl
         };
     }
 
-    const nodes: Node<SchemaDesigner.Table>[] = schema.tables.map((table) => ({
+    const strictSchema = toStrictSchema(schema);
+    const tables = strictSchema.tables ?? [];
+    const tableById = new Map(tables.map((table) => [table.id, table]));
+
+    const nodes: Node<SchemaDesigner.Table>[] = tables.map((table) => ({
         id: table.id,
         type: "tableNode",
-        data: { ...table },
+        data: {
+            ...table,
+            columns: table.columns ?? [],
+            foreignKeys: table.foreignKeys ?? [],
+        },
         position: { x: 0, y: 0 },
     }));
 
     const edges: Edge<SchemaDesigner.ForeignKey>[] = [];
 
-    for (const table of schema.tables) {
-        for (const foreignKey of table.foreignKeys) {
-            const referencedTable = schema.tables.find(
-                (candidate) => candidate.id === foreignKey.referencedTableId,
-            );
+    for (const table of tables) {
+        for (const foreignKey of table.foreignKeys ?? []) {
+            const referencedTable = tableById.get(foreignKey.referencedTableId);
             if (!referencedTable) {
                 continue;
             }
 
-            foreignKey.columnIds.forEach((sourceColumnId, index) => {
-                const referencedColumnId = foreignKey.referencedColumnIds[index];
+            foreignKey.columnsIds.forEach((sourceColumnId, index) => {
+                const referencedColumnId = foreignKey.referencedColumnsIds[index];
                 if (!sourceColumnId || !referencedColumnId) {
                     return;
                 }
@@ -54,8 +81,9 @@ export function buildFlowComponentsFromSchema(schema: SchemaDesigner.Schema): Fl
                     },
                     data: {
                         ...foreignKey,
-                        columnIds: [sourceColumnId],
-                        referencedColumnIds: [referencedColumnId],
+                        referencedTableId: referencedTable.id,
+                        columnsIds: [sourceColumnId],
+                        referencedColumnsIds: [referencedColumnId],
                     },
                     type:
                         table.id === referencedTable.id ? ConnectionLineType.SmoothStep : undefined,

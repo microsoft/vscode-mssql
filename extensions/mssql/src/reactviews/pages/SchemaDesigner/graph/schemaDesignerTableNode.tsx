@@ -26,12 +26,12 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useRef, useEffect, useState, cloneElement } from "react";
+import { useContext, useRef, useEffect, useState, cloneElement, type ComponentProps } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
-import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
+import { NODE_WIDTH } from "../model";
 import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
@@ -42,7 +42,7 @@ import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesi
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
     const [isOverflowing, setIsOverflowing] = useState(false);
-    const textRef = useRef<HTMLElement>(null);
+    const textRef = useRef<HTMLElement | undefined>(undefined);
 
     useEffect(() => {
         const checkOverflow = () => {
@@ -75,8 +75,7 @@ const ConditionalTooltip = ({
 }: {
     content: string;
     children: React.ReactElement;
-    [key: string]: any;
-}) => {
+} & Omit<ComponentProps<typeof Tooltip>, "content" | "children">) => {
     const { isOverflowing, textRef } = useTextOverflow(content);
 
     // Clone the child element and add the ref
@@ -87,7 +86,7 @@ const ConditionalTooltip = ({
 
     if (isOverflowing) {
         return (
-            <Tooltip relationship={"label"} content={content} {...props}>
+            <Tooltip content={content} {...props}>
                 {childWithRef}
             </Tooltip>
         );
@@ -99,7 +98,7 @@ const ConditionalTooltip = ({
 // Styles for the table node components
 const useStyles = makeStyles({
     tableNodeContainer: {
-        width: `${LAYOUT_CONSTANTS.NODE_WIDTH}px`,
+        width: `${NODE_WIDTH}px`,
         backgroundColor: "var(--vscode-editor-background)",
         borderRadius: "5px",
         display: "flex",
@@ -448,13 +447,22 @@ const TableColumn = ({
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
-    const undoWrapperRef = useRef<HTMLDivElement | null>(null);
+    const [undoWrapperElement, setUndoWrapperElement] = useState<HTMLDivElement | undefined>(
+        undefined,
+    );
     const [isHovered, setIsHovered] = useState(false);
     const isDeletedColumn = column.isDeleted === true;
     const isConnectable = !isDeletedColumn && !isTableDeleted;
 
     // Check if this column is a foreign key
-    const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
+    const isForeignKey = table.foreignKeys.some((fk) => {
+        if (fk.columnsIds?.includes(column.id)) {
+            return true;
+        }
+
+        const legacyColumns = (fk as unknown as { columns?: string[] }).columns;
+        return legacyColumns?.includes(column.name) ?? false;
+    });
     const showDeletedDiff = changeContext.showChangesHighlight && isDeletedColumn;
     const showAddedDiff =
         !isDeletedColumn &&
@@ -547,7 +555,7 @@ const TableColumn = ({
             key={column.name}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={(event) => {
-                if (undoWrapperRef.current?.contains(event.relatedTarget as Node)) {
+                if (undoWrapperElement?.contains(event.relatedTarget as Node)) {
                     return;
                 }
                 setIsHovered(false);
@@ -576,7 +584,7 @@ const TableColumn = ({
             {canShowUndo && isHovered && columnChange && (
                 <div
                     className={styles.columnUndoButtonWrapper}
-                    ref={undoWrapperRef}
+                    ref={(element) => setUndoWrapperElement(element ?? undefined)}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}>
                     {changeContext.acceptChange && (
@@ -772,8 +780,10 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
     const [isCollapsed, setIsCollapsed] = useState(!isDeletedTable && table.columns.length > 10);
     const [isHovered, setIsHovered] = useState(false);
     const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
-    const [pendingUndoChange, setPendingUndoChange] = useState<SchemaChange | null>(null);
-    const undoWrapperRef = useRef<HTMLDivElement | null>(null);
+    const [pendingUndoChange, setPendingUndoChange] = useState<SchemaChange | undefined>(undefined);
+    const [undoWrapperElement, setUndoWrapperElement] = useState<HTMLDivElement | undefined>(
+        undefined,
+    );
 
     const handleToggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
@@ -829,7 +839,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={(event) => {
-                if (undoWrapperRef.current?.contains(event.relatedTarget as Node)) {
+                if (undoWrapperElement?.contains(event.relatedTarget as Node)) {
                     return;
                 }
                 setIsHovered(false);
@@ -838,7 +848,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
             {showUndoButton && (
                 <div
                     className={styles.undoButtonWrapper}
-                    ref={undoWrapperRef}
+                    ref={(element) => setUndoWrapperElement(element ?? undefined)}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}>
                     {changeContext.acceptChange && tableChange && (
@@ -896,7 +906,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                 onOpenChange={(_event, data) => {
                     setIsUndoDialogOpen(data.open);
                     if (!data.open) {
-                        setPendingUndoChange(null);
+                        setPendingUndoChange(undefined);
                     }
                 }}>
                 <DialogSurface>

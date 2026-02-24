@@ -65,9 +65,9 @@ suite("SchemaDesigner foreign key utils", () => {
         const foreignKey: SchemaDesigner.ForeignKey = {
             id: "fk-source-target",
             name: "FK_Source_Target",
-            columnIds: ["c-source-target"],
+            columnsIds: ["c-source-target"],
             referencedTableId: "t-target",
-            referencedColumnIds: ["c-target-id"],
+            referencedColumnsIds: ["c-target-id"],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };
@@ -89,9 +89,9 @@ suite("SchemaDesigner foreign key utils", () => {
                 {
                     id: "fk-existing",
                     name: "FK_Existing",
-                    columnIds: ["c-shared"],
+                    columnsIds: ["c-shared"],
                     referencedTableId: "t-target",
-                    referencedColumnIds: ["c-target-id"],
+                    referencedColumnsIds: ["c-target-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -104,9 +104,9 @@ suite("SchemaDesigner foreign key utils", () => {
         const foreignKey: SchemaDesigner.ForeignKey = {
             id: "fk-new",
             name: "FK_New",
-            columnIds: ["c-shared"],
+            columnsIds: ["c-shared"],
             referencedTableId: "t-target",
-            referencedColumnIds: ["c-target-id"],
+            referencedColumnsIds: ["c-target-id"],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };
@@ -129,9 +129,9 @@ suite("SchemaDesigner foreign key utils", () => {
                 {
                     id: "fk-a-b",
                     name: "FK_A_B",
-                    columnIds: ["a-id"],
+                    columnsIds: ["a-id"],
                     referencedTableId: "b",
-                    referencedColumnIds: ["b-id"],
+                    referencedColumnsIds: ["b-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -146,9 +146,9 @@ suite("SchemaDesigner foreign key utils", () => {
                 {
                     id: "fk-b-a",
                     name: "FK_B_A",
-                    columnIds: ["b-id"],
+                    columnsIds: ["b-id"],
                     referencedTableId: "a",
-                    referencedColumnIds: ["a-id"],
+                    referencedColumnsIds: ["a-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -186,9 +186,9 @@ suite("SchemaDesigner foreign key utils", () => {
 
         expect(foreignKey.id).to.equal("fk-id");
         expect(foreignKey.name).to.equal("FK_Name");
-        expect(foreignKey.columnIds).to.deep.equal(["c-source-id"]);
+        expect(foreignKey.columnsIds).to.deep.equal(["c-source-id"]);
         expect(foreignKey.referencedTableId).to.equal("t-target");
-        expect(foreignKey.referencedColumnIds).to.deep.equal(["c-target-id"]);
+        expect(foreignKey.referencedColumnsIds).to.deep.equal(["c-target-id"]);
     });
 
     test("validateConnection returns invalid when source/target columns are missing", () => {

@@ -134,8 +134,8 @@ suite("Schema Designer tool batch utils", () => {
 
         const normalized = normalizeTable(table);
         expect(normalized).to.not.equal(undefined);
-        expect(normalized?.foreignKeys[0].columnIds).to.deep.equal([sourceId]);
-        expect(normalized?.foreignKeys[0].referencedColumnIds).to.deep.equal(["rid1"]);
+        expect(normalized?.foreignKeys[0].columnsIds).to.deep.equal([sourceId]);
+        expect(normalized?.foreignKeys[0].referencedColumnsIds).to.deep.equal(["rid1"]);
         expect(normalized?.foreignKeys[0].referencedTableId).to.equal("");
     });
 });

@@ -493,7 +493,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     const outgoingForeignKeyColumnIds = useMemo(() => {
         const ids = new Set<string>();
         for (const foreignKey of context.table.foreignKeys) {
-            for (const columnId of foreignKey.columnIds) {
+            for (const columnId of foreignKey.columnsIds) {
                 ids.add(columnId);
             }
         }
@@ -508,7 +508,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                     continue;
                 }
 
-                for (const referencedColumnId of foreignKey.referencedColumnIds) {
+                for (const referencedColumnId of foreignKey.referencedColumnsIds) {
                     ids.add(referencedColumnId);
                 }
             }

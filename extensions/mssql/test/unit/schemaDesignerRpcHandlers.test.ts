@@ -9,7 +9,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { registerSchemaDesignerApplyEditsHandler } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
-import { normalizeColumn } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerToolBatchUtils";
+import { normalizeColumn } from "../../src/reactviews/pages/SchemaDesigner/model";
 import { locConstants } from "../../src/reactviews/common/locConstants";
 
 suite("schemaDesignerRpcHandlers", () => {
@@ -149,10 +149,9 @@ suite("schemaDesignerRpcHandlers", () => {
                         {
                             id: "fk0",
                             name: "FK_existing",
-                            columns: ["Id"],
-                            referencedSchemaName: "dbo",
-                            referencedTableName: "T1",
-                            referencedColumns: ["Id"],
+                            columnsIds: ["c2"],
+                            referencedTableId: "t1",
+                            referencedColumnsIds: ["c1"],
                             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                         },
@@ -590,10 +589,9 @@ suite("schemaDesignerRpcHandlers", () => {
         const fk: SchemaDesigner.ForeignKey = {
             id: "fk1",
             name: "FK_T2_T1",
-            columns: ["Id"],
-            referencedSchemaName: "dbo",
-            referencedTableName: "T1",
-            referencedColumns: ["Id"],
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };
@@ -623,10 +621,9 @@ suite("schemaDesignerRpcHandlers", () => {
         const fkBroken: SchemaDesigner.ForeignKey = {
             id: "fk1",
             name: "FK_T2_Missing",
-            columns: ["Id"],
-            referencedSchemaName: "dbo",
-            referencedTableName: "Missing",
-            referencedColumns: ["Id"],
+            columnsIds: ["c1"],
+            referencedTableId: "missing",
+            referencedColumnsIds: ["c1"],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };
@@ -661,10 +658,9 @@ suite("schemaDesignerRpcHandlers", () => {
         const fk: SchemaDesigner.ForeignKey = {
             id: "fk1",
             name: "FK_T2_T1",
-            columns: ["Id"],
-            referencedSchemaName: "dbo",
-            referencedTableName: "T1",
-            referencedColumns: ["Id"],
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };
@@ -694,10 +690,9 @@ suite("schemaDesignerRpcHandlers", () => {
         const fk: SchemaDesigner.ForeignKey = {
             id: "fk1",
             name: "FK_T2_T1",
-            columns: ["Id"],
-            referencedSchemaName: "dbo",
-            referencedTableName: "T1",
-            referencedColumns: ["Id"],
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };

@@ -87,10 +87,11 @@ suite("SchemaDesignerTool Tests", () => {
                 foreignKeys: (t.foreignKeys ?? []).map((fk) => ({
                     ...fk,
                     name: (fk.name ?? "").toLowerCase(),
-                    columns: (fk.columns ?? []).map((c) => c.toLowerCase()),
-                    referencedSchemaName: (fk.referencedSchemaName ?? "").toLowerCase(),
-                    referencedTableName: (fk.referencedTableName ?? "").toLowerCase(),
-                    referencedColumns: (fk.referencedColumns ?? []).map((c) => c.toLowerCase()),
+                    columnIds: (fk.columnsIds ?? []).map((c) => c.toLowerCase()),
+                    referencedTableId: (fk.referencedTableId ?? "").toLowerCase(),
+                    referencedColumnIds: (fk.referencedColumnsIds ?? []).map((c) =>
+                        c.toLowerCase(),
+                    ),
                 })),
             }))
             .sort((a, b) => `${a.schema}.${a.name}`.localeCompare(`${b.schema}.${b.name}`));
@@ -121,13 +122,13 @@ suite("SchemaDesignerTool Tests", () => {
                     })) as any,
                 foreignKeys: [...(t.foreignKeys ?? [])]
                     .sort((a, b) =>
-                        `${a.name}.${a.referencedSchemaName}.${a.referencedTableName}`.localeCompare(
-                            `${b.name}.${b.referencedSchemaName}.${b.referencedTableName}`,
+                        `${a.name}.${a.referencedTableId}`.localeCompare(
+                            `${b.name}.${b.referencedTableId}`,
                         ),
                     )
                     .map((fk) => {
-                        const refs = fk.referencedColumns ?? [];
-                        const pairs = (fk.columns ?? []).map((column, i) => ({
+                        const refs = fk.referencedColumnIds ?? [];
+                        const pairs = (fk.columnIds ?? []).map((column, i) => ({
                             column,
                             referencedColumn: refs[i] ?? "",
                         }));
@@ -139,10 +140,9 @@ suite("SchemaDesignerTool Tests", () => {
 
                         return {
                             name: fk.name,
-                            columns: pairs.map((p) => p.column),
-                            referencedSchemaName: fk.referencedSchemaName,
-                            referencedTableName: fk.referencedTableName,
-                            referencedColumns: pairs.map((p) => p.referencedColumn),
+                            columnIds: pairs.map((p) => p.column),
+                            referencedTableId: fk.referencedTableId,
+                            referencedColumnIds: pairs.map((p) => p.referencedColumn),
                             onDeleteAction: fk.onDeleteAction,
                             onUpdateAction: fk.onUpdateAction,
                         };
@@ -524,10 +524,9 @@ suite("SchemaDesignerTool Tests", () => {
                             {
                                 id: "fk1",
                                 name: "FK_Child_Parent",
-                                columns: ["KeyA", "KeyB"],
-                                referencedSchemaName: "dbo",
-                                referencedTableName: "Parent",
-                                referencedColumns: ["KeyA", "KeyB"],
+                                columnsIds: ["cc1", "cc2"],
+                                referencedTableId: "p1",
+                                referencedColumnsIds: ["pc1", "pc2"],
                                 onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                                 onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                             },
@@ -545,8 +544,8 @@ suite("SchemaDesignerTool Tests", () => {
                               foreignKeys: [
                                   {
                                       ...(t.foreignKeys?.[0] as any),
-                                      columns: ["KeyB", "KeyA"],
-                                      referencedColumns: ["KeyB", "KeyA"],
+                                      columnIds: ["cc2", "cc1"],
+                                      referencedColumnIds: ["pc2", "pc1"],
                                   },
                               ],
                           }
@@ -746,10 +745,9 @@ suite("SchemaDesignerTool Tests", () => {
                             {
                                 id: "fk1",
                                 name: "FK_Child_Parent",
-                                columns: ["ParentId"],
-                                referencedSchemaName: "dbo",
-                                referencedTableName: "Parent",
-                                referencedColumns: [],
+                                columnsIds: ["cc1"],
+                                referencedTableId: "t1",
+                                referencedColumnsIds: [],
                                 onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                                 onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                             },

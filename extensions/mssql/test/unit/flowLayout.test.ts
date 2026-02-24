@@ -77,9 +77,9 @@ suite("SchemaDesigner flow layout", () => {
                 data: {
                     id: "fk1",
                     name: "FK_1",
-                    columnIds: ["c1"],
+                    columnsIds: ["c1"],
                     referencedTableId: "t2",
-                    referencedColumnIds: ["c2"],
+                    referencedColumnsIds: ["c2"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },

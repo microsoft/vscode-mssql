@@ -117,7 +117,7 @@ export namespace SchemaDesigner {
         /**
          * Parent columns of the relationship
          */
-        columnIds: string[];
+        columnsIds: string[];
         /**
          * Referenced table of the relationship
          */
@@ -125,7 +125,7 @@ export namespace SchemaDesigner {
         /**
          * Referenced columns of the relationship
          */
-        referencedColumnIds: string[];
+        referencedColumnsIds: string[];
         /**
          * On delete action of the relationship
          */

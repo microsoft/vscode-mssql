@@ -86,9 +86,9 @@ suite("SchemaDesigner indexing", () => {
                 {
                     id: "fk-orders-customers",
                     name: "FK_Orders_Customers",
-                    columnIds: ["col-order-customer-id"],
+                    columnsIds: ["col-order-customer-id"],
                     referencedTableId: "table-customers",
-                    referencedColumnIds: ["col-customer-id"],
+                    referencedColumnsIds: ["col-customer-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },

@@ -22,6 +22,7 @@ import {
 } from "@fluentui/react-icons";
 import { locConstants } from "../../../../common/locConstants";
 import { ChangeCategory, type PropertyChange, type SchemaChange } from "../../diff/diffUtils";
+import { formatSchemaDesignerChangeValue } from "./schemaDesignerChangeValueFormatter";
 
 const useStyles = makeStyles({
     badgeButton: {
@@ -142,23 +143,6 @@ const getChangeIcon = (category: ChangeCategory) => {
     }
 };
 
-const formatValue = (value: unknown): string => {
-    if (value === "") {
-        return locConstants.schemaDesigner.changesPanel.emptyValue;
-    }
-    if (value === undefined || value === null) {
-        return locConstants.schemaDesigner.schemaDiff.undefinedValue;
-    }
-    if (typeof value === "string") {
-        return value;
-    }
-    try {
-        return JSON.stringify(value);
-    } catch {
-        return String(value);
-    }
-};
-
 const getChangeCountLabel = (changes: PropertyChange[]) =>
     locConstants.schemaDesigner.changesPanel.changeCountLabel(changes.length);
 
@@ -229,10 +213,10 @@ export const SchemaDesignerChangeDetailsPopover = ({
                                 {propertyChange.displayName}
                             </span>
                             <span className={mergeClasses(classes.valuePill, classes.beforeValue)}>
-                                {formatValue(propertyChange.oldValue)}
+                                {formatSchemaDesignerChangeValue(propertyChange.oldValue)}
                             </span>
                             <span className={mergeClasses(classes.valuePill, classes.afterValue)}>
-                                {formatValue(propertyChange.newValue)}
+                                {formatSchemaDesignerChangeValue(propertyChange.newValue)}
                             </span>
                         </div>
                     ))

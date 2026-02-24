@@ -8,7 +8,7 @@ import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
 import { v4 as uuidv4 } from "uuid";
-import { tableUtils } from "./schemaDesignerUtils";
+import { tableUtils } from "./model";
 
 export interface SchemaDesignerApplyEditsHandlerParams {
     isInitialized: boolean;
@@ -243,11 +243,11 @@ export function createSchemaDesignerApplyEditsHandler(
         };
     };
 
-    const resolveColumnNameByName = (
+    const resolveColumnIdByName = (
         table: SchemaDesigner.Table,
         columnName: unknown,
     ):
-        | { success: true; name: string }
+        | { success: true; id: string }
         | {
               success: false;
               reason: SchemaDesigner.ApplyEditsWebviewResponse["reason"];
@@ -265,7 +265,7 @@ export function createSchemaDesignerApplyEditsHandler(
             (c) => normalizeIdentifier(c.name) === normalizeIdentifier(columnName),
         );
         if (matches.length === 1) {
-            return { success: true, name: matches[0].name };
+            return { success: true, id: matches[0].id };
         }
         if (matches.length === 0) {
             return {
@@ -287,7 +287,7 @@ export function createSchemaDesignerApplyEditsHandler(
         referencedTable: SchemaDesigner.Table,
         mappings: unknown,
     ):
-        | { success: true; columns: string[]; referencedColumns: string[] }
+        | { success: true; columnIds: string[]; referencedColumnIds: string[] }
         | {
               success: false;
               reason: SchemaDesigner.ApplyEditsWebviewResponse["reason"];
@@ -303,12 +303,16 @@ export function createSchemaDesignerApplyEditsHandler(
             };
         }
 
-        const columns: string[] = [];
-        const referencedColumns: string[] = [];
+        const columnIds: string[] = [];
+        const referencedColumnIds: string[] = [];
 
         for (const m of mappings) {
-            const col = (m as any)?.column;
-            const refCol = (m as any)?.referencedColumn;
+            const mapping =
+                typeof m === "object" && m !== undefined
+                    ? (m as { column?: unknown; referencedColumn?: unknown })
+                    : {};
+            const col = mapping.column;
+            const refCol = mapping.referencedColumn;
             if (typeof col !== "string" || typeof refCol !== "string" || !col || !refCol) {
                 return {
                     success: false,
@@ -318,7 +322,7 @@ export function createSchemaDesignerApplyEditsHandler(
                 };
             }
 
-            const src = resolveColumnNameByName(sourceTable, col);
+            const src = resolveColumnIdByName(sourceTable, col);
             if (src.success === false) {
                 return {
                     success: false,
@@ -326,7 +330,7 @@ export function createSchemaDesignerApplyEditsHandler(
                     message: src.message,
                 };
             }
-            const tgt = resolveColumnNameByName(referencedTable, refCol);
+            const tgt = resolveColumnIdByName(referencedTable, refCol);
             if (tgt.success === false) {
                 return {
                     success: false,
@@ -335,11 +339,11 @@ export function createSchemaDesignerApplyEditsHandler(
                 };
             }
 
-            columns.push(src.name);
-            referencedColumns.push(tgt.name);
+            columnIds.push(src.id);
+            referencedColumnIds.push(tgt.id);
         }
 
-        return { success: true, columns, referencedColumns };
+        return { success: true, columnIds, referencedColumnIds };
     };
 
     const handleApplyEdits = async (
@@ -452,19 +456,13 @@ export function createSchemaDesignerApplyEditsHandler(
                             );
                         }
 
-                        const deletedSchemaName = resolved.table.schema;
-                        const deletedTableName = resolved.table.name;
                         workingSchema = {
                             tables: workingSchema.tables
                                 .filter((t) => t.id !== resolved.table.id)
                                 .map((t) => ({
                                     ...t,
                                     foreignKeys: (t.foreignKeys ?? []).filter(
-                                        (fk) =>
-                                            normalizeIdentifier(fk.referencedSchemaName) !==
-                                                normalizeIdentifier(deletedSchemaName) ||
-                                            normalizeIdentifier(fk.referencedTableName) !==
-                                                normalizeIdentifier(deletedTableName),
+                                        (fk) => fk.referencedTableId !== resolved.table.id,
                                     ),
                                 })),
                         };
@@ -480,8 +478,6 @@ export function createSchemaDesignerApplyEditsHandler(
                         if (resolved.success === false) {
                             return fail(resolved.reason, resolved.message);
                         }
-                        const previousSchemaName = resolved.table.schema;
-                        const previousTableName = resolved.table.name;
                         const updated: SchemaDesigner.Table = {
                             ...resolved.table,
                             name: edit.set?.name ?? resolved.table.name,
@@ -503,29 +499,9 @@ export function createSchemaDesignerApplyEditsHandler(
 
                         needsScriptRefresh = true;
                         workingSchema = {
-                            tables: workingSchema.tables.map((t) => {
-                                if (t.id === updated.id) {
-                                    return updated;
-                                }
-
-                                const foreignKeys = (t.foreignKeys ?? []).map((fk) => {
-                                    if (
-                                        normalizeIdentifier(fk.referencedSchemaName) ===
-                                            normalizeIdentifier(previousSchemaName) &&
-                                        normalizeIdentifier(fk.referencedTableName) ===
-                                            normalizeIdentifier(previousTableName)
-                                    ) {
-                                        return {
-                                            ...fk,
-                                            referencedSchemaName: updated.schema,
-                                            referencedTableName: updated.name,
-                                        };
-                                    }
-                                    return fk;
-                                });
-
-                                return { ...t, foreignKeys };
-                            }),
+                            tables: workingSchema.tables.map((t) =>
+                                t.id === updated.id ? updated : t,
+                            ),
                         };
                         appliedEdits++;
                         didMutateThisEdit = true;
@@ -750,10 +726,9 @@ export function createSchemaDesignerApplyEditsHandler(
                         const newForeignKey: SchemaDesigner.ForeignKey = {
                             id: uuidv4(),
                             name: edit.foreignKey.name,
-                            columns: mappingsResult.columns,
-                            referencedSchemaName: referenced.table.schema,
-                            referencedTableName: referenced.table.name,
-                            referencedColumns: mappingsResult.referencedColumns,
+                            columnsIds: mappingsResult.columnIds,
+                            referencedTableId: referenced.table.id,
+                            referencedColumnsIds: mappingsResult.referencedColumnIds,
                             onDeleteAction: edit.foreignKey.onDeleteAction,
                             onUpdateAction: edit.foreignKey.onUpdateAction,
                         };
@@ -873,43 +848,65 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail(resolvedForeignKey.reason, resolvedForeignKey.message);
                         }
 
-                        let referencedSchemaName =
-                            resolvedForeignKey.foreignKey.referencedSchemaName;
-                        let referencedTableName = resolvedForeignKey.foreignKey.referencedTableName;
+                        const legacyForeignKey = resolvedForeignKey.foreignKey as unknown as {
+                            referencedSchemaName?: string;
+                            referencedTableName?: string;
+                        };
+
+                        let referencedTableId = resolvedForeignKey.foreignKey.referencedTableId;
+                        if (
+                            !referencedTableId &&
+                            legacyForeignKey.referencedSchemaName &&
+                            legacyForeignKey.referencedTableName
+                        ) {
+                            const legacyReferencedTable = resolveTable(schema, {
+                                schema: legacyForeignKey.referencedSchemaName,
+                                name: legacyForeignKey.referencedTableName,
+                            });
+                            if (legacyReferencedTable.success === false) {
+                                return fail(
+                                    legacyReferencedTable.reason,
+                                    legacyReferencedTable.message,
+                                );
+                            }
+                            referencedTableId = legacyReferencedTable.table.id;
+                        }
+
                         if (edit.set?.referencedTable) {
                             const referenced = resolveTable(schema, edit.set.referencedTable);
                             if (referenced.success === false) {
                                 return fail(referenced.reason, referenced.message);
                             }
-                            referencedSchemaName = referenced.table.schema;
-                            referencedTableName = referenced.table.name;
+                            referencedTableId = referenced.table.id;
                         }
 
-                        let nextColumns = resolvedForeignKey.foreignKey.columns;
-                        let nextReferencedColumns = resolvedForeignKey.foreignKey.referencedColumns;
-                        const referencedTableForMappings = resolveTable(schema, {
-                            schema: referencedSchemaName,
-                            name: referencedTableName,
-                        });
-                        if (referencedTableForMappings.success === false) {
+                        let nextColumnIds = resolvedForeignKey.foreignKey.columnsIds;
+                        let nextReferencedColumnIds =
+                            resolvedForeignKey.foreignKey.referencedColumnsIds;
+                        const referencedTableForMappings = workingSchema.tables.find(
+                            (table) => table.id === referencedTableId,
+                        );
+                        if (!referencedTableForMappings) {
                             return fail(
-                                referencedTableForMappings.reason,
-                                referencedTableForMappings.message,
+                                "not_found",
+                                locConstants.schemaDesigner.referencedTableNotFound(
+                                    referencedTableId,
+                                ),
                             );
                         }
 
                         if (edit.set && Array.isArray(edit.set.mappings)) {
                             const mappingsResult = resolveForeignKeyMappings(
                                 resolvedTable.table,
-                                referencedTableForMappings.table,
+                                referencedTableForMappings,
                                 edit.set.mappings,
                             );
                             if (mappingsResult.success === false) {
                                 return fail(mappingsResult.reason, mappingsResult.message);
                             }
 
-                            nextColumns = mappingsResult.columns;
-                            nextReferencedColumns = mappingsResult.referencedColumns;
+                            nextColumnIds = mappingsResult.columnIds;
+                            nextReferencedColumnIds = mappingsResult.referencedColumnIds;
                         }
 
                         if (edit.set?.onDeleteAction !== undefined) {
@@ -928,10 +925,9 @@ export function createSchemaDesignerApplyEditsHandler(
                         const updatedForeignKey: SchemaDesigner.ForeignKey = {
                             ...resolvedForeignKey.foreignKey,
                             name: edit.set?.name ?? resolvedForeignKey.foreignKey.name,
-                            columns: nextColumns,
-                            referencedSchemaName,
-                            referencedTableName,
-                            referencedColumns: nextReferencedColumns,
+                            columnsIds: nextColumnIds,
+                            referencedTableId,
+                            referencedColumnsIds: nextReferencedColumnIds,
                             onDeleteAction:
                                 edit.set?.onDeleteAction ??
                                 resolvedForeignKey.foreignKey.onDeleteAction,
@@ -980,7 +976,10 @@ export function createSchemaDesignerApplyEditsHandler(
                     }
 
                     default:
-                        return fail("invalid_request", `Unknown edit op: ${(edit as any)?.op}`);
+                        return fail(
+                            "invalid_request",
+                            `Unknown edit op: ${String((edit as { op?: unknown }).op)}`,
+                        );
                 }
 
                 if (didMutateThisEdit) {
@@ -1148,11 +1147,11 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                     customRestPath:
                         entity.advancedSettings.customRestPath !== undefined
                             ? entity.advancedSettings.customRestPath
-                            : null,
+                            : undefined,
                     customGraphQLType:
                         entity.advancedSettings.customGraphQLType !== undefined
                             ? entity.advancedSettings.customGraphQLType
-                            : null,
+                            : undefined,
                 },
             }))
             .sort((a, b) => {
@@ -1441,7 +1440,7 @@ function applyDabToolChange(
                         updatedSettings.authorizationRole = value;
                         break;
                     case "customRestPath":
-                        if (value === null) {
+                        if (typeof value === "undefined") {
                             delete updatedSettings.customRestPath;
                             break;
                         }
@@ -1462,7 +1461,7 @@ function applyDabToolChange(
                         updatedSettings.customRestPath = value.trim();
                         break;
                     case "customGraphQLType":
-                        if (value === null) {
+                        if (typeof value === "undefined") {
                             delete updatedSettings.customGraphQLType;
                             break;
                         }

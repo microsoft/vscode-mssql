@@ -368,8 +368,8 @@ export function calculateSchemaDiff(
                 referencedColumns?: string[];
             };
 
-            const oldColumnIds = Array.isArray(oldFk.columnIds)
-                ? oldFk.columnIds
+            const oldColumnIds = Array.isArray(oldFk.columnsIds)
+                ? oldFk.columnsIds
                 : (oldLegacyForeignKey.columns ?? [])
                       .map(
                           (columnName) =>
@@ -377,8 +377,8 @@ export function calculateSchemaDiff(
                               columnName,
                       )
                       .filter((columnId): columnId is string => Boolean(columnId));
-            const newColumnIds = Array.isArray(newFk.columnIds)
-                ? newFk.columnIds
+            const newColumnIds = Array.isArray(newFk.columnsIds)
+                ? newFk.columnsIds
                 : (newLegacyForeignKey.columns ?? [])
                       .map(
                           (columnName) =>
@@ -415,8 +415,8 @@ export function calculateSchemaDiff(
                 (table) => table.id === newReferencedTableId,
             );
 
-            const oldReferencedColumnIds = Array.isArray(oldFk.referencedColumnIds)
-                ? oldFk.referencedColumnIds
+            const oldReferencedColumnIds = Array.isArray(oldFk.referencedColumnsIds)
+                ? oldFk.referencedColumnsIds
                 : (oldLegacyForeignKey.referencedColumns ?? [])
                       .map(
                           (columnName) =>
@@ -425,8 +425,8 @@ export function calculateSchemaDiff(
                               )?.id ?? columnName,
                       )
                       .filter((columnId): columnId is string => Boolean(columnId));
-            const newReferencedColumnIds = Array.isArray(newFk.referencedColumnIds)
-                ? newFk.referencedColumnIds
+            const newReferencedColumnIds = Array.isArray(newFk.referencedColumnsIds)
+                ? newFk.referencedColumnsIds
                 : (newLegacyForeignKey.referencedColumns ?? [])
                       .map(
                           (columnName) =>
@@ -459,6 +459,76 @@ export function calculateSchemaDiff(
                 comparableNewForeignKey,
                 FOREIGN_KEY_PROPERTIES,
             );
+
+            const oldColumnsById = new Map(oldTable.columns.map((column) => [column.id, column]));
+            const newColumnsById = new Map(newTable.columns.map((column) => [column.id, column]));
+            const oldReferencedColumnsById = new Map(
+                (oldReferencedTable?.columns ?? []).map((column) => [column.id, column]),
+            );
+            const newReferencedColumnsById = new Map(
+                (newReferencedTable?.columns ?? []).map((column) => [column.id, column]),
+            );
+
+            const mapColumnIdsToNames = (
+                ids: unknown,
+                columnsById: Map<string, sd.SchemaDesigner.Column>,
+            ): unknown => {
+                if (!Array.isArray(ids)) {
+                    return ids;
+                }
+
+                return ids.map((id) => {
+                    if (typeof id !== "string") {
+                        return id;
+                    }
+
+                    const column = columnsById.get(id);
+                    return column?.name ?? id;
+                });
+            };
+
+            const getTableDisplayName = (
+                tableId: unknown,
+                schema: sd.SchemaDesigner.Schema,
+            ): unknown => {
+                if (typeof tableId !== "string") {
+                    return tableId;
+                }
+
+                const table = schema.tables.find((entry) => entry.id === tableId);
+                return table?.name ?? tableId;
+            };
+
+            const displayFkPropertyChanges = fkPropertyChanges.map((propertyChange) => {
+                switch (propertyChange.property) {
+                    case "columnIds":
+                        return {
+                            ...propertyChange,
+                            oldValue: mapColumnIdsToNames(propertyChange.oldValue, oldColumnsById),
+                            newValue: mapColumnIdsToNames(propertyChange.newValue, newColumnsById),
+                        };
+                    case "referencedTableId":
+                        return {
+                            ...propertyChange,
+                            oldValue: getTableDisplayName(propertyChange.oldValue, oldSchema),
+                            newValue: getTableDisplayName(propertyChange.newValue, newSchema),
+                        };
+                    case "referencedColumnIds":
+                        return {
+                            ...propertyChange,
+                            oldValue: mapColumnIdsToNames(
+                                propertyChange.oldValue,
+                                oldReferencedColumnsById,
+                            ),
+                            newValue: mapColumnIdsToNames(
+                                propertyChange.newValue,
+                                newReferencedColumnsById,
+                            ),
+                        };
+                    default:
+                        return propertyChange;
+                }
+            });
             if (fkPropertyChanges.length > 0) {
                 pushChange(group, {
                     id: `foreignKey:modify:${newTable.id}:${newFk.id}`,
@@ -469,7 +539,7 @@ export function calculateSchemaDiff(
                     tableSchema: newTable.schema,
                     objectId: newFk.id,
                     objectName: newFk.name,
-                    propertyChanges: fkPropertyChanges,
+                    propertyChanges: displayFkPropertyChanges,
                 });
             }
         }

@@ -121,12 +121,12 @@ export const foreignKeyUtils = {
 
         const columnsSet = new Set<string>();
         for (const existingFk of existingFks) {
-            for (const columnId of existingFk.columnIds) {
+            for (const columnId of existingFk.columnsIds) {
                 columnsSet.add(columnId);
             }
         }
 
-        for (const columnId of fk.columnIds) {
+        for (const columnId of fk.columnsIds) {
             if (columnsSet.has(columnId)) {
                 return {
                     isValid: false,
@@ -136,9 +136,9 @@ export const foreignKeyUtils = {
             columnsSet.add(columnId);
         }
 
-        for (let index = 0; index < fk.columnIds.length; index++) {
-            const sourceColumnId = fk.columnIds[index];
-            const referencedColumnId = fk.referencedColumnIds[index];
+        for (let index = 0; index < fk.columnsIds.length; index++) {
+            const sourceColumnId = fk.columnsIds[index];
+            const referencedColumnId = fk.referencedColumnsIds[index];
 
             const col = table.columns.find((c) => c.id === sourceColumnId);
             const refCol = refTable.columns.find((c) => c.id === referencedColumnId);
@@ -236,9 +236,9 @@ export const foreignKeyUtils = {
         return {
             id: existingFkId || uuidv4(),
             name: existingFkName || `FK_${sourceNode.data.name}_${targetNode.data.name}`,
-            columnIds: [sourceColumnId],
+            columnsIds: [sourceColumnId],
             referencedTableId: targetNode.data.id,
-            referencedColumnIds: [targetColumnId],
+            referencedColumnsIds: [targetColumnId],
             onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
             onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         };

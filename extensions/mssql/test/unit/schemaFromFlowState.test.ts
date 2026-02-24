@@ -69,9 +69,9 @@ suite("SchemaDesigner schema from flow state", () => {
                 data: {
                     id: "fk1",
                     name: "FK_t1_t2",
-                    columnIds: ["t1-id"],
+                    columnsIds: ["t1-id"],
                     referencedTableId: "t2",
-                    referencedColumnIds: ["t2-id"],
+                    referencedColumnsIds: ["t2-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -83,9 +83,9 @@ suite("SchemaDesigner schema from flow state", () => {
                 data: {
                     id: "fk1",
                     name: "FK_t1_t2",
-                    columnIds: ["t1-alt"],
+                    columnsIds: ["t1-alt"],
                     referencedTableId: "t2",
-                    referencedColumnIds: ["t2-alt"],
+                    referencedColumnsIds: ["t2-alt"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -96,8 +96,8 @@ suite("SchemaDesigner schema from flow state", () => {
         const fk = schema.tables.find((table) => table.id === "t1")?.foreignKeys[0];
 
         expect(fk?.id).to.equal("fk1");
-        expect(fk?.columnIds).to.deep.equal(["t1-id", "t1-alt"]);
-        expect(fk?.referencedColumnIds).to.deep.equal(["t2-id", "t2-alt"]);
+        expect(fk?.columnsIds).to.deep.equal(["t1-id", "t1-alt"]);
+        expect(fk?.referencedColumnsIds).to.deep.equal(["t2-id", "t2-alt"]);
     });
 
     test("ignores deleted nodes and deleted edges", () => {
@@ -127,9 +127,9 @@ suite("SchemaDesigner schema from flow state", () => {
                 data: {
                     id: "fk-deleted",
                     name: "FK_deleted",
-                    columnIds: ["t1-id"],
+                    columnsIds: ["t1-id"],
                     referencedTableId: "t2",
-                    referencedColumnIds: ["t2-id"],
+                    referencedColumnsIds: ["t2-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                     isDeleted: true,

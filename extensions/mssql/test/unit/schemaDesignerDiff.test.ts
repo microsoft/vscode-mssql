@@ -638,11 +638,8 @@ suite("SchemaDesigner diff utils", () => {
             {
                 property: "columnIds",
                 displayName: "Columns",
-                oldValue: ["fe92dd38-2c17-41e3-8b5d-a724b012d818"],
-                newValue: [
-                    "fe92dd38-2c17-41e3-8b5d-a724b012d818",
-                    "457002c3-7ffd-4b80-a073-39a8d2aa4791",
-                ],
+                oldValue: ["order_item_id"],
+                newValue: ["order_item_id", "return_id"],
             },
             {
                 property: "referencedColumnIds",

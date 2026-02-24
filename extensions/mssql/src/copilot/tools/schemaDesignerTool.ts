@@ -84,7 +84,7 @@ interface TableForeignKeyView {
     id?: string;
     name: string;
     referencedTable: { schema: string; name: string };
-    mappings: { column: string; referencedColumn: string }[];
+    mappings: { column: string; referencedColumn?: string }[];
     onDeleteAction: number;
     onUpdateAction: number;
 }
@@ -143,10 +143,9 @@ type NormalizedSchemaVersion = {
         }[];
         foreignKeys: {
             name: string;
-            columns: string[];
-            referencedSchemaName: string;
-            referencedTableName: string;
-            referencedColumns: string[];
+            columnIds: string[];
+            referencedTableId: string;
+            referencedColumnIds: string[];
             onDeleteAction: number;
             onUpdateAction: number;
         }[];
@@ -195,7 +194,10 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
             }
         };
 
-        const withTarget = (obj: any, designer: SchemaDesignerWebviewController | undefined) => {
+        const withTarget = <T extends object>(
+            obj: T,
+            designer: SchemaDesignerWebviewController | undefined,
+        ) => {
             if (!designer) return obj;
             return {
                 ...obj,
@@ -356,6 +358,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 }
 
                 const table = this.buildTableView(
+                    schema,
                     resolved.table,
                     includeColumns,
                     includeForeignKeys,
@@ -601,8 +604,8 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         this.compareKeys(this.foreignKeySortKey(a), this.foreignKeySortKey(b)),
                     )
                     .map((foreignKey) => {
-                        const refs = foreignKey.referencedColumns ?? [];
-                        const pairs = (foreignKey.columns ?? []).map((column, i) => ({
+                        const refs = foreignKey.referencedColumnsIds ?? [];
+                        const pairs = (foreignKey.columnsIds ?? []).map((column, i) => ({
                             column,
                             referencedColumn: refs[i] ?? "",
                         }));
@@ -614,14 +617,9 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
 
                         return {
                             name: (foreignKey.name ?? "").toLowerCase(),
-                            columns: pairs.map((p) => p.column.toLowerCase()),
-                            referencedSchemaName: (
-                                foreignKey.referencedSchemaName ?? ""
-                            ).toLowerCase(),
-                            referencedTableName: (
-                                foreignKey.referencedTableName ?? ""
-                            ).toLowerCase(),
-                            referencedColumns: pairs.map((p) => p.referencedColumn.toLowerCase()),
+                            columnIds: pairs.map((p) => p.column.toLowerCase()),
+                            referencedTableId: (foreignKey.referencedTableId ?? "").toLowerCase(),
+                            referencedColumnIds: pairs.map((p) => p.referencedColumn.toLowerCase()),
                             onDeleteAction: foreignKey.onDeleteAction,
                             onUpdateAction: foreignKey.onUpdateAction,
                         };
@@ -639,7 +637,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     }
 
     private foreignKeySortKey(foreignKey: SchemaDesigner.ForeignKey): string {
-        return `${(foreignKey.name ?? "").toLowerCase()}.${(foreignKey.referencedSchemaName ?? "").toLowerCase()}.${(foreignKey.referencedTableName ?? "").toLowerCase()}`;
+        return `${(foreignKey.name ?? "").toLowerCase()}.${(foreignKey.referencedTableId ?? "").toLowerCase()}`;
     }
 
     private compareKeys(left: string, right: string): number {
@@ -726,6 +724,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     }
 
     private buildTableView(
+        schema: SchemaDesigner.Schema,
         table: SchemaDesigner.Table,
         includeColumns: IncludeTableColumns,
         includeForeignKeys: boolean,
@@ -768,14 +767,36 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         }
 
         if (includeForeignKeys) {
+            const tableById = new Map((schema.tables ?? []).map((t) => [t.id, t]));
+            const sourceColumnsById = new Map(
+                (table.columns ?? []).map((column) => [column.id, column]),
+            );
             view.foreignKeys = (table.foreignKeys ?? []).map((fk) => ({
+                referencedTable: {
+                    schema: tableById.get(fk.referencedTableId)?.schema ?? "",
+                    name: tableById.get(fk.referencedTableId)?.name ?? "",
+                },
+                mappings: (fk.columnsIds ?? [])
+                    .map((columnId, idx) => {
+                        const sourceColumnName = sourceColumnsById.get(columnId)?.name;
+                        if (!sourceColumnName) {
+                            return undefined;
+                        }
+
+                        const referencedColumnName = tableById
+                            .get(fk.referencedTableId)
+                            ?.columns.find(
+                                (column) => column.id === (fk.referencedColumnsIds ?? [])[idx],
+                            )?.name;
+
+                        return {
+                            column: sourceColumnName,
+                            referencedColumn: referencedColumnName,
+                        };
+                    })
+                    .filter((mapping) => mapping !== undefined),
                 id: includeColumns === "full" ? fk.id : undefined,
                 name: fk.name,
-                referencedTable: { schema: fk.referencedSchemaName, name: fk.referencedTableName },
-                mappings: (fk.columns ?? []).map((col, idx) => ({
-                    column: col,
-                    referencedColumn: (fk.referencedColumns ?? [])[idx],
-                })),
                 onDeleteAction: fk.onDeleteAction,
                 onUpdateAction: fk.onUpdateAction,
             }));

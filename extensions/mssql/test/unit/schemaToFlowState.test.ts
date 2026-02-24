@@ -50,9 +50,9 @@ suite("SchemaDesigner schema to flow state", () => {
                 {
                     id: "fk-orders-users",
                     name: "FK_Orders_Users",
-                    columnIds: ["c-orders-user-id", "c-orders-user-alt"],
+                    columnsIds: ["c-orders-user-id", "c-orders-user-alt"],
                     referencedTableId: "t-users",
-                    referencedColumnIds: ["c-users-id", "c-users-alt"],
+                    referencedColumnsIds: ["c-users-id", "c-users-alt"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -67,8 +67,8 @@ suite("SchemaDesigner schema to flow state", () => {
             "t-orders-t-users-c-orders-user-id-c-users-id",
             "t-orders-t-users-c-orders-user-alt-c-users-alt",
         ]);
-        expect(flow.edges[0].data.columnIds).to.deep.equal(["c-orders-user-id"]);
-        expect(flow.edges[0].data.referencedColumnIds).to.deep.equal(["c-users-id"]);
+        expect(flow.edges[0].data.columnsIds).to.deep.equal(["c-orders-user-id"]);
+        expect(flow.edges[0].data.referencedColumnsIds).to.deep.equal(["c-users-id"]);
     });
 
     test("uses smooth-step edge for self-referencing foreign keys", () => {
@@ -84,9 +84,9 @@ suite("SchemaDesigner schema to flow state", () => {
                 {
                     id: "fk-employees-manager",
                     name: "FK_Employees_Manager",
-                    columnIds: ["c-emp-manager-id"],
+                    columnsIds: ["c-emp-manager-id"],
                     referencedTableId: "t-employees",
-                    referencedColumnIds: ["c-emp-id"],
+                    referencedColumnsIds: ["c-emp-id"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },

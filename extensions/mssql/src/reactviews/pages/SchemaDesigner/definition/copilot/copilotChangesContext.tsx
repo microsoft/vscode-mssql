@@ -17,11 +17,14 @@ import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
 import eventBus from "../../schemaDesignerEvents";
 import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
 import {
+    createSchemaDesignerIndex,
+    getColumnById,
+    getTableById,
     normalizeColumn,
     normalizeTable,
     validateTable,
     waitForNextFrame,
-} from "../../schemaDesignerToolBatchUtils";
+} from "../../model";
 import {
     CopilotChange,
     CopilotOperation,
@@ -415,17 +418,6 @@ const findTableById = (
     return schema.tables.find((table) => table.id === tableId);
 };
 
-const findTableByName = (
-    schema: SchemaDesigner.Schema,
-    tableSchema: string,
-    tableName: string,
-): SchemaDesigner.Table | undefined =>
-    schema.tables.find(
-        (table) =>
-            normalizeIdentifier(table.schema) === normalizeIdentifier(tableSchema) &&
-            normalizeIdentifier(table.name) === normalizeIdentifier(tableName),
-    );
-
 const buildTableRef = (table: SchemaDesigner.Table): SchemaDesigner.TableRef => ({
     id: table.id,
     schema: table.schema,
@@ -452,38 +444,52 @@ const toColumnCreate = (column: SchemaDesigner.Column): SchemaDesigner.ColumnCre
 
 const toForeignKeyMappings = (
     foreignKey: SchemaDesigner.ForeignKey,
+    sourceTableId: string,
+    schemaIndex: ReturnType<typeof createSchemaDesignerIndex>,
 ): SchemaDesigner.ForeignKeyMapping[] =>
-    foreignKey.columns
-        .map((column, index) => ({
-            column,
-            referencedColumn: foreignKey.referencedColumns[index],
-        }))
-        .filter((mapping) => !!mapping.column && !!mapping.referencedColumn);
+    foreignKey.columnsIds
+        .map((columnId, index) => {
+            const referencedColumnId = foreignKey.referencedColumnsIds[index];
+            if (!referencedColumnId) {
+                return undefined;
+            }
+
+            const sourceColumn = getColumnById(schemaIndex, sourceTableId, columnId);
+            const referencedColumn = getColumnById(
+                schemaIndex,
+                foreignKey.referencedTableId,
+                referencedColumnId,
+            );
+
+            if (!sourceColumn || !referencedColumn) {
+                return undefined;
+            }
+
+            return {
+                column: sourceColumn.name,
+                referencedColumn: referencedColumn.name,
+            };
+        })
+        .filter((mapping): mapping is SchemaDesigner.ForeignKeyMapping => mapping !== undefined);
 
 const toForeignKeyCreate = (
     foreignKey: SchemaDesigner.ForeignKey,
-    currentSchema: SchemaDesigner.Schema,
+    sourceTableId: string,
+    schemaIndex: ReturnType<typeof createSchemaDesignerIndex>,
 ): SchemaDesigner.ForeignKeyCreate | undefined => {
-    const mappings = toForeignKeyMappings(foreignKey);
+    const mappings = toForeignKeyMappings(foreignKey, sourceTableId, schemaIndex);
     if (mappings.length === 0) {
         return undefined;
     }
 
-    const referencedTableInSchema = findTableByName(
-        currentSchema,
-        foreignKey.referencedSchemaName,
-        foreignKey.referencedTableName,
-    );
-    const referencedTable: SchemaDesigner.TableRef = referencedTableInSchema
-        ? buildTableRef(referencedTableInSchema)
-        : {
-              schema: foreignKey.referencedSchemaName,
-              name: foreignKey.referencedTableName,
-          };
+    const referencedTable = getTableById(schemaIndex, foreignKey.referencedTableId);
+    if (!referencedTable) {
+        return undefined;
+    }
 
     return {
         name: foreignKey.name,
-        referencedTable,
+        referencedTable: buildTableRef(referencedTable),
         mappings,
         onDeleteAction: foreignKey.onDeleteAction,
         onUpdateAction: foreignKey.onUpdateAction,
@@ -504,6 +510,7 @@ const buildUndoEditsForChange = (
     change: CopilotChange,
     currentSchema: SchemaDesigner.Schema,
 ): SchemaDesigner.SchemaDesignerEdit[] | undefined => {
+    const currentSchemaIndex = createSchemaDesignerIndex(currentSchema);
     const tableId = getTableIdFromChange(change);
     const beforeTable = change.before as SchemaDesigner.Table | undefined;
     const afterTable = change.after as SchemaDesigner.Table | undefined;
@@ -617,7 +624,11 @@ const buildUndoEditsForChange = (
                 return undefined;
             }
 
-            const foreignKeyCreate = toForeignKeyCreate(beforeForeignKey, currentSchema);
+            const foreignKeyCreate = toForeignKeyCreate(
+                beforeForeignKey,
+                table.id,
+                currentSchemaIndex,
+            );
             if (!foreignKeyCreate) {
                 return undefined;
             }
@@ -644,22 +655,18 @@ const buildUndoEditsForChange = (
                 return undefined;
             }
 
-            const mappings = toForeignKeyMappings(beforeForeignKey);
+            const mappings = toForeignKeyMappings(beforeForeignKey, table.id, currentSchemaIndex);
             if (mappings.length === 0) {
                 return undefined;
             }
 
-            const referencedTableInSchema = findTableByName(
-                currentSchema,
-                beforeForeignKey.referencedSchemaName,
-                beforeForeignKey.referencedTableName,
+            const referencedTable = getTableById(
+                currentSchemaIndex,
+                beforeForeignKey.referencedTableId,
             );
-            const referencedTable: SchemaDesigner.TableRef = referencedTableInSchema
-                ? buildTableRef(referencedTableInSchema)
-                : {
-                      schema: beforeForeignKey.referencedSchemaName,
-                      name: beforeForeignKey.referencedTableName,
-                  };
+            if (!referencedTable) {
+                return undefined;
+            }
 
             return [
                 {
@@ -670,7 +677,7 @@ const buildUndoEditsForChange = (
                         name: beforeForeignKey.name,
                         onDeleteAction: beforeForeignKey.onDeleteAction,
                         onUpdateAction: beforeForeignKey.onUpdateAction,
-                        referencedTable,
+                        referencedTable: buildTableRef(referencedTable),
                         mappings,
                     },
                 },

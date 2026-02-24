@@ -39,17 +39,17 @@ export function buildSchemaFromFlowState(
         const foreignKey: SchemaDesigner.ForeignKey = {
             id: edge.data.id,
             name: edge.data.name,
-            columnIds: [...edge.data.columnIds],
+            columnsIds: [...edge.data.columnsIds],
             referencedTableId: edge.data.referencedTableId || edge.target,
-            referencedColumnIds: [...edge.data.referencedColumnIds],
+            referencedColumnsIds: [...edge.data.referencedColumnsIds],
             onDeleteAction: edge.data.onDeleteAction,
             onUpdateAction: edge.data.onUpdateAction,
         };
 
         const existingForeignKey = sourceTable.foreignKeys.find((fk) => fk.id === foreignKey.id);
         if (existingForeignKey) {
-            existingForeignKey.columnIds.push(foreignKey.columnIds[0]);
-            existingForeignKey.referencedColumnIds.push(foreignKey.referencedColumnIds[0]);
+            existingForeignKey.columnsIds.push(foreignKey.columnsIds[0]);
+            existingForeignKey.referencedColumnsIds.push(foreignKey.referencedColumnsIds[0]);
             return;
         }
 

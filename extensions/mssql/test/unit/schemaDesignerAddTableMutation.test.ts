@@ -108,9 +108,9 @@ suite("SchemaDesigner add table mutation", () => {
                 {
                     id: "fk-new-source",
                     name: "FK_New_Source",
-                    columnIds: ["t-new-source-id"],
+                    columnsIds: ["t-new-source-id"],
                     referencedTableId: sourceTable.id,
-                    referencedColumnIds: ["t-source-pk"],
+                    referencedColumnsIds: ["t-source-pk"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },
@@ -127,9 +127,9 @@ suite("SchemaDesigner add table mutation", () => {
                 data: {
                     id: "fk-existing",
                     name: "FK_Existing",
-                    columnIds: ["t-source-pk"],
+                    columnsIds: ["t-source-pk"],
                     referencedTableId: targetTable.id,
-                    referencedColumnIds: ["t-target-pk"],
+                    referencedColumnsIds: ["t-target-pk"],
                     onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                     onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                 },

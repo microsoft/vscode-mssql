@@ -92,8 +92,8 @@ export function canRevertChange(
                 );
 
             if (fallbackReferencedTable) {
-                const referencedColumnIds = Array.isArray(baselineFk.referencedColumnIds)
-                    ? baselineFk.referencedColumnIds
+                const referencedColumnIds = Array.isArray(baselineFk.referencedColumnsIds)
+                    ? baselineFk.referencedColumnsIds
                     : [];
 
                 const missingColumns = referencedColumnIds.filter(
