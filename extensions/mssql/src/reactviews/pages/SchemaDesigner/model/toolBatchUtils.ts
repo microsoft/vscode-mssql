@@ -3,11 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useCallback } from "react";
+import type { Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { columnUtils } from "./columnUtils";
 import { foreignKeyUtils } from "./foreignKeyUtils";
+import { layoutFlowComponents } from "./flowLayout";
 import { tableUtils } from "./tableUtils";
 
 export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 5;
@@ -201,3 +204,42 @@ export const validateTable = (
 
     return undefined;
 };
+
+export function useMaybeAutoArrangeForToolBatch(params: {
+    reactFlow: ReactFlowInstance<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>;
+    resetView: () => void;
+    onPushUndoState: () => void;
+}) {
+    const { reactFlow, resetView, onPushUndoState } = params;
+
+    return useCallback(
+        async (
+            preTableCount: number,
+            postTableCount: number,
+            preForeignKeyCount: number,
+            postForeignKeyCount: number,
+        ) => {
+            if (
+                !shouldAutoArrangeForToolBatch({
+                    preTableCount,
+                    postTableCount,
+                    preForeignKeyCount,
+                    postForeignKeyCount,
+                })
+            ) {
+                return;
+            }
+
+            const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+            const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const generateComponenets = layoutFlowComponents(nodes, edges);
+            reactFlow.setNodes(generateComponenets.nodes);
+            reactFlow.setEdges(generateComponenets.edges);
+            resetView();
+
+            await waitForNextFrame();
+            onPushUndoState();
+        },
+        [reactFlow, resetView, onPushUndoState],
+    );
+}

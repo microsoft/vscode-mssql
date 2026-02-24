@@ -15,6 +15,9 @@ import {
 } from "../../src/reactviews/pages/SchemaDesigner/model/toolBatchUtils";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
+const createColumn = (partial: Partial<SchemaDesigner.Column>): SchemaDesigner.Column =>
+    partial as SchemaDesigner.Column;
+
 suite("Schema Designer tool batch utils", () => {
     test("shouldAutoArrangeForToolBatch triggers on table or foreign key thresholds", () => {
         expect(TOOL_AUTO_ARRANGE_TABLE_THRESHOLD).to.equal(5);
@@ -58,10 +61,12 @@ suite("Schema Designer tool batch utils", () => {
     });
 
     test("normalizeColumn enforces primary key non-nullable and defaults lengths", () => {
-        const pk = normalizeColumn({ name: "Id", dataType: "int", isPrimaryKey: true } as any);
+        const pk = normalizeColumn(
+            createColumn({ name: "Id", dataType: "int", isPrimaryKey: true }),
+        );
         expect(pk.isNullable).to.equal(false);
 
-        const nvarchar = normalizeColumn({ name: "Name", dataType: "nvarchar" } as any);
+        const nvarchar = normalizeColumn(createColumn({ name: "Name", dataType: "nvarchar" }));
         expect(nvarchar.maxLength).to.not.equal("");
     });
 
@@ -81,7 +86,7 @@ suite("Schema Designer tool batch utils", () => {
                 id: "t2",
                 name: "T2",
                 schema: "missing",
-                columns: [normalizeColumn({ name: "Id", dataType: "int" } as any)],
+                columns: [normalizeColumn(createColumn({ name: "Id", dataType: "int" }))],
                 foreignKeys: [],
             },
             ["dbo"],
