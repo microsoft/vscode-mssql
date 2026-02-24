@@ -1154,6 +1154,25 @@ export class LocConstants {
                         "{1} is the total number of changes",
                     ],
                 }),
+            copilotUnknown: l10n.t("Unknown"),
+            copilotOnDelete: l10n.t("On Delete"),
+            copilotOnUpdate: l10n.t("On Update"),
+            copilotReferencedSchema: l10n.t("Referenced schema"),
+            copilotReferencedTable: l10n.t("Referenced table"),
+            copilotReferencedColumns: l10n.t("Referenced columns"),
+            copilotForeignKeys: l10n.t("Foreign keys"),
+            copilotDataType: l10n.t("Data type"),
+            copilotPrimaryKey: l10n.t("Primary key"),
+            copilotAllowNull: l10n.t("Allow null"),
+            copilotPropertySummaryMore: (firstProperty: string, additionalCount: number) =>
+                l10n.t({
+                    message: "{0}, +{1} more",
+                    args: [firstProperty, additionalCount],
+                    comment: [
+                        "{0} is the first changed property label",
+                        "{1} is the count of additional changed properties",
+                    ],
+                }),
 
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),

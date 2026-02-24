@@ -31,6 +31,8 @@ import { useCopilotChangesContext } from "./copilotChangesContext";
 import { CopilotChange, CopilotOperation } from "./copilotLedger";
 import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerChangesEmptyState } from "../changes/schemaDesignerChangesEmptyState";
+import { SchemaDesignerChangeDetailsPopover } from "../changes/schemaDesignerChangeDetailsPopover";
+import { ChangeAction, ChangeCategory, PropertyChange, SchemaChange } from "../../diff/diffUtils";
 
 type CopilotAction = "add" | "modify" | "delete";
 type CopilotEntity = "table" | "column" | "foreignKey";
@@ -79,7 +81,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "8px",
-        minHeight: "120px",
+        minHeight: "140px",
         transition: "border-color 0.15s ease, box-shadow 0.15s ease",
         "&:hover": {
             border: "1px solid var(--vscode-focusBorder)",
@@ -128,9 +130,33 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         fontSize: "11px",
         lineHeight: "14px",
+        width: "fit-content",
+        maxWidth: "100%",
+        borderRadius: "999px",
+        padding: "2px 8px",
+        border: "1px solid var(--vscode-gitDecoration-modifiedResourceForeground)",
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 14%, transparent)",
+        cursor: "pointer",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
+    },
+    propertiesBadgeButton: {
+        width: "100%",
+        height: "100%",
+        padding: 0,
+        borderRadius: "999px",
+        border: "none",
+        backgroundColor: "transparent",
+        color: "inherit",
+        minWidth: "unset",
+        fontSize: "11px",
+        lineHeight: "14px",
+        justifyContent: "flex-start",
+        "& .fui-ToolbarButton__icon": {
+            display: "none",
+        },
     },
     cardFooter: {
         display: "flex",
@@ -183,7 +209,7 @@ const formatObjectName = (change: CopilotChange): string => {
         | SchemaDesigner.ForeignKey
         | undefined;
     if (!value) {
-        return "Unknown";
+        return locConstants.schemaDesigner.copilotUnknown;
     }
 
     const { entity } = getMeta(change.operation);
@@ -192,55 +218,143 @@ const formatObjectName = (change: CopilotChange): string => {
         return `[${table.schema}].[${table.name}]`;
     }
 
-    return value.name ?? "Unknown";
+    return value.name ?? locConstants.schemaDesigner.copilotUnknown;
 };
 
 const propertyLabel = (propertyName: string): string => {
     switch (propertyName) {
         case "onDeleteAction":
-            return "On Delete";
+            return locConstants.schemaDesigner.copilotOnDelete;
         case "onUpdateAction":
-            return "On Update";
+            return locConstants.schemaDesigner.copilotOnUpdate;
         case "referencedSchemaName":
-            return "Referenced schema";
+            return locConstants.schemaDesigner.copilotReferencedSchema;
         case "referencedTableName":
-            return "Referenced table";
+            return locConstants.schemaDesigner.copilotReferencedTable;
         case "referencedColumns":
-            return "Referenced columns";
+            return locConstants.schemaDesigner.copilotReferencedColumns;
         case "foreignKeys":
-            return "Foreign keys";
+            return locConstants.schemaDesigner.copilotForeignKeys;
         case "dataType":
-            return "Data type";
+            return locConstants.schemaDesigner.copilotDataType;
         case "isPrimaryKey":
-            return "Primary key";
+            return locConstants.schemaDesigner.copilotPrimaryKey;
         case "allowNull":
-            return "Allow null";
+            return locConstants.schemaDesigner.copilotAllowNull;
         default:
             return propertyName;
     }
 };
 
 const getPropertySummary = (change: CopilotChange): string | undefined => {
-    const { action } = getMeta(change.operation);
-    if (action !== "modify" || !change.before || !change.after) {
+    const propertyChanges = getPropertyChanges(change);
+    if (propertyChanges.length === 0) {
         return undefined;
     }
+
+    if (propertyChanges.length === 1) {
+        return propertyChanges[0].displayName;
+    }
+    return locConstants.schemaDesigner.copilotPropertySummaryMore(
+        propertyChanges[0].displayName,
+        propertyChanges.length - 1,
+    );
+};
+
+const getPropertyChanges = (change: CopilotChange): PropertyChange[] => {
+    const { action } = getMeta(change.operation);
+    if (action !== "modify" || !change.before || !change.after) {
+        return [];
+    }
+
+    const simpleKeysByEntity: Record<CopilotEntity, string[]> = {
+        table: ["name", "schema"],
+        column: [
+            "name",
+            "dataType",
+            "allowNull",
+            "isNullable",
+            "isPrimaryKey",
+            "defaultValue",
+            "length",
+            "precision",
+            "scale",
+            "isIdentity",
+            "identitySeed",
+            "identityIncrement",
+            "isComputed",
+            "computedFormula",
+            "computedPersisted",
+        ],
+        foreignKey: [
+            "name",
+            "referencedSchemaName",
+            "referencedTableName",
+            "onDeleteAction",
+            "onUpdateAction",
+        ],
+    };
+
+    const isSimpleValue = (value: unknown): boolean =>
+        value === undefined ||
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean";
 
     const before = change.before as Record<string, unknown>;
     const after = change.after as Record<string, unknown>;
-    const keys = new Set<string>([...Object.keys(before), ...Object.keys(after)]);
-    const changedProperties = [...keys]
-        .filter((key) => key !== "id")
-        .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]))
-        .map(propertyLabel);
+    const { entity } = getMeta(change.operation);
+    const keys = simpleKeysByEntity[entity];
 
-    if (changedProperties.length === 0) {
+    return keys
+        .filter((key) => isSimpleValue(before[key]) && isSimpleValue(after[key]))
+        .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]))
+        .map((property) => ({
+            property,
+            displayName: propertyLabel(property),
+            oldValue: before[property],
+            newValue: after[property],
+        }));
+};
+
+const getChangeCategory = (change: CopilotChange): ChangeCategory => {
+    const { entity } = getMeta(change.operation);
+    if (entity === "table") {
+        return ChangeCategory.Table;
+    }
+    if (entity === "column") {
+        return ChangeCategory.Column;
+    }
+    return ChangeCategory.ForeignKey;
+};
+
+const toSchemaChange = (
+    change: CopilotChange,
+    propertyChanges: PropertyChange[],
+): SchemaChange | undefined => {
+    if (propertyChanges.length === 0) {
         return undefined;
     }
-    if (changedProperties.length === 1) {
-        return changedProperties[0];
-    }
-    return `${changedProperties[0]}, +${changedProperties.length - 1} more`;
+
+    const tableEntity =
+        getMeta(change.operation).entity === "table" ? (change.after ?? change.before) : undefined;
+    const table = tableEntity as SchemaDesigner.Table | undefined;
+    const object = (change.after ?? change.before) as
+        | SchemaDesigner.Column
+        | SchemaDesigner.ForeignKey
+        | undefined;
+
+    return {
+        id: `${change.operation}:${change.tableId ?? "unknown-table"}:${(object as { id?: string } | undefined)?.id ?? "unknown-object"}`,
+        action: ChangeAction.Modify,
+        category: getChangeCategory(change),
+        tableId: change.tableId ?? table?.id ?? "unknown-table",
+        tableName: table?.name ?? "",
+        tableSchema: table?.schema ?? "",
+        objectId: (object as { id?: string } | undefined)?.id,
+        objectName: (object as { name?: string } | undefined)?.name,
+        propertyChanges,
+    };
 };
 
 const getActionText = (change: CopilotChange): string => {
@@ -297,7 +411,7 @@ const SchemaDesignerCopilotChangesContent = () => {
         setReviewIndex,
     } = useCopilotChangesContext();
     const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
-    const listRef = useRef<HTMLDivElement | null>(null);
+    const listRef = useRef<HTMLDivElement>();
     const activeIndex = reviewIndex;
     const setActiveIndex = setReviewIndex;
     const [undoing, setUndoing] = useState<Record<number, boolean>>({});
@@ -309,7 +423,7 @@ const SchemaDesignerCopilotChangesContent = () => {
     const virtualizer = useVirtualizer({
         count: orderedChanges.length,
         horizontal: true,
-        getScrollElement: () => listRef.current,
+        getScrollElement: () => listRef.current as HTMLDivElement | null,
         estimateSize: () => CARD_WIDTH_PX + CARD_GAP_PX,
         overscan: VIRTUAL_OVERSCAN,
     });
@@ -403,7 +517,11 @@ const SchemaDesignerCopilotChangesContent = () => {
 
     return (
         <div className={classes.container} onKeyDown={handleContainerKeyDown}>
-            <div className={classes.list} ref={listRef}>
+            <div
+                className={classes.list}
+                ref={(node) => {
+                    listRef.current = node ?? undefined;
+                }}>
                 <div
                     className={classes.virtualTrack}
                     style={{ width: `${virtualizer.getTotalSize()}px` }}>
@@ -415,6 +533,8 @@ const SchemaDesignerCopilotChangesContent = () => {
                         }
                         const { change, sourceIndex } = item;
 
+                        const propertyChanges = getPropertyChanges(change);
+                        const propertyChange = toSchemaChange(change, propertyChanges);
                         const propertySummary = getPropertySummary(change);
                         const isActive = displayIndex === activeIndex;
                         const canUndo = canUndoTrackedChange(sourceIndex) && !undoing[sourceIndex];
@@ -465,8 +585,18 @@ const SchemaDesignerCopilotChangesContent = () => {
                                         {formatObjectName(change)}
                                     </div>
 
-                                    {propertySummary ? (
-                                        <div className={classes.properties}>{propertySummary}</div>
+                                    {propertySummary && propertyChange ? (
+                                        <div
+                                            className={classes.properties}
+                                            onClick={(event) => event.stopPropagation()}>
+                                            <SchemaDesignerChangeDetailsPopover
+                                                change={propertyChange}
+                                                title={formatObjectName(change)}
+                                                badgeLetter={propertySummary}
+                                                badgeClassName=""
+                                                badgeButtonClassName={classes.propertiesBadgeButton}
+                                            />
+                                        </div>
                                     ) : undefined}
 
                                     <div className={classes.cardFooter}>

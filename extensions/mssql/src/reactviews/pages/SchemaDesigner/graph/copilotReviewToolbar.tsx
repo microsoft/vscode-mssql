@@ -106,9 +106,8 @@ export const CopilotReviewToolbar = () => {
         changeContext.acceptChange !== undefined &&
         trackedChanges.length > 0;
 
-    // The review toolbar shows changes in reversed order (most recent first),
-    // matching the card list ordering.
-    const sourceIndex = trackedChanges.length - 1 - reviewIndex;
+    // Keep source index aligned with the Copilot Changes card list ordering.
+    const sourceIndex = reviewIndex;
 
     // Reveal the current change on the graph when reviewIndex changes
     useEffect(() => {

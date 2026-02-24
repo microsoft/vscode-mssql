@@ -1000,12 +1000,19 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
                 // Non-undoable changes (e.g. DropTable) are silently skipped
             }
 
-            if (edits.length > 0) {
-                await applyEdits({ edits }, false);
+            if (edits.length === 0) {
+                // If nothing in the current list can be undone, keep existing behavior
+                // and clear non-undoable tracked entries.
+                setTrackedChanges([]);
+                return;
             }
 
-            // Clear all tracked changes regardless of undo success
-            setTrackedChanges([]);
+            const response = await applyEdits({ edits }, false);
+            const appliedEdits = response.appliedEdits ?? (response.success ? edits.length : 0);
+            const undoSucceeded = response.success && appliedEdits >= edits.length;
+            if (undoSucceeded) {
+                setTrackedChanges([]);
+            }
         } finally {
             setIsUndoingAll(false);
         }

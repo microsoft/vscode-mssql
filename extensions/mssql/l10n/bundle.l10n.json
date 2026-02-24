@@ -776,6 +776,20 @@
         "message": "Change {0} of {1}",
         "comment": ["{0} is the current change number", "{1} is the total number of changes"]
     },
+    "Referenced schema": "Referenced schema",
+    "Referenced table": "Referenced table",
+    "Referenced columns": "Referenced columns",
+    "Foreign keys": "Foreign keys",
+    "Data type": "Data type",
+    "Primary key": "Primary key",
+    "Allow null": "Allow null",
+    "{0}, +{1} more/{0} is the first changed property label{1} is the count of additional changed properties": {
+        "message": "{0}, +{1} more",
+        "comment": [
+            "{0} is the first changed property label",
+            "{1} is the count of additional changed properties"
+        ]
+    },
     "Data API Builder Configuration": "Data API Builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
