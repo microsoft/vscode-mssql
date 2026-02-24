@@ -117,19 +117,15 @@ export namespace SchemaDesigner {
         /**
          * Parent columns of the relationship
          */
-        columns: string[];
-        /**
-         * Referenced schema of the relationship
-         */
-        referencedSchemaName: string;
+        columnIds: string[];
         /**
          * Referenced table of the relationship
          */
-        referencedTableName: string;
+        referencedTableId: string;
         /**
          * Referenced columns of the relationship
          */
-        referencedColumns: string[];
+        referencedColumnIds: string[];
         /**
          * On delete action of the relationship
          */
