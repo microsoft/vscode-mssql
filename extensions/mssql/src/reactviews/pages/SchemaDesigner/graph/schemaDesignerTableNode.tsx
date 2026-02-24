@@ -109,10 +109,17 @@ const useStyles = makeStyles({
         overflow: "visible",
     },
     tableNodeDiffAdded: {
-        boxShadow: "0 0 0 2px var(--vscode-gitDecoration-addedResourceForeground)",
+        outline: "2px solid var(--vscode-gitDecoration-addedResourceForeground)",
+        outlineOffset: "-1px",
+    },
+    tableNodeDiffModified: {
+        outline:
+            "2px solid var(--vscode-editorWarning-foreground, var(--vscode-gitDecoration-modifiedResourceForeground))",
+        outlineOffset: "-1px",
     },
     tableNodeDeleted: {
-        boxShadow: "0 0 0 2px var(--vscode-gitDecoration-deletedResourceForeground)",
+        outline: "2px solid var(--vscode-gitDecoration-deletedResourceForeground)",
+        outlineOffset: "-1px",
     },
     tableHeader: {
         width: "100%",
@@ -200,6 +207,9 @@ const useStyles = makeStyles({
         transform: "translateY(-50%)",
         zIndex: 2,
         padding: "10px",
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
     },
     columnDiffValueGroup: {
         display: "inline-flex",
@@ -257,6 +267,9 @@ const useStyles = makeStyles({
         right: "-25px",
         zIndex: 11,
         padding: "16px",
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
     },
 });
 
@@ -566,6 +579,19 @@ const TableColumn = ({
                     ref={undoWrapperRef}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(columnChange);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             revertInfo?.canRevert
@@ -798,6 +824,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
             className={mergeClasses(
                 styles.tableNodeContainer,
                 showAddedDiff && styles.tableNodeDiffAdded,
+                showModifiedDiff && styles.tableNodeDiffModified,
                 isDeletedTable && styles.tableNodeDeleted,
             )}
             onMouseEnter={() => setIsHovered(true)}
@@ -814,6 +841,19 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                     ref={undoWrapperRef}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}>
+                    {changeContext.acceptChange && tableChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(tableChange);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             revertInfo?.canRevert
