@@ -981,12 +981,8 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
-            showChangesButtonLabel: (changeCount: number) =>
-                l10n.t({
-                    message: "Show Changes ({0})",
-                    args: [changeCount],
-                    comment: ["{0} is the number of schema changes"],
-                }),
+            showChangesButtonLabel: l10n.t("Show Changes"),
+            showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
@@ -994,6 +990,12 @@ export class LocConstants {
                     message: "Changes ({0})",
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
+                }),
+            copilotChangesPanelTitle: (changeCount: number) =>
+                l10n.t({
+                    message: "Copilot Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of copilot changes"],
                 }),
             noChangesYet: l10n.t("No changes yet."),
             noChangesYetSubtitle: l10n.t("Edit your schema to see changes here."),
@@ -1172,6 +1174,43 @@ export class LocConstants {
                         comment: ["{0} is the number of changes"],
                     }),
             },
+            accept: l10n.t("Accept"),
+            acceptAll: l10n.t("Accept All"),
+            undoAll: l10n.t("Undo All"),
+            undoAllConfirmation: l10n.t("Undo All Copilot Changes"),
+            undoAllConfirmationContent: l10n.t(
+                "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
+            ),
+            reject: l10n.t("Reject"),
+            reviewingCopilotChange: l10n.t("Reviewing Copilot Change"),
+            changeNofM: (current: number, total: number) =>
+                l10n.t({
+                    message: "Change {0} of {1}",
+                    args: [current, total],
+                    comment: [
+                        "{0} is the current change number",
+                        "{1} is the total number of changes",
+                    ],
+                }),
+            copilotUnknown: l10n.t("Unknown"),
+            copilotOnDelete: l10n.t("On Delete"),
+            copilotOnUpdate: l10n.t("On Update"),
+            copilotReferencedSchema: l10n.t("Referenced schema"),
+            copilotReferencedTable: l10n.t("Referenced table"),
+            copilotReferencedColumns: l10n.t("Referenced columns"),
+            copilotForeignKeys: l10n.t("Foreign keys"),
+            copilotDataType: l10n.t("Data type"),
+            copilotPrimaryKey: l10n.t("Primary key"),
+            copilotAllowNull: l10n.t("Allow null"),
+            copilotPropertySummaryMore: (firstProperty: string, additionalCount: number) =>
+                l10n.t({
+                    message: "{0}, +{1} more",
+                    args: [firstProperty, additionalCount],
+                    comment: [
+                        "{0} is the first changed property label",
+                        "{1} is the count of additional changed properties",
+                    ],
+                }),
 
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),

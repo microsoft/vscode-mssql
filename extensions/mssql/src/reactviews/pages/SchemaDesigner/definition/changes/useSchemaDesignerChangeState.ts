@@ -47,6 +47,25 @@ import {
     removeEdgesForForeignKey,
 } from "../../schemaDesignerEdgeUtils";
 
+export interface HighlightOverride {
+    newTableIds: Set<string>;
+    newColumnIds: Set<string>;
+    newForeignKeyIds: Set<string>;
+    modifiedForeignKeyIds: Set<string>;
+    modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
+    modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
+    deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    baselineColumnOrderByTable: Map<string, string[]>;
+    deletedTableNodes: Node<SchemaDesigner.Table>[];
+    /** Override for revertChange when copilot highlights are active */
+    revertChange?: (change: SchemaChange) => void;
+    /** Override for canRevertChange when copilot highlights are active */
+    canRevertChange?: (change: SchemaChange) => CanRevertResult;
+    /** Accept action (e.g. accept copilot change) */
+    acceptChange?: (change: SchemaChange) => void;
+}
+
 export interface SchemaDesignerChangeContextProps {
     showChangesHighlight: boolean;
     setShowChangesHighlight: (value: boolean) => void;
@@ -65,6 +84,10 @@ export interface SchemaDesignerChangeContextProps {
     structuredSchemaChanges: SchemaChange[];
     revertChange: (change: SchemaChange) => void;
     canRevertChange: (change: SchemaChange) => CanRevertResult;
+    /** Accept action available when copilot highlight override is active */
+    acceptChange?: (change: SchemaChange) => void;
+    /** Set a highlight override to replace diff-computed highlights (e.g. copilot) */
+    setHighlightOverride: (override: HighlightOverride | null) => void;
 }
 
 export const useSchemaDesignerChangeState = (
@@ -97,6 +120,7 @@ export const useSchemaDesignerChangeState = (
         Map<string, string[]>
     >(new Map());
     const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
+    const [highlightOverride, setHighlightOverride] = useState<HighlightOverride | null>(null);
 
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
     const lastHasChangesRef = useRef<boolean | undefined>(undefined);
@@ -481,21 +505,29 @@ export const useSchemaDesignerChangeState = (
         () => ({
             showChangesHighlight,
             setShowChangesHighlight,
-            newTableIds,
-            newColumnIds,
-            newForeignKeyIds,
-            modifiedForeignKeyIds,
-            modifiedColumnHighlights,
-            modifiedTableHighlights,
-            deletedColumnsByTable,
-            deletedForeignKeyEdges,
-            baselineColumnOrderByTable,
-            deletedTableNodes,
+            newTableIds: highlightOverride?.newTableIds ?? newTableIds,
+            newColumnIds: highlightOverride?.newColumnIds ?? newColumnIds,
+            newForeignKeyIds: highlightOverride?.newForeignKeyIds ?? newForeignKeyIds,
+            modifiedForeignKeyIds:
+                highlightOverride?.modifiedForeignKeyIds ?? modifiedForeignKeyIds,
+            modifiedColumnHighlights:
+                highlightOverride?.modifiedColumnHighlights ?? modifiedColumnHighlights,
+            modifiedTableHighlights:
+                highlightOverride?.modifiedTableHighlights ?? modifiedTableHighlights,
+            deletedColumnsByTable:
+                highlightOverride?.deletedColumnsByTable ?? deletedColumnsByTable,
+            deletedForeignKeyEdges:
+                highlightOverride?.deletedForeignKeyEdges ?? deletedForeignKeyEdges,
+            baselineColumnOrderByTable:
+                highlightOverride?.baselineColumnOrderByTable ?? baselineColumnOrderByTable,
+            deletedTableNodes: highlightOverride?.deletedTableNodes ?? deletedTableNodes,
             schemaChangesCount,
             schemaChangesSummary,
             structuredSchemaChanges,
-            revertChange,
-            canRevertChange,
+            revertChange: highlightOverride?.revertChange ?? revertChange,
+            canRevertChange: highlightOverride?.canRevertChange ?? canRevertChange,
+            acceptChange: highlightOverride?.acceptChange,
+            setHighlightOverride,
         }),
         [
             baselineColumnOrderByTable,
@@ -503,6 +535,7 @@ export const useSchemaDesignerChangeState = (
             deletedColumnsByTable,
             deletedForeignKeyEdges,
             deletedTableNodes,
+            highlightOverride,
             modifiedColumnHighlights,
             modifiedForeignKeyIds,
             modifiedTableHighlights,

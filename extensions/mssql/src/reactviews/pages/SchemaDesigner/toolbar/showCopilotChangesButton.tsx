@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, Button, Tooltip, makeStyles } from "@fluentui/react-components";
-import { BranchCompare16Regular } from "@fluentui/react-icons";
-import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
+import { Sparkle20Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
-import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { useCopilotChangesContext } from "../definition/copilot/copilotChangesContext";
 
 const useStyles = makeStyles({
     container: {
@@ -30,32 +29,29 @@ const useStyles = makeStyles({
     },
 });
 
-export function ShowChangesButton() {
-    const changeContext = useSchemaDesignerChangeContext();
+export function ShowCopilotChangesButton() {
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
-    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const { trackedChanges } = useCopilotChangesContext();
     const classes = useStyles();
-    const isDabEnabled = enableDAB ?? false;
-
-    if (!isDabEnabled) {
-        return <></>;
-    }
+    const changeCount = trackedChanges.length;
 
     return (
-        <Tooltip content={locConstants.schemaDesigner.showChangesButtonLabel} relationship="label">
+        <Tooltip
+            content={locConstants.schemaDesigner.showCopilotChangesButtonLabel}
+            relationship="label">
             <span className={classes.container}>
                 <Button
                     appearance="subtle"
                     size="small"
+                    icon={<Sparkle20Regular />}
                     onClick={() => {
-                        toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Changes);
-                    }}
-                    icon={<BranchCompare16Regular />}>
-                    {locConstants.schemaDesigner.showChangesButtonLabel}
+                        toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.CopilotChanges);
+                    }}>
+                    {locConstants.schemaDesigner.showCopilotChangesButtonLabel}
                 </Button>
-                {changeContext.schemaChangesCount > 0 && (
+                {changeCount > 0 && (
                     <Badge size="small" className={classes.badge}>
-                        {changeContext.schemaChangesCount}
+                        {changeCount}
                     </Badge>
                 )}
             </span>
