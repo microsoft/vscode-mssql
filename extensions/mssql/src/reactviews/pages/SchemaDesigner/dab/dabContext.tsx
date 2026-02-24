@@ -19,8 +19,8 @@ interface DabContextProps {
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
-    dabSchemaFilter: string[];
-    setDabSchemaFilter: (schemas: string[]) => void;
+    dabTextFilter: string;
+    setDabTextFilter: (text: string) => void;
     dabConfigContent: string;
     dabConfigRequestId: number;
     generateDabConfig: () => Promise<void>;
@@ -50,7 +50,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const { extensionRpc, extractSchema, copyToClipboard, isInitialized } = schemaDesignerContext;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
-    const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
+    const [dabTextFilter, setDabTextFilter] = useState<string>("");
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
@@ -351,8 +351,8 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 toggleDabEntity,
                 toggleDabEntityAction,
                 updateDabEntitySettings,
-                dabSchemaFilter,
-                setDabSchemaFilter,
+                dabTextFilter,
+                setDabTextFilter,
                 dabConfigContent,
                 dabConfigRequestId,
                 generateDabConfig,

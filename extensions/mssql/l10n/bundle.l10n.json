@@ -107,6 +107,7 @@
     "Refresh": "Refresh",
     "Show password": "Show password",
     "Hide password": "Hide password",
+    "Save": "Save",
     "Dismiss": "Dismiss",
     "Error": "Error",
     "Get Started": "Get Started",
@@ -116,8 +117,8 @@
     "Loading": "Loading",
     "General": "General",
     "Previous": "Previous",
-    "Clear All": "Clear All",
     "OK": "OK",
+    "Clear All": "Clear All",
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -192,6 +193,38 @@
     "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
     "Publish Changes": "Publish Changes",
     "Open Publish Script": "Open Publish Script",
+    "Code Analysis - {0}/{0} is the name of the database project": {
+        "message": "Code Analysis - {0}",
+        "comment": ["{0} is the name of the database project"]
+    },
+    "Loading code analysis rules...": "Loading code analysis rules...",
+    "No code analysis rules available.": "No code analysis rules available.",
+    "{0} rules/{0} is the number of code analysis rules": {
+        "message": "{0} rules",
+        "comment": ["{0} is the number of code analysis rules"]
+    },
+    "Rules": "Rules",
+    "Enable {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Enable all rules in {0}/{0} is the category name, e.g. Design": {
+        "message": "Enable all rules in {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Expand {0}/{0} is the category name, e.g. Design": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Collapse {0}/{0} is the category name, e.g. Design": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Severity for {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Severity for {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Reset": "Reset",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -489,7 +522,6 @@
     },
     "Add new column": "Add new column",
     "Table": "Table",
-    "Save": "Save",
     "Add": "Add",
     "Add new foreign key": "Add new foreign key",
     "Foreign Key {0}/{0} is the index of the foreign key": {
@@ -507,6 +539,8 @@
         "message": "Filter ({0})",
         "comment": ["{0} is the number of selected tables"]
     },
+    "Chat": "Chat",
+    "Open Copilot Chat": "Open Copilot Chat",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -655,15 +689,17 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
-    "Show Changes ({0})/{0} is the number of schema changes": {
-        "message": "Show Changes ({0})",
-        "comment": ["{0} is the number of schema changes"]
-    },
+    "Show Changes": "Show Changes",
+    "Copilot Changes": "Copilot Changes",
     "Highlight Changes": "Highlight Changes",
     "Hide Changes Highlight": "Hide Changes Highlight",
     "Changes ({0})/{0} is the number of schema changes": {
         "message": "Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
+    },
+    "Copilot Changes ({0})/{0} is the number of copilot changes": {
+        "message": "Copilot Changes ({0})",
+        "comment": ["{0} is the number of copilot changes"]
     },
     "No changes yet.": "No changes yet.",
     "Edit your schema to see changes here.": "Edit your schema to see changes here.",
@@ -763,6 +799,32 @@
         "message": "{0} change(s)",
         "comment": ["{0} is the number of changes"]
     },
+    "Accept": "Accept",
+    "Accept All": "Accept All",
+    "Undo All": "Undo All",
+    "Undo All Copilot Changes": "Undo All Copilot Changes",
+    "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.": "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
+    "Reject": "Reject",
+    "Reviewing Copilot Change": "Reviewing Copilot Change",
+    "Change {0} of {1}/{0} is the current change number{1} is the total number of changes": {
+        "message": "Change {0} of {1}",
+        "comment": ["{0} is the current change number", "{1} is the total number of changes"]
+    },
+    "Unknown": "Unknown",
+    "Referenced schema": "Referenced schema",
+    "Referenced table": "Referenced table",
+    "Referenced columns": "Referenced columns",
+    "Foreign keys": "Foreign keys",
+    "Data type": "Data type",
+    "Primary key": "Primary key",
+    "Allow null": "Allow null",
+    "{0}, +{1} more/{0} is the first changed property label{1} is the count of additional changed properties": {
+        "message": "{0}, +{1} more",
+        "comment": [
+            "{0} is the first changed property label",
+            "{1} is the count of additional changed properties"
+        ]
+    },
     "Data API Builder Configuration": "Data API Builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
@@ -770,6 +832,7 @@
     "MCP": "MCP",
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
+    "Filter entities...": "Filter entities...",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
@@ -799,6 +862,26 @@
     "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
+    "Toggle all entities in {0}/{0} is the schema name": {
+        "message": "Toggle all entities in {0}",
+        "comment": ["{0} is the schema name"]
+    },
+    "Enable {0}/{0} is the entity name": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
+        "message": "{0} action for {1}",
+        "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
+    },
+    "Settings for {0}/{0} is the entity name": {
+        "message": "Settings for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Select all {0}/{0} is the action name (Create, Read, etc.)": {
+        "message": "Select all {0}",
+        "comment": ["{0} is the action name (Create, Read, etc.)"]
+    },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
     "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.": "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
@@ -848,7 +931,6 @@
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
     "Option Description": "Option Description",
-    "Reset": "Reset",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
@@ -1515,7 +1597,6 @@
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
-    "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
     "Drop Database": "Drop Database",
@@ -2282,6 +2363,8 @@
     "Failed to get connection string: {0}": "Failed to get connection string: {0}",
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
+    "Code Analysis": "Code Analysis",
+    "Failed to load code analysis rules": "Failed to load code analysis rules",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -2720,7 +2803,6 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
-    "Unknown": "Unknown",
     "Copied \"{0}\" to clipboard/{0} is the object name": {
         "message": "Copied \"{0}\" to clipboard",
         "comment": ["{0} is the object name"]
@@ -3040,6 +3122,7 @@
         "message": "Could not connect to database: {0}",
         "comment": ["{0} is the database name"]
     },
+    "Azure SQL Database is not supported for backup.": "Azure SQL Database is not supported for backup.",
     "Starting '{0}'.../{0} is the service name": {
         "message": "Starting '{0}'...",
         "comment": ["{0} is the service name"]
@@ -3097,6 +3180,8 @@
     "Selected backup file does not contain a valid database backup": "Selected backup file does not contain a valid database backup",
     "Cannot generate script without a restore plan": "Cannot generate script without a restore plan",
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
+    "No databases with backups found": "No databases with backups found",
+    "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

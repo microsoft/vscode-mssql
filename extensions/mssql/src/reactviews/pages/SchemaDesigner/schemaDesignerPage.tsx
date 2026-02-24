@@ -17,6 +17,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ErrorDialog } from "../../common/errorDialog";
 import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesignerDefinitionPanelContext";
 import { SchemaDesignerChangeProvider } from "./definition/changes/schemaDesignerChangeContext";
+import { CopilotChangesProvider } from "./definition/copilot/copilotChangesContext";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -39,14 +40,16 @@ export const SchemaDesignerPage = () => {
                 <PanelGroup direction="vertical">
                     <SchemaDesignerDefinitionPanelProvider>
                         <SchemaDesignerChangeProvider>
-                            <Panel defaultSize={100}>
-                                <GraphContainer>
-                                    <SchemaDesignerToolbar />
-                                    <SchemaDesignerFlow />
-                                </GraphContainer>
-                            </Panel>
-                            <PanelResizeHandle className={classes.resizeHandle} />
-                            <SchemaDesignerDefinitionsPanel />
+                            <CopilotChangesProvider>
+                                <Panel defaultSize={100}>
+                                    <GraphContainer>
+                                        <SchemaDesignerToolbar />
+                                        <SchemaDesignerFlow />
+                                    </GraphContainer>
+                                </Panel>
+                                <PanelResizeHandle className={classes.resizeHandle} />
+                                <SchemaDesignerDefinitionsPanel />
+                            </CopilotChangesProvider>
                         </SchemaDesignerChangeProvider>
                     </SchemaDesignerDefinitionPanelProvider>
                 </PanelGroup>

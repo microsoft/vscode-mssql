@@ -14,13 +14,17 @@
  * When adding or modifying enums here, ensure they stay in sync with:
  * - typings/vscode-mssql.d.ts
  *
+ * DO NOT use `const enum` in this file. `const enum` declarations are inlined by the
+ * TypeScript compiler and have no runtime representation, which breaks esbuild /
+ * isolatedModules compilation used for React webview bundles. Always use plain `enum`.
+ *
  * TODO: Move all similar enums from other files to this centralized location.
  */
 
 /**
  * Specifies the scenario for which to retrieve default deployment options.
  */
-export const enum DeploymentScenario {
+export enum DeploymentScenario {
     /**
      * Deployment/Publish scenario - uses DacFx native defaults
      */
@@ -29,4 +33,13 @@ export const enum DeploymentScenario {
      * Schema Compare scenario - uses modified defaults optimized for schema comparison
      */
     SchemaCompare = 1,
+}
+
+/**
+ * Code analysis rule severity levels.
+ */
+export enum CodeAnalysisRuleSeverity {
+    Error = "Error",
+    Warning = "Warning",
+    Disabled = "Disabled",
 }

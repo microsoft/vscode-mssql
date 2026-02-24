@@ -30,6 +30,7 @@ import {
     ArrowUndo16Regular,
     BranchCompare16Regular,
     BranchCompare16Filled,
+    CheckmarkCircle16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -65,6 +66,7 @@ import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { CopilotReviewToolbar } from "./copilotReviewToolbar";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -490,6 +492,7 @@ export const SchemaDesignerFlow = () => {
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
+            <CopilotReviewToolbar />
             <ReactFlow
                 nodes={displayNodes}
                 edges={displayEdges}
@@ -653,8 +656,25 @@ export const SchemaDesignerFlow = () => {
                         top: edgeUndoState.position.y,
                         zIndex: 5,
                         padding: "10px",
+                        display: "flex",
+                        gap: "4px",
+                        alignItems: "center",
                     }}
                     onMouseLeave={() => setEdgeUndoState(null)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(edgeUndoState.change);
+                                    setEdgeUndoState(null);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             edgeUndoState.canRevert

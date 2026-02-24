@@ -5,46 +5,6 @@
 
 import { RequestType } from "vscode-languageclient";
 
-// --------------------------------- < Read Credential Request > -------------------------------------------------
-
-// Read Credential request message callback declaration
-export namespace ReadCredentialRequest {
-    export const type = new RequestType<Credential, Credential, void, void>("credential/read");
-}
-
-/**
- * Parameters to initialize a connection to a database
- */
-export class Credential {
-    /**
-     * Unique ID identifying the credential
-     */
-    public credentialId: string;
-
-    /**
-     * password
-     */
-    public password: string;
-}
-
-// --------------------------------- </ Read Credential Request > -------------------------------------------------
-
-// --------------------------------- < Save Credential Request > -------------------------------------------------
-
-// Save Credential request message callback declaration
-export namespace SaveCredentialRequest {
-    export const type = new RequestType<Credential, boolean, void, void>("credential/save");
-}
-// --------------------------------- </ Save Credential Request > -------------------------------------------------
-
-// --------------------------------- < Delete Credential Request > -------------------------------------------------
-
-// Delete Credential request message callback declaration
-export namespace DeleteCredentialRequest {
-    export const type = new RequestType<Credential, boolean, void, void>("credential/delete");
-}
-// --------------------------------- </ Delete Credential Request > -------------------------------------------------
-
 export class SaveResultsRequestParams {
     ownerUri: string;
     filePath: string;

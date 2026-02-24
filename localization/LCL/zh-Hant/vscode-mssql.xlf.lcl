@@ -1063,6 +1063,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0e48ce4a45983d7784c326334cc5a57764d1136e589156ea99aa1c07393e7678" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler (Preview): {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Query Profiler (預覽): {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0e4e17db5444ca9044df0967a4cb1cf74b4b906c65abc091feee77da17bda1bb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0}/{1} events]]></Val>
@@ -1347,15 +1356,6 @@
           <Val><![CDATA[Learn more about this issue.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[深入了解此問題。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++11f1ce06685908adfd2a88a77c9de4148392e6667521c7ff01845de7c8822849" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Database Projects – Publish Dialog (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL Database 專案 - 發佈對話方塊 (預覽)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1797,6 +1797,15 @@
           <Val><![CDATA[No connections available. Please create a connection first.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[沒有可用的連線。請先建立連線。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++17f1cd47dfd09c344b014b08c691f9707cfe65920e03d4856c0dd34bde93e146" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Query Profiler (Preview) - Select Template]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新增 Query Profiler (預覽) - 選取範本]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2589,6 +2598,15 @@
           <Val><![CDATA[Remove filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[移除篩選條件]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search for database objects — tables, views, stored procedures, and more — across your entire database.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在整個資料庫中搜尋資料庫物件——資料表、檢視表、儲存程序等。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3750,6 +3768,15 @@
           <Val><![CDATA[Configure and customize SQL Server containers]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[設定及自訂 SQL Server 容器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[下載按鍵對應延伸模組，以自動匯入 Azure Data Studio 的按鍵對應。這些變更會顯示在您的鍵盤快速鍵喜好設定中。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5815,6 +5842,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++504bf1ffb9df3a36b614b608a56ee9e99f8fd63637ca7f6ed0773b373a732cc6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Data Studio Migration Toolkit - Now Including Keymap!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Data Studio 移轉工具組 - 現在包含鍵盤快速鍵!]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a unique backup file name]]></Val>
@@ -5883,15 +5919,6 @@
           <Val><![CDATA[{0} of {1} connection groups selected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已選取 {0}/{1} 個連線群組。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++51fed159a1fcbc4520e312d333417a1e182a92233045cb4d8cf7a9b35e5dbaf2" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Profiler (Preview): {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Profiler (預覽): {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6189,15 +6216,6 @@
           <Val><![CDATA[Please select only one node to script. Multiple node scripting is not supported.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[請只選取一個節點來產生指令碼。不支援多節點指令碼。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++5640eb18ea3269209f858ed3558038b039748660b2265e258b49180fcda197b3" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Profiler (Preview): No session]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Profiler (預覽): 沒有工作階段]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6666,6 +6684,15 @@
           <Val><![CDATA[Deselect All]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[取消全選]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[擷取並分析即時 SQL Server XElite 事件工作階段，以監控並分析資料庫效能。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7822,15 +7849,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[New Profiler Session - Select Template]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[新 Profiler 工作階段 - 選取範本]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Highlights]]></Val>
@@ -8245,6 +8263,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Global Object Search]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[全域物件搜尋]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7385d063677f43714fbd217363885c3059c6fce8bc61082e7a96e22a2d0996dc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Blob is required]]></Val>
@@ -8434,15 +8461,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++7513be31d093689a83a5840217b05b63313b201192c5e2e9d590c86f52353a0e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[將 Azure Data Studio 的已儲存連線和連線群組移轉到 MSSQL 延伸模組。此引導式體驗可協助您以最少設定繼續在熟悉的環境中作業。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++75605e8fd5394c88086006f3ed265d8f5f725fdfb8827963a1be8f8348d31bee" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deploy, extract, import, or export data-tier applications on the selected database]]></Val>
@@ -8457,15 +8475,6 @@
           <Val><![CDATA[Apply changes to target]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[將變更套用至目標]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++7588abb8e4f54abd6334cd99857a2e0afe5837c4ec99b93b71a83f22c41b24e9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Profiler (Preview) Session Status]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Profiler (預覽) 工作階段狀態]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8835,15 +8844,6 @@
           <Val><![CDATA[Password is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[需要密碼]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[New Profiler Session - Enter Name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[新 Profiler 工作階段 - 輸入名稱]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9420,6 +9420,15 @@
           <Val><![CDATA[Backup]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[備份]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Backup/Restore Dialogs (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[備份/還原對話方塊 (預覽)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10293,6 +10302,15 @@
           <Val><![CDATA[Select a workspace to view the databases in it.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[選取工作區以檢視其中的資料庫。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++904baf74a450d7a547a60ffe8a678f5bd150d095f4a0851b936330b722d02dd9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Query Profiler (預覽)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11449,6 +11467,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a161365357557281bfbf274bd154a2acc27530a99e67ebf931ab27cf4f73595d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler (Preview): No session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Query Profiler (預覽): 沒有工作階段]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a163aaa22cf7ce6c4c2a634f98bef10d0fe0a0602ada2aa50d60b262dc70b2d9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Previous Page]]></Val>
@@ -12228,6 +12255,15 @@
           <Val><![CDATA[Run a query in the current editor, or switch to an editor that has results.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[在目前編輯器中執行查詢，或切換到有結果的編輯器。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A connection is already being established. Please wait for it to complete before running a query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[連線正在建立中。請等候它完成，然後再執行查詢。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13123,6 +13159,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用新的管理對話方塊建立、重新命名及刪除資料庫，讓使用者輕鬆管理資料庫。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save results command cannot be used with multiple selections.]]></Val>
@@ -13245,6 +13290,15 @@
           <Val><![CDATA[Added column '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已新增資料行 '{0}']]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Database Projects – Publish Dialog]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Database 專案 - 發佈對話方塊]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13870,11 +13924,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c5caff26e896bd287b8528c5a421fc62ae0e550185b606c0cada4e9420ee281f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Query Profiler (Preview) - Enter Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新 Query Profiler (預覽) - 輸入名稱]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to revert cell: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[無法還原資料列: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[將 SQL 資料庫備份到本機或 URL，並能輕鬆從資料庫、.BAK 檔案或 URL 還原。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14158,6 +14230,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[將 Azure Data Studio 的已儲存連線、連線群組和連線設定移轉到 MSSQL 延伸模組。此外，您也可以安裝 MSSQL 資料管理鍵盤快速鍵，已新增 Azure Data Studio 的熟悉捷徑。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not equal to]]></Val>
@@ -14280,15 +14361,6 @@
           <Val><![CDATA[Select Session:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[選取工作階段:]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++cbf1176900b828464cac58d4ab7b00aa01cb741cabb584e87ddc6835b0c9d223" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure Data Studio Connection Migration Toolkit]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure Data Studio 連線移轉工具箱]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15139,15 +15211,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++d84b637d5440c2f5eb8841e2a95adba3c9c0e125f236247909b1dc9370ccb2e5" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Profiler (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Profiler (預覽)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployment Name]]></Val>
@@ -15945,6 +16008,15 @@
           <Val><![CDATA[Delete]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[刪除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database Management Dialogs (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[資料庫管理對話方塊 (預覽)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16845,6 +16917,15 @@
           <Val><![CDATA[Add account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新增帳戶]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++eed1ad0449f94c91be1a030a5627d11466ae8d7af8237428dbc3cae097cb044b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query Profiler (Preview) Session Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Query Profiler (預覽) 工作階段狀態]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19599,24 +19680,24 @@
       </Item>
       <Item ItemId=";package.mssql.profiler.launchFromObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Launch Profiler (Preview)]]></Val>
+          <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[啟動 Profiler (預覽)]]></Val>
+            <Val><![CDATA[啟動 Query Profiler (預覽)]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Launch Profiler]]></Val>
+            <Val><![CDATA[Launch Profiler (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.profiler.openXelFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open Profiler (Preview) XEL File]]></Val>
+          <Val><![CDATA[Open Query Profiler (Preview) XEL File]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[開啟 Profiler (預覽) XEL 檔案]]></Val>
+            <Val><![CDATA[開啟 Query Profiler (預覽) XEL 檔案]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Open Profiler XEL File]]></Val>
+            <Val><![CDATA[Open Profiler (Preview) XEL File]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />

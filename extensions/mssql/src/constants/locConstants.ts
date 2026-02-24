@@ -1478,6 +1478,11 @@ export class PublishProject {
     );
 }
 
+export class CodeAnalysis {
+    public static Title = l10n.t("Code Analysis");
+    public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
@@ -3045,6 +3050,9 @@ export class BackupDatabase {
             comment: ["{0} is the database name"],
         });
     };
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for backup.",
+    );
 }
 
 export class FlatFileImport {
@@ -3138,5 +3146,9 @@ export class RestoreDatabase {
     );
     public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
         "Please choose at least one backup set to restore",
+    );
+    public static noDatabasesWithBackups = l10n.t("No databases with backups found");
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for restore.",
     );
 }

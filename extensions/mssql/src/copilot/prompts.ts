@@ -6,6 +6,9 @@
 import * as Constants from "../constants/constants";
 
 export const genericChatStart = `@${Constants.mssqlChatParticipantName} Hello!`;
+export const schemaDesignerAgentPrompt = `Use mssql_schema_designer for the active schema designer.
+Run get_overview, summarize the schema, then ask what I want to change.
+Do not apply edits until I confirm.`;
 
 export const analyzeQueryPerformancePrompt = `@${Constants.mssqlChatParticipantName} Analyze the performance of this query.
 Provide a detailed analysis, including a summary of the execution plan,
