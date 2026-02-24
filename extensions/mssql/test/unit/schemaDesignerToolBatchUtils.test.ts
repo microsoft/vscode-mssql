@@ -6,7 +6,6 @@
 import { expect } from "chai";
 import { locConstants } from "../../src/reactviews/common/locConstants";
 import {
-    normalizeTable,
     normalizeColumn,
     shouldAutoArrangeForToolBatch,
     TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD,
