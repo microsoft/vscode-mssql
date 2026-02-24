@@ -649,6 +649,37 @@ export namespace Dab {
         );
     }
 
+    /**
+     * Request to add an MCP server definition to the workspace .vscode/mcp.json
+     */
+    export interface AddMcpServerParams {
+        /**
+         * Name for the MCP server entry in mcp.json
+         */
+        serverName: string;
+        /**
+         * URL of the MCP server endpoint
+         */
+        serverUrl: string;
+    }
+
+    export interface AddMcpServerResponse {
+        /**
+         * Whether the operation was successful
+         */
+        success: boolean;
+        /**
+         * Error message if operation failed
+         */
+        error?: string;
+    }
+
+    export namespace AddMcpServerRequest {
+        export const type = new RequestType<AddMcpServerParams, AddMcpServerResponse, void>(
+            "dab/addMcpServer",
+        );
+    }
+
     // ============================================
     // Service interface
     // ============================================

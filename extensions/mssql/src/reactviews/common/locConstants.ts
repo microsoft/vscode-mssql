@@ -1322,6 +1322,9 @@ export class LocConstants {
                     args: [apiType],
                     comment: ["{0} is the API type name, e.g. REST API or GraphQL"],
                 }),
+            addToVSCode: l10n.t("Add to VS Code"),
+            addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
+            mcpServerAdded: l10n.t("Added"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),

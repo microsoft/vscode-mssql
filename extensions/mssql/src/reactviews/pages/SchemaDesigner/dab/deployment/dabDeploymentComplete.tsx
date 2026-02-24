@@ -12,8 +12,14 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { Checkmark20Regular, Copy16Regular, Warning20Regular } from "@fluentui/react-icons";
-import { useMemo } from "react";
+import {
+    Add16Regular,
+    Checkmark16Regular,
+    Checkmark20Regular,
+    Copy16Regular,
+    Warning20Regular,
+} from "@fluentui/react-icons";
+import { useCallback, useMemo, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { useDabContext } from "../dabContext";
@@ -73,7 +79,7 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    copyButton: {
+    actionButton: {
         minWidth: "auto",
         flexShrink: 0,
     },
@@ -93,7 +99,7 @@ interface ApiEndpoint {
     type: Dab.ApiType;
     label: string;
     url: string;
-    canCopy: boolean;
+    action: "copy" | "addToVSCode";
 }
 
 export const DabDeploymentComplete = ({
@@ -103,8 +109,10 @@ export const DabDeploymentComplete = ({
     onFinish,
 }: DabDeploymentCompleteProps) => {
     const classes = useStyles();
-    const { dabConfig, copyToClipboard } = useDabContext();
+    const { dabConfig, copyToClipboard, addDabMcpServer } = useDabContext();
     const isSuccess = !error && apiUrl;
+    const [mcpAdded, setMcpAdded] = useState(false);
+    const [mcpError, setMcpError] = useState<string | null>(null);
 
     const endpoints = useMemo<ApiEndpoint[]>(() => {
         if (!apiUrl || !dabConfig) {
@@ -117,7 +125,7 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.Rest,
                 label: locConstants.schemaDesigner.restApi,
                 url: `${apiUrl}/api`,
-                canCopy: true,
+                action: "copy",
             });
         }
         if (enabledTypes.includes(Dab.ApiType.GraphQL)) {
@@ -125,7 +133,7 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.GraphQL,
                 label: locConstants.schemaDesigner.graphql,
                 url: `${apiUrl}/graphql`,
-                canCopy: true,
+                action: "copy",
             });
         }
         if (enabledTypes.includes(Dab.ApiType.Mcp)) {
@@ -133,11 +141,61 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.Mcp,
                 label: locConstants.schemaDesigner.mcp,
                 url: `${apiUrl}/mcp`,
-                canCopy: false,
+                action: "addToVSCode",
             });
         }
         return result;
     }, [apiUrl, dabConfig]);
+
+    const handleAddMcpServer = useCallback(
+        async (serverUrl: string) => {
+            setMcpError(null);
+            const result = await addDabMcpServer(serverUrl);
+            if (result.success) {
+                setMcpAdded(true);
+            } else if (result.error) {
+                setMcpError(result.error);
+            }
+        },
+        [addDabMcpServer],
+    );
+
+    const renderEndpointAction = useCallback(
+        (ep: ApiEndpoint) => {
+            if (ep.action === "copy") {
+                return (
+                    <Button
+                        appearance="subtle"
+                        icon={<Copy16Regular />}
+                        size="small"
+                        className={classes.actionButton}
+                        onClick={() => copyToClipboard(ep.url)}
+                        aria-label={locConstants.schemaDesigner.copyUrl(ep.label)}
+                        title={locConstants.schemaDesigner.copyUrl(ep.label)}
+                    />
+                );
+            }
+            if (ep.action === "addToVSCode") {
+                return (
+                    <Button
+                        appearance="subtle"
+                        icon={mcpAdded ? <Checkmark16Regular /> : <Add16Regular />}
+                        size="small"
+                        className={classes.actionButton}
+                        disabled={mcpAdded}
+                        onClick={() => void handleAddMcpServer(ep.url)}
+                        aria-label={locConstants.schemaDesigner.addMcpServerToWorkspace}
+                        title={locConstants.schemaDesigner.addMcpServerToWorkspace}>
+                        {mcpAdded
+                            ? locConstants.schemaDesigner.mcpServerAdded
+                            : locConstants.schemaDesigner.addToVSCode}
+                    </Button>
+                );
+            }
+            return null;
+        },
+        [classes.actionButton, copyToClipboard, mcpAdded, handleAddMcpServer],
+    );
 
     return (
         <>
@@ -164,24 +222,11 @@ export const DabDeploymentComplete = ({
                                     <div key={ep.type} className={classes.apiUrlRow}>
                                         <Text className={classes.apiLabel}>{ep.label}</Text>
                                         <Text className={classes.apiUrl}>{ep.url}</Text>
-                                        {ep.canCopy && (
-                                            <Button
-                                                appearance="subtle"
-                                                icon={<Copy16Regular />}
-                                                size="small"
-                                                className={classes.copyButton}
-                                                onClick={() => copyToClipboard(ep.url)}
-                                                aria-label={locConstants.schemaDesigner.copyUrl(
-                                                    ep.label,
-                                                )}
-                                                title={locConstants.schemaDesigner.copyUrl(
-                                                    ep.label,
-                                                )}
-                                            />
-                                        )}
+                                        {renderEndpointAction(ep)}
                                     </div>
                                 ))}
                             </div>
+                            {mcpError && <Text className={classes.errorText}>{mcpError}</Text>}
                         </>
                     ) : (
                         <>

@@ -888,6 +888,13 @@
     "Deployment Failed": "Deployment Failed",
     "DAB container is running!": "DAB container is running!",
     "Your API is available at:": "Your API is available at:",
+    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
+    "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
+        "message": "Copy {0} URL",
+        "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
+    },
+    "Add to VS Code": "Add to VS Code",
+    "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -2379,6 +2386,9 @@
         "message": "Failed to generate publish script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
+    "MCP server added to .vscode/mcp.json": "MCP server added to .vscode/mcp.json",
+    "MCP server is already configured in .vscode/mcp.json": "MCP server is already configured in .vscode/mcp.json",
+    "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",

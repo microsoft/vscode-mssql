@@ -1591,6 +1591,13 @@ export class SchemaDesigner {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
+    public static mcpServerAddedToWorkspace = l10n.t("MCP server added to .vscode/mcp.json");
+    public static mcpServerAlreadyExists = l10n.t(
+        "MCP server is already configured in .vscode/mcp.json",
+    );
+    public static noWorkspaceOpenForMcp = l10n.t(
+        "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    );
 }
 
 export class StatusBar {

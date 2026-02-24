@@ -37,6 +37,7 @@ interface DabContextProps {
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
     retryDabDeploymentSteps: () => void;
+    addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
 }
 
 const DabContext = createContext<DabContextProps | undefined>(undefined);
@@ -339,6 +340,16 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         }));
     }, []);
 
+    const addDabMcpServer = useCallback(
+        async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {
+            return extensionRpc.sendRequest(Dab.AddMcpServerRequest.type, {
+                serverName: `DabMcp-${dabDeploymentState.params.port}`,
+                serverUrl,
+            });
+        },
+        [extensionRpc, dabDeploymentState.params.port],
+    );
+
     return (
         <DabContext.Provider
             value={{
@@ -366,6 +377,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 runDabDeploymentStep,
                 resetDabDeploymentState,
                 retryDabDeploymentSteps,
+                addDabMcpServer,
             }}>
             {children}
         </DabContext.Provider>
