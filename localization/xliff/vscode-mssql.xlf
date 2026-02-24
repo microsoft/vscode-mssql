@@ -4654,9 +4654,6 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
-    <trans-unit id="++CODE++e240e635ff6dce4ff2ac0b90a84889cff420f2c9a56014543e78f366681820db">
-      <source xml:lang="en">Reset to defaults</source>
-    </trans-unit>
     <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
       <source xml:lang="en">Resize</source>
     </trans-unit>
@@ -5861,9 +5858,6 @@
     </trans-unit>
     <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
       <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++13ab4d13c1cf84a4c7d3beca87da01edab8fe96d2302f7d6a3572ee489d03cdd">
-      <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Continue?</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>

@@ -225,8 +225,6 @@
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
     },
     "Reset": "Reset",
-    "Reset to defaults": "Reset to defaults",
-    "This will reset all rules to their default severity. This cannot be undone. Continue?": "This will reset all rules to their default severity. This cannot be undone. Continue?",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
