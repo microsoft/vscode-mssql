@@ -6,7 +6,7 @@
 // This code is originally from https://github.com/microsoft/vsts-vscode
 // License: https://github.com/Microsoft/vsts-vscode/blob/master/LICENSE.txt
 
-export interface StoredCredential {
+export interface Credential {
     credentialId: string;
     password: string;
 }
@@ -14,11 +14,10 @@ export interface StoredCredential {
 /**
  * A credential store that securely stores sensitive information in a platform-specific manner
  *
- * @export
- * @interface ICredentialStore
+ * @exports
  */
 export interface ICredentialStore {
-    readCredential(credentialId: string): Promise<StoredCredential>;
+    readCredential(credentialId: string): Promise<Credential>;
     saveCredential(credentialId: string, password: string): Promise<boolean>;
     deleteCredential(credentialId: string): Promise<void>;
 }

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ICredentialStore, StoredCredential } from "./icredentialstore";
+import { ICredentialStore, Credential } from "./icredentialstore";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
@@ -29,7 +29,7 @@ export class CredentialStore implements ICredentialStore {
      * @param credentialId the ID uniquely identifying this credential
      * @returns Promise that resolved to the credential, or undefined if not found
      */
-    public async readCredential(credentialId: string): Promise<StoredCredential> {
+    public async readCredential(credentialId: string): Promise<Credential> {
         const vscodeCodeCred = await this._secretStorage.get(credentialId);
         if (vscodeCodeCred === undefined) {
             this._logger.info(

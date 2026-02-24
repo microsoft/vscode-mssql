@@ -18,7 +18,7 @@ import {
     IConnectionProfileWithSource,
     IConnectionGroup,
 } from "./interfaces";
-import { ICredentialStore, StoredCredential } from "../credentialstore/icredentialstore";
+import { ICredentialStore, Credential } from "../credentialstore/icredentialstore";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
@@ -269,7 +269,7 @@ export class ConnectionStore {
         isConnectionString: boolean = false,
     ): Promise<string> {
         const profile = connectionCredentials as IConnectionProfile;
-        let savedCredential: StoredCredential;
+        let savedCredential: Credential;
 
         // Generate credential ID using profile's id (new format)
         const credentialId = ConnectionStore.formatCredentialIdForCred(
