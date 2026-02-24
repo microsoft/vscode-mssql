@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as sinon from "sinon";
 import * as testUtils from "./testUtils";
 import * as utils from "../src/common/utils";
@@ -15,14 +15,16 @@ import { window } from "vscode";
 import { runViaNpx } from "../src/common/constants";
 
 let testContext: TestContext;
+let sandbox: sinon.SinonSandbox;
 
 suite("Autorest tests", function (): void {
     setup(function (): void {
         testContext = createContext();
+        sandbox = sinon.createSandbox();
     });
 
     teardown(function (): void {
-        sinon.restore();
+        sandbox.restore();
     });
 
     suiteTeardown(async function (): Promise<void> {
@@ -30,25 +32,25 @@ suite("Autorest tests", function (): void {
     });
 
     test("Should detect autorest", async function (): Promise<void> {
-        sinon.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
+        sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         const executable = await autorestHelper.detectInstallation();
-        should(executable === "autorest" || executable === "npx autorest").equal(
-            true,
+        expect(
+            executable === "autorest" || executable === "npx autorest",
             "autorest command should be found in default path during unit tests",
-        );
+        ).to.be.true;
     });
 
-    test.skip("Should run an autorest command successfully", async function (): Promise<void> {
-        sinon.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
+    test("Should run an autorest command successfully", async function (): Promise<void> {
+        sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         const dummyFile = path.join(
             await testUtils.generateTestFolderPath(this.test),
             "testoutput.log",
         );
-        sinon
+        sandbox
             .stub(autorestHelper, "constructAutorestCommand")
             .returns(`${await autorestHelper.detectInstallation()} --version > ${dummyFile}`);
 
@@ -56,9 +58,8 @@ suite("Autorest tests", function (): void {
             await autorestHelper.generateAutorestFiles("fakespec.yaml", "fakePath");
             const text = (await fs.readFile(dummyFile)).toString().trim();
             const expected = "AutoRest code generation utility";
-            should(text.includes(expected)).equal(
-                true,
-                `Substring not found.  Expected "${expected}" in "${text}"`,
+            expect(text, `Substring not found. Expected "${expected}" in "${text}"`).to.contain(
+                expected,
             );
         } finally {
             if (await utils.exists(dummyFile)) {
@@ -69,8 +70,8 @@ suite("Autorest tests", function (): void {
 
     test("Should construct a correct autorest command for project generation", async function (): Promise<void> {
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        sinon.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
-        sinon.stub(autorestHelper, "detectInstallation").returns(Promise.resolve("autorest"));
+        sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
+        sandbox.stub(autorestHelper, "detectInstallation").returns(Promise.resolve("autorest"));
 
         const expectedOutput =
             'autorest --use:autorest-sql-testing@latest --input-file="/some/path/test.yaml" --output-folder="/some/output/path" --clear-output-folder --verbose';
@@ -82,25 +83,26 @@ suite("Autorest tests", function (): void {
         );
 
         // depending on whether the machine running the test has autorest installed or just node, the expected output may differ by just the prefix, hence matching against two options
-        should(constructedCommand === expectedOutput).equal(
-            true,
+        expect(
+            constructedCommand,
             `Constructed autorest command not formatting as expected:\nActual:\n\t${constructedCommand}\nExpected:\n\t${expectedOutput}`,
-        );
+        ).to.equal(expectedOutput);
     });
 
     test("Should prompt user for action when autorest not found", async function (): Promise<void> {
-        const promptStub = sinon
+        const promptStub = sandbox
             .stub(window, "showInformationMessage")
             .returns(<any>Promise.resolve());
-        const detectStub = sinon.stub(utils, "detectCommandInstallation");
+        const detectStub = sandbox.stub(utils, "detectCommandInstallation");
         detectStub.withArgs("autorest").returns(Promise.resolve(false));
         detectStub.withArgs("npx").returns(Promise.resolve(true));
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         await autorestHelper.detectInstallation();
 
-        should(promptStub.calledOnce).be.true(
+        expect(
+            promptStub.calledOnce,
             "User should have been prompted for how to run autorest because it wasn't found.",
-        );
+        ).to.be.true;
     });
 });
