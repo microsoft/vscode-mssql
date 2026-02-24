@@ -212,6 +212,14 @@
         "message": "Enable all rules in {0}",
         "comment": ["{0} is the category name, e.g. Design"]
     },
+    "Expand {0}/{0} is the category name, e.g. Design": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Collapse {0}/{0} is the category name, e.g. Design": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
     "Severity for {0}/{0} is the rule identifier, e.g. SR0001": {
         "message": "Severity for {0}",
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
