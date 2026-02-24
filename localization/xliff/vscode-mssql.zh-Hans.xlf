@@ -1301,6 +1301,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Collapse settings</source>
         <target state="translated">折叠设置</target>
       </trans-unit>
+      <trans-unit id="++CODE++ce767f8068bba3846263c85f968cda6378384e175ff05bbf8efc38cab8476223">
+        <source xml:lang="en">Collapse {0}</source>
+        <note>{0} is the category name, e.g. Design</note>
+        <target state="new">Collapse {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
         <source xml:lang="en">Collation</source>
         <target state="translated">排序规则</target>
@@ -2519,6 +2524,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">启用“信任服务器证书”</target>
       </trans-unit>
+      <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
+        <source xml:lang="en">Enable all rules in {0}</source>
+        <note>{0} is the category name, e.g. Design</note>
+        <target state="new">Enable all rules in {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
         <source xml:lang="en">Enable {0}</source>
         <note>{0} is the entity name</note>
@@ -2945,6 +2955,11 @@ Error:
         <source xml:lang="en">Expand settings</source>
         <target state="translated">展开设置</target>
       </trans-unit>
+      <trans-unit id="++CODE++23950c524f395d8a86f042de7ea4cbba348146e9c1c79acb3d7fbb89d4198080">
+        <source xml:lang="en">Expand {0}</source>
+        <note>{0} is the category name, e.g. Design</note>
+        <target state="new">Expand {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
         <source xml:lang="en">Expiration</source>
         <target state="translated">过期</target>
@@ -3250,6 +3265,10 @@ Error:
       <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
         <source xml:lang="en">Failed to list databases</source>
         <target state="translated">未能列出数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b231621413a53ac597977d0754cfc55a3063d534bb85a873370e98a9b8856dd">
+        <source xml:lang="en">Failed to load code analysis rules</source>
+        <target state="new">Failed to load code analysis rules</target>
       </trans-unit>
       <trans-unit id="++CODE++d1167662f9f4ae95339878cfc71934cb03fce7f402dd7648b10e281fad1a6c4e">
         <source xml:lang="en">Failed to load data: {0}</source>
@@ -6301,10 +6320,6 @@ Error:
       <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
         <source xml:lang="en">Rows per page</source>
         <target state="translated">行数/页</target>
-      </trans-unit>
-      <trans-unit id="++CODE++62845f31a2fe00be3ebaaeb93f5b27af82ab81dfcbaa1871c76f596cd98cf3c9">
-        <source xml:lang="en">Rule</source>
-        <target state="new">Rule</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
