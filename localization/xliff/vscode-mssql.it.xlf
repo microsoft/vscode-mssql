@@ -2519,6 +2519,11 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Abilitare Certificato del server attendibile</target>
       </trans-unit>
+      <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
+        <source xml:lang="en">Enable {0}</source>
+        <note>{0} is the entity name</note>
+        <target state="new">Enable {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
         <source xml:lang="en">Enable {0}</source>
         <note>{0} is the rule identifier, e.g. SR0001</note>
@@ -3532,6 +3537,10 @@ Errore:
       <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
         <source xml:lang="en">Filter changes</source>
         <target state="translated">Filtra modifiche</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270">
+        <source xml:lang="en">Filter entities...</source>
+        <target state="new">Filter entities...</target>
       </trans-unit>
       <trans-unit id="++CODE++d82276b4dc4d7c1934c610624dcd96caaaf8d372027329bba940c1bcdd633a4b">
         <source xml:lang="en">Filter events by column values</source>
@@ -6823,6 +6832,11 @@ Query: {2}</target>
         <source xml:lang="en">Select all options</source>
         <target state="translated">Seleziona tutte le opzioni</target>
       </trans-unit>
+      <trans-unit id="++CODE++3f6908b78d6f2f27272b632f69f324d590acb726493fe644e79cf8d0b01e9f43">
+        <source xml:lang="en">Select all {0}</source>
+        <note>{0} is the action name (Create, Read, etc.)</note>
+        <target state="new">Select all {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">Scegli un account</target>
@@ -7002,6 +7016,11 @@ Query: {2}</target>
       <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
         <source xml:lang="en">Settings and Keybindings</source>
         <target state="translated">Impostazioni e tasti di scelta rapida</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b">
+        <source xml:lang="en">Settings for {0}</source>
+        <note>{0} is the entity name</note>
+        <target state="new">Settings for {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
@@ -7767,6 +7786,11 @@ Query: {2}</target>
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">Attiva/Disattiva descrizioni comando</target>
       </trans-unit>
+      <trans-unit id="++CODE++782e08de4b6ec5793be8ace39d20ee91bd05ddc327a36e3d736299c6267f75d4">
+        <source xml:lang="en">Toggle all entities in {0}</source>
+        <note>{0} is the schema name</note>
+        <target state="new">Toggle all entities in {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
         <source xml:lang="en">Toggle dark mode</source>
         <target state="translated">Attiva/disattiva modalità scura</target>
@@ -8363,6 +8387,12 @@ Query: {2}</target>
         <source xml:lang="en">{0} accounts</source>
         <note>{0} is the number of accounts</note>
         <target state="translated">{0} account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87b761377cb8a3bdfa0eac508b5e6ac720c61d1410a1e7fef3f93165df3ddd2e">
+        <source xml:lang="en">{0} action for {1}</source>
+        <note>{0} is the action name (Create, Read, etc.)
+{1} is the entity name</note>
+        <target state="new">{0} action for {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++4f044358b3c661463f0d081556f19d4015b61fa2a493069920dcddeca01a410c">
         <source xml:lang="en">{0} change(s)</source>
