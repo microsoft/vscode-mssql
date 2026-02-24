@@ -240,6 +240,9 @@
     <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
       <source xml:lang="en">Allow Nulls</source>
     </trans-unit>
+    <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
+      <source xml:lang="en">Allow null</source>
+    </trans-unit>
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
     </trans-unit>
@@ -1554,6 +1557,9 @@
     <trans-unit id="++CODE++b38a72417c43cfd4c4b1d08d6877fe572934f1c8b321347af7ff1d06a47b2238">
       <source xml:lang="en">Data file folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++51fb172a8d569d8820009c7a05d941da1d7ecc21f5248c355fbd7b50899c4c7d">
+      <source xml:lang="en">Data type</source>
+    </trans-unit>
     <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
       <source xml:lang="en">Data type mismatch: &apos;{0}&apos; in column &apos;{1}&apos; incompatible with &apos;{2}&apos; in &apos;{3}&apos;</source>
       <note>{0} is source data type
@@ -2782,6 +2788,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3c0d499ad57dfbf4d649d9b69968eb325bd3389658018c1bd887fb1c7a7c9aae">
       <source xml:lang="en">Foreign key column mappings must be the same length.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++734fe7596bed714a9902c100524bdcd5e92d18970daa3d1f7776394185b7e211">
+      <source xml:lang="en">Foreign keys</source>
     </trans-unit>
     <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
       <source xml:lang="en">Formula</source>
@@ -4325,6 +4334,9 @@
     <trans-unit id="++CODE++a0de89c19964a6454c6d6b4f4205b8c8fcb6c1bfe9370b6d3183226ce8009141">
       <source xml:lang="en">Primary Key Columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
+      <source xml:lang="en">Primary key</source>
+    </trans-unit>
     <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
       <source xml:lang="en">Privacy Statement</source>
     </trans-unit>
@@ -4552,6 +4564,15 @@
     <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
       <source xml:lang="en">Referenced column &apos;{0}&apos; not found</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++379d2eaa80ebde0d69484f3d26df5ee45336d941fd6173c91708a997f9f017b6">
+      <source xml:lang="en">Referenced columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f42e7cb49016fa824e41c1f7fdf957665ad22c0b8621c28b1fe956ecb3af5cde">
+      <source xml:lang="en">Referenced schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ef2471661442a695e9e07fcfc1addd4da56f83fc076649fb2dcfc5b4865fbe2">
+      <source xml:lang="en">Referenced table</source>
     </trans-unit>
     <trans-unit id="++CODE++797ad1e737f00e56b04c2d4140e177a26977d3a90e9ea84cb65016e21c50113f">
       <source xml:lang="en">Referenced table &apos;{0}&apos; not found</source>
@@ -6444,6 +6465,11 @@
       <source xml:lang="en">{0} {1} issues</source>
       <note>{0} is the tab name
 {1} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
+      <source xml:lang="en">{0}, +{1} more</source>
+      <note>{0} is the first changed property label
+{1} is the count of additional changed properties</note>
     </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>

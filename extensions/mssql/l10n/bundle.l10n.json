@@ -776,6 +776,7 @@
         "message": "Change {0} of {1}",
         "comment": ["{0} is the current change number", "{1} is the total number of changes"]
     },
+    "Unknown": "Unknown",
     "Referenced schema": "Referenced schema",
     "Referenced table": "Referenced table",
     "Referenced columns": "Referenced columns",
@@ -2746,7 +2747,6 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
-    "Unknown": "Unknown",
     "Copied \"{0}\" to clipboard/{0} is the object name": {
         "message": "Copied \"{0}\" to clipboard",
         "comment": ["{0} is the object name"]
