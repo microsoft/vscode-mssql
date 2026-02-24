@@ -98,7 +98,6 @@ export function buildDeletedForeignKeyEdges({
     }
 
     const currentTablesById = new Map(currentNodes.map((node) => [node.id, node.data]));
-    const currentNodesByName = new Map<string, Node<SchemaDesigner.TableWithDeletedFlag>>();
     const targetNodes =
         deletedTableNodes.length > 0 ? [...currentNodes, ...deletedTableNodes] : currentNodes;
     const currentNodesById = new Map<string, Node<SchemaDesigner.TableWithDeletedFlag>>();
@@ -106,23 +105,6 @@ export function buildDeletedForeignKeyEdges({
         currentNodesById.set(node.id, node);
         currentNodesById.set(node.data.id, node);
     }
-    for (const node of targetNodes) {
-        const key = `${node.data.schema}.${node.data.name}`;
-        const existing = currentNodesByName.get(key);
-        if (!existing) {
-            currentNodesByName.set(key, node);
-            continue;
-        }
-
-        const existingDeleted = isDeleted(existing.data);
-        const nodeDeleted = isDeleted(node.data);
-        if (existingDeleted && !nodeDeleted) {
-            currentNodesByName.set(key, node);
-        }
-    }
-    const baselineTablesByName = new Map(
-        baselineSchema.tables.map((table) => [`${table.schema}.${table.name}`, table]),
-    );
 
     const deletedEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[] = [];
 
@@ -137,52 +119,19 @@ export function buildDeletedForeignKeyEdges({
                 continue;
             }
 
-            const legacyForeignKey = fk as unknown as {
-                referencedSchemaName?: string;
-                referencedTableName?: string;
-                columns?: string[];
-                referencedColumns?: string[];
-            };
-
-            const referencedTableKey =
-                legacyForeignKey.referencedSchemaName && legacyForeignKey.referencedTableName
-                    ? `${legacyForeignKey.referencedSchemaName}.${legacyForeignKey.referencedTableName}`
-                    : undefined;
-
-            const targetNode =
-                currentNodesById.get(fk.referencedTableId) ??
-                (referencedTableKey ? currentNodesByName.get(referencedTableKey) : undefined);
+            const targetNode = currentNodesById.get(fk.referencedTableId);
             if (!targetNode) {
                 continue;
             }
-            const baselineTarget =
-                baselineSchema.tables.find((table) => table.id === fk.referencedTableId) ??
-                (referencedTableKey ? baselineTablesByName.get(referencedTableKey) : undefined);
+            const baselineTarget = baselineSchema.tables.find(
+                (table) => table.id === fk.referencedTableId,
+            );
 
-            const normalizedColumnIds = Array.isArray(fk.columnsIds)
-                ? fk.columnsIds
-                : (legacyForeignKey.columns ?? [])
-                      .map(
-                          (columnName) =>
-                              currentSourceTable.columns.find(
-                                  (column) => column.name === columnName,
-                              )?.id ??
-                              baselineTable.columns.find((column) => column.name === columnName)
-                                  ?.id,
-                      )
-                      .filter((value): value is string => Boolean(value));
+            const normalizedColumnIds = Array.isArray(fk.columnsIds) ? fk.columnsIds : [];
 
             const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnsIds)
                 ? fk.referencedColumnsIds
-                : (legacyForeignKey.referencedColumns ?? [])
-                      .map(
-                          (columnName) =>
-                              targetNode.data.columns.find((column) => column.name === columnName)
-                                  ?.id ??
-                              baselineTarget?.columns.find((column) => column.name === columnName)
-                                  ?.id,
-                      )
-                      .filter((value): value is string => Boolean(value));
+                : [];
 
             normalizedColumnIds.forEach((columnId, idx) => {
                 const referencedColumnId = normalizedReferencedColumnIds[idx];
@@ -190,23 +139,12 @@ export function buildDeletedForeignKeyEdges({
                     return;
                 }
 
-                const legacySourceColumnName = legacyForeignKey.columns?.[idx];
-                const legacyReferencedColumnName = legacyForeignKey.referencedColumns?.[idx];
-
                 const sourceColId =
                     currentSourceTable.columns.find((c) => c.id === columnId)?.id ??
-                    baselineTable.columns.find((c) => c.id === columnId)?.id ??
-                    (legacySourceColumnName
-                        ? currentSourceTable.columns.find((c) => c.name === legacySourceColumnName)
-                              ?.id
-                        : undefined);
+                    baselineTable.columns.find((c) => c.id === columnId)?.id;
                 const targetColId =
                     targetNode.data.columns.find((c) => c.id === referencedColumnId)?.id ??
-                    baselineTarget?.columns.find((c) => c.id === referencedColumnId)?.id ??
-                    (legacyReferencedColumnName
-                        ? targetNode.data.columns.find((c) => c.name === legacyReferencedColumnName)
-                              ?.id
-                        : undefined);
+                    baselineTarget?.columns.find((c) => c.id === referencedColumnId)?.id;
 
                 const deletedForeignKey: SchemaDesigner.ForeignKey & { isDeleted: true } = {
                     ...fk,

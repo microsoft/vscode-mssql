@@ -49,12 +49,7 @@ import {
     CanRevertResult,
 } from "../../diff/revertChange";
 import { locConstants } from "../../../../common/locConstants";
-import {
-    applyColumnRenamesToIncomingForeignKeyEdges,
-    applyColumnRenamesToOutgoingForeignKeyEdges,
-    buildForeignKeyEdgeId,
-    removeEdgesForForeignKey,
-} from "../../schemaDesignerEdgeUtils";
+import { buildForeignKeyEdgeId, removeEdgesForForeignKey } from "../../schemaDesignerEdgeUtils";
 
 export interface HighlightOverride {
     newTableIds: Set<string>;
@@ -412,35 +407,6 @@ export const useSchemaDesignerChangeState = (
                 }
                 return node;
             });
-
-            if (
-                change.category === ChangeCategory.Column &&
-                change.action === ChangeAction.Modify
-            ) {
-                const beforeTable = existingNodes.find((node) => node.id === change.tableId)?.data;
-                const afterTable = updatedNodes.find((node) => node.id === change.tableId)?.data;
-                const beforeName = beforeTable?.columns.find(
-                    (column) => column.id === change.objectId,
-                )?.name;
-                const afterName = afterTable?.columns.find(
-                    (column) => column.id === change.objectId,
-                )?.name;
-
-                if (beforeName && afterName && beforeName !== afterName) {
-                    const renameMap = new Map<string, string>([[beforeName, afterName]]);
-                    applyColumnRenamesToIncomingForeignKeyEdges(
-                        existingEdges,
-                        change.tableId,
-                        renameMap,
-                    );
-                    applyColumnRenamesToOutgoingForeignKeyEdges(
-                        existingEdges,
-                        change.tableId,
-                        renameMap,
-                    );
-                    reactFlow.setEdges(existingEdges);
-                }
-            }
 
             if (change.category === ChangeCategory.ForeignKey) {
                 const currentNode = updatedNodes.find((node) => node.id === change.tableId);

@@ -456,12 +456,7 @@ const TableColumn = ({
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => {
-        if (fk.columnsIds?.includes(column.id)) {
-            return true;
-        }
-
-        const legacyColumns = (fk as unknown as { columns?: string[] }).columns;
-        return legacyColumns?.includes(column.name) ?? false;
+        return fk.columnsIds?.includes(column.id) ?? false;
     });
     const showDeletedDiff = changeContext.showChangesHighlight && isDeletedColumn;
     const showAddedDiff =
