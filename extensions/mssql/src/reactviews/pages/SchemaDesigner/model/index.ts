@@ -9,3 +9,5 @@ export * from "./schemaFromFlowState";
 export * from "./schemaToFlowState";
 export * from "./flowLayout";
 export * from "./flowDimensions";
+export * from "./deleteTableMutation";
+export * from "./updateTableMutation";
