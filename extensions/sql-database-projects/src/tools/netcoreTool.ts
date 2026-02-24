@@ -40,6 +40,21 @@ export const enum netCoreInstallState {
 
 const dotnet = os.platform() === "win32" ? "dotnet.exe" : "dotnet";
 
+/**
+ * Returns the configured Microsoft.Build.Sql version, falling back to the extension's
+ * registered default (from package.json) when the setting is blank or not a valid semver.
+ */
+export function getMicrosoftBuildSqlVersion(microsoftBuildSqlVersionKey: string): string {
+    const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
+    const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
+    if (configured && semver.valid(configured)) {
+        return configured;
+    }
+    // Fall back to the default registered in package.json
+    const defaultValue = config.inspect<string>(microsoftBuildSqlVersionKey)?.defaultValue ?? "";
+    return defaultValue;
+}
+
 export class NetCoreTool extends ShellExecutionHelper {
     private osPlatform: string = os.platform();
     private netCoreSdkInstalledVersion: string | undefined;

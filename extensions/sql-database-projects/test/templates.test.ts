@@ -7,6 +7,9 @@ import { expect } from "chai";
 import * as templates from "../src/templates/templates";
 import { shouldThrowSpecificError, getTemplatesRootPath } from "./testUtils";
 import { ItemType } from "sqldbproj";
+import * as vscode from "vscode";
+import * as constants from "../src/common/constants";
+import { DBProjectConfigurationKey } from "../src/tools/netcoreTool";
 
 const templatesPath = getTemplatesRootPath();
 
@@ -296,5 +299,22 @@ suite("Templates", function (): void {
             sequenceTemplate.templateScript,
             "Sequence template should contain INCREMENT BY",
         ).to.include("INCREMENT BY");
+    });
+
+    test("newSdkSqlProjectTemplate should have @@MICROSOFT_BUILD_SQL_VERSION@@ macro fully expanded", async function (): Promise<void> {
+        const configuredVersion = vscode.workspace
+            .getConfiguration(DBProjectConfigurationKey)
+            .get<string>(constants.microsoftBuildSqlVersionKey)!;
+
+        expect(templates.newSdkSqlProjectTemplate, "newSdkSqlProjectTemplate should be defined").to
+            .not.be.undefined;
+        expect(
+            templates.newSdkSqlProjectTemplate,
+            "newSdkSqlProjectTemplate should not contain unexpanded @@MICROSOFT_BUILD_SQL_VERSION@@ placeholder",
+        ).to.not.include("@@MICROSOFT_BUILD_SQL_VERSION@@");
+        expect(
+            templates.newSdkSqlProjectTemplate,
+            `newSdkSqlProjectTemplate should contain the configured version "${configuredVersion}"`,
+        ).to.include(configuredVersion);
     });
 });
