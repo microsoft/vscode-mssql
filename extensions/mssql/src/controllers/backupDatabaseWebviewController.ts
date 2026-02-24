@@ -279,10 +279,14 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 state,
                 payload,
             );
+            // if the backup name is not dirty, ie. the default backup name
+            // and the property changed is backup type, then update the backup name to reflect the backup type change
             if (
                 payload.event.propertyName === "backupType" &&
                 !(updatedState.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty
             ) {
+                // this is guaranteed to have more than 1 part because the default backup name is
+                // generated in the format of database_backupType_timestamp.bak
                 const splitBackupName = updatedState.formState.backupName.split("_");
                 splitBackupName[1] = updatedState.formState.backupType;
                 updatedState.formState.backupName = splitBackupName.join("_");
