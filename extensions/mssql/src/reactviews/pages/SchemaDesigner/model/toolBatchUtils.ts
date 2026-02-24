@@ -84,40 +84,17 @@ export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Tabl
     }
 
     const normalizedColumns = table.columns.map((column) => normalizeColumn(column));
-    const columnIdByName = new Map(normalizedColumns.map((column) => [column.name, column.id]));
 
     const normalizedForeignKeys = Array.isArray(table.foreignKeys)
-        ? table.foreignKeys.map((fk) => {
-              const legacyForeignKey = fk as unknown as {
-                  columns?: string[];
-                  referencedColumns?: string[];
-                  referencedTableName?: string;
-              };
-
-              const normalizedColumnIds = Array.isArray(fk.columnsIds)
-                  ? fk.columnsIds
-                  : Array.isArray(legacyForeignKey.columns)
-                    ? legacyForeignKey.columns
-                          .map((columnName) => columnIdByName.get(columnName) ?? "")
-                          .filter((columnId) => columnId !== "")
-                    : [];
-
-              const normalizedReferencedColumnIds = Array.isArray(fk.referencedColumnsIds)
+        ? table.foreignKeys.map((fk) => ({
+              ...fk,
+              id: fk.id || uuidv4(),
+              columnsIds: Array.isArray(fk.columnsIds) ? fk.columnsIds : [],
+              referencedTableId: fk.referencedTableId || "",
+              referencedColumnsIds: Array.isArray(fk.referencedColumnsIds)
                   ? fk.referencedColumnsIds
-                  : Array.isArray(legacyForeignKey.referencedColumns)
-                    ? legacyForeignKey.referencedColumns
-                    : [];
-
-              const normalizedReferencedTableId = fk.referencedTableId || "";
-
-              return {
-                  ...fk,
-                  id: fk.id || uuidv4(),
-                  columnIds: normalizedColumnIds,
-                  referencedTableId: normalizedReferencedTableId,
-                  referencedColumnIds: normalizedReferencedColumnIds,
-              };
-          })
+                  : [],
+          }))
         : [];
 
     return {
@@ -144,10 +121,6 @@ export const validateTable = (
         tables: [...schema.tables.filter((t) => t.id !== table.id), table],
     };
 
-    const referencedTableIdByName = new Map(
-        normalizedSchema.tables.map((schemaTable) => [schemaTable.name, schemaTable.id]),
-    );
-
     const nameError = tableUtils.tableNameValidationError(normalizedSchema, table);
     if (nameError) {
         return nameError;
@@ -161,19 +134,9 @@ export const validateTable = (
     }
 
     for (const fk of table.foreignKeys) {
-        const legacyForeignKey = fk as unknown as {
-            referencedTableName?: string;
-        };
-
-        const referencedTableId =
-            fk.referencedTableId ||
-            (legacyForeignKey.referencedTableName
-                ? referencedTableIdByName.get(legacyForeignKey.referencedTableName) || ""
-                : "");
-
         const normalizedForeignKey: SchemaDesigner.ForeignKey = {
             ...fk,
-            referencedTableId,
+            referencedTableId: fk.referencedTableId || "",
             columnsIds: Array.isArray(fk.columnsIds) ? fk.columnsIds : [],
             referencedColumnsIds: Array.isArray(fk.referencedColumnsIds)
                 ? fk.referencedColumnsIds

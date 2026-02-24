@@ -145,10 +145,9 @@ suite("SchemaDesigner diff utils", () => {
                 {
                     "id": "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
                     "name": "FK_returns_order_item",
-                    "columns": ["order_item_id"],
-                    "referencedSchemaName": "dbo",
-                    "referencedTableName": "order_items",
-                    "referencedColumns": ["order_item_id"],
+                    "columnsIds": ["fe92dd38-2c17-41e3-8b5d-a724b012d818"],
+                    "referencedTableId": "b3c4d5e6-f7a8-9012-bcde-f12345678901",
+                    "referencedColumnsIds": ["c1d2e3f4-a5b6-7890-cdef-123456789012"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -171,6 +170,48 @@ suite("SchemaDesigner diff utils", () => {
                     "identitySeed": 1,
                     "identityIncrement": 1,
                     "isNullable": false,
+                    "defaultValue": null,
+                    "isComputed": false,
+                    "computedFormula": null,
+                    "computedPersisted": null
+                }
+            ],
+            "foreignKeys": []
+        },
+        {
+            "id": "b3c4d5e6-f7a8-9012-bcde-f12345678901",
+            "name": "order_items",
+            "schema": "dbo",
+            "columns": [
+                {
+                    "id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                    "name": "order_item_id",
+                    "dataType": "bigint",
+                    "maxLength": null,
+                    "precision": null,
+                    "scale": null,
+                    "isPrimaryKey": true,
+                    "isIdentity": true,
+                    "identitySeed": 1,
+                    "identityIncrement": 1,
+                    "isNullable": false,
+                    "defaultValue": null,
+                    "isComputed": false,
+                    "computedFormula": null,
+                    "computedPersisted": null
+                },
+                {
+                    "id": "d2e3f4a5-b6c7-8901-def0-234567890123",
+                    "name": "return_id",
+                    "dataType": "bigint",
+                    "maxLength": null,
+                    "precision": null,
+                    "scale": null,
+                    "isPrimaryKey": false,
+                    "isIdentity": false,
+                    "identitySeed": null,
+                    "identityIncrement": null,
+                    "isNullable": true,
                     "defaultValue": null,
                     "isComputed": false,
                     "computedFormula": null,
@@ -229,7 +270,15 @@ suite("SchemaDesigner diff utils", () => {
         );
         expect(returnsFk).to.exist;
         const fk = returnsFk!;
-        (fk as unknown as { referencedTableName: string }).referencedTableName = "order_items_v2";
+        const orderItemsV2Id = "e4f5a6b7-c8d9-0123-efab-456789012345";
+        updated.tables.push({
+            id: orderItemsV2Id,
+            name: "order_items_v2",
+            schema: "dbo",
+            columns: [],
+            foreignKeys: [],
+        } as unknown as sd.SchemaDesigner.Table);
+        fk.referencedTableId = orderItemsV2Id;
 
         // Table deleted
         updated.tables = updated.tables.filter(
@@ -334,10 +383,9 @@ suite("SchemaDesigner diff utils", () => {
                         {
                             id: "fk-new-ref",
                             name: "FK_new_ref",
-                            columns: ["id"],
-                            referencedSchemaName: "dbo",
-                            referencedTableName: "ref",
-                            referencedColumns: ["id"],
+                            columnsIds: ["col-id"],
+                            referencedTableId: "ref-table-id",
+                            referencedColumnsIds: ["ref-col-id"],
                             onDeleteAction: 1,
                             onUpdateAction: 1,
                         },
@@ -423,10 +471,9 @@ suite("SchemaDesigner diff utils", () => {
                         {
                             id: "fk-orders-users",
                             name: "FK_orders_users",
-                            columns: ["user_id"],
-                            referencedSchemaName: "dbo",
-                            referencedTableName: "users",
-                            referencedColumns: ["user_id"],
+                            columnsIds: ["col-user-ref"],
+                            referencedTableId: "table-users",
+                            referencedColumnsIds: ["col-user-id"],
                             onDeleteAction: 1,
                             onUpdateAction: 1,
                         },
@@ -437,11 +484,8 @@ suite("SchemaDesigner diff utils", () => {
 
         const updated: sd.SchemaDesigner.Schema = deepClone(baseline);
         updated.tables[0].columns[0].name = "user_id_new";
-        (
-            updated.tables[1].foreignKeys[0] as unknown as {
-                referencedColumns: string[];
-            }
-        ).referencedColumns = ["user_id_new"];
+        // With ID-based FKs, renaming a column does not affect the FK
+        // since it references by column ID, not name
 
         const summary = calculateSchemaDiff(baseline, updated);
         const allChanges = summary.groups.flatMap((g) => g.changes);
@@ -593,10 +637,13 @@ suite("SchemaDesigner diff utils", () => {
         );
         expect(existingFk).to.exist;
         const fk = existingFk!;
-        (fk as unknown as { columns: string[] }).columns = ["order_item_id", "return_id"];
-        (fk as unknown as { referencedColumns: string[] }).referencedColumns = [
-            "order_item_id",
-            "return_id",
+        fk.columnsIds = [
+            "fe92dd38-2c17-41e3-8b5d-a724b012d818",
+            "457002c3-7ffd-4b80-a073-39a8d2aa4791",
+        ];
+        fk.referencedColumnsIds = [
+            "c1d2e3f4-a5b6-7890-cdef-123456789012",
+            "d2e3f4a5-b6c7-8901-def0-234567890123",
         ];
 
         // Delete old FK and add a new FK (add/delete paths)
@@ -606,13 +653,12 @@ suite("SchemaDesigner diff utils", () => {
         returnsT.foreignKeys.push({
             id: "00000000-0000-0000-0000-00000000f001",
             name: "FK_returns_order_item_v2",
-            columns: ["order_item_id"],
-            referencedSchemaName: "dbo",
-            referencedTableName: "order_items",
-            referencedColumns: ["order_item_id"],
+            columnsIds: ["fe92dd38-2c17-41e3-8b5d-a724b012d818"],
+            referencedTableId: "b3c4d5e6-f7a8-9012-bcde-f12345678901",
+            referencedColumnsIds: ["c1d2e3f4-a5b6-7890-cdef-123456789012"],
             onDeleteAction: 1,
             onUpdateAction: 1,
-        } as unknown as sd.SchemaDesigner.ForeignKey);
+        } as sd.SchemaDesigner.ForeignKey);
 
         const summary = calculateSchemaDiff(sampleSchema, updated);
         const returnsGroup = findGroup(summary, "6256e1cf-b4df-45e3-a09f-e1da5e246fa9");
@@ -646,10 +692,13 @@ suite("SchemaDesigner diff utils", () => {
             (f) => f.id === "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
         );
         expect(fk2).to.exist;
-        (fk2! as unknown as { columns: string[] }).columns = ["order_item_id", "return_id"];
-        (fk2! as unknown as { referencedColumns: string[] }).referencedColumns = [
-            "order_item_id",
-            "return_id",
+        fk2!.columnsIds = [
+            "fe92dd38-2c17-41e3-8b5d-a724b012d818",
+            "457002c3-7ffd-4b80-a073-39a8d2aa4791",
+        ];
+        fk2!.referencedColumnsIds = [
+            "c1d2e3f4-a5b6-7890-cdef-123456789012",
+            "d2e3f4a5-b6c7-8901-def0-234567890123",
         ];
 
         const summary2 = calculateSchemaDiff(sampleSchema, updated2);
@@ -811,13 +860,12 @@ suite("SchemaDesigner revert logic", () => {
                     {
                         id: "fk-orders-users",
                         name: "FK_orders_users",
-                        columns: ["user_id"],
-                        referencedSchemaName: "dbo",
-                        referencedTableName: "users",
-                        referencedColumns: ["user_id"],
+                        columnsIds: ["col-user-ref"],
+                        referencedTableId: "table-users",
+                        referencedColumnsIds: ["col-user-id"],
                         onDeleteAction: 1,
                         onUpdateAction: 1,
-                    } as unknown as sd.SchemaDesigner.ForeignKey,
+                    },
                 ],
             },
         ],
@@ -948,7 +996,7 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
         });
 
-        test("prevents reverting FK modification when referenced table is missing after rename", () => {
+        test("allows reverting FK modification when referenced table is renamed", () => {
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
             currentSchema.tables[0].name = "members"; // Rename users table
 
@@ -970,8 +1018,8 @@ suite("SchemaDesigner revert logic", () => {
                 [fkModifyChange],
                 testRevertMessages,
             );
-            expect(result.canRevert).to.equal(false);
-            expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
+            // With ID-based FKs, renaming the referenced table does not break the reference
+            expect(result.canRevert).to.equal(true);
         });
 
         test("allows reverting FK deletion when referenced table and columns exist", () => {
@@ -1000,9 +1048,11 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.canRevert).to.equal(true);
         });
 
-        test("prevents reverting FK modification when referenced table no longer exists", () => {
-            const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
-            currentSchema.tables[0].name = "members"; // Rename users table
+        test("prevents reverting FK modification when referenced table is deleted", () => {
+            // Remove the users table entirely
+            const currentSchema: SchemaState = {
+                tables: [deepClone(baselineSchema.tables[1])],
+            };
 
             const fkModifyChange: SchemaChange = {
                 id: "foreignKey:modify:table-orders:fk-orders-users",
@@ -1081,13 +1131,12 @@ suite("SchemaDesigner revert logic", () => {
             currentSchema.tables[1].foreignKeys.push({
                 id: "fk-orders-users-2",
                 name: "FK_orders_users_2",
-                columns: ["user_id"],
-                referencedSchemaName: "dbo",
-                referencedTableName: "users",
-                referencedColumns: ["user_id"],
+                columnsIds: ["col-user-ref"],
+                referencedTableId: "table-users",
+                referencedColumnsIds: ["col-user-id"],
                 onDeleteAction: 1,
                 onUpdateAction: 1,
-            } as unknown as sd.SchemaDesigner.ForeignKey);
+            });
 
             const fk1DeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
@@ -1387,13 +1436,12 @@ suite("SchemaDesigner revert logic", () => {
             currentSchema.tables[0].foreignKeys.push({
                 id: "fk-new",
                 name: "FK_new",
-                columns: ["email"],
-                referencedSchemaName: "dbo",
-                referencedTableName: "emails",
-                referencedColumns: ["email"],
+                columnsIds: ["col-email"],
+                referencedTableId: "table-emails",
+                referencedColumnsIds: ["ref-email-id"],
                 onDeleteAction: 1,
                 onUpdateAction: 1,
-            } as unknown as sd.SchemaDesigner.ForeignKey);
+            });
 
             const change: SchemaChange = {
                 id: "foreignKey:add:table-users:fk-new",
@@ -1441,13 +1489,12 @@ suite("SchemaDesigner revert logic", () => {
                     {
                         id: "fk-new-users",
                         name: "FK_new_users",
-                        columns: ["user_id"],
-                        referencedSchemaName: "dbo",
-                        referencedTableName: "users",
-                        referencedColumns: ["user_id"],
+                        columnsIds: ["col-new-user-id"],
+                        referencedTableId: "table-users",
+                        referencedColumnsIds: ["col-user-id"],
                         onDeleteAction: 1,
                         onUpdateAction: 1,
-                    } as unknown as sd.SchemaDesigner.ForeignKey,
+                    },
                 ],
             });
 
@@ -1493,11 +1540,7 @@ suite("SchemaDesigner revert logic", () => {
 
         test("reverts FK modification by restoring original FK properties", () => {
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
-            (
-                currentSchema.tables[1].foreignKeys[0] as unknown as {
-                    referencedTableName: string;
-                }
-            ).referencedTableName = "users_v2";
+            currentSchema.tables[1].foreignKeys[0].referencedTableId = "some-other-table";
             currentSchema.tables[1].foreignKeys[0].onDeleteAction = 2;
 
             const change: SchemaChange = {
@@ -1514,10 +1557,7 @@ suite("SchemaDesigner revert logic", () => {
             const result = computeRevertedSchema(change, baselineSchema, currentSchema);
             expect(result.success).to.equal(true);
             const ordersTable = result.tables.find((t) => t.id === "table-orders");
-            expect(
-                (ordersTable!.foreignKeys[0] as unknown as { referencedTableName?: string })
-                    .referencedTableName,
-            ).to.equal("users");
+            expect(ordersTable!.foreignKeys[0].referencedTableId).to.equal("table-users");
             expect(ordersTable!.foreignKeys[0].onDeleteAction).to.equal(1);
         });
 

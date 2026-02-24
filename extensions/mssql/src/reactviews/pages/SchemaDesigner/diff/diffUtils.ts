@@ -378,58 +378,11 @@ export function calculateSchemaDiff(
                 continue;
             }
 
-            const oldLegacyForeignKey = oldFk as unknown as {
-                columns?: string[];
-                referencedSchemaName?: string;
-                referencedTableName?: string;
-                referencedColumns?: string[];
-            };
-            const newLegacyForeignKey = newFk as unknown as {
-                columns?: string[];
-                referencedSchemaName?: string;
-                referencedTableName?: string;
-                referencedColumns?: string[];
-            };
+            const oldColumnIds = oldFk.columnsIds ?? [];
+            const newColumnIds = newFk.columnsIds ?? [];
 
-            const oldColumnIds = Array.isArray(oldFk.columnsIds)
-                ? oldFk.columnsIds
-                : (oldLegacyForeignKey.columns ?? [])
-                      .map(
-                          (columnName) =>
-                              oldTable.columns.find((column) => column.name === columnName)?.id ??
-                              columnName,
-                      )
-                      .filter((columnId): columnId is string => Boolean(columnId));
-            const newColumnIds = Array.isArray(newFk.columnsIds)
-                ? newFk.columnsIds
-                : (newLegacyForeignKey.columns ?? [])
-                      .map(
-                          (columnName) =>
-                              newTable.columns.find((column) => column.name === columnName)?.id ??
-                              columnName,
-                      )
-                      .filter((columnId): columnId is string => Boolean(columnId));
-
-            const oldReferencedTableId =
-                oldFk.referencedTableId ||
-                oldSchema.tables.find(
-                    (table) =>
-                        table.schema === oldLegacyForeignKey.referencedSchemaName &&
-                        table.name === oldLegacyForeignKey.referencedTableName,
-                )?.id ||
-                (oldLegacyForeignKey.referencedSchemaName && oldLegacyForeignKey.referencedTableName
-                    ? oldLegacyForeignKey.referencedTableName
-                    : "");
-            const newReferencedTableId =
-                newFk.referencedTableId ||
-                newSchema.tables.find(
-                    (table) =>
-                        table.schema === newLegacyForeignKey.referencedSchemaName &&
-                        table.name === newLegacyForeignKey.referencedTableName,
-                )?.id ||
-                (newLegacyForeignKey.referencedSchemaName && newLegacyForeignKey.referencedTableName
-                    ? newLegacyForeignKey.referencedTableName
-                    : "");
+            const oldReferencedTableId = oldFk.referencedTableId ?? "";
+            const newReferencedTableId = newFk.referencedTableId ?? "";
 
             const oldReferencedTable = oldSchema.tables.find(
                 (table) => table.id === oldReferencedTableId,
@@ -438,26 +391,8 @@ export function calculateSchemaDiff(
                 (table) => table.id === newReferencedTableId,
             );
 
-            const oldReferencedColumnIds = Array.isArray(oldFk.referencedColumnsIds)
-                ? oldFk.referencedColumnsIds
-                : (oldLegacyForeignKey.referencedColumns ?? [])
-                      .map(
-                          (columnName) =>
-                              oldReferencedTable?.columns.find(
-                                  (column) => column.name === columnName,
-                              )?.id ?? columnName,
-                      )
-                      .filter((columnId): columnId is string => Boolean(columnId));
-            const newReferencedColumnIds = Array.isArray(newFk.referencedColumnsIds)
-                ? newFk.referencedColumnsIds
-                : (newLegacyForeignKey.referencedColumns ?? [])
-                      .map(
-                          (columnName) =>
-                              newReferencedTable?.columns.find(
-                                  (column) => column.name === columnName,
-                              )?.id ?? columnName,
-                      )
-                      .filter((columnId): columnId is string => Boolean(columnId));
+            const oldReferencedColumnIds = oldFk.referencedColumnsIds ?? [];
+            const newReferencedColumnIds = newFk.referencedColumnsIds ?? [];
 
             const comparableOldForeignKey = {
                 name: oldFk.name,

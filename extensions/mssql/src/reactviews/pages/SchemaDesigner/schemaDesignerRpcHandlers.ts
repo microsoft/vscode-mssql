@@ -848,29 +848,7 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail(resolvedForeignKey.reason, resolvedForeignKey.message);
                         }
 
-                        const legacyForeignKey = resolvedForeignKey.foreignKey as unknown as {
-                            referencedSchemaName?: string;
-                            referencedTableName?: string;
-                        };
-
                         let referencedTableId = resolvedForeignKey.foreignKey.referencedTableId;
-                        if (
-                            !referencedTableId &&
-                            legacyForeignKey.referencedSchemaName &&
-                            legacyForeignKey.referencedTableName
-                        ) {
-                            const legacyReferencedTable = resolveTable(schema, {
-                                schema: legacyForeignKey.referencedSchemaName,
-                                name: legacyForeignKey.referencedTableName,
-                            });
-                            if (legacyReferencedTable.success === false) {
-                                return fail(
-                                    legacyReferencedTable.reason,
-                                    legacyReferencedTable.message,
-                                );
-                            }
-                            referencedTableId = legacyReferencedTable.table.id;
-                        }
 
                         if (edit.set?.referencedTable) {
                             const referenced = resolveTable(schema, edit.set.referencedTable);
