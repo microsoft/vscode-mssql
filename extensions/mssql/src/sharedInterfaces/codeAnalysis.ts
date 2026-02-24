@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DialogMessageSpec } from "./dialogMessage";
 import { CodeAnalysisRuleSeverity } from "../enums";
 
 export { CodeAnalysisRuleSeverity };
@@ -21,6 +22,12 @@ export interface SqlCodeAnalysisRule {
     severity: string;
     /** Whether this rule is enabled */
     enabled: boolean;
+    /** The category of the rule (for grouped display) */
+    category: string;
+    /** The rule description */
+    description?: string;
+    /** The rule scope (Element/Model) */
+    ruleScope?: string;
 }
 
 /**
@@ -37,10 +44,8 @@ export interface CodeAnalysisState {
     rules: SqlCodeAnalysisRule[];
     /** Whether there are unsaved changes */
     hasChanges: boolean;
-    /** Error message if any */
-    errorMessage?: string;
-    /** Success message if any */
-    successMessage?: string;
+    /** Message to display to the user (errors, warnings, etc.) */
+    message?: DialogMessageSpec;
 }
 
 /**
@@ -49,6 +54,8 @@ export interface CodeAnalysisState {
 export interface CodeAnalysisReducers {
     /** Close the dialog */
     close: {};
+    /** Clear the message bar */
+    closeMessage: {};
 }
 
 /**
@@ -56,4 +63,5 @@ export interface CodeAnalysisReducers {
  */
 export interface CodeAnalysisProvider {
     close: () => void;
+    closeMessage: () => void;
 }

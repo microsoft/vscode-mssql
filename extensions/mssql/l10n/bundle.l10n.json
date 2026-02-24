@@ -117,8 +117,8 @@
     "Loading": "Loading",
     "General": "General",
     "Previous": "Previous",
-    "Clear All": "Clear All",
     "OK": "OK",
+    "Clear All": "Clear All",
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -203,17 +203,28 @@
         "message": "{0} rules",
         "comment": ["{0} is the number of code analysis rules"]
     },
-    "Enabled": "Enabled",
-    "Rule": "Rule",
     "Rules": "Rules",
     "Enable {0}/{0} is the rule identifier, e.g. SR0001": {
         "message": "Enable {0}",
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
     },
+    "Enable all rules in {0}/{0} is the category name, e.g. Design": {
+        "message": "Enable all rules in {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Expand {0}/{0} is the category name, e.g. Design": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Collapse {0}/{0} is the category name, e.g. Design": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
     "Severity for {0}/{0} is the rule identifier, e.g. SR0001": {
         "message": "Severity for {0}",
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
     },
+    "Reset": "Reset",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -920,7 +931,6 @@
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
     "Option Description": "Option Description",
-    "Reset": "Reset",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
@@ -1574,6 +1584,7 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
+    "Enabled": "Enabled",
     "Disabled": "Disabled",
     "User": "User",
     "SQL Container Name": "SQL Container Name",
@@ -2353,6 +2364,7 @@
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Code Analysis": "Code Analysis",
+    "Failed to load code analysis rules": "Failed to load code analysis rules",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
