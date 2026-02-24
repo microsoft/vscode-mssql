@@ -114,23 +114,19 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             throw new Error(rulesResult.errorMessage || Loc.failedToLoadRules);
         }
 
-        try {
-            return (rulesResult.rules ?? []).map((rule) => {
-                const severity = this.normalizeSeverity(rule.severity);
-                return {
-                    ruleId: rule.ruleId,
-                    shortRuleId: rule.shortRuleId,
-                    displayName: rule.displayName,
-                    severity,
-                    enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
-                    category: rule.category,
-                    description: rule.description,
-                    ruleScope: rule.ruleScope,
-                };
-            });
-        } catch {
-            throw new Error(Loc.failedToLoadRules);
-        }
+        return (rulesResult.rules ?? []).map((rule) => {
+            const severity = this.normalizeSeverity(rule.severity);
+            return {
+                ruleId: rule.ruleId,
+                shortRuleId: rule.shortRuleId,
+                displayName: rule.displayName,
+                severity,
+                enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
+                category: rule.category,
+                description: rule.description,
+                ruleScope: rule.ruleScope,
+            };
+        });
     }
 
     /**
