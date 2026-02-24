@@ -34,6 +34,10 @@ function isDABEnabled(): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
+function isCopilotChatInstalled(): boolean {
+    return !!vscode.extensions.getExtension("github.copilot-chat");
+}
+
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
@@ -68,6 +72,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
                 enableDAB: isDABEnabled(),
+                isCopilotChatInstalled: isCopilotChatInstalled(),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {

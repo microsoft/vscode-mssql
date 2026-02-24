@@ -14,6 +14,7 @@ import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
 import { ShowChangesButton } from "./showChangesButton";
 import { ShowCopilotChangesButton } from "./showCopilotChangesButton";
+import { OpenCopilotChatButton } from "./openCopilotChatButton";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
 
@@ -56,6 +57,7 @@ export function SchemaDesignerToolbar() {
                 <FilterTablesButton />
                 {context.isDabEnabled() && (
                     <>
+                        <OpenCopilotChatButton />
                         <ToolbarDivider />
                         <ShowChangesButton />
                         <ShowCopilotChangesButton />

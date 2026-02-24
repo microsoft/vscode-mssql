@@ -6,6 +6,10 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.5.8] - 2026-03-18
+
+- Adds support for Microsoft.Build.Sql 2.1.0
+
 ## [1.5.7] - 2026-02-27
 
 - Publish dialog is now generally available (GA).

@@ -51,6 +51,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         private provider: FlatFileProvider | undefined,
         private profile: ConnectionProfile,
         private ownerUri: string,
+        private databaseName: string,
     ) {
         super(
             context,
@@ -95,7 +96,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         }
         // Set database names for dropdown
         this.state.serverName = this.profile.server;
-        this.state.formState.databaseName = this.profile.database;
+        this.state.formState.databaseName = this.databaseName;
 
         this.state.formComponents = this.setFlatFileFormComponents();
 
