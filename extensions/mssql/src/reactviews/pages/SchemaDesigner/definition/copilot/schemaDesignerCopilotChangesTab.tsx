@@ -79,7 +79,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "8px",
-        minHeight: "148px",
+        minHeight: "100px",
         transition: "border-color 0.15s ease, box-shadow 0.15s ease",
         "&:hover": {
             border: "1px solid var(--vscode-focusBorder)",

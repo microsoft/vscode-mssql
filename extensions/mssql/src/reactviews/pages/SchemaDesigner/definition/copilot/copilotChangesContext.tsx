@@ -1062,9 +1062,9 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
                                 newValue: after.schema,
                             };
                         }
-                        if (highlight.nameChange || highlight.schemaChange) {
-                            copilotModifiedTableHighlights.set(entityId, highlight);
-                        }
+                        // Always highlight the table as modified, even when
+                        // only non-name/schema properties changed.
+                        copilotModifiedTableHighlights.set(entityId, highlight);
                     }
                     break;
                 }
