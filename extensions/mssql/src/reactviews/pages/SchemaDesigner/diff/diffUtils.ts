@@ -245,6 +245,29 @@ export function calculateSchemaDiff(
 
         // Table-level property changes
         const tablePropertyChanges = diffObject(oldTable, newTable, TABLE_PROPERTIES);
+
+        const oldColumnOrder = (oldTable.columns ?? []).map((column) => column.id);
+        const newColumnOrder = (newTable.columns ?? []).map((column) => column.id);
+        if (!lodash.isEqual(oldColumnOrder, newColumnOrder)) {
+            const oldColumnNamesById = new Map(
+                (oldTable.columns ?? []).map((column) => [column.id, column.name]),
+            );
+            const newColumnNamesById = new Map(
+                (newTable.columns ?? []).map((column) => [column.id, column.name]),
+            );
+
+            tablePropertyChanges.push({
+                property: "columnOrder",
+                displayName: "Column Order",
+                oldValue: oldColumnOrder.map(
+                    (columnId) => oldColumnNamesById.get(columnId) ?? columnId,
+                ),
+                newValue: newColumnOrder.map(
+                    (columnId) => newColumnNamesById.get(columnId) ?? columnId,
+                ),
+            });
+        }
+
         if (tablePropertyChanges.length > 0) {
             pushChange(group, {
                 id: `table:modify:${newTable.id}`,

@@ -68,6 +68,18 @@ const useStyles = makeStyles({
         maxWidth: "150px",
         textOverflow: "ellipsis",
     },
+    dragHandleButton: {
+        cursor: "grab",
+        "&:active": {
+            cursor: "grabbing",
+        },
+    },
+    draggingHandleButton: {
+        opacity: 0.6,
+    },
+    dropTargetRow: {
+        backgroundColor: "var(--vscode-list-dropBackground)",
+    },
 });
 
 // Component for the columns table
@@ -75,6 +87,7 @@ const ColumnsTable = ({
     columns,
     updateColumn,
     deleteColumn,
+    moveColumn,
     columnNameInputRefs,
     datatypes,
     getColumnDeleteDisabledReason,
@@ -82,6 +95,7 @@ const ColumnsTable = ({
     columns: SchemaDesigner.Column[];
     updateColumn: (index: number, updatedColumn: SchemaDesigner.Column) => void;
     deleteColumn: (index: number) => void;
+    moveColumn: (from: number, to: number) => void;
     columnNameInputRefs: React.RefObject<Array<HTMLInputElement | null>>;
     datatypes: string[];
     getColumnDeleteDisabledReason: (column: SchemaDesigner.Column) => string | undefined;
@@ -89,9 +103,15 @@ const ColumnsTable = ({
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const context = useContext(SchemaDesignerEditorContext);
+    const [draggedRowId, setDraggedRowId] = useState<number>(-1);
+    const [draggedOverRowId, setDraggedOverRowId] = useState<number>(-1);
 
     // Define table columns
     const columnDefinitions = [
+        createTableColumn({
+            columnId: "dragHandle",
+            renderHeaderCell: () => <Text></Text>,
+        }),
         createTableColumn({
             columnId: "name",
             renderHeaderCell: () => <Text>{locConstants.schemaDesigner.name}</Text>,
@@ -124,6 +144,11 @@ const ColumnsTable = ({
             defaultWidth: 18,
             minWidth: 18,
             idealWidth: 18,
+        },
+        dragHandle: {
+            defaultWidth: 20,
+            minWidth: 20,
+            idealWidth: 20,
         },
         name: {
             defaultWidth: 150,
@@ -278,6 +303,40 @@ const ColumnsTable = ({
     // Render cell content based on column id
     const renderCell = (column: SchemaDesigner.Column, columnId: TableColumnId, index: number) => {
         switch (columnId) {
+            case "dragHandle":
+                return (
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        className={`${classes.dragHandleButton} ${
+                            draggedRowId === index ? classes.draggingHandleButton : ""
+                        }`}
+                        icon={<FluentIcons.ReOrderRegular />}
+                        draggable={true}
+                        onDragEnter={() => {
+                            setDraggedOverRowId(index);
+                        }}
+                        onDragEnd={() => {
+                            if (draggedRowId === -1 || draggedOverRowId === -1) {
+                                return;
+                            }
+
+                            if (draggedRowId !== draggedOverRowId) {
+                                moveColumn(draggedRowId, draggedOverRowId);
+                            }
+
+                            setDraggedRowId(-1);
+                            setDraggedOverRowId(-1);
+                        }}
+                        onDrag={() => {
+                            setDraggedRowId(index);
+                        }}
+                        onDragStart={() => {
+                            setDraggedOverRowId(-1);
+                            setDraggedRowId(index);
+                        }}
+                    />
+                );
             case "error":
                 return (
                     <>
@@ -457,7 +516,26 @@ const ColumnsTable = ({
                 </TableHeader>
                 <TableBody>
                     {getRows().map((_row, index) => (
-                        <TableRow key={index}>
+                        <TableRow
+                            key={_row.item.id}
+                            className={draggedOverRowId === index ? classes.dropTargetRow : ""}
+                            onDragOver={(e) => {
+                                e.preventDefault();
+                                setDraggedOverRowId(index);
+                            }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                if (draggedRowId === -1 || draggedOverRowId === -1) {
+                                    return;
+                                }
+
+                                if (draggedRowId !== draggedOverRowId) {
+                                    moveColumn(draggedRowId, draggedOverRowId);
+                                }
+
+                                setDraggedRowId(-1);
+                                setDraggedOverRowId(-1);
+                            }}>
                             {tableColumns.map((column) => {
                                 return (
                                     <TableCell
@@ -606,6 +684,22 @@ export const SchemaDesignerEditorTablePanel = () => {
         });
     };
 
+    // Move column from one index to another
+    const moveColumn = (from: number, to: number) => {
+        if (from === to) {
+            return;
+        }
+
+        const newColumns = [...context.table.columns];
+        const [movedColumn] = newColumns.splice(from, 1);
+        newColumns.splice(to, 0, movedColumn);
+
+        context.setTable({
+            ...context.table,
+            columns: newColumns,
+        });
+    };
+
     // Update table schema
     const updateTableSchema = (schema: string) => {
         context.setTable({
@@ -671,6 +765,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                     columns={context.table.columns}
                     updateColumn={updateColumn}
                     deleteColumn={deleteColumn}
+                    moveColumn={moveColumn}
                     columnNameInputRefs={columnNameInputRefs}
                     datatypes={datatypes}
                     getColumnDeleteDisabledReason={getColumnDeleteDisabledReason}

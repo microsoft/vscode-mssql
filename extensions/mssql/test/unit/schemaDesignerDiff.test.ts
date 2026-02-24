@@ -550,6 +550,34 @@ suite("SchemaDesigner diff utils", () => {
         ]);
     });
 
+    test("detects column reorder as table modification", () => {
+        const updated = deepClone(sampleSchema);
+
+        const usersTable = updated.tables.find(
+            (t) => t.id === "fae49816-b614-4a62-8787-4b497782b4fa",
+        );
+        expect(usersTable).to.exist;
+        const users = usersTable!;
+
+        users.columns = [users.columns[1], users.columns[0]];
+
+        const summary = calculateSchemaDiff(sampleSchema, updated);
+        const usersGroup = findGroup(summary, "fae49816-b614-4a62-8787-4b497782b4fa");
+
+        const tableModify = findChange(
+            usersGroup,
+            (c) => c.category === ChangeCategory.Table && c.action === ChangeAction.Modify,
+        );
+
+        expect(tableModify.propertyChanges).to.exist;
+        expect(tableModify.propertyChanges).to.deep.include({
+            property: "columnOrder",
+            displayName: "Column Order",
+            oldValue: ["user_id", "phone_number"],
+            newValue: ["phone_number", "user_id"],
+        });
+    });
+
     test("detects added/deleted/modified foreign keys (including deep array equality)", () => {
         const updated = deepClone(sampleSchema);
 

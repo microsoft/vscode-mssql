@@ -25,7 +25,7 @@ import {
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { Handle, NodeProps, Position } from "@xyflow/react";
+import { Handle, NodeProps, Position, useUpdateNodeInternals } from "@xyflow/react";
 import { useContext, useRef, useEffect, useState, cloneElement, type ComponentProps } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
@@ -774,6 +774,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
+    const updateNodeInternals = useUpdateNodeInternals();
     const table = props.data as SchemaDesigner.TableWithDeletedFlag;
     const isDeletedTable = table.isDeleted === true;
     // Default to collapsed state if table has more than 10 columns
@@ -828,6 +829,16 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
         setPendingUndoChange(change);
         setIsUndoDialogOpen(true);
     };
+
+    useEffect(() => {
+        const rafId = requestAnimationFrame(() => {
+            updateNodeInternals(table.id);
+        });
+
+        return () => {
+            cancelAnimationFrame(rafId);
+        };
+    }, [table.id, table.columns, isCollapsed, updateNodeInternals]);
 
     return (
         <div
