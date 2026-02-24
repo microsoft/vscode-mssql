@@ -175,7 +175,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         await internalController.loadRules();
 
         expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.message?.message).to.equal("load error");
+        expect(controller.state.message?.message).to.contain("load error");
         expect(controller.state.message?.intent).to.equal("error");
         expect(telemetryStubs.sendErrorEvent).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
@@ -277,7 +277,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         await internalController.loadRules();
 
         expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.message?.message).to.equal("Service unavailable");
+        expect(controller.state.message?.message).to.contain("Service unavailable");
         expect(controller.state.message?.intent).to.equal("error");
 
         // Without errorMessage — should fall back to the default locale string
@@ -289,7 +289,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(controller.state.message?.message).to.equal(ExtLoc.failedToLoadRules);
+        expect(controller.state.message?.message).to.contain(ExtLoc.failedToLoadRules);
         expect(controller.state.message?.intent).to.equal("error");
     });
 

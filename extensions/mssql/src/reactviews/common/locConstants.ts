@@ -225,6 +225,18 @@ export class LocConstants {
                     args: [category],
                     comment: ["{0} is the category name, e.g. Design"],
                 }),
+            expandCategory: (category: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
+            collapseCategory: (category: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
             severityForRule: (ruleId: string) =>
                 l10n.t({
                     message: "Severity for {0}",

@@ -178,17 +178,23 @@ export const CodeAnalysisDialog = () => {
     const getCategoryCheckedState = (
         categoryRules: SqlCodeAnalysisRule[],
     ): true | false | "mixed" => {
-        if (categoryRules.every((r) => r.enabled)) return true;
-        if (categoryRules.some((r) => r.enabled)) return "mixed";
+        const toggleableRules = categoryRules.filter(
+            (r) => r.severity !== CodeAnalysisRuleSeverity.Disabled,
+        );
+        if (toggleableRules.length === 0) return false;
+        if (toggleableRules.every((r) => r.enabled)) return true;
+        if (toggleableRules.some((r) => r.enabled)) return "mixed";
         return false;
     };
 
-    const toggleRule = (ruleId: string, enabled: boolean) => {
-        setLocalRules((prev) => prev.map((r) => (r.ruleId === ruleId ? { ...r, enabled } : r)));
-    };
-
     const toggleCategoryRules = (category: string, enabled: boolean) => {
-        setLocalRules((prev) => prev.map((r) => (r.category === category ? { ...r, enabled } : r)));
+        setLocalRules((prev) =>
+            prev.map((r) =>
+                r.category === category && r.severity !== CodeAnalysisRuleSeverity.Disabled
+                    ? { ...r, enabled }
+                    : r,
+            ),
+        );
     };
 
     const toggleCategoryCollapsed = (category: string) => {
@@ -272,6 +278,11 @@ export const CodeAnalysisDialog = () => {
                                             <div className={styles.categoryHeaderContent}>
                                                 <Button
                                                     appearance="subtle"
+                                                    aria-label={
+                                                        collapsedCategories.has(category)
+                                                            ? loc.expandCategory(category)
+                                                            : loc.collapseCategory(category)
+                                                    }
                                                     className={styles.categoryToggleButton}
                                                     icon={
                                                         collapsedCategories.has(category) ? (
@@ -313,12 +324,7 @@ export const CodeAnalysisDialog = () => {
                                                                 rule.shortRuleId,
                                                             )}
                                                             checked={rule.enabled}
-                                                            onChange={(_e, data) =>
-                                                                toggleRule(
-                                                                    rule.ruleId,
-                                                                    !!data.checked,
-                                                                )
-                                                            }
+                                                            disabled={!rule.enabled}
                                                         />
                                                         <Text>
                                                             {rule.shortRuleId}: {rule.displayName}
@@ -327,6 +333,9 @@ export const CodeAnalysisDialog = () => {
                                                 </TableCell>
                                                 <TableCell className={styles.tableCell}>
                                                     <Dropdown
+                                                        aria-label={loc.severityForRule(
+                                                            rule.shortRuleId,
+                                                        )}
                                                         value={rule.severity}
                                                         selectedOptions={[rule.severity]}
                                                         onOptionSelect={(_e, data) =>
