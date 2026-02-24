@@ -94,15 +94,13 @@ export const QueryResult = () => {
 
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
-        const handleKeyDown = async (e: KeyboardEvent): Promise<void> => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
             if (isMetaOrCtrlKeyPressed(e) && e.code === KeyCode.KeyA) {
                 e.preventDefault();
                 e.stopPropagation();
             }
         };
-        document.addEventListener("keydown", async (e) => {
-            await handleKeyDown(e);
-        });
+        document.addEventListener("keydown", handleKeyDown);
         return function cleanup() {
             document.removeEventListener("keydown", handleKeyDown);
         };
