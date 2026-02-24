@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Checkbox, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
-import { useEffect, useMemo } from "react";
+import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { useEffect } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
-import { DabEntityTile } from "./dabEntityTile";
+import { DabEntityTable } from "./dabEntityTable";
 import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
@@ -25,33 +25,6 @@ const useStyles = makeStyles({
     content: {
         flex: 1,
         overflow: "auto",
-        padding: "15px",
-    },
-    schemaSection: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        marginBottom: "20px",
-    },
-    schemaHeader: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-    },
-    schemaLabel: {
-        fontSize: "16px",
-        fontWeight: 600,
-        color: tokens.colorNeutralForeground1,
-    },
-    schemaDivider: {
-        flex: 1,
-        height: "1px",
-        backgroundColor: tokens.colorNeutralStroke2,
-    },
-    entityGrid: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "12px",
     },
     loadingContainer: {
         display: "flex",
@@ -60,14 +33,6 @@ const useStyles = makeStyles({
         justifyContent: "center",
         height: "100%",
         gap: "12px",
-    },
-    emptyState: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "200px",
-        color: tokens.colorNeutralForeground3,
     },
     resizeHandle: {
         height: "2px",
@@ -81,18 +46,8 @@ interface DabPageProps {
 
 export const DabPage = ({ activeView }: DabPageProps) => {
     const classes = useStyles();
-    const context = useDabContext();
-
-    const {
-        dabConfig,
-        initializeDabConfig,
-        syncDabConfigWithSchema,
-        isInitialized,
-        toggleDabEntity,
-        toggleDabEntityAction,
-        updateDabEntitySettings,
-        dabSchemaFilter,
-    } = context;
+    const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
+        useDabContext();
 
     // Initialize DAB config when schema is first initialized
     useEffect(() => {
@@ -110,29 +65,6 @@ export const DabPage = ({ activeView }: DabPageProps) => {
             syncDabConfigWithSchema();
         }
     }, [activeView]);
-
-    // Filter entities based on schema filter
-    const filteredEntities = useMemo(() => {
-        if (!dabConfig) {
-            return [];
-        }
-        if (dabSchemaFilter.length === 0) {
-            return dabConfig.entities;
-        }
-        return dabConfig.entities.filter((e) => dabSchemaFilter.includes(e.schemaName));
-    }, [dabConfig, dabSchemaFilter]);
-
-    // Group filtered entities by schema
-    const entitiesBySchema = useMemo(() => {
-        const groups: Record<string, typeof filteredEntities> = {};
-        for (const entity of filteredEntities) {
-            if (!groups[entity.schemaName]) {
-                groups[entity.schemaName] = [];
-            }
-            groups[entity.schemaName].push(entity);
-        }
-        return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-    }, [filteredEntities]);
 
     // Show loading state while schema is being initialized
     if (!isInitialized) {
@@ -166,68 +98,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                         <DabToolbar />
                         <div className={classes.content}>
-                            {filteredEntities.length === 0 ? (
-                                <div className={classes.emptyState}>
-                                    <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
-                                </div>
-                            ) : (
-                                entitiesBySchema.map(([schemaName, entities]) => {
-                                    const enabledCount = entities.filter((e) => e.isEnabled).length;
-                                    const allChecked = enabledCount === entities.length;
-                                    const noneChecked = enabledCount === 0;
-                                    return (
-                                        <div key={schemaName} className={classes.schemaSection}>
-                                            <div className={classes.schemaHeader}>
-                                                <Checkbox
-                                                    checked={
-                                                        allChecked
-                                                            ? true
-                                                            : noneChecked
-                                                              ? false
-                                                              : "mixed"
-                                                    }
-                                                    onChange={(_, data) => {
-                                                        const enable =
-                                                            data.checked === true ||
-                                                            data.checked === "mixed";
-                                                        for (const entity of entities) {
-                                                            toggleDabEntity(entity.id, enable);
-                                                        }
-                                                    }}
-                                                />
-                                                <Text className={classes.schemaLabel}>
-                                                    {schemaName}
-                                                </Text>
-                                                <div className={classes.schemaDivider} />
-                                            </div>
-                                            <div className={classes.entityGrid}>
-                                                {entities.map((entity) => (
-                                                    <DabEntityTile
-                                                        key={entity.id}
-                                                        entity={entity}
-                                                        onToggleEnabled={(isEnabled) =>
-                                                            toggleDabEntity(entity.id, isEnabled)
-                                                        }
-                                                        onToggleAction={(action, isEnabled) =>
-                                                            toggleDabEntityAction(
-                                                                entity.id,
-                                                                action,
-                                                                isEnabled,
-                                                            )
-                                                        }
-                                                        onUpdateSettings={(settings) =>
-                                                            updateDabEntitySettings(
-                                                                entity.id,
-                                                                settings,
-                                                            )
-                                                        }
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
+                            <DabEntityTable />
                         </div>
                     </div>
                 </Panel>
