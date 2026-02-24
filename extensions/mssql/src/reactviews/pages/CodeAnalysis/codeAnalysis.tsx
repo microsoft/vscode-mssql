@@ -320,11 +320,11 @@ export const CodeAnalysisDialog = () => {
                                                 <TableCell className={styles.tableCell}>
                                                     <div className={styles.childRuleContent}>
                                                         <Checkbox
-                                                            aria-label={loc.enableRule(
-                                                                rule.shortRuleId,
-                                                            )}
+                                                            aria-hidden={true}
                                                             checked={rule.enabled}
                                                             disabled={!rule.enabled}
+                                                            style={{ pointerEvents: "none" }}
+                                                            tabIndex={-1}
                                                         />
                                                         <Text>
                                                             {rule.shortRuleId}: {rule.displayName}
