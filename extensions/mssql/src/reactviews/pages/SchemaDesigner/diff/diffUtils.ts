@@ -84,10 +84,9 @@ export const COLUMN_PROPERTIES: PropertyMetadata[] = [
 
 export const FOREIGN_KEY_PROPERTIES: PropertyMetadata[] = [
     { key: "name", displayName: "Name" },
-    { key: "columns", displayName: "Columns" },
-    { key: "referencedSchemaName", displayName: "Referenced Schema" },
-    { key: "referencedTableName", displayName: "Referenced Table" },
-    { key: "referencedColumns", displayName: "Referenced Columns" },
+    { key: "columnIds", displayName: "Columns" },
+    { key: "referencedTableId", displayName: "Referenced Table" },
+    { key: "referencedColumnIds", displayName: "Referenced Columns" },
     { key: "onDeleteAction", displayName: "On Delete Action" },
     { key: "onUpdateAction", displayName: "On Update Action" },
 ];
@@ -158,33 +157,6 @@ export function calculateSchemaDiff(
 
     const allTableIds = new Set<string>([...oldTablesById.keys(), ...newTablesById.keys()]);
     const groupsByTableId = new Map<string, TableChangeGroup>();
-
-    // Cache of oldName -> newName rename maps for tables whose columns were renamed.
-    const columnRenameCache = new Map<string, Map<string, string>>();
-
-    function getColumnRenameMap(tableId: string): Map<string, string> {
-        const cached = columnRenameCache.get(tableId);
-        if (cached) {
-            return cached;
-        }
-
-        const oldTable = oldTablesById.get(tableId);
-        const newTable = newTablesById.get(tableId);
-        const renameMap = new Map<string, string>();
-
-        if (oldTable && newTable) {
-            const oldColsById = mapById(oldTable.columns ?? []);
-            for (const newCol of newTable.columns ?? []) {
-                const oldCol = oldColsById.get(newCol.id);
-                if (oldCol && oldCol.name !== newCol.name) {
-                    renameMap.set(oldCol.name, newCol.name);
-                }
-            }
-        }
-
-        columnRenameCache.set(tableId, renameMap);
-        return renameMap;
-    }
 
     function getOrCreateGroup(
         table: sd.SchemaDesigner.Table,
@@ -383,35 +355,111 @@ export function calculateSchemaDiff(
                 continue;
             }
 
-            const fkPropertyChanges = diffObject(oldFk, newFk, FOREIGN_KEY_PROPERTIES);
+            const oldLegacyForeignKey = oldFk as unknown as {
+                columns?: string[];
+                referencedSchemaName?: string;
+                referencedTableName?: string;
+                referencedColumns?: string[];
+            };
+            const newLegacyForeignKey = newFk as unknown as {
+                columns?: string[];
+                referencedSchemaName?: string;
+                referencedTableName?: string;
+                referencedColumns?: string[];
+            };
+
+            const oldColumnIds = Array.isArray(oldFk.columnIds)
+                ? oldFk.columnIds
+                : (oldLegacyForeignKey.columns ?? [])
+                      .map(
+                          (columnName) =>
+                              oldTable.columns.find((column) => column.name === columnName)?.id ??
+                              columnName,
+                      )
+                      .filter((columnId): columnId is string => Boolean(columnId));
+            const newColumnIds = Array.isArray(newFk.columnIds)
+                ? newFk.columnIds
+                : (newLegacyForeignKey.columns ?? [])
+                      .map(
+                          (columnName) =>
+                              newTable.columns.find((column) => column.name === columnName)?.id ??
+                              columnName,
+                      )
+                      .filter((columnId): columnId is string => Boolean(columnId));
+
+            const oldReferencedTableId =
+                oldFk.referencedTableId ||
+                oldSchema.tables.find(
+                    (table) =>
+                        table.schema === oldLegacyForeignKey.referencedSchemaName &&
+                        table.name === oldLegacyForeignKey.referencedTableName,
+                )?.id ||
+                (oldLegacyForeignKey.referencedSchemaName && oldLegacyForeignKey.referencedTableName
+                    ? oldLegacyForeignKey.referencedTableName
+                    : "");
+            const newReferencedTableId =
+                newFk.referencedTableId ||
+                newSchema.tables.find(
+                    (table) =>
+                        table.schema === newLegacyForeignKey.referencedSchemaName &&
+                        table.name === newLegacyForeignKey.referencedTableName,
+                )?.id ||
+                (newLegacyForeignKey.referencedSchemaName && newLegacyForeignKey.referencedTableName
+                    ? newLegacyForeignKey.referencedTableName
+                    : "");
+
+            const oldReferencedTable = oldSchema.tables.find(
+                (table) => table.id === oldReferencedTableId,
+            );
+            const newReferencedTable = newSchema.tables.find(
+                (table) => table.id === newReferencedTableId,
+            );
+
+            const oldReferencedColumnIds = Array.isArray(oldFk.referencedColumnIds)
+                ? oldFk.referencedColumnIds
+                : (oldLegacyForeignKey.referencedColumns ?? [])
+                      .map(
+                          (columnName) =>
+                              oldReferencedTable?.columns.find(
+                                  (column) => column.name === columnName,
+                              )?.id ?? columnName,
+                      )
+                      .filter((columnId): columnId is string => Boolean(columnId));
+            const newReferencedColumnIds = Array.isArray(newFk.referencedColumnIds)
+                ? newFk.referencedColumnIds
+                : (newLegacyForeignKey.referencedColumns ?? [])
+                      .map(
+                          (columnName) =>
+                              newReferencedTable?.columns.find(
+                                  (column) => column.name === columnName,
+                              )?.id ?? columnName,
+                      )
+                      .filter((columnId): columnId is string => Boolean(columnId));
+
+            const comparableOldForeignKey = {
+                name: oldFk.name,
+                columnIds: oldColumnIds,
+                referencedTableId: oldReferencedTableId,
+                referencedColumnIds: oldReferencedColumnIds,
+                onDeleteAction: oldFk.onDeleteAction,
+                onUpdateAction: oldFk.onUpdateAction,
+            };
+
+            const comparableNewForeignKey = {
+                name: newFk.name,
+                columnIds: newColumnIds,
+                referencedTableId: newReferencedTableId,
+                referencedColumnIds: newReferencedColumnIds,
+                onDeleteAction: newFk.onDeleteAction,
+                onUpdateAction: newFk.onUpdateAction,
+            };
+
+            const fkPropertyChanges = diffObject(
+                comparableOldForeignKey,
+                comparableNewForeignKey,
+                FOREIGN_KEY_PROPERTIES,
+            );
             if (fkPropertyChanges.length > 0) {
-                // Hide FK modify changes that are purely derived from renaming a referenced column.
-                // Users will revert the column rename (and we propagate edges/FKs) rather than reverting the FK.
-                if (
-                    fkPropertyChanges.length === 1 &&
-                    fkPropertyChanges[0].property === "referencedColumns"
-                ) {
-                    const referencedTable = newSchema.tables.find(
-                        (t) =>
-                            t.schema === newFk.referencedSchemaName &&
-                            t.name === newFk.referencedTableName,
-                    );
-
-                    if (referencedTable) {
-                        const renameMap = getColumnRenameMap(referencedTable.id);
-                        if (
-                            renameMap.size > 0 &&
-                            oldFk.referencedColumns.length === newFk.referencedColumns.length &&
-                            oldFk.referencedColumns.every(
-                                (oldCol, idx) =>
-                                    renameMap.get(oldCol) === newFk.referencedColumns[idx],
-                            )
-                        ) {
-                            continue;
-                        }
-                    }
-                }
-
                 pushChange(group, {
                     id: `foreignKey:modify:${newTable.id}:${newFk.id}`,
                     action: ChangeAction.Modify,

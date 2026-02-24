@@ -229,7 +229,7 @@ suite("SchemaDesigner diff utils", () => {
         );
         expect(returnsFk).to.exist;
         const fk = returnsFk!;
-        fk.referencedTableName = "order_items_v2";
+        (fk as unknown as { referencedTableName: string }).referencedTableName = "order_items_v2";
 
         // Table deleted
         updated.tables = updated.tables.filter(
@@ -437,7 +437,11 @@ suite("SchemaDesigner diff utils", () => {
 
         const updated: sd.SchemaDesigner.Schema = deepClone(baseline);
         updated.tables[0].columns[0].name = "user_id_new";
-        updated.tables[1].foreignKeys[0].referencedColumns = ["user_id_new"];
+        (
+            updated.tables[1].foreignKeys[0] as unknown as {
+                referencedColumns: string[];
+            }
+        ).referencedColumns = ["user_id_new"];
 
         const summary = calculateSchemaDiff(baseline, updated);
         const allChanges = summary.groups.flatMap((g) => g.changes);
@@ -561,8 +565,11 @@ suite("SchemaDesigner diff utils", () => {
         );
         expect(existingFk).to.exist;
         const fk = existingFk!;
-        fk.columns = ["order_item_id", "return_id"];
-        fk.referencedColumns = ["order_item_id", "return_id"];
+        (fk as unknown as { columns: string[] }).columns = ["order_item_id", "return_id"];
+        (fk as unknown as { referencedColumns: string[] }).referencedColumns = [
+            "order_item_id",
+            "return_id",
+        ];
 
         // Delete old FK and add a new FK (add/delete paths)
         returnsT.foreignKeys = returnsT.foreignKeys.filter(
@@ -611,8 +618,11 @@ suite("SchemaDesigner diff utils", () => {
             (f) => f.id === "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
         );
         expect(fk2).to.exist;
-        fk2!.columns = ["order_item_id", "return_id"];
-        fk2!.referencedColumns = ["order_item_id", "return_id"];
+        (fk2! as unknown as { columns: string[] }).columns = ["order_item_id", "return_id"];
+        (fk2! as unknown as { referencedColumns: string[] }).referencedColumns = [
+            "order_item_id",
+            "return_id",
+        ];
 
         const summary2 = calculateSchemaDiff(sampleSchema, updated2);
         const returnsGroup2 = findGroup(summary2, "6256e1cf-b4df-45e3-a09f-e1da5e246fa9");
@@ -626,13 +636,16 @@ suite("SchemaDesigner diff utils", () => {
 
         expect(fkModify.propertyChanges).to.deep.equal([
             {
-                property: "columns",
+                property: "columnIds",
                 displayName: "Columns",
-                oldValue: ["order_item_id"],
-                newValue: ["order_item_id", "return_id"],
+                oldValue: ["fe92dd38-2c17-41e3-8b5d-a724b012d818"],
+                newValue: [
+                    "fe92dd38-2c17-41e3-8b5d-a724b012d818",
+                    "457002c3-7ffd-4b80-a073-39a8d2aa4791",
+                ],
             },
             {
-                property: "referencedColumns",
+                property: "referencedColumnIds",
                 displayName: "Referenced Columns",
                 oldValue: ["order_item_id"],
                 newValue: ["order_item_id", "return_id"],
@@ -779,7 +792,7 @@ suite("SchemaDesigner revert logic", () => {
                         referencedColumns: ["user_id"],
                         onDeleteAction: 1,
                         onUpdateAction: 1,
-                    },
+                    } as unknown as sd.SchemaDesigner.ForeignKey,
                 ],
             },
         ],
@@ -910,7 +923,7 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
         });
 
-        test("prevents reverting FK modification when referenced table no longer exists", () => {
+        test("prevents reverting FK modification when referenced table is missing after rename", () => {
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
             currentSchema.tables[0].name = "members"; // Rename users table
 
@@ -1049,7 +1062,7 @@ suite("SchemaDesigner revert logic", () => {
                 referencedColumns: ["user_id"],
                 onDeleteAction: 1,
                 onUpdateAction: 1,
-            });
+            } as unknown as sd.SchemaDesigner.ForeignKey);
 
             const fk1DeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
@@ -1355,7 +1368,7 @@ suite("SchemaDesigner revert logic", () => {
                 referencedColumns: ["email"],
                 onDeleteAction: 1,
                 onUpdateAction: 1,
-            });
+            } as unknown as sd.SchemaDesigner.ForeignKey);
 
             const change: SchemaChange = {
                 id: "foreignKey:add:table-users:fk-new",
@@ -1409,7 +1422,7 @@ suite("SchemaDesigner revert logic", () => {
                         referencedColumns: ["user_id"],
                         onDeleteAction: 1,
                         onUpdateAction: 1,
-                    },
+                    } as unknown as sd.SchemaDesigner.ForeignKey,
                 ],
             });
 
@@ -1455,7 +1468,11 @@ suite("SchemaDesigner revert logic", () => {
 
         test("reverts FK modification by restoring original FK properties", () => {
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
-            currentSchema.tables[1].foreignKeys[0].referencedTableName = "users_v2";
+            (
+                currentSchema.tables[1].foreignKeys[0] as unknown as {
+                    referencedTableName: string;
+                }
+            ).referencedTableName = "users_v2";
             currentSchema.tables[1].foreignKeys[0].onDeleteAction = 2;
 
             const change: SchemaChange = {
@@ -1472,7 +1489,10 @@ suite("SchemaDesigner revert logic", () => {
             const result = computeRevertedSchema(change, baselineSchema, currentSchema);
             expect(result.success).to.equal(true);
             const ordersTable = result.tables.find((t) => t.id === "table-orders");
-            expect(ordersTable!.foreignKeys[0].referencedTableName).to.equal("users");
+            expect(
+                (ordersTable!.foreignKeys[0] as unknown as { referencedTableName?: string })
+                    .referencedTableName,
+            ).to.equal("users");
             expect(ordersTable!.foreignKeys[0].onDeleteAction).to.equal(1);
         });
 

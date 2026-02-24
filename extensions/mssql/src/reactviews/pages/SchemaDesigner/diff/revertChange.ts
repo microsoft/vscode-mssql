@@ -59,12 +59,20 @@ export function canRevertChange(
         const baselineFk = baselineTable?.foreignKeys?.find((fk) => fk.id === change.objectId);
 
         if (baselineFk) {
+            const legacyForeignKey = baselineFk as unknown as {
+                referencedSchemaName?: string;
+                referencedTableName?: string;
+                referencedColumns?: string[];
+            };
+
             // Check if the referenced table still exists in current schema
-            const referencedTableExists = currentSchema.tables.some(
-                (table) =>
-                    table.schema === baselineFk.referencedSchemaName &&
-                    table.name === baselineFk.referencedTableName,
-            );
+            const referencedTableExists =
+                currentSchema.tables.some((table) => table.id === baselineFk.referencedTableId) ||
+                currentSchema.tables.some(
+                    (table) =>
+                        table.schema === legacyForeignKey.referencedSchemaName &&
+                        table.name === legacyForeignKey.referencedTableName,
+                );
 
             if (!referencedTableExists) {
                 return { canRevert: false, reason: messages.cannotRevertForeignKey };
@@ -72,15 +80,39 @@ export function canRevertChange(
 
             // Check if the referenced columns still exist
             const referencedTable = currentSchema.tables.find(
-                (table) =>
-                    table.schema === baselineFk.referencedSchemaName &&
-                    table.name === baselineFk.referencedTableName,
+                (table) => table.id === baselineFk.referencedTableId,
             );
 
-            if (referencedTable) {
-                const missingColumns = baselineFk.referencedColumns.filter(
-                    (col) => !referencedTable.columns.some((c) => c.name === col),
+            const fallbackReferencedTable =
+                referencedTable ??
+                currentSchema.tables.find(
+                    (table) =>
+                        table.schema === legacyForeignKey.referencedSchemaName &&
+                        table.name === legacyForeignKey.referencedTableName,
                 );
+
+            if (fallbackReferencedTable) {
+                const referencedColumnIds = Array.isArray(baselineFk.referencedColumnIds)
+                    ? baselineFk.referencedColumnIds
+                    : [];
+
+                const missingColumns = referencedColumnIds.filter(
+                    (columnId) =>
+                        !fallbackReferencedTable.columns.some((column) => column.id === columnId),
+                );
+
+                if (missingColumns.length === 0 && legacyForeignKey.referencedColumns) {
+                    const legacyMissingColumns = legacyForeignKey.referencedColumns.filter(
+                        (columnName) =>
+                            !fallbackReferencedTable.columns.some(
+                                (column) => column.name === columnName,
+                            ),
+                    );
+                    if (legacyMissingColumns.length > 0) {
+                        return { canRevert: false, reason: messages.cannotRevertForeignKey };
+                    }
+                }
+
                 if (missingColumns.length > 0) {
                     return { canRevert: false, reason: messages.cannotRevertForeignKey };
                 }
