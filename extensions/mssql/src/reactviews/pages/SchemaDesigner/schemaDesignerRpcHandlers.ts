@@ -51,7 +51,6 @@ export function createSchemaDesignerApplyEditsHandler(
         updateTable,
         deleteTable,
         normalizeColumn,
-        normalizeTable,
         validateTable,
         onPushUndoState,
         onRequestScriptRefresh,
@@ -534,20 +533,12 @@ export function createSchemaDesignerApplyEditsHandler(
                             columns: [...(resolved.table.columns ?? []), newColumn],
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -558,7 +549,7 @@ export function createSchemaDesignerApplyEditsHandler(
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -588,20 +579,12 @@ export function createSchemaDesignerApplyEditsHandler(
                             ),
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -612,7 +595,7 @@ export function createSchemaDesignerApplyEditsHandler(
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -642,12 +625,20 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", dataTypeError);
                         }
 
-                        const updatedColumn = normalizeColumn({
+                        const definedSetPatch = Object.fromEntries(
+                            Object.entries(edit.set ?? {}).filter(
+                                ([, value]) => value !== undefined,
+                            ),
+                        ) as Partial<SchemaDesigner.Column>;
+
+                        const updatedColumn = {
                             ...resolvedColumn.column,
-                            ...(edit.set ?? {}),
-                            name: edit.set?.name ?? resolvedColumn.column.name,
+                            ...definedSetPatch,
+                            name:
+                                (definedSetPatch.name as string | undefined) ??
+                                resolvedColumn.column.name,
                             dataType: nextDataType,
-                        } as SchemaDesigner.Column);
+                        } as SchemaDesigner.Column;
 
                         const updated: SchemaDesigner.Table = {
                             ...resolvedTable.table,
@@ -656,20 +647,12 @@ export function createSchemaDesignerApplyEditsHandler(
                             ),
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -680,7 +663,7 @@ export function createSchemaDesignerApplyEditsHandler(
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
