@@ -147,7 +147,9 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
 
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisRulesLoaded, {
                 ruleCount: rules.length.toString(),
-                categoryCount: new Set(rules.map((rule) => rule.category || "")).size.toString(),
+                categoryCount: new Set(
+                    rules.filter((rule) => rule.category).map((rule) => rule.category),
+                ).size.toString(),
             });
         } catch (error) {
             this.state.isLoading = false;
