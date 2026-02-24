@@ -673,6 +673,55 @@ suite("schemaDesignerRpcHandlers", () => {
         expect(updatedColumn.identityIncrement).to.equal(undefined);
     });
 
+    test("set_table does not mutate columns when only table name changes", async () => {
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "Authors",
+                    columns: [
+                        {
+                            id: "c1",
+                            name: "Genre",
+                            dataType: "nvarchar",
+                            maxLength: "50",
+                            precision: undefined as unknown as number,
+                            scale: undefined as unknown as number,
+                            isPrimaryKey: false,
+                            isIdentity: false,
+                            identitySeed: undefined as unknown as number,
+                            identityIncrement: undefined as unknown as number,
+                            isNullable: true,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        } as unknown as SchemaDesigner.Column,
+                    ],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_table",
+                table: { schema: "dbo", name: "Authors" },
+                set: { name: "AuthorsRenamed" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedTable = getSchema().tables[0];
+        expect(updatedTable.name).to.equal("AuthorsRenamed");
+        const unchangedColumn = updatedTable.columns[0] as unknown as Record<string, unknown>;
+        expect(unchangedColumn.precision).to.equal(undefined);
+        expect(unchangedColumn.scale).to.equal(undefined);
+        expect(unchangedColumn.identitySeed).to.equal(undefined);
+        expect(unchangedColumn.identityIncrement).to.equal(undefined);
+    });
+
     test("add_column does not mutate untouched column undefined fields", async () => {
         const { applyEdits, getSchema } = createApplyEditsHarness({
             tables: [
@@ -804,6 +853,52 @@ suite("schemaDesignerRpcHandlers", () => {
 
         expect(result.success).to.equal(false);
         expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key updates only provided fields without mutating untouched FK properties", async () => {
+        const c1 = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const c2 = normalizeColumn({ id: "c2", name: "AuthorId", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_Authors_Books",
+            columnsIds: ["c2"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "Authors", columns: [c1], foreignKeys: [] },
+                {
+                    id: "t2",
+                    schema: "dbo",
+                    name: "Books",
+                    columns: [c2],
+                    foreignKeys: [fk],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "Books" },
+                foreignKey: { name: "FK_Authors_Books" },
+                name: "FK_Books_Authors_Renamed",
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedFk = getSchema().tables.find((t) => t.id === "t2")?.foreignKeys?.[0];
+        expect(updatedFk).to.not.equal(undefined);
+        expect(updatedFk?.name).to.equal("FK_Books_Authors_Renamed");
+        expect(updatedFk?.columnsIds).to.deep.equal(["c2"]);
+        expect(updatedFk?.referencedColumnsIds).to.deep.equal(["c1"]);
+        expect(updatedFk?.referencedTableId).to.equal("t1");
+        expect(updatedFk?.onDeleteAction).to.equal(SchemaDesigner.OnAction.NO_ACTION);
+        expect(updatedFk?.onUpdateAction).to.equal(SchemaDesigner.OnAction.NO_ACTION);
     });
 
     test("set_foreign_key fails when referencedTableForMappings is missing (covers referencedTableForMappings.success===false)", async () => {
