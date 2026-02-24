@@ -44,6 +44,7 @@ import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
 import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
+import { buildSchemaFromFlowState } from "../model";
 import {
     Button,
     Dialog,
@@ -365,13 +366,9 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        const schema = flowUtils.extractSchemaModel(schemaNodes, relationshipEdges);
-
-        const existingForeignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
-            relationshipEdges,
-            sourceNode.data.id,
-            schema,
-        );
+        const schema = buildSchemaFromFlowState(schemaNodes, relationshipEdges);
+        const existingForeignKeys =
+            schema.tables.find((table) => table.id === sourceNode.data.id)?.foreignKeys ?? [];
 
         // Create the foreign key data
         const foreignKeyData = foreignKeyUtils.createForeignKeyFromConnection(
@@ -452,7 +449,7 @@ export const SchemaDesignerFlow = () => {
 
             // Validate the foreign key
             const validationResult = foreignKeyUtils.isForeignKeyValid(
-                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges).tables,
+                buildSchemaFromFlowState(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
