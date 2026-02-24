@@ -6,3 +6,4 @@
 export * from "./schemaDesignerIndexing";
 export * from "./addTableMutation";
 export * from "./schemaFromFlowState";
+export * from "./schemaToFlowState";
