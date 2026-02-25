@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { RingBuffer } from "./ringBuffer";
+import { FilteredBuffer } from "./filteredBuffer";
 import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
@@ -76,7 +76,7 @@ export class ProfilerSession {
     public readonly templateName: string;
 
     /** Event buffer */
-    public readonly events: RingBuffer<EventRow>;
+    public readonly events: FilteredBuffer<EventRow>;
 
     /** View configuration for displaying events */
     public viewConfig: ViewTemplate;
@@ -159,7 +159,7 @@ export class ProfilerSession {
 
         // Initialize event buffer with indexed fields
         const capacity = options.bufferCapacity ?? DEFAULT_BUFFER_CAPACITY;
-        this.events = new RingBuffer<EventRow>(capacity, INDEXED_FIELDS);
+        this.events = new FilteredBuffer<EventRow>(capacity, INDEXED_FIELDS);
 
         // Initialize view config
         this.viewConfig = options.viewConfig ?? this.getDefaultViewConfig();
