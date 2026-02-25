@@ -174,7 +174,7 @@ export const CodeAnalysisDialog = () => {
     const isDirty = useMemo(() => {
         if (localRules.length !== rules.length) return true;
         return localRules.some((local) => {
-            const original = rules.find((r) => r.ruleId === local.ruleId);
+            const original = rules.find((rule) => rule.ruleId === local.ruleId);
             return (
                 !original ||
                 original.severity !== local.severity ||
@@ -205,7 +205,7 @@ export const CodeAnalysisDialog = () => {
         categoryRules: SqlCodeAnalysisRule[],
     ): true | false | "mixed" => {
         const disabledCount = categoryRules.filter(
-            (r) => r.severity === CodeAnalysisRuleSeverity.Disabled,
+            (rule) => rule.severity === CodeAnalysisRuleSeverity.Disabled,
         ).length;
         if (disabledCount === 0) return true;
         if (disabledCount === categoryRules.length) return false;
@@ -225,29 +225,27 @@ export const CodeAnalysisDialog = () => {
             // Save current (non-Disabled) severities before disabling the whole category.
             const snapshot = new Map<string, string>();
             localRules
-                .filter((r) => r.category === category)
-                .forEach((r) => snapshot.set(r.ruleId, r.severity));
+                .filter((rule) => rule.category === category)
+                .forEach((rule) => snapshot.set(rule.ruleId, rule.severity));
             setCategoryPreviousSeverities((prev) => new Map(prev).set(category, snapshot));
 
             setLocalRules((prev) =>
-                prev.map((r) =>
-                    r.category === category
-                        ? { ...r, severity: CodeAnalysisRuleSeverity.Disabled, enabled: false }
-                        : r,
+                prev.map((rule) =>
+                    rule.category === category
+                        ? { ...rule, severity: CodeAnalysisRuleSeverity.Disabled, enabled: false }
+                        : rule,
                 ),
             );
         } else {
             // Restore previously saved severities, falling back to Warning if none recorded.
             const snapshot = categoryPreviousSeverities.get(category);
             setLocalRules((prev) =>
-                prev.map((r) => {
-                    if (r.category !== category) return r;
-                    const prevSeverity = snapshot?.get(r.ruleId);
-                    const severity =
-                        prevSeverity && prevSeverity !== CodeAnalysisRuleSeverity.Disabled
-                            ? prevSeverity
-                            : CodeAnalysisRuleSeverity.Warning;
-                    return { ...r, severity, enabled: true };
+                prev.map((rule) => {
+                    if (rule.category !== category) return rule;
+                    // snapshot only contains non-Disabled values (category was fully enabled
+                    // when the snapshot was taken; "mixed" state blocks this code path).
+                    const severity = snapshot?.get(rule.ruleId) ?? CodeAnalysisRuleSeverity.Warning;
+                    return { ...rule, severity, enabled: true };
                 }),
             );
         }
@@ -267,10 +265,10 @@ export const CodeAnalysisDialog = () => {
 
     const changeSeverity = (ruleId: string, severity: string) => {
         setLocalRules((prev) =>
-            prev.map((r) =>
-                r.ruleId === ruleId
-                    ? { ...r, severity, enabled: severity !== CodeAnalysisRuleSeverity.Disabled }
-                    : r,
+            prev.map((rule) =>
+                rule.ruleId === ruleId
+                    ? { ...rule, severity, enabled: severity !== CodeAnalysisRuleSeverity.Disabled }
+                    : rule,
             ),
         );
     };

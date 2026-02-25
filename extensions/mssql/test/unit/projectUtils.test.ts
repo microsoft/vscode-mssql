@@ -158,4 +158,20 @@ suite("projectUtils Tests", () => {
         expect(result.get("SR0008")).to.equal("Disabled");
         expect(result.get("SR0009")).to.equal("Disabled");
     });
+
+    test("parseSqlprojRuleOverrides handles edge cases", () => {
+        // Empty / blank input → empty map
+        expect(parseSqlprojRuleOverrides("").size).to.equal(0);
+        expect(parseSqlprojRuleOverrides(";;;").size).to.equal(0);
+
+        // Short IDs, mixed short+fully-qualified, whitespace around tokens
+        const result = parseSqlprojRuleOverrides(
+            "  SR0001  ; +!Microsoft.Rules.Data.SR0002 ; -SR0003 ; -!SR0004 ",
+        );
+        expect(result.size).to.equal(4);
+        expect(result.get("SR0001")).to.equal("Warning");
+        expect(result.get("SR0002")).to.equal("Error");
+        expect(result.get("SR0003")).to.equal("Disabled");
+        expect(result.get("SR0004")).to.equal("Disabled");
+    });
 });
