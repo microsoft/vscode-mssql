@@ -395,6 +395,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         state.uri = newUri;
         this._queryResultStateMap.set(newUri, state);
         this._queryResultStateMap.delete(oldUri);
+
+        // Update state in panel or webview view depending on where it is currently shown
+        if (this._queryResultWebviewPanelControllerMap.has(newUri)) {
+            this._queryResultWebviewPanelControllerMap.get(newUri).updateState(state);
+        } else if (this.isVisible()) {
+            this.state = state;
+        }
     }
 
     public async removePanel(uri: string): Promise<void> {

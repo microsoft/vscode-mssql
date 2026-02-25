@@ -102,15 +102,6 @@ export default class SqlDocumentService implements vscode.Disposable {
         );
 
         this._disposables.push(
-            vscode.workspace.onDidSaveTextDocument((event) => {
-                console.log("Document saved: " + event.uri.toString(), event);
-                for (const doc of vscode.workspace.textDocuments) {
-                    console.log("Document: " + doc.uri.toString(), doc);
-                }
-            }),
-        );
-
-        this._disposables.push(
             vscode.workspace.onWillRenameFiles((event) => {
                 event.waitUntil(this.onWillRenameFiles(event));
             }),
