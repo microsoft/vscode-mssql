@@ -53,6 +53,26 @@ const mockRules: CodeAnalysisRuleInfo[] = [
     },
 ];
 
+function toSqlCodeAnalysisRule(rule: CodeAnalysisRuleInfo): SqlCodeAnalysisRule {
+    const severity =
+        rule.severity === "Error"
+            ? CodeAnalysisRuleSeverity.Error
+            : rule.severity === "None"
+              ? CodeAnalysisRuleSeverity.Disabled
+              : CodeAnalysisRuleSeverity.Warning;
+
+    return {
+        ruleId: rule.ruleId,
+        shortRuleId: rule.shortRuleId,
+        displayName: rule.displayName,
+        description: rule.description,
+        category: rule.category,
+        severity,
+        enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
+        ruleScope: rule.ruleScope,
+    };
+}
+
 suite("CodeAnalysisWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: CodeAnalysisWebViewController;
@@ -314,5 +334,68 @@ suite("CodeAnalysisWebViewController Tests", () => {
         )) as typeof stateWithMessage;
 
         expect(newState.message).to.be.undefined;
+    });
+
+    test("saveRules reducer updates SQLProj rules with mapped payload and refreshes state", async () => {
+        const { telemetryStubs } = createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        expect(saveRulesHandler).to.not.be.undefined;
+
+        const payloadRules = mockRules.slice(0, 2).map(toSqlCodeAnalysisRule);
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: true,
+        });
+        telemetryStubs.sendActionEvent.resetHistory();
+
+        const newState = (await saveRulesHandler?.(controller.state, {
+            rules: payloadRules,
+            closeAfterSave: false,
+        })) as typeof controller.state;
+
+        expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledOnceWithMatch({
+            projectFilePath: controller.state.projectFilePath,
+            rules: payloadRules.map((rule) => ({
+                ruleId: rule.ruleId,
+                severity: rule.severity,
+            })),
+        });
+        expect(newState.rules).to.deep.equal(payloadRules);
+        expect(newState.message).to.be.undefined;
+        expect(telemetryStubs.sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisRulesSaved,
+            sinon.match.has("ruleCount", "2"),
+        );
+    });
+
+    test("saveRules reducer sets error message when SQLProj update fails", async () => {
+        const { telemetryStubs } = createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        expect(saveRulesHandler).to.not.be.undefined;
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: false,
+            errorMessage: "Could not update SQLProj",
+        });
+        telemetryStubs.sendErrorEvent.resetHistory();
+
+        const newState = (await saveRulesHandler?.(controller.state, {
+            rules: [toSqlCodeAnalysisRule(mockRules[2])],
+            closeAfterSave: false,
+        })) as typeof controller.state;
+
+        expect(newState.message?.intent).to.equal("error");
+        expect(newState.message?.message).to.equal("Could not update SQLProj");
+        expect(telemetryStubs.sendErrorEvent).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisRulesSaveError,
+            sinon.match.instanceOf(Error),
+            false,
+        );
     });
 });
