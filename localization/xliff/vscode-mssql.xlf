@@ -967,6 +967,9 @@
       <source xml:lang="en">Code Analysis - {0}</source>
       <note>{0} is the name of the database project</note>
     </trans-unit>
+    <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
+      <source xml:lang="en">Code analysis rules saved successfully</source>
+    </trans-unit>
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
     </trans-unit>
