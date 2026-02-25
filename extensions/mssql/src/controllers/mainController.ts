@@ -1501,11 +1501,22 @@ export default class MainController implements vscode.Disposable {
                         `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
 
                     try {
-                        await this.objectManagementService.rename(
-                            connectionUri,
-                            Constants.databaseString,
-                            objectUrn,
-                            newName,
+                        await vscode.window.withProgress(
+                            {
+                                location: vscode.ProgressLocation.Notification,
+                                title: LocalizedConstants.renamingDatabase(
+                                    databaseName,
+                                    newName,
+                                ),
+                            },
+                            async () => {
+                                await this.objectManagementService.rename(
+                                    connectionUri,
+                                    Constants.databaseString,
+                                    objectUrn,
+                                    newName,
+                                );
+                            },
                         );
                         await refreshNodeChildren(targetNode.parentNode);
                     } catch (error) {
