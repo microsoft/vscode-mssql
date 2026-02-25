@@ -34,6 +34,7 @@ const useStyles = makeStyles({
     surface: {
         padding: "10px",
         minWidth: "460px",
+        maxWidth: "min(920px, calc(100vw - 48px))",
         backgroundColor: "var(--vscode-editorWidget-background)",
         border: "1px solid var(--vscode-editorWidget-border)",
         borderRadius: "10px",
@@ -76,7 +77,7 @@ const useStyles = makeStyles({
     },
     gridHeader: {
         display: "grid",
-        gridTemplateColumns: "1.1fr 1fr 1fr",
+        gridTemplateColumns: "minmax(120px, 1.1fr) minmax(0, 1fr) minmax(0, 1fr)",
         gap: "8px",
         fontSize: "11px",
         fontWeight: 600,
@@ -92,9 +93,9 @@ const useStyles = makeStyles({
     },
     row: {
         display: "grid",
-        gridTemplateColumns: "1.1fr 1fr 1fr",
+        gridTemplateColumns: "minmax(120px, 1.1fr) minmax(0, 1fr) minmax(0, 1fr)",
         gap: "8px",
-        alignItems: "center",
+        alignItems: "start",
         padding: "5px 0",
         borderTop: "1px solid var(--vscode-editorWidget-border)",
     },
@@ -107,11 +108,15 @@ const useStyles = makeStyles({
         borderRadius: "6px",
         fontSize: "11px",
         fontWeight: 600,
-        display: "inline-flex",
-        alignItems: "center",
+        display: "flex",
+        alignItems: "flex-start",
         gap: "4px",
         minHeight: "20px",
-        width: "fit-content",
+        width: "100%",
+        boxSizing: "border-box",
+        whiteSpace: "normal",
+        overflowWrap: "anywhere",
+        wordBreak: "break-word",
     },
     beforeValue: {
         backgroundColor:
