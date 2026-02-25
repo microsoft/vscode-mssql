@@ -401,6 +401,7 @@ suite("SqlDocumentService Tests", () => {
 
     test("onWillRenameFiles should transfer state for each renamed file", async () => {
         const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+        connectionManager.isConnected.returns(true);
 
         const oldUri = vscode.Uri.parse("file:///old-name.sql");
         const newUri = vscode.Uri.parse("file:///new-name.sql");
@@ -419,8 +420,31 @@ suite("SqlDocumentService Tests", () => {
         mockUpdateUri.restore();
     });
 
+    test("onWillRenameFiles should skip transfer when renamed file is not connected", async () => {
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+        connectionManager.isConnected.returns(false);
+
+        const oldUri = vscode.Uri.parse("file:///disconnected-old.sql");
+        const newUri = vscode.Uri.parse("file:///disconnected-new.sql");
+
+        const event = {
+            files: [{ oldUri, newUri }],
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.FileWillRenameEvent;
+
+        await sqlDocumentService.onWillRenameFiles(event);
+
+        expect(connectionManager.isConnected).to.have.been.calledOnceWith(oldUri.toString());
+        expect(mockUpdateUri).to.not.have.been.called;
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(oldUri.toString())).to.be.false;
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(newUri.toString())).to.be.false;
+
+        mockUpdateUri.restore();
+    });
+
     test("onWillRenameFiles should handle multiple file renames", async () => {
         const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+        connectionManager.isConnected.returns(true);
 
         const files = [
             {

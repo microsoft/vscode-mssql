@@ -243,6 +243,10 @@ export default class SqlDocumentService implements vscode.Disposable {
         for (const file of event.files) {
             const oldUri = getUriKey(file.oldUri);
             const newUri = getUriKey(file.newUri);
+            // Skip if the renamed file doesn't have an active connection.
+            if (!this._connectionMgr?.isConnected(oldUri)) {
+                continue;
+            }
             this._uriBeingRenamedOrSaved.add(oldUri);
             this._newUriFromRenameOrSave.add(newUri);
             await this.updateUri(oldUri, newUri);
