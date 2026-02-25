@@ -891,6 +891,18 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Cannot create foreign key</source>
         <target state="translated">Не удается создать внешний ключ</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb58744a335d26ffe911eb87fea07fb73d8d4e3569295bbb62c143a5fe561b15">
+        <source xml:lang="en">Cannot delete column because it is part of foreign key relationships.</source>
+        <target state="new">Cannot delete column because it is part of foreign key relationships.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7e4bf1f743585db3be8afd457365a3b7f162846f32d1ef1bfd620c5958c72281">
+        <source xml:lang="en">Cannot delete column because it is referenced by a foreign key.</source>
+        <target state="new">Cannot delete column because it is referenced by a foreign key.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fedcf43eba06c5379c3c9a1d2242e2c7a929c3067e3a2e9cfa8fbd85d7d9c6c">
+        <source xml:lang="en">Cannot delete column because it is used by a foreign key.</source>
+        <target state="new">Cannot delete column because it is used by a foreign key.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5bf30206188ff92ec48bba56b2bf99fcb46ba9c20a05460485cf684b81a9c54b">
         <source xml:lang="en">Cannot exclude {0}. Included dependents exist</source>
         <note>{0} is the name of the entry</note>
