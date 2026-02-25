@@ -292,6 +292,10 @@ export default class SqlDocumentService implements vscode.Disposable {
             this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
         }
         this._statusview?.updateStatusBarForEditor(editor, connectionInfo);
+
+        this._outputContentProvider.queryResultWebviewController.updateResultsOnActiveEditorChange(
+            editor,
+        );
     }
 
     /**

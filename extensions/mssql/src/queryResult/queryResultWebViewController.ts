@@ -62,34 +62,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         void this.initialize();
 
-        context.subscriptions.push(
-            vscode.window.onDidChangeActiveTextEditor((editor) => {
-                this.updateSelectionSummary();
-
-                const uri = getUriKey(editor?.document?.uri);
-                const hasPanel = uri && this.hasPanel(uri);
-                const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
-
-                if (hasWebviewViewState && !hasPanel) {
-                    this.state = this.getQueryResultState(uri);
-                } else if (hasPanel) {
-                    const editorViewColumn = editor?.viewColumn;
-                    const panelViewColumn =
-                        this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
-
-                    /**
-                     * If the results are shown in webview panel, and the active editor is not in the same
-                     * view column as the results, then reveal the panel to the foreground
-                     */
-                    if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
-                        this.revealPanel(uri);
-                    }
-                } else {
-                    this.showSplashScreen();
-                }
-            }),
-        );
-
         // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
             this.vscodeWrapper.onDidOpenTextDocument((document) => {
@@ -152,6 +124,33 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private get shouldAutoRevealResultsPanel(): boolean {
         return this.vscodeWrapper.getConfiguration().get(Constants.configAutoRevealResultsPanel);
+    }
+
+    public updateResultsOnActiveEditorChange(editor: vscode.TextEditor): void {
+        this.updateSelectionSummary();
+
+        const uri = getUriKey(editor?.document?.uri);
+        const hasPanel = uri && this.hasPanel(uri);
+        const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
+
+        if (hasWebviewViewState && !hasPanel) {
+            this.state = this.getQueryResultState(uri);
+        } else if (hasPanel) {
+            const editorViewColumn = editor?.viewColumn;
+            const panelViewColumn = this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
+
+            /**
+             * If the results are shown in webview panel, and the active editor is not in the same
+             * view column as the results, then reveal the panel to the foreground
+             */
+            if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
+                this.revealPanel(uri);
+            } else if (!this.shouldAutoRevealResultsPanel) {
+                this.showSplashScreen();
+            }
+        } else {
+            this.showSplashScreen();
+        }
     }
 
     private async initialize() {
@@ -387,6 +386,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
+
+            this.updateSelectionSummary();
         }
     }
 
