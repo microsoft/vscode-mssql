@@ -2841,7 +2841,7 @@
     "Database Management Dialogs (Preview)": "Database Management Dialogs (Preview)",
     "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.": "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
     "Query Profiler (Preview)": "Query Profiler (Preview)",
-    "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.",
+    "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
     "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     "SQL Database Projects – Publish Dialog": "SQL Database Projects – Publish Dialog",
