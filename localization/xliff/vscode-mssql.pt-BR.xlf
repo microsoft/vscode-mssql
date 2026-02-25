@@ -937,9 +937,9 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">Não é possível reverter: a tabela ou coluna referenciada foi excluída</target>
       </trans-unit>
-      <trans-unit id="++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9">
-        <source xml:lang="en">Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.</source>
-        <target state="translated">Capture e analise sessões ao vivo de Eventos XElite do SQL Server para monitorar e analisar o desempenho do banco de dados.</target>
+      <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
+        <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
+        <target state="new">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
