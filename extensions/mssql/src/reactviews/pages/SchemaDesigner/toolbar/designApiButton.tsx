@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Tooltip } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { PlugConnected20Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 
 interface DesignApiButtonProps {
@@ -17,7 +17,7 @@ export function DesignApiButton({ onNavigateToDab }: DesignApiButtonProps) {
             <Button
                 appearance="primary"
                 size="small"
-                icon={<FluentIcons.PlugConnected20Regular />}
+                icon={<PlugConnected20Regular />}
                 onClick={onNavigateToDab}>
                 {locConstants.schemaDesigner.designApi}
             </Button>
