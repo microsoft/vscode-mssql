@@ -155,7 +155,13 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     this.panel.dispose();
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty
-                return { ...state, rules: payload.rules, message: undefined };
+                return {
+                    ...state,
+                    rules: payload.rules,
+                    message: payload.closeAfterSave
+                        ? undefined
+                        : ({ message: Loc.rulesSaved, intent: "success" } as DialogMessageSpec),
+                };
             } catch (error) {
                 this.sendError(
                     TelemetryActions.CodeAnalysisRulesSaveError,

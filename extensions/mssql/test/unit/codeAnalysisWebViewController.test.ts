@@ -369,7 +369,8 @@ suite("CodeAnalysisWebViewController Tests", () => {
             })),
         });
         expect(newState.rules).to.deep.equal(payloadRules);
-        expect(newState.message).to.be.undefined;
+        expect(newState.message?.intent).to.equal("success");
+        expect(newState.message?.message).to.contain("saved successfully");
         expect(telemetryStubs.sendActionEvent).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesSaved,
