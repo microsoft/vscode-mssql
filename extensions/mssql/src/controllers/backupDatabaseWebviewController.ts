@@ -287,8 +287,12 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             ) {
                 // this is guaranteed to have more than 1 part because the default backup name is
                 // generated in the format of database_backupType_timestamp.bak
+                //
+                const locBackupType = this.state.formComponents["backupType"].options.find(
+                    (option) => option.value === updatedState.formState.backupType,
+                )?.displayName;
                 const splitBackupName = updatedState.formState.backupName.split("_");
-                splitBackupName[1] = updatedState.formState.backupType;
+                splitBackupName[1] = locBackupType;
                 updatedState.formState.backupName = splitBackupName.join("_");
             }
             return updatedState;
