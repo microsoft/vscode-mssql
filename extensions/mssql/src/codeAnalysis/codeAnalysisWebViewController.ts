@@ -126,7 +126,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     severity: r.severity,
                 }));
                 const result = await this.sqlProjectsService.updateCodeAnalysisRules({
-                    projectFilePath: state.projectFilePath,
+                    projectUri: state.projectFilePath,
                     rules: overrides,
                 });
                 if (!result.success) {

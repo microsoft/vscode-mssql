@@ -362,7 +362,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledOnce;
         expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledWithMatch({
-            projectFilePath: controller.state.projectFilePath,
+            projectUri: controller.state.projectFilePath,
             rules: payloadRules.map((rule) => ({
                 ruleId: rule.ruleId,
                 severity: rule.severity,

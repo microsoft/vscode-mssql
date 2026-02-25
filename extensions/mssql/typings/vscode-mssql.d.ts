@@ -1421,8 +1421,7 @@ declare module "vscode-mssql" {
         severity: string;
     }
 
-    export interface UpdateCodeAnalysisRulesParams {
-        projectFilePath: string;
+    export interface UpdateCodeAnalysisRulesParams extends SqlProjectParams {
         rules: CodeAnalysisRuleOverride[];
         runSqlCodeAnalysis?: boolean;
     }
