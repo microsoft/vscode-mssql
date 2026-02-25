@@ -346,8 +346,10 @@ suite("SqlDocumentService Tests", () => {
             getText: () => "SELECT 1",
         } as vscode.TextDocument;
 
-        // Make the untitled doc appear in workspace.textDocuments
-        sandbox.stub(vscode.workspace, "textDocuments").value([untitledDoc]);
+        // Save-transfer logic now keys off the active untitled editor
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            document: untitledDoc,
+        } as vscode.TextEditor);
 
         const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
 

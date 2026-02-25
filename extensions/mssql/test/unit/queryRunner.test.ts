@@ -516,7 +516,7 @@ suite("Query Runner tests", () => {
         queryRunner["_uriToQueryStringMap"].set(oldUri, "SELECT 1");
         queryRunner["_isExecuting"] = true;
         queryRunner["_registeredNotificationUris"].add(oldUri);
-        queryRunner["_runningQueries"] = [vscode.Uri.parse(oldUri).fsPath];
+        QueryRunner["_runningQueries"] = [vscode.Uri.parse(oldUri).fsPath];
 
         const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
