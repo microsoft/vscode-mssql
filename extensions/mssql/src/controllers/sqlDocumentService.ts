@@ -103,6 +103,15 @@ export default class SqlDocumentService implements vscode.Disposable {
         );
 
         this._disposables.push(
+            vscode.workspace.onDidSaveTextDocument((event) => {
+                console.log("Document saved: " + event.uri.toString(), event);
+                for (const doc of vscode.workspace.textDocuments) {
+                    console.log("Document: " + doc.uri.toString(), doc);
+                }
+            }),
+        );
+
+        this._disposables.push(
             vscode.workspace.onWillRenameFiles((event) => {
                 event.waitUntil(this.onWillRenameFiles(event));
             }),
@@ -205,11 +214,24 @@ export default class SqlDocumentService implements vscode.Disposable {
      */
     public async onWillSaveTextDocument(event: vscode.TextDocumentWillSaveEvent): Promise<any> {
         const newDocumentSignature = getDocumentSignature(event.document);
-        const untitledDocumentWithSameSignature = vscode.workspace.textDocuments.find(
-            (doc) =>
-                doc.uri.scheme === LocalizedConstants.untitledScheme &&
-                getDocumentSignature(doc) === newDocumentSignature,
-        );
+
+        // We need to only defal with
+        if (event.document.languageId !== Constants.languageId) {
+            return;
+        }
+
+        // find which untitled document was saved since the event doesn't contain that data
+        const untitledDocumentWithSameSignature = vscode.workspace.textDocuments
+            .filter(
+                (doc) =>
+                    doc.languageId === Constants.languageId &&
+                    doc.uri.scheme === LocalizedConstants.untitledScheme,
+            )
+            .find(
+                (doc) =>
+                    doc.uri.scheme === LocalizedConstants.untitledScheme &&
+                    getDocumentSignature(doc) === newDocumentSignature,
+            );
         if (untitledDocumentWithSameSignature) {
             this._uriBeingRenamedOrSaved.add(getUriKey(untitledDocumentWithSameSignature.uri));
             this._newUriFromRenameOrSave.add(getUriKey(event.document.uri));
@@ -295,8 +317,9 @@ export default class SqlDocumentService implements vscode.Disposable {
         /**
          * Since there is no reliable way to detect if this open is a result of
          * untitled document being saved to disk or being renamed, we wait for
-         * 0.5 seconds for those events to finish and check if open document is
-         * the new saved/renamed document. If it is, we skip auto-connecting
+         * some time for those events to finish and check if open document is
+         * the new saved/renamed document. If it is, we skip auto-connecting because the
+         * save/rename handlers covers those cases.
          */
         await new Promise((resolve) => setTimeout(resolve, waitTimeMsOnOpenAfterSaveOrRename));
         if (this._newUriFromRenameOrSave.has(docUri)) {
@@ -306,7 +329,7 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         await this.waitForOngoingCreates();
 
-        // This becomes a no-op if the there is no last active connection.
+        // This becomes a no-op if there is no last active connection.
         if (!this._lastActiveConnectionInfo) {
             return;
         }

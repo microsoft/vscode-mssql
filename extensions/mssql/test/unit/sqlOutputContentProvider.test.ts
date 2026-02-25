@@ -255,9 +255,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
             updateUri: sandbox.stub(),
         };
 
-        (
-            contentProvider.queryResultWebviewController as any
-        )._queryResultWebviewPanelControllerMap.set(oldUri, panelController as any);
+        contentProvider.queryResultWebviewController["_queryResultWebviewPanelControllerMap"].set(
+            oldUri,
+            panelController as any,
+        );
 
         await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
@@ -271,15 +272,15 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const newUri = "file:///new-timer.sql";
 
         const oldTimer = setTimeout(() => {}, 1000);
-        (contentProvider as any)._stateUpdateTimers.set(oldUri, oldTimer as any);
+        contentProvider["_stateUpdateTimers"].set(oldUri, oldTimer as any);
 
         await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
-        expect((contentProvider as any)._stateUpdateTimers.has(oldUri)).to.be.false;
-        expect((contentProvider as any)._stateUpdateTimers.has(newUri)).to.be.true;
+        expect(contentProvider["_stateUpdateTimers"].has(oldUri)).to.be.false;
+        expect(contentProvider["_stateUpdateTimers"].has(newUri)).to.be.true;
 
-        clearTimeout((contentProvider as any)._stateUpdateTimers.get(newUri));
-        (contentProvider as any)._stateUpdateTimers.delete(newUri);
+        clearTimeout(contentProvider["_stateUpdateTimers"].get(newUri));
+        contentProvider["_stateUpdateTimers"].delete(newUri);
     });
 
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
@@ -481,7 +482,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox
             .stub(contentProvider as any, "initializeRunnerAndWebviewState")
             .resolves(mockQueryRunner);
-        (contentProvider as any)._actualPlanStatuses = [uri];
+        contentProvider["_actualPlanStatuses"] = [uri];
 
         await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
 
@@ -509,7 +510,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox
             .stub(contentProvider as any, "initializeRunnerAndWebviewState")
             .resolves(mockQueryRunner);
-        (contentProvider as any)._actualPlanStatuses = [];
+        contentProvider["_actualPlanStatuses"] = [];
 
         await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
 
@@ -543,7 +544,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
 
         // Stub _queryResultWebviewController methods to avoid errors
-        const webviewController = (contentProvider as any)._queryResultWebviewController;
+        const webviewController = contentProvider["_queryResultWebviewController"];
         sandbox.stub(webviewController, "addQueryResultState");
         sandbox.stub(webviewController, "createPanelController").resolves();
 

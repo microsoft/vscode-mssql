@@ -1235,21 +1235,28 @@ export default class QueryRunner {
             return;
         }
 
+        /*
+         * When the uri updates we need to make sure to migrate all the pending promises
+         * from the old uri to the new one.
+         */
         const pendingPromise = this._uriToQueryPromiseMap.get(oldUri);
         if (pendingPromise) {
             this._uriToQueryPromiseMap.set(newUri, pendingPromise);
             this._uriToQueryPromiseMap.delete(oldUri);
         }
 
+        /**
+         * Transfer the query string mapping to the new URI.
+         */
         const queryString = this._uriToQueryStringMap.get(oldUri);
         if (queryString !== undefined) {
             this._uriToQueryStringMap.set(newUri, queryString);
             this._uriToQueryStringMap.delete(oldUri);
         }
 
+        // During rename/save while executing, notifications may arrive on either URI.
+        // Register both and clean up old and new URIs on completion/cancel.
         if (this._isExecuting) {
-            // During rename/save while executing, notifications may arrive on either URI.
-            // Register both and clean up aliases on completion/cancel.
             this.registerNotificationUri(newUri);
         } else if (this._registeredNotificationUris.has(oldUri)) {
             this._registeredNotificationUris.delete(oldUri);

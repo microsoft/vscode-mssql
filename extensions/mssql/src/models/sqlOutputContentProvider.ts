@@ -690,6 +690,10 @@ export class SqlOutputContentProvider {
         this._stateUpdateTimers.set(uri, timer);
     }
 
+    /**
+     * We throttle updates to the webview state to avoid overwhelming the RPC channel and leading to stuck webview. https://github.com/microsoft/vscode-mssql/issues/18246
+     * We need to migrate any pending throttled updates to the new URI when a query runner URI is updated (ex: after a save as) to ensure the webview state stays in sync and updates are not lost.
+     */
     private migrateThrottledUpdateUri(oldUri: string, newUri: string): void {
         const timer = this._stateUpdateTimers.get(oldUri);
         if (!timer || oldUri === newUri) {
