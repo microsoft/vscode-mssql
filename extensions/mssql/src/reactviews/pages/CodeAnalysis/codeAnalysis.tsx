@@ -30,6 +30,7 @@ import {
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
+import { ConfirmationDialog } from "../../common/confirmationDialog";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
@@ -154,14 +155,33 @@ export const CodeAnalysisDialog = () => {
     const projectName = useCodeAnalysisSelector((s) => s.projectName);
     const isLoading = useCodeAnalysisSelector((s) => s.isLoading);
     const rules = useCodeAnalysisSelector((s) => s.rules);
+    const dacfxStaticRules = useCodeAnalysisSelector((s) => s.dacfxStaticRules);
     const message = useCodeAnalysisSelector((s) => s.message);
 
     const [localRules, setLocalRules] = useState<SqlCodeAnalysisRule[]>(rules);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+    const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+    // Remembers per-category severities before a category is fully disabled,
+    // so they can be restored when the category is re-enabled.
+    const [categoryPreviousSeverities, setCategoryPreviousSeverities] = useState<
+        Map<string, Map<string, string>>
+    >(new Map());
 
     useEffect(() => {
         setLocalRules(rules);
     }, [rules]);
+
+    const isDirty = useMemo(() => {
+        if (localRules.length !== rules.length) return true;
+        return localRules.some((local) => {
+            const original = rules.find((r) => r.ruleId === local.ruleId);
+            return (
+                !original ||
+                original.severity !== local.severity ||
+                original.enabled !== local.enabled
+            );
+        });
+    }, [localRules, rules]);
 
     // --- Grouping ---
     const groupedRuleEntries = useMemo(() => {
@@ -175,26 +195,62 @@ export const CodeAnalysisDialog = () => {
     }, [localRules]);
 
     // --- Handlers ---
+    /**
+     * Determines the visual/interactive state of the category checkbox:
+     *  - true    → all rules in the category have a non-Disabled severity  (checkbox: checked, enabled)
+     *  - false   → all rules in the category have Disabled severity         (checkbox: unchecked, enabled)
+     *  - "mixed" → at least one Disabled AND at least one non-Disabled      (checkbox: indeterminate solid, DISABLED)
+     */
     const getCategoryCheckedState = (
         categoryRules: SqlCodeAnalysisRule[],
     ): true | false | "mixed" => {
-        const toggleableRules = categoryRules.filter(
-            (r) => r.severity !== CodeAnalysisRuleSeverity.Disabled,
-        );
-        if (toggleableRules.length === 0) return false;
-        if (toggleableRules.every((r) => r.enabled)) return true;
-        if (toggleableRules.some((r) => r.enabled)) return "mixed";
-        return false;
+        const disabledCount = categoryRules.filter(
+            (r) => r.severity === CodeAnalysisRuleSeverity.Disabled,
+        ).length;
+        if (disabledCount === 0) return true;
+        if (disabledCount === categoryRules.length) return false;
+        return "mixed";
     };
 
-    const toggleCategoryRules = (category: string, enabled: boolean) => {
-        setLocalRules((prev) =>
-            prev.map((r) =>
-                r.category === category && r.severity !== CodeAnalysisRuleSeverity.Disabled
-                    ? { ...r, enabled }
-                    : r,
-            ),
-        );
+    /**
+     * Handles a category checkbox click.
+     *  - currentState === true  → user is unchecking: save severities, set all to Disabled.
+     *  - currentState === false → user is checking: restore saved severities (or default to Warning).
+     *  - currentState === "mixed" → no-op; the checkbox is disabled in this state.
+     */
+    const toggleCategoryRules = (category: string, currentState: true | false | "mixed") => {
+        if (currentState === "mixed") return;
+
+        if (currentState === true) {
+            // Save current (non-Disabled) severities before disabling the whole category.
+            const snapshot = new Map<string, string>();
+            localRules
+                .filter((r) => r.category === category)
+                .forEach((r) => snapshot.set(r.ruleId, r.severity));
+            setCategoryPreviousSeverities((prev) => new Map(prev).set(category, snapshot));
+
+            setLocalRules((prev) =>
+                prev.map((r) =>
+                    r.category === category
+                        ? { ...r, severity: CodeAnalysisRuleSeverity.Disabled, enabled: false }
+                        : r,
+                ),
+            );
+        } else {
+            // Restore previously saved severities, falling back to Warning if none recorded.
+            const snapshot = categoryPreviousSeverities.get(category);
+            setLocalRules((prev) =>
+                prev.map((r) => {
+                    if (r.category !== category) return r;
+                    const prevSeverity = snapshot?.get(r.ruleId);
+                    const severity =
+                        prevSeverity && prevSeverity !== CodeAnalysisRuleSeverity.Disabled
+                            ? prevSeverity
+                            : CodeAnalysisRuleSeverity.Warning;
+                    return { ...r, severity, enabled: true };
+                }),
+            );
+        }
     };
 
     const toggleCategoryCollapsed = (category: string) => {
@@ -203,6 +259,10 @@ export const CodeAnalysisDialog = () => {
             next.has(category) ? next.delete(category) : next.add(category);
             return next;
         });
+    };
+
+    const resetToDefaults = () => {
+        setLocalRules(dacfxStaticRules);
     };
 
     const changeSeverity = (ruleId: string, severity: string) => {
@@ -299,11 +359,15 @@ export const CodeAnalysisDialog = () => {
                                                 <Checkbox
                                                     aria-label={loc.enableCategory(category)}
                                                     checked={getCategoryCheckedState(categoryRules)}
+                                                    disabled={
+                                                        getCategoryCheckedState(categoryRules) ===
+                                                        "mixed"
+                                                    }
                                                     onDoubleClick={(e) => e.stopPropagation()}
-                                                    onChange={(_e, data) =>
+                                                    onChange={() =>
                                                         toggleCategoryRules(
                                                             category,
-                                                            !!data.checked,
+                                                            getCategoryCheckedState(categoryRules),
                                                         )
                                                     }
                                                 />
@@ -364,20 +428,62 @@ export const CodeAnalysisDialog = () => {
             <div className={styles.footer}>
                 <Text className={styles.statusText}>{loc.rulesCount(localRules?.length ?? 0)}</Text>
                 <div className={styles.footerButtons}>
-                    <Button appearance="subtle" disabled onClick={() => undefined}>
-                        {loc.reset}
-                    </Button>
-                    <Button appearance="secondary" onClick={() => context.close()}>
+                    {/* Reset button with co-located confirm dialog */}
+                    <ConfirmationDialog
+                        trigger={<Button appearance="subtle">{loc.reset}</Button>}
+                        title={loc.resetConfirmTitle}
+                        message={loc.resetConfirmMessage}
+                        actions={[
+                            {
+                                label: loc.reset,
+                                appearance: "primary",
+                                onClick: resetToDefaults,
+                            },
+                        ]}
+                        cancelLabel={commonLoc.cancel}
+                    />
+                    <Button
+                        appearance="secondary"
+                        onClick={() =>
+                            isDirty ? setShowUnsavedChangesDialog(true) : context.close()
+                        }>
                         {commonLoc.cancel}
                     </Button>
-                    <Button appearance="secondary" disabled onClick={() => undefined}>
+                    <Button
+                        appearance="secondary"
+                        disabled={!isDirty || isLoading}
+                        onClick={() => context.saveRules(localRules, false)}>
                         {commonLoc.apply}
                     </Button>
-                    <Button appearance="primary" disabled onClick={() => undefined}>
+                    <Button
+                        appearance="primary"
+                        disabled={!isDirty || isLoading}
+                        onClick={() => context.saveRules(localRules, true)}>
                         {commonLoc.ok}
                     </Button>
                 </div>
             </div>
+
+            {/* Unsaved changes confirmation dialog (controlled — triggered conditionally on isDirty) */}
+            <ConfirmationDialog
+                open={showUnsavedChangesDialog}
+                onClose={() => setShowUnsavedChangesDialog(false)}
+                title={loc.unsavedChangesTitle}
+                message={loc.unsavedChangesMessage}
+                actions={[
+                    {
+                        label: commonLoc.save,
+                        appearance: "primary",
+                        onClick: () => context.saveRules(localRules, true),
+                    },
+                    {
+                        label: loc.dontSave,
+                        appearance: "secondary",
+                        onClick: () => context.close(),
+                    },
+                ]}
+                cancelLabel={commonLoc.cancel}
+            />
         </div>
     );
 };

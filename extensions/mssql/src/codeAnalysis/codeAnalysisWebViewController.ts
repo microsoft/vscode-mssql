@@ -18,7 +18,9 @@ import { CodeAnalysis as Loc } from "../constants/locConstants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { DacFxService } from "../services/dacFxService";
+import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
 
 /**
@@ -28,11 +30,23 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     CodeAnalysisState,
     CodeAnalysisReducers
 > {
+    private readonly _operationId: string;
+
+    /**
+     * Sends a telemetry error event scoped to this dialog's operationId.
+     */
+    private sendError(action: TelemetryActions, error: Error): void {
+        sendErrorEvent(TelemetryViews.SqlProjects, action, error, false, undefined, undefined, {
+            operationId: this._operationId,
+        });
+    }
+
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
         private dacFxService: DacFxService,
+        private sqlProjectsService: SqlProjectsService,
     ) {
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
 
@@ -46,7 +60,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 projectName,
                 isLoading: true,
                 rules: [],
-                hasChanges: false,
+                dacfxStaticRules: [],
             } as CodeAnalysisState,
             {
                 title: Loc.Title,
@@ -66,9 +80,11 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        this._operationId = generateOperationId();
+
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisDialogOpened, {
-            projectName,
+            operationId: this._operationId,
         });
 
         this.registerRpcHandlers();
@@ -94,13 +110,64 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     private registerRpcHandlers(): void {
         // Close dialog
         this.registerReducer("close", async (state) => {
-            // TODO: Add unsaved-changes confirmation before disposing panel.
             this.panel.dispose();
             return state;
         });
         // Clear message bar
         this.registerReducer("closeMessage", async (state) => {
             return { ...state, message: undefined };
+        });
+        // Save rule overrides to the .sqlproj
+        this.registerReducer("saveRules", async (state, payload) => {
+            try {
+                const overrides = payload.rules.map((r) => ({
+                    ruleId: r.ruleId,
+                    severity: r.severity,
+                }));
+                const result = await this.sqlProjectsService.updateCodeAnalysisRules({
+                    projectFilePath: state.projectFilePath,
+                    rules: overrides,
+                });
+                if (!result.success) {
+                    const errorMsg = result.errorMessage ?? Loc.failedToSaveRules;
+                    this.sendError(
+                        TelemetryActions.CodeAnalysisRulesSaveError,
+                        new Error(errorMsg),
+                    );
+                    return {
+                        ...state,
+                        message: {
+                            message: errorMsg,
+                            intent: "error",
+                        } as DialogMessageSpec,
+                    };
+                }
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.CodeAnalysisRulesSaved,
+                    {
+                        operationId: this._operationId,
+                        ruleCount: overrides.length.toString(),
+                    },
+                );
+                if (payload.closeAfterSave) {
+                    this.panel.dispose();
+                }
+                // Update the baseline rules so the component's useEffect resets isDirty
+                return { ...state, rules: payload.rules, message: undefined };
+            } catch (error) {
+                this.sendError(
+                    TelemetryActions.CodeAnalysisRulesSaveError,
+                    error instanceof Error ? error : new Error(getErrorMessage(error)),
+                );
+                return {
+                    ...state,
+                    message: {
+                        message: getErrorMessage(error),
+                        intent: "error",
+                    } as DialogMessageSpec,
+                };
+            }
         });
     }
 
@@ -140,16 +207,19 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             this.updateState();
 
             // Get the static code analysis rules from dacfx
-            const rules = await this.fetchRulesFromDacFx();
+            const dacfxStaticRules = await this.fetchRulesFromDacFx();
 
-            this.state.rules = rules;
+            this.state.rules = dacfxStaticRules;
+            // Store DacFx factory defaults once — never overwritten, used for Reset.
+            this.state.dacfxStaticRules = dacfxStaticRules;
             this.state.isLoading = false;
             this.updateState();
 
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisRulesLoaded, {
-                ruleCount: rules.length.toString(),
+                operationId: this._operationId,
+                ruleCount: dacfxStaticRules.length.toString(),
                 categoryCount: new Set(
-                    rules.filter((rule) => rule.category).map((rule) => rule.category),
+                    dacfxStaticRules.filter((rule) => rule.category).map((rule) => rule.category),
                 ).size.toString(),
             });
         } catch (error) {
@@ -160,11 +230,9 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             } as DialogMessageSpec;
             this.updateState();
 
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
+            this.sendError(
                 TelemetryActions.CodeAnalysisRulesLoadError,
                 error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
             );
         }
     }

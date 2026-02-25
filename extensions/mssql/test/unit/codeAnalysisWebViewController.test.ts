@@ -15,6 +15,7 @@ import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
 import { LocConstants as ReactLoc } from "../../src/reactviews/common/locConstants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
+import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { CodeAnalysisRuleInfo, GetCodeAnalysisRulesResult } from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
 import { SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
@@ -58,11 +59,13 @@ suite("CodeAnalysisWebViewController Tests", () => {
     let contextStub: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let dacFxServiceStub: sinon.SinonStubbedInstance<DacFxService>;
+    let sqlProjectsServiceStub: sinon.SinonStubbedInstance<SqlProjectsService>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
         dacFxServiceStub = sandbox.createStubInstance(DacFxService);
+        sqlProjectsServiceStub = sandbox.createStubInstance(SqlProjectsService);
 
         dacFxServiceStub.getCodeAnalysisRules.resolves({
             success: true,
@@ -91,6 +94,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
             vscodeWrapperStub,
             projectPath,
             dacFxServiceStub,
+            sqlProjectsServiceStub,
         );
 
         return {
@@ -116,7 +120,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
         expect(controller.state.projectFilePath).to.equal("c:/work/MyProject.sqlproj");
         expect(controller.state.projectName).to.equal("MyProject");
         expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.hasChanges).to.be.false;
         expect(controller.state.message).to.be.undefined;
         expect(controller.state.rules).to.be.an("array");
         expect(controller.state.rules.length).to.equal(mockRules.length);
@@ -134,6 +137,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
             vscodeWrapperStub,
             "c:/work/MyProject.sqlproj",
             dacFxServiceStub,
+            sqlProjectsServiceStub,
         );
 
         expect(createWebviewPanelStub).to.have.been.calledOnce;

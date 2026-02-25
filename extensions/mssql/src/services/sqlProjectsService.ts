@@ -416,6 +416,16 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
     }
 
     /**
+     * Update SQL code analysis settings for a SQL project.
+     * @param params Includes project path, rule overrides, and optional RunSqlCodeAnalysis setting.
+     */
+    public async updateCodeAnalysisRules(
+        params: mssql.UpdateCodeAnalysisRulesParams,
+    ): Promise<mssql.UpdateCodeAnalysisRulesResult> {
+        return this._client.sendRequest(contracts.UpdateCodeAnalysisRulesRequest.type, params);
+    }
+
+    /**
      * Add a SQLCMD variable to a project
      * @param projectUri Absolute path of the project, including .sqlproj
      * @param name Name of the SQLCMD variable
