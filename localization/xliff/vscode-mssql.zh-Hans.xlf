@@ -2314,6 +2314,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Deselect All</source>
         <target state="translated">取消全选</target>
       </trans-unit>
+      <trans-unit id="++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95">
+        <source xml:lang="en">Design API</source>
+        <target state="new">Design API</target>
+      </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
         <target state="translated">使用带有同步 SQL 生成的交互式图表设计、可视化和演进数据库架构。</target>
