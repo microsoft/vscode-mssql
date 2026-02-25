@@ -15,6 +15,7 @@ import { UndoRedoButtons } from "./undoRedoButton";
 import { ShowChangesButton } from "./showChangesButton";
 import { ShowCopilotChangesButton } from "./showCopilotChangesButton";
 import { OpenCopilotChatButton } from "./openCopilotChatButton";
+import { DesignApiButton } from "./designApiButton";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
 
@@ -37,7 +38,11 @@ const useStyles = makeStyles({
     },
 });
 
-export function SchemaDesignerToolbar() {
+interface SchemaDesignerToolbarProps {
+    onNavigateToDab?: () => void;
+}
+
+export function SchemaDesignerToolbar({ onNavigateToDab }: SchemaDesignerToolbarProps) {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
 
@@ -61,6 +66,8 @@ export function SchemaDesignerToolbar() {
                         <ToolbarDivider />
                         <ShowChangesButton />
                         <ShowCopilotChangesButton />
+                        <ToolbarDivider />
+                        <DesignApiButton onNavigateToDab={onNavigateToDab} />
                     </>
                 )}
             </Toolbar>

@@ -76,7 +76,11 @@ const useStyles = makeStyles({
     },
 });
 
-export function DabToolbar() {
+interface DabToolbarProps {
+    onNavigateToSchema?: () => void;
+}
+
+export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
     const {
@@ -110,6 +114,14 @@ export function DabToolbar() {
             {/* Header row with title and action buttons */}
             <div className={classes.headerRow}>
                 <div className={classes.titleSection}>
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.ArrowLeft16Regular />}
+                        onClick={onNavigateToSchema}>
+                        {locConstants.schemaDesigner.backToSchema}
+                    </Button>
+                    <Divider vertical style={{ height: "20px" }} />
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
