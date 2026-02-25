@@ -30,7 +30,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "http://aka.ms/vscode-mssql-february2026",
+                        value: "https://aka.ms/vscode-mssql-february2026",
                     },
                 ],
             },
