@@ -2697,7 +2697,7 @@ export class Changelog {
     );
     public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
     public static queryProfilerDescription = l10n.t(
-        "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.",
+        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
