@@ -535,25 +535,41 @@ suite("SqlDocumentService Tests", () => {
     test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {
         const hideStatusBarStub = sandbox.stub();
         const updateStatusBarStub = sandbox.stub();
+        const updateSelectionSummaryStub = sandbox.stub();
+        const updateResultsOnActiveEditorChangeStub = sandbox.stub();
         sqlDocumentService["_statusview"] = {
             hideLastShownStatusBar: hideStatusBarStub,
             updateStatusBarForEditor: updateStatusBarStub,
+        } as any;
+        sqlDocumentService["_outputContentProvider"] = {
+            queryResultWebviewController: {
+                updateSelectionSummary: updateSelectionSummaryStub,
+                updateResultsOnActiveEditorChange: updateResultsOnActiveEditorChangeStub,
+            },
         } as any;
 
         // Test case 1: editor is undefined
         await sqlDocumentService.onDidChangeActiveTextEditor(undefined);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(undefined);
+        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
+        updateSelectionSummaryStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 2: editor.document is undefined
         const editorWithoutDoc = {} as vscode.TextEditor;
         await sqlDocumentService.onDidChangeActiveTextEditor(editorWithoutDoc);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithoutDoc);
+        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
+        updateSelectionSummaryStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 3: connection manager returns undefined (no connection)
         const editorWithDoc = { document: mockTextDocument("test.sql") } as vscode.TextEditor;
@@ -561,9 +577,11 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.have.been.calledOnceWith(editorWithDoc, undefined);
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
         updateStatusBarStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 4: connection info exists but has no connectionId
         const connectionInfoWithoutId = { credentials: { server: "localhost" } };
@@ -574,9 +592,11 @@ suite("SqlDocumentService Tests", () => {
             editorWithDoc,
             connectionInfoWithoutId,
         );
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
         updateStatusBarStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 4: connection info exists but has no connectionId
         const connectionInfoConnecting = {
@@ -591,9 +611,11 @@ suite("SqlDocumentService Tests", () => {
             editorWithDoc,
             connectionInfoConnecting,
         );
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
         updateStatusBarStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 5: connection manager is undefined
         const originalConnectionMgr = sqlDocumentService["_connectionMgr"];
@@ -601,6 +623,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.have.been.calledOnceWith(editorWithDoc, undefined);
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
 
         // Restore the connection manager

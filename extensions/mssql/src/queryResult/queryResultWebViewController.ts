@@ -126,7 +126,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper.getConfiguration().get(Constants.configAutoRevealResultsPanel);
     }
 
-    public updateResultsOnActiveEditorChange(editor: vscode.TextEditor): void {
+    public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
         this.updateSelectionSummary();
 
         const uri = getUriKey(editor?.document?.uri);
