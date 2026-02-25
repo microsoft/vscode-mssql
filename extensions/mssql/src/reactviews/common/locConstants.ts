@@ -1256,6 +1256,7 @@ export class LocConstants {
             generateConfig: l10n.t("Generate Config"),
             deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
+            designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
             entityName: l10n.t("Entity Name"),
