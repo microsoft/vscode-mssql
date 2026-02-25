@@ -19,6 +19,7 @@ import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptySta
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
 import { useSchemaDesignerDefinitionPanelContext } from "../schemaDesignerDefinitionPanelContext";
 import { useSchemaDesignerChangeContext } from "./schemaDesignerChangeContext";
+import { formatSchemaDesignerChangeValue } from "./schemaDesignerChangeValueFormatter";
 
 const useStyles = makeStyles({
     container: {
@@ -105,14 +106,14 @@ export const SchemaDesignerChangesListView = ({
                                     return true;
                                 }
                                 if (
-                                    String(propertyChange.oldValue)
+                                    formatSchemaDesignerChangeValue(propertyChange.oldValue)
                                         .toLowerCase()
                                         .includes(lowerSearch)
                                 ) {
                                     return true;
                                 }
                                 if (
-                                    String(propertyChange.newValue)
+                                    formatSchemaDesignerChangeValue(propertyChange.newValue)
                                         .toLowerCase()
                                         .includes(lowerSearch)
                                 ) {

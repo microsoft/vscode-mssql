@@ -30,15 +30,15 @@ suite("SchemaDesigner FK edge utils", () => {
         expect(remaining.map((e) => e.id)).to.deep.equal(["edge-1", "edge-4"]);
     });
 
-    test("applyColumnRenamesToIncomingForeignKeyEdges updates incoming referencedColumns (does not touch handles)", () => {
+    test("applyColumnRenamesToIncomingForeignKeyEdges updates incoming referencedColumnsIds (does not touch handles)", () => {
         type TestEdge = ForeignKeyEdgeLike & {
             source: string;
             target: string;
             sourceHandle: string;
             targetHandle: string;
             data: ForeignKeyEdgeLike["data"] & {
-                columns: string[];
-                referencedColumns: string[];
+                columnsIds: string[];
+                referencedColumnsIds: string[];
             };
         };
 
@@ -51,8 +51,8 @@ suite("SchemaDesigner FK edge utils", () => {
                 targetHandle: "left-refColId",
                 data: {
                     id: "fk1",
-                    columns: ["c1"],
-                    referencedColumns: ["refOld"],
+                    columnsIds: ["c1"],
+                    referencedColumnsIds: ["refOldId"],
                 },
             },
             // Not incoming to t2; should remain unchanged
@@ -64,33 +64,33 @@ suite("SchemaDesigner FK edge utils", () => {
                 targetHandle: "left-refColId",
                 data: {
                     id: "fk2",
-                    columns: ["c1"],
-                    referencedColumns: ["refOld"],
+                    columnsIds: ["c1"],
+                    referencedColumnsIds: ["refOldId"],
                 },
             },
         ];
 
-        const renamedColumns = new Map<string, string>([["refOld", "refNew"]]);
+        const renamedColumns = new Map<string, string>([["refOldId", "refNewId"]]);
         applyColumnRenamesToIncomingForeignKeyEdges(edges, "t2", renamedColumns);
 
         expect(edges[0].targetHandle).to.equal("left-refColId");
-        expect(edges[0].data.referencedColumns).to.deep.equal(["refNew"]);
+        expect(edges[0].data.referencedColumnsIds).to.deep.equal(["refNewId"]);
         expect(edges[0].id).to.equal(buildForeignKeyEdgeId("t1", "t2", "srcColId", "refColId"));
 
         expect(edges[1].targetHandle).to.equal("left-refColId");
-        expect(edges[1].data.referencedColumns).to.deep.equal(["refOld"]);
+        expect(edges[1].data.referencedColumnsIds).to.deep.equal(["refOldId"]);
         expect(edges[1].id).to.equal(buildForeignKeyEdgeId("t1", "t3", "srcColId", "refColId"));
     });
 
-    test("applyColumnRenamesToOutgoingForeignKeyEdges updates outgoing columns (does not touch handles)", () => {
+    test("applyColumnRenamesToOutgoingForeignKeyEdges updates outgoing columnsIds (does not touch handles)", () => {
         type TestEdge = ForeignKeyEdgeLike & {
             source: string;
             target: string;
             sourceHandle: string;
             targetHandle: string;
             data: ForeignKeyEdgeLike["data"] & {
-                columns: string[];
-                referencedColumns: string[];
+                columnsIds: string[];
+                referencedColumnsIds: string[];
             };
         };
 
@@ -103,8 +103,8 @@ suite("SchemaDesigner FK edge utils", () => {
                 targetHandle: "left-refColId",
                 data: {
                     id: "fk1",
-                    columns: ["oldCol"],
-                    referencedColumns: ["ref"],
+                    columnsIds: ["oldColId"],
+                    referencedColumnsIds: ["refId"],
                 },
             },
             // Not outgoing from t1; should remain unchanged
@@ -116,21 +116,21 @@ suite("SchemaDesigner FK edge utils", () => {
                 targetHandle: "left-refColId",
                 data: {
                     id: "fk2",
-                    columns: ["oldCol"],
-                    referencedColumns: ["ref"],
+                    columnsIds: ["oldColId"],
+                    referencedColumnsIds: ["refId"],
                 },
             },
         ];
 
-        const renamedColumns = new Map<string, string>([["oldCol", "newCol"]]);
+        const renamedColumns = new Map<string, string>([["oldColId", "newColId"]]);
         applyColumnRenamesToOutgoingForeignKeyEdges(edges, "t1", renamedColumns);
 
         expect(edges[0].sourceHandle).to.equal("right-oldColId");
-        expect(edges[0].data.columns).to.deep.equal(["newCol"]);
+        expect(edges[0].data.columnsIds).to.deep.equal(["newColId"]);
         expect(edges[0].id).to.equal(buildForeignKeyEdgeId("t1", "t2", "oldColId", "refColId"));
 
         expect(edges[1].sourceHandle).to.equal("right-oldColId");
-        expect(edges[1].data.columns).to.deep.equal(["oldCol"]);
+        expect(edges[1].data.columnsIds).to.deep.equal(["oldColId"]);
         expect(edges[1].id).to.equal(buildForeignKeyEdgeId("tX", "t2", "oldColId", "refColId"));
     });
 });

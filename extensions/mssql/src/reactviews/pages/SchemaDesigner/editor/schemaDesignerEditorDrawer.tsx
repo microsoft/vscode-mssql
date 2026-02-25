@@ -16,7 +16,7 @@ import { SchemaDesignerEditor } from "./schemaDesignerEditor";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
-import { columnUtils, foreignKeyUtils, tableUtils } from "../schemaDesignerUtils";
+import { columnUtils, foreignKeyUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { computeEditedEntityIds } from "../definition/copilot/copilotLedger";

@@ -523,6 +523,9 @@
     "Add new column": "Add new column",
     "Table": "Table",
     "Add": "Add",
+    "Cannot delete column because it is used by a foreign key.": "Cannot delete column because it is used by a foreign key.",
+    "Cannot delete column because it is referenced by a foreign key.": "Cannot delete column because it is referenced by a foreign key.",
+    "Cannot delete column because it is part of foreign key relationships.": "Cannot delete column because it is part of foreign key relationships.",
     "Add new foreign key": "Add new foreign key",
     "Foreign Key {0}/{0} is the index of the foreign key": {
         "message": "Foreign Key {0}",

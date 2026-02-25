@@ -8,7 +8,16 @@ import { Edge, MarkerType, Node, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerContextProps } from "../../schemaDesignerStateProvider";
 import eventBus from "../../schemaDesignerEvents";
-import { flowUtils } from "../../schemaDesignerUtils";
+import {
+    buildFlowComponentsFromSchema,
+    createSchemaDesignerIndex,
+    getColumnById,
+    getTableById,
+    buildSchemaFromFlowState,
+    getTableHeight,
+    getTableWidth,
+    layoutFlowComponents,
+} from "../../model";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -40,12 +49,7 @@ import {
     CanRevertResult,
 } from "../../diff/revertChange";
 import { locConstants } from "../../../../common/locConstants";
-import {
-    applyColumnRenamesToIncomingForeignKeyEdges,
-    applyColumnRenamesToOutgoingForeignKeyEdges,
-    buildForeignKeyEdgeId,
-    removeEdgesForForeignKey,
-} from "../../schemaDesignerEdgeUtils";
+import { buildForeignKeyEdgeId, removeEdgesForForeignKey } from "../../schemaDesignerEdgeUtils";
 
 export interface HighlightOverride {
     newTableIds: Set<string>;
@@ -55,9 +59,9 @@ export interface HighlightOverride {
     modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
     modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
     deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
-    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[];
     baselineColumnOrderByTable: Map<string, string[]>;
-    deletedTableNodes: Node<SchemaDesigner.Table>[];
+    deletedTableNodes: Node<SchemaDesigner.TableWithDeletedFlag>[];
     /** Override for revertChange when copilot highlights are active */
     revertChange?: (change: SchemaChange) => void;
     /** Override for canRevertChange when copilot highlights are active */
@@ -76,9 +80,9 @@ export interface SchemaDesignerChangeContextProps {
     modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
     modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
     deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
-    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[];
     baselineColumnOrderByTable: Map<string, string[]>;
-    deletedTableNodes: Node<SchemaDesigner.Table>[];
+    deletedTableNodes: Node<SchemaDesigner.TableWithDeletedFlag>[];
     schemaChangesCount: number;
     schemaChangesSummary: SchemaChangesSummary | undefined;
     structuredSchemaChanges: SchemaChange[];
@@ -114,13 +118,17 @@ export const useSchemaDesignerChangeState = (
         Map<string, SchemaDesigner.Column[]>
     >(new Map());
     const [deletedForeignKeyEdges, setDeletedForeignKeyEdges] = useState<
-        Edge<SchemaDesigner.ForeignKey>[]
+        Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[]
     >([]);
     const [baselineColumnOrderByTable, setBaselineColumnOrderByTable] = useState<
         Map<string, string[]>
     >(new Map());
-    const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
-    const [highlightOverride, setHighlightOverride] = useState<HighlightOverride | null>(null);
+    const [deletedTableNodes, setDeletedTableNodes] = useState<
+        Node<SchemaDesigner.TableWithDeletedFlag>[]
+    >([]);
+    const [highlightOverride, setHighlightOverride] = useState<HighlightOverride | undefined>(
+        undefined,
+    );
 
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
     const lastHasChangesRef = useRef<boolean | undefined>(undefined);
@@ -184,7 +192,7 @@ export const useSchemaDesignerChangeState = (
 
             const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
             const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-            const currentSchema = flowUtils.extractSchemaModel(nodes, edges);
+            const currentSchema = buildSchemaFromFlowState(nodes, edges);
             const summary = calculateSchemaDiff(baselineSchema, currentSchema);
 
             setStructuredSchemaChanges(summary.groups.flatMap((group) => group.changes));
@@ -238,28 +246,32 @@ export const useSchemaDesignerChangeState = (
                 const visibleCurrentNodes = currentNodes.filter((n) => n.hidden !== true);
                 if (visibleCurrentNodes.length > 0) {
                     bottomY = visibleCurrentNodes.reduce((maxY, node) => {
-                        const nodeBottom = node.position.y + flowUtils.getTableHeight(node.data);
+                        const nodeBottom = node.position.y + getTableHeight(node.data);
                         return Math.max(maxY, nodeBottom);
                     }, 0);
                     bottomY += 50;
                 }
             }
 
+            const { nodes: baselineNodes } = (() => {
+                const { nodes: rawNodes, edges: rawEdges } =
+                    buildFlowComponentsFromSchema(baselineSchema);
+                return layoutFlowComponents(rawNodes, rawEdges);
+            })();
+
             const deletedNodes =
                 deletedTableIds.size > 0
-                    ? flowUtils
-                          .generateSchemaDesignerFlowComponents(baselineSchema)
-                          .nodes.filter((node) => deletedTableIds.has(node.id))
+                    ? baselineNodes
+                          .filter((node) => deletedTableIds.has(node.id))
                           .map((node, index) => ({
                               ...node,
                               id: `deleted-${node.id}`,
                               data: { ...node.data, isDeleted: true },
                               position: {
-                                  x: 100 + (index % 3) * (flowUtils.getTableWidth() + 50),
+                                  x: 100 + (index % 3) * (getTableWidth() + 50),
                                   y:
                                       bottomY +
-                                      Math.floor(index / 3) *
-                                          (flowUtils.getTableHeight(node.data) + 50),
+                                      Math.floor(index / 3) * (getTableHeight(node.data) + 50),
                               },
                               draggable: true,
                               selectable: false,
@@ -398,35 +410,6 @@ export const useSchemaDesignerChangeState = (
                 return node;
             });
 
-            if (
-                change.category === ChangeCategory.Column &&
-                change.action === ChangeAction.Modify
-            ) {
-                const beforeTable = existingNodes.find((node) => node.id === change.tableId)?.data;
-                const afterTable = updatedNodes.find((node) => node.id === change.tableId)?.data;
-                const beforeName = beforeTable?.columns.find(
-                    (column) => column.id === change.objectId,
-                )?.name;
-                const afterName = afterTable?.columns.find(
-                    (column) => column.id === change.objectId,
-                )?.name;
-
-                if (beforeName && afterName && beforeName !== afterName) {
-                    const renameMap = new Map<string, string>([[beforeName, afterName]]);
-                    applyColumnRenamesToIncomingForeignKeyEdges(
-                        existingEdges,
-                        change.tableId,
-                        renameMap,
-                    );
-                    applyColumnRenamesToOutgoingForeignKeyEdges(
-                        existingEdges,
-                        change.tableId,
-                        renameMap,
-                    );
-                    reactFlow.setEdges(existingEdges);
-                }
-            }
-
             if (change.category === ChangeCategory.ForeignKey) {
                 const currentNode = updatedNodes.find((node) => node.id === change.tableId);
 
@@ -446,46 +429,62 @@ export const useSchemaDesignerChangeState = (
                     );
 
                     if (baselineForeignKey && currentNode) {
-                        const referencedTable = updatedNodes.find(
-                            (node) =>
-                                node.data.schema === baselineForeignKey.referencedSchemaName &&
-                                node.data.name === baselineForeignKey.referencedTableName,
+                        const updatedSchemaIndex = createSchemaDesignerIndex({
+                            tables: updatedNodes.map((node) => node.data),
+                        });
+                        const referencedTable = getTableById(
+                            updatedSchemaIndex,
+                            baselineForeignKey.referencedTableId,
                         );
 
                         if (referencedTable) {
-                            baselineForeignKey.columns.forEach((column, index) => {
-                                const referencedColumn =
-                                    baselineForeignKey.referencedColumns[index];
-                                const sourceColumnId = currentNode.data.columns.find(
-                                    (currentColumn) => currentColumn.name === column,
-                                )?.id;
-                                const referencedColumnId = referencedTable.data.columns.find(
-                                    (tableColumn) => tableColumn.name === referencedColumn,
-                                )?.id;
+                            for (
+                                let index = 0;
+                                index < baselineForeignKey.columnsIds.length;
+                                index++
+                            ) {
+                                const sourceColumnId = baselineForeignKey.columnsIds[index];
+                                const referencedColumnId =
+                                    baselineForeignKey.referencedColumnsIds[index];
 
                                 if (!sourceColumnId || !referencedColumnId) {
-                                    return;
+                                    continue;
+                                }
+
+                                const sourceColumn = getColumnById(
+                                    updatedSchemaIndex,
+                                    currentNode.id,
+                                    sourceColumnId,
+                                );
+                                const targetColumn = getColumnById(
+                                    updatedSchemaIndex,
+                                    referencedTable.id,
+                                    referencedColumnId,
+                                );
+
+                                if (!sourceColumn || !targetColumn) {
+                                    continue;
                                 }
 
                                 existingEdges.push({
                                     id: buildForeignKeyEdgeId(
                                         currentNode.id,
                                         referencedTable.id,
-                                        sourceColumnId,
-                                        referencedColumnId,
+                                        sourceColumn.id,
+                                        targetColumn.id,
                                     ),
                                     source: currentNode.id,
                                     target: referencedTable.id,
-                                    sourceHandle: `right-${sourceColumnId}`,
-                                    targetHandle: `left-${referencedColumnId}`,
+                                    sourceHandle: `right-${sourceColumn.id}`,
+                                    targetHandle: `left-${targetColumn.id}`,
                                     markerEnd: { type: MarkerType.ArrowClosed },
                                     data: {
                                         ...baselineForeignKey,
-                                        referencedColumns: [referencedColumn],
-                                        columns: [column],
+                                        columnsIds: [sourceColumn.id],
+                                        referencedColumnsIds: [targetColumn.id],
                                     },
                                 });
-                            });
+                            }
                         }
                     }
                 }
@@ -527,7 +526,8 @@ export const useSchemaDesignerChangeState = (
             revertChange: highlightOverride?.revertChange ?? revertChange,
             canRevertChange: highlightOverride?.canRevertChange ?? canRevertChange,
             acceptChange: highlightOverride?.acceptChange,
-            setHighlightOverride,
+            setHighlightOverride: (override: HighlightOverride | null) =>
+                setHighlightOverride(override ?? undefined),
         }),
         [
             baselineColumnOrderByTable,
