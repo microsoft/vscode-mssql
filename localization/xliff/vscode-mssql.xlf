@@ -1846,6 +1846,9 @@
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
     </trans-unit>
+    <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
+      <source xml:lang="en">Don&apos;t Save</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
     </trans-unit>
@@ -2563,6 +2566,9 @@
     <trans-unit id="++CODE++07e849b745794c4b9068165d834b1819e8cc4663ec8a733b07337a06d1375fcb">
       <source xml:lang="en">Failed to save changes: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
+      <source xml:lang="en">Failed to save code analysis rules</source>
     </trans-unit>
     <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
       <source xml:lang="en">Failed to save publish profile</source>
@@ -4703,6 +4709,9 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
+    <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
+      <source xml:lang="en">Reset to Defaults?</source>
+    </trans-unit>
     <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
       <source xml:lang="en">Resize</source>
     </trans-unit>
@@ -5918,6 +5927,9 @@
     <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
       <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++51338842c0b95f02deebfcbe26d1e5a4052518617a3a72d7a8c56a886e720287">
+      <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</source>
+    </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
     </trans-unit>
@@ -6051,6 +6063,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
       <source xml:lang="en">Unnamed Profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
+      <source xml:lang="en">Unsaved Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
       <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -6254,6 +6269,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
       <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
+      <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
