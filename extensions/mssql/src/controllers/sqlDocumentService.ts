@@ -208,35 +208,38 @@ export default class SqlDocumentService implements vscode.Disposable {
 
     /**
      * Called by vscode when a text document is about to be saved.
-     * We use this event to detect when an untitled document is being saved to disk, so that we can transfer connection
-     * and query runner state to the new URI of the document after it's saved.
+     * We use this event to detect when the currently active untitled SQL editor is being saved,
+     * so that we can transfer connection and query runner state to the saved document URI.
+     *
+     * Detection is based on matching document signatures between the active untitled document and
+     * the document in the save event. This intentionally scopes transfers to the active untitled editor.
+     *
+     * Limitation: this does not support connection transfer for saves initiated via vscode extension's API
+     * when the active editor is not the untitled file being saved.
      * @param event The event representing the document that is about to be saved
      */
     public async onWillSaveTextDocument(event: vscode.TextDocumentWillSaveEvent): Promise<any> {
-        const newDocumentSignature = getDocumentSignature(event.document);
+        /**
+         * Connection transfer on save only supports the active untitled SQL editor.
+         */
+        const activeUntitledDocument = vscode.window.activeTextEditor?.document;
+        const newDocument = event.document;
 
-        // We need to only defal with
-        if (event.document.languageId !== Constants.languageId) {
+        // We need to only deal with SQL untitled documents.
+        if (
+            event.document.languageId !== Constants.languageId ||
+            !activeUntitledDocument ||
+            activeUntitledDocument?.uri?.scheme !== "untitled"
+        ) {
             return;
         }
 
-        // find which untitled document was saved since the event doesn't contain that data
-        const untitledDocumentWithSameSignature = vscode.workspace.textDocuments
-            .filter(
-                (doc) =>
-                    doc.languageId === Constants.languageId &&
-                    doc.uri.scheme === LocalizedConstants.untitledScheme,
-            )
-            .find(
-                (doc) =>
-                    doc.uri.scheme === LocalizedConstants.untitledScheme &&
-                    getDocumentSignature(doc) === newDocumentSignature,
-            );
-        if (untitledDocumentWithSameSignature) {
-            this._uriBeingRenamedOrSaved.add(getUriKey(untitledDocumentWithSameSignature.uri));
+        // While not strictly necessary, we check the document signature to avoid false positives in case of multiple SQL documents.
+        if (getDocumentSignature(activeUntitledDocument) === getDocumentSignature(newDocument)) {
+            this._uriBeingRenamedOrSaved.add(getUriKey(activeUntitledDocument?.uri));
             this._newUriFromRenameOrSave.add(getUriKey(event.document.uri));
             await this.updateUri(
-                getUriKey(untitledDocumentWithSameSignature.uri),
+                getUriKey(activeUntitledDocument?.uri),
                 getUriKey(event.document.uri),
             );
         }
