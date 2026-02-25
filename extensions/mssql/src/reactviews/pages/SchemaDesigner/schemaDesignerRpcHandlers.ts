@@ -1393,7 +1393,7 @@ function applyDabToolChange(
                         updatedSettings.authorizationRole = value;
                         break;
                     case "customRestPath":
-                        if (typeof value === "undefined") {
+                        if (value === null || typeof value === "undefined") {
                             delete updatedSettings.customRestPath;
                             break;
                         }
@@ -1414,7 +1414,7 @@ function applyDabToolChange(
                         updatedSettings.customRestPath = value.trim();
                         break;
                     case "customGraphQLType":
-                        if (typeof value === "undefined") {
+                        if (value === null || typeof value === "undefined") {
                             delete updatedSettings.customGraphQLType;
                             break;
                         }
