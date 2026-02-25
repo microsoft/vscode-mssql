@@ -12,7 +12,6 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import { removeUndefinedProperties, getUriKey } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
-import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
