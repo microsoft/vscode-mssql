@@ -1844,6 +1844,14 @@ declare module "vscode-mssql" {
          * Database Schema Provider, in the format "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
          */
         databaseSchemaProvider: string;
+        /**
+         * Whether SQL code analysis is enabled for the project
+         */
+        runSqlCodeAnalysis: boolean;
+        /**
+         * Serialized code analysis rule overrides (e.g. "+!SR0001;-SR0003"), or null if not set
+         */
+        sqlCodeAnalysisRules?: string;
     }
 
     export interface GetDatabaseReferencesResult extends ResultStatus {

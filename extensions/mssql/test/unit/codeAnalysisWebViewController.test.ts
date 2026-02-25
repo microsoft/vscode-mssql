@@ -16,7 +16,11 @@ import { LocConstants as ReactLoc } from "../../src/reactviews/common/locConstan
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
-import { CodeAnalysisRuleInfo, GetCodeAnalysisRulesResult } from "vscode-mssql";
+import {
+    CodeAnalysisRuleInfo,
+    GetCodeAnalysisRulesResult,
+    GetProjectPropertiesResult,
+} from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
 import { SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
 import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
@@ -347,6 +351,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
             success: true,
+            errorMessage: "",
         });
         telemetryStubs.sendActionEvent.resetHistory();
 
@@ -355,7 +360,8 @@ suite("CodeAnalysisWebViewController Tests", () => {
             closeAfterSave: false,
         })) as typeof controller.state;
 
-        expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledOnceWithMatch({
+        expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledOnce;
+        expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledWithMatch({
             projectFilePath: controller.state.projectFilePath,
             rules: payloadRules.map((rule) => ({
                 ruleId: rule.ruleId,
@@ -397,5 +403,31 @@ suite("CodeAnalysisWebViewController Tests", () => {
             sinon.match.instanceOf(Error),
             false,
         );
+    });
+
+    test("loadRules applies sqlproj rule overrides from getProjectProperties to dialog state", async () => {
+        createController();
+        const internalController = getInternalController();
+
+        // SR0001 default=Error, SR0002 default=Disabled, SR0003 default=Warning
+        // Override: flip SR0001 to Disabled, flip SR0002 to Error — using fully-qualified IDs
+        sqlProjectsServiceStub.getProjectProperties.resolves({
+            success: true,
+            outputPath: "bin/Debug",
+            databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
+            sqlCodeAnalysisRules: "-Microsoft.Rules.Data.SR0001;+!Microsoft.Rules.Data.SR0002",
+        } as GetProjectPropertiesResult);
+
+        await internalController.loadRules();
+
+        const sr0001 = controller.state.rules.find((r) => r.shortRuleId === "SR0001");
+        const sr0002 = controller.state.rules.find((r) => r.shortRuleId === "SR0002");
+        const sr0003 = controller.state.rules.find((r) => r.shortRuleId === "SR0003");
+
+        expect(sr0001?.severity).to.equal(CodeAnalysisRuleSeverity.Disabled);
+        expect(sr0001?.enabled).to.be.false;
+        expect(sr0002?.severity).to.equal(CodeAnalysisRuleSeverity.Error);
+        expect(sr0002?.enabled).to.be.true;
+        expect(sr0003?.severity).to.equal(CodeAnalysisRuleSeverity.Warning); // no override, unchanged
     });
 });

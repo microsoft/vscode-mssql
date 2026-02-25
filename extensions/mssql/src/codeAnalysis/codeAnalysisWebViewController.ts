@@ -22,6 +22,7 @@ import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
+import { parseSqlprojRuleOverrides, readProjectProperties } from "../publishProject/projectUtils";
 
 /**
  * Controller for the Code Analysis dialog webview
@@ -209,9 +210,32 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             // Get the static code analysis rules from dacfx
             const dacfxStaticRules = await this.fetchRulesFromDacFx();
 
-            this.state.rules = dacfxStaticRules;
             // Store DacFx factory defaults once — never overwritten, used for Reset.
             this.state.dacfxStaticRules = dacfxStaticRules;
+
+            // Load saved overrides from the .sqlproj and apply them
+            const projectProps = await readProjectProperties(
+                this.sqlProjectsService,
+                this.state.projectFilePath,
+            );
+
+            if (projectProps?.sqlCodeAnalysisRules) {
+                const overrides = parseSqlprojRuleOverrides(projectProps.sqlCodeAnalysisRules);
+                this.state.rules = dacfxStaticRules.map((rule) => {
+                    const overrideSeverity = overrides.get(rule.shortRuleId);
+                    if (overrideSeverity === undefined) {
+                        return rule;
+                    }
+                    return {
+                        ...rule,
+                        severity: overrideSeverity,
+                        enabled: overrideSeverity !== CodeAnalysisRuleSeverity.Disabled,
+                    };
+                });
+            } else {
+                this.state.rules = dacfxStaticRules;
+            }
+
             this.state.isLoading = false;
             this.updateState();
 
