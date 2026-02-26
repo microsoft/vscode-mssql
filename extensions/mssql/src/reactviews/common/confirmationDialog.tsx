@@ -117,7 +117,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             open={open}
             onOpenChange={(_e: unknown, data: { open: boolean }) => {
                 if (!data.open) {
-                    onCancel?.();
                     onClose?.();
                 }
             }}>

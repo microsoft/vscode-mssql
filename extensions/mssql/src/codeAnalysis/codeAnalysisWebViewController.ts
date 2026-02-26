@@ -130,7 +130,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     rules: overrides,
                 });
                 if (!result.success) {
-                    const errorMsg = result.errorMessage ?? Loc.failedToSaveRules;
+                    const errorMsg = result.errorMessage || Loc.failedToSaveRules;
                     this.sendError(
                         TelemetryActions.CodeAnalysisRulesSaveError,
                         new Error(errorMsg),

@@ -422,8 +422,8 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
  * IDs may be short ("SR0001") or fully qualified ("Microsoft.Rules.Data.SR0001").
  *   "+!<id>"  = Error
  *   "-<id>"   = Disabled  (also handles "-!<id>")
- *   "<id>"    = Warning   (explicit reset to default)
- */
+ *   "<id>"    = Warning   (explicit Warning override, regardless of the rule's DacFx default)
+ * */
 export function parseSqlprojRuleOverrides(rulesString: string): Map<string, string> {
     const overrides = new Map<string, string>();
     if (!rulesString) {
