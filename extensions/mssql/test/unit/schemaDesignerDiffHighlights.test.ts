@@ -56,17 +56,16 @@ function makeTable(
 function makeForeignKey(
     id: string,
     name: string,
-    columns: string[],
-    referencedTableName: string,
-    referencedColumns: string[],
+    columnIds: string[],
+    referencedTableId: string,
+    referencedColumnIds: string[],
 ): sd.SchemaDesigner.ForeignKey {
     return {
         id,
         name,
-        columns,
-        referencedSchemaName: "dbo",
-        referencedTableName,
-        referencedColumns,
+        columnsIds: columnIds,
+        referencedTableId,
+        referencedColumnsIds: referencedColumnIds,
         onDeleteAction: 0,
         onUpdateAction: 0,
     };
@@ -140,18 +139,14 @@ suite("SchemaDesigner diff highlights", () => {
                     "table-1",
                     "users",
                     [makeColumn("col-1", "id")],
-                    [makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"])],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["col-1"], "table-2", ["col-2"])],
                 ),
                 makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
                 makeTable(
                     "table-3",
                     "invoices",
                     [makeColumn("col-3", "invoice_id")],
-                    [
-                        makeForeignKey("fk-2", "FK_invoices_orders", ["invoice_id"], "orders", [
-                            "order_id",
-                        ]),
-                    ],
+                    [makeForeignKey("fk-2", "FK_invoices_orders", ["col-3"], "table-2", ["col-2"])],
                 ),
             ],
         };
@@ -269,7 +264,7 @@ suite("SchemaDesigner diff highlights", () => {
                     "table-1",
                     "users",
                     [makeColumn("col-1", "id")],
-                    [makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"])],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["col-1"], "table-2", ["col-2"])],
                 ),
                 makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
             ],
@@ -281,7 +276,11 @@ suite("SchemaDesigner diff highlights", () => {
                     "table-1",
                     "users",
                     [makeColumn("col-1", "id")],
-                    [makeForeignKey("fk-1", "FK_users_orders_new", ["id"], "orders", ["order_id"])],
+                    [
+                        makeForeignKey("fk-1", "FK_users_orders_new", ["col-1"], "table-2", [
+                            "col-2",
+                        ]),
+                    ],
                 ),
                 makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
             ],
@@ -300,7 +299,7 @@ suite("SchemaDesigner diff highlights", () => {
                     "table-1",
                     "users",
                     [makeColumn("col-1", "id")],
-                    [makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"])],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["col-1"], "table-2", ["col-2"])],
                 ),
                 makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
             ],

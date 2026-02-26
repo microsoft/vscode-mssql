@@ -6,9 +6,12 @@
 import { useCallback } from "react";
 import type { Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
-import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
-import { locConstants } from "../../common/locConstants";
-import { columnUtils, flowUtils, foreignKeyUtils, tableUtils } from "./schemaDesignerUtils";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { locConstants } from "../../../common/locConstants";
+import { columnUtils } from "./columnUtils";
+import { foreignKeyUtils } from "./foreignKeyUtils";
+import { layoutFlowComponents } from "./flowLayout";
+import { tableUtils } from "./tableUtils";
 
 export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 5;
 export const TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD = 3;
@@ -86,8 +89,11 @@ export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Tabl
         ? table.foreignKeys.map((fk) => ({
               ...fk,
               id: fk.id || uuidv4(),
-              columns: Array.isArray(fk.columns) ? fk.columns : [],
-              referencedColumns: Array.isArray(fk.referencedColumns) ? fk.referencedColumns : [],
+              columnsIds: Array.isArray(fk.columnsIds) ? fk.columnsIds : [],
+              referencedTableId: fk.referencedTableId || "",
+              referencedColumnsIds: Array.isArray(fk.referencedColumnsIds)
+                  ? fk.referencedColumnsIds
+                  : [],
           }))
         : [];
 
@@ -128,16 +134,31 @@ export const validateTable = (
     }
 
     for (const fk of table.foreignKeys) {
-        if (fk.columns.length === 0 || fk.referencedColumns.length === 0) {
+        const normalizedForeignKey: SchemaDesigner.ForeignKey = {
+            ...fk,
+            referencedTableId: fk.referencedTableId || "",
+            columnsIds: Array.isArray(fk.columnsIds) ? fk.columnsIds : [],
+            referencedColumnsIds: Array.isArray(fk.referencedColumnsIds)
+                ? fk.referencedColumnsIds
+                : [],
+        };
+
+        if (
+            normalizedForeignKey.columnsIds.length === 0 ||
+            normalizedForeignKey.referencedColumnsIds.length === 0
+        ) {
             return locConstants.schemaDesigner.foreignKeyMappingRequired;
         }
-        if (fk.columns.length !== fk.referencedColumns.length) {
+        if (
+            normalizedForeignKey.columnsIds.length !==
+            normalizedForeignKey.referencedColumnsIds.length
+        ) {
             return locConstants.schemaDesigner.foreignKeyMappingLengthMismatch;
         }
         const foreignKeyErrors = foreignKeyUtils.isForeignKeyValid(
             normalizedSchema.tables,
             table,
-            fk,
+            normalizedForeignKey,
         );
         if (!foreignKeyErrors.isValid) {
             return foreignKeyErrors.errorMessage ?? locConstants.schemaDesigner.invalidForeignKey;
@@ -174,7 +195,7 @@ export function useMaybeAutoArrangeForToolBatch(params: {
 
             const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
             const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-            const generateComponenets = flowUtils.generatePositions(nodes, edges);
+            const generateComponenets = layoutFlowComponents(nodes, edges);
             reactFlow.setNodes(generateComponenets.nodes);
             reactFlow.setEdges(generateComponenets.edges);
             resetView();

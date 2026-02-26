@@ -87,10 +87,11 @@ suite("SchemaDesignerTool Tests", () => {
                 foreignKeys: (t.foreignKeys ?? []).map((fk) => ({
                     ...fk,
                     name: (fk.name ?? "").toLowerCase(),
-                    columns: (fk.columns ?? []).map((c) => c.toLowerCase()),
-                    referencedSchemaName: (fk.referencedSchemaName ?? "").toLowerCase(),
-                    referencedTableName: (fk.referencedTableName ?? "").toLowerCase(),
-                    referencedColumns: (fk.referencedColumns ?? []).map((c) => c.toLowerCase()),
+                    columnIds: (fk.columnsIds ?? []).map((c) => c.toLowerCase()),
+                    referencedTableId: (fk.referencedTableId ?? "").toLowerCase(),
+                    referencedColumnIds: (fk.referencedColumnsIds ?? []).map((c) =>
+                        c.toLowerCase(),
+                    ),
                 })),
             }))
             .sort((a, b) => `${a.schema}.${a.name}`.localeCompare(`${b.schema}.${b.name}`));
@@ -121,13 +122,13 @@ suite("SchemaDesignerTool Tests", () => {
                     })) as any,
                 foreignKeys: [...(t.foreignKeys ?? [])]
                     .sort((a, b) =>
-                        `${a.name}.${a.referencedSchemaName}.${a.referencedTableName}`.localeCompare(
-                            `${b.name}.${b.referencedSchemaName}.${b.referencedTableName}`,
+                        `${a.name}.${a.referencedTableId}`.localeCompare(
+                            `${b.name}.${b.referencedTableId}`,
                         ),
                     )
                     .map((fk) => {
-                        const refs = fk.referencedColumns ?? [];
-                        const pairs = (fk.columns ?? []).map((column, i) => ({
+                        const refs = fk.referencedColumnIds ?? [];
+                        const pairs = (fk.columnIds ?? []).map((column, i) => ({
                             column,
                             referencedColumn: refs[i] ?? "",
                         }));
@@ -139,10 +140,9 @@ suite("SchemaDesignerTool Tests", () => {
 
                         return {
                             name: fk.name,
-                            columns: pairs.map((p) => p.column),
-                            referencedSchemaName: fk.referencedSchemaName,
-                            referencedTableName: fk.referencedTableName,
-                            referencedColumns: pairs.map((p) => p.referencedColumn),
+                            columnIds: pairs.map((p) => p.column),
+                            referencedTableId: fk.referencedTableId,
+                            referencedColumnIds: pairs.map((p) => p.referencedColumn),
                             onDeleteAction: fk.onDeleteAction,
                             onUpdateAction: fk.onUpdateAction,
                         };
@@ -524,10 +524,9 @@ suite("SchemaDesignerTool Tests", () => {
                             {
                                 id: "fk1",
                                 name: "FK_Child_Parent",
-                                columns: ["KeyA", "KeyB"],
-                                referencedSchemaName: "dbo",
-                                referencedTableName: "Parent",
-                                referencedColumns: ["KeyA", "KeyB"],
+                                columnsIds: ["cc1", "cc2"],
+                                referencedTableId: "p1",
+                                referencedColumnsIds: ["pc1", "pc2"],
                                 onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                                 onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                             },
@@ -545,8 +544,8 @@ suite("SchemaDesignerTool Tests", () => {
                               foreignKeys: [
                                   {
                                       ...(t.foreignKeys?.[0] as any),
-                                      columns: ["KeyB", "KeyA"],
-                                      referencedColumns: ["KeyB", "KeyA"],
+                                      columnIds: ["cc2", "cc1"],
+                                      referencedColumnIds: ["pc2", "pc1"],
                                   },
                               ],
                           }
@@ -746,10 +745,9 @@ suite("SchemaDesignerTool Tests", () => {
                             {
                                 id: "fk1",
                                 name: "FK_Child_Parent",
-                                columns: ["ParentId"],
-                                referencedSchemaName: "dbo",
-                                referencedTableName: "Parent",
-                                referencedColumns: [],
+                                columnsIds: ["cc1"],
+                                referencedTableId: "t1",
+                                referencedColumnsIds: [],
                                 onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
                                 onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
                             },
@@ -1096,6 +1094,69 @@ suite("SchemaDesignerTool Tests", () => {
             });
         });
 
+        test("normalizes drop+add foreign key pair into set_foreign_key", async () => {
+            const startSchema = mockSchema;
+            const expectedVersion = computeSchemaVersion(startSchema);
+
+            const edits: SchemaDesigner.SchemaDesignerEdit[] = [
+                {
+                    op: "drop_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: { id: "fk-1", name: "" },
+                } as any,
+                {
+                    op: "add_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: {
+                        name: "FK_Orders_Customers_OrderID",
+                        referencedTable: { schema: "dbo", name: "Customers" },
+                        mappings: [{ column: "OrderID", referencedColumn: "CustomerID" }],
+                        onDeleteAction: SchemaDesigner.OnAction.CASCADE,
+                        onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                    },
+                } as any,
+            ];
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.revealToForeground = sandbox.stub() as any;
+            mockDesigner.getSchemaState.resolves(startSchema);
+            mockDesigner.applyEdits.resolves({
+                success: true,
+                appliedEdits: 1,
+                schema: startSchema,
+            });
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion,
+                        edits,
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.receipt.appliedEdits).to.equal(1);
+            expect(parsedResult.receipt.warnings).to.have.length(1);
+            expect(parsedResult.receipt.changes.foreignKeysUpdated).to.have.length(1);
+
+            expect(mockDesigner.applyEdits.calledOnce).to.equal(true);
+            const appliedPayload = mockDesigner.applyEdits.getCall(0).args[0];
+            expect(appliedPayload.edits).to.have.length(1);
+            expect(appliedPayload.edits[0].op).to.equal("set_foreign_key");
+            expect((appliedPayload.edits[0] as any).foreignKey.id).to.equal("fk-1");
+        });
+
         test("includes per-edit op counts and summarizes all edit types", async () => {
             const startSchema = mockSchema;
             const expectedVersion = computeSchemaVersion(startSchema);
@@ -1144,7 +1205,7 @@ suite("SchemaDesignerTool Tests", () => {
                     op: "set_foreign_key",
                     table: { schema: "dbo", name: "Orders" },
                     foreignKey: { name: "FK_Orders_Parent" },
-                    set: { name: "FK_Orders_Parent2" },
+                    name: "FK_Orders_Parent2",
                 } as any,
             ];
 

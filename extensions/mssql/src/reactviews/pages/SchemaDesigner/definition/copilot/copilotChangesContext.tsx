@@ -12,16 +12,20 @@ import {
     useRef,
     useState,
 } from "react";
+import { Edge, MarkerType, Node } from "@xyflow/react";
 import { createSchemaDesignerApplyEditsHandler } from "../../schemaDesignerRpcHandlers";
 import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
 import eventBus from "../../schemaDesignerEvents";
 import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
 import {
+    createSchemaDesignerIndex,
+    getColumnById,
+    getTableById,
     normalizeColumn,
     normalizeTable,
     validateTable,
     waitForNextFrame,
-} from "../../schemaDesignerToolBatchUtils";
+} from "../../model";
 import {
     CopilotChange,
     CopilotOperation,
@@ -415,17 +419,6 @@ const findTableById = (
     return schema.tables.find((table) => table.id === tableId);
 };
 
-const findTableByName = (
-    schema: SchemaDesigner.Schema,
-    tableSchema: string,
-    tableName: string,
-): SchemaDesigner.Table | undefined =>
-    schema.tables.find(
-        (table) =>
-            normalizeIdentifier(table.schema) === normalizeIdentifier(tableSchema) &&
-            normalizeIdentifier(table.name) === normalizeIdentifier(tableName),
-    );
-
 const buildTableRef = (table: SchemaDesigner.Table): SchemaDesigner.TableRef => ({
     id: table.id,
     schema: table.schema,
@@ -452,38 +445,100 @@ const toColumnCreate = (column: SchemaDesigner.Column): SchemaDesigner.ColumnCre
 
 const toForeignKeyMappings = (
     foreignKey: SchemaDesigner.ForeignKey,
+    sourceTableId: string,
+    schemaIndex: ReturnType<typeof createSchemaDesignerIndex>,
 ): SchemaDesigner.ForeignKeyMapping[] =>
-    foreignKey.columns
-        .map((column, index) => ({
-            column,
-            referencedColumn: foreignKey.referencedColumns[index],
-        }))
-        .filter((mapping) => !!mapping.column && !!mapping.referencedColumn);
+    foreignKey.columnsIds
+        .map((columnId, index) => {
+            const referencedColumnId = foreignKey.referencedColumnsIds[index];
+            if (!referencedColumnId) {
+                return undefined;
+            }
+
+            const sourceColumn = getColumnById(schemaIndex, sourceTableId, columnId);
+            const referencedColumn = getColumnById(
+                schemaIndex,
+                foreignKey.referencedTableId,
+                referencedColumnId,
+            );
+
+            if (!sourceColumn || !referencedColumn) {
+                return undefined;
+            }
+
+            return {
+                column: sourceColumn.name,
+                referencedColumn: referencedColumn.name,
+            };
+        })
+        .filter((mapping): mapping is SchemaDesigner.ForeignKeyMapping => mapping !== undefined);
 
 const toForeignKeyCreate = (
     foreignKey: SchemaDesigner.ForeignKey,
-    currentSchema: SchemaDesigner.Schema,
+    sourceTableId: string,
+    schemaIndex: ReturnType<typeof createSchemaDesignerIndex>,
 ): SchemaDesigner.ForeignKeyCreate | undefined => {
-    const mappings = toForeignKeyMappings(foreignKey);
+    const mappings = toForeignKeyMappings(foreignKey, sourceTableId, schemaIndex);
     if (mappings.length === 0) {
         return undefined;
     }
 
-    const referencedTableInSchema = findTableByName(
-        currentSchema,
-        foreignKey.referencedSchemaName,
-        foreignKey.referencedTableName,
-    );
-    const referencedTable: SchemaDesigner.TableRef = referencedTableInSchema
-        ? buildTableRef(referencedTableInSchema)
-        : {
-              schema: foreignKey.referencedSchemaName,
-              name: foreignKey.referencedTableName,
-          };
+    const referencedTable = getTableById(schemaIndex, foreignKey.referencedTableId);
+    if (!referencedTable) {
+        return undefined;
+    }
 
     return {
         name: foreignKey.name,
-        referencedTable,
+        referencedTable: buildTableRef(referencedTable),
+        mappings,
+        onDeleteAction: foreignKey.onDeleteAction,
+        onUpdateAction: foreignKey.onUpdateAction,
+    };
+};
+
+const toForeignKeyCreateFromDroppedTable = (
+    foreignKey: SchemaDesigner.ForeignKey,
+    droppedTable: SchemaDesigner.Table,
+    currentSchemaIndex: ReturnType<typeof createSchemaDesignerIndex>,
+): SchemaDesigner.ForeignKeyCreate | undefined => {
+    const referencedTable =
+        foreignKey.referencedTableId === droppedTable.id
+            ? droppedTable
+            : getTableById(currentSchemaIndex, foreignKey.referencedTableId);
+    if (!referencedTable) {
+        return undefined;
+    }
+
+    const mappings = foreignKey.columnsIds
+        .map((columnId, index) => {
+            const referencedColumnId = foreignKey.referencedColumnsIds[index];
+            if (!referencedColumnId) {
+                return undefined;
+            }
+
+            const sourceColumn = droppedTable.columns.find((column) => column.id === columnId);
+            const referencedColumn = referencedTable.columns.find(
+                (column) => column.id === referencedColumnId,
+            );
+            if (!sourceColumn || !referencedColumn) {
+                return undefined;
+            }
+
+            return {
+                column: sourceColumn.name,
+                referencedColumn: referencedColumn.name,
+            };
+        })
+        .filter((mapping): mapping is SchemaDesigner.ForeignKeyMapping => mapping !== undefined);
+
+    if (mappings.length === 0) {
+        return undefined;
+    }
+
+    return {
+        name: foreignKey.name,
+        referencedTable: buildTableRef(referencedTable),
         mappings,
         onDeleteAction: foreignKey.onDeleteAction,
         onUpdateAction: foreignKey.onUpdateAction,
@@ -500,10 +555,11 @@ const getTableIdFromChange = (change: CopilotChange): string | undefined => {
     return undefined;
 };
 
-const buildUndoEditsForChange = (
+export const buildUndoEditsForChange = (
     change: CopilotChange,
     currentSchema: SchemaDesigner.Schema,
 ): SchemaDesigner.SchemaDesignerEdit[] | undefined => {
+    const currentSchemaIndex = createSchemaDesignerIndex(currentSchema);
     const tableId = getTableIdFromChange(change);
     const beforeTable = change.before as SchemaDesigner.Table | undefined;
     const afterTable = change.after as SchemaDesigner.Table | undefined;
@@ -520,8 +576,46 @@ const buildUndoEditsForChange = (
             }
             return [{ op: "drop_table", table: buildTableRef(table) }];
         }
-        case CopilotOperation.DropTable:
-            return undefined;
+        case CopilotOperation.DropTable: {
+            if (!beforeTable) {
+                return undefined;
+            }
+
+            const edits: SchemaDesigner.SchemaDesignerEdit[] = [
+                {
+                    op: "add_table",
+                    table: {
+                        schema: beforeTable.schema,
+                        name: beforeTable.name,
+                    },
+                    initialColumns: (beforeTable.columns ?? []).map((column) =>
+                        toColumnCreate(column),
+                    ),
+                },
+            ];
+
+            for (const foreignKey of beforeTable.foreignKeys ?? []) {
+                const foreignKeyCreate = toForeignKeyCreateFromDroppedTable(
+                    foreignKey,
+                    beforeTable,
+                    currentSchemaIndex,
+                );
+                if (!foreignKeyCreate) {
+                    continue;
+                }
+
+                edits.push({
+                    op: "add_foreign_key",
+                    table: {
+                        schema: beforeTable.schema,
+                        name: beforeTable.name,
+                    },
+                    foreignKey: foreignKeyCreate,
+                });
+            }
+
+            return edits;
+        }
         case CopilotOperation.SetTable: {
             const table = findTableById(
                 currentSchema,
@@ -617,7 +711,11 @@ const buildUndoEditsForChange = (
                 return undefined;
             }
 
-            const foreignKeyCreate = toForeignKeyCreate(beforeForeignKey, currentSchema);
+            const foreignKeyCreate = toForeignKeyCreate(
+                beforeForeignKey,
+                table.id,
+                currentSchemaIndex,
+            );
             if (!foreignKeyCreate) {
                 return undefined;
             }
@@ -644,39 +742,327 @@ const buildUndoEditsForChange = (
                 return undefined;
             }
 
-            const mappings = toForeignKeyMappings(beforeForeignKey);
+            const mappings = toForeignKeyMappings(beforeForeignKey, table.id, currentSchemaIndex);
             if (mappings.length === 0) {
                 return undefined;
             }
 
-            const referencedTableInSchema = findTableByName(
-                currentSchema,
-                beforeForeignKey.referencedSchemaName,
-                beforeForeignKey.referencedTableName,
+            const referencedTable = getTableById(
+                currentSchemaIndex,
+                beforeForeignKey.referencedTableId,
             );
-            const referencedTable: SchemaDesigner.TableRef = referencedTableInSchema
-                ? buildTableRef(referencedTableInSchema)
-                : {
-                      schema: beforeForeignKey.referencedSchemaName,
-                      name: beforeForeignKey.referencedTableName,
-                  };
+            if (!referencedTable) {
+                return undefined;
+            }
 
             return [
                 {
                     op: "set_foreign_key",
                     table: buildTableRef(table),
                     foreignKey: buildForeignKeyRef(currentForeignKey),
-                    set: {
-                        name: beforeForeignKey.name,
-                        onDeleteAction: beforeForeignKey.onDeleteAction,
-                        onUpdateAction: beforeForeignKey.onUpdateAction,
-                        referencedTable,
-                        mappings,
-                    },
+                    name: beforeForeignKey.name,
+                    onDeleteAction: beforeForeignKey.onDeleteAction,
+                    onUpdateAction: beforeForeignKey.onUpdateAction,
+                    referencedTable: buildTableRef(referencedTable),
+                    mappings,
                 },
             ];
         }
     }
+};
+
+export interface CopilotHighlightComputedData {
+    newTableIds: Set<string>;
+    newColumnIds: Set<string>;
+    newForeignKeyIds: Set<string>;
+    modifiedForeignKeyIds: Set<string>;
+    modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
+    modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
+    deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[];
+    baselineColumnOrderByTable: Map<string, string[]>;
+    deletedTableNodes: Node<SchemaDesigner.TableWithDeletedFlag>[];
+    entityToChangeIndex: Map<string, number>;
+}
+
+export const buildCopilotHighlightData = (
+    trackedChanges: CopilotChange[],
+    currentSchema: SchemaDesigner.Schema,
+): CopilotHighlightComputedData => {
+    const copilotNewTableIds = new Set<string>();
+    const copilotNewColumnIds = new Set<string>();
+    const copilotNewForeignKeyIds = new Set<string>();
+    const copilotModifiedForeignKeyIds = new Set<string>();
+    const copilotModifiedColumnHighlights = new Map<string, ModifiedColumnHighlight>();
+    const copilotModifiedTableHighlights = new Map<string, ModifiedTableHighlight>();
+    const copilotDeletedColumnsByTable = new Map<string, SchemaDesigner.Column[]>();
+    const copilotDeletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[] = [];
+    const copilotDeletedTableNodes: Node<SchemaDesigner.TableWithDeletedFlag>[] = [];
+    const currentTablesById = new Map(
+        currentSchema.tables.map((table) => [table.id, table] as const),
+    );
+    const deletedTableIds = new Set<string>();
+    const deletedForeignKeyEdgeIds = new Set<string>();
+    const droppedTableForeignKeys: Array<{
+        sourceTableId: string;
+        foreignKey: SchemaDesigner.ForeignKey;
+    }> = [];
+    const explicitlyDroppedForeignKeys: Array<{
+        sourceTableId: string;
+        foreignKey: SchemaDesigner.ForeignKey;
+    }> = [];
+    const entityToChangeIndex = new Map<string, number>();
+
+    for (let i = 0; i < trackedChanges.length; i++) {
+        const change = trackedChanges[i];
+        const entityId = getChangeEntityId(change);
+        if (!entityId) {
+            continue;
+        }
+
+        entityToChangeIndex.set(entityId, i);
+        const tableId = getTableIdFromChange(change);
+        if (tableId) {
+            entityToChangeIndex.set(`table:${tableId}`, i);
+        }
+
+        switch (change.operation) {
+            case CopilotOperation.AddTable:
+                copilotNewTableIds.add(entityId);
+                break;
+            case CopilotOperation.SetTable: {
+                const before = change.before as SchemaDesigner.Table | undefined;
+                const after = change.after as SchemaDesigner.Table | undefined;
+                if (before && after) {
+                    const highlight: ModifiedTableHighlight = {};
+                    if (before.name !== after.name) {
+                        highlight.nameChange = {
+                            oldValue: before.name,
+                            newValue: after.name,
+                        };
+                    }
+                    if (before.schema !== after.schema) {
+                        highlight.schemaChange = {
+                            oldValue: before.schema,
+                            newValue: after.schema,
+                        };
+                    }
+                    copilotModifiedTableHighlights.set(entityId, highlight);
+                }
+                break;
+            }
+            case CopilotOperation.AddColumn:
+                copilotNewColumnIds.add(entityId);
+                break;
+            case CopilotOperation.SetColumn: {
+                const before = change.before as SchemaDesigner.Column | undefined;
+                const after = change.after as SchemaDesigner.Column | undefined;
+                if (before && after) {
+                    const highlight: ModifiedColumnHighlight = { hasOtherChanges: false };
+                    if (before.name !== after.name) {
+                        highlight.nameChange = {
+                            oldValue: before.name,
+                            newValue: after.name,
+                        };
+                    }
+                    if (before.dataType !== after.dataType) {
+                        highlight.dataTypeChange = {
+                            oldValue: before.dataType,
+                            newValue: after.dataType,
+                        };
+                    }
+                    const beforeRecord = before as unknown as Record<string, unknown>;
+                    const afterRecord = after as unknown as Record<string, unknown>;
+                    const checkProps = [
+                        "isPrimaryKey",
+                        "isNullable",
+                        "defaultValue",
+                        "maxLength",
+                        "precision",
+                        "scale",
+                        "isIdentity",
+                        "identitySeed",
+                        "identityIncrement",
+                        "isComputed",
+                        "computedFormula",
+                        "computedPersisted",
+                        // Keep legacy aliases for compatibility with any transformed payloads.
+                        "allowNull",
+                        "length",
+                    ];
+                    for (const prop of checkProps) {
+                        if (
+                            JSON.stringify(beforeRecord[prop]) !== JSON.stringify(afterRecord[prop])
+                        ) {
+                            highlight.hasOtherChanges = true;
+                            break;
+                        }
+                    }
+                    copilotModifiedColumnHighlights.set(entityId, highlight);
+                }
+                break;
+            }
+            case CopilotOperation.DropTable: {
+                const before = change.before as SchemaDesigner.Table | undefined;
+                if (!before || currentTablesById.has(before.id) || deletedTableIds.has(before.id)) {
+                    break;
+                }
+
+                deletedTableIds.add(before.id);
+                const deletedIndex = copilotDeletedTableNodes.length;
+                copilotDeletedTableNodes.push({
+                    id: before.id,
+                    type: "tableNode",
+                    data: { ...before, isDeleted: true },
+                    position: {
+                        x: 100 + (deletedIndex % 3) * 420,
+                        y: 100 + Math.floor(deletedIndex / 3) * 320,
+                    },
+                    draggable: true,
+                    selectable: false,
+                    connectable: false,
+                    deletable: false,
+                    focusable: false,
+                });
+
+                for (const foreignKey of before.foreignKeys ?? []) {
+                    droppedTableForeignKeys.push({
+                        sourceTableId: before.id,
+                        foreignKey,
+                    });
+                }
+                break;
+            }
+            case CopilotOperation.DropColumn: {
+                const before = change.before as SchemaDesigner.Column | undefined;
+                const tableId = getTableIdFromChange(change);
+                if (!before || !tableId || !currentTablesById.has(tableId)) {
+                    break;
+                }
+
+                const existing = copilotDeletedColumnsByTable.get(tableId) ?? [];
+                if (existing.some((column) => column.id === before.id)) {
+                    break;
+                }
+                copilotDeletedColumnsByTable.set(tableId, [...existing, { ...before }]);
+                break;
+            }
+            case CopilotOperation.AddForeignKey:
+                copilotNewForeignKeyIds.add(entityId);
+                break;
+            case CopilotOperation.DropForeignKey: {
+                const before = change.before as SchemaDesigner.ForeignKey | undefined;
+                const sourceTableId = getTableIdFromChange(change);
+                if (!before || !sourceTableId) {
+                    break;
+                }
+                explicitlyDroppedForeignKeys.push({
+                    sourceTableId,
+                    foreignKey: before,
+                });
+                break;
+            }
+            case CopilotOperation.SetForeignKey:
+                copilotModifiedForeignKeyIds.add(entityId);
+                break;
+            default:
+                break;
+        }
+    }
+
+    const deletedTablesById = new Map(
+        copilotDeletedTableNodes.map((node) => [node.data.id, node.data] as const),
+    );
+    const resolveTableForDeletedEdge = (
+        tableId: string,
+    ): SchemaDesigner.TableWithDeletedFlag | undefined => {
+        return currentTablesById.get(tableId) ?? deletedTablesById.get(tableId);
+    };
+
+    const addDeletedForeignKeyEdges = (
+        sourceTableId: string,
+        foreignKey: SchemaDesigner.ForeignKey,
+        edgePrefix: string,
+    ): void => {
+        const sourceTable = resolveTableForDeletedEdge(sourceTableId);
+        const targetTable = resolveTableForDeletedEdge(foreignKey.referencedTableId);
+        if (!sourceTable || !targetTable) {
+            return;
+        }
+
+        const sourceColumns = Array.isArray(foreignKey.columnsIds) ? foreignKey.columnsIds : [];
+        const targetColumns = Array.isArray(foreignKey.referencedColumnsIds)
+            ? foreignKey.referencedColumnsIds
+            : [];
+
+        sourceColumns.forEach((sourceColumnId, index) => {
+            const targetColumnId = targetColumns[index];
+            if (!targetColumnId) {
+                return;
+            }
+
+            const sourceColumnExists = sourceTable.columns.some(
+                (column) => column.id === sourceColumnId,
+            );
+            const targetColumnExists = targetTable.columns.some(
+                (column) => column.id === targetColumnId,
+            );
+            if (!sourceColumnExists || !targetColumnExists) {
+                return;
+            }
+
+            const edgeId = `${edgePrefix}-${foreignKey.id}-${sourceTableId}-${index}`;
+            if (deletedForeignKeyEdgeIds.has(edgeId)) {
+                return;
+            }
+            deletedForeignKeyEdgeIds.add(edgeId);
+
+            copilotDeletedForeignKeyEdges.push({
+                id: edgeId,
+                source: sourceTable.id,
+                target: targetTable.id,
+                sourceHandle: `right-${sourceColumnId}`,
+                targetHandle: `left-${targetColumnId}`,
+                markerEnd: { type: MarkerType.ArrowClosed },
+                data: {
+                    ...foreignKey,
+                    columnsIds: [sourceColumnId],
+                    referencedColumnsIds: [targetColumnId],
+                    isDeleted: true,
+                },
+                className: "schema-designer-edge-deleted",
+                selectable: false,
+                focusable: false,
+                deletable: false,
+            });
+        });
+    };
+
+    for (const item of explicitlyDroppedForeignKeys) {
+        addDeletedForeignKeyEdges(item.sourceTableId, item.foreignKey, "copilot-deleted-fk");
+    }
+
+    for (const item of droppedTableForeignKeys) {
+        addDeletedForeignKeyEdges(
+            item.sourceTableId,
+            item.foreignKey,
+            "copilot-deleted-drop-table-fk",
+        );
+    }
+
+    return {
+        newTableIds: copilotNewTableIds,
+        newColumnIds: copilotNewColumnIds,
+        newForeignKeyIds: copilotNewForeignKeyIds,
+        modifiedForeignKeyIds: copilotModifiedForeignKeyIds,
+        modifiedColumnHighlights: copilotModifiedColumnHighlights,
+        modifiedTableHighlights: copilotModifiedTableHighlights,
+        deletedColumnsByTable: copilotDeletedColumnsByTable,
+        deletedForeignKeyEdges: copilotDeletedForeignKeyEdges,
+        baselineColumnOrderByTable: new Map(),
+        deletedTableNodes: copilotDeletedTableNodes,
+        entityToChangeIndex,
+    };
 };
 
 const getUndoRequestForIndexes = (
@@ -975,8 +1361,7 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
      * 1. Process changes in reverse chronological order (newest first) so
      *    dependent entities (e.g. FKs referencing a newly-added table) are
      *    removed before the entities they depend on.
-     * 2. Collect undo edits for every change that CAN be undone, skipping
-     *    non-undoable ones (e.g. DropTable).
+     * 2. Collect undo edits for every tracked change that can be reverted.
      * 3. Apply all collected edits in a single batch.
      * 4. Clear all tracked changes (including non-undoable ones).
      */
@@ -997,7 +1382,7 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
                 if (undoEdits && undoEdits.length > 0) {
                     edits.push(...undoEdits);
                 }
-                // Non-undoable changes (e.g. DropTable) are silently skipped
+                // Changes that cannot be reverted in the current schema are skipped.
             }
 
             if (edits.length === 0) {
@@ -1021,115 +1406,16 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
     /**
      * Compute copilot-specific highlight sets from trackedChanges.
      * Builds the same data structures consumed by graph components for
-     * highlighting added/modified tables, columns, and foreign keys.
+     * highlighting added/modified/deleted tables, columns, and foreign keys.
      * Also builds a lookup map from entity IDs → change indices for
      * accept/undo actions on the graph.
      */
     const copilotHighlightOverride = useMemo((): HighlightOverride => {
-        const copilotNewTableIds = new Set<string>();
-        const copilotNewColumnIds = new Set<string>();
-        const copilotNewForeignKeyIds = new Set<string>();
-        const copilotModifiedForeignKeyIds = new Set<string>();
-        const copilotModifiedColumnHighlights = new Map<string, ModifiedColumnHighlight>();
-        const copilotModifiedTableHighlights = new Map<string, ModifiedTableHighlight>();
-        // Lookup: entity ID → change index (for accept/undo from graph)
-        const entityToChangeIndex = new Map<string, number>();
-
-        for (let i = 0; i < trackedChanges.length; i++) {
-            const change = trackedChanges[i];
-            const entityId = getChangeEntityId(change);
-            if (!entityId) {
-                continue;
-            }
-
-            entityToChangeIndex.set(entityId, i);
-            const tableId = getTableIdFromChange(change);
-            if (tableId) {
-                entityToChangeIndex.set(`table:${tableId}`, i);
-            }
-
-            switch (change.operation) {
-                case CopilotOperation.AddTable:
-                    copilotNewTableIds.add(entityId);
-                    break;
-                case CopilotOperation.SetTable: {
-                    const before = change.before as SchemaDesigner.Table | undefined;
-                    const after = change.after as SchemaDesigner.Table | undefined;
-                    if (before && after) {
-                        const highlight: ModifiedTableHighlight = {};
-                        if (before.name !== after.name) {
-                            highlight.nameChange = {
-                                oldValue: before.name,
-                                newValue: after.name,
-                            };
-                        }
-                        if (before.schema !== after.schema) {
-                            highlight.schemaChange = {
-                                oldValue: before.schema,
-                                newValue: after.schema,
-                            };
-                        }
-                        // Always highlight the table as modified, even when
-                        // only non-name/schema properties changed.
-                        copilotModifiedTableHighlights.set(entityId, highlight);
-                    }
-                    break;
-                }
-                case CopilotOperation.AddColumn:
-                    copilotNewColumnIds.add(entityId);
-                    break;
-                case CopilotOperation.SetColumn: {
-                    const before = change.before as SchemaDesigner.Column | undefined;
-                    const after = change.after as SchemaDesigner.Column | undefined;
-                    if (before && after) {
-                        const highlight: ModifiedColumnHighlight = { hasOtherChanges: false };
-                        if (before.name !== after.name) {
-                            highlight.nameChange = {
-                                oldValue: before.name,
-                                newValue: after.name,
-                            };
-                        }
-                        if (before.dataType !== after.dataType) {
-                            highlight.dataTypeChange = {
-                                oldValue: before.dataType,
-                                newValue: after.dataType,
-                            };
-                        }
-                        // Check for other property changes
-                        const beforeRecord = before as unknown as Record<string, unknown>;
-                        const afterRecord = after as unknown as Record<string, unknown>;
-                        const checkProps = [
-                            "isPrimaryKey",
-                            "allowNull",
-                            "defaultValue",
-                            "length",
-                            "precision",
-                            "scale",
-                            "isIdentity",
-                        ];
-                        for (const prop of checkProps) {
-                            if (
-                                JSON.stringify(beforeRecord[prop]) !==
-                                JSON.stringify(afterRecord[prop])
-                            ) {
-                                highlight.hasOtherChanges = true;
-                                break;
-                            }
-                        }
-                        copilotModifiedColumnHighlights.set(entityId, highlight);
-                    }
-                    break;
-                }
-                case CopilotOperation.AddForeignKey:
-                    copilotNewForeignKeyIds.add(entityId);
-                    break;
-                case CopilotOperation.SetForeignKey:
-                    copilotModifiedForeignKeyIds.add(entityId);
-                    break;
-                default:
-                    break;
-            }
-        }
+        const currentSchema = schemaDesignerContext.extractSchema();
+        const { entityToChangeIndex, ...computedHighlights } = buildCopilotHighlightData(
+            trackedChanges,
+            currentSchema,
+        );
 
         // Build accept/undo action handlers that map SchemaChange → copilot index
         const findChangeIndex = (change: SchemaChange): number | undefined => {
@@ -1165,21 +1451,18 @@ export const CopilotChangesProvider: React.FC<{ children: React.ReactNode }> = (
         };
 
         return {
-            newTableIds: copilotNewTableIds,
-            newColumnIds: copilotNewColumnIds,
-            newForeignKeyIds: copilotNewForeignKeyIds,
-            modifiedForeignKeyIds: copilotModifiedForeignKeyIds,
-            modifiedColumnHighlights: copilotModifiedColumnHighlights,
-            modifiedTableHighlights: copilotModifiedTableHighlights,
-            deletedColumnsByTable: new Map(),
-            deletedForeignKeyEdges: [],
-            baselineColumnOrderByTable: new Map(),
-            deletedTableNodes: [],
+            ...computedHighlights,
             acceptChange: overrideAcceptChange,
             revertChange: overrideRevertChange,
             canRevertChange: overrideCanRevertChange,
         };
-    }, [trackedChanges, acceptTrackedChange, undoTrackedChange, canUndoTrackedChange]);
+    }, [
+        trackedChanges,
+        schemaDesignerContext,
+        acceptTrackedChange,
+        undoTrackedChange,
+        canUndoTrackedChange,
+    ]);
 
     // ── Review toolbar navigation ─────────────────────────────────────
 

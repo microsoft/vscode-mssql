@@ -1480,6 +1480,7 @@ export class PublishProject {
 
 export class CodeAnalysis {
     public static Title = l10n.t("Code Analysis");
+    public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
 }
 
 export class SchemaCompare {
@@ -2703,7 +2704,7 @@ export class Changelog {
     );
     public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
     public static queryProfilerDescription = l10n.t(
-        "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.",
+        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",

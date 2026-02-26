@@ -227,11 +227,9 @@ const propertyLabel = (propertyName: string): string => {
             return locConstants.schemaDesigner.copilotOnDelete;
         case "onUpdateAction":
             return locConstants.schemaDesigner.copilotOnUpdate;
-        case "referencedSchemaName":
-            return locConstants.schemaDesigner.copilotReferencedSchema;
-        case "referencedTableName":
+        case "referencedTableId":
             return locConstants.schemaDesigner.copilotReferencedTable;
-        case "referencedColumns":
+        case "referencedColumnIds":
             return locConstants.schemaDesigner.copilotReferencedColumns;
         case "foreignKeys":
             return locConstants.schemaDesigner.copilotForeignKeys;
@@ -240,6 +238,7 @@ const propertyLabel = (propertyName: string): string => {
         case "isPrimaryKey":
             return locConstants.schemaDesigner.copilotPrimaryKey;
         case "allowNull":
+        case "isNullable":
             return locConstants.schemaDesigner.copilotAllowNull;
         default:
             return propertyName;
@@ -277,6 +276,7 @@ const getPropertyChanges = (change: CopilotChange): PropertyChange[] => {
             "isPrimaryKey",
             "defaultValue",
             "length",
+            "maxLength",
             "precision",
             "scale",
             "isIdentity",
@@ -286,13 +286,7 @@ const getPropertyChanges = (change: CopilotChange): PropertyChange[] => {
             "computedFormula",
             "computedPersisted",
         ],
-        foreignKey: [
-            "name",
-            "referencedSchemaName",
-            "referencedTableName",
-            "onDeleteAction",
-            "onUpdateAction",
-        ],
+        foreignKey: ["name", "onDeleteAction", "onUpdateAction"],
     };
 
     const isSimpleValue = (value: unknown): boolean =>

@@ -182,6 +182,7 @@ export class BackupDatabaseViewModel extends DisasterRecoveryViewModel {
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
+    isBackupNameDirty: boolean = false;
 }
 
 export interface BackupDatabaseParams {

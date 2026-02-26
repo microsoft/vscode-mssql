@@ -68,6 +68,7 @@ export class LocConstants {
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
+            ok: l10n.t("OK"),
         };
     }
 
@@ -210,8 +211,6 @@ export class LocConstants {
                     args: [ruleCount],
                     comment: ["{0} is the number of code analysis rules"],
                 }),
-            enabled: l10n.t("Enabled"),
-            rule: l10n.t("Rule"),
             rules: l10n.t("Rules"),
             severity: l10n.t("Severity"),
             enableRule: (ruleId: string) =>
@@ -220,12 +219,31 @@ export class LocConstants {
                     args: [ruleId],
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
+            enableCategory: (category: string) =>
+                l10n.t({
+                    message: "Enable all rules in {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
+            expandCategory: (category: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
+            collapseCategory: (category: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
             severityForRule: (ruleId: string) =>
                 l10n.t({
                     message: "Severity for {0}",
                     args: [ruleId],
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
+            reset: l10n.t("Reset"),
         };
     }
 
@@ -724,6 +742,15 @@ export class LocConstants {
             dataType: l10n.t("Type"),
             primaryKey: l10n.t("Primary Key"),
             delete: l10n.t("Delete"),
+            cannotDeleteColumnUsedInForeignKey: l10n.t(
+                "Cannot delete column because it is used by a foreign key.",
+            ),
+            cannotDeleteColumnReferencedByForeignKey: l10n.t(
+                "Cannot delete column because it is referenced by a foreign key.",
+            ),
+            cannotDeleteColumnUsedByForeignKeyRelations: l10n.t(
+                "Cannot delete column because it is part of foreign key relationships.",
+            ),
             newForeignKey: l10n.t("Add new foreign key"),
             foreignKeyIndex: (index: number) =>
                 l10n.t({
@@ -1238,6 +1265,7 @@ export class LocConstants {
             generateConfig: l10n.t("Generate Config"),
             deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
+            designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
             entityName: l10n.t("Entity Name"),

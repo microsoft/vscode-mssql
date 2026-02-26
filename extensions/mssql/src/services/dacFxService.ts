@@ -275,4 +275,9 @@ export class DacFxService implements mssql.IDacFxService {
         };
         return this._client.sendRequest(dacFxContracts.GetDeploymentOptionsRequest.type, params);
     }
+
+    public getCodeAnalysisRules(): Thenable<mssql.GetCodeAnalysisRulesResult> {
+        const params: mssql.GetCodeAnalysisRulesParams = {};
+        return this._client.sendRequest(dacFxContracts.GetCodeAnalysisRulesRequest.type, params);
+    }
 }

@@ -11,13 +11,15 @@ import {
     CodeAnalysisState,
     CodeAnalysisReducers,
     SqlCodeAnalysisRule,
+    CodeAnalysisRuleSeverity,
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
-import { CodeAnalysisRuleSeverity } from "../enums";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { DacFxService } from "../services/dacFxService";
+import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
 
 /**
  * Controller for the Code Analysis dialog webview
@@ -30,6 +32,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        private dacFxService: DacFxService,
     ) {
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
 
@@ -74,6 +77,17 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
         void this.loadRules();
     }
 
+    private normalizeSeverity(severity: string | undefined): string {
+        switch (severity?.toLowerCase()) {
+            case "error":
+                return CodeAnalysisRuleSeverity.Error;
+            case "none":
+                return CodeAnalysisRuleSeverity.Disabled;
+            default:
+                return CodeAnalysisRuleSeverity.Warning;
+        }
+    }
+
     /**
      * Register RPC handlers for webview actions
      */
@@ -84,6 +98,36 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             this.panel.dispose();
             return state;
         });
+        // Clear message bar
+        this.registerReducer("closeMessage", async (state) => {
+            return { ...state, message: undefined };
+        });
+    }
+
+    /**
+     * Fetches rules from the DacFx service and maps them to the UI view model.
+     * Throws on service failure or mapping errors — caught by loadRules.
+     */
+    private async fetchRulesFromDacFx(): Promise<SqlCodeAnalysisRule[]> {
+        const rulesResult = await this.dacFxService.getCodeAnalysisRules();
+        if (!rulesResult.success) {
+            const detail = rulesResult.errorMessage;
+            throw new Error(detail ? `${Loc.failedToLoadRules}: ${detail}` : Loc.failedToLoadRules);
+        }
+
+        return (rulesResult.rules ?? []).map((rule) => {
+            const severity = this.normalizeSeverity(rule.severity);
+            return {
+                ruleId: rule.ruleId,
+                shortRuleId: rule.shortRuleId,
+                displayName: rule.displayName,
+                severity,
+                enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
+                category: rule.category,
+                description: rule.description,
+                ruleScope: rule.ruleScope,
+            };
+        });
     }
 
     /**
@@ -91,18 +135,12 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
      */
     private async loadRules(): Promise<void> {
         try {
-            this.state.errorMessage = undefined;
+            this.state.isLoading = true;
+            this.state.message = undefined;
+            this.updateState();
 
-            // Placeholder data until code analysis rules are loaded from the service.
-            const rules: SqlCodeAnalysisRule[] = [
-                {
-                    ruleId: "Microsoft.Rules.Data.SR0001",
-                    shortRuleId: "SR0001",
-                    displayName: "Avoid SELECT *",
-                    severity: CodeAnalysisRuleSeverity.Warning,
-                    enabled: true,
-                },
-            ];
+            // Get the static code analysis rules from dacfx
+            const rules = await this.fetchRulesFromDacFx();
 
             this.state.rules = rules;
             this.state.isLoading = false;
@@ -110,11 +148,16 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
 
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisRulesLoaded, {
                 ruleCount: rules.length.toString(),
-                categoryCount: "0",
+                categoryCount: new Set(
+                    rules.filter((rule) => rule.category).map((rule) => rule.category),
+                ).size.toString(),
             });
         } catch (error) {
             this.state.isLoading = false;
-            this.state.errorMessage = getErrorMessage(error);
+            this.state.message = {
+                message: getErrorMessage(error),
+                intent: "error",
+            } as DialogMessageSpec;
             this.updateState();
 
             sendErrorEvent(
