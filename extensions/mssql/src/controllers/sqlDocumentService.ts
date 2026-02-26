@@ -476,7 +476,12 @@ export default class SqlDocumentService implements vscode.Disposable {
                  * show a new query editor without a connection. The user can then manually
                  * connect if they want to.
                  */
-                return this._lastActiveConnectionInfo
+
+                const transferConnectionToOpenedDoc = vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>(Constants.configTransferActiveEditorConnections);
+
+                return this._lastActiveConnectionInfo && transferConnectionToOpenedDoc
                     ? {
                           shouldConnect: true,
                           connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
