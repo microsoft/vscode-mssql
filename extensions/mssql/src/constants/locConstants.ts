@@ -1584,6 +1584,9 @@ export class PublishProject {
 export class CodeAnalysis {
     public static Title = l10n.t("Code Analysis");
     public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
+    public static failedToLoadOverrides = l10n.t(
+        "Failed to read saved rule overrides from project",
+    );
     public static failedToSaveRules = l10n.t("Failed to save code analysis rules");
     public static rulesSaved = l10n.t("Code analysis rules saved successfully");
 }

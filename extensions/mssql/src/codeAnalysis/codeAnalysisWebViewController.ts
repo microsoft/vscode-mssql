@@ -179,6 +179,47 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Reads saved overrides from the .sqlproj and merges them into this.state.rules.
+     * On failure, falls back to dacfxStaticRules and shows a non-blocking warning.
+     */
+    private async applyProjectOverrides(dacfxStaticRules: SqlCodeAnalysisRule[]): Promise<void> {
+        try {
+            const projectProps = await this.sqlProjectsService.getProjectProperties(
+                this.state.projectFilePath,
+            );
+
+            if (projectProps?.success && projectProps.sqlCodeAnalysisRules) {
+                const overrides = parseSqlprojRuleOverrides(projectProps.sqlCodeAnalysisRules);
+                this.state.rules = dacfxStaticRules.map((rule) => {
+                    const overrideSeverity = overrides.get(rule.shortRuleId);
+                    if (overrideSeverity === undefined) {
+                        return rule;
+                    }
+                    return {
+                        ...rule,
+                        severity: overrideSeverity,
+                        enabled: overrideSeverity !== CodeAnalysisRuleSeverity.Disabled,
+                    };
+                });
+            } else {
+                this.state.rules = dacfxStaticRules;
+            }
+        } catch (propsError) {
+            // Fall back to DacFx defaults and show a non-blocking warning so the
+            // dialog is still usable even if the .sqlproj can't be read.
+            this.state.rules = dacfxStaticRules;
+            this.state.message = {
+                message: `${Loc.failedToLoadOverrides}: ${getErrorMessage(propsError)}`,
+                intent: "warning",
+            } as DialogMessageSpec;
+            this.sendError(
+                TelemetryActions.CodeAnalysisRulesLoadError,
+                propsError instanceof Error ? propsError : new Error(getErrorMessage(propsError)),
+            );
+        }
+    }
+
+    /**
      * Fetches rules from the DacFx service and maps them to the UI view model.
      * Throws on service failure or mapping errors — caught by loadRules.
      */
@@ -220,28 +261,8 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             this.state.dacfxStaticRules = dacfxStaticRules;
 
             // Load saved overrides from the .sqlproj and apply them.
-            // Call getProjectProperties directly — readProjectProperties makes a
-            // second round trip for targetVersion which isn't needed here.
-            const projectProps = await this.sqlProjectsService.getProjectProperties(
-                this.state.projectFilePath,
-            );
-
-            if (projectProps?.success && projectProps.sqlCodeAnalysisRules) {
-                const overrides = parseSqlprojRuleOverrides(projectProps.sqlCodeAnalysisRules);
-                this.state.rules = dacfxStaticRules.map((rule) => {
-                    const overrideSeverity = overrides.get(rule.shortRuleId);
-                    if (overrideSeverity === undefined) {
-                        return rule;
-                    }
-                    return {
-                        ...rule,
-                        severity: overrideSeverity,
-                        enabled: overrideSeverity !== CodeAnalysisRuleSeverity.Disabled,
-                    };
-                });
-            } else {
-                this.state.rules = dacfxStaticRules;
-            }
+            // Isolated in its own method so a failure here doesn't discard the DacFx rules.
+            await this.applyProjectOverrides(dacfxStaticRules);
 
             this.state.isLoading = false;
             this.updateState();

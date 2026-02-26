@@ -178,10 +178,13 @@ export const CodeAnalysisDialog = () => {
         setIsSaving(false);
     }, [rules, message]);
 
+    // True when localRules diverges from the saved rules (different severity or enabled state),
+    // used to enable/disable the Apply, OK, and unsaved-changes prompt.
     const isDirty = useMemo(() => {
         if (localRules.length !== rules.length) return true;
+        const rulesMap = new Map(rules.map((rule) => [rule.ruleId, rule]));
         return localRules.some((local) => {
-            const original = rules.find((rule) => rule.ruleId === local.ruleId);
+            const original = rulesMap.get(local.ruleId);
             return (
                 !original ||
                 original.severity !== local.severity ||
@@ -490,8 +493,10 @@ export const CodeAnalysisDialog = () => {
                     {
                         label: commonLoc.save,
                         appearance: "primary",
+                        disabled: isSaving || isLoading,
                         onClick: () => {
                             setIsSaving(true);
+                            setShowUnsavedChangesDialog(false);
                             context.saveRules(localRules, true);
                         },
                     },

@@ -31,7 +31,10 @@ export interface ConfirmationDialogProps {
     /** When provided, a cancel button is rendered as the last action. */
     cancelLabel?: string;
     cancelAppearance?: "primary" | "secondary" | "subtle";
-    /** Called when the cancel button or the dialog's dismiss (X) is triggered. */
+    /**
+     * Called when the cancel button is clicked.
+     * Escape/backdrop dismissal does NOT invoke this; use onClose for that.
+     * */
     onCancel?: () => void;
     /** Width of the dialog surface, e.g. "600px". Defaults to Fluent UI's built-in size. */
     width?: string;
@@ -103,7 +106,13 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     // Uncontrolled: trigger and dialog are co-located; no external state needed.
     if (open === undefined && React.isValidElement(trigger)) {
         return (
-            <Dialog inertTrapFocus>
+            <Dialog
+                inertTrapFocus
+                onOpenChange={(_e: unknown, data: { open: boolean }) => {
+                    if (!data.open) {
+                        onCancel?.();
+                    }
+                }}>
                 <DialogTrigger disableButtonEnhancement>{trigger}</DialogTrigger>
                 {surface}
             </Dialog>
