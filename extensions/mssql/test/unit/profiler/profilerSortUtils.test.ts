@@ -14,86 +14,62 @@ import { SortDirection, SortState } from "../../../src/profiler/profilerTypes";
 suite("profilerSortUtils", () => {
     suite("profilerSortComparator", () => {
         test("should compare numbers ascending correctly", () => {
-            const a = { duration: 100 };
-            const b = { duration: 200 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
+            const result = profilerSortComparator(100, 200, SortDirection.ASC);
             expect(result).to.be.lessThan(0);
         });
 
         test("should compare numbers descending correctly", () => {
-            const a = { duration: 100 };
-            const b = { duration: 200 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.DESC);
+            const result = profilerSortComparator(100, 200, SortDirection.DESC);
             expect(result).to.be.greaterThan(0);
         });
 
         test("should compare equal numbers as 0", () => {
-            const a = { duration: 100 };
-            const b = { duration: 100 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
+            const result = profilerSortComparator(100, 100, SortDirection.ASC);
             expect(result).to.equal(0);
         });
 
         test("should compare strings case-insensitively ascending", () => {
-            const a = { eventClass: "Alpha" };
-            const b = { eventClass: "beta" };
-            const result = profilerSortComparator(a, b, "eventClass", SortDirection.ASC);
+            const result = profilerSortComparator("Alpha", "beta", SortDirection.ASC);
             expect(result).to.be.lessThan(0);
         });
 
         test("should compare strings case-insensitively descending", () => {
-            const a = { eventClass: "Alpha" };
-            const b = { eventClass: "beta" };
-            const result = profilerSortComparator(a, b, "eventClass", SortDirection.DESC);
+            const result = profilerSortComparator("Alpha", "beta", SortDirection.DESC);
             expect(result).to.be.greaterThan(0);
         });
 
         test("should push undefined values to the end regardless of sort direction (ASC)", () => {
-            const a = { duration: undefined };
-            const b = { duration: 100 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
+            const result = profilerSortComparator(undefined, 100, SortDirection.ASC);
             expect(result).to.be.greaterThan(0); // undefined pushed after 100
         });
 
         test("should push undefined values to the end regardless of sort direction (DESC)", () => {
-            const a = { duration: undefined };
-            const b = { duration: 100 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.DESC);
+            const result = profilerSortComparator(undefined, 100, SortDirection.DESC);
             expect(result).to.be.greaterThan(0); // undefined still pushed after 100
         });
 
         test("should push undefined values to the end", () => {
-            const a = { duration: undefined };
-            const b = { duration: 50 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
+            const result = profilerSortComparator(undefined, 50, SortDirection.ASC);
             expect(result).to.be.greaterThan(0);
         });
 
         test("should push empty string values to the end", () => {
-            const a = { eventClass: "" };
-            const b = { eventClass: "test" };
-            const result = profilerSortComparator(a, b, "eventClass", SortDirection.ASC);
+            const result = profilerSortComparator("", "test", SortDirection.ASC);
             expect(result).to.be.greaterThan(0);
         });
 
         test("should return 0 when both values are undefined", () => {
-            const a = { duration: undefined };
-            const b = { duration: undefined };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
+            const result = profilerSortComparator(undefined, undefined, SortDirection.ASC);
             expect(result).to.equal(0);
         });
 
         test("should handle missing field as empty", () => {
-            const a = {} as Record<string, unknown>;
-            const b = { duration: 100 };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
+            const result = profilerSortComparator(undefined, 100, SortDirection.ASC);
             expect(result).to.be.greaterThan(0); // missing field pushed to end
         });
 
         test("should compare strings with numeric awareness", () => {
-            const a = { textData: "query2" };
-            const b = { textData: "query10" };
-            const result = profilerSortComparator(a, b, "textData", SortDirection.ASC);
+            const result = profilerSortComparator("query2", "query10", SortDirection.ASC);
             expect(result).to.be.lessThan(0); // "query2" < "query10" with numeric sort
         });
 
@@ -104,7 +80,7 @@ suite("profilerSortUtils", () => {
                 { id: "3", duration: undefined },
                 { id: "4", duration: 200 },
             ];
-            rows.sort((a, b) => profilerSortComparator(a, b, "duration", SortDirection.ASC));
+            rows.sort((a, b) => profilerSortComparator(a.duration, b.duration, SortDirection.ASC));
             expect(rows.map((r) => r.id)).to.deep.equal(["2", "4", "1", "3"]);
         });
 
@@ -115,7 +91,7 @@ suite("profilerSortUtils", () => {
                 { id: "3", duration: undefined },
                 { id: "4", duration: 200 },
             ];
-            rows.sort((a, b) => profilerSortComparator(a, b, "duration", SortDirection.DESC));
+            rows.sort((a, b) => profilerSortComparator(a.duration, b.duration, SortDirection.DESC));
             expect(rows.map((r) => r.id)).to.deep.equal(["1", "4", "2", "3"]);
         });
 
@@ -126,17 +102,17 @@ suite("profilerSortUtils", () => {
                 { id: "3", eventClass: "" },
                 { id: "4", eventClass: "Banana" },
             ];
-            rows.sort((a, b) => profilerSortComparator(a, b, "eventClass", SortDirection.ASC));
+            rows.sort((a, b) =>
+                profilerSortComparator(a.eventClass, b.eventClass, SortDirection.ASC),
+            );
             expect(rows.map((r) => r.id)).to.deep.equal(["2", "4", "1", "3"]);
         });
 
         test("should handle value on one side being a non-empty string and other being undefined", () => {
-            const a = { eventClass: "test" };
-            const b = { eventClass: undefined };
-            const resultAsc = profilerSortComparator(a, b, "eventClass", SortDirection.ASC);
+            const resultAsc = profilerSortComparator("test", undefined, SortDirection.ASC);
             expect(resultAsc).to.be.lessThan(0); // "test" comes before undefined
 
-            const resultDesc = profilerSortComparator(a, b, "eventClass", SortDirection.DESC);
+            const resultDesc = profilerSortComparator("test", undefined, SortDirection.DESC);
             expect(resultDesc).to.be.lessThan(0); // "test" still comes before undefined
         });
     });
