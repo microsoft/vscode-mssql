@@ -5,8 +5,15 @@
 
 import {
     Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
     Divider,
     makeStyles,
+    mergeClasses,
     Menu,
     MenuButton,
     MenuItem,
@@ -18,20 +25,24 @@ import {
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useRef, useEffect, useState, cloneElement } from "react";
+import { Handle, NodeProps, Position, useUpdateNodeInternals } from "@xyflow/react";
+import { useContext, useRef, useEffect, useState, cloneElement, type ComponentProps } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
-import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
+import { NODE_WIDTH } from "../model";
 import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
+import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
+import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
     const [isOverflowing, setIsOverflowing] = useState(false);
-    const textRef = useRef<HTMLElement>(null);
+    const textRef = useRef<HTMLElement | undefined>(undefined);
 
     useEffect(() => {
         const checkOverflow = () => {
@@ -64,8 +75,7 @@ const ConditionalTooltip = ({
 }: {
     content: string;
     children: React.ReactElement;
-    [key: string]: any;
-}) => {
+} & Omit<ComponentProps<typeof Tooltip>, "content" | "children">) => {
     const { isOverflowing, textRef } = useTextOverflow(content);
 
     // Clone the child element and add the ref
@@ -76,7 +86,7 @@ const ConditionalTooltip = ({
 
     if (isOverflowing) {
         return (
-            <Tooltip relationship={"label"} content={content} {...props}>
+            <Tooltip content={content} {...props}>
                 {childWithRef}
             </Tooltip>
         );
@@ -88,12 +98,27 @@ const ConditionalTooltip = ({
 // Styles for the table node components
 const useStyles = makeStyles({
     tableNodeContainer: {
-        width: `${LAYOUT_CONSTANTS.NODE_WIDTH}px`,
+        width: `${NODE_WIDTH}px`,
         backgroundColor: "var(--vscode-editor-background)",
         borderRadius: "5px",
         display: "flex",
         flexDirection: "column",
         gap: "5px",
+        position: "relative",
+        overflow: "visible",
+    },
+    tableNodeDiffAdded: {
+        outline: "2px solid var(--vscode-gitDecoration-addedResourceForeground)",
+        outlineOffset: "-1px",
+    },
+    tableNodeDiffModified: {
+        outline:
+            "2px solid var(--vscode-editorWarning-foreground, var(--vscode-gitDecoration-modifiedResourceForeground))",
+        outlineOffset: "-1px",
+    },
+    tableNodeDeleted: {
+        outline: "2px solid var(--vscode-gitDecoration-deletedResourceForeground)",
+        outlineOffset: "-1px",
     },
     tableHeader: {
         width: "100%",
@@ -109,6 +134,13 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "5px",
         paddingTop: "10px",
+        marginBottom: "4px",
+    },
+    tableHeaderDiffModified: {
+        backgroundColor:
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
+        borderRadius: "3px",
     },
     tableIcon: {
         padding: "0 5px",
@@ -144,6 +176,59 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: "var(--vscode-descriptionForeground)",
     },
+    columnDiffAdded: {
+        backgroundColor: "var(--vscode-diffEditor-insertedTextBackground)",
+        boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-addedResourceForeground)",
+        borderRadius: "3px",
+    },
+    columnDiffModified: {
+        backgroundColor:
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-modifiedResourceForeground)",
+        borderRadius: "3px",
+    },
+    columnDiffModifiedOther: {
+        backgroundColor:
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
+        borderRadius: "3px",
+    },
+    columnDiffDeleted: {
+        backgroundColor:
+            "var(--vscode-diffEditor-removedTextBackground, var(--vscode-inputValidation-errorBackground))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-deletedResourceForeground)",
+        borderRadius: "3px",
+    },
+    columnUndoButtonWrapper: {
+        position: "absolute",
+        top: "50%",
+        right: "-22px",
+        transform: "translateY(-50%)",
+        zIndex: 2,
+        padding: "10px",
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
+    },
+    columnDiffValueGroup: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+    },
+    columnDiffOldValue: {
+        textDecorationLine: "line-through",
+        opacity: 0.7,
+    },
+    tableDiffValueGroup: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "2px",
+        flexDirection: "column",
+    },
+    tableDiffOldValue: {
+        textDecorationLine: "line-through",
+        opacity: 0.7,
+    },
     handleLeft: {
         marginLeft: "2px",
     },
@@ -168,6 +253,22 @@ const useStyles = makeStyles({
         opacity: 0.4,
         pointerEvents: "none",
         zIndex: 10,
+    },
+    tableContentDisabled: {
+        pointerEvents: "none",
+        userSelect: "none",
+        filter: "grayscale(0.6)",
+        opacity: 0.75,
+    },
+    undoButtonWrapper: {
+        position: "absolute",
+        top: "-25px",
+        right: "-25px",
+        zIndex: 11,
+        padding: "16px",
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
     },
 });
 
@@ -241,9 +342,16 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableHeader component for the table title and subtitle
-const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
+const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
+    const isDeletedTable = table.isDeleted === true;
+    const tableHighlight = changeContext.modifiedTableHighlights.get(table.id);
+    const showQualifiedDiff =
+        !isDeletedTable &&
+        changeContext.showChangesHighlight &&
+        (Boolean(tableHighlight?.schemaChange) || Boolean(tableHighlight?.nameChange));
 
     // Function to highlight text based on search
     const highlightText = (text: string) => {
@@ -282,21 +390,40 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         );
     };
 
+    const tooltipContent = `${table.schema}.${table.name}`;
+    const oldSchema = tableHighlight?.schemaChange?.oldValue ?? table.schema;
+    const newSchema = tableHighlight?.schemaChange?.newValue ?? table.schema;
+    const oldName = tableHighlight?.nameChange?.oldValue ?? table.name;
+    const newName = tableHighlight?.nameChange?.newValue ?? table.name;
+    const oldQualified = `${oldSchema}.${oldName}`;
+    const newQualified = `${newSchema}.${newName}`;
+
     return (
-        <div className={styles.tableHeader}>
+        <div
+            className={mergeClasses(
+                styles.tableHeader,
+                showQualifiedDiff && styles.tableHeaderDiffModified,
+            )}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <ConditionalTooltip content={`${table.schema}.${table.name}`} relationship="label">
+                <ConditionalTooltip content={tooltipContent} relationship="label">
                     <Text
-                        className={
-                            context.isExporting ? styles.tableTitleExporting : styles.tableTitle
-                        }>
-                        {context.isExporting
-                            ? `${table.schema}.${table.name}`
-                            : highlightText(`${table.schema}.${table.name}`)}
+                        className={mergeClasses(
+                            context.isExporting ? styles.tableTitleExporting : styles.tableTitle,
+                        )}>
+                        {context.isExporting ? (
+                            tooltipContent
+                        ) : showQualifiedDiff ? (
+                            <span className={styles.tableDiffValueGroup}>
+                                <span>{newQualified}</span>
+                                <span className={styles.tableDiffOldValue}>{oldQualified}</span>
+                            </span>
+                        ) : (
+                            highlightText(tooltipContent)
+                        )}
                     </Text>
                 </ConditionalTooltip>
-                {!context.isExporting && <TableHeaderActions table={table} />}
+                {!context.isExporting && !isDeletedTable && <TableHeaderActions table={table} />}
             </div>
             <div className={styles.tableSubtitle}>
                 {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}
@@ -309,23 +436,130 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
 const TableColumn = ({
     column,
     table,
+    isTableDeleted,
+    onRequestUndo,
 }: {
-    column: SchemaDesigner.Column;
-    table: SchemaDesigner.Table;
+    column: SchemaDesigner.ColumnWithDeletedFlag;
+    table: SchemaDesigner.TableWithDeletedFlag;
+    isTableDeleted: boolean;
+    onRequestUndo: (change: SchemaChange) => void;
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
+    const [undoWrapperElement, setUndoWrapperElement] = useState<HTMLDivElement | undefined>(
+        undefined,
+    );
+    const [isHovered, setIsHovered] = useState(false);
+    const isDeletedColumn = column.isDeleted === true;
+    const isConnectable = !isDeletedColumn && !isTableDeleted;
 
     // Check if this column is a foreign key
-    const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
+    const isForeignKey = table.foreignKeys.some((fk) => {
+        return fk.columnsIds?.includes(column.id) ?? false;
+    });
+    const showDeletedDiff = changeContext.showChangesHighlight && isDeletedColumn;
+    const showAddedDiff =
+        !isDeletedColumn &&
+        !isTableDeleted &&
+        changeContext.showChangesHighlight &&
+        changeContext.newColumnIds.has(column.id);
+    const modifiedHighlight =
+        !isDeletedColumn && !isTableDeleted
+            ? changeContext.modifiedColumnHighlights.get(column.id)
+            : undefined;
+    const hasNameChange = Boolean(modifiedHighlight?.nameChange);
+    const hasDataTypeChange = Boolean(modifiedHighlight?.dataTypeChange);
+    const showNameDiff = changeContext.showChangesHighlight && hasNameChange;
+    const showDataTypeDiff = changeContext.showChangesHighlight && hasDataTypeChange;
+    const showModifiedDiff = showNameDiff || showDataTypeDiff;
+    const showModifiedOther =
+        changeContext.showChangesHighlight &&
+        !showModifiedDiff &&
+        modifiedHighlight?.hasOtherChanges;
+    const columnChangeAction = showAddedDiff
+        ? ChangeAction.Add
+        : showDeletedDiff
+          ? ChangeAction.Delete
+          : showModifiedDiff || showModifiedOther
+            ? ChangeAction.Modify
+            : undefined;
+    const canShowUndo =
+        !isTableDeleted &&
+        !context.isExporting &&
+        Boolean(columnChangeAction) &&
+        changeContext.showChangesHighlight;
+    const columnChange = columnChangeAction
+        ? ({
+              id: `column:${columnChangeAction}:${table.id}:${column.id}`,
+              action: columnChangeAction,
+              category: ChangeCategory.Column,
+              tableId: table.id,
+              tableName: table.name,
+              tableSchema: table.schema,
+              objectId: column.id,
+              objectName: column.name,
+          } satisfies SchemaChange)
+        : undefined;
+    const revertInfo =
+        isHovered && columnChange ? changeContext.canRevertChange(columnChange) : undefined;
+
+    const renderName = () => {
+        if (!showNameDiff || !modifiedHighlight?.nameChange) {
+            return column.name;
+        }
+
+        return (
+            <span className={styles.columnDiffValueGroup}>
+                <span className={styles.columnDiffOldValue}>
+                    {modifiedHighlight.nameChange.oldValue}
+                </span>
+                <span>{modifiedHighlight.nameChange.newValue}</span>
+            </span>
+        );
+    };
+
+    const renderDataType = () => {
+        if (column.isComputed) {
+            return "COMPUTED";
+        }
+
+        if (!showDataTypeDiff || !modifiedHighlight?.dataTypeChange) {
+            return column.dataType?.toUpperCase();
+        }
+
+        return (
+            <span className={styles.columnDiffValueGroup}>
+                <span className={styles.columnDiffOldValue}>
+                    {modifiedHighlight.dataTypeChange.oldValue.toUpperCase()}
+                </span>
+                <span>{modifiedHighlight.dataTypeChange.newValue.toUpperCase()}</span>
+            </span>
+        );
+    };
 
     return (
-        <div className={"column"} key={column.name}>
+        <div
+            className={mergeClasses(
+                "column",
+                showAddedDiff && styles.columnDiffAdded,
+                showModifiedDiff && styles.columnDiffModified,
+                showModifiedOther && styles.columnDiffModifiedOther,
+                showDeletedDiff && styles.columnDiffDeleted,
+            )}
+            key={column.name}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={(event) => {
+                if (undoWrapperElement?.contains(event.relatedTarget as Node)) {
+                    return;
+                }
+                setIsHovered(false);
+            }}>
             <Handle
                 type="source"
                 position={Position.Left}
                 id={`left-${column.id}`}
-                isConnectable={true}
+                isConnectable={isConnectable}
                 className={styles.handleLeft}
             />
 
@@ -336,19 +570,60 @@ const TableColumn = ({
                 <Text
                     className={context.isExporting ? styles.columnNameExporting : styles.columnName}
                     style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
-                    {column.name}
+                    {renderName()}
                 </Text>
             </ConditionalTooltip>
 
-            <Text className={styles.columnType}>
-                {column.isComputed ? "COMPUTED" : column.dataType?.toUpperCase()}
-            </Text>
+            <Text className={styles.columnType}>{renderDataType()}</Text>
+
+            {canShowUndo && isHovered && columnChange && (
+                <div
+                    className={styles.columnUndoButtonWrapper}
+                    ref={(element) => setUndoWrapperElement(element ?? undefined)}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(columnChange);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
+                    <Tooltip
+                        content={
+                            revertInfo?.canRevert
+                                ? locConstants.schemaDesigner.undo
+                                : (revertInfo?.reason ?? "")
+                        }
+                        relationship="label">
+                        <Button
+                            appearance="primary"
+                            size="small"
+                            icon={<FluentIcons.ArrowUndo16Regular />}
+                            disabled={revertInfo ? !revertInfo.canRevert : false}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                if (revertInfo && !revertInfo.canRevert) {
+                                    return;
+                                }
+                                onRequestUndo(columnChange);
+                            }}
+                        />
+                    </Tooltip>
+                </div>
+            )}
 
             <Handle
                 type="source"
                 position={Position.Right}
                 id={`right-${column.id}`}
-                isConnectable={true}
+                isConnectable={isConnectable}
                 className={styles.handleRight}
             />
         </div>
@@ -356,7 +631,13 @@ const TableColumn = ({
 };
 
 // ConsolidatedHandles component for rendering invisible handles of hidden columns
-const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.Column[] }) => {
+const ConsolidatedHandles = ({
+    hiddenColumns,
+    isTableDeleted,
+}: {
+    hiddenColumns: SchemaDesigner.ColumnWithDeletedFlag[];
+    isTableDeleted: boolean;
+}) => {
     return (
         <div
             style={{
@@ -374,7 +655,7 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                         type="source"
                         position={Position.Left}
                         id={`left-${column.id}`}
-                        isConnectable={true}
+                        isConnectable={!column.isDeleted && !isTableDeleted}
                         style={{
                             visibility: "hidden",
                             position: "absolute",
@@ -387,7 +668,7 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                         type="source"
                         position={Position.Right}
                         id={`right-${column.id}`}
-                        isConnectable={true}
+                        isConnectable={!column.isDeleted && !isTableDeleted}
                         style={{
                             visibility: "hidden",
                             position: "absolute",
@@ -406,23 +687,39 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
 const TableColumns = ({
     columns,
     table,
+    isDeletedTable,
     isCollapsed,
     onToggleCollapse,
+    onRequestUndo,
 }: {
     columns: SchemaDesigner.Column[];
-    table: SchemaDesigner.Table;
+    table: SchemaDesigner.TableWithDeletedFlag;
+    isDeletedTable: boolean;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
+    onRequestUndo: (change: SchemaChange) => void;
 }) => {
     const styles = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
+    const enableExpandCollapseButtons = useSchemaDesignerSelector(
+        (s) => s?.enableExpandCollapseButtons,
+    );
 
     // Get setting from webview state, default to true if not set
-    const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
+    const expandCollapseEnabled = enableExpandCollapseButtons ?? true;
 
-    const showCollapseButton = expandCollapseEnabled && columns.length > 10;
-    const visibleColumns = showCollapseButton && isCollapsed ? columns.slice(0, 10) : columns;
-    const hiddenColumns = showCollapseButton && isCollapsed ? columns.slice(10) : [];
+    const deletedColumns = changeContext.showChangesHighlight
+        ? (changeContext.deletedColumnsByTable.get(table.id) ?? [])
+        : [];
+    const baselineOrder = changeContext.baselineColumnOrderByTable.get(table.id) ?? [];
+    const mergedColumns = mergeColumnsWithDeleted(columns, deletedColumns, baselineOrder);
+
+    const showCollapseButton =
+        !isDeletedTable && expandCollapseEnabled && mergedColumns.length > 10;
+    const isCollapsedView = showCollapseButton && isCollapsed;
+    const visibleColumns = isCollapsedView ? mergedColumns.slice(0, 10) : mergedColumns;
+    const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];
+    const hiddenHandleColumns = hiddenColumns;
 
     const EXPAND = l10n.t("Expand");
     const COLLAPSE = l10n.t("Collapse");
@@ -430,10 +727,21 @@ const TableColumns = ({
     return (
         <div style={{ position: "relative" }}>
             {/* Always render all column handles for consistency */}
-            {hiddenColumns.length > 0 && <ConsolidatedHandles hiddenColumns={hiddenColumns} />}
+            {hiddenHandleColumns.length > 0 && (
+                <ConsolidatedHandles
+                    hiddenColumns={hiddenHandleColumns}
+                    isTableDeleted={isDeletedTable}
+                />
+            )}
 
             {visibleColumns.map((column, index) => (
-                <TableColumn key={`${index}-${column.name}`} column={column} table={table} />
+                <TableColumn
+                    key={`${index}-${column.name}`}
+                    column={column}
+                    table={table}
+                    isTableDeleted={isDeletedTable}
+                    onRequestUndo={onRequestUndo}
+                />
             ))}
 
             {showCollapseButton && (
@@ -459,25 +767,178 @@ const TableColumns = ({
 // Main SchemaDesignerTableNode component
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
-    const table = props.data as SchemaDesigner.Table;
+    const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
+    const updateNodeInternals = useUpdateNodeInternals();
+    const table = props.data as SchemaDesigner.TableWithDeletedFlag;
+    const isDeletedTable = table.isDeleted === true;
     // Default to collapsed state if table has more than 10 columns
-    const [isCollapsed, setIsCollapsed] = useState(table.columns.length > 10);
+    const [isCollapsed, setIsCollapsed] = useState(!isDeletedTable && table.columns.length > 10);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
+    const [pendingUndoChange, setPendingUndoChange] = useState<SchemaChange | undefined>(undefined);
+    const [undoWrapperElement, setUndoWrapperElement] = useState<HTMLDivElement | undefined>(
+        undefined,
+    );
 
     const handleToggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
     };
 
+    const showAddedDiff =
+        !isDeletedTable &&
+        changeContext.showChangesHighlight &&
+        changeContext.newTableIds.has(table.id);
+    const showDeletedDiff = isDeletedTable && changeContext.showChangesHighlight;
+    const showModifiedDiff =
+        !isDeletedTable &&
+        changeContext.showChangesHighlight &&
+        changeContext.modifiedTableHighlights.has(table.id);
+    const tableChangeAction = showDeletedDiff
+        ? ChangeAction.Delete
+        : showAddedDiff
+          ? ChangeAction.Add
+          : showModifiedDiff
+            ? ChangeAction.Modify
+            : undefined;
+    const showUndoButton =
+        Boolean(tableChangeAction) && !context.isExporting && (isHovered || isUndoDialogOpen);
+    const tableChange = tableChangeAction
+        ? ({
+              id: `table:${tableChangeAction}:${table.id}`,
+              action: tableChangeAction,
+              category: ChangeCategory.Table,
+              tableId: table.id,
+              tableName: table.name,
+              tableSchema: table.schema,
+          } satisfies SchemaChange)
+        : undefined;
+    const revertInfo = tableChange ? changeContext.canRevertChange(tableChange) : undefined;
+    const handleUndo = () => {
+        if (!pendingUndoChange) {
+            return;
+        }
+        changeContext.revertChange(pendingUndoChange);
+    };
+    const handleRequestUndo = (change: SchemaChange) => {
+        setPendingUndoChange(change);
+        setIsUndoDialogOpen(true);
+    };
+
+    useEffect(() => {
+        const rafId = requestAnimationFrame(() => {
+            updateNodeInternals(table.id);
+        });
+
+        return () => {
+            cancelAnimationFrame(rafId);
+        };
+    }, [table.id, table.columns, isCollapsed, updateNodeInternals]);
+
     return (
-        <div className={styles.tableNodeContainer}>
+        <div
+            className={mergeClasses(
+                styles.tableNodeContainer,
+                showAddedDiff && styles.tableNodeDiffAdded,
+                showModifiedDiff && styles.tableNodeDiffModified,
+                isDeletedTable && styles.tableNodeDeleted,
+            )}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={(event) => {
+                if (undoWrapperElement?.contains(event.relatedTarget as Node)) {
+                    return;
+                }
+                setIsHovered(false);
+            }}>
             {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
-            <TableHeader table={table} />
-            <Divider />
-            <TableColumns
-                columns={table.columns}
-                table={table}
-                isCollapsed={isCollapsed}
-                onToggleCollapse={handleToggleCollapse}
-            />
+            {showUndoButton && (
+                <div
+                    className={styles.undoButtonWrapper}
+                    ref={(element) => setUndoWrapperElement(element ?? undefined)}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}>
+                    {changeContext.acceptChange && tableChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(tableChange);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
+                    <Tooltip
+                        content={
+                            revertInfo?.canRevert
+                                ? locConstants.schemaDesigner.undo
+                                : (revertInfo?.reason ?? "")
+                        }
+                        relationship="label">
+                        <Button
+                            appearance="primary"
+                            size="small"
+                            icon={<FluentIcons.ArrowUndo16Regular />}
+                            disabled={revertInfo ? !revertInfo.canRevert : false}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                if (revertInfo && !revertInfo.canRevert) {
+                                    return;
+                                }
+                                if (tableChange) {
+                                    handleRequestUndo(tableChange);
+                                }
+                            }}
+                        />
+                    </Tooltip>
+                </div>
+            )}
+            <div className={mergeClasses(isDeletedTable && styles.tableContentDisabled)}>
+                <TableHeader table={table} />
+                <Divider />
+                <TableColumns
+                    columns={table.columns}
+                    table={table}
+                    isDeletedTable={isDeletedTable}
+                    isCollapsed={isCollapsed}
+                    onToggleCollapse={handleToggleCollapse}
+                    onRequestUndo={handleRequestUndo}
+                />
+            </div>
+            <Dialog
+                open={isUndoDialogOpen}
+                onOpenChange={(_event, data) => {
+                    setIsUndoDialogOpen(data.open);
+                    if (!data.open) {
+                        setPendingUndoChange(undefined);
+                    }
+                }}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{locConstants.schemaDesigner.deleteConfirmation}</DialogTitle>
+                        <DialogContent>
+                            {locConstants.schemaDesigner.deleteConfirmationContent}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    handleUndo();
+                                    setIsUndoDialogOpen(false);
+                                }}>
+                                {locConstants.schemaDesigner.undo}
+                            </Button>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setIsUndoDialogOpen(false)}>
+                                {locConstants.schemaDesigner.cancel}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
         </div>
     );
 };

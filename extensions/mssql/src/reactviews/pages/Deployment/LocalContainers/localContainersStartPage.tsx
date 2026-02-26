@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -34,11 +33,11 @@ const useStyles = makeStyles({
 
 export const LocalContainersStartPage = () => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const localContainersState = context?.state.deploymentTypeState;
+    const loadState = useDeploymentSelector((s) => s.deploymentTypeState?.loadState);
+    const errorMessage = useDeploymentSelector((s) => s.deploymentTypeState?.errorMessage);
 
     const renderMainContent = () => {
-        switch (localContainersState?.loadState) {
+        switch (loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -54,7 +53,7 @@ export const LocalContainersStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }

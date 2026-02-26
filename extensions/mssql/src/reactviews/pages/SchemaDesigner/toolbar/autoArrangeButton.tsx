@@ -12,6 +12,7 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -19,7 +20,7 @@ import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Node, Edge, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { flowUtils } from "../schemaDesignerUtils";
+import { layoutFlowComponents } from "../model";
 import eventBus from "../schemaDesignerEvents";
 
 export function AutoArrangeButton() {
@@ -30,7 +31,7 @@ export function AutoArrangeButton() {
         eventBus.emit("pushState");
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-        const generateComponenets = flowUtils.generatePositions(nodes, edges);
+        const generateComponenets = layoutFlowComponents(nodes, edges);
         reactFlow.setNodes(generateComponenets.nodes);
         reactFlow.setEdges(generateComponenets.edges);
         context.resetView();
@@ -41,13 +42,14 @@ export function AutoArrangeButton() {
     return (
         <Dialog>
             <DialogTrigger>
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    icon={<FluentIcons.Flowchart16Regular />}
-                    title={locConstants.schemaDesigner.autoArrange}>
-                    {locConstants.schemaDesigner.autoArrange}
-                </Button>
+                <Tooltip content={locConstants.schemaDesigner.autoArrange} relationship="label">
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.Flowchart16Regular />}>
+                        {locConstants.schemaDesigner.autoArrange}
+                    </Button>
+                </Tooltip>
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>

@@ -49,7 +49,7 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { restartContainer } from "../deployment/dockerUtils";
+import { restartSqlServerContainer } from "../deployment/sqlServerContainer";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
@@ -720,7 +720,7 @@ export class ObjectExplorerService {
             try {
                 const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 // start docker and docker container
-                const successfullyRunning = await restartContainer(
+                const successfullyRunning = await restartSqlServerContainer(
                     connectionProfile.containerName,
                     containerNode,
                     this,

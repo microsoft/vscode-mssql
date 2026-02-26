@@ -28,7 +28,9 @@ export class Common {
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
+export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
@@ -135,6 +137,9 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
     });
 }
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
+export let msgConnectionInProgress = l10n.t(
+    "A connection is already being established. Please wait for it to complete before running a query.",
+);
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
     'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.',
@@ -614,36 +619,6 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
-export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
-export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
-export function searchObjectsNoResultsMessage(term: string) {
-    return l10n.t({
-        message: "No database objects found matching '{0}'",
-        args: [term],
-        comment: ["{0} is the search term"],
-    });
-}
-export let searchObjectsError = l10n.t("An error occurred while searching database objects");
-export function searchObjectsErrorWithDetail(detail: string) {
-    return l10n.t({
-        message: "An error occurred while searching database objects: {0}",
-        args: [detail],
-        comment: ["{0} is the error detail returned from the search operation"],
-    });
-}
-export let searchObjectsNoConnection = l10n.t(
-    "No active database connection. Please connect to a database first.",
-);
-export function searchObjectsSelectPrompt(count: string | number) {
-    return l10n.t({
-        message: "Select an object to view its definition ({0} results)",
-        args: [count],
-        comment: ["{0} is the number of results"],
-    });
-}
-export let searchObjectsInvalidConnectionUri = l10n.t(
-    "Invalid connection URI. Please ensure you have an active database connection.",
-);
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");
@@ -674,6 +649,109 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 }
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 export let newDeployment = l10n.t("New Deployment");
+
+export class Notebooks {
+    // Status bar
+    public static statusBarNotConnected = l10n.t("SQL: Not connected");
+    public static statusBarClickToChangeDatabase = l10n.t(
+        "SQL Notebooks: click to change database",
+    );
+    public static statusBarClickToConnect = l10n.t("SQL Notebooks: click to connect");
+
+    // Errors
+    public static connectionFailed = l10n.t("Connection failed");
+    public static queryExecutionFailed = l10n.t("Query execution failed");
+    public static noActiveNotebook = l10n.t("No active notebook.");
+    public static noActiveConnection = l10n.t("No active connection.");
+    public static noConnectionSelected = l10n.t("No connection selected.");
+
+    // Execution results
+    public static rowsAffected(count: number) {
+        return l10n.t({
+            message: "({0} row(s) affected)",
+            args: [count],
+            comment: ["{0} is the number of rows affected"],
+        });
+    }
+    public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
+    public static zeroRows = l10n.t("(0 rows)");
+    public static rowCountPlain(count: number) {
+        if (count === 1) {
+            return l10n.t({
+                message: "({0} row)",
+                args: [count],
+                comment: ["{0} is the number of rows (singular)"],
+            });
+        }
+        return l10n.t({
+            message: "({0} rows)",
+            args: [count],
+            comment: ["{0} is the number of rows (plural)"],
+        });
+    }
+
+    // Magic commands
+    public static disconnected = l10n.t("Disconnected.");
+    public static connectedTo(label: string) {
+        return l10n.t({
+            message: "Connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static switchedTo(label: string) {
+        return l10n.t({
+            message: "Switched to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static noDatabaseSelected = l10n.t("No database selected.");
+    public static unknownMagicCommand(cmd: string) {
+        return l10n.t({
+            message: "Unknown magic command: %%{0}",
+            args: [cmd],
+            comment: ["{0} is the magic command name"],
+        });
+    }
+
+    // UI
+    public static selectDatabase = l10n.t("Select Database");
+    public static chooseDatabasePlaceholder = l10n.t("Choose a database");
+    public static currentDatabaseLabel = l10n.t("(current)");
+
+    // Code lens
+    public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
+    public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
+
+    // Info
+    public static notebookConnectedTo(label: string) {
+        return l10n.t({
+            message: "SQL Notebook connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static errorPrefix(msg: string) {
+        return l10n.t({
+            message: "Error: {0}",
+            args: [msg],
+            comment: ["{0} is the error message"],
+        });
+    }
+
+    // Cancellation
+    public static executionCancelled = l10n.t("Query execution was cancelled.");
+
+    // Controller
+    public static controllerDescription = l10n.t("Execute SQL against SQL Server / Azure SQL");
+
+    // General
+    public static notConnected = l10n.t("Not connected");
+
+    // Renderer
+    public static parseError = l10n.t("Error: Failed to parse query result data.");
+}
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
@@ -1332,12 +1410,39 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static sqlServer2025ArmError = l10n.t(
-        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
+    // DAB (Data API Builder) deployment strings
+    public static dabContainerNameInvalidOrInUse = l10n.t(
+        "Container name is invalid or already in use",
     );
-    public static sqlServer2025ArmErrorTooltip = l10n.t(
-        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+    public static dabPortAlreadyInUse = (port: number) =>
+        l10n.t({
+            message: "Port {0} is already in use",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
+    public static dabStartContainerMissingParams = l10n.t(
+        "Container name, port, and config content are required to start the container.",
     );
+    public static dabFailedToStartContainer = l10n.t("Failed to start DAB container.");
+    public static dabCheckContainerMissingParams = l10n.t(
+        "Container name and port are required to check container readiness.",
+    );
+    public static dabUnknownDeploymentStep = (step: number) =>
+        l10n.t({
+            message: "Unknown deployment step: {0}",
+            args: [step],
+            comment: ["{0} is the deployment step number"],
+        });
+    public static dabPullImageError = l10n.t(
+        "Failed to pull DAB container image. Please check your network connection.",
+    );
+    public static dabStartContainerError = l10n.t(
+        "Failed to start DAB container. Please check the Docker logs for details.",
+    );
+    public static dabContainerReadyTimeout = l10n.t(
+        "DAB container failed to become ready within the timeout period.",
+    );
+    public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
 }
 
 export class UserSurvey {
@@ -1392,7 +1497,7 @@ export class TableDesigner {
 }
 
 export class PublishProject {
-    public static Title = l10n.t("Publish Project (Preview)");
+    public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");
@@ -1403,8 +1508,8 @@ export class PublishProject {
     public static DatabaseRequiredMessage = l10n.t("Database name is required");
     public static SqlCmdVariablesLabel = l10n.t("SQLCMD Variables");
     public static PublishTargetLabel = l10n.t("Publish Target");
-    public static PublishTargetExisting = l10n.t("Existing SQL server");
-    public static PublishTargetContainer = l10n.t("New SQL Server Local development container");
+    public static PublishTargetExisting = l10n.t("Existing SQL Server");
+    public static PublishTargetContainer = l10n.t("New Local Docker SQL Server");
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
@@ -1450,6 +1555,10 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToConnectToServer = l10n.t("Failed to connect to server");
+    public static ConnectionProfileNotFound = l10n.t(
+        "Connection profile not found. Please create a new connection using the Connection Dialog.",
+    );
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
@@ -1463,9 +1572,18 @@ export class PublishProject {
     public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
         return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
     }
+    public static FailedToGetConnectionString(errorMessage: string) {
+        return l10n.t("Failed to get connection string: {0}", errorMessage);
+    }
+    public static NoActiveConnection = l10n.t("No active connection");
     public static DacpacPathNotFound = l10n.t(
         "DACPAC path not found. Please build the project first.",
     );
+}
+
+export class CodeAnalysis {
+    public static Title = l10n.t("Code Analysis");
+    public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
 }
 
 export class SchemaCompare {
@@ -1886,6 +2004,85 @@ export class MssqlChatAgent {
     };
     public static unknownConnection = l10n.t("Unknown Connection");
     public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
+    public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
+    public static schemaDesignerToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on the schema designer?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static schemaDesignerToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on schema designer",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on Data API Builder?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static dabToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on Data API Builder",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static schemaDesignerNoActiveDesigner = l10n.t(
+        "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+    );
+    public static schemaDesignerStaleState = l10n.t(
+        "Schema designer state changed. Fetch the latest schema and retry the operation.",
+    );
+    public static schemaDesignerMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open the schema designer.",
+    );
+    public static schemaDesignerAddTableSuccess = l10n.t(
+        "Table added to schema designer successfully.",
+    );
+    public static schemaDesignerAddTableFailed = l10n.t("Failed to add table to schema designer.");
+    public static schemaDesignerUpdateTableSuccess = l10n.t(
+        "Table updated in schema designer successfully.",
+    );
+    public static schemaDesignerUpdateTableFailed = l10n.t(
+        "Failed to update table in schema designer.",
+    );
+    public static schemaDesignerDeleteTableSuccess = l10n.t(
+        "Table deleted from schema designer successfully.",
+    );
+    public static schemaDesignerDeleteTableFailed = l10n.t(
+        "Failed to delete table from schema designer.",
+    );
+    public static schemaDesignerReplaceSchemaSuccess = l10n.t(
+        "Schema designer updated successfully.",
+    );
+    public static schemaDesignerReplaceSchemaFailed = l10n.t("Failed to update schema designer.");
+    public static schemaDesignerGetSchemaSuccess = l10n.t(
+        "Schema designer state retrieved successfully.",
+    );
+    public static schemaDesignerMissingSchema = l10n.t(
+        "Missing schema payload for replace_schema operation.",
+    );
+    public static schemaDesignerMissingTable = l10n.t(
+        "Missing table payload for update_table operation.",
+    );
+    public static schemaDesignerMissingDeleteTableTarget = l10n.t(
+        "Missing table target for delete_table operation. Provide tableId or tableName+schemaName.",
+    );
+    public static schemaDesignerUnknownOperation = (operation: string) => {
+        return l10n.t({
+            message:
+                "Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static getConnectionDetailsToolConfirmationTitle = l10n.t("Get Connection Details");
     public static getConnectionDetailsToolConfirmationMessage = (
         displayName: string,
@@ -2343,6 +2540,51 @@ export class DacpacDialog {
     }
 }
 
+export class SearchDatabase {
+    public static title = (serverName: string) =>
+        l10n.t({
+            message: "Search Database Objects - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+
+    public static failedToEstablishConnection = l10n.t("Failed to establish connection");
+
+    public static typeTable = l10n.t("Table");
+    public static typeView = l10n.t("View");
+    public static typeStoredProcedure = l10n.t("Stored Procedure");
+    public static typeFunction = l10n.t("Function");
+    public static typeUnknown = l10n.t("Unknown");
+
+    public static copiedToClipboard = (objectName: string) =>
+        l10n.t({
+            message: 'Copied "{0}" to clipboard',
+            args: [objectName],
+            comment: ["{0} is the object name"],
+        });
+
+    public static failedToScriptObject = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to script object: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenEditData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Edit Data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenModifyTable = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Modify Table: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}
+
 export class TableExplorer {
     public static unableToOpenTableExplorer = l10n.t(
         "Unable to open Table Explorer: No target node provided.",
@@ -2534,13 +2776,31 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
-    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationTitle = l10n.t(
+        "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    );
     public static adsMigrationDescription = l10n.t(
-        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+        "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
     public static editDataTitle = l10n.t("Edit Data (Preview)");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchDescription = l10n.t(
+        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    );
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreDescription = l10n.t(
+        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    );
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementDescription = l10n.t(
+        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    );
+    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerDescription = l10n.t(
+        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
@@ -2548,7 +2808,7 @@ export class Changelog {
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
     public static sqlProjPublishDescription = l10n.t(
         "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
@@ -2591,6 +2851,206 @@ export class Changelog {
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 }
 
+export class Profiler {
+    // Error messages
+    public static failedToLaunchProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to launch profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToStartProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to start profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToCreateSession = (error: string) =>
+        l10n.t({
+            message: "Failed to create profiler session: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static connectionError = (error: string) =>
+        l10n.t({
+            message: "Connection error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToConnect = l10n.t("Failed to connect to the selected server.");
+    public static noConnectionAvailable = l10n.t("No profiler connection available");
+    public static noSavedConnections = l10n.t(
+        "No saved connections found. Please create a connection first.",
+    );
+    public static noTemplatesAvailable = l10n.t("No profiler templates available");
+    public static sessionCreationTimedOut = l10n.t("Session creation timed out");
+
+    // XEL file error messages
+    public static failedToOpenXelFile = (error: string) =>
+        l10n.t({
+            message: "Failed to open XEL file: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static invalidXelFile = l10n.t("The selected file is not a valid XEL file.");
+    public static xelFileNotFound = l10n.t("The XEL file was not found.");
+    public static xelFileAccessDenied = l10n.t("Access to the XEL file was denied.");
+
+    // Validation messages
+    public static sessionNameEmpty = l10n.t("Session name cannot be empty");
+    public static sessionNameTooLong = (maxLength: number) =>
+        l10n.t({
+            message: "Session name must be {0} characters or less",
+            args: [maxLength],
+            comment: ["{0} is the maximum length"],
+        });
+    public static sessionNameInvalidChars = l10n.t(
+        "Session name can only contain letters, numbers, underscores, and hyphens",
+    );
+
+    // Quick pick and input prompts
+    public static selectTemplate = l10n.t("Select a profiler template");
+    public static newSessionSelectTemplate = l10n.t(
+        "New Query Profiler (Preview) - Select Template",
+    );
+    public static enterSessionName = l10n.t("Enter a name for the new profiler session");
+    public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
+    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
+    public static engineLabel = (engineType: string) =>
+        l10n.t({
+            message: "Engine: {0}",
+            args: [engineType],
+            comment: ["{0} is the engine type"],
+        });
+    public static selectXelFile = l10n.t("Select XEL File");
+    public static xelFileFilter = l10n.t("Extended Events Log Files");
+
+    // Success messages
+    public static sessionCreatedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' created successfully. Starting profiling...",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+    public static sessionStartedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' started successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+    public static profilerReady = l10n.t(
+        "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
+    );
+    public static stoppingSession = (sessionName: string) =>
+        l10n.t({
+            message: 'Stopping profiler session "{0}"...',
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+    public static loadingXelFile = (fileName: string) =>
+        l10n.t({
+            message: "Loading XEL file: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedNotification = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedTooltip = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+
+    // Status bar
+    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
+    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
+
+    // Panel titles
+    public static panelTitleWithSession = (name: string) =>
+        l10n.t({
+            message: "Query Profiler (Preview): {0}",
+            args: [name],
+            comment: ["{0} is the file name or session name"],
+        });
+    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
+    public static stateRunning = l10n.t("Running");
+    public static statePaused = l10n.t("Paused");
+    public static stateStopped = l10n.t("Stopped");
+    public static stateNotStarted = l10n.t("Not Started");
+    public static stateReadOnly = l10n.t("Read-Only");
+    public static eventsCount = (count: number) =>
+        l10n.t({
+            message: "{0} events",
+            args: [count],
+            comment: ["{0} is the number of events"],
+        });
+    public static eventsCountFiltered = (filtered: number, total: number) =>
+        l10n.t({
+            message: "{0}/{1} events",
+            args: [filtered, total],
+            comment: ["{0} is the filtered count, {1} is the total count"],
+        });
+    public static fileSessionLabel = (fileName: string) =>
+        l10n.t({
+            message: "File: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+
+    // Details panel
+    public static failedToOpenInEditor = (error: string) =>
+        l10n.t({
+            message: "Failed to open text in editor: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    // Export messages
+    public static defaultExportFileName = l10n.t("profiler_events");
+    public static exportToCsv = l10n.t("Export to CSV");
+    public static exportSuccess = (filePath: string) =>
+        l10n.t({
+            message: "Profiler events exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    public static openFile = l10n.t("Open File");
+    public static exportFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to export profiler events: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    public static copiedToClipboard = l10n.t("Copied to clipboard");
+    // Close prompt messages
+    public static unexportedEventsMessage = l10n.t(
+        "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    );
+    public static exportAndClose = l10n.t("Export & Close");
+    public static closeWithoutExport = l10n.t("Close Without Export");
+    public static closeSessionConfirmation = l10n.t(
+        "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
+    );
+    // Database selection for Azure SQL
+    public static selectDatabaseForProfiler = l10n.t(
+        "Select a database for profiling (Azure SQL requires a specific database)",
+    );
+    public static noDatabasesFound = l10n.t(
+        "No databases found on the server. Please check your connection.",
+    );
+    public static profilerNotSupportedOnFabric = l10n.t(
+        "Profiler is not supported on Microsoft Fabric SQL databases.",
+    );
+}
+
 export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
@@ -2607,4 +3067,191 @@ export class Proxy {
             args: [proxy, errorMessage],
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
+}
+
+export class BackupDatabase {
+    public static backupDatabaseTitle = (databaseName: string) =>
+        l10n.t({
+            message: "Backup Database - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static backupName = l10n.t("Backup Name");
+    public static recoveryModel = l10n.t("Recovery Model");
+    public static full = l10n.t("Full");
+    public static bulkLogged = l10n.t("Bulk-logged");
+    public static simple = l10n.t("Simple");
+    public static backupType = l10n.t("Backup Type");
+    public static differential = l10n.t("Differential");
+    public static transactionLog = l10n.t("Transaction Log");
+    public static copyOnly = l10n.t("Copy-only Backup");
+    public static saveToUrl = l10n.t("Save backup to URL");
+    public static azureAccount = l10n.t("Azure Account");
+    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static tenant = l10n.t("Tenant");
+    public static tenantIsRequired = l10n.t("Tenant is required");
+    public static storageAccount = l10n.t("Storage Account");
+    public static storageAccountIsRequired = l10n.t("Storage Account is required");
+    public static selectAStorageAccount = l10n.t("Select a storage account");
+    public static blobContainer = l10n.t("Blob Container");
+    public static selectABlobContainer = l10n.t("Select a blob container");
+    public static blobContainerIsRequired = l10n.t("Blob Container is required");
+    public static subscription = l10n.t("Subscription");
+    public static selectASubscription = l10n.t("Select a subscription");
+    public static subscriptionIsRequired = l10n.t("Subscription is required");
+    public static backupFiles = l10n.t("Backup Files");
+    public static compression = l10n.t("Compression");
+    public static backupCompression = l10n.t("Set backup Compression");
+    public static useDefault = l10n.t("Use the default server setting");
+    public static compressBackup = l10n.t("Compress backup");
+    public static doNotCompressBackup = l10n.t("Do not compress backup");
+    public static media = l10n.t("Media");
+    public static append = l10n.t("Append to the existing backup set");
+    public static overwrite = l10n.t("Overwrite all existing backup sets");
+    public static create = l10n.t("Backup to a new media set");
+    public static unavailableForBackupsToExistingFiles = l10n.t(
+        "Unavailable for backups to existing files",
+    );
+    public static pleaseChooseValidMediaOption = l10n.t("Please choose a valid media option");
+    public static backupMediaSet = l10n.t("Set backup Media Set");
+    public static newMediaSetName = l10n.t("New media set name");
+    public static mediaSetNameIsRequired = l10n.t("Media set name is required");
+    public static newMediaSetDescription = l10n.t("New media set description");
+    public static mediaSetDescriptionIsRequired = l10n.t("Media set description is required");
+    public static reliability = l10n.t("Reliability");
+    public static performChecksum = l10n.t("Perform checksum before writing to media");
+    public static verifyBackup = l10n.t("Verify backup when finished");
+    public static continueOnError = l10n.t("Continue on error");
+    public static truncateLog = l10n.t("Truncate the transaction log");
+    public static backupTail = l10n.t("Backup the tail of the log");
+    public static expiration = l10n.t("Expiration");
+    public static retainDays = l10n.t("Set backup retain days");
+    public static encryption = l10n.t("Encryption");
+    public static enableEncryption = l10n.t("Use encryption for this backup");
+    public static encryptionAlgorithm = l10n.t("Encryption Algorithm");
+    public static encryptionType = l10n.t("Encryption Type");
+    public static backupFileTypes = l10n.t("Backup Files (*.bak, *.log, *.trn)");
+    public static allFiles = l10n.t("All Files (*.*)");
+    public static noTenantsFound = l10n.t("No tenants found");
+    public static noSubscriptionsFound = l10n.t("No subscriptions found");
+    public static noStorageAccountsFound = l10n.t("No storage accounts found");
+    public static noBlobContainersFound = l10n.t("No blob containers found");
+    public static generatingSASKeyFailedWithError = (errorMessage: string) => {
+        return l10n.t({
+            message: "Generating SAS key failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+    public static unableToLoadBackupConfig = l10n.t(
+        "Unable to load backup configuration. Please try again.",
+    );
+    public static couldNotConnectToDatabase = (database: string) => {
+        return l10n.t({
+            message: "Could not connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for backup.",
+    );
+}
+
+export class FlatFileImport {
+    public static serviceStarting = (serviceName: string) =>
+        l10n.t({
+            message: "Starting '{0}'...",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStarted = (serviceName: string) =>
+        l10n.t({
+            message: "'{0}' started.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
+        l10n.t({
+            message: "Failed to start '{0}': {1}",
+            args: [serviceName, errorMessage],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
+    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
+    public static newTableName = l10n.t("New Table Name");
+    public static tableSchema = l10n.t("Table Schema");
+    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
+    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
+    public static selectFileToImport = l10n.t("Select file to import");
+    public static databaseRequired = l10n.t("Database is required");
+    public static importFileRequired = l10n.t("Import file is required");
+    public static tableNameRequired = l10n.t("Table name is required");
+    public static schemaRequired = l10n.t("Schema is required");
+    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
+    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
+    public static loadingSchemas = l10n.t("Loading schemas...");
+    public static noSchemasFound = l10n.t("No schemas found");
+    public static importFailed = l10n.t("Failed to import file.");
+    public static flatFilePathTooltip = l10n.t(
+        "Please ensure the file is not open in another application before importing",
+    );
+}
+
+export class RestoreDatabase {
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static sourceDatabase = l10n.t("Source Database");
+    public static targetDatabase = l10n.t("Target Database");
+    public static files = l10n.t("Files");
+    public static relocateDbFiles = l10n.t("Relocate all files");
+    public static general = l10n.t("General");
+    public static overwriteExistingDb = l10n.t("Overwrite the existing database");
+    public static overwriteExistingDbTooltip = l10n.t(
+        "Uses the WITH REPLACE option during restore",
+    );
+    public static preserveReplicationSettings = l10n.t("Preserve the replication settings");
+    public static preserveReplicationSettingsTooltip = l10n.t(
+        "Uses the WITH KEEP_REPLICATION option during restore",
+    );
+    public static restrictAccessToRestoredDb = l10n.t("Restrict access to the restored database");
+    public static restrictAccessToRestoredDbTooltip = l10n.t(
+        "Uses the WITH RESTRICTED_USER option during restore",
+    );
+    public static recoveryState = l10n.t("Recovery state");
+    public static restoreWithRecovery = l10n.t("RESTORE WITH RECOVERY");
+    public static restoreWithNoRecovery = l10n.t("RESTORE WITH NORECOVERY");
+    public static restoreWithStandby = l10n.t("RESTORE WITH STANDBY");
+    public static dataFileFolder = l10n.t("Data file folder");
+    public static logFileFolder = l10n.t("Log file folder");
+    public static standbyFile = l10n.t("Standby file");
+    public static tailLogBackup = l10n.t("Tail-log backup");
+    public static takeTailLogBackup = l10n.t("Take tail-log backup before restore");
+    public static leaveSourceDatabase = l10n.t("Leave the source database in the restoring state");
+    public static leaveSourceDatabaseTooltip = l10n.t(
+        "Uses the WITH NORECOVERY option during restore",
+    );
+    public static tailLogBackupFile = l10n.t("Tail-log backup file");
+    public static serverConnections = l10n.t("Server Connections");
+    public static closeExistingConnections = l10n.t(
+        "Close existing connections to destination database",
+    );
+    public static blob = l10n.t("Blob");
+    public static selectABlob = l10n.t("Select a blob");
+    public static blobIsRequired = l10n.t("Blob is required");
+    public static blobDatabaseError = l10n.t("Blob does not contain a valid database backup");
+    public static noBlobsFound = l10n.t("No blobs found");
+    public static backupFileDatabaseError = l10n.t(
+        "Selected backup file does not contain a valid database backup",
+    );
+    public static cannotGenerateScriptWithNoRestorePlan = l10n.t(
+        "Cannot generate script without a restore plan",
+    );
+    public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
+        "Please choose at least one backup set to restore",
+    );
+    public static noDatabasesWithBackups = l10n.t("No databases with backups found");
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for restore.",
+    );
 }

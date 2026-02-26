@@ -50,17 +50,18 @@ export function canRevertChange(
     _allChanges: SchemaChange[],
     messages: RevertMessages,
 ): CanRevertResult {
-    // For foreign key deletions, check if referenced table/column still exists
-    if (change.category === ChangeCategory.ForeignKey && change.action === ChangeAction.Delete) {
+    // For foreign key deletions/modifications, check if referenced table/column still exists
+    if (
+        change.category === ChangeCategory.ForeignKey &&
+        (change.action === ChangeAction.Delete || change.action === ChangeAction.Modify)
+    ) {
         const baselineTable = baselineSchema.tables.find((t) => t.id === change.tableId);
         const baselineFk = baselineTable?.foreignKeys?.find((fk) => fk.id === change.objectId);
 
         if (baselineFk) {
             // Check if the referenced table still exists in current schema
             const referencedTableExists = currentSchema.tables.some(
-                (table) =>
-                    table.schema === baselineFk.referencedSchemaName &&
-                    table.name === baselineFk.referencedTableName,
+                (table) => table.id === baselineFk.referencedTableId,
             );
 
             if (!referencedTableExists) {
@@ -69,15 +70,16 @@ export function canRevertChange(
 
             // Check if the referenced columns still exist
             const referencedTable = currentSchema.tables.find(
-                (table) =>
-                    table.schema === baselineFk.referencedSchemaName &&
-                    table.name === baselineFk.referencedTableName,
+                (table) => table.id === baselineFk.referencedTableId,
             );
 
             if (referencedTable) {
-                const missingColumns = baselineFk.referencedColumns.filter(
-                    (col) => !referencedTable.columns.some((c) => c.name === col),
+                const referencedColumnIds = baselineFk.referencedColumnsIds ?? [];
+
+                const missingColumns = referencedColumnIds.filter(
+                    (columnId) => !referencedTable.columns.some((column) => column.id === columnId),
                 );
+
                 if (missingColumns.length > 0) {
                     return { canRevert: false, reason: messages.cannotRevertForeignKey };
                 }

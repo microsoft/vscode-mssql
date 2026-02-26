@@ -1,0 +1,92 @@
+{
+    "name": "mssql-database-management-keymap",
+    "displayName": "MSSQL Database Management Keymap",
+    "description": "Provides MSSQL database management-oriented default keybindings for the SQL Server (mssql) extension",
+    "version": "0.1.0",
+    "publisher": "ms-mssql",
+    "preview": true,
+    "license": "SEE LICENSE IN LICENSE.txt",
+    "icon": "images/extensionIcon.png",
+    "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
+    "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/database-management-keymap/README.md",
+    "categories": [
+        "Keymaps"
+    ],
+    "keywords": [
+        "Azure Data Studio",
+        "ADS",
+        "AzureDataStudio"
+    ],
+    "engines": {
+        "vscode": "^1.98.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Microsoft/vscode-mssql.git"
+    },
+    "bugs": {
+        "url": "https://github.com/Microsoft/vscode-mssql/issues"
+    },
+    "extensionDependencies": [
+        "ms-mssql.mssql"
+    ],
+    "scripts": {
+        "package": "vsce package --no-yarn"
+    },
+    "contributes": {
+        "keybindings": [
+            {
+                "command": "mssql.runQuery",
+                "key": "f5",
+                "mac": "f5",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.runCurrentStatement",
+                "key": "ctrl+f5",
+                "mac": "cmd+f5",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.cancelQuery",
+                "key": "alt+pausebreak"
+            },
+            {
+                "command": "mssql.showEstimatedPlan",
+                "key": "ctrl+l",
+                "mac": "cmd+l",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.toggleActualPlan",
+                "key": "ctrl+m",
+                "mac": "cmd+m",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.newQuery",
+                "key": "ctrl+n",
+                "mac": "cmd+n"
+            },
+            {
+                "command": "mssql.copyAll",
+                "key": "ctrl+k ctrl+v",
+                "mac": "cmd+k cmd+v"
+            },
+            {
+                "command": "workbench.view.extension.objectExplorer",
+                "key": "ctrl+shift+d",
+                "mac": "cmd+shift+d"
+            },
+            {
+                "command": "queryResult.focus",
+                "key": "shift+win+r",
+                "mac": "shift+cmd+r",
+                "linux": "shift+meta+r"
+            }
+        ]
+    },
+    "devDependencies": {
+        "@vscode/vsce": "^3.1.1"
+    }
+}

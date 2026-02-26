@@ -16,6 +16,7 @@ import {
     makeStyles,
     MessageBar,
     Spinner,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -24,6 +25,7 @@ import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useMarkdownStyles } from "../../../common/styles";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -64,8 +66,10 @@ export function PublishChangesDialogButton() {
     const classes = useStyles();
     const markdownClasses = useMarkdownStyles();
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
+    const hasSchemaChanges = changeContext.schemaChangesCount > 0;
     if (!context) {
         return undefined;
     }
@@ -84,50 +88,51 @@ export function PublishChangesDialogButton() {
      */
     const triggerButton = () => {
         return (
-            <Button
-                size="small"
-                appearance="primary"
-                icon={<FluentIcons.Save16Regular />}
-                title={locConstants.schemaDesigner.publishChanges}
-                disabled={publishButtonDisabled}
-                onClick={async () => {
-                    setState({
-                        ...state,
-                        currentStage: PublishDialogStages.ReportLoading,
-                        reportError: undefined,
-                        isConfirmationChecked: false,
-                    });
-                    setPublishButtonDisabled(true);
-                    const getReportResponse = await context.getReport();
-                    if (getReportResponse?.error) {
+            <Tooltip content={locConstants.schemaDesigner.publishChanges} relationship="label">
+                <Button
+                    appearance="primary"
+                    size="small"
+                    icon={<FluentIcons.Save16Regular />}
+                    disabled={publishButtonDisabled || !hasSchemaChanges}
+                    onClick={async () => {
                         setState({
                             ...state,
-                            currentStage: PublishDialogStages.ReportError,
-                            reportError: getReportResponse.error,
+                            currentStage: PublishDialogStages.ReportLoading,
+                            reportError: undefined,
+                            isConfirmationChecked: false,
                         });
-                    } else {
-                        if (!getReportResponse?.report.hasSchemaChanged) {
+                        setPublishButtonDisabled(true);
+                        const getReportResponse = await context.getReport();
+                        if (getReportResponse?.error) {
                             setState({
                                 ...state,
-                                currentStage: PublishDialogStages.ReportSuccessNoChanges,
-                                reportError: undefined,
-                                report: getReportResponse?.report,
+                                currentStage: PublishDialogStages.ReportError,
+                                reportError: getReportResponse.error,
                             });
                         } else {
-                            setState({
-                                ...state,
-                                currentStage: PublishDialogStages.ReportSuccessWithChanges,
-                                reportError: undefined,
-                                report: getReportResponse.report,
-                                isConfirmationChecked: false,
-                            });
+                            if (!getReportResponse?.report.hasSchemaChanged) {
+                                setState({
+                                    ...state,
+                                    currentStage: PublishDialogStages.ReportSuccessNoChanges,
+                                    reportError: undefined,
+                                    report: getReportResponse?.report,
+                                });
+                            } else {
+                                setState({
+                                    ...state,
+                                    currentStage: PublishDialogStages.ReportSuccessWithChanges,
+                                    reportError: undefined,
+                                    report: getReportResponse.report,
+                                    isConfirmationChecked: false,
+                                });
+                            }
                         }
-                    }
-                    setOpen(true);
-                    setPublishButtonDisabled(false);
-                }}>
-                {locConstants.schemaDesigner.publishChanges}
-            </Button>
+                        setOpen(true);
+                        setPublishButtonDisabled(false);
+                    }}>
+                    {locConstants.schemaDesigner.publishChanges}
+                </Button>
+            </Tooltip>
         );
     };
 

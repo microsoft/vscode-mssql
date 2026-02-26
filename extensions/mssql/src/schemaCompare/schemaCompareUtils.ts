@@ -29,7 +29,7 @@ export const sqlDatabaseProjectsPublishChanges =
 /**
  * Generates a unique operation ID.
  *
- * @returns {string} A new GUID representing the operation ID.
+ * @returns A new GUID representing the operation ID.
  */
 export function generateOperationId(): string {
     return generateGuid();
@@ -275,20 +275,6 @@ export async function publishProjectChanges(
         payload.targetFolderStructure,
         payload.taskExecutionMode,
     );
-
-    return result;
-}
-
-/**
- * Retrieves the default schema compare options from the provided schema compare service.
- *
- * @param schemaCompareService - The service used to get the default schema compare options.
- * @returns A promise that resolves to the default schema compare options result.
- */
-export async function getDefaultOptions(
-    schemaCompareService: mssql.ISchemaCompareService,
-): Promise<mssql.SchemaCompareOptionsResult> {
-    const result = await schemaCompareService.schemaCompareGetDefaultOptions();
 
     return result;
 }

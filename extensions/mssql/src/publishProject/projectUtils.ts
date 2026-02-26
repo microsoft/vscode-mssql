@@ -10,7 +10,8 @@ import * as path from "path";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
 import { DOMParser } from "@xmldom/xmldom";
-import { getSqlServerContainerVersions, dockerLogger } from "../deployment/dockerUtils";
+import { dockerLogger } from "../docker/dockerUtils";
+import { getSqlServerContainerVersions } from "../deployment/sqlServerContainer";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
@@ -156,6 +157,7 @@ export async function readProjectProperties(
             targetVersion: version,
             projectFilePath: projectFilePath,
             dacpacOutputPath: dacpacOutputPath,
+            projectName: projectName,
         };
     } catch {
         return undefined;

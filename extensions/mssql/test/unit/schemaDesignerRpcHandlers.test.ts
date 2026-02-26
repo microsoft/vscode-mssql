@@ -1,0 +1,1004 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { expect } from "chai";
+import * as sinon from "sinon";
+import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
+import { registerSchemaDesignerApplyEditsHandler } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
+import { normalizeColumn } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { locConstants } from "../../src/reactviews/common/locConstants";
+
+suite("schemaDesignerRpcHandlers", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    const createApplyEditsHarness = (initialSchema: SchemaDesigner.Schema) => {
+        let currentSchema: SchemaDesigner.Schema = initialSchema;
+
+        const applyHandlerStub = sandbox.stub();
+        const extensionRpc = {
+            onRequest: sandbox.stub().callsFake((_type: any, handler: any) => {
+                applyHandlerStub.callsFake(handler);
+            }),
+        };
+
+        const onMaybeAutoArrange = sandbox.stub();
+        const onRequestScriptRefresh = sandbox.stub();
+
+        const addTable = sandbox.stub().callsFake(async (table: SchemaDesigner.Table) => {
+            currentSchema = { tables: [...currentSchema.tables, { ...table, foreignKeys: [] }] };
+            return true;
+        });
+
+        const updateTable = sandbox.stub().callsFake(async (table: SchemaDesigner.Table) => {
+            currentSchema = {
+                tables: currentSchema.tables.map((t) => (t.id === table.id ? table : t)),
+            };
+            return true;
+        });
+
+        const deleteTable = sandbox.stub().callsFake(async (table: SchemaDesigner.Table) => {
+            currentSchema = { tables: currentSchema.tables.filter((t) => t.id !== table.id) };
+            return true;
+        });
+
+        registerSchemaDesignerApplyEditsHandler({
+            isInitialized: true,
+            extensionRpc: extensionRpc as any,
+            schemaNames: ["dbo"],
+            datatypes: [],
+            waitForNextFrame: async () => {},
+            extractSchema: () => currentSchema,
+            onMaybeAutoArrange,
+            addTable,
+            updateTable,
+            deleteTable,
+            normalizeColumn: (c) => normalizeColumn(c),
+            normalizeTable: (t) => t,
+            validateTable: () => undefined,
+            onPushUndoState: sandbox.stub(),
+            onRequestScriptRefresh,
+        });
+
+        return {
+            applyEdits: (edits: SchemaDesigner.SchemaDesignerEdit[]) => applyHandlerStub({ edits }),
+            onMaybeAutoArrange,
+            onRequestScriptRefresh,
+            getSchema: () => currentSchema,
+        };
+    };
+
+    test("apply_edits handler calls onMaybeAutoArrange with table/fk pre+post counts", async () => {
+        const { applyEdits, onMaybeAutoArrange } = createApplyEditsHarness({ tables: [] });
+
+        const edits: SchemaDesigner.SchemaDesignerEdit[] = [
+            { op: "add_table", table: { schema: "dbo", name: "T1" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T2" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T3" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T4" } } as any,
+            { op: "add_table", table: { schema: "dbo", name: "T5" } } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T3" },
+                foreignKey: {
+                    name: "FK_T3_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T4" },
+                foreignKey: {
+                    name: "FK_T4_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ];
+
+        const result = await applyEdits(edits);
+        expect(result.success).to.equal(true);
+
+        expect(onMaybeAutoArrange.calledOnce).to.equal(true);
+        expect(onMaybeAutoArrange.getCall(0).args).to.deep.equal([0, 5, 0, 3]);
+    });
+
+    test("apply_edits handler counts existing foreign keys in preSchema", async () => {
+        const { applyEdits, onMaybeAutoArrange } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "T1",
+                    columns: [normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [],
+                },
+                {
+                    id: "t2",
+                    schema: "dbo",
+                    name: "T2",
+                    columns: [normalizeColumn({ id: "c2", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [
+                        {
+                            id: "fk0",
+                            name: "FK_existing",
+                            columnsIds: ["c2"],
+                            referencedTableId: "t1",
+                            referencedColumnsIds: ["c1"],
+                            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                        },
+                    ],
+                },
+            ],
+        });
+
+        const edits: SchemaDesigner.SchemaDesignerEdit[] = [
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_new",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ];
+
+        const result = await applyEdits(edits);
+        expect(result.success).to.equal(true);
+
+        expect(onMaybeAutoArrange.calledOnce).to.equal(true);
+        expect(onMaybeAutoArrange.getCall(0).args).to.deep.equal([2, 2, 1, 2]);
+    });
+
+    test("add_column fails when table ref is not found (covers resolved.success===false)", async () => {
+        const { applyEdits, onRequestScriptRefresh } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "T1",
+                    columns: [normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_column",
+                table: { schema: "dbo", name: "Missing" },
+                column: { name: "C1", dataType: "int" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+        expect(onRequestScriptRefresh.called).to.equal(false);
+    });
+
+    test("drop_table fails when table ref is not found (covers resolved.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "T1",
+                    columns: [normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "drop_table",
+                table: { schema: "dbo", name: "Missing" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_table fails when table ref is not found (covers resolved.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "T1",
+                    columns: [normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_table",
+                table: { schema: "dbo", name: "Missing" },
+                set: { name: "T2" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("add_foreign_key fails when mapping references missing source column (covers src.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits, onRequestScriptRefresh } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "DoesNotExist", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+        expect(onRequestScriptRefresh.called).to.equal(false);
+    });
+
+    test("add_foreign_key fails when mapping references missing referenced column (covers tgt.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits, onRequestScriptRefresh } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const missingRefCol = "MissingRef";
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: missingRefCol }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+        expect(result.message).to.equal(
+            locConstants.schemaDesigner.referencedColumnNotFound(missingRefCol),
+        );
+        expect(onRequestScriptRefresh.called).to.equal(false);
+    });
+
+    test("add_foreign_key fails when referenced table is missing (covers referenced.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_Missing",
+                    referencedTable: { schema: "dbo", name: "Missing" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("add_foreign_key fails on empty mappings (covers mappingsResult.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("validation_error");
+    });
+
+    test("add_foreign_key fails on invalid mapping item (covers invalid_request mapping shape)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: {
+                    name: "FK_T2_T1",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{}],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("invalid_request");
+    });
+
+    test("drop_foreign_key fails when foreign key is missing (covers resolvedForeignKey.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "drop_foreign_key",
+                table: { schema: "dbo", name: "T1" },
+                foreignKey: { name: "FK_missing" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key fails when foreign key is missing (covers resolvedForeignKey.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T1" },
+                foreignKey: { name: "FK_missing" },
+                name: "FK_new",
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key accepts simplified top-level update fields", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_T2_T1",
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [fk] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: { id: "fk1", name: "FK_T2_T1" },
+                name: "FK_T2_T1_Updated",
+                onDeleteAction: SchemaDesigner.OnAction.CASCADE,
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedForeignKey = getSchema()
+            .tables.find((table) => table.id === "t2")
+            ?.foreignKeys.find((foreignKey) => foreignKey.id === "fk1");
+        expect(updatedForeignKey?.name).to.equal("FK_T2_T1_Updated");
+        expect(updatedForeignKey?.onDeleteAction).to.equal(SchemaDesigner.OnAction.CASCADE);
+    });
+
+    test("add_foreign_key fails when source table is missing (covers resolvedTable.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "Missing" },
+                foreignKey: {
+                    name: "FK_missing",
+                    referencedTable: { schema: "dbo", name: "T1" },
+                    mappings: [{ column: "Id", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("drop_foreign_key fails when table is missing (covers resolvedTable.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "drop_foreign_key",
+                table: { schema: "dbo", name: "Missing" },
+                foreignKey: { name: "FK_missing" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key fails when table is missing (covers resolvedTable.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "Missing" },
+                foreignKey: { name: "FK_missing" },
+                name: "FK_new",
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("drop_column fails when column is missing (covers resolvedColumn.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "T1",
+                    columns: [normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "drop_column",
+                table: { schema: "dbo", name: "T1" },
+                column: { name: "MissingCol" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("drop_column fails when table is missing (covers resolvedTable.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "drop_column",
+                table: { schema: "dbo", name: "Missing" },
+                column: { name: "Id" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_column fails when column is missing (covers resolvedColumn.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "T1",
+                    columns: [normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any)],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_column",
+                table: { schema: "dbo", name: "T1" },
+                column: { name: "MissingCol" },
+                set: { isNullable: true },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_column fails when table is missing (covers resolvedTable.success===false)", async () => {
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_column",
+                table: { schema: "dbo", name: "Missing" },
+                column: { name: "Id" },
+                set: { isNullable: true },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_column updates only provided fields without defaulting other undefined properties", async () => {
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "Authors",
+                    columns: [
+                        {
+                            id: "c1",
+                            name: "Genre",
+                            dataType: "nvarchar",
+                            maxLength: "50",
+                            precision: undefined as unknown as number,
+                            scale: undefined as unknown as number,
+                            isPrimaryKey: false,
+                            isIdentity: false,
+                            identitySeed: undefined as unknown as number,
+                            identityIncrement: undefined as unknown as number,
+                            isNullable: true,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        } as unknown as SchemaDesigner.Column,
+                    ],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_column",
+                table: { schema: "dbo", name: "Authors" },
+                column: { name: "Genre" },
+                set: { maxLength: "80" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedColumn = getSchema().tables[0].columns[0] as unknown as Record<
+            string,
+            unknown
+        >;
+        expect(updatedColumn.maxLength).to.equal("80");
+        expect(updatedColumn.precision).to.equal(undefined);
+        expect(updatedColumn.scale).to.equal(undefined);
+        expect(updatedColumn.identitySeed).to.equal(undefined);
+        expect(updatedColumn.identityIncrement).to.equal(undefined);
+    });
+
+    test("set_table does not mutate columns when only table name changes", async () => {
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "Authors",
+                    columns: [
+                        {
+                            id: "c1",
+                            name: "Genre",
+                            dataType: "nvarchar",
+                            maxLength: "50",
+                            precision: undefined as unknown as number,
+                            scale: undefined as unknown as number,
+                            isPrimaryKey: false,
+                            isIdentity: false,
+                            identitySeed: undefined as unknown as number,
+                            identityIncrement: undefined as unknown as number,
+                            isNullable: true,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        } as unknown as SchemaDesigner.Column,
+                    ],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_table",
+                table: { schema: "dbo", name: "Authors" },
+                set: { name: "AuthorsRenamed" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedTable = getSchema().tables[0];
+        expect(updatedTable.name).to.equal("AuthorsRenamed");
+        const unchangedColumn = updatedTable.columns[0] as unknown as Record<string, unknown>;
+        expect(unchangedColumn.precision).to.equal(undefined);
+        expect(unchangedColumn.scale).to.equal(undefined);
+        expect(unchangedColumn.identitySeed).to.equal(undefined);
+        expect(unchangedColumn.identityIncrement).to.equal(undefined);
+    });
+
+    test("add_column does not mutate untouched column undefined fields", async () => {
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "Authors",
+                    columns: [
+                        {
+                            id: "c1",
+                            name: "Genre",
+                            dataType: "nvarchar",
+                            maxLength: "50",
+                            precision: undefined as unknown as number,
+                            scale: undefined as unknown as number,
+                            isPrimaryKey: false,
+                            isIdentity: false,
+                            identitySeed: undefined as unknown as number,
+                            identityIncrement: undefined as unknown as number,
+                            isNullable: true,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        } as unknown as SchemaDesigner.Column,
+                    ],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "add_column",
+                table: { schema: "dbo", name: "Authors" },
+                column: { name: "Name", dataType: "nvarchar", maxLength: "100" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const unchanged = getSchema().tables[0].columns.find((c) => c.id === "c1") as unknown as
+            | Record<string, unknown>
+            | undefined;
+        expect(unchanged).to.not.equal(undefined);
+        expect(unchanged?.precision).to.equal(undefined);
+        expect(unchanged?.scale).to.equal(undefined);
+        expect(unchanged?.identitySeed).to.equal(undefined);
+        expect(unchanged?.identityIncrement).to.equal(undefined);
+    });
+
+    test("drop_column does not mutate untouched column undefined fields", async () => {
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t1",
+                    schema: "dbo",
+                    name: "Authors",
+                    columns: [
+                        {
+                            id: "c1",
+                            name: "Genre",
+                            dataType: "nvarchar",
+                            maxLength: "50",
+                            precision: undefined as unknown as number,
+                            scale: undefined as unknown as number,
+                            isPrimaryKey: false,
+                            isIdentity: false,
+                            identitySeed: undefined as unknown as number,
+                            identityIncrement: undefined as unknown as number,
+                            isNullable: true,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        } as unknown as SchemaDesigner.Column,
+                        normalizeColumn({ id: "c2", name: "DropMe", dataType: "int" } as any),
+                    ],
+                    foreignKeys: [],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "drop_column",
+                table: { schema: "dbo", name: "Authors" },
+                column: { name: "DropMe" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const unchanged = getSchema().tables[0].columns.find((c) => c.id === "c1") as unknown as
+            | Record<string, unknown>
+            | undefined;
+        expect(unchanged).to.not.equal(undefined);
+        expect(unchanged?.precision).to.equal(undefined);
+        expect(unchanged?.scale).to.equal(undefined);
+        expect(unchanged?.identitySeed).to.equal(undefined);
+        expect(unchanged?.identityIncrement).to.equal(undefined);
+    });
+
+    test("set_foreign_key fails when referenced table update is missing (covers referenced.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_T2_T1",
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [fk] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: { name: "FK_T2_T1" },
+                referencedTable: { schema: "dbo", name: "Missing" },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key updates only provided fields without mutating untouched FK properties", async () => {
+        const c1 = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const c2 = normalizeColumn({ id: "c2", name: "AuthorId", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_Authors_Books",
+            columnsIds: ["c2"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits, getSchema } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "Authors", columns: [c1], foreignKeys: [] },
+                {
+                    id: "t2",
+                    schema: "dbo",
+                    name: "Books",
+                    columns: [c2],
+                    foreignKeys: [fk],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "Books" },
+                foreignKey: { name: "FK_Authors_Books" },
+                name: "FK_Books_Authors_Renamed",
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        const updatedFk = getSchema().tables.find((t) => t.id === "t2")?.foreignKeys?.[0];
+        expect(updatedFk).to.not.equal(undefined);
+        expect(updatedFk?.name).to.equal("FK_Books_Authors_Renamed");
+        expect(updatedFk?.columnsIds).to.deep.equal(["c2"]);
+        expect(updatedFk?.referencedColumnsIds).to.deep.equal(["c1"]);
+        expect(updatedFk?.referencedTableId).to.equal("t1");
+        expect(updatedFk?.onDeleteAction).to.equal(SchemaDesigner.OnAction.NO_ACTION);
+        expect(updatedFk?.onUpdateAction).to.equal(SchemaDesigner.OnAction.NO_ACTION);
+    });
+
+    test("set_foreign_key fails when referencedTableForMappings is missing (covers referencedTableForMappings.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const fkBroken: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_T2_Missing",
+            columnsIds: ["c1"],
+            referencedTableId: "missing",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                {
+                    id: "t2",
+                    schema: "dbo",
+                    name: "T2",
+                    columns: [baseColumn],
+                    foreignKeys: [fkBroken],
+                },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: { name: "FK_T2_Missing" },
+                mappings: [{ column: "Id", referencedColumn: "Id" }],
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("not_found");
+    });
+
+    test("set_foreign_key fails on empty mappings (covers mappingsResult.success===false)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_T2_T1",
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [fk] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: { name: "FK_T2_T1" },
+                mappings: [],
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("validation_error");
+    });
+
+    test("set_foreign_key fails on invalid mapping item (covers invalid_request mapping shape)", async () => {
+        const baseColumn = normalizeColumn({ id: "c1", name: "Id", dataType: "int" } as any);
+        const fk: SchemaDesigner.ForeignKey = {
+            id: "fk1",
+            name: "FK_T2_T1",
+            columnsIds: ["c1"],
+            referencedTableId: "t1",
+            referencedColumnsIds: ["c1"],
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        const { applyEdits } = createApplyEditsHarness({
+            tables: [
+                { id: "t1", schema: "dbo", name: "T1", columns: [baseColumn], foreignKeys: [] },
+                { id: "t2", schema: "dbo", name: "T2", columns: [baseColumn], foreignKeys: [fk] },
+            ],
+        });
+
+        const result = await applyEdits([
+            {
+                op: "set_foreign_key",
+                table: { schema: "dbo", name: "T2" },
+                foreignKey: { name: "FK_T2_T1" },
+                mappings: [{}],
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(false);
+        expect(result.reason).to.equal("invalid_request");
+    });
+});

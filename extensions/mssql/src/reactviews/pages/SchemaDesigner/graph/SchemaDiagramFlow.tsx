@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
     Controls,
+    ControlButton,
     Background,
     useNodesState,
     useEdgesState,
@@ -19,17 +20,36 @@ import {
     ConnectionMode,
     type Node,
     type Edge,
+    type NodeChange,
     addEdge,
+    applyNodeChanges,
     FinalConnectionState,
     ConnectionLineType,
 } from "@xyflow/react";
+import {
+    ArrowUndo16Regular,
+    BranchCompare16Regular,
+    BranchCompare16Filled,
+    CheckmarkCircle16Regular,
+} from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import {
+    filterDeletedEdges,
+    filterDeletedNodes,
+    mergeDeletedTableNodes,
+} from "../diff/deletedVisualUtils";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
-import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
+import {
+    buildSchemaFromFlowState,
+    foreignKeyUtils,
+    getTableHeight,
+    getTableWidth,
+    namingUtils,
+} from "../model";
 import {
     Button,
     Dialog,
@@ -39,6 +59,7 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Tooltip,
     Toast,
     ToastBody,
     Toaster,
@@ -49,6 +70,9 @@ import {
 import eventBus from "../schemaDesignerEvents";
 import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
+import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { CopilotReviewToolbar } from "./copilotReviewToolbar";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -66,11 +90,13 @@ export const SchemaDesignerFlow = () => {
 
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
 
     // State for nodes and edges
     const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
         [],
     );
+    const [deletedSchemaNodes, setDeletedSchemaNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
     const [relationshipEdges, setRelationshipEdges, onEdgesChange] = useEdgesState<
         Edge<SchemaDesigner.ForeignKey>
     >([]);
@@ -78,12 +104,119 @@ export const SchemaDesignerFlow = () => {
     const reactFlow = useReactFlow();
 
     const refreshRafId = useRef<number | undefined>(undefined);
+    const flowWrapperRef = useRef<HTMLDivElement | null>(null);
+    const edgeUndoWrapperRef = useRef<HTMLDivElement | null>(null);
 
     const deleteNodeConfirmationPromise = useRef<
         ((value: boolean | PromiseLike<boolean>) => void) | undefined
     >(undefined);
 
     const [open, setOpen] = useState(false);
+    const [edgeUndoState, setEdgeUndoState] = useState<{
+        change: SchemaChange;
+        canRevert: boolean;
+        reason?: string;
+        position: { x: number; y: number };
+    } | null>(null);
+    const [edgeUndoDialogOpen, setEdgeUndoDialogOpen] = useState(false);
+    const [pendingEdgeUndoChange, setPendingEdgeUndoChange] = useState<SchemaChange | null>(null);
+
+    const highlightedEdges = useMemo(() => {
+        const addedClass = "schema-designer-edge-added";
+        const modifiedClass = "schema-designer-edge-modified";
+        let didChange = false;
+        const nextEdges = relationshipEdges.map((edge) => {
+            const foreignKeyId = edge.data?.id;
+            const shouldHighlight =
+                changeContext.showChangesHighlight &&
+                !!foreignKeyId &&
+                changeContext.newForeignKeyIds.has(foreignKeyId);
+            const shouldShowModified =
+                changeContext.showChangesHighlight &&
+                !!foreignKeyId &&
+                changeContext.modifiedForeignKeyIds.has(foreignKeyId);
+
+            const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
+            const classSet = new Set(baseClass);
+
+            if (shouldHighlight) {
+                classSet.add(addedClass);
+            } else {
+                classSet.delete(addedClass);
+            }
+
+            if (shouldShowModified) {
+                classSet.add(modifiedClass);
+            } else {
+                classSet.delete(modifiedClass);
+            }
+
+            const nextClassName = classSet.size > 0 ? Array.from(classSet).join(" ") : undefined;
+            if (nextClassName === edge.className) {
+                return edge;
+            }
+
+            didChange = true;
+            return { ...edge, className: nextClassName };
+        });
+
+        return didChange ? nextEdges : relationshipEdges;
+    }, [
+        changeContext.showChangesHighlight,
+        changeContext.newForeignKeyIds,
+        changeContext.modifiedForeignKeyIds,
+        relationshipEdges,
+    ]);
+
+    const displayEdges = useMemo(() => {
+        if (
+            !changeContext.showChangesHighlight ||
+            changeContext.deletedForeignKeyEdges.length === 0
+        ) {
+            return highlightedEdges;
+        }
+
+        return [...highlightedEdges, ...changeContext.deletedForeignKeyEdges];
+    }, [
+        changeContext.deletedForeignKeyEdges,
+        changeContext.showChangesHighlight,
+        highlightedEdges,
+    ]);
+
+    const displayNodes = useMemo(() => {
+        if (!changeContext.showChangesHighlight) {
+            return schemaNodes;
+        }
+
+        return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
+    }, [changeContext.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
+
+    useEffect(() => {
+        if (!changeContext.showChangesHighlight) {
+            setEdgeUndoState(null);
+        }
+    }, [changeContext.showChangesHighlight]);
+
+    useEffect(() => {
+        setDeletedSchemaNodes((prev) => {
+            if (changeContext.deletedTableNodes.length === 0) {
+                return [];
+            }
+
+            const prevById = new Map(prev.map((node) => [node.id, node]));
+            return changeContext.deletedTableNodes.map((node) => {
+                const existing = prevById.get(node.id);
+                if (!existing) {
+                    return node;
+                }
+
+                return {
+                    ...node,
+                    position: existing.position,
+                };
+            });
+        });
+    }, [changeContext.deletedTableNodes]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -95,7 +228,7 @@ export const SchemaDesignerFlow = () => {
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
                 setTimeout(() => {
-                    eventBus.emit("getScript");
+                    context.notifySchemaChanged();
                 }, 0);
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
@@ -117,8 +250,12 @@ export const SchemaDesignerFlow = () => {
             // defer to the next frame so we read the updated store.
             refreshRafId.current = requestAnimationFrame(() => {
                 refreshRafId.current = undefined;
-                setSchemaNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
-                setRelationshipEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+                setSchemaNodes(
+                    filterDeletedNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]),
+                );
+                setRelationshipEdges(
+                    filterDeletedEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]),
+                );
             });
         };
 
@@ -140,7 +277,9 @@ export const SchemaDesignerFlow = () => {
                 return;
             }
 
-            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const edgesFromStore = filterDeletedEdges(
+                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            );
             const matchingEdges = edgesFromStore.filter((e) => e.data?.id === foreignKeyId);
 
             if (matchingEdges.length === 0) {
@@ -160,9 +299,9 @@ export const SchemaDesignerFlow = () => {
             const tgtNode = reactFlow.getNode(first.target) as Node<SchemaDesigner.Table>;
 
             if (srcNode && tgtNode) {
-                const width = flowUtils.getTableWidth();
-                const srcHeight = flowUtils.getTableHeight(srcNode.data);
-                const tgtHeight = flowUtils.getTableHeight(tgtNode.data);
+                const width = getTableWidth();
+                const srcHeight = getTableHeight(srcNode.data);
+                const tgtHeight = getTableHeight(tgtNode.data);
 
                 const srcCx = srcNode.position.x + width / 2;
                 const srcCy = srcNode.position.y + srcHeight / 2;
@@ -179,7 +318,9 @@ export const SchemaDesignerFlow = () => {
         eventBus.on("revealForeignKeyEdges", revealForeignKeyEdges);
 
         const clearEdgeSelection = () => {
-            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const edgesFromStore = filterDeletedEdges(
+                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            );
             const updatedEdges = edgesFromStore.map((e) => ({
                 ...e,
                 selected: false,
@@ -197,7 +338,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Displays an error toast notification
-     * @param {string} errorMessage - The error message to display
+     * @param errorMessage - The error message to display
      */
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
@@ -210,7 +351,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles new connections between nodes
-     * @param {Connection} params - Connection parameters
+     * @param params - Connection parameters
      */
     const handleConnect = (params: Connection) => {
         const sourceNode = schemaNodes.find((node) => node.id === params.source);
@@ -230,20 +371,16 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        const schema = flowUtils.extractSchemaModel(schemaNodes, relationshipEdges);
-
-        const existingForeignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
-            relationshipEdges,
-            sourceNode.data.id,
-            schema,
-        );
+        const schema = buildSchemaFromFlowState(schemaNodes, relationshipEdges);
+        const existingForeignKeys =
+            schema.tables.find((table) => table.id === sourceNode.data.id)?.foreignKeys ?? [];
 
         // Create the foreign key data
         const foreignKeyData = foreignKeyUtils.createForeignKeyFromConnection(
             sourceNode,
             targetNode,
-            sourceColumn.name,
-            targetColumn.name,
+            sourceColumn.id,
+            targetColumn.id,
             uuidv4(),
             namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
         );
@@ -265,14 +402,14 @@ export const SchemaDesignerFlow = () => {
         setRelationshipEdges((eds) => addEdge(newEdge, eds));
 
         // Update create script
-        eventBus.emit("getScript");
+        context.notifySchemaChanged();
         eventBus.emit("pushState");
     };
 
     /**
      * Handles the end of a connection attempt
-     * @param {Event} _event - The connection event
-     * @param {FinalConnectionState} connectionState - The final connection state
+     * @param _event - The connection event
+     * @param connectionState - The final connection state
      */
     const handleConnectEnd = (_event: Event, connectionState: FinalConnectionState) => {
         if (!connectionState.isValid) {
@@ -295,29 +432,29 @@ export const SchemaDesignerFlow = () => {
                 connectionState.toHandle.id,
             );
 
-            const sourceColumnName =
+            const validatedSourceColumnId =
                 (connectionState.fromNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === sourceColumnId,
-                )?.name ?? "";
-            const targetColumnName =
+                )?.id ?? "";
+            const validatedTargetColumnId =
                 (connectionState.toNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === targetColumnId,
-                )?.name ?? "";
+                )?.id ?? "";
 
-            if (!sourceColumnName || !targetColumnName) {
+            if (!validatedSourceColumnId || !validatedTargetColumnId) {
                 return;
             }
 
             const potentialForeignKey = foreignKeyUtils.createForeignKeyFromConnection(
                 connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,
                 connectionState.toNode as unknown as Node<SchemaDesigner.Table>,
-                sourceColumnName,
-                targetColumnName,
+                validatedSourceColumnId,
+                validatedTargetColumnId,
             );
 
             // Validate the foreign key
             const validationResult = foreignKeyUtils.isForeignKeyValid(
-                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges).tables,
+                buildSchemaFromFlowState(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
@@ -331,8 +468,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Validates if a connection is valid
-     * @param {Connection | Edge} connection - The connection to validate
-     * @returns {boolean} Whether the connection is valid
+     * @param connection - The connection to validate
+     * @returns Whether the connection is valid
      */
     const validateConnection = (
         connection: Connection | Edge<SchemaDesigner.ForeignKey>,
@@ -355,13 +492,29 @@ export const SchemaDesignerFlow = () => {
     };
 
     return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
+            <CopilotReviewToolbar />
             <ReactFlow
-                nodes={schemaNodes}
-                edges={relationshipEdges}
+                nodes={displayNodes}
+                edges={displayEdges}
                 nodeTypes={NODE_TYPES}
-                onNodesChange={onNodesChange}
+                onNodesChange={(changes) => {
+                    const isDeletedNodeChange = (change: NodeChange<Node<SchemaDesigner.Table>>) =>
+                        "id" in change &&
+                        typeof change.id === "string" &&
+                        change.id.startsWith("deleted-");
+                    const deletedChanges = changes.filter(isDeletedNodeChange);
+                    const regularChanges = changes.filter((change) => !isDeletedNodeChange(change));
+
+                    if (regularChanges.length > 0) {
+                        onNodesChange(regularChanges);
+                    }
+
+                    if (deletedChanges.length > 0) {
+                        setDeletedSchemaNodes((nodes) => applyNodeChanges(deletedChanges, nodes));
+                    }
+                }}
                 onEdgesChange={onEdgesChange}
                 onConnect={handleConnect}
                 onConnectEnd={handleConnectEnd}
@@ -371,8 +524,86 @@ export const SchemaDesignerFlow = () => {
                 }}
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
+                onEdgeMouseEnter={(event, edge) => {
+                    if (!changeContext.showChangesHighlight || context.isExporting) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const foreignKeyId = edge.data?.id;
+                    if (!foreignKeyId) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const isDeleted = Boolean(
+                        (edge.data as SchemaDesigner.ForeignKeyWithDeletedFlag)?.isDeleted,
+                    );
+                    const changeAction = isDeleted
+                        ? ChangeAction.Delete
+                        : changeContext.newForeignKeyIds.has(foreignKeyId)
+                          ? ChangeAction.Add
+                          : changeContext.modifiedForeignKeyIds.has(foreignKeyId)
+                            ? ChangeAction.Modify
+                            : undefined;
+
+                    if (!changeAction) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const sourceNode =
+                        displayNodes.find((node) => node.id === edge.source) ??
+                        (reactFlow.getNode(edge.source) as Node<SchemaDesigner.Table> | undefined);
+                    if (!sourceNode) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const rawTableId = sourceNode.id;
+                    const tableId = rawTableId.startsWith("deleted-")
+                        ? rawTableId.replace(/^deleted-/, "")
+                        : rawTableId;
+
+                    const change: SchemaChange = {
+                        id: `foreignKey:${changeAction}:${tableId}:${foreignKeyId}`,
+                        action: changeAction,
+                        category: ChangeCategory.ForeignKey,
+                        tableId,
+                        tableName: sourceNode.data.name,
+                        tableSchema: sourceNode.data.schema,
+                        objectId: foreignKeyId,
+                        objectName: edge.data?.name,
+                    };
+
+                    const rect = flowWrapperRef.current?.getBoundingClientRect();
+                    if (!rect) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const x = event.clientX - rect.left + 6;
+                    const y = event.clientY - rect.top - 6;
+                    const revertInfo = changeContext.canRevertChange(change);
+                    setEdgeUndoState({
+                        change,
+                        canRevert: revertInfo.canRevert,
+                        reason: revertInfo.reason,
+                        position: { x, y },
+                    });
+                }}
+                onEdgeMouseLeave={(event) => {
+                    if (
+                        edgeUndoWrapperRef.current?.contains(
+                            event.relatedTarget as unknown as globalThis.Node,
+                        )
+                    ) {
+                        return;
+                    }
+                    setEdgeUndoState(null);
+                }}
                 onDelete={() => {
-                    eventBus.emit("getScript");
+                    context.notifySchemaChanged();
                     eventBus.emit("pushState");
                 }}
                 onNodeDragStop={() => {
@@ -382,14 +613,94 @@ export const SchemaDesignerFlow = () => {
                     if (props.nodes.length === 0 && props.edges.length === 0) {
                         return true;
                     }
+                    if (context.consumeSkipDeleteConfirmation()) {
+                        return true;
+                    }
                     return await deleteElementsConfirmation();
                 }}
                 minZoom={0.05}
                 fitView>
-                <Controls />
+                <Controls>
+                    {context.isDabEnabled() && (
+                        <ControlButton
+                            onClick={() =>
+                                changeContext.setShowChangesHighlight(
+                                    !changeContext.showChangesHighlight,
+                                )
+                            }
+                            title={
+                                changeContext.showChangesHighlight
+                                    ? locConstants.schemaDesigner.hideChangesHighlight
+                                    : locConstants.schemaDesigner.highlightChanges
+                            }
+                            aria-label={
+                                changeContext.showChangesHighlight
+                                    ? locConstants.schemaDesigner.hideChangesHighlight
+                                    : locConstants.schemaDesigner.highlightChanges
+                            }>
+                            {changeContext.showChangesHighlight ? (
+                                <BranchCompare16Filled />
+                            ) : (
+                                <BranchCompare16Regular />
+                            )}
+                        </ControlButton>
+                    )}
+                </Controls>
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
+            {edgeUndoState && (
+                <div
+                    ref={edgeUndoWrapperRef}
+                    style={{
+                        position: "absolute",
+                        left: edgeUndoState.position.x,
+                        top: edgeUndoState.position.y,
+                        zIndex: 5,
+                        padding: "10px",
+                        display: "flex",
+                        gap: "4px",
+                        alignItems: "center",
+                    }}
+                    onMouseLeave={() => setEdgeUndoState(null)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(edgeUndoState.change);
+                                    setEdgeUndoState(null);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
+                    <Tooltip
+                        content={
+                            edgeUndoState.canRevert
+                                ? locConstants.schemaDesigner.undo
+                                : (edgeUndoState.reason ?? "")
+                        }
+                        relationship="label">
+                        <Button
+                            appearance="primary"
+                            size="small"
+                            icon={<ArrowUndo16Regular />}
+                            disabled={!edgeUndoState.canRevert}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                if (!edgeUndoState.canRevert) {
+                                    return;
+                                }
+                                setPendingEdgeUndoChange(edgeUndoState.change);
+                                setEdgeUndoDialogOpen(true);
+                            }}
+                        />
+                    </Tooltip>
+                </div>
+            )}
             <Dialog
                 open={open}
                 onOpenChange={(_event, data) => {
@@ -427,6 +738,41 @@ export const SchemaDesignerFlow = () => {
                                     {locConstants.schemaDesigner.cancel}
                                 </Button>
                             </DialogTrigger>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+            <Dialog
+                open={edgeUndoDialogOpen}
+                onOpenChange={(_event, data) => {
+                    setEdgeUndoDialogOpen(data.open);
+                    if (!data.open) {
+                        setPendingEdgeUndoChange(null);
+                    }
+                }}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{locConstants.schemaDesigner.deleteConfirmation}</DialogTitle>
+                        <DialogContent>
+                            {locConstants.schemaDesigner.deleteConfirmationContent}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    if (pendingEdgeUndoChange) {
+                                        changeContext.revertChange(pendingEdgeUndoChange);
+                                    }
+                                    setEdgeUndoDialogOpen(false);
+                                    setEdgeUndoState(null);
+                                }}>
+                                {locConstants.schemaDesigner.undo}
+                            </Button>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setEdgeUndoDialogOpen(false)}>
+                                {locConstants.schemaDesigner.cancel}
+                            </Button>
                         </DialogActions>
                     </DialogBody>
                 </DialogSurface>

@@ -18,10 +18,9 @@ import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
-import { deepEqual } from "../../common/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
 
 window.jQuery = $ as any;
@@ -57,7 +56,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         return undefined;
     }
 
-    const { themeKind, keyBindings } = useVscodeWebview2();
+    const { themeKind, keyBindings } = useVscodeWebview();
 
     const uri = useQueryResultSelector((state) => state.uri);
     if (!uri) {
@@ -74,7 +73,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
-        (a, b) => deepEqual(a, b), // Deep equality check to avoid unnecessary re-renders
+        (a, b) => {
+            // Only re-render if row count has changed. ids and column info are immutable and will not change on new data arrival, so we can ignore them for re-rendering purposes.
+            return a?.rowCount === b?.rowCount;
+        },
     );
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -187,7 +189,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             });
 
             const div = document.createElement("div");
-            div.id = "grid";
+            div.id = `grid-${props.gridId}`;
             div.className = "grid-panel";
             div.style.display = "inline-block";
 
@@ -316,7 +318,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         updateTableKeyBindings();
     }, [keyBindings]);
 
-    return <div id="gridContainter" ref={gridContainerRef}></div>;
+    return <div id={`gridContainter-${props.gridId}`} ref={gridContainerRef}></div>;
 });
 
 /**

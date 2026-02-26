@@ -131,6 +131,10 @@ export const mockAzureResources = {
         name: "testContainer",
         id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Storage/storageAccounts/testStorageAccount/blobServices/default/containers/testContainer`,
     },
+    blob: {
+        name: "testBlob",
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Storage/storageAccounts/testStorageAccount/blobServices/default/containers/testContainer/blobs/testBlob`,
+    },
 };
 
 export const mockSqlDbList = {

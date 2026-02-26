@@ -290,7 +290,7 @@ suite("Per File Connection Tests", () => {
 
         const connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         connectionManagerStub.isConnected.returns(false);
-        connectionManagerStub.onNewConnection.resolves();
+        connectionManagerStub.promptToConnect.resolves();
 
         const controller = new MainController(
             extensionContext,
@@ -300,7 +300,7 @@ suite("Per File Connection Tests", () => {
 
         await controller.onRunQuery();
 
-        expect(connectionManagerStub.onNewConnection).to.have.been.calledOnce;
+        expect(connectionManagerStub.promptToConnect).to.have.been.calledOnce;
     });
 
     test("Change connection notification changes database context", async () => {
@@ -535,10 +535,13 @@ suite("Per File Connection Tests", () => {
 function createTestConnectionResult(
     ownerUri?: string,
 ): ConnectionContracts.ConnectionCompleteParams {
-    let result = new ConnectionContracts.ConnectionCompleteParams();
+    const result = new ConnectionContracts.ConnectionCompleteParams();
+
     result.connectionId = Utils.generateGuid();
     result.messages = "";
     result.ownerUri = ownerUri;
+    result.serverInfo = {} as IServerInfo;
+
     return result;
 }
 

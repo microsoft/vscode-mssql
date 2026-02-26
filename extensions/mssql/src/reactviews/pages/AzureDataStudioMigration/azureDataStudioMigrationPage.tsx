@@ -11,6 +11,7 @@ import {
     InfoLabel,
     Input,
     Image,
+    Link,
     Subtitle2,
     Table,
     TableBody,
@@ -39,7 +40,9 @@ import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
-    AzureDataStudioMigrationBrowseForConfigRequest,
+    AdsMigrationSetting,
+    BrowseForConfigRequest,
+    OpenKeymapLinkNotification as OpenKeymapLinkNotification,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     EntraSignInDialogProps,
@@ -49,11 +52,12 @@ import {
 } from "../../../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { locConstants as Loc } from "../../common/locConstants";
 import { EntraSignInDialog } from "./components/entraSignInDialog";
 import { ImportWarningDialog } from "./components/importWarningDialog";
 import { ImportProgressDialog } from "./components/importProgressDialog";
+import { ViewSettingsDialog } from "./components/viewSettingsDialog";
 
 const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
@@ -61,40 +65,58 @@ export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
 
     const classes = useStyles();
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         AzureDataStudioMigrationWebviewState,
         AzureDataStudioMigrationReducers
     >();
-    const state = useAzureDataStudioMigrationSelector((s) => s);
+    const adsConfigPath = useAzureDataStudioMigrationSelector((s) => s?.adsConfigPath);
+    const stateConnectionGroups = useAzureDataStudioMigrationSelector((s) => s?.connectionGroups);
+    const stateConnections = useAzureDataStudioMigrationSelector((s) => s?.connections);
+    const stateDialog = useAzureDataStudioMigrationSelector((s) => s?.dialog);
+    const stateImportSettings = useAzureDataStudioMigrationSelector((s) => s?.importSettings);
+    const stateSettings = useAzureDataStudioMigrationSelector((s) => s?.settings) as
+        | AdsMigrationSetting[]
+        | undefined;
 
-    const [configPath, setConfigPath] = useState(state.adsConfigPath ?? "");
+    const [configPath, setConfigPath] = useState(adsConfigPath ?? "");
     const [connectionGroups, setConnectionGroups] = useState<AdsMigrationConnectionGroup[]>(
-        state.connectionGroups ?? [],
+        stateConnectionGroups ?? [],
     );
     const [connections, setConnections] = useState<AdsMigrationConnection[]>(
-        state.connections ?? [],
+        stateConnections ?? [],
     );
     const [groupsCollapsed, setGroupsCollapsed] = useState(false);
     const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
-    const [dialog, setDialog] = useState(state.dialog);
+    const [settingsCollapsed, setSettingsCollapsed] = useState(false);
+    const [dialog, setDialog] = useState(stateDialog);
+    const [importSettings, setImportSettings] = useState(stateImportSettings ?? true);
+    const [settings, setSettings] = useState<AdsMigrationSetting[]>(stateSettings ?? []);
     const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
-        setConfigPath(state.adsConfigPath ?? "");
-    }, [state.adsConfigPath]);
+        setConfigPath(adsConfigPath ?? "");
+    }, [adsConfigPath]);
 
     useEffect(() => {
-        setConnectionGroups(state.connectionGroups ?? []);
-    }, [state.connectionGroups]);
+        setConnectionGroups(stateConnectionGroups ?? []);
+    }, [stateConnectionGroups]);
 
     useEffect(() => {
-        setConnections(state.connections ?? []);
+        setConnections(stateConnections ?? []);
         setPasswordVisibility({});
-    }, [state.connections]);
+    }, [stateConnections]);
 
     useEffect(() => {
-        setDialog(state.dialog);
-    }, [state.dialog]);
+        setDialog(stateDialog);
+    }, [stateDialog]);
+
+    useEffect(() => {
+        setImportSettings(stateImportSettings ?? true);
+    }, [stateImportSettings]);
+
+    useEffect(() => {
+        setSettings(stateSettings ?? []);
+    }, [stateSettings]);
 
     const groupSelection = useMemo(() => {
         const total = connectionGroups.filter(
@@ -127,6 +149,7 @@ export const AzureDataStudioMigrationPage = () => {
         connectionSelection.selected,
         connectionSelection.total,
     );
+    const hasDetectedSettings = settings.length > 0;
 
     const toggleConnectionGroup = (groupId: string, checked: boolean) => {
         extensionRpc.action("setConnectionGroupSelections", { groupId, selected: checked });
@@ -152,10 +175,7 @@ export const AzureDataStudioMigrationPage = () => {
     };
 
     const handleBrowseForConfig = async () => {
-        const result = await extensionRpc.sendRequest(
-            AzureDataStudioMigrationBrowseForConfigRequest.type,
-            undefined,
-        );
+        const result = await extensionRpc.sendRequest(BrowseForConfigRequest.type, undefined);
         if (result) {
             setConfigPath(result);
         }
@@ -338,6 +358,30 @@ export const AzureDataStudioMigrationPage = () => {
         );
     };
 
+    const renderSettingsRow = () => {
+        return (
+            <div>
+                <Checkbox
+                    checked={hasDetectedSettings ? importSettings : false}
+                    disabled={!hasDetectedSettings}
+                    onChange={(_, data) => {
+                        setImportSettings(data.checked === true);
+                        extensionRpc.action("setImportSettings", {
+                            importSettings: data.checked === true,
+                        });
+                    }}
+                    label={LocMigration.importSettingsCheckboxLabel}
+                />
+                <Button
+                    appearance="secondary"
+                    disabled={!hasDetectedSettings}
+                    onClick={() => extensionRpc.action("openViewSettingsDialog")}>
+                    {LocMigration.viewSettingsButton}
+                </Button>
+            </div>
+        );
+    };
+
     const dialogContent =
         dialog?.type === "entraSignIn" ? (
             <EntraSignInDialog
@@ -357,6 +401,8 @@ export const AzureDataStudioMigrationPage = () => {
                 dialog={dialog as ImportProgressDialogProps}
                 onDismiss={handleCloseWindow}
             />
+        ) : dialog?.type === "viewSettings" ? (
+            <ViewSettingsDialog settings={settings} onClose={handleCloseDialog} />
         ) : undefined;
 
     return (
@@ -411,7 +457,9 @@ export const AzureDataStudioMigrationPage = () => {
                             className={classes.importButton}
                             appearance="primary"
                             disabled={
-                                groupSelection.selected === 0 && connectionSelection.selected === 0
+                                groupSelection.selected === 0 &&
+                                connectionSelection.selected === 0 &&
+                                !(importSettings && settings.length > 0)
                             }
                             onClick={() => extensionRpc.action("import")}>
                             {LocMigration.importButtonLabel}
@@ -419,6 +467,69 @@ export const AzureDataStudioMigrationPage = () => {
                     </div>
                 </div>
                 <div className={classes.tablesStack}>
+                    <section className={classes.tableSection}>
+                        <div className={classes.sectionHeader}>
+                            <div className={classes.sectionHeaderRow}>
+                                <Subtitle2>{LocMigration.settingsHeader}</Subtitle2>
+                                <Button
+                                    appearance="subtle"
+                                    className={classes.collapseButton}
+                                    icon={
+                                        settingsCollapsed ? (
+                                            <ChevronRightRegular />
+                                        ) : (
+                                            <ChevronDownRegular />
+                                        )
+                                    }
+                                    title={
+                                        settingsCollapsed
+                                            ? LocMigration.settingsExpand
+                                            : LocMigration.settingsCollapse
+                                    }
+                                    onClick={() => setSettingsCollapsed((prev) => !prev)}
+                                />
+                            </div>
+                        </div>
+                        {!settingsCollapsed && (
+                            <>
+                                <div className={classes.settingsRow}>
+                                    {hasDetectedSettings ? (
+                                        renderSettingsRow()
+                                    ) : (
+                                        <>
+                                            <Tooltip
+                                                content={
+                                                    LocMigration.noCustomizedSettingsFoundInAds
+                                                }
+                                                relationship="label"
+                                                positioning={"before"}>
+                                                {renderSettingsRow()}
+                                            </Tooltip>
+                                            <Body1 className={classes.summaryText}>
+                                                ℹ️ {LocMigration.noCustomizedSettingsFoundInAds}
+                                            </Body1>
+                                        </>
+                                    )}
+                                </div>
+                                <Body1 className={classes.summaryText}>
+                                    {LocMigration.keymapCallout}{" "}
+                                    <Tooltip
+                                        content={LocMigration.keymapTooltip}
+                                        relationship="label">
+                                        <Link
+                                            onClick={() =>
+                                                void extensionRpc.sendNotification(
+                                                    OpenKeymapLinkNotification.type,
+                                                )
+                                            }
+                                            inline>
+                                            {LocMigration.keymapCalloutLink}
+                                        </Link>
+                                    </Tooltip>
+                                </Body1>
+                            </>
+                        )}
+                    </section>
                     <section className={classes.tableSection}>
                         <div className={classes.sectionHeader}>
                             <div className={classes.sectionHeaderRow}>
@@ -973,5 +1084,10 @@ const useStyles = makeStyles({
         color: "var(--vscode-notificationsWarningIcon-foreground, var(--vscode-terminal-ansiYellow))",
         textAlign: "right",
         maxWidth: "420px",
+    },
+    settingsRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
     },
 });

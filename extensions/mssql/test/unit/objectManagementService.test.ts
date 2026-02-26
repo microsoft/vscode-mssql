@@ -15,16 +15,32 @@ import {
     RenameObjectRequest,
     DropDatabaseRequest,
     ObjectManagementSqlObject,
+    BackupConfigInfoRequest,
 } from "../../src/models/contracts/objectManagement";
+import { RestoreParams } from "../../src/sharedInterfaces/restore";
+import { Logger } from "../../src/models/logger";
 
 suite("ObjectManagementService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let objectManagementService: ObjectManagementService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let loggerStub: sinon.SinonStubbedInstance<Logger>; // Add this
 
     setup(() => {
         sandbox = sinon.createSandbox();
+
+        // Create logger stub
+        loggerStub = {
+            error: sinon.stub(),
+            info: sinon.stub(),
+            warn: sinon.stub(),
+            debug: sinon.stub(),
+            // Add any other logger methods your code uses
+        } as any;
+
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
+        sandbox.stub(sqlToolsClientStub, "logger").get(() => loggerStub);
+
         objectManagementService = new ObjectManagementService(sqlToolsClientStub);
     });
 
@@ -149,5 +165,139 @@ suite("ObjectManagementService Tests", () => {
             deleteBackupHistory: false,
             generateScript: true,
         });
+    });
+
+    test("getBackupConfigInfo returns backup config info", async () => {
+        sqlToolsClientStub.sendRequest
+            .withArgs(BackupConfigInfoRequest.type, sinon.match.any)
+            .resolves(true);
+
+        const result = await objectManagementService.getBackupConfigInfo("ownerUri");
+
+        expect(result).to.equal(true);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+
+        const mockError = new Error("Request failed");
+
+        sqlToolsClientStub.sendRequest
+            .withArgs(sinon.match.any, sinon.match.any)
+            .rejects(mockError);
+
+        try {
+            await objectManagementService.getBackupConfigInfo("ownerUri");
+            expect.fail("Expected getBackupConfigInfo to throw");
+        } catch (e) {
+            expect(e).to.equal(mockError);
+        }
+    });
+
+    test("backupDatabase returns backup response", async () => {
+        sqlToolsClientStub.sendRequest.withArgs(sinon.match.any, sinon.match.any).resolves(true);
+
+        const result = await objectManagementService.backupDatabase("ownerUri", {} as any, 0);
+
+        expect(result).to.equal(true);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+
+        const mockError = new Error("Request failed");
+
+        sqlToolsClientStub.sendRequest
+            .withArgs(sinon.match.any, sinon.match.any)
+            .rejects(mockError);
+
+        try {
+            await objectManagementService.backupDatabase("ownerUri", {} as any, 0);
+            expect.fail("Expected backupDatabase to throw");
+        } catch (e) {
+            expect(e).to.equal(mockError);
+        }
+    });
+
+    test("getRestoreConfigInfo returns restore config info", async () => {
+        sqlToolsClientStub.sendRequest.withArgs(sinon.match.any, sinon.match.any).resolves(true);
+
+        const result = await objectManagementService.getRestoreConfigInfo("ownerUri");
+
+        expect(result).to.equal(true);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+
+        const mockError = new Error("Request failed");
+
+        sqlToolsClientStub.sendRequest
+            .withArgs(sinon.match.any, sinon.match.any)
+            .rejects(mockError);
+
+        try {
+            await objectManagementService.getRestoreConfigInfo("ownerUri");
+            expect.fail("Expected getRestoreConfigInfo to throw");
+        } catch (e) {
+            expect(e).to.equal(mockError);
+        }
+    });
+
+    test("getRestorePlan returns restore plan", async () => {
+        sqlToolsClientStub.sendRequest.withArgs(sinon.match.any, sinon.match.any).resolves(true);
+
+        const result = await objectManagementService.getRestorePlan({} as RestoreParams);
+
+        expect(result).to.equal(true);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+
+        const mockError = new Error("Request failed");
+
+        sqlToolsClientStub.sendRequest
+            .withArgs(sinon.match.any, sinon.match.any)
+            .rejects(mockError);
+
+        try {
+            await objectManagementService.getRestorePlan({} as RestoreParams);
+            expect.fail("Expected getRestorePlan to throw");
+        } catch (e) {
+            expect(e).to.equal(mockError);
+        }
+    });
+
+    test("cancelRestorePlan returns cancel result", async () => {
+        sqlToolsClientStub.sendRequest.withArgs(sinon.match.any, sinon.match.any).resolves(true);
+
+        const result = await objectManagementService.cancelRestorePlan({} as RestoreParams);
+
+        expect(result).to.equal(true);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+
+        const mockError = new Error("Request failed");
+
+        sqlToolsClientStub.sendRequest
+            .withArgs(sinon.match.any, sinon.match.any)
+            .rejects(mockError);
+
+        try {
+            await objectManagementService.cancelRestorePlan({} as RestoreParams);
+            expect.fail("Expected cancelRestorePlan to throw");
+        } catch (e) {
+            expect(e).to.equal(mockError);
+        }
+    });
+
+    test("restoreDatabase returns restore response", async () => {
+        sqlToolsClientStub.sendRequest.withArgs(sinon.match.any, sinon.match.any).resolves(true);
+
+        const result = await objectManagementService.restoreDatabase({} as RestoreParams);
+
+        expect(result).to.equal(true);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+
+        const mockError = new Error("Request failed");
+
+        sqlToolsClientStub.sendRequest
+            .withArgs(sinon.match.any, sinon.match.any)
+            .rejects(mockError);
+
+        try {
+            await objectManagementService.restoreDatabase({} as RestoreParams);
+            expect.fail("Expected restoreDatabase to throw");
+        } catch (e) {
+            expect(e).to.equal(mockError);
+        }
     });
 });

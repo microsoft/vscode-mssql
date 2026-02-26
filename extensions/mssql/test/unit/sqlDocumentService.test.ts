@@ -144,7 +144,7 @@ suite("SqlDocumentService Tests", () => {
             newQueryStub.restore();
         }
 
-        expect(connectionManager.onNewConnection).to.not.have.been.called;
+        expect(connectionManager.promptToConnect).to.not.have.been.called;
     });
 
     test("handleNewQueryCommand uses CopyLastActive when last active connection exists", async () => {
@@ -386,7 +386,7 @@ suite("SqlDocumentService Tests", () => {
 
         // Ensure no extraneous function is called (save doesn't directly call connection manager)
         expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
-        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
+        expect(connectionManager.transferConnectionToFile).to.not.have.been.called;
 
         // Check that internal state was set correctly (uses getUriKey internally)
         expect(sqlDocumentService["_lastSavedUri"]).to.equal(newDocument.uri.toString());
@@ -505,7 +505,7 @@ suite("SqlDocumentService Tests", () => {
 
         // Stub getConnectionInfo: script1 is connected, others are not
         (connectionManager.getConnectionInfo as any).callsFake((uri: string) => {
-            if (uri === script1.uri.toString(true)) {
+            if (uri === script1.uri.toString()) {
                 return {
                     connectionId: "conn1",
                     credentials: { server: "localhost" },
@@ -522,7 +522,7 @@ suite("SqlDocumentService Tests", () => {
 
         // Open a new external SQL file -> should auto-connect
         await sqlDocumentService.onDidOpenTextDocument(script2);
-        expect(connectStub).to.have.been.calledOnceWithExactly(script2.uri.toString(true), {
+        expect(connectStub).to.have.been.calledOnceWithExactly(script2.uri.toString(), {
             server: "localhost",
         });
         connectStub.resetHistory();
@@ -618,8 +618,9 @@ suite("SqlDocumentService Tests", () => {
             docUriCallback = doc.uri.toString();
         });
 
-        connectionManager.copyConnectionToFile.callsFake(async (doc, _newDoc) => {
+        connectionManager.transferConnectionToFile.callsFake(async (doc, _newDoc) => {
             docUriCallback = doc;
+            return true;
         });
     }
     function mockTextDocument(
@@ -655,7 +656,7 @@ suite("SqlDocumentService Tests", () => {
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnect = mockConnectionManager.connect;
-            mockOnNewConnection = mockConnectionManager.onNewConnection;
+            mockOnNewConnection = mockConnectionManager.promptToConnect;
             mockGetConnectionInfoFromUri = mockConnectionManager.getConnectionInfoFromUri;
 
             mockConnect.resolves(true);

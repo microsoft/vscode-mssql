@@ -18,6 +18,12 @@ export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
     private schemaDesigners: Map<string, SchemaDesignerWebviewController> = new Map();
     private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem> = new Map();
+    private schemaDesignerSchemaHashes: Map<string, string> = new Map();
+
+    /**
+     * Reference to the most recently visible schema designer.
+     */
+    private _activeDesigner: SchemaDesignerWebviewController | undefined;
 
     public static getInstance(): SchemaDesignerWebviewManager {
         if (!this.instance) {
@@ -28,6 +34,32 @@ export class SchemaDesignerWebviewManager {
 
     private constructor() {
         // Private constructor to prevent instantiation
+    }
+
+    /**
+     * Gets the currently active schema designer (most recently visible).
+     * Returns undefined if no visible designer is active.
+     */
+    public getActiveDesigner(): SchemaDesignerWebviewController | undefined {
+        if (
+            this._activeDesigner?.isDisposed ||
+            (this._activeDesigner && !this._activeDesigner.panel.visible)
+        ) {
+            this._activeDesigner = undefined;
+        }
+        return this._activeDesigner;
+    }
+
+    public getSchemaHash(cacheKey: string): string | undefined {
+        return this.schemaDesignerSchemaHashes.get(cacheKey);
+    }
+
+    public setSchemaHash(cacheKey: string, hash: string): void {
+        this.schemaDesignerSchemaHashes.set(cacheKey, hash);
+    }
+
+    public clearSchemaHash(cacheKey: string): void {
+        this.schemaDesignerSchemaHashes.delete(cacheKey);
     }
 
     /**
@@ -99,9 +131,22 @@ export class SchemaDesignerWebviewManager {
                 treeNode,
                 connectionUri,
             );
+            const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {
+                if (event.webviewPanel.visible) {
+                    this._activeDesigner = schemaDesigner;
+                } else if (this._activeDesigner === schemaDesigner) {
+                    this._activeDesigner = undefined;
+                }
+            });
             schemaDesigner.onDisposed(async () => {
+                viewStateDisposable.dispose();
                 this.schemaDesigners.delete(key);
-                if (this.schemaDesignerCache.get(key).isDirty) {
+                this.schemaDesignerSchemaHashes.delete(key);
+                if (this._activeDesigner === schemaDesigner) {
+                    this._activeDesigner = undefined;
+                }
+                const cacheItem = this.schemaDesignerCache.get(key);
+                if (cacheItem?.isDirty) {
                     // Ensure the user wants to exit without saving
                     const choice = await vscode.window.showInformationMessage(
                         LocConstants.Webview.webviewRestorePrompt(
@@ -132,10 +177,11 @@ export class SchemaDesignerWebviewManager {
                 }
                 // Ignoring errors here as we don't want to block the disposal process
                 try {
-                    schemaDesignerService.disposeSession({
-                        sessionId:
-                            this.schemaDesignerCache.get(key).schemaDesignerDetails.sessionId,
-                    });
+                    if (cacheItem?.schemaDesignerDetails?.sessionId) {
+                        schemaDesignerService.disposeSession({
+                            sessionId: cacheItem.schemaDesignerDetails.sessionId,
+                        });
+                    }
                 } catch (error) {
                     console.error(`Error disposing schema designer session: ${error}`);
                 }
@@ -143,6 +189,8 @@ export class SchemaDesignerWebviewManager {
             });
             this.schemaDesigners.set(key, schemaDesigner);
         }
-        return this.schemaDesigners.get(key)!;
+        const designer = this.schemaDesigners.get(key)!;
+        this._activeDesigner = designer;
+        return designer;
     }
 }

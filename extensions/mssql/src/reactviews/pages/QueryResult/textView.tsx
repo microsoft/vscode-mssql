@@ -11,7 +11,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 
 const useStyles = makeStyles({
@@ -51,7 +51,7 @@ export const TextView = () => {
 
     const [textContent, setTextContent] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
-    const { themeKind, EOL } = useVscodeWebview2<
+    const { themeKind, EOL } = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();

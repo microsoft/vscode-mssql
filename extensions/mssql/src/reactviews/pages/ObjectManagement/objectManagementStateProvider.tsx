@@ -3,25 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { createContext, ReactNode } from "react";
+import { createContext, ReactNode } from "react";
 import { ObjectManagementWebviewState } from "../../../sharedInterfaces/objectManagement";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 
-export interface ObjectManagementReactProvider {
-    extensionRpc: WebviewRpc<void>;
+export interface ObjectManagementReactProvider<TReducers> {
+    extensionRpc: WebviewRpc<TReducers>;
 }
 
-export const ObjectManagementContext = createContext<ObjectManagementReactProvider | undefined>(
-    undefined,
-);
+export const ObjectManagementContext = createContext<
+    ObjectManagementReactProvider<unknown> | undefined
+>(undefined);
 
 interface ObjectManagementProviderProps {
     children: ReactNode;
 }
 
-const ObjectManagementStateProvider: React.FC<ObjectManagementProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ObjectManagementWebviewState, void>();
+const ObjectManagementStateProvider = <TFormState = unknown, TReducers = unknown>({
+    children,
+}: ObjectManagementProviderProps) => {
+    const { extensionRpc } = useVscodeWebview<
+        ObjectManagementWebviewState<TFormState>,
+        TReducers
+    >();
     return (
         <ObjectManagementContext.Provider value={{ extensionRpc }}>
             {children}

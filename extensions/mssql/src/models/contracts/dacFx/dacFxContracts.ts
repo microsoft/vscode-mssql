@@ -66,6 +66,15 @@ export namespace ValidateStreamingJobRequest {
     >("dacfx/validateStreamingJob");
 }
 
+export namespace ParseTSqlScriptRequest {
+    export const type = new RequestType<
+        mssql.ParseTSqlScriptParams,
+        mssql.ParseTSqlScriptResult,
+        void,
+        void
+    >("dacfx/parseTSqlScript");
+}
+
 export namespace SavePublishProfileRequest {
     export const type = new RequestType<
         mssql.SavePublishProfileParams,
@@ -73,4 +82,22 @@ export namespace SavePublishProfileRequest {
         void,
         void
     >("dacfx/savePublishProfile");
+}
+
+export namespace GetDeploymentOptionsRequest {
+    export const type = new RequestType<
+        mssql.GetDeploymentOptionsParams,
+        mssql.GetDeploymentOptionsResult,
+        void,
+        void
+    >("dacfx/getDeploymentOptions");
+}
+
+export namespace GetCodeAnalysisRulesRequest {
+    export const type = new RequestType<
+        mssql.GetCodeAnalysisRulesParams,
+        mssql.GetCodeAnalysisRulesResult,
+        void,
+        void
+    >("dacfx/getCodeAnalysisRules");
 }

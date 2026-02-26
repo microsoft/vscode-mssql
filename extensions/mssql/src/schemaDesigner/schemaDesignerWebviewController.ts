@@ -21,6 +21,8 @@ import {
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
+import { DabService } from "../services/dabService";
+import { Dab } from "../sharedInterfaces/dab";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -32,6 +34,10 @@ function isDABEnabled(): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
+function isCopilotChatInstalled(): boolean {
+    return !!vscode.extensions.getExtension("github.copilot-chat");
+}
+
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
@@ -40,6 +46,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 > {
     private _sessionId: string = "";
     private _key: string = "";
+    private _serverName: string | undefined;
+    private _sqlServerContainerName: string | undefined;
+    private _dabService = new DabService();
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -63,6 +72,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
                 enableDAB: isDABEnabled(),
+                isCopilotChatInstalled: isCopilotChatInstalled(),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
@@ -85,6 +95,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         );
 
         this._key = `${this.connectionString}-${this.databaseName}`;
+        this._serverName = this.resolveServerName();
+        this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
         this.setupRequestHandlers();
         this.setupConfigurationListener();
@@ -115,9 +127,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         isDirty: false,
                     });
                 } else {
-                    // if the cache has the session, the changes have not been saved, and the
-                    // session is dirty
-                    const cacheItem = this.updateCacheItem(undefined, true);
+                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
                 }
@@ -149,7 +159,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             definitionActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: payload.updatedSchema.tables.length,
             });
-            this.updateCacheItem(payload.updatedSchema, true);
+            this.updateCacheItem(payload.updatedSchema);
             return script;
         });
 
@@ -175,7 +185,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                             updatedSchema: payload.updatedSchema,
                             sessionId: this._sessionId,
                         });
-                        this.updateCacheItem(payload.updatedSchema, true);
+                        this.updateCacheItem(payload.updatedSchema);
                         return {
                             report,
                         };
@@ -358,6 +368,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             this.panel.dispose();
         });
 
+        this.onNotification(SchemaDesigner.SchemaDesignerDirtyStateNotification.type, (payload) => {
+            this.updateCacheItem(undefined, payload.hasChanges);
+        });
+
         this.onRequest(SchemaDesigner.GetBaselineSchemaRequest.type, async () => {
             const cacheItem = this.schemaDesignerCache.get(this._key);
             // Prefer cached baseline so it survives controller recreation (webview restore)
@@ -373,6 +387,50 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     tables: [],
                 }
             );
+        });
+
+        // DAB request handlers
+        this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
+            return this._dabService.generateConfig(payload.config, {
+                connectionString: this.connectionString,
+                sqlServerContainerName: this._sqlServerContainerName,
+            });
+        });
+
+        this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
+            const doc = await vscode.workspace.openTextDocument({
+                content: payload.configContent,
+                language: "json",
+            });
+            await vscode.window.showTextDocument(doc);
+        });
+
+        this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
+            await vscode.env.clipboard.writeText(payload.configContent);
+            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+        });
+
+        // DAB deployment request handlers
+        this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            return this._dabService.runDeploymentStep(
+                payload.step,
+                payload.params,
+                payload.config,
+                this.connectionString
+                    ? {
+                          connectionString: this.connectionString,
+                          sqlServerContainerName: this._sqlServerContainerName,
+                      }
+                    : undefined,
+            );
+        });
+
+        this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
+            return this._dabService.validateDeploymentParams(payload.containerName, payload.port);
+        });
+
+        this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
+            return this._dabService.stopDeployment(payload.containerName);
         });
     }
 
@@ -416,5 +474,86 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
         }
         super.dispose();
+    }
+
+    /**
+     * Gets the current schema state from the webview.
+     */
+    public async getSchemaState(): Promise<SchemaDesigner.Schema> {
+        await this.whenWebviewReady();
+        const result = await this.sendRequest(SchemaDesigner.GetSchemaStateRequest.type, undefined);
+        return result.schema;
+    }
+
+    /**
+     * Applies a batch of semantic schema edits in the webview (used by the schema designer LM tool).
+     * This method must never be treated as a transcript schema source; it is only used to compute receipts.
+     */
+    public async applyEdits(
+        params: SchemaDesigner.ApplyEditsWebviewParams,
+    ): Promise<SchemaDesigner.ApplyEditsWebviewResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, params);
+    }
+
+    public async getDabToolState(): Promise<Dab.GetDabToolStateResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.GetDabToolStateRequest.type, undefined);
+    }
+
+    public async applyDabToolChanges(
+        params: Dab.ApplyDabToolChangesParams,
+    ): Promise<Dab.ApplyDabToolChangesResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
+    }
+
+    public showDabView(): void {
+        this.updateState({
+            ...this.state,
+            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+        });
+    }
+
+    public get designerKey(): string {
+        return this._key;
+    }
+
+    public get database(): string {
+        return this.databaseName;
+    }
+
+    public get server(): string | undefined {
+        return this._serverName;
+    }
+
+    private resolveServerName(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.server;
+        }
+
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.server;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Resolves the SQL Server container name from the connection profile.
+     * Returns undefined if the SQL Server is not running in a Docker container.
+     */
+    private resolveSqlServerContainerName(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.containerName;
+        }
+
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.containerName;
+        }
+
+        return undefined;
     }
 }

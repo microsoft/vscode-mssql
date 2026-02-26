@@ -25,6 +25,7 @@ const config = {
         ".ts": "ts",
         ".js": "js",
         ".json": "json",
+        ".node": "file",
     },
     tsconfig: "./tsconfig.extension.json",
     plugins: [esbuildProblemMatcherPlugin("extension")],

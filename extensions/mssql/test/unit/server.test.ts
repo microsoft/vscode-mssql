@@ -12,7 +12,7 @@ import ServerProvider from "../../src/languageservice/server";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
 import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
-import { IConfigUtils, IStatusView } from "../../src/languageservice/interfaces";
+import { DownloadType, IConfigUtils, IStatusView } from "../../src/languageservice/interfaces";
 
 chai.use(sinonChai);
 
@@ -36,7 +36,7 @@ suite("Server tests", () => {
     function createServer(fixture: IFixture): ServerProvider {
         configUtils.getSqlToolsExecutableFiles.callsFake(() => fixture.executablesFromConfig);
         downloadProvider.getOrMakeInstallDirectory.callsFake(async () => fixture.installDir);
-        downloadProvider.installSQLToolsService.callsFake(async () => {
+        downloadProvider.installService.callsFake(async () => {
             if (fixture.executablesFromConfig) {
                 fixture.executablesFromConfig = [
                     fixture.executableFileName.replace(fixture.installDir, ""),
@@ -44,6 +44,7 @@ suite("Server tests", () => {
             }
             return true;
         });
+        downloadProvider.type.returns(DownloadType.SqlToolsService);
 
         return new ServerProvider(downloadProvider, configUtils, statusView);
     }
@@ -107,9 +108,7 @@ suite("Server tests", () => {
         const server = createServer(fixture);
         const result = await server.getOrDownloadServer(fixture.runtime);
         expect(result).to.equal(fixture.executableFileName);
-        expect(downloadProvider.installSQLToolsService).to.have.been.calledOnceWithExactly(
-            fixture.runtime,
-        );
+        expect(downloadProvider.installService).to.have.been.calledOnceWithExactly(fixture.runtime);
     });
 
     test("getOrDownloadServer should not download the service if already exist", async () => {
@@ -122,7 +121,7 @@ suite("Server tests", () => {
         const server = createServer(fixture);
         const result = await server.getOrDownloadServer(fixture.runtime);
         expect(result).to.equal(fixture.executableFileName);
-        expect(downloadProvider.installSQLToolsService).to.not.have.been.called;
+        expect(downloadProvider.installService).to.not.have.been.called;
     });
 });
 

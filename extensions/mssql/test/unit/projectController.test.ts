@@ -44,6 +44,7 @@ suite("ProjectController Tests", () => {
     ): mssql.GetProjectPropertiesResult & {
         projectFilePath: string;
         dacpacOutputPath: string;
+        projectName: string;
     } {
         return {
             success: true,
@@ -53,6 +54,7 @@ suite("ProjectController Tests", () => {
             platform: "AnyCPU",
             projectFilePath: projectFilePath,
             dacpacOutputPath: dacpacOutputPath,
+            projectName: "TestProject",
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
             outputPath: "bin/Debug",
             defaultCollation: "SQL_Latin1_General_CP1_CI_AS",

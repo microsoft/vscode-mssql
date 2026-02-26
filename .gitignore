@@ -2,7 +2,7 @@
 out
 dist
 packages
-BuildDirectory
+extensions/sql-database-projects/BuildDirectory/*
 
 # Dependencies
 node_modules
@@ -40,6 +40,7 @@ test/resources/launchDir
 *BROWSE.VC*
 examples
 sqltoolsservice
+flatfileservice
 webviews-metafile.json
 
 # Generated localization files (keep source bundle.l10n.json files)
@@ -52,4 +53,5 @@ src/constants/localizedConstants.ts
 # Cache and tooling
 .eslintcache
 .nyc_output
+*.tsbuildinfo
 samples/connection-sharing-sample/dist

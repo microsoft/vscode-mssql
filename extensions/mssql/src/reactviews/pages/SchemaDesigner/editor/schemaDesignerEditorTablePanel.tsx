@@ -26,6 +26,7 @@ import {
     TableRow,
     Text,
     Textarea,
+    Tooltip,
     useArrowNavigationGroup,
     useTableColumnSizing_unstable,
     useTableFeatures,
@@ -34,7 +35,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
-import { columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { columnUtils, namingUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import { SchemaDesignerEditorContext, TABLE_NAME_ERROR_KEY } from "./schemaDesignerEditorDrawer";
@@ -62,13 +63,22 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "5px",
     },
-    fullWidthDivider: {
-        width: "100vh",
-    },
     columnInput: {
         minWidth: "150px",
         maxWidth: "150px",
         textOverflow: "ellipsis",
+    },
+    dragHandleButton: {
+        cursor: "grab",
+        "&:active": {
+            cursor: "grabbing",
+        },
+    },
+    draggingHandleButton: {
+        opacity: 0.6,
+    },
+    dropTargetRow: {
+        backgroundColor: "var(--vscode-list-dropBackground)",
     },
 });
 
@@ -77,23 +87,31 @@ const ColumnsTable = ({
     columns,
     updateColumn,
     deleteColumn,
+    moveColumn,
     columnNameInputRefs,
     datatypes,
-    isColumnDeletable,
+    getColumnDeleteDisabledReason,
 }: {
     columns: SchemaDesigner.Column[];
     updateColumn: (index: number, updatedColumn: SchemaDesigner.Column) => void;
     deleteColumn: (index: number) => void;
+    moveColumn: (from: number, to: number) => void;
     columnNameInputRefs: React.RefObject<Array<HTMLInputElement | null>>;
     datatypes: string[];
-    isColumnDeletable: (column: SchemaDesigner.Column) => boolean;
+    getColumnDeleteDisabledReason: (column: SchemaDesigner.Column) => string | undefined;
 }) => {
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const context = useContext(SchemaDesignerEditorContext);
+    const [draggedRowId, setDraggedRowId] = useState<number>(-1);
+    const [draggedOverRowId, setDraggedOverRowId] = useState<number>(-1);
 
     // Define table columns
     const columnDefinitions = [
+        createTableColumn({
+            columnId: "dragHandle",
+            renderHeaderCell: () => <Text></Text>,
+        }),
         createTableColumn({
             columnId: "name",
             renderHeaderCell: () => <Text>{locConstants.schemaDesigner.name}</Text>,
@@ -126,6 +144,11 @@ const ColumnsTable = ({
             defaultWidth: 18,
             minWidth: 18,
             idealWidth: 18,
+        },
+        dragHandle: {
+            defaultWidth: 20,
+            minWidth: 20,
+            idealWidth: 20,
         },
         name: {
             defaultWidth: 150,
@@ -280,6 +303,40 @@ const ColumnsTable = ({
     // Render cell content based on column id
     const renderCell = (column: SchemaDesigner.Column, columnId: TableColumnId, index: number) => {
         switch (columnId) {
+            case "dragHandle":
+                return (
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        className={`${classes.dragHandleButton} ${
+                            draggedRowId === index ? classes.draggingHandleButton : ""
+                        }`}
+                        icon={<FluentIcons.ReOrderRegular />}
+                        draggable={true}
+                        onDragEnter={() => {
+                            setDraggedOverRowId(index);
+                        }}
+                        onDragEnd={() => {
+                            if (draggedRowId === -1 || draggedOverRowId === -1) {
+                                return;
+                            }
+
+                            if (draggedRowId !== draggedOverRowId) {
+                                moveColumn(draggedRowId, draggedOverRowId);
+                            }
+
+                            setDraggedRowId(-1);
+                            setDraggedOverRowId(-1);
+                        }}
+                        onDrag={() => {
+                            setDraggedRowId(index);
+                        }}
+                        onDragStart={() => {
+                            setDraggedOverRowId(-1);
+                            setDraggedRowId(index);
+                        }}
+                    />
+                );
             case "error":
                 return (
                     <>
@@ -379,15 +436,26 @@ const ColumnsTable = ({
                 );
 
             case "delete":
-                return (
+                const deleteDisabledReason = getColumnDeleteDisabledReason(column);
+                const deleteButton = (
                     <Button
                         size="small"
                         appearance="subtle"
-                        disabled={!isColumnDeletable(column)}
+                        disabled={Boolean(deleteDisabledReason)}
                         icon={<FluentIcons.DeleteRegular />}
                         onClick={() => deleteColumn(index)}
                     />
                 );
+
+                if (deleteDisabledReason) {
+                    return (
+                        <Tooltip relationship="label" content={deleteDisabledReason}>
+                            <span>{deleteButton}</span>
+                        </Tooltip>
+                    );
+                }
+
+                return deleteButton;
 
             case "menu":
                 const id = "schema-designer-menu-" + column.id;
@@ -448,7 +516,26 @@ const ColumnsTable = ({
                 </TableHeader>
                 <TableBody>
                     {getRows().map((_row, index) => (
-                        <TableRow key={index}>
+                        <TableRow
+                            key={_row.item.id}
+                            className={draggedOverRowId === index ? classes.dropTargetRow : ""}
+                            onDragOver={(e) => {
+                                e.preventDefault();
+                                setDraggedOverRowId(index);
+                            }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                if (draggedRowId === -1 || draggedOverRowId === -1) {
+                                    return;
+                                }
+
+                                if (draggedRowId !== draggedOverRowId) {
+                                    moveColumn(draggedRowId, draggedOverRowId);
+                                }
+
+                                setDraggedRowId(-1);
+                                setDraggedOverRowId(-1);
+                            }}>
                             {tableColumns.map((column) => {
                                 return (
                                     <TableCell
@@ -481,6 +568,55 @@ export const SchemaDesignerEditorTablePanel = () => {
         return tableUtils.getAllTables(context.schema, context.table);
     }, [context.schema, context.table]);
 
+    const outgoingForeignKeyColumnIds = useMemo(() => {
+        const ids = new Set<string>();
+        for (const foreignKey of context.table.foreignKeys) {
+            for (const columnId of foreignKey.columnsIds) {
+                ids.add(columnId);
+            }
+        }
+        return ids;
+    }, [context.table.foreignKeys]);
+
+    const referencedForeignKeyColumnIds = useMemo(() => {
+        const ids = new Set<string>();
+        for (const table of allTables) {
+            for (const foreignKey of table.foreignKeys) {
+                if (foreignKey.referencedTableId !== context.table.id) {
+                    continue;
+                }
+
+                for (const referencedColumnId of foreignKey.referencedColumnsIds) {
+                    ids.add(referencedColumnId);
+                }
+            }
+        }
+        return ids;
+    }, [allTables, context.table.id]);
+
+    const columnDeleteDisabledReasonsById = useMemo(() => {
+        const reasonsById = new Map<string, string>();
+
+        for (const columnId of outgoingForeignKeyColumnIds) {
+            reasonsById.set(
+                columnId,
+                locConstants.schemaDesigner.cannotDeleteColumnUsedInForeignKey,
+            );
+        }
+
+        for (const columnId of referencedForeignKeyColumnIds) {
+            const hasOutgoingReference = reasonsById.has(columnId);
+            reasonsById.set(
+                columnId,
+                hasOutgoingReference
+                    ? locConstants.schemaDesigner.cannotDeleteColumnUsedByForeignKeyRelations
+                    : locConstants.schemaDesigner.cannotDeleteColumnReferencedByForeignKey,
+            );
+        }
+
+        return reasonsById;
+    }, [outgoingForeignKeyColumnIds, referencedForeignKeyColumnIds]);
+
     // Reset focus when selected table changes
     useEffect(() => {
         setLastColumnNameInputIndex(-1);
@@ -493,19 +629,8 @@ export const SchemaDesignerEditorTablePanel = () => {
         }
     }, [lastColumnNameInputIndex]);
 
-    // Check if a column can be deleted
-    const isColumnDeletable = (column: SchemaDesigner.Column) => {
-        // If there is an incoming or outgoing foreign key with this column, disable delete
-        const hasRelatedForeignKey = context.table.foreignKeys.some((fk) =>
-            fk.columns.includes(column.name),
-        );
-
-        // If this column is a referenced column in any foreign key, disable delete
-        const isReferencedInForeignKey = allTables.some((table) =>
-            table.foreignKeys.some((fk) => fk.referencedColumns.includes(column.name)),
-        );
-
-        return !hasRelatedForeignKey && !isReferencedInForeignKey;
+    const getColumnDeleteDisabledReason = (column: SchemaDesigner.Column) => {
+        return columnDeleteDisabledReasonsById.get(column.id);
     };
 
     // Add a new column
@@ -552,6 +677,22 @@ export const SchemaDesignerEditorTablePanel = () => {
     const deleteColumn = (index: number) => {
         const newColumns = [...context.table.columns];
         newColumns.splice(index, 1);
+
+        context.setTable({
+            ...context.table,
+            columns: newColumns,
+        });
+    };
+
+    // Move column from one index to another
+    const moveColumn = (from: number, to: number) => {
+        if (from === to) {
+            return;
+        }
+
+        const newColumns = [...context.table.columns];
+        const [movedColumn] = newColumns.splice(from, 1);
+        newColumns.splice(to, 0, movedColumn);
 
         context.setTable({
             ...context.table,
@@ -624,9 +765,10 @@ export const SchemaDesignerEditorTablePanel = () => {
                     columns={context.table.columns}
                     updateColumn={updateColumn}
                     deleteColumn={deleteColumn}
+                    moveColumn={moveColumn}
                     columnNameInputRefs={columnNameInputRefs}
                     datatypes={datatypes}
-                    isColumnDeletable={isColumnDeletable}
+                    getColumnDeleteDisabledReason={getColumnDeleteDisabledReason}
                 />
             </div>
         </div>

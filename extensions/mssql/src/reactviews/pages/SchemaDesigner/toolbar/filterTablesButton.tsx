@@ -13,13 +13,13 @@ import {
     ListItem,
     List,
     Switch,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
-import eventBus from "../schemaDesignerEvents";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export function FilterTablesButton() {
@@ -159,12 +159,14 @@ export function FilterTablesButton() {
     }, [selectedTables, showTableRelationships]);
 
     useEffect(() => {
-        eventBus.on("getScript", () =>
-            requestAnimationFrame(() => {
-                loadTables();
-            }),
-        );
-    }, []);
+        const rafId = requestAnimationFrame(() => {
+            loadTables();
+        });
+
+        return () => {
+            cancelAnimationFrame(rafId);
+        };
+    }, [context.schemaRevision]);
 
     // Function to highlight text based on search
     const highlightText = (text: string, searchText: string) => {
@@ -239,16 +241,20 @@ export function FilterTablesButton() {
     return (
         <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
             <MenuTrigger>
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    icon={<FluentIcons.Filter16Regular />}
-                    onClick={() => {
-                        loadTables();
-                        setIsFilterMenuOpen(!isFilterMenuOpen);
-                    }}>
-                    {locConstants.schemaDesigner.filter(selectedTables.length)}
-                </Button>
+                <Tooltip
+                    content={locConstants.schemaDesigner.filter(selectedTables.length)}
+                    relationship="label">
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.Filter16Regular />}
+                        onClick={() => {
+                            loadTables();
+                            setIsFilterMenuOpen(!isFilterMenuOpen);
+                        }}>
+                        {locConstants.schemaDesigner.filter(selectedTables.length)}
+                    </Button>
+                </Tooltip>
             </MenuTrigger>
 
             <MenuPopover

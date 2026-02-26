@@ -14,7 +14,27 @@ import {
     SaveObjectRequest,
     ScriptObjectRequest,
     DisposeViewRequest,
+    BackupConfigInfoRequest,
+    BackupRequest,
+    RestoreConfigInfoRequest,
+    RestoreRequest,
+    RestorePlanRequest,
+    CancelRestorePlanRequest,
 } from "../models/contracts/objectManagement";
+import {
+    BackupConfigInfoResponse,
+    DefaultDatabaseInfoParams,
+    BackupInfo,
+    BackupParams,
+    BackupResponse,
+} from "../sharedInterfaces/backup";
+import {
+    RestoreConfigInfoResponse,
+    RestoreParams,
+    RestorePlanResponse,
+    RestoreResponse,
+} from "../sharedInterfaces/restore";
+import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export class ObjectManagementService {
     constructor(private _client: SqlToolsServiceClient) {}
@@ -80,5 +100,74 @@ export class ObjectManagementService {
             deleteBackupHistory,
             generateScript,
         });
+    }
+
+    async getBackupConfigInfo(connectionUri: string): Promise<BackupConfigInfoResponse> {
+        try {
+            let params: DefaultDatabaseInfoParams = {
+                ownerUri: connectionUri,
+            };
+            return await this._client.sendRequest(BackupConfigInfoRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async backupDatabase(
+        connectionUri: string,
+        backupInfo: BackupInfo,
+        taskMode: TaskExecutionMode,
+    ): Promise<BackupResponse> {
+        try {
+            let params: BackupParams = {
+                ownerUri: connectionUri,
+                BackupInfo: backupInfo,
+                taskExecutionMode: taskMode,
+            };
+            return await this._client.sendRequest(BackupRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async getRestoreConfigInfo(connectionUri: string): Promise<RestoreConfigInfoResponse> {
+        try {
+            let params: DefaultDatabaseInfoParams = {
+                ownerUri: connectionUri,
+            };
+            return await this._client.sendRequest(RestoreConfigInfoRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async getRestorePlan(restoreParams: RestoreParams): Promise<RestorePlanResponse> {
+        try {
+            return await this._client.sendRequest(RestorePlanRequest.type, restoreParams);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async cancelRestorePlan(restoreParams: RestoreParams): Promise<boolean> {
+        try {
+            return await this._client.sendRequest(CancelRestorePlanRequest.type, restoreParams);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async restoreDatabase(restoreParams: RestoreParams): Promise<RestoreResponse> {
+        try {
+            return await this._client.sendRequest(RestoreRequest.type, restoreParams);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
     }
 }

@@ -5,8 +5,9 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as dacFxContracts from "../models/contracts/dacFx/dacFxContracts";
-import * as mssql from "vscode-mssql";
+import type * as mssql from "vscode-mssql";
 import { ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { DeploymentScenario } from "../enums";
 import { SqlTasksService } from "./sqlTasksService";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -236,6 +237,17 @@ export class DacFxService implements mssql.IDacFxService {
         return this._client.sendRequest(dacFxContracts.ValidateStreamingJobRequest.type, params);
     }
 
+    public parseTSqlScript(
+        filePath: string,
+        databaseSchemaProvider: string,
+    ): Thenable<mssql.ParseTSqlScriptResult> {
+        const params: mssql.ParseTSqlScriptParams = {
+            filePath: filePath,
+            databaseSchemaProvider: databaseSchemaProvider,
+        };
+        return this._client.sendRequest(dacFxContracts.ParseTSqlScriptRequest.type, params);
+    }
+
     public savePublishProfile(
         profilePath: string,
         databaseName: string,
@@ -253,5 +265,19 @@ export class DacFxService implements mssql.IDacFxService {
             deploymentOptions: deploymentOptions,
         };
         return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
+    }
+
+    public getDeploymentOptions(
+        scenario: DeploymentScenario,
+    ): Thenable<mssql.GetDeploymentOptionsResult> {
+        const params: mssql.GetDeploymentOptionsParams = {
+            scenario: scenario,
+        };
+        return this._client.sendRequest(dacFxContracts.GetDeploymentOptionsRequest.type, params);
+    }
+
+    public getCodeAnalysisRules(): Thenable<mssql.GetCodeAnalysisRulesResult> {
+        const params: mssql.GetCodeAnalysisRulesParams = {};
+        return this._client.sendRequest(dacFxContracts.GetCodeAnalysisRulesRequest.type, params);
     }
 }
