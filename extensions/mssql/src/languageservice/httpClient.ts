@@ -3,11 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
-import { parse as parseUrl, Url } from "url";
 import { ILogger } from "../models/interfaces";
+import { HttpDownloadError, HttpHelper, IDownloadFileResult } from "../http/httpHelper";
 import { IHttpClient, IPackage, IStatusView, PackageError } from "./interfaces";
 
 /*
@@ -23,66 +20,64 @@ export default class HttpClient implements IHttpClient {
         logger: ILogger,
         statusView: IStatusView,
     ): Promise<void> {
-        const url = parseUrl(urlString);
-        let options = this.getHttpClientOptions(url);
-        let clientRequest = url.protocol === "http:" ? http.request : https.request;
-
-        return new Promise<void>((resolve, reject) => {
-            if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
-                return reject(new PackageError("Temporary package file unavailable", pkg));
-            }
-
-            let request = clientRequest(options, (response) => {
-                if (response.statusCode === 301 || response.statusCode === 302) {
-                    // Redirect - download from new location
-                    return resolve(
-                        this.downloadFile(response.headers.location!, pkg, logger, statusView),
-                    );
-                }
-
-                if (response.statusCode !== 200) {
-                    // Download failed - print error message
-                    logger.appendLine(`failed (error code '${response.statusCode}')`);
-                    return reject(new PackageError(response.statusCode!.toString(), pkg));
-                }
-
-                // If status code is 200
-                this.handleSuccessfulResponse(pkg, response, logger, statusView)
-                    .then((_) => {
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-
-            request.on("error", (error: any) => {
-                reject(new PackageError(`Request error: ${error.code || "NONE"}`, pkg, error));
-            });
-
-            // Execute the request
-            request.end();
-        });
+        return this.downloadFileWithProgress(urlString, pkg, logger, statusView);
     }
 
-    private getHttpClientOptions(url: Url): any {
-        let options: http.RequestOptions = {
-            host: url.hostname,
-            path: url.path,
-            agent: undefined,
-        };
-
-        if (url.protocol === "https:") {
-            let httpsOptions: https.RequestOptions = {
-                host: url.hostname,
-                path: url.path,
-                agent: undefined,
-                rejectUnauthorized: true,
-            };
-            options = httpsOptions;
+    private async downloadFileWithProgress(
+        urlString: string,
+        pkg: IPackage,
+        logger: ILogger,
+        statusView: IStatusView,
+    ): Promise<void> {
+        if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
+            throw new PackageError("Temporary package file unavailable", pkg);
         }
 
-        return options;
+        const progress: IDownloadProgress = {
+            packageSize: 0,
+            dots: 0,
+            downloadedBytes: 0,
+            downloadPercentage: 0,
+        };
+
+        const httpHelper = new HttpHelper();
+
+        try {
+            const result: IDownloadFileResult = await httpHelper.downloadFile(
+                urlString,
+                pkg.tmpFile.fd,
+                {
+                    onHeaders: (headers) => {
+                        progress.packageSize = this.getPackageSize(headers["content-length"]);
+                        logger.append(`(${Math.ceil(progress.packageSize / 1024)} KB) `);
+                    },
+                    onData: (data) => {
+                        this.handleDataReceivedEvent(progress, data, logger, statusView);
+                    },
+                },
+            );
+
+            if (result.status !== 200) {
+                logger.appendLine(`failed (error code '${result.status}')`);
+                throw new PackageError(result.status.toString(), pkg);
+            }
+        } catch (error: unknown) {
+            if (error instanceof PackageError) {
+                throw error;
+            }
+
+            if (error instanceof HttpDownloadError) {
+                const messagePrefix =
+                    error.phase === "response" ? "Response error" : "Request error";
+                throw new PackageError(
+                    `${messagePrefix}: ${error.innerError.code || "NONE"}`,
+                    pkg,
+                    error.innerError,
+                );
+            }
+
+            throw new PackageError("Request error: NONE", pkg, error);
+        }
     }
 
     /*
@@ -90,7 +85,7 @@ export default class HttpClient implements IHttpClient {
      */
     public handleDataReceivedEvent(
         progress: IDownloadProgress,
-        data: any,
+        data: Buffer,
         logger: ILogger,
         statusView: IStatusView,
     ): void {
@@ -114,35 +109,21 @@ export default class HttpClient implements IHttpClient {
         return;
     }
 
-    private handleSuccessfulResponse(
-        pkg: IPackage,
-        response: http.IncomingMessage,
-        logger: ILogger,
-        statusView: IStatusView,
-    ): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            let progress: IDownloadProgress = {
-                packageSize: parseInt(response.headers["content-length"]!, 10),
-                dots: 0,
-                downloadedBytes: 0,
-                downloadPercentage: 0,
-            };
-            logger.append(`(${Math.ceil(progress.packageSize / 1024)} KB) `);
-            response.on("data", (data) => {
-                this.handleDataReceivedEvent(progress, data, logger, statusView);
-            });
-            let tmpFile = fs.createWriteStream("", { fd: pkg.tmpFile.fd });
-            response.on("end", () => {
-                resolve();
-            });
+    private getPackageSize(contentLengthHeader: unknown): number {
+        if (typeof contentLengthHeader === "number") {
+            return contentLengthHeader;
+        }
 
-            response.on("error", (err: any) => {
-                reject(new PackageError(`Response error: ${err.code || "NONE"}`, pkg, err));
-            });
+        if (Array.isArray(contentLengthHeader)) {
+            return this.getPackageSize(contentLengthHeader[0]);
+        }
 
-            // Begin piping data from the response to the package file
-            response.pipe(tmpFile, { end: false });
-        });
+        if (typeof contentLengthHeader !== "string") {
+            return 0;
+        }
+
+        const packageSize = parseInt(contentLengthHeader, 10);
+        return Number.isNaN(packageSize) ? 0 : packageSize;
     }
 }
 

@@ -8,24 +8,58 @@ import * as tunnel from "tunnel";
 import * as http from "http";
 import * as https from "https";
 import * as url from "url";
-import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
+import * as fs from "fs";
+import axios, { AxiosResponse, AxiosRequestConfig, RawAxiosResponseHeaders } from "axios";
+import { Readable } from "stream";
 import { Url } from "url";
 
 import * as LocalizedConstants from "../constants/locConstants";
 import { Logger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
+export class HttpDownloadError extends Error {
+    constructor(
+        public phase: "request" | "response",
+        public innerError: NodeJS.ErrnoException,
+    ) {
+        super(innerError.message);
+    }
+}
+
+export interface IDownloadFileOptions {
+    onHeaders?: (headers: RawAxiosResponseHeaders) => void;
+    onData?: (data: Buffer) => void;
+}
+
+export interface IDownloadFileResult {
+    status: number;
+    headers: RawAxiosResponseHeaders;
+}
+
 export class HttpHelper {
     constructor(private logger?: Logger) {}
+
+    public setupRequest(
+        requestUrl: string,
+        token?: string,
+    ): { requestUrl: string; config: AxiosRequestConfig } {
+        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
+        return {
+            requestUrl: this.constructRequestUrl(requestUrl, config),
+            config,
+        };
+    }
 
     public async makeGetRequest<TResponse>(
         requestUrl: string,
         token: string,
     ): Promise<AxiosResponse<TResponse>> {
-        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
-        requestUrl = this.constructRequestUrl(requestUrl, config);
+        const request = this.setupRequest(requestUrl, token);
 
-        const response: AxiosResponse = await axios.get<TResponse>(requestUrl, config);
+        const response: AxiosResponse = await axios.get<TResponse>(
+            request.requestUrl,
+            request.config,
+        );
         this.logger?.piiSanitized(
             "GET request ",
             [
@@ -37,7 +71,7 @@ export class HttpHelper {
                 },
             ],
             [],
-            requestUrl,
+            request.requestUrl,
         );
         return response;
     }
@@ -47,17 +81,75 @@ export class HttpHelper {
         token: string,
         payload: TPayload,
     ): Promise<AxiosResponse<TResponse>> {
-        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
-        requestUrl = this.constructRequestUrl(requestUrl, config);
+        const request = this.setupRequest(requestUrl, token);
 
-        const response: AxiosResponse = await axios.post<TResponse>(requestUrl, payload, config);
+        const response: AxiosResponse = await axios.post<TResponse>(
+            request.requestUrl,
+            payload,
+            request.config,
+        );
         this.logger?.piiSanitized(
             "POST request ",
             [{ name: "response", objOrArray: response.data }],
             [],
-            requestUrl,
+            request.requestUrl,
         );
         return response;
+    }
+
+    public async downloadFile(
+        requestUrl: string,
+        destinationFd: number,
+        options?: IDownloadFileOptions,
+    ): Promise<IDownloadFileResult> {
+        const request = this.setupRequest(requestUrl);
+        const requestConfig: AxiosRequestConfig = {
+            ...request.config,
+            responseType: "stream",
+        };
+
+        let response: AxiosResponse<Readable>;
+        try {
+            response = await axios.get<Readable>(request.requestUrl, requestConfig);
+        } catch (error: unknown) {
+            throw new HttpDownloadError("request", error as NodeJS.ErrnoException);
+        }
+
+        options?.onHeaders?.(response.headers);
+        if (response.status !== 200) {
+            response.data.destroy();
+            return {
+                status: response.status,
+                headers: response.headers,
+            };
+        }
+
+        await new Promise<void>((resolve, reject) => {
+            const tmpFile = fs.createWriteStream("", { fd: destinationFd });
+
+            response.data.on("data", (data: Buffer) => {
+                options?.onData?.(data);
+            });
+
+            response.data.on("error", (err: NodeJS.ErrnoException) => {
+                reject(new HttpDownloadError("response", err));
+            });
+
+            tmpFile.on("error", (err: NodeJS.ErrnoException) => {
+                reject(new HttpDownloadError("response", err));
+            });
+
+            response.data.on("end", () => {
+                resolve();
+            });
+
+            response.data.pipe(tmpFile, { end: false });
+        });
+
+        return {
+            status: response.status,
+            headers: response.headers,
+        };
     }
 
     public warnOnInvalidProxySettings(): void {
@@ -100,12 +192,17 @@ export class HttpHelper {
      * @param token - Bearer token for the Authorization header.
      * @returns AxiosRequestConfig with headers and proxy/agent configuration.
      */
-    private setupConfigAndProxyForRequest(requestUrl: string, token: string): AxiosRequestConfig {
+    private setupConfigAndProxyForRequest(requestUrl: string, token?: string): AxiosRequestConfig {
+        const headers: { "Content-Type": string; Authorization?: string } = {
+            "Content-Type": "application/json",
+        };
+
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
         const config: AxiosRequestConfig = {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
+            headers,
             validateStatus: () => true, // Never throw
         };
 
