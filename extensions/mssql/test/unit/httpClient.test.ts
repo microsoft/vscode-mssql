@@ -8,9 +8,11 @@ import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as fs from "fs";
+import { PassThrough } from "stream";
 import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { HttpClient } from "../../src/http/httpClient";
+import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
 import { Logger } from "../../src/models/logger";
 
 chai.use(sinonChai);
@@ -148,6 +150,145 @@ suite("HttpClient tests", () => {
                 [],
                 requestUrl,
             );
+        });
+    });
+
+    suite("downloadFile tests", () => {
+        test("should download successfully and invoke callbacks", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const normalizedUrl = "https://download.example.com:443/file";
+            const headers = { "content-length": "5" };
+
+            const responseStream = new PassThrough();
+            const tmpFileStream = new PassThrough();
+
+            sandbox
+                .stub(httpClient, "setupRequest")
+                .returns({ requestUrl: normalizedUrl, config: {} });
+
+            sandbox
+                .stub(fs, "createWriteStream")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .returns(tmpFileStream as any);
+
+            const mockResponse: AxiosResponse = {
+                data: responseStream,
+                status: 200,
+                statusText: "OK",
+                headers,
+                config: {} as AxiosResponse["config"],
+            };
+            sandbox.stub(axios, "get").resolves(mockResponse);
+
+            const onHeaders = sandbox.spy();
+            const onData = sandbox.spy();
+
+            const downloadPromise = httpClient.downloadFile(requestUrl, 123, {
+                onHeaders,
+                onData,
+            });
+
+            responseStream.write(Buffer.from([1, 2, 3]));
+            responseStream.end(Buffer.from([4, 5]));
+
+            const result = await downloadPromise;
+
+            expect(result.status).to.equal(200);
+            expect(result.headers).to.equal(headers);
+            expect(onHeaders).to.have.been.calledOnceWithExactly(headers);
+            expect(onData).to.have.callCount(2);
+            expect((onData.firstCall.args[0] as Buffer).length).to.equal(3);
+            expect((onData.secondCall.args[0] as Buffer).length).to.equal(2);
+            expect(axios.get).to.have.been.calledWith(
+                normalizedUrl,
+                sinon.match({ responseType: "stream" }),
+            );
+        });
+
+        test("should return error code and destroy stream upon HTTP error", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const normalizedUrl = "https://download.example.com:443/file";
+            const headers = { "content-length": "0" };
+
+            const responseStream = new PassThrough();
+            const destroySpy = sandbox.spy(responseStream, "destroy");
+
+            sandbox
+                .stub(httpClient, "setupRequest")
+                .returns({ requestUrl: normalizedUrl, config: {} });
+
+            const mockResponse: AxiosResponse = {
+                data: responseStream,
+                status: 404,
+                statusText: "Not Found",
+                headers,
+                config: {} as AxiosResponse["config"],
+            };
+            sandbox.stub(axios, "get").resolves(mockResponse);
+
+            const onHeaders = sandbox.spy();
+            const result = await httpClient.downloadFile(requestUrl, 123, { onHeaders });
+
+            expect(result.status).to.equal(404);
+            expect(result.headers).to.equal(headers);
+            expect(onHeaders).to.have.been.calledOnceWithExactly(headers);
+            expect(destroySpy).to.have.been.calledOnce;
+        });
+
+        test("should wrap request errors in HttpDownloadError", async () => {
+            const requestUrl = "https://download.example.com/file";
+
+            sandbox.stub(httpClient, "setupRequest").returns({ requestUrl, config: {} });
+
+            const requestError = new Error("network error") as NodeJS.ErrnoException;
+            requestError.code = "ECONNRESET";
+            sandbox.stub(axios, "get").rejects(requestError);
+
+            try {
+                await httpClient.downloadFile(requestUrl, 123);
+                expect.fail("Expected downloadFile to throw");
+            } catch (error) {
+                expect(error).to.be.instanceOf(HttpDownloadError);
+                expect((error as HttpDownloadError).phase).to.equal("request");
+                expect((error as HttpDownloadError).innerError).to.equal(requestError);
+            }
+        });
+
+        test("should wrap response stream errors in HttpDownloadError", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const responseStream = new PassThrough();
+            const tmpFileStream = new PassThrough();
+
+            sandbox.stub(httpClient, "setupRequest").returns({ requestUrl, config: {} });
+            sandbox
+                .stub(fs, "createWriteStream")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .returns(tmpFileStream as any);
+
+            const mockResponse: AxiosResponse = {
+                data: responseStream,
+                status: 200,
+                statusText: "OK",
+                headers: {},
+                config: {} as AxiosResponse["config"],
+            };
+            sandbox.stub(axios, "get").resolves(mockResponse);
+
+            const responseError = new Error("stream failed") as NodeJS.ErrnoException;
+            responseError.code = "EPIPE";
+
+            const downloadPromise = httpClient.downloadFile(requestUrl, 123);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            responseStream.emit("error", responseError);
+
+            try {
+                await downloadPromise;
+                expect.fail("Expected downloadFile to throw");
+            } catch (error) {
+                expect(error).to.be.instanceOf(HttpDownloadError);
+                expect((error as HttpDownloadError).phase).to.equal("response");
+                expect((error as HttpDownloadError).innerError).to.equal(responseError);
+            }
         });
     });
 
