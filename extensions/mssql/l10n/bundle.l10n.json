@@ -79,6 +79,11 @@
     "Expand": "Expand",
     "Collapse": "Collapse",
     "Filter Settings": "Filter Settings",
+    "Select All": "Select All",
+    "Copy": "Copy",
+    "Copy with Headers": "Copy with Headers",
+    "Copy Headers": "Copy Headers",
+    "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -86,7 +91,6 @@
         "comment": ["{0} is the action being confirmed"]
     },
     "Close": "Close",
-    "Copy": "Copy",
     "Apply": "Apply",
     "Next": "Next",
     "Clear Selection": "Clear Selection",
@@ -453,9 +457,6 @@
         "comment": ["{0} is the keyboard shortcut for the query plan tab"]
     },
     "Query Plan": "Query Plan",
-    "Select All": "Select All",
-    "Copy with Headers": "Copy with Headers",
-    "Copy Headers": "Copy Headers",
     "Copy As": "Copy As",
     "Copy as CSV": "Copy as CSV",
     "Copy as JSON": "Copy as JSON",
@@ -847,6 +848,7 @@
     "Generate Config": "Generate Config",
     "Deploy": "Deploy",
     "Back to Schema": "Back to Schema",
+    "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
     "Entity Name": "Entity Name",
     "Used in API routes and responses": "Used in API routes and responses",
@@ -902,6 +904,13 @@
     "Deployment Failed": "Deployment Failed",
     "DAB container is running!": "DAB container is running!",
     "Your API is available at:": "Your API is available at:",
+    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
+    "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
+        "message": "Copy {0} URL",
+        "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
+    },
+    "Add to VS Code": "Add to VS Code",
+    "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -1962,6 +1971,58 @@
     },
     "Enable Experiences & Reload": "Enable Experiences & Reload",
     "New Deployment": "New Deployment",
+    "SQL: Not connected": "SQL: Not connected",
+    "SQL Notebooks: click to change database": "SQL Notebooks: click to change database",
+    "SQL Notebooks: click to connect": "SQL Notebooks: click to connect",
+    "Connection failed": "Connection failed",
+    "Query execution failed": "Query execution failed",
+    "No active notebook.": "No active notebook.",
+    "No active connection.": "No active connection.",
+    "No connection selected.": "No connection selected.",
+    "({0} row(s) affected)/{0} is the number of rows affected": {
+        "message": "({0} row(s) affected)",
+        "comment": ["{0} is the number of rows affected"]
+    },
+    "(Command completed successfully)": "(Command completed successfully)",
+    "(0 rows)": "(0 rows)",
+    "({0} row)/{0} is the number of rows (singular)": {
+        "message": "({0} row)",
+        "comment": ["{0} is the number of rows (singular)"]
+    },
+    "({0} rows)/{0} is the number of rows (plural)": {
+        "message": "({0} rows)",
+        "comment": ["{0} is the number of rows (plural)"]
+    },
+    "Disconnected.": "Disconnected.",
+    "Connected to {0}/{0} is the connection label": {
+        "message": "Connected to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "Switched to {0}/{0} is the connection label": {
+        "message": "Switched to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "No database selected.": "No database selected.",
+    "Unknown magic command: %%{0}/{0} is the magic command name": {
+        "message": "Unknown magic command: %%{0}",
+        "comment": ["{0} is the magic command name"]
+    },
+    "Select Database": "Select Database",
+    "Choose a database": "Choose a database",
+    "(current)": "(current)",
+    "Click to change database": "Click to change database",
+    "Connect to SQL Server": "Connect to SQL Server",
+    "SQL Notebook connected to {0}/{0} is the connection label": {
+        "message": "SQL Notebook connected to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "Error: {0}/{0} is the error message": {
+        "message": "Error: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Query execution was cancelled.": "Query execution was cancelled.",
+    "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
+    "Not connected": "Not connected",
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -2394,6 +2455,17 @@
         "message": "Failed to generate publish script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
+    "MCP server added to {0}/{0} is the file path where the MCP server was added": {
+        "message": "MCP server added to {0}",
+        "comment": ["{0} is the file path where the MCP server was added"]
+    },
+    "MCP server is already configured in {0}/{0} is the file path where the MCP server configuration exists": {
+        "message": "MCP server is already configured in {0}",
+        "comment": ["{0} is the file path where the MCP server configuration exists"]
+    },
+    "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "Config copied to clipboard": "Config copied to clipboard",
+    "URL copied to clipboard": "URL copied to clipboard",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
@@ -2930,7 +3002,7 @@
     "Database Management Dialogs (Preview)": "Database Management Dialogs (Preview)",
     "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.": "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
     "Query Profiler (Preview)": "Query Profiler (Preview)",
-    "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.",
+    "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
     "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     "SQL Database Projects – Publish Dialog": "SQL Database Projects – Publish Dialog",

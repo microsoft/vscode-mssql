@@ -25,7 +25,11 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-editorWidget-border)",
     },
 });
-export const SchemaDesignerPage = () => {
+interface SchemaDesignerPageProps {
+    onNavigateToDab?: () => void;
+}
+
+export const SchemaDesignerPage = ({ onNavigateToDab }: SchemaDesignerPageProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
 
@@ -43,7 +47,7 @@ export const SchemaDesignerPage = () => {
                             <CopilotChangesProvider>
                                 <Panel defaultSize={100}>
                                     <GraphContainer>
-                                        <SchemaDesignerToolbar />
+                                        <SchemaDesignerToolbar onNavigateToDab={onNavigateToDab} />
                                         <SchemaDesignerFlow />
                                     </GraphContainer>
                                 </Panel>
