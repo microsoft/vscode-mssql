@@ -356,6 +356,13 @@ export namespace Dab {
     export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
 
     /**
+     * Platform to use when pulling the DAB container image.
+     * DAB only publishes linux/amd64 images, so this must be specified
+     * explicitly to avoid pull failures on Mac ARM (which defaults to linux/arm64).
+     */
+    export const DAB_CONTAINER_PLATFORM = "linux/amd64";
+
+    /**
      * Default port for DAB container
      */
     export const DAB_DEFAULT_PORT = 5000;

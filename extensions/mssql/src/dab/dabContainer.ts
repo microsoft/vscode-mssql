@@ -27,7 +27,7 @@ export async function pullDabContainerImage(): Promise<DockerCommandParams> {
     return pullContainerImage(
         Dab.DAB_CONTAINER_IMAGE,
         LocalContainers.dabPullImageError,
-        "linux/amd64",
+        Dab.DAB_CONTAINER_PLATFORM,
     );
 }
 
