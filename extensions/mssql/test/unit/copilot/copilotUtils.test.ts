@@ -69,7 +69,7 @@ suite("copilotUtils Tests", () => {
                 url: "http://localhost:5000/mcp",
             });
             expect(showInfoStub).to.have.been.calledOnceWith(
-                LocConstants.SchemaDesigner.mcpServerAddedToWorkspace,
+                LocConstants.SchemaDesigner.mcpServerAddedToWorkspace(".vscode/mcp.json"),
             );
         });
 
@@ -132,7 +132,7 @@ suite("copilotUtils Tests", () => {
             expect(result.success).to.be.true;
             expect(writeFileStub).to.not.have.been.called;
             expect(showInfoStub).to.have.been.calledOnceWith(
-                LocConstants.SchemaDesigner.mcpServerAlreadyExists,
+                LocConstants.SchemaDesigner.mcpServerAlreadyExists(".vscode/mcp.json"),
             );
         });
 

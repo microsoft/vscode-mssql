@@ -45,6 +45,8 @@ export async function addMcpServerToWorkspace(
         };
     }
 
+    const mcpJsonRelativePath = ".vscode/mcp.json";
+
     try {
         const mcpJsonPath = vscode.Uri.joinPath(workspaceFolders[0].uri, ".vscode", "mcp.json");
 
@@ -70,7 +72,7 @@ export async function addMcpServerToWorkspace(
         );
         if (alreadyExists) {
             void vscode.window.showInformationMessage(
-                LocConstants.SchemaDesigner.mcpServerAlreadyExists,
+                LocConstants.SchemaDesigner.mcpServerAlreadyExists(mcpJsonRelativePath),
             );
             return { success: true };
         }
@@ -88,7 +90,7 @@ export async function addMcpServerToWorkspace(
         );
 
         void vscode.window.showInformationMessage(
-            LocConstants.SchemaDesigner.mcpServerAddedToWorkspace,
+            LocConstants.SchemaDesigner.mcpServerAddedToWorkspace(mcpJsonRelativePath),
         );
         return { success: true };
     } catch (error) {

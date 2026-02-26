@@ -2402,8 +2402,14 @@
         "message": "Failed to generate publish script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
-    "MCP server added to .vscode/mcp.json": "MCP server added to .vscode/mcp.json",
-    "MCP server is already configured in .vscode/mcp.json": "MCP server is already configured in .vscode/mcp.json",
+    "MCP server added to {0}/{0} is the file path where the MCP server was added": {
+        "message": "MCP server added to {0}",
+        "comment": ["{0} is the file path where the MCP server was added"]
+    },
+    "MCP server is already configured in {0}/{0} is the file path where the MCP server configuration exists": {
+        "message": "MCP server is already configured in {0}",
+        "comment": ["{0} is the file path where the MCP server configuration exists"]
+    },
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
     "Config copied to clipboard": "Config copied to clipboard",
     "URL copied to clipboard": "URL copied to clipboard",

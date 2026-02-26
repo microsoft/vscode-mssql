@@ -3537,11 +3537,13 @@
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
     </trans-unit>
-    <trans-unit id="++CODE++f2d329a7b893bc92555c2281017bd170267ff9328c80f3fa869f15efd8f11848">
-      <source xml:lang="en">MCP server added to .vscode/mcp.json</source>
+    <trans-unit id="++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1">
+      <source xml:lang="en">MCP server added to {0}</source>
+      <note>{0} is the file path where the MCP server was added</note>
     </trans-unit>
-    <trans-unit id="++CODE++27bbb2c3e7d4723120d7447d3a0449d252c9dc22d06078c4f14b6ffe0b1e3d89">
-      <source xml:lang="en">MCP server is already configured in .vscode/mcp.json</source>
+    <trans-unit id="++CODE++5d50fcab6afa8bf3d21623505a4148c817c4cff4ec9873bf8f9693e9e8f39415">
+      <source xml:lang="en">MCP server is already configured in {0}</source>
+      <note>{0} is the file path where the MCP server configuration exists</note>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
