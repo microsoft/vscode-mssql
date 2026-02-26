@@ -161,6 +161,7 @@ export const CodeAnalysisDialog = () => {
     const [localRules, setLocalRules] = useState<SqlCodeAnalysisRule[]>(rules);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
     const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     // Remembers per-category severities before a category is fully disabled,
     // so they can be restored when the category is re-enabled.
     const [categoryPreviousSeverities, setCategoryPreviousSeverities] = useState<
@@ -170,6 +171,12 @@ export const CodeAnalysisDialog = () => {
     useEffect(() => {
         setLocalRules(rules);
     }, [rules]);
+
+    // Reset isSaving when the save completes: the reducer updates `rules` on
+    // success and `message` on error — either signals the round-trip is done.
+    useEffect(() => {
+        setIsSaving(false);
+    }, [rules, message]);
 
     const isDirty = useMemo(() => {
         if (localRules.length !== rules.length) return true;
@@ -428,7 +435,11 @@ export const CodeAnalysisDialog = () => {
                 <div className={styles.footerButtons}>
                     {/* Reset button with co-located confirm dialog */}
                     <ConfirmationDialog
-                        trigger={<Button appearance="subtle">{loc.reset}</Button>}
+                        trigger={
+                            <Button appearance="subtle" disabled={isLoading || isSaving}>
+                                {loc.reset}
+                            </Button>
+                        }
                         title={loc.resetConfirmTitle}
                         message={loc.resetConfirmMessage}
                         actions={[
@@ -442,6 +453,7 @@ export const CodeAnalysisDialog = () => {
                     />
                     <Button
                         appearance="secondary"
+                        disabled={isSaving}
                         onClick={() =>
                             isDirty ? setShowUnsavedChangesDialog(true) : context.close()
                         }>
@@ -449,14 +461,20 @@ export const CodeAnalysisDialog = () => {
                     </Button>
                     <Button
                         appearance="secondary"
-                        disabled={!isDirty || isLoading}
-                        onClick={() => context.saveRules(localRules, false)}>
+                        disabled={!isDirty || isLoading || isSaving}
+                        onClick={() => {
+                            setIsSaving(true);
+                            context.saveRules(localRules, false);
+                        }}>
                         {commonLoc.apply}
                     </Button>
                     <Button
                         appearance="primary"
-                        disabled={!isDirty || isLoading}
-                        onClick={() => context.saveRules(localRules, true)}>
+                        disabled={!isDirty || isLoading || isSaving}
+                        onClick={() => {
+                            setIsSaving(true);
+                            context.saveRules(localRules, true);
+                        }}>
                         {commonLoc.ok}
                     </Button>
                 </div>
@@ -472,7 +490,10 @@ export const CodeAnalysisDialog = () => {
                     {
                         label: commonLoc.save,
                         appearance: "primary",
-                        onClick: () => context.saveRules(localRules, true),
+                        onClick: () => {
+                            setIsSaving(true);
+                            context.saveRules(localRules, true);
+                        },
                     },
                     {
                         label: loc.dontSave,

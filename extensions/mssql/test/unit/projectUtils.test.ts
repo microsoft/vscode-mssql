@@ -163,10 +163,15 @@ suite("projectUtils Tests", () => {
         // Empty / blank input → empty map
         expect(parseSqlprojRuleOverrides("").size).to.equal(0);
         expect(parseSqlprojRuleOverrides(";;;").size).to.equal(0);
+        expect(parseSqlprojRuleOverrides("   ").size).to.equal(0);
+
+        // Prefix-only tokens with no rule ID are skipped
+        // Dacfx do not allow to add these values, but user can edit the sqlproj and add them
+        expect(parseSqlprojRuleOverrides("+!;-;-!").size).to.equal(0);
 
         // Short IDs, mixed short+fully-qualified, whitespace around tokens
         const result = parseSqlprojRuleOverrides(
-            "  SR0001  ; +!Microsoft.Rules.Data.SR0002 ; -SR0003 ; -!SR0004 ",
+            "  SR0001  ; +!Microsoft.Rules.Data.SR0002 ; -SR0003 ; -!SR0004 ; +! ; - ; -!",
         );
         expect(result.size).to.equal(4);
         expect(result.get("SR0001")).to.equal("Warning");
