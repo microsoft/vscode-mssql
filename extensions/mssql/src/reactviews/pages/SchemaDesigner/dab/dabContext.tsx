@@ -11,7 +11,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 interface DabContextProps {
     isInitialized: boolean;
-    copyToClipboard: (text: string) => void;
+    copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
@@ -48,7 +48,7 @@ interface DabProviderProps {
 
 export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
-    const { extensionRpc, extractSchema, copyToClipboard, isInitialized } = schemaDesignerContext;
+    const { extensionRpc, extractSchema, isInitialized } = schemaDesignerContext;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
@@ -189,6 +189,16 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             setDabConfigRequestId((id) => id + 1);
         }
     }, [dabConfig, extensionRpc]);
+
+    const copyToClipboard = useCallback(
+        (text: string, copyTextType: Dab.CopyTextType) => {
+            void extensionRpc.sendNotification(Dab.CopyTextNotification.type, {
+                text,
+                copyTextType,
+            });
+        },
+        [extensionRpc],
+    );
 
     const openDabConfigInEditor = useCallback(
         (configContent: string) => {

@@ -2405,6 +2405,8 @@
     "MCP server added to .vscode/mcp.json": "MCP server added to .vscode/mcp.json",
     "MCP server is already configured in .vscode/mcp.json": "MCP server is already configured in .vscode/mcp.json",
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "Config copied to clipboard": "Config copied to clipboard",
+    "URL copied to clipboard": "URL copied to clipboard",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",

@@ -1599,6 +1599,8 @@ export class SchemaDesigner {
     public static noWorkspaceOpenForMcp = l10n.t(
         "No workspace folder is open. Open a folder to add the MCP server configuration.",
     );
+    public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
+    public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
 }
 
 export class StatusBar {

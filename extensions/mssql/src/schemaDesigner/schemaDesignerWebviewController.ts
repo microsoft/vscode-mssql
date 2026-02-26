@@ -406,9 +406,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
-        this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
-            await vscode.env.clipboard.writeText(payload.configContent);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+        this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            const message =
+                payload.copyTextType === Dab.CopyTextType.Url
+                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
+                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            await vscode.window.showInformationMessage(message);
         });
 
         // DAB deployment request handlers

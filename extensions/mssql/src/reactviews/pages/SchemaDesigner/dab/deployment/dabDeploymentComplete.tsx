@@ -169,7 +169,7 @@ export const DabDeploymentComplete = ({
                         icon={<Copy16Regular />}
                         size="small"
                         className={classes.actionButton}
-                        onClick={() => copyToClipboard(ep.url)}
+                        onClick={() => copyToClipboard(ep.url, Dab.CopyTextType.Url)}
                         aria-label={locConstants.schemaDesigner.copyUrl(ep.label)}
                         title={locConstants.schemaDesigner.copyUrl(ep.label)}
                     />

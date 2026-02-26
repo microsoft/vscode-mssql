@@ -804,14 +804,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
-        suite("CopyConfigNotification handler", () => {
-            test("should register CopyConfigNotification handler", () => {
+        suite("CopyTextNotification handler", () => {
+            test("should register CopyTextNotification handler", () => {
                 createController();
 
-                expect(notificationHandlers.has(Dab.CopyConfigNotification.type.method)).to.be.true;
+                expect(notificationHandlers.has(Dab.CopyTextNotification.type.method)).to.be.true;
             });
 
-            test("should copy config content to clipboard and show notification", async () => {
+            test("should copy text to clipboard and show config message for Config type", async () => {
                 const writeTextStub = sandbox.stub().resolves();
                 sandbox.stub(vscode.env, "clipboard").value({
                     writeText: writeTextStub,
@@ -822,13 +822,33 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 createController();
 
-                const handler = notificationHandlers.get(Dab.CopyConfigNotification.type.method);
+                const handler = notificationHandlers.get(Dab.CopyTextNotification.type.method);
                 expect(handler).to.be.a("function");
 
-                const configContent = '{"$schema": "test"}';
-                await handler({ configContent });
+                const text = '{"$schema": "test"}';
+                await handler({ text, copyTextType: Dab.CopyTextType.Config });
 
-                expect(writeTextStub).to.have.been.calledOnceWith(configContent);
+                expect(writeTextStub).to.have.been.calledOnceWith(text);
+                expect(showInfoStub).to.have.been.calledOnce;
+            });
+
+            test("should show URL message for Url type", async () => {
+                const writeTextStub = sandbox.stub().resolves();
+                sandbox.stub(vscode.env, "clipboard").value({
+                    writeText: writeTextStub,
+                });
+                const showInfoStub = sandbox
+                    .stub(vscode.window, "showInformationMessage")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.CopyTextNotification.type.method);
+
+                const url = "http://localhost:5000/api";
+                await handler({ text: url, copyTextType: Dab.CopyTextType.Url });
+
+                expect(writeTextStub).to.have.been.calledOnceWith(url);
                 expect(showInfoStub).to.have.been.calledOnce;
             });
         });

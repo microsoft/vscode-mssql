@@ -1089,6 +1089,9 @@
     <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
       <source xml:lang="en">Compression</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
+      <source xml:lang="en">Config copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
       <source xml:lang="en">Configuration to Import</source>
     </trans-unit>
@@ -6017,6 +6020,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
       <source xml:lang="en">URL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
+      <source xml:lang="en">URL copied to clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
