@@ -2427,6 +2427,7 @@
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Code Analysis": "Code Analysis",
     "Failed to load code analysis rules": "Failed to load code analysis rules",
+    "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
     "Failed to save code analysis rules": "Failed to save code analysis rules",
     "Code analysis rules saved successfully": "Code analysis rules saved successfully",
     "Schema Compare": "Schema Compare",
