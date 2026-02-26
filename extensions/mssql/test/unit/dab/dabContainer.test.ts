@@ -79,6 +79,10 @@ suite("DAB Container", () => {
         const result = await dabContainer.pullDabContainerImage();
         expect(pullStub).to.have.been.calledOnce;
         expect(result.success).to.be.true;
+
+        // Verify platform is passed to pull for cross-platform compatibility (DAB only publishes linux/amd64)
+        const pullArgs = pullStub.firstCall.args;
+        expect(pullArgs[1]).to.deep.equal({ platform: "linux/amd64" });
     });
 
     test("pullDabContainerImage: should return error when pull fails", async () => {
