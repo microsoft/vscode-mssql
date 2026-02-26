@@ -75,6 +75,8 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
+    isExecuting?: boolean;
+    executionStartTime?: number;
 }
 
 export interface SelectionSummary {
@@ -86,6 +88,8 @@ export interface SelectionSummary {
     };
     tooltip: string;
     continue?: any;
+    batchId?: number;
+    resultId?: number;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {

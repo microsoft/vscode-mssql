@@ -38,6 +38,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 },
                 executionPlanState: {},
                 fontSettings: {},
+                isExecuting: false,
             },
             {
                 title: title,

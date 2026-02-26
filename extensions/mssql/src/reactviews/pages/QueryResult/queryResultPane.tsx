@@ -28,6 +28,7 @@ import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
+import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
 
 const useStyles = makeStyles({
     root: {
@@ -69,7 +70,8 @@ const useStyles = makeStyles({
     },
     noResultsContainer: {
         width: "100%",
-        height: "100%",
+        flex: 1,
+        minHeight: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -207,6 +209,7 @@ export const QueryResultPane = () => {
                         <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
                 </div>
+                <QueryResultSummaryFooter hideMetrics={true} />
             </div>
         );
     }
@@ -245,6 +248,7 @@ export const QueryResultPane = () => {
                         )}
                     </div>
                 </div>
+                <QueryResultSummaryFooter hideMetrics={true} />
             </div>
         );
     }
@@ -342,6 +346,7 @@ export const QueryResultPane = () => {
                     <QueryExecutionPlanTab />
                 </div>
             </div>
+            <QueryResultSummaryFooter />
         </div>
     );
 };

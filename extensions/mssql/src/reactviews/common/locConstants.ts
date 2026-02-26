@@ -686,6 +686,16 @@ export class LocConstants {
                         });
                 }
             },
+            noRowsAffected: l10n.t("No rows affected"),
+            selectedItemLabel: l10n.t("Selected"),
+            rowsAffectedLabel: l10n.t("Rows"),
+            timeLabel: l10n.t("Time"),
+            runningLabel: l10n.t("Running"),
+            executionLabel: l10n.t("Execution"),
+            noSelectionSummary: l10n.t("No selection"),
+            executionCancelled: l10n.t("Execution cancelled"),
+            executionTimeUnavailable: l10n.t("Execution time unavailable"),
+            totalExecutionTimePrefix: l10n.t("Total execution time:"),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",

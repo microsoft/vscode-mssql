@@ -423,8 +423,7 @@ suite("Query Runner tests", () => {
         // Then:
         // ... The VS Code view should have stopped executing
         expect(testStatusView.executedQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testStatusView.setExecutionTime).to.have.been.calledOnce;
-        expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
+        expect(testStatusView.setExecutionTime).to.not.have.been.called;
 
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);

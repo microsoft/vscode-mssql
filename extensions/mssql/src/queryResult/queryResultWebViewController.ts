@@ -38,8 +38,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
     private _correlationId: string = randomUUID();
-    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
-        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
 
@@ -58,14 +56,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             executionPlanState: {},
             fontSettings: {},
             autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+            isExecuting: false,
         });
 
         void this.initialize();
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
-                this.updateSelectionSummary();
-
                 const uri = getUriKey(editor?.document?.uri);
                 const hasPanel = uri && this.hasPanel(uri);
                 const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
@@ -239,6 +236,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             tabStates: undefined,
             isExecutionPlan: false,
             executionPlanState: {},
+            isExecuting: false,
             fontSettings: {
                 fontSize: this.getFontSizeConfig(),
 
@@ -297,6 +295,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
+            isExecuting: false,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -474,31 +473,5 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
-    }
-
-    public updateSelectionSummary() {
-        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
-            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
-        );
-
-        if (!activeUri) {
-            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
-        }
-
-        if (!this._queryResultStateMap.has(activeUri)) {
-            this._selectionSummaryStatusBarItem.hide();
-            return;
-        }
-
-        const state = this._queryResultStateMap.get(activeUri);
-
-        if (state?.selectionSummary) {
-            this._selectionSummaryStatusBarItem.text = state.selectionSummary.text;
-            this._selectionSummaryStatusBarItem.tooltip = state.selectionSummary.tooltip;
-            this._selectionSummaryStatusBarItem.command = state.selectionSummary.command;
-            this._selectionSummaryStatusBarItem.show();
-        } else {
-            this._selectionSummaryStatusBarItem.hide();
-        }
     }
 }

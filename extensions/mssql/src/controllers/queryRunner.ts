@@ -458,10 +458,6 @@ export default class QueryRunner {
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
         this._statusView.executedQuery(result.ownerUri);
-        this._statusView.setExecutionTime(
-            result.ownerUri,
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-        );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this._completeEmitter.fire({
@@ -566,13 +562,6 @@ export default class QueryRunner {
 
         // Send the message to the results pane
         this._messageEmitter.fire(message);
-
-        // Set row count on status bar if there are no errors
-        if (!obj.message.isError) {
-            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
-        } else {
-            this._statusView.hideRowCount(obj.ownerUri, true);
-        }
     }
 
     /**
@@ -993,6 +982,8 @@ export default class QueryRunner {
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
             await proceed.promise;
         };
@@ -1008,6 +999,8 @@ export default class QueryRunner {
                 text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
         };
 
@@ -1119,6 +1112,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
         } catch (error) {
             // Clean up on error
@@ -1134,6 +1129,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
             throw error;
         }
