@@ -166,7 +166,7 @@ suite("projectUtils Tests", () => {
         expect(parseSqlprojRuleOverrides("   ").size).to.equal(0);
 
         // Prefix-only tokens with no rule ID are skipped
-        // Dacfx do not allow to add these values, but user can edit the sqlproj and add them
+        // DacFx does not allow adding these values, but the user can edit the sqlproj and add them
         expect(parseSqlprojRuleOverrides("+!;-;-!").size).to.equal(0);
 
         // Short IDs, mixed short+fully-qualified, whitespace around tokens

@@ -169,8 +169,11 @@ export const CodeAnalysisDialog = () => {
     >(new Map());
 
     useEffect(() => {
-        setLocalRules(rules);
-    }, [rules]);
+        // Avoid overwriting in-progress user edits while a save is ongoing.
+        if (!isSaving) {
+            setLocalRules(rules);
+        }
+    }, [rules, isSaving]);
 
     // Reset isSaving when the save completes: the reducer updates `rules` on
     // success and `message` on error — either signals the round-trip is done.
@@ -336,97 +339,103 @@ export const CodeAnalysisDialog = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {groupedRuleEntries.map(([category, categoryRules]) => (
-                                <Fragment key={category}>
-                                    {/* Category row */}
-                                    <TableRow>
-                                        <TableCell
-                                            className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
-                                            onDoubleClick={() => toggleCategoryCollapsed(category)}>
-                                            <div className={styles.categoryHeaderContent}>
-                                                <Button
-                                                    appearance="subtle"
-                                                    aria-label={
-                                                        collapsedCategories.has(category)
-                                                            ? loc.expandCategory(category)
-                                                            : loc.collapseCategory(category)
-                                                    }
-                                                    className={styles.categoryToggleButton}
-                                                    icon={
-                                                        collapsedCategories.has(category) ? (
-                                                            <ChevronRight20Regular />
-                                                        ) : (
-                                                            <ChevronDown20Regular />
-                                                        )
-                                                    }
-                                                    onDoubleClick={(e) => e.stopPropagation()}
-                                                    onClick={() =>
-                                                        toggleCategoryCollapsed(category)
-                                                    }
-                                                />
-                                                <Checkbox
-                                                    aria-label={loc.enableCategory(category)}
-                                                    checked={getCategoryCheckedState(categoryRules)}
-                                                    disabled={
-                                                        getCategoryCheckedState(categoryRules) ===
-                                                        "mixed"
-                                                    }
-                                                    onDoubleClick={(e) => e.stopPropagation()}
-                                                    onChange={() =>
-                                                        toggleCategoryRules(
-                                                            category,
-                                                            getCategoryCheckedState(categoryRules),
-                                                        )
-                                                    }
-                                                />
-                                                <Text weight="semibold">{category}</Text>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className={styles.groupHeaderCell} />
-                                    </TableRow>
-
-                                    {/* Rule rows */}
-                                    {!collapsedCategories.has(category) &&
-                                        categoryRules.map((rule) => (
-                                            <TableRow key={rule.ruleId}>
-                                                <TableCell className={styles.tableCell}>
-                                                    <div className={styles.childRuleContent}>
-                                                        <Checkbox
-                                                            aria-hidden={true}
-                                                            checked={rule.enabled}
-                                                            disabled={!rule.enabled}
-                                                            style={{ pointerEvents: "none" }}
-                                                            tabIndex={-1}
-                                                        />
-                                                        <Text>
-                                                            {rule.shortRuleId}: {rule.displayName}
-                                                        </Text>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className={styles.tableCell}>
-                                                    <Dropdown
-                                                        aria-label={loc.severityForRule(
-                                                            rule.shortRuleId,
-                                                        )}
-                                                        value={rule.severity}
-                                                        selectedOptions={[rule.severity]}
-                                                        onOptionSelect={(_e, data) =>
-                                                            changeSeverity(
-                                                                rule.ruleId,
-                                                                data.optionValue ?? rule.severity,
+                            {groupedRuleEntries.map(([category, categoryRules]) => {
+                                const categoryCheckedState = getCategoryCheckedState(categoryRules);
+                                return (
+                                    <Fragment key={category}>
+                                        {/* Category row */}
+                                        <TableRow>
+                                            <TableCell
+                                                className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
+                                                onDoubleClick={() =>
+                                                    toggleCategoryCollapsed(category)
+                                                }>
+                                                <div className={styles.categoryHeaderContent}>
+                                                    <Button
+                                                        appearance="subtle"
+                                                        aria-label={
+                                                            collapsedCategories.has(category)
+                                                                ? loc.expandCategory(category)
+                                                                : loc.collapseCategory(category)
+                                                        }
+                                                        className={styles.categoryToggleButton}
+                                                        icon={
+                                                            collapsedCategories.has(category) ? (
+                                                                <ChevronRight20Regular />
+                                                            ) : (
+                                                                <ChevronDown20Regular />
                                                             )
-                                                        }>
-                                                        {SEVERITY_OPTIONS.map((severity) => (
-                                                            <Option key={severity} value={severity}>
-                                                                {severity}
-                                                            </Option>
-                                                        ))}
-                                                    </Dropdown>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                </Fragment>
-                            ))}
+                                                        }
+                                                        onDoubleClick={(e) => e.stopPropagation()}
+                                                        onClick={() =>
+                                                            toggleCategoryCollapsed(category)
+                                                        }
+                                                    />
+                                                    <Checkbox
+                                                        aria-label={loc.enableCategory(category)}
+                                                        checked={categoryCheckedState}
+                                                        disabled={categoryCheckedState === "mixed"}
+                                                        onDoubleClick={(e) => e.stopPropagation()}
+                                                        onChange={() =>
+                                                            toggleCategoryRules(
+                                                                category,
+                                                                categoryCheckedState,
+                                                            )
+                                                        }
+                                                    />
+                                                    <Text weight="semibold">{category}</Text>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className={styles.groupHeaderCell} />
+                                        </TableRow>
+
+                                        {/* Rule rows */}
+                                        {!collapsedCategories.has(category) &&
+                                            categoryRules.map((rule) => (
+                                                <TableRow key={rule.ruleId}>
+                                                    <TableCell className={styles.tableCell}>
+                                                        <div className={styles.childRuleContent}>
+                                                            <Checkbox
+                                                                aria-hidden={true}
+                                                                checked={rule.enabled}
+                                                                disabled={!rule.enabled}
+                                                                style={{ pointerEvents: "none" }}
+                                                                tabIndex={-1}
+                                                            />
+                                                            <Text>
+                                                                {rule.shortRuleId}:{" "}
+                                                                {rule.displayName}
+                                                            </Text>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className={styles.tableCell}>
+                                                        <Dropdown
+                                                            aria-label={loc.severityForRule(
+                                                                rule.shortRuleId,
+                                                            )}
+                                                            value={rule.severity}
+                                                            selectedOptions={[rule.severity]}
+                                                            onOptionSelect={(_e, data) =>
+                                                                changeSeverity(
+                                                                    rule.ruleId,
+                                                                    data.optionValue ??
+                                                                        rule.severity,
+                                                                )
+                                                            }>
+                                                            {SEVERITY_OPTIONS.map((severity) => (
+                                                                <Option
+                                                                    key={severity}
+                                                                    value={severity}>
+                                                                    {severity}
+                                                                </Option>
+                                                            ))}
+                                                        </Dropdown>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                    </Fragment>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 )}

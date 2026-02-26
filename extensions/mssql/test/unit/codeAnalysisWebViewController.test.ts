@@ -340,8 +340,8 @@ suite("CodeAnalysisWebViewController Tests", () => {
         expect(newState.message).to.be.undefined;
     });
 
-    test("saveRules reducer updates SQLProj rules with mapped payload and refreshes state", async () => {
-        const { telemetryStubs } = createController();
+    test("saveRules reducer updates state, fires telemetry, and disposes panel on success", async () => {
+        const { panelStub, telemetryStubs } = createController();
         const internalController = getInternalController();
         const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
 
@@ -357,7 +357,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         const newState = (await saveRulesHandler?.(controller.state, {
             rules: payloadRules,
-            closeAfterSave: false,
+            closeAfterSave: true,
         })) as typeof controller.state;
 
         expect(sqlProjectsServiceStub.updateCodeAnalysisRules).to.have.been.calledOnce;
@@ -376,6 +376,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
             TelemetryActions.CodeAnalysisRulesSaved,
             sinon.match.has("ruleCount", "2"),
         );
+        expect(panelStub.dispose).to.have.been.calledOnce;
     });
 
     test("saveRules reducer sets error message when SQLProj update fails", async () => {
@@ -430,5 +431,29 @@ suite("CodeAnalysisWebViewController Tests", () => {
         expect(sr0002?.severity).to.equal(CodeAnalysisRuleSeverity.Error);
         expect(sr0002?.enabled).to.be.true;
         expect(sr0003?.severity).to.equal(CodeAnalysisRuleSeverity.Warning); // no override, unchanged
+    });
+
+    test("loadRules falls back to default rules when getProjectProperties fails", async () => {
+        createController();
+        const internalController = getInternalController();
+        // Simulate a failure when retrieving project properties.
+        sqlProjectsServiceStub.getProjectProperties.resolves({
+            success: false,
+            errorMessage: "Failed to get project properties",
+        } as GetProjectPropertiesResult);
+
+        await internalController.loadRules();
+
+        const sr0001 = controller.state.rules.find((r) => r.shortRuleId === "SR0001");
+        const sr0002 = controller.state.rules.find((r) => r.shortRuleId === "SR0002");
+        const sr0003 = controller.state.rules.find((r) => r.shortRuleId === "SR0003");
+
+        // Verify that we fell back to the default DACFX severities (no SQLProj overrides applied).
+        expect(sr0001?.severity).to.equal(CodeAnalysisRuleSeverity.Error);
+        expect(sr0001?.enabled).to.be.true;
+        expect(sr0002?.severity).to.equal(CodeAnalysisRuleSeverity.Disabled);
+        expect(sr0002?.enabled).to.be.false;
+        expect(sr0003?.severity).to.equal(CodeAnalysisRuleSeverity.Warning);
+        expect(sr0003?.enabled).to.be.true;
     });
 });
