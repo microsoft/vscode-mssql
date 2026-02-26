@@ -21,7 +21,7 @@ import {
 import { SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
 import { UserSurvey } from "../../src/nps/userSurvey";
-import { HttpHelper } from "../../src/http/httpHelper";
+import { HttpClient } from "../../src/http/httpClient";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -194,7 +194,7 @@ suite("MainController Tests", function () {
     });
 
     test("Proxy settings are checked on initialization", async () => {
-        const httpHelperWarnSpy = sandbox.spy(HttpHelper.prototype, "warnOnInvalidProxySettings");
+        const httpHelperWarnSpy = sandbox.spy(HttpClient.prototype, "warnOnInvalidProxySettings");
 
         new MainController(context, connectionManager, vscodeWrapper);
 

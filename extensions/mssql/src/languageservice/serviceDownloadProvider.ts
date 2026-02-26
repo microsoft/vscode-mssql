@@ -11,13 +11,13 @@ import {
     IStatusView,
     IPackage,
     PackageError,
-    IHttpClient,
     IDecompressProvider,
     DownloadType,
 } from "./interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 import { ILogger } from "../models/interfaces";
+import DownloadHelper from "./downloadHelper";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools or Flat File service.
@@ -27,7 +27,7 @@ export default class ServiceDownloadProvider {
         private _config: IConfigUtils,
         private _logger: ILogger,
         private _statusView: IStatusView,
-        private _httpClient: IHttpClient,
+        private _httpClient: DownloadHelper,
         private _decompressProvider: IDecompressProvider,
         private _downloadType: DownloadType,
     ) {

@@ -15,26 +15,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { Logger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-export class HttpDownloadError extends Error {
-    constructor(
-        public phase: "request" | "response",
-        public innerError: NodeJS.ErrnoException,
-    ) {
-        super(innerError.message);
-    }
-}
-
-export interface IDownloadFileOptions {
-    onHeaders?: (headers: RawAxiosResponseHeaders) => void;
-    onData?: (data: Buffer) => void;
-}
-
-export interface IDownloadFileResult {
-    status: number;
-    headers: RawAxiosResponseHeaders;
-}
-
-export class HttpHelper {
+export class HttpClient {
     constructor(private logger?: Logger) {}
 
     public setupRequest(
@@ -423,4 +404,23 @@ interface ProxyAgentOptions {
     path?: string | null;
     port?: string | number | null;
     rejectUnauthorized: boolean;
+}
+
+export class HttpDownloadError extends Error {
+    constructor(
+        public phase: "request" | "response",
+        public innerError: NodeJS.ErrnoException,
+    ) {
+        super(innerError.message);
+    }
+}
+
+export interface IDownloadFileOptions {
+    onHeaders?: (headers: RawAxiosResponseHeaders) => void;
+    onData?: (data: Buffer) => void;
+}
+
+export interface IDownloadFileResult {
+    status: number;
+    headers: RawAxiosResponseHeaders;
 }

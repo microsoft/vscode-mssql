@@ -8,7 +8,7 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { DownloadType, IStatusView } from "../../src/languageservice/interfaces";
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
-import HttpClient from "../../src/languageservice/httpClient";
+import DownloadHelper from "../../src/languageservice/downloadHelper";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
 import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
@@ -31,7 +31,7 @@ suite("ServiceDownloadProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let config: sinon.SinonStubbedInstance<ConfigUtils>;
     let statusView: sinon.SinonStubbedInstance<IStatusView>;
-    let testHttpClient: sinon.SinonStubbedInstance<HttpClient>;
+    let testHttpClient: sinon.SinonStubbedInstance<DownloadHelper>;
     let testDecompressProvider: sinon.SinonStubbedInstance<DecompressProvider>;
     let testLogger: sinon.SinonStubbedInstance<Logger>;
 
@@ -39,7 +39,7 @@ suite("ServiceDownloadProvider Tests", () => {
         sandbox = sinon.createSandbox();
         config = sandbox.createStubInstance(ConfigUtils);
         statusView = sandbox.createStubInstance(ServerStatusView);
-        testHttpClient = sandbox.createStubInstance(HttpClient);
+        testHttpClient = sandbox.createStubInstance(DownloadHelper);
         testDecompressProvider = sandbox.createStubInstance(DecompressProvider);
         testLogger = sandbox.createStubInstance(Logger);
     });

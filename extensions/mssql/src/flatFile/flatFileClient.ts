@@ -19,7 +19,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { LanguageClientErrorHandler } from "../languageservice/serviceclient";
 import { FlatFileClientOptions } from "./clientInterfaces";
 import { ServerStatusView } from "../languageservice/serverStatus";
-import HttpClient from "../languageservice/httpClient";
+import DownloadHelper from "../languageservice/downloadHelper";
 import DecompressProvider from "../languageservice/decompressProvider";
 import ServiceDownloadProvider from "../languageservice/serviceDownloadProvider";
 import { DownloadType } from "../languageservice/interfaces";
@@ -33,7 +33,7 @@ export class FlatFileClient {
     private config: ExtConfig = new ExtConfig();
     private logger: Logger;
     private serverStatusView: ServerStatusView = new ServerStatusView();
-    private httpClient: HttpClient = new HttpClient();
+    private httpClient: DownloadHelper = new DownloadHelper();
     private decompressProvider = new DecompressProvider();
     private downloadProvider: ServiceDownloadProvider;
     private serverProvider: ServerProvider;

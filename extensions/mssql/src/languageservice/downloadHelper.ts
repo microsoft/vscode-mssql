@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ILogger } from "../models/interfaces";
-import { HttpDownloadError, HttpHelper, IDownloadFileResult } from "../http/httpHelper";
-import { IHttpClient, IPackage, IStatusView, PackageError } from "./interfaces";
+import { HttpDownloadError, HttpClient, IDownloadFileResult } from "../http/httpClient";
+import { IPackage, IStatusView, PackageError } from "./interfaces";
 
 /*
  * Http client class to handle downloading files using http or https urls
  */
-export default class HttpClient implements IHttpClient {
+export default class DownloadHelper {
     /*
      * Downloads a file and stores the result in the temp file inside the package object
      */
@@ -40,7 +40,7 @@ export default class HttpClient implements IHttpClient {
             downloadPercentage: 0,
         };
 
-        const httpHelper = new HttpHelper();
+        const httpHelper = new HttpClient();
 
         try {
             const result: IDownloadFileResult = await httpHelper.downloadFile(

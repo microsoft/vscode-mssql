@@ -23,7 +23,7 @@ import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
-import HttpClient from "./httpClient";
+import DownloadHelper from "./downloadHelper";
 import ExtConfig from "../configurations/extConfig";
 import { PlatformInformation } from "../models/platform";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
@@ -168,7 +168,7 @@ export default class SqlToolsServiceClient {
             let logger = Logger.create(vscodeWrapper.outputChannel, "SQL Tools Service");
 
             let serverStatusView = new ServerStatusView();
-            let httpClient = new HttpClient();
+            let httpClient = new DownloadHelper();
             let decompressProvider = new DecompressProvider();
             let downloadProvider = new ServiceDownloadProvider(
                 config,
