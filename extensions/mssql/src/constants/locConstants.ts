@@ -650,6 +650,109 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 export let newDeployment = l10n.t("New Deployment");
 
+export class Notebooks {
+    // Status bar
+    public static statusBarNotConnected = l10n.t("SQL: Not connected");
+    public static statusBarClickToChangeDatabase = l10n.t(
+        "SQL Notebooks: click to change database",
+    );
+    public static statusBarClickToConnect = l10n.t("SQL Notebooks: click to connect");
+
+    // Errors
+    public static connectionFailed = l10n.t("Connection failed");
+    public static queryExecutionFailed = l10n.t("Query execution failed");
+    public static noActiveNotebook = l10n.t("No active notebook.");
+    public static noActiveConnection = l10n.t("No active connection.");
+    public static noConnectionSelected = l10n.t("No connection selected.");
+
+    // Execution results
+    public static rowsAffected(count: number) {
+        return l10n.t({
+            message: "({0} row(s) affected)",
+            args: [count],
+            comment: ["{0} is the number of rows affected"],
+        });
+    }
+    public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
+    public static zeroRows = l10n.t("(0 rows)");
+    public static rowCountPlain(count: number) {
+        if (count === 1) {
+            return l10n.t({
+                message: "({0} row)",
+                args: [count],
+                comment: ["{0} is the number of rows (singular)"],
+            });
+        }
+        return l10n.t({
+            message: "({0} rows)",
+            args: [count],
+            comment: ["{0} is the number of rows (plural)"],
+        });
+    }
+
+    // Magic commands
+    public static disconnected = l10n.t("Disconnected.");
+    public static connectedTo(label: string) {
+        return l10n.t({
+            message: "Connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static switchedTo(label: string) {
+        return l10n.t({
+            message: "Switched to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static noDatabaseSelected = l10n.t("No database selected.");
+    public static unknownMagicCommand(cmd: string) {
+        return l10n.t({
+            message: "Unknown magic command: %%{0}",
+            args: [cmd],
+            comment: ["{0} is the magic command name"],
+        });
+    }
+
+    // UI
+    public static selectDatabase = l10n.t("Select Database");
+    public static chooseDatabasePlaceholder = l10n.t("Choose a database");
+    public static currentDatabaseLabel = l10n.t("(current)");
+
+    // Code lens
+    public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
+    public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
+
+    // Info
+    public static notebookConnectedTo(label: string) {
+        return l10n.t({
+            message: "SQL Notebook connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static errorPrefix(msg: string) {
+        return l10n.t({
+            message: "Error: {0}",
+            args: [msg],
+            comment: ["{0} is the error message"],
+        });
+    }
+
+    // Cancellation
+    public static executionCancelled = l10n.t("Query execution was cancelled.");
+
+    // Controller
+    public static controllerDescription = l10n.t("Execute SQL against SQL Server / Azure SQL");
+
+    // General
+    public static notConnected = l10n.t("Not connected");
+
+    // Renderer
+    public static parseError = l10n.t("Error: Failed to parse query result data.");
+}
+
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
     public static NoItems = l10n.t("No items");

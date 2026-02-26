@@ -1,0 +1,366 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.notebook-result-grid-container {
+    width: 100%;
+    position: relative;
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: var(--vscode-editor-font-size, 12px);
+}
+
+.notebook-result-grid-container .grid-panel {
+    width: 100%;
+    height: 100%;
+}
+
+.notebook-result-grid-container .row-count-label {
+    padding: 4px 8px;
+    font-style: italic;
+    color: var(--vscode-descriptionForeground, #858585);
+    font-size: 12px;
+}
+
+/* SlickGrid theme overrides for notebook renderer */
+.notebook-result-grid-container .slick-header-column.ui-state-default {
+    background-color: var(--vscode-keybindingTable-headerBackground, #eee);
+    color: var(--vscode-foreground, inherit);
+    border-right: 1px solid var(--vscode-panel-border, silver);
+    border-bottom: 1px solid var(--vscode-panel-border, #bbb);
+}
+
+.notebook-result-grid-container .slick-cell {
+    border-right: 1px dotted var(--vscode-panel-border, silver);
+    border-bottom: 1px solid var(--vscode-panel-border, silver);
+    color: var(--vscode-foreground, inherit);
+}
+
+.notebook-result-grid-container .slick-cell.cell-null {
+    background-color: var(--vscode-mssql-resultsGridNullBackground, transparent);
+    color: var(--vscode-mssql-resultsGridNullForeground, inherit);
+}
+
+.notebook-result-grid-container .slick-cell.selected {
+    background-color: var(--vscode-list-activeSelectionBackground, #094771);
+    color: var(--vscode-list-activeSelectionForeground, #fff);
+}
+
+.notebook-result-grid-container .slick-cell.selected.active {
+    background-color: var(--vscode-list-activeSelectionBackground, #094771);
+    color: var(--vscode-list-activeSelectionForeground, #fff);
+    outline: 1px solid var(--vscode-contrastActiveBorder, transparent);
+    outline-offset: -1px;
+}
+
+.notebook-result-grid-container .slick-row:hover .slick-cell:not(.selected):not(.active) {
+    background-color: var(--vscode-list-hoverBackground, transparent);
+}
+
+.notebook-result-grid-container .slick-cell .grid-cell-value-container.missing-value {
+    font-style: italic;
+}
+
+/* Cell range selection decoration */
+.notebook-result-grid-container .slick-range-decorator {
+    border: 2px dashed var(--vscode-focusBorder, #007fd4);
+    z-index: 10;
+    position: absolute;
+}
+
+/* ── Header filter/sort layout ──────────────────────────────────────── */
+
+/* Make header cells flex containers when filter/sort buttons are present */
+.slick-header-column.slick-header-with-filter {
+    display: flex;
+    align-items: center;
+}
+
+.slick-header-with-filter .slick-column-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    flex: 1 1 auto;
+}
+
+/* Sort button */
+.nb-sort-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    flex: 0 0 auto;
+    margin-left: 2px;
+    margin-right: 2px;
+    color: var(--vscode-foreground, inherit);
+    opacity: 0.6;
+}
+
+.nb-sort-button:hover {
+    opacity: 1;
+}
+
+/* Filter button */
+.nb-filter-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    flex: 0 0 auto;
+    margin-left: 4px;
+    color: var(--vscode-foreground, inherit);
+    opacity: 0.6;
+}
+
+.nb-filter-button:hover {
+    opacity: 1;
+}
+
+.nb-sort-button svg,
+.nb-filter-button svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Filter popup ───────────────────────────────────────────────────── */
+
+.nb-filter-popup {
+    position: fixed;
+    z-index: 100000;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    background-color: var(--vscode-editorWidget-background, #252526);
+    border: 1px solid var(--vscode-editorWidget-border, #454545);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
+    color: var(--vscode-foreground, #ccc);
+    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: 13px;
+    gap: 6px;
+}
+
+.nb-filter-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 16px;
+}
+
+.nb-filter-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--vscode-descriptionForeground, #999);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nb-filter-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--vscode-foreground, #ccc);
+    cursor: pointer;
+    font-size: 14px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    opacity: 0.7;
+}
+
+.nb-filter-close-btn:hover {
+    opacity: 1;
+}
+
+.nb-filter-divider {
+    height: 1px;
+    background-color: var(--vscode-editorWidget-border, #454545);
+}
+
+.nb-filter-search-container {
+    display: flex;
+    align-items: center;
+    background-color: var(--vscode-input-background, #3c3c3c);
+    border: 1px solid var(--vscode-input-border, #6b6b6b);
+    padding: 2px 6px;
+}
+
+.nb-filter-search-container:focus-within {
+    border-color: var(--vscode-focusBorder, #007fd4);
+}
+
+.nb-filter-search-icon {
+    font-size: 12px;
+    margin-right: 4px;
+    opacity: 0.6;
+}
+
+.nb-filter-search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--vscode-input-foreground, #ccc);
+    font-size: 12px;
+    width: 100%;
+    padding: 2px 0;
+    font-family: inherit;
+}
+
+.nb-filter-search-input::placeholder {
+    color: var(--vscode-input-placeholderForeground, #888);
+}
+
+/* Select All row */
+.nb-filter-select-all-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
+    font-size: 12px;
+}
+
+.nb-filter-selected-count {
+    margin-left: auto;
+    color: var(--vscode-descriptionForeground, #999);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Checkbox list */
+.nb-filter-list {
+    max-height: 120px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.nb-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.nb-filter-item:hover {
+    background-color: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+.nb-filter-item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nb-filter-checkbox {
+    accent-color: var(--vscode-checkbox-background, #3c3c3c);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+/* Action buttons */
+.nb-filter-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.nb-filter-apply-btn {
+    flex: 1;
+    padding: 4px 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    background-color: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+}
+
+.nb-filter-apply-btn:hover {
+    background-color: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+.nb-filter-clear-btn {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid var(--vscode-button-secondaryBorder, transparent);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    background-color: var(--vscode-button-secondaryBackground, #3a3d41);
+    color: var(--vscode-button-secondaryForeground, #ccc);
+}
+
+.nb-filter-clear-btn:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground, #45494e);
+}
+
+/* ── Context menu ──────────────────────────────────────────────────── */
+
+.nb-context-menu {
+    position: fixed;
+    z-index: 100000;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    background-color: var(--vscode-menu-background, var(--vscode-editorWidget-background, #252526));
+    border: 1px solid var(--vscode-menu-border, var(--vscode-editorWidget-border, #454545));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
+    color: var(--vscode-menu-foreground, var(--vscode-foreground, #ccc));
+    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: 13px;
+}
+
+.nb-context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 24px 4px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    gap: 16px;
+}
+
+.nb-context-menu-item:hover {
+    background-color: var(
+        --vscode-menu-selectionBackground,
+        var(--vscode-list-hoverBackground, #094771)
+    );
+    color: var(
+        --vscode-menu-selectionForeground,
+        var(--vscode-list-activeSelectionForeground, #fff)
+    );
+}
+
+.nb-context-menu-label {
+    flex: 1;
+}
+
+.nb-context-menu-shortcut {
+    flex-shrink: 0;
+    opacity: 0.7;
+    font-size: 12px;
+    margin-left: 24px;
+}
+
+.nb-context-menu-separator {
+    height: 1px;
+    margin: 4px 0;
+    background-color: var(
+        --vscode-menu-separatorBackground,
+        var(--vscode-editorWidget-border, #454545)
+    );
+}
