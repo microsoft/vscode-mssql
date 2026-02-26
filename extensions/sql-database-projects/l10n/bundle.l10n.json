@@ -296,6 +296,7 @@
     "Download error": "Download error",
     "Download progress": "Download progress",
     "Downloading": "Downloading",
+    "Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}": "Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}",
     "Downloading {0} nuget to get build DLLs ": "Downloading {0} nuget to get build DLLs ",
     "Downloading from {0} to {1}": "Downloading from {0} to {1}",
     "Extracting DacFx build DLLs to {0}": "Extracting DacFx build DLLs to {0}",
