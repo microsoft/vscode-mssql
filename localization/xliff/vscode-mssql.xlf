@@ -6656,6 +6656,9 @@
     <trans-unit id="mssql.backupDatabase">
       <source xml:lang="en">Backup Database (Preview)</source>
     </trans-unit>
+    <trans-unit id="mssql.cancelConnect">
+      <source xml:lang="en">Cancel Connection</source>
+    </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
     </trans-unit>
