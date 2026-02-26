@@ -1060,8 +1060,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             }
         }
         const viewRef = view;
+        // Use the typed row converter so that column values are pre-coerced
+        // to their proper runtime types (number, Date, string) based on the
+        // column's declared ColumnDataType / FilterType.  This lets the
+        // FilteredBuffer compare values directly without re-parsing.
         this._currentSession.events.setRowConverter((event) => {
-            return configService.convertEventToViewRow(event, viewRef) as Record<string, unknown>;
+            return configService.convertEventToTypedRow(event, viewRef);
         });
     }
 

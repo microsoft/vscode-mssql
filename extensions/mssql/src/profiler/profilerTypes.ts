@@ -325,6 +325,18 @@ export interface SortState {
 }
 
 /**
+ * Resolves the effective data type for a column.
+ * Uses the explicit `type` property when set.
+ * Defaults to `ColumnDataType.String` when `type` is not set.
+ *
+ * This is the single source of truth for determining how a column's values
+ * should be stored and compared at runtime.
+ */
+export function resolveColumnDataType(column: ViewColumn): ColumnDataType {
+    return column.type ?? ColumnDataType.String;
+}
+
+/**
  * Information about a file-based profiler session
  */
 export interface XelFileInfo {

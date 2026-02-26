@@ -12,8 +12,6 @@ import {
 import { SortDirection, SortState } from "../../../src/profiler/profilerTypes";
 
 suite("profilerSortUtils", () => {
-    // ─── profilerSortComparator ───────────────────────────────────────
-
     suite("profilerSortComparator", () => {
         test("should compare numbers ascending correctly", () => {
             const a = { duration: 100 };
@@ -143,8 +141,6 @@ suite("profilerSortUtils", () => {
         });
     });
 
-    // ─── createDataViewSortFn ─────────────────────────────────────────
-
     suite("createDataViewSortFn", () => {
         test("should restore natural order by eventNumber when sort is undefined", () => {
             const sortFn = createDataViewSortFn(undefined);
@@ -199,8 +195,6 @@ suite("profilerSortUtils", () => {
             expect(rows.map((r) => r.duration)).to.deep.equal([100, 300, 500]);
         });
     });
-
-    // ─── getNextSortState ─────────────────────────────────────────────
 
     suite("getNextSortState", () => {
         test("should start ascending when no sort is active", () => {
