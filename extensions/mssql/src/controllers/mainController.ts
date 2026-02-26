@@ -76,6 +76,7 @@ import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
+import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -164,6 +165,7 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public flatFileClient: FlatFileClient;
     public flatFileProvider: FlatFileProvider;
+    public sqlNotebookController: SqlNotebookController;
 
     /**
      * The main controller constructor
@@ -675,6 +677,39 @@ export default class MainController implements vscode.Disposable {
                 this._vscodeWrapper,
                 this._scriptingService,
             );
+
+            // Initialize SQL Notebook controller
+            this.sqlNotebookController = new SqlNotebookController(
+                this._connectionMgr,
+                this.connectionSharingService,
+            );
+            this._context.subscriptions.push(this.sqlNotebookController);
+
+            this.registerCommandWithArgs(Constants.cmdNotebooksCreate);
+            this._event.on(Constants.cmdNotebooksCreate, async (args: any) => {
+                const connectionInfo = args?.connectionProfile
+                    ? { ...args.connectionProfile }
+                    : undefined;
+
+                if (connectionInfo && args) {
+                    const dbName = ObjectExplorerUtils.getDatabaseName(args);
+                    if (dbName) {
+                        connectionInfo.database = dbName;
+                    }
+                }
+
+                await this.sqlNotebookController.createNotebookWithConnection(connectionInfo);
+            });
+
+            this.registerCommand(Constants.cmdNotebooksChangeDatabase);
+            this._event.on(Constants.cmdNotebooksChangeDatabase, () => {
+                void this.sqlNotebookController.changeDatabaseInteractive();
+            });
+
+            this.registerCommand(Constants.cmdNotebooksChangeConnection);
+            this._event.on(Constants.cmdNotebooksChangeConnection, () => {
+                void this.sqlNotebookController.changeConnectionInteractive();
+            });
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
