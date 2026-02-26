@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3e86b1723088cc27e8589fe3f3a24b4ceb5d70f2d857414e77ff2580a688724c">
         <source xml:lang="en">Accept All</source>
-        <target state="new">Accept All</target>
+        <target state="translated">모두 수락</target>
       </trans-unit>
       <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
         <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
@@ -355,7 +355,7 @@
       </trans-unit>
       <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
         <source xml:lang="en">Allow null</source>
-        <target state="new">Allow null</target>
+        <target state="translated">Null 허용</target>
       </trans-unit>
       <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
         <source xml:lang="en">Allow this extension to access your connections</source>
@@ -518,7 +518,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++aa77fc627924038ff6102753f77884b3fac27ed5e3f422e7b96ea681cb99a417">
         <source xml:lang="en">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</source>
-        <target state="new">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</target>
+        <target state="translated">모든 Copilot 변경을 실행 취소하시겠어요? 이렇게 하면 추적된 모든 변경이 원래 상태로 되돌아갑니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
         <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -663,11 +663,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ba5528fbaf5a47fa7cb9ab8214c97d40ed77a42a1258edd947bff8447eb8dabf">
         <source xml:lang="en">Azure SQL Database is not supported for backup.</source>
-        <target state="new">Azure SQL Database is not supported for backup.</target>
+        <target state="translated">Azure SQL Database는 백업이 지원되지 않습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
         <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
-        <target state="new">Azure SQL Database is not supported for restore.</target>
+        <target state="translated">Azure SQL Database는 복원이 지원되지 않습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
@@ -1007,7 +1007,7 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Change {0} of {1}</source>
         <note>{0} is the current change number
 {1} is the total number of changes</note>
-        <target state="new">Change {0} of {1}</target>
+        <target state="translated">{0}/{1}개 변경</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
@@ -1059,7 +1059,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++460b3a7da007b7af9d35bca54181dc91382263b2bf133ca214871ca1fed1fc1c">
         <source xml:lang="en">Chat</source>
-        <target state="new">Chat</target>
+        <target state="translated">채팅</target>
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
@@ -1321,12 +1321,12 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975">
         <source xml:lang="en">Code Analysis</source>
-        <target state="new">Code Analysis</target>
+        <target state="translated">Code Analysis</target>
       </trans-unit>
       <trans-unit id="++CODE++d09445114806a6fe8a7faaeca21eb7f879a1b94fa056c9c06abde171f5c36f5f">
         <source xml:lang="en">Code Analysis - {0}</source>
         <note>{0} is the name of the database project</note>
-        <target state="new">Code Analysis - {0}</target>
+        <target state="translated">Code Analysis - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -1823,12 +1823,12 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
         <source xml:lang="en">Copilot Changes</source>
-        <target state="new">Copilot Changes</target>
+        <target state="translated">Copilot 변경</target>
       </trans-unit>
       <trans-unit id="++CODE++623971e6013bb7ca0de198ee8a596add57884bbf22821d9574acab573cd8ca7a">
         <source xml:lang="en">Copilot Changes ({0})</source>
         <note>{0} is the number of copilot changes</note>
-        <target state="new">Copilot Changes ({0})</target>
+        <target state="translated">Copilot 변경({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
@@ -2149,7 +2149,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++51fb172a8d569d8820009c7a05d941da1d7ecc21f5248c355fbd7b50899c4c7d">
         <source xml:lang="en">Data type</source>
-        <target state="new">Data type</target>
+        <target state="translated">데이터 형식</target>
       </trans-unit>
       <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
         <source xml:lang="en">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</source>
@@ -2622,7 +2622,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202">
         <source xml:lang="en">Enable {0}</source>
         <note>{0} is the rule identifier, e.g. SR0001</note>
-        <target state="new">Enable {0}</target>
+        <target state="translated">{0} 활성화</target>
       </trans-unit>
       <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
         <source xml:lang="en">Enabled</source>
@@ -3809,7 +3809,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++734fe7596bed714a9902c100524bdcd5e92d18970daa3d1f7776394185b7e211">
         <source xml:lang="en">Foreign keys</source>
-        <target state="new">Foreign keys</target>
+        <target state="translated">외래 키</target>
       </trans-unit>
       <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
         <source xml:lang="en">Formula</source>
@@ -4570,7 +4570,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f42dc68b6c07746e76ce1891ba437df7a1d82524ba74c2ef4c9c770bfe5b787f">
         <source xml:lang="en">Loading code analysis rules...</source>
-        <target state="new">Loading code analysis rules...</target>
+        <target state="translated">코드 분석 규칙 로드 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
         <source xml:lang="en">Loading database objects</source>
@@ -5161,7 +5161,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38">
         <source xml:lang="en">No code analysis rules available.</source>
-        <target state="new">No code analysis rules available.</target>
+        <target state="translated">사용할 수 있는 코드 분석 규칙이 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
         <source xml:lang="en">No connection credentials found</source>
@@ -5243,7 +5243,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
         <source xml:lang="en">No databases with backups found</source>
-        <target state="new">No databases with backups found</target>
+        <target state="translated">백업이 있는 데이터베이스를 찾을 수 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -5532,7 +5532,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6bcb323d511607dca30c45a57b338635a4000f776e096397505e7ba5051a410a">
         <source xml:lang="en">Open Copilot Chat</source>
-        <target state="new">Open Copilot Chat</target>
+        <target state="translated">Copilot Chat 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
         <source xml:lang="en">Open File</source>
@@ -5891,7 +5891,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
         <source xml:lang="en">Primary key</source>
-        <target state="new">Primary key</target>
+        <target state="translated">기본 키</target>
       </trans-unit>
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
@@ -6201,15 +6201,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++379d2eaa80ebde0d69484f3d26df5ee45336d941fd6173c91708a997f9f017b6">
         <source xml:lang="en">Referenced columns</source>
-        <target state="new">Referenced columns</target>
+        <target state="translated">참조된 열</target>
       </trans-unit>
       <trans-unit id="++CODE++f42e7cb49016fa824e41c1f7fdf957665ad22c0b8621c28b1fe956ecb3af5cde">
         <source xml:lang="en">Referenced schema</source>
-        <target state="new">Referenced schema</target>
+        <target state="translated">참조된 스키마</target>
       </trans-unit>
       <trans-unit id="++CODE++0ef2471661442a695e9e07fcfc1addd4da56f83fc076649fb2dcfc5b4865fbe2">
         <source xml:lang="en">Referenced table</source>
-        <target state="new">Referenced table</target>
+        <target state="translated">참조된 테이블</target>
       </trans-unit>
       <trans-unit id="++CODE++797ad1e737f00e56b04c2d4140e177a26977d3a90e9ea84cb65016e21c50113f">
         <source xml:lang="en">Referenced table '{0}' not found</source>
@@ -6230,7 +6230,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
         <source xml:lang="en">Reject</source>
-        <target state="new">Reject</target>
+        <target state="translated">거부</target>
       </trans-unit>
       <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
         <source xml:lang="en">Reliability</source>
@@ -6439,7 +6439,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
-        <target state="new">Reviewing Copilot Change</target>
+        <target state="translated">Copilot 변경 검토 중</target>
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
@@ -6467,7 +6467,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3">
         <source xml:lang="en">Rules</source>
-        <target state="new">Rules</target>
+        <target state="translated">규칙</target>
       </trans-unit>
       <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
         <source xml:lang="en">Run Query</source>
@@ -7205,7 +7205,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++96a25dbc9f2e88758412917d948b79e1d95b419209b5bbd641b4b790474fa1b7">
         <source xml:lang="en">Severity for {0}</source>
         <note>{0} is the rule identifier, e.g. SR0001</note>
-        <target state="new">Severity for {0}</target>
+        <target state="translated">{0} 심각도</target>
       </trans-unit>
       <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
         <source xml:lang="en">Show All</source>
@@ -7213,7 +7213,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++edd969c69f64aff645b3027bab51746e3b4b8bbafdc573981df42125e9e85dbe">
         <source xml:lang="en">Show Changes</source>
-        <target state="new">Show Changes</target>
+        <target state="translated">변경 내용 표시</target>
       </trans-unit>
       <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
         <source xml:lang="en">Show Confirm Password</source>
@@ -8071,11 +8071,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++0ee88bcfd6a2821d3cc887bbe2dd847b85c2f59a4b3e217be73ac5222802c95e">
         <source xml:lang="en">Undo All</source>
-        <target state="new">Undo All</target>
+        <target state="translated">모두 실행 취소</target>
       </trans-unit>
       <trans-unit id="++CODE++47bfaa5d500415abb1304d2f26f8faf8874320419d65476c51968c75a7ba088a">
         <source xml:lang="en">Undo All Copilot Changes</source>
-        <target state="new">Undo All Copilot Changes</target>
+        <target state="translated">모든 Copilot 변경 실행 취소</target>
       </trans-unit>
       <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
         <source xml:lang="en">Unfreeze columns</source>
@@ -8723,7 +8723,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++cf927568d4b7bc9996db21639e81c140affb7858a0b68db0cfc6e502b022f98c">
         <source xml:lang="en">{0} rules</source>
         <note>{0} is the number of code analysis rules</note>
-        <target state="new">{0} rules</target>
+        <target state="translated">규칙 {0}개</target>
       </trans-unit>
       <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
         <source xml:lang="en">{0} selected</source>
@@ -8776,7 +8776,7 @@ Query: {2}</source>
         <source xml:lang="en">{0}, +{1} more</source>
         <note>{0} is the first changed property label
 {1} is the count of additional changed properties</note>
-        <target state="new">{0}, +{1} more</target>
+        <target state="translated">{0}, 외 {1}개 더</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>
