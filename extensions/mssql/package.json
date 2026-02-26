@@ -1232,13 +1232,13 @@
                 "command": "mssql.startQueryHistoryCapture",
                 "title": "%mssql.startQueryHistoryCapture%",
                 "category": "MS SQL",
-                "icon": "$(debug-start)"
+                "icon": "$(debug-continue)"
             },
             {
                 "command": "mssql.pauseQueryHistoryCapture",
                 "title": "%mssql.pauseQueryHistoryCapture%",
                 "category": "MS SQL",
-                "icon": "$(debug-stop)"
+                "icon": "$(debug-pause)"
             },
             {
                 "command": "mssql.commandPaletteQueryHistory",
@@ -3283,88 +3283,107 @@
                                                         ],
                                                         "additionalProperties": false
                                                     },
-                                                    "set": {
-                                                        "description": "For set_foreign_key, include any subset of foreign key fields (at least one field). Use mappings (NOT columns/referencedColumns).",
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "referencedTable": {
                                                         "type": "object",
                                                         "properties": {
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
                                                             "name": {
                                                                 "type": "string"
                                                             },
-                                                            "referencedTable": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "schema": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "id": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "schema",
-                                                                    "name"
-                                                                ],
-                                                                "additionalProperties": false
-                                                            },
-                                                            "mappings": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "column": {
-                                                                            "type": "string"
-                                                                        },
-                                                                        "referencedColumn": {
-                                                                            "type": "string"
-                                                                        }
-                                                                    },
-                                                                    "required": [
-                                                                        "column",
-                                                                        "referencedColumn"
-                                                                    ],
-                                                                    "additionalProperties": false
-                                                                }
-                                                            },
-                                                            "onDeleteAction": {
-                                                                "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
-                                                                "type": [
-                                                                    "number",
-                                                                    "null"
-                                                                ],
-                                                                "enum": [
-                                                                    0,
-                                                                    1,
-                                                                    2,
-                                                                    3,
-                                                                    null
-                                                                ]
-                                                            },
-                                                            "onUpdateAction": {
-                                                                "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
-                                                                "type": [
-                                                                    "number",
-                                                                    "null"
-                                                                ],
-                                                                "enum": [
-                                                                    0,
-                                                                    1,
-                                                                    2,
-                                                                    3,
-                                                                    null
-                                                                ]
+                                                            "id": {
+                                                                "type": "string"
                                                             }
                                                         },
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
+                                                    },
+                                                    "mappings": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "column": {
+                                                                    "type": "string"
+                                                                },
+                                                                "referencedColumn": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "column",
+                                                                "referencedColumn"
+                                                            ],
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "onDeleteAction": {
+                                                        "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                        "type": [
+                                                            "number",
+                                                            "null"
+                                                        ],
+                                                        "enum": [
+                                                            0,
+                                                            1,
+                                                            2,
+                                                            3,
+                                                            null
+                                                        ]
+                                                    },
+                                                    "onUpdateAction": {
+                                                        "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                        "type": [
+                                                            "number",
+                                                            "null"
+                                                        ],
+                                                        "enum": [
+                                                            0,
+                                                            1,
+                                                            2,
+                                                            3,
+                                                            null
+                                                        ]
                                                     }
                                                 },
+                                                "anyOf": [
+                                                    {
+                                                        "required": [
+                                                            "name"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "referencedTable"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "mappings"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "onDeleteAction"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "onUpdateAction"
+                                                        ]
+                                                    }
+                                                ],
                                                 "required": [
                                                     "op",
                                                     "table",
-                                                    "foreignKey",
-                                                    "set"
+                                                    "foreignKey"
                                                 ],
                                                 "additionalProperties": false
                                             }

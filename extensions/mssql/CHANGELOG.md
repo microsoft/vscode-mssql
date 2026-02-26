@@ -13,7 +13,7 @@
 - Added Create, Rename, and Drop Database dialogs (Preview) enabling users to easily manage their databases
 - Added Query Profiler (Preview) to support users in monitoring and analyzing their database performance
 - Added support for SQL Server 2025 containers on ARM-based macOS devices
-- Added the ability to import connection confiugration settings from Azure Data Studio to the Migration Toolkit Dialog, and a MSSQL Data Management Keymap to add familiar shortcuts from Azure Data Studio
+- Added the ability to import connection configuration settings from Azure Data Studio to the Migration Toolkit Dialog, and a MSSQL Data Management Keymap to add familiar shortcuts from Azure Data Studio
 - Fixed several SQL Database Projects issues including Fabric SQL project database reference deletion, unresolved system database references, and `tasks.json` placement when creating a project in an existing workspace
 
 ## Version 1.39.0

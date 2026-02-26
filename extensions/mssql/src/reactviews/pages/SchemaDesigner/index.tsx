@@ -103,7 +103,11 @@ const MainLayout = () => {
                                     ? "block"
                                     : "none",
                         }}>
-                        <SchemaDesignerPage />
+                        <SchemaDesignerPage
+                            onNavigateToDab={() =>
+                                setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
+                            }
+                        />
                     </div>
                     <div
                         style={{
@@ -118,7 +122,14 @@ const MainLayout = () => {
                                     : "none",
                         }}>
                         <DabProvider>
-                            <DabPage activeView={activeView} />
+                            <DabPage
+                                activeView={activeView}
+                                onNavigateToSchema={() =>
+                                    setActiveView(
+                                        SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
+                                    )
+                                }
+                            />
                         </DabProvider>
                     </div>
                 </div>

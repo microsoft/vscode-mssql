@@ -55,17 +55,16 @@ function makeTable(
 function makeForeignKey(
     id: string,
     name: string,
-    columns: string[],
-    referencedTableName: string,
-    referencedColumns: string[],
+    columnIds: string[],
+    referencedTableId: string,
+    referencedColumnIds: string[],
 ): SchemaDesigner.ForeignKey {
     return {
         id,
         name,
-        columns,
-        referencedSchemaName: "dbo",
-        referencedTableName,
-        referencedColumns,
+        columnsIds: columnIds,
+        referencedTableId,
+        referencedColumnsIds: referencedColumnIds,
         onDeleteAction: 0,
         onUpdateAction: 0,
     };
@@ -114,10 +113,9 @@ suite("SchemaDesigner deleted visuals utils", () => {
                 data: {
                     id: "fk-live",
                     name: "FK_live",
-                    columns: ["id"],
-                    referencedSchemaName: "dbo",
-                    referencedTableName: "orders",
-                    referencedColumns: ["order_id"],
+                    columnIds: ["col-1"],
+                    referencedTableId: "table-2",
+                    referencedColumnIds: ["col-2"],
                     onDeleteAction: 0,
                     onUpdateAction: 0,
                 },
@@ -132,10 +130,9 @@ suite("SchemaDesigner deleted visuals utils", () => {
                 data: markDeletedForeignKey({
                     id: "fk-deleted",
                     name: "FK_deleted",
-                    columns: ["id"],
-                    referencedSchemaName: "dbo",
-                    referencedTableName: "orders",
-                    referencedColumns: ["order_id"],
+                    columnsIds: ["col-1"],
+                    referencedTableId: "table-2",
+                    referencedColumnsIds: ["col-2"],
                     onDeleteAction: 0,
                     onUpdateAction: 0,
                 }),
@@ -196,11 +193,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
                     "table-1",
                     "users",
                     [makeColumn("col-1", "user_id"), makeColumn("col-2", "email")],
-                    [
-                        makeForeignKey("fk-1", "FK_users_orders", ["user_id"], "orders", [
-                            "order_id",
-                        ]),
-                    ],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["col-1"], "table-2", ["col-3"])],
                 ),
                 makeTable("table-2", "orders", [makeColumn("col-3", "order_id")]),
             ],
@@ -243,11 +236,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
                     "table-1",
                     "users",
                     [makeColumn("col-1", "user_id")],
-                    [
-                        makeForeignKey("fk-1", "FK_users_orders", ["user_id"], "orders", [
-                            "order_id",
-                        ]),
-                    ],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["col-1"], "table-2", ["col-2"])],
                 ),
                 makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
             ],

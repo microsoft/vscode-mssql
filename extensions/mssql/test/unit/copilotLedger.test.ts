@@ -45,10 +45,9 @@ function makeForeignKey(
     return {
         id: "fk-1",
         name: "FK_Test",
-        columns: ["Column1"],
-        referencedSchemaName: "dbo",
-        referencedTableName: "OtherTable",
-        referencedColumns: ["Id"],
+        columnsIds: ["col-1"],
+        referencedTableId: "table-2",
+        referencedColumnsIds: ["col-2"],
         onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
         onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
         ...overrides,

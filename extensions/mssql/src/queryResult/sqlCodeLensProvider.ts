@@ -45,6 +45,14 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
                     command: Constants.cmdConnect,
                 }),
             ];
+        } else if (connection.connecting) {
+            // While connecting, show a single "Connecting" CodeLens.
+            return [
+                new vscode.CodeLens(connectionCodeLensRange, {
+                    title: `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`,
+                    command: Constants.cmdConnect,
+                }),
+            ];
         } else if (connection.connectionId) {
             // If connected, show the connection change and database change CodeLenses
             return [
