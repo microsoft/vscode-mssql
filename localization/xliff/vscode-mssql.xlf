@@ -4125,9 +4125,6 @@
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
     </trans-unit>
-    <trans-unit id="++CODE++6bcb323d511607dca30c45a57b338635a4000f776e096397505e7ba5051a410a">
-      <source xml:lang="en">Open Copilot Chat</source>
-    </trans-unit>
     <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
       <source xml:lang="en">Open File</source>
     </trans-unit>
@@ -4151,6 +4148,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
+      <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
     <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
       <source xml:lang="en">Open in New Tab</source>

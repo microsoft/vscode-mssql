@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Tooltip } from "@fluentui/react-components";
-import { Chat16Regular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { ExecuteCommandRequest } from "../../../../sharedInterfaces/webview";
+import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
@@ -28,7 +28,7 @@ export function OpenCopilotChatButton() {
             <Button
                 appearance="subtle"
                 size="small"
-                icon={<Chat16Regular />}
+                icon={<GithubCopilot16Regular />}
                 onClick={async () => {
                     await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
                         command: SchemaDesigner.openCopilotAgentCommand,
