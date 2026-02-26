@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./stubs/moduleShims";
-
 import * as path from "path";
 import * as glob from "fast-glob";
 import * as Mocha from "mocha";
