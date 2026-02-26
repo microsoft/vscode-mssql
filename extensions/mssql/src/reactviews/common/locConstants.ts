@@ -2446,6 +2446,8 @@ export class LocConstants {
             backupSetsToRestore: l10n.t("Backup sets to restore"),
             advancedRestoreOptions: l10n.t("Advanced restore options"),
             couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
+            chooseBackupFile: l10n.t("Please choose a backup file to load restore plan"),
+            chooseBlob: l10n.t("Please choose a blob to load restore plan"),
         };
     }
 }

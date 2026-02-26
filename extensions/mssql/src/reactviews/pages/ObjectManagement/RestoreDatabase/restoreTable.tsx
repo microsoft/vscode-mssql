@@ -33,6 +33,7 @@ import {
     RestoreDatabaseViewModel,
     RestorePlanTableType,
 } from "../../../../sharedInterfaces/restore";
+import { DisasterRecoveryType } from "../../../../sharedInterfaces/objectManagement";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -141,8 +142,30 @@ export const RestorePlanTableContainer = ({
     const errorMessage = useRestoreDatabaseSelector(
         (s) => (s.viewModel.model as RestoreDatabaseViewModel).errorMessage,
     );
+    const type = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).type,
+    );
+    const backupFiles = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).backupFiles,
+    );
+    const blob = useRestoreDatabaseSelector((s) => s.formState.blob);
+
+    const getMissingSelectionMessage = () => {
+        if (type === DisasterRecoveryType.BackupFile && backupFiles.length === 0) {
+            return locConstants.restoreDatabase.chooseBackupFile;
+        }
+        if (type === DisasterRecoveryType.Url && !blob) {
+            return locConstants.restoreDatabase.chooseBlob;
+        }
+        return "";
+    };
 
     const renderMainContent = () => {
+        const missingSelectionMessage = getMissingSelectionMessage();
+        if (missingSelectionMessage !== "") {
+            return renderErrorContent(missingSelectionMessage);
+        }
+
         switch (loadState) {
             case ApiStatus.NotStarted:
             case ApiStatus.Loading:
