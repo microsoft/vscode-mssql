@@ -7,11 +7,9 @@ import * as vscode from "vscode";
 import * as tunnel from "tunnel";
 import * as http from "http";
 import * as https from "https";
-import * as url from "url";
 import * as fs from "fs";
 import axios, { AxiosResponse, AxiosRequestConfig, RawAxiosResponseHeaders } from "axios";
 import { Readable } from "stream";
-import { Url } from "url";
 
 import * as LocalizedConstants from "../constants/locConstants";
 import { Logger } from "../models/logger";
@@ -266,10 +264,10 @@ export class HttpHelper {
 
             const HTTPS_PORT = 443;
             const HTTP_PORT = 80;
-            const parsedRequestUrl = url.parse(requestUrl);
+            const parsedRequestUrl = new URL(requestUrl);
             const port = parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT;
 
-            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.path}`;
+            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
         }
         return requestUrl;
     }
@@ -307,11 +305,7 @@ export class HttpHelper {
         proxy: string,
         proxyStrictSSL: boolean,
     ): ProxyAgent {
-        const agentOptions = this.getProxyAgentOptions(
-            url.parse(requestUrl),
-            proxy,
-            proxyStrictSSL,
-        );
+        const agentOptions = this.getProxyAgentOptions(new URL(requestUrl), proxy, proxyStrictSSL);
         if (!agentOptions || !agentOptions.host || !agentOptions.port) {
             this.logger?.error("Unable to read proxy agent options to create proxy agent.");
             throw new Error(LocalizedConstants.unableToGetProxyAgentOptionsToGetTenants);
@@ -369,7 +363,7 @@ export class HttpHelper {
      * Returns the proxy agent using the proxy url in the parameters or the system proxy. Returns null if no proxy found
      */
     private getProxyAgentOptions(
-        requestURL: Url,
+        requestURL: URL,
         proxy?: string,
         strictSSL?: boolean,
     ): ProxyAgentOptions | undefined {
@@ -379,23 +373,28 @@ export class HttpHelper {
             return undefined;
         }
 
-        const proxyEndpoint = url.parse(proxyURL);
+        const proxyEndpoint = new URL(proxyURL);
 
         if (!/^https?:$/.test(proxyEndpoint.protocol!)) {
             return undefined;
         }
 
+        const auth =
+            proxyEndpoint.username || proxyEndpoint.password
+                ? `${proxyEndpoint.username}:${proxyEndpoint.password}`
+                : undefined;
+
         const opts: ProxyAgentOptions = {
             host: proxyEndpoint.hostname,
             port: Number(proxyEndpoint.port),
-            auth: proxyEndpoint.auth,
+            auth,
             rejectUnauthorized: typeof strictSSL === "boolean",
         };
 
         return opts;
     }
 
-    private getSystemProxyURL(requestURL: Url): string | undefined {
+    private getSystemProxyURL(requestURL: URL): string | undefined {
         if (requestURL.protocol === "http:") {
             return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
         } else if (requestURL.protocol === "https:") {
@@ -418,7 +417,7 @@ interface ProxyAgent {
 }
 
 interface ProxyAgentOptions {
-    auth: string | null;
+    auth: string | undefined;
     secureProxy?: boolean;
     host?: string | null;
     path?: string | null;
