@@ -2354,7 +2354,7 @@ export default class MainController implements vscode.Disposable {
      */
     private async onCancelConnect(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            await this._connectionMgr.onCancelConnect();
+            await this._connectionMgr.onCancelConnect(false);
             return true;
         }
         return false;

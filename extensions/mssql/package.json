@@ -968,10 +968,7 @@
                 "command": "mssql.cancelConnect",
                 "title": "%mssql.cancelConnect%",
                 "category": "MS SQL",
-                "icon": {
-                    "dark": "media/cancelConnect_dark.svg",
-                    "light": "media/cancelConnect_light.svg"
-                }
+                "icon": "$(stop-circle)"
             },
             {
                 "command": "mssql.filterNode",

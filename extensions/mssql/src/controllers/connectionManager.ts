@@ -1697,11 +1697,14 @@ export default class ConnectionManager {
         this.updateConnectionsContext();
     }
 
-    public async onCancelConnect(): Promise<void> {
-        const result = await this.connectionUI.promptToCancelConnection();
-        if (result) {
-            await this.cancelConnect();
+    public async onCancelConnect(promptToConfirm: boolean = true): Promise<void> {
+        if (promptToConfirm) {
+            const result = await this.connectionUI.promptToCancelConnection();
+            if (!result) {
+                return;
+            }
         }
+        await this.cancelConnect();
     }
 
     public async cancelConnect(): Promise<void> {
