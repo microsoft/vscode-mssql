@@ -938,6 +938,23 @@ export default class ConnectionManager {
                 })
                 .filter((key): key is string => !!key),
         );
+
+        vscode.commands.executeCommand(
+            "setContext",
+            "mssql.connecting",
+            Object.keys(this._connections)
+                .filter((key) => this.isConnecting(key))
+                .map((key) => {
+                    try {
+                        key = vscode.Uri.parse(key).toString();
+                    } catch {
+                        // ignore invalid URIs (for example OE-only keys) in context resource list
+                        return undefined;
+                    }
+                    return key;
+                })
+                .filter((key): key is string => !!key),
+        );
     }
 
     /**
@@ -1226,6 +1243,7 @@ export default class ConnectionManager {
 
         this._connections[fileUri] = connectionInfo;
         this._onConnectionsChangedEmitter.fire();
+        this.updateConnectionsContext();
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
@@ -1361,6 +1379,7 @@ export default class ConnectionManager {
                 ),
             );
             this._onConnectionsChangedEmitter.fire();
+            this.updateConnectionsContext();
             connectionActivity.endFailed(
                 new Error(result.errorMessage),
                 false, // Do not include error message

@@ -35,6 +35,7 @@
     "extension.queryResult": "Query Results",
     "mssql.connect": "Connect",
     "mssql.disconnect": "Disconnect",
+    "mssql.cancelConnect": "Cancel Connection",
     "mssql.manageProfiles": "Manage Connection Profiles",
     "mssql.clearPooledConnections": "Clear Pooled Connections",
     "mssql.chooseDatabase": "Use Database",
