@@ -15,6 +15,7 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
+import * as copilotUtils from "../../src/copilot/copilotUtils";
 import {
     stubExtensionContext,
     stubUserSurvey,
@@ -943,6 +944,59 @@ suite("SchemaDesignerWebviewController tests", () => {
                 } catch {
                     // Expected to fail in test environment without Docker
                 }
+            });
+        });
+
+        suite("AddMcpServerRequest handler", () => {
+            test("should register AddMcpServerRequest handler", () => {
+                createController();
+
+                expect(requestHandlers.has(Dab.AddMcpServerRequest.type.method)).to.be.true;
+            });
+
+            test("should delegate to addMcpServerToWorkspace with correct parameters", async () => {
+                const addMcpStub = sandbox
+                    .stub(copilotUtils, "addMcpServerToWorkspace")
+                    .resolves({ success: true });
+
+                createController();
+
+                const handler = requestHandlers.get(Dab.AddMcpServerRequest.type.method);
+                expect(handler).to.be.a("function");
+
+                const payload: Dab.AddMcpServerParams = {
+                    serverName: "DabMcp-5000",
+                    serverUrl: "http://localhost:5000/mcp",
+                };
+
+                const result = await handler(payload);
+
+                expect(addMcpStub).to.have.been.calledOnceWithExactly(
+                    "DabMcp-5000",
+                    "http://localhost:5000/mcp",
+                );
+                expect(result.success).to.be.true;
+            });
+
+            test("should return error response when addMcpServerToWorkspace fails", async () => {
+                sandbox.stub(copilotUtils, "addMcpServerToWorkspace").resolves({
+                    success: false,
+                    error: "No workspace folder is open.",
+                });
+
+                createController();
+
+                const handler = requestHandlers.get(Dab.AddMcpServerRequest.type.method);
+
+                const payload: Dab.AddMcpServerParams = {
+                    serverName: "DabMcp-5000",
+                    serverUrl: "http://localhost:5000/mcp",
+                };
+
+                const result = await handler(payload);
+
+                expect(result.success).to.be.false;
+                expect(result.error).to.equal("No workspace folder is open.");
             });
         });
     });
