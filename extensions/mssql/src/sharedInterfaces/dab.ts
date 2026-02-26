@@ -322,14 +322,20 @@ export namespace Dab {
     }
 
     /**
-     * Notification to copy config to clipboard
+     * Notification to copy text to clipboard with a context-appropriate toast message
      */
-    export interface CopyConfigParams {
-        configContent: string;
+    export enum CopyTextType {
+        Config = "config",
+        Url = "url",
     }
 
-    export namespace CopyConfigNotification {
-        export const type = new NotificationType<CopyConfigParams>("dab/copyConfig");
+    export interface CopyTextParams {
+        text: string;
+        copyTextType: CopyTextType;
+    }
+
+    export namespace CopyTextNotification {
+        export const type = new NotificationType<CopyTextParams>("dab/copyText");
     }
 
     // ============================================
@@ -646,6 +652,37 @@ export namespace Dab {
     export namespace StopDeploymentRequest {
         export const type = new RequestType<StopDeploymentParams, StopDeploymentResponse, void>(
             "dab/stopDeployment",
+        );
+    }
+
+    /**
+     * Request to add an MCP server definition to the workspace .vscode/mcp.json
+     */
+    export interface AddMcpServerParams {
+        /**
+         * Name for the MCP server entry in mcp.json
+         */
+        serverName: string;
+        /**
+         * URL of the MCP server endpoint
+         */
+        serverUrl: string;
+    }
+
+    export interface AddMcpServerResponse {
+        /**
+         * Whether the operation was successful
+         */
+        success: boolean;
+        /**
+         * Error message if operation failed
+         */
+        error?: string;
+    }
+
+    export namespace AddMcpServerRequest {
+        export const type = new RequestType<AddMcpServerParams, AddMcpServerResponse, void>(
+            "dab/addMcpServer",
         );
     }
 

@@ -1343,6 +1343,16 @@ export class LocConstants {
             deploymentFailed: l10n.t("Deployment Failed"),
             dabContainerRunning: l10n.t("DAB container is running!"),
             apiAvailableAt: l10n.t("Your API is available at:"),
+            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
+            copyUrl: (apiType: string) =>
+                l10n.t({
+                    message: "Copy {0} URL",
+                    args: [apiType],
+                    comment: ["{0} is the API type name, e.g. REST API or GraphQL"],
+                }),
+            addToVSCode: l10n.t("Add to VS Code"),
+            addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
+            mcpServerAdded: l10n.t("Added"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
