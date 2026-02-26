@@ -25,13 +25,11 @@ steps:
       yarn lint
     displayName: SqlProj - Lint code
     workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
-    continueOnError: true
 
   - pwsh: |
       yarn test
     displayName: SqlProj - Run tests
     workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
-    continueOnError: true
 
   - task: PublishTestResults@2
     displayName: SqlProj - Publish test results
@@ -39,7 +37,6 @@ steps:
       testResultsFormat: "JUnit"
       testResultsFiles: "$(Build.SourcesDirectory)/extensions/sql-database-projects/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
-    continueOnError: true
 
   - task: PublishCodeCoverageResults@2
     displayName: SqlProj - Publish code coverage
@@ -60,4 +57,3 @@ steps:
       SourceFolder: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
-

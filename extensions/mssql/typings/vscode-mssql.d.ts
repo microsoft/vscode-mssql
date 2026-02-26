@@ -533,6 +533,10 @@ declare module "vscode-mssql" {
             packageFilePath: string,
             createStreamingJobTsql: string,
         ): Thenable<ValidateStreamingJobResult>;
+        parseTSqlScript(
+            filePath: string,
+            databaseSchemaProvider: string,
+        ): Thenable<ParseTSqlScriptResult>;
         savePublishProfile(
             profilePath: string,
             databaseName: string,
@@ -541,6 +545,7 @@ declare module "vscode-mssql" {
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
         getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
+        getCodeAnalysisRules(): Thenable<GetCodeAnalysisRulesResult>;
     }
 
     /**
@@ -1364,6 +1369,10 @@ declare module "vscode-mssql" {
 
     export interface ValidateStreamingJobResult extends ResultStatus { }
 
+    export interface ParseTSqlScriptResult {
+        containsCreateTableStatement: boolean;
+    }
+
     /**
      * Parameters for getting deployment options based on scenario
      */
@@ -1381,6 +1390,22 @@ declare module "vscode-mssql" {
      */
     export interface GetDeploymentOptionsResult extends ResultStatus {
         defaultDeploymentOptions: DeploymentOptions;
+    }
+
+    export interface GetCodeAnalysisRulesParams {}
+
+    export interface CodeAnalysisRuleInfo {
+        ruleId: string;
+        shortRuleId: string;
+        displayName: string;
+        description: string;
+        category: string;
+        severity: string;
+        ruleScope: string;
+    }
+
+    export interface GetCodeAnalysisRulesResult extends ResultStatus {
+        rules: CodeAnalysisRuleInfo[];
     }
 
     export interface ExportParams {
@@ -1441,6 +1466,11 @@ declare module "vscode-mssql" {
     export interface ValidateStreamingJobParams {
         packageFilePath: string;
         createStreamingJobTsql: string;
+    }
+
+    export interface ParseTSqlScriptParams {
+        filePath: string;
+        databaseSchemaProvider: string;
     }
 
     export interface SchemaCompareConnectionInfo {
@@ -2595,6 +2625,17 @@ declare module "vscode-mssql" {
          * Each row is an array of DbCellValue, representing the values of each column in that row.
          */
         rows: DbCellValue[][];
+        /**
+         * Messages generated during query execution (e.g. PRINT output, info messages).
+         */
+        messages?: ResultMessage[];
+    }
+
+    export interface ResultMessage {
+        batchId?: number;
+        isError: boolean;
+        time?: string;
+        message: string;
     }
 
     export interface IScriptingObject {

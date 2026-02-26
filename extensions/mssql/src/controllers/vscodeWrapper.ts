@@ -64,7 +64,7 @@ export default class VscodeWrapper {
             typeof vscode.window.activeTextEditor !== "undefined" &&
             typeof vscode.window.activeTextEditor.document !== "undefined"
         ) {
-            return vscode.window.activeTextEditor.document.uri.toString(true);
+            return vscode.window.activeTextEditor.document.uri.toString();
         }
         return undefined;
     }

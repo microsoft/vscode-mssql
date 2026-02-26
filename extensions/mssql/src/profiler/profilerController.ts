@@ -3,11 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
+import * as fs from "fs";
+import { Writable } from "stream";
 import * as vscode from "vscode";
+import * as path from "path";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState, EngineType } from "./profilerTypes";
+import { SessionType, SessionState, EngineType, XelFileInfo } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -19,6 +23,9 @@ import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { getErrorMessage } from "../utils/utils";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /** System databases that cannot be used for Azure SQL profiling */
 const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
@@ -30,6 +37,7 @@ const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
 export class ProfilerController {
     private _logger: Logger;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
+    private _xelWebviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
     private _currentEngineType: EngineType = EngineType.Standalone;
     private _profilerEngineTypes: Map<string, EngineType> = new Map();
@@ -112,11 +120,23 @@ export class ProfilerController {
             await this.setupProfilerUI(profilerUri, this._currentEngineType);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(getErrorMessage(e)));
         }
     }
 
     public async dispose(): Promise<void> {
+        // Dispose all regular webview controllers
+        for (const controller of this._webviewControllers.values()) {
+            controller.dispose();
+        }
+        this._webviewControllers.clear();
+
+        // Dispose all XEL webview controllers
+        for (const controller of this._xelWebviewControllers.values()) {
+            controller.dispose();
+        }
+        this._xelWebviewControllers.clear();
+
         await this._sessionManager.dispose();
     }
 
@@ -217,11 +237,25 @@ export class ProfilerController {
                     } catch (e) {
                         this._logger.error(`Command error: ${e}`);
                         vscode.window.showErrorMessage(
-                            LocProfiler.failedToLaunchProfiler(String(e)),
+                            LocProfiler.failedToLaunchProfiler(getErrorMessage(e)),
                         );
                     }
                 },
             ),
+        );
+
+        // Open XEL File command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.profiler.openXelFile", async () => {
+                try {
+                    await this.openXelFileCommand();
+                } catch (e) {
+                    this._logger.error(`Command error: ${getErrorMessage(e)}`);
+                    vscode.window.showErrorMessage(
+                        LocProfiler.failedToOpenXelFile(getErrorMessage(e)),
+                    );
+                }
+            }),
         );
 
         this._logger.verbose("Profiler commands registered");
@@ -237,6 +271,7 @@ export class ProfilerController {
         webviewController: ProfilerWebviewController,
     ): Promise<void> {
         this._logger.verbose(`Starting profiler session: ${sessionName}`);
+        const sessionId = Utils.generateGuid();
         try {
             if (!this._profilerUri) {
                 this._logger.verbose("No profiler connection available");
@@ -250,7 +285,6 @@ export class ProfilerController {
             this._logger.verbose("Cleared existing events from grid");
 
             // Create a ProfilerSession for the selected session
-            const sessionId = Utils.generateGuid();
             const bufferCapacity = vscode.workspace
                 .getConfiguration(Constants.extensionConfigSectionName)
                 .get<number>(Constants.configProfilerEventBufferSize);
@@ -261,6 +295,7 @@ export class ProfilerController {
                 sessionType: SessionType.Live,
                 templateName: "Standard",
                 bufferCapacity: bufferCapacity,
+                engineType: this._profilerEngineTypes.get(this._profilerUri!) ?? "SQLServer",
             });
             this._logger.verbose(
                 `Created ProfilerSession: id=${sessionId}, ownerUri=${this._profilerUri}`,
@@ -283,6 +318,17 @@ export class ProfilerController {
                     `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for session ${sessionId}`,
                 );
                 webviewController.notifyRowsRemoved(events);
+
+                // Telemetry: buffer overflow (fire once per session)
+                if (!session.bufferOverflowWarned) {
+                    session.bufferOverflowWarned = true;
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerBufferOverflow,
+                        { sessionId },
+                        { bufferCapacity: session.events.capacity, evictedCount: events.length },
+                    );
+                }
             });
 
             session.onSessionStopped((errorMessage) => {
@@ -291,6 +337,15 @@ export class ProfilerController {
                     this._logger.error(`Session stopped with error: ${errorMessage}`);
                 }
                 webviewController.setSessionState(SessionState.Stopped);
+
+                // Telemetry: session stopped
+                const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
+                sendActionEvent(
+                    TelemetryViews.Profiler,
+                    TelemetryActions.ProfilerSessionStopped,
+                    { sessionId, wasExported: String(session.exported) },
+                    { durationMs, eventsCapturedCount: session.events.size },
+                );
             });
 
             // Start profiling on the session
@@ -301,7 +356,17 @@ export class ProfilerController {
             this._logger.verbose("Profiling session started");
         } catch (e) {
             this._logger.error(`Error starting profiler session: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(String(e)));
+            const errMsg = getErrorMessage(e);
+            sendErrorEvent(
+                TelemetryViews.Profiler,
+                TelemetryActions.ProfilerSessionFailed,
+                e instanceof Error ? e : new Error(errMsg),
+                false, // includeErrorMessage
+                undefined,
+                undefined,
+                { sessionId, engineType: this._currentEngineType },
+            );
+            vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(errMsg));
         }
     }
 
@@ -448,7 +513,7 @@ export class ProfilerController {
         } catch (e) {
             this._logger.error(`Error creating session: ${e}`);
             webviewController.setCreatingSession(false);
-            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(getErrorMessage(e)));
         }
     }
 
@@ -625,12 +690,33 @@ export class ProfilerController {
                     await this._sessionManager.stopProfilingSession(session.id);
                     webviewController.setSessionState(SessionState.Stopped);
                     this._logger.verbose("Session stopped");
+
+                    // Telemetry: session stopped by user
+                    const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
+                    sendActionEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerSessionStopped,
+                        { sessionId: session.id, wasExported: String(session.exported) },
+                        { durationMs, eventsCapturedCount: session.events.size },
+                    );
                 } catch (e) {
                     this._logger.error(`Error stopping session: ${e}`);
+                    sendErrorEvent(
+                        TelemetryViews.Profiler,
+                        TelemetryActions.ProfilerSessionStopFailed,
+                        e instanceof Error ? e : new Error(getErrorMessage(e)),
+                        false, // includeErrorMessage
+                        undefined,
+                        undefined,
+                        { sessionId: session.id },
+                    );
                 }
             },
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
+            },
+            onExportToCsv: async (suggestedFileName: string): Promise<Writable | undefined> => {
+                return await this.getStreamForWriting(webviewController, suggestedFileName);
             },
         });
 
@@ -714,8 +800,373 @@ export class ProfilerController {
             }
         } catch (e) {
             this._logger.error(`Error creating/starting session: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(getErrorMessage(e)));
             webviewController.dispose();
+        }
+    }
+
+    /**
+     * Opens a file picker dialog for the user to select an XEL file.
+     * Launches the profiler UI in read-only mode for the selected file.
+     */
+    private async openXelFileCommand(): Promise<void> {
+        this._logger.verbose("Opening XEL file picker...");
+
+        const fileUri = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            filters: {
+                [LocProfiler.xelFileFilter]: ["xel"],
+            },
+            title: LocProfiler.selectXelFile,
+        });
+
+        if (!fileUri || fileUri.length === 0) {
+            this._logger.verbose("User cancelled XEL file selection");
+            return;
+        }
+
+        const filePath = fileUri[0].fsPath;
+        await this.openXelFile(filePath);
+    }
+
+    /**
+     * Opens an XEL file in the profiler UI in read-only mode.
+     * Can be called from the command or from the custom editor provider.
+     * XEL file sessions do not require a database connection - they are purely file-based.
+     * @param filePath - Full path to the XEL file
+     */
+    public async openXelFile(filePath: string): Promise<void> {
+        this._logger.verbose(`Opening XEL file: ${filePath}`);
+
+        // Validate file exists and is accessible
+        const fileInfo = await this.validateXelFile(filePath);
+        if (!fileInfo) {
+            return;
+        }
+
+        // Check if we already have a webview for this file
+        if (this._xelWebviewControllers.has(filePath)) {
+            this._logger.verbose(`Webview already exists for ${filePath}, focusing it`);
+            const existingController = this._xelWebviewControllers.get(filePath)!;
+            existingController.revealToForeground();
+            return;
+        }
+
+        // XEL file sessions do not require a database connection
+        // The file is parsed locally and displayed in read-only mode
+        this._logger.verbose("Opening XEL file in read-only disconnected mode...");
+
+        try {
+            // Create the webview controller in read-only disconnected mode
+            const webviewController = new ProfilerWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this._sessionManager,
+                [], // No available sessions for file mode (disconnected)
+                undefined, // No session name initially
+                "Standard_OnPrem", // templateId
+                true, // isReadOnly
+                fileInfo, // XEL file info
+            );
+
+            // Track this webview controller
+            this._xelWebviewControllers.set(filePath, webviewController);
+
+            // Remove from tracking when disposed
+            const originalDispose = webviewController.dispose.bind(webviewController);
+            webviewController.dispose = () => {
+                this._xelWebviewControllers.delete(filePath);
+                // No connection to clean up for file-based sessions
+                originalDispose();
+            };
+
+            // Show loading notification
+            vscode.window.showInformationMessage(LocProfiler.loadingXelFile(fileInfo.fileName));
+
+            // Set up event handlers for read-only mode (most are no-ops)
+            this.setupXelWebviewHandlers(webviewController, fileInfo);
+
+            // Load the XEL file events into the webview
+            await this.loadXelFileEvents(webviewController, fileInfo);
+
+            // Show success notification explaining read-only mode
+            vscode.window.showInformationMessage(
+                LocProfiler.xelFileReadOnlyDisconnectedNotification(fileInfo.fileName),
+            );
+
+            this._logger.verbose(
+                `XEL file ${fileInfo.fileName} opened successfully in read-only mode`,
+            );
+        } catch (e) {
+            // Clean up any partially initialized webview controller for this file
+            const existingController = this._xelWebviewControllers.get(filePath);
+            if (existingController) {
+                existingController.dispose();
+            }
+            this._xelWebviewControllers.delete(filePath);
+
+            this._logger.error(`Error opening XEL file: ${getErrorMessage(e)}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(getErrorMessage(e)));
+        }
+    }
+
+    /**
+     * Validates that the XEL file exists and is accessible.
+     * @param filePath - Path to the XEL file
+     * @returns XelFileInfo if valid, undefined if invalid
+     */
+    private async validateXelFile(filePath: string): Promise<XelFileInfo | undefined> {
+        try {
+            const stats = await fs.promises.stat(filePath);
+
+            if (!stats.isFile()) {
+                this._logger.error(`Path is not a file: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.invalidXelFile);
+                return undefined;
+            }
+
+            const ext = path.extname(filePath).toLowerCase();
+            if (ext !== ".xel") {
+                this._logger.error(`File is not an XEL file: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.invalidXelFile);
+                return undefined;
+            }
+
+            return {
+                filePath,
+                fileName: path.basename(filePath),
+                fileSize: stats.size,
+            };
+        } catch (e) {
+            if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+                this._logger.error(`XEL file not found: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.xelFileNotFound);
+            } else if (
+                (e as NodeJS.ErrnoException).code === "EACCES" ||
+                (e as NodeJS.ErrnoException).code === "EPERM"
+            ) {
+                this._logger.error(`Access denied to XEL file: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.xelFileAccessDenied);
+            } else {
+                this._logger.error(`Error accessing XEL file: ${getErrorMessage(e)}`);
+                vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(getErrorMessage(e)));
+            }
+            return undefined;
+        }
+    }
+
+    /**
+     * Sets up event handlers for an XEL file webview (read-only disconnected mode).
+     * Most handlers are no-ops since we have no connection.
+     */
+    private setupXelWebviewHandlers(
+        webviewController: ProfilerWebviewController,
+        _fileInfo: XelFileInfo,
+    ): void {
+        webviewController.setEventHandlers({
+            // New Session - disabled in read-only disconnected mode
+            onCreateSession: async () => {
+                // No-op for read-only disconnected sessions
+                this._logger.verbose(
+                    "Create session ignored for read-only disconnected XEL file session",
+                );
+            },
+            // Start Session - disabled in read-only disconnected mode
+            onStartSession: async () => {
+                // No-op for read-only disconnected sessions
+                this._logger.verbose(
+                    "Start session ignored for read-only disconnected XEL file session",
+                );
+            },
+            // Pause/Resume - disabled for read-only file sessions
+            onPauseResume: async () => {
+                // No-op for read-only sessions
+                this._logger.verbose("Pause/Resume ignored for read-only XEL file session");
+            },
+            // Stop - disabled for read-only file sessions
+            onStop: async () => {
+                // No-op for read-only sessions
+                this._logger.verbose("Stop ignored for read-only XEL file session");
+            },
+            onViewChange: (viewId: string) => {
+                this._logger.verbose(`View changed to: ${viewId}`);
+            },
+        });
+    }
+
+    /**
+     * Loads XEL file events into the webview by creating a file-based profiler session.
+     * Uses the backend to parse the XEL file and stream events to the UI.
+     */
+    private async loadXelFileEvents(
+        webviewController: ProfilerWebviewController,
+        fileInfo: XelFileInfo,
+    ): Promise<void> {
+        this._logger.verbose(`Loading XEL file events for: ${fileInfo.filePath}`);
+
+        // Generate a unique URI for this file-based session (not a real connection)
+        const fileSessionUri = `profiler://xelfile/${Utils.generateGuid()}`;
+        this._logger.verbose(`Created file session URI: ${fileSessionUri}`);
+
+        // Create a ProfilerSession for the file
+        const sessionId = Utils.generateGuid();
+        const session = this._sessionManager.createSession({
+            id: sessionId,
+            ownerUri: fileSessionUri,
+            sessionName: fileInfo.filePath, // Full path to XEL file for the backend
+            sessionType: SessionType.File,
+            templateName: "XEL_File",
+            readOnly: true,
+            engineType: "SQLServer",
+        });
+        this._logger.verbose(`Created ProfilerSession: id=${sessionId}, type=File`);
+
+        // Set up the webview controller with the session reference
+        webviewController.setCurrentSession(session);
+
+        // Set the session name to the file name AFTER setCurrentSession
+        // (setCurrentSession overwrites sessionName with session.sessionName)
+        webviewController.setSessionName(fileInfo.fileName);
+
+        // Set up event handlers on the session
+        session.onEventsReceived((events) => {
+            this._logger.verbose(
+                `Events received: ${events.length} events for XEL file session ${sessionId}`,
+            );
+            webviewController.notifyNewEvents(events.length);
+        });
+
+        session.onEventsRemoved((events) => {
+            const sequenceNumbers = events.map((e) => e.eventNumber).join(", ");
+            this._logger.verbose(
+                `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for XEL file session ${sessionId}`,
+            );
+            webviewController.notifyRowsRemoved(events);
+        });
+
+        session.onSessionStopped((errorMessage) => {
+            this._logger.verbose(`XEL file session ${sessionId} stopped notification received`);
+            if (errorMessage) {
+                this._logger.error(`XEL file session stopped with error: ${errorMessage}`);
+            }
+            // For file sessions, "Stopped" indicates file loading is complete
+            webviewController.setSessionState(SessionState.Stopped);
+        });
+
+        try {
+            // Start profiling - this tells the backend to read the XEL file
+            // For file sessions, this loads all events from the file
+            await this._sessionManager.startProfilingSession(sessionId);
+
+            // File-based sessions go to "Stopped" state after loading (not "Running")
+            // since there's no live data to stream
+            webviewController.setSessionState(SessionState.Stopped);
+
+            this._logger.verbose(
+                `XEL file ${fileInfo.fileName} loaded successfully in read-only mode`,
+            );
+        } catch (e) {
+            this._logger.error(`Failed to load XEL file: ${getErrorMessage(e)}`);
+            webviewController.setSessionState(SessionState.Failed);
+
+            // Telemetry: XEL file load failure
+            sendErrorEvent(
+                TelemetryViews.Profiler,
+                TelemetryActions.ProfilerSessionFailed,
+                e instanceof Error ? e : new Error(getErrorMessage(e)),
+                false, // includeErrorMessage
+                undefined,
+                undefined,
+                { sessionId, engineType: "SQLServer" },
+            );
+            // Clean up the session that failed to load
+            await this._sessionManager.removeSession(sessionId);
+
+            throw e;
+        }
+    }
+
+    /**
+     * Gets the XEL webview controller for a given file path.
+     * Used by the custom editor provider.
+     */
+    public getXelWebviewController(filePath: string): ProfilerWebviewController | undefined {
+        return this._xelWebviewControllers.get(filePath);
+    }
+
+    /**
+     * Handles exporting profiler events to a CSV file.
+     * Shows save dialog and returns a write stream for CSV content.
+     * @returns A writable stream to write CSV content to, or undefined if user cancelled
+     */
+    private async getStreamForWriting(
+        webviewController: ProfilerWebviewController,
+        suggestedFileName: string,
+    ): Promise<Writable | undefined> {
+        try {
+            // Get a default folder - use user's home directory or workspace folder
+            const defaultFolder =
+                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(os.homedir());
+
+            // Show save dialog
+            const saveUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.joinPath(defaultFolder, `${suggestedFileName}.csv`),
+                filters: {
+                    CSV: ["csv"],
+                },
+                title: LocProfiler.exportToCsv,
+            });
+
+            if (!saveUri) {
+                // User cancelled
+                this._logger.verbose("Export to CSV cancelled by user");
+                return undefined;
+            }
+
+            // Create a write stream to the file
+            const filePath = saveUri.fsPath;
+            const writeStream = fs.createWriteStream(filePath, { encoding: "utf8" });
+
+            // Handle stream completion
+            writeStream.on("finish", () => {
+                // Mark export as successful in state
+                webviewController.setExportComplete();
+
+                // Show success message with Open File button
+                void vscode.window
+                    .showInformationMessage(
+                        LocProfiler.exportSuccess(filePath),
+                        LocProfiler.openFile,
+                    )
+                    .then(async (openFile) => {
+                        if (openFile === LocProfiler.openFile) {
+                            // Open the exported file in a new editor tab beside the profiler
+                            const doc = await vscode.workspace.openTextDocument(saveUri);
+                            await vscode.window.showTextDocument(doc, {
+                                viewColumn: vscode.ViewColumn.Beside,
+                                preview: false,
+                            });
+                        }
+                    });
+
+                this._logger.verbose(`Profiler events exported to ${filePath}`);
+            });
+
+            // Handle stream errors
+            writeStream.on("error", (error) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+                this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            });
+
+            return writeStream;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+            this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            return undefined;
         }
     }
 }

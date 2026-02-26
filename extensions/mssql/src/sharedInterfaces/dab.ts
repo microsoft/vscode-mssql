@@ -322,14 +322,20 @@ export namespace Dab {
     }
 
     /**
-     * Notification to copy config to clipboard
+     * Notification to copy text to clipboard with a context-appropriate toast message
      */
-    export interface CopyConfigParams {
-        configContent: string;
+    export enum CopyTextType {
+        Config = "config",
+        Url = "url",
     }
 
-    export namespace CopyConfigNotification {
-        export const type = new NotificationType<CopyConfigParams>("dab/copyConfig");
+    export interface CopyTextParams {
+        text: string;
+        copyTextType: CopyTextType;
+    }
+
+    export namespace CopyTextNotification {
+        export const type = new NotificationType<CopyTextParams>("dab/copyText");
     }
 
     // ============================================
@@ -649,6 +655,37 @@ export namespace Dab {
         );
     }
 
+    /**
+     * Request to add an MCP server definition to the workspace .vscode/mcp.json
+     */
+    export interface AddMcpServerParams {
+        /**
+         * Name for the MCP server entry in mcp.json
+         */
+        serverName: string;
+        /**
+         * URL of the MCP server endpoint
+         */
+        serverUrl: string;
+    }
+
+    export interface AddMcpServerResponse {
+        /**
+         * Whether the operation was successful
+         */
+        success: boolean;
+        /**
+         * Error message if operation failed
+         */
+        error?: string;
+    }
+
+    export namespace AddMcpServerRequest {
+        export const type = new RequestType<AddMcpServerParams, AddMcpServerResponse, void>(
+            "dab/addMcpServer",
+        );
+    }
+
     // ============================================
     // Service interface
     // ============================================
@@ -658,6 +695,11 @@ export namespace Dab {
      */
     export interface DabConnectionInfo {
         connectionString: string;
+        /**
+         * Name of the SQL Server Docker container, if the SQL Server is running in a container.
+         * Used to transform the connection string for DAB container access.
+         */
+        sqlServerContainerName?: string;
     }
 
     /**
@@ -677,13 +719,13 @@ export namespace Dab {
          * @param step The deployment step to run
          * @param params Optional deployment parameters (container name, port)
          * @param config Optional DAB config (needed for startContainer step)
-         * @param connectionString Optional connection string for generating config
+         * @param connectionInfo Optional connection info for generating config
          */
         runDeploymentStep(
             step: DabDeploymentStepOrder,
             params?: DabDeploymentParams,
             config?: DabConfig,
-            connectionString?: string,
+            connectionInfo?: DabConnectionInfo,
         ): Promise<RunDeploymentStepResponse>;
 
         /**

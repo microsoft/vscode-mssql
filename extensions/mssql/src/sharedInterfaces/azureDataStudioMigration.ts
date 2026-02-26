@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { IConnectionDialogProfile } from "./connectionDialog";
 import { IConnectionGroup } from "./connectionGroup";
 import { Status } from "./webview";
@@ -40,8 +40,13 @@ export interface EntraAccountOption {
     tenants: EntraAccountTenantOption[];
 }
 
+export interface AdsMigrationSetting {
+    key: string;
+    value: unknown;
+}
+
 export interface IDialogProps {
-    type: "entraSignIn" | "importWarning" | "importProgress";
+    type: "entraSignIn" | "importWarning" | "importProgress" | "viewSettings";
 }
 
 export interface EntraSignInDialogProps extends IDialogProps {
@@ -60,12 +65,23 @@ export interface ImportWarningDialogProps extends IDialogProps {
 export interface ImportProgressDialogProps extends IDialogProps {
     type: "importProgress";
     status: Status;
+    importedCounts?: {
+        connectionGroups: number;
+        connections: number;
+        settings: number;
+    };
+}
+
+export interface ViewSettingsDialogProps extends IDialogProps {
+    type: "viewSettings";
 }
 
 export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
     connectionGroups: AdsMigrationConnectionGroup[];
     connections: AdsMigrationConnection[];
+    importSettings: boolean;
+    settings: AdsMigrationSetting[];
     dialog?: IDialogProps;
 }
 
@@ -95,12 +111,20 @@ export interface AzureDataStudioMigrationReducers {
         connectionId?: string;
         selected: boolean;
     };
+    setImportSettings: {
+        importSettings: boolean;
+    };
+    openViewSettingsDialog: {};
     import: {};
     confirmImport: {};
 }
 
-export namespace AzureDataStudioMigrationBrowseForConfigRequest {
+export namespace BrowseForConfigRequest {
     export const type = new RequestType<void, string | undefined, void>(
         "azureDataStudioMigration/browseConfig",
     );
+}
+
+export namespace OpenKeymapLinkNotification {
+    export const type = new NotificationType<void>("azureDataStudioMigration/openKeymapLink");
 }

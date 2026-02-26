@@ -17,7 +17,10 @@ import {
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
-import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
+import {
+    BackupDatabaseFormState,
+    BackupDatabaseViewModel,
+} from "../../../../sharedInterfaces/backup";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
@@ -29,8 +32,8 @@ import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
 import { BackupFileCard } from "./backupFileCard";
 import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import {
+    DisasterRecoveryType,
     ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
@@ -161,9 +164,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             : {}
                     }>
                     <FormField<
-                        ObjectManagementFormState,
-                        ObjectManagementWebviewState,
-                        ObjectManagementFormItemSpec,
+                        BackupDatabaseFormState,
+                        ObjectManagementWebviewState<BackupDatabaseFormState>,
+                        ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                         BackupDatabaseContextProps
                     >
                         context={context}
@@ -199,9 +202,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                 : {}
                         }>
                         <FormField<
-                            ObjectManagementFormState,
-                            ObjectManagementWebviewState,
-                            ObjectManagementFormItemSpec,
+                            BackupDatabaseFormState,
+                            ObjectManagementWebviewState<BackupDatabaseFormState>,
+                            ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                             BackupDatabaseContextProps
                         >
                             context={context}
@@ -255,9 +258,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             : {}
                     }>
                     <FormField<
-                        ObjectManagementFormState,
-                        ObjectManagementWebviewState,
-                        ObjectManagementFormItemSpec,
+                        BackupDatabaseFormState,
+                        ObjectManagementWebviewState<BackupDatabaseFormState>,
+                        ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                         BackupDatabaseContextProps
                     >
                         context={context}
@@ -327,21 +330,20 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                const isSaveToUrl =
-                                    data.value === locConstants.backupDatabase.saveToUrl;
-                                context.setSaveLocation(isSaveToUrl);
+                                const isSaveToUrl = data.value === DisasterRecoveryType.Url;
+                                context.setType(
+                                    isSaveToUrl
+                                        ? DisasterRecoveryType.Url
+                                        : DisasterRecoveryType.BackupFile,
+                                );
                                 if (isSaveToUrl) {
                                     // Start loading the first Azure component (Account) when switching to Save to URL
                                     context.loadAzureComponent("accountId");
                                 }
                             }}
-                            value={
-                                backupViewModel.saveToUrl
-                                    ? locConstants.backupDatabase.saveToUrl
-                                    : locConstants.backupDatabase.saveToDisk
-                            }>
+                            value={backupViewModel.type}>
                             <Radio
-                                value={locConstants.backupDatabase.saveToDisk}
+                                value={DisasterRecoveryType.BackupFile}
                                 label={
                                     <div className={classes.saveOption}>
                                         <Save20Regular style={{ marginRight: "8px" }} />
@@ -350,7 +352,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                 }
                             />
                             <Radio
-                                value={locConstants.backupDatabase.saveToUrl}
+                                value={DisasterRecoveryType.Url}
                                 label={
                                     <div className={classes.saveOption}>
                                         <AzureIcon20 style={{ marginRight: "8px" }} />
@@ -361,7 +363,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         </RadioGroup>
                     </Field>
                 </div>
-                {backupViewModel.saveToUrl ? (
+                {backupViewModel.type === DisasterRecoveryType.Url ? (
                     backupViewModel.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
                         renderBackupSaveToUrlFields()
                     ) : (
@@ -389,10 +391,13 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                     {backupViewModel.backupFiles.map((file, index) => (
                                         <BackupFileCard
                                             key={file.filePath}
+                                            backupFiles={backupViewModel.backupFiles}
                                             file={file}
                                             index={index}
                                             fileErrors={fileErrors}
                                             setFileErrors={setFileErrors}
+                                            removeBackupFile={context.removeBackupFile}
+                                            handleFileChange={context.handleFileChange}
                                         />
                                     ))}
                                 </div>

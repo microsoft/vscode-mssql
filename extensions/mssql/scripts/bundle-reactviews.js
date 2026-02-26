@@ -17,11 +17,14 @@ const config = {
         addFirewallRule: "src/reactviews/pages/AddFirewallRule/index.tsx",
         backupDatabaseDialog:
             "src/reactviews/pages/ObjectManagement/BackupDatabase/backupDatabaseIndex.tsx",
+        restoreDatabaseDialog:
+            "src/reactviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
         connectionDialog: "src/reactviews/pages/ConnectionDialog/index.tsx",
         connectionGroup: "src/reactviews/pages/ConnectionGroup/index.tsx",
         DacpacDialog: "src/reactviews/pages/DacpacDialog/index.tsx",
         deployment: "src/reactviews/pages/Deployment/index.tsx",
         executionPlan: "src/reactviews/pages/ExecutionPlan/index.tsx",
+        flatFileImport: "src/reactviews/pages/FlatFileImport/index.tsx",
         tableDesigner: "src/reactviews/pages/TableDesigner/index.tsx",
         objectExplorerFilter: "src/reactviews/pages/ObjectExplorerFilter/index.tsx",
         queryResult: "src/reactviews/pages/QueryResult/index.tsx",
@@ -32,6 +35,7 @@ const config = {
         createDatabaseDialog: "src/reactviews/pages/ObjectManagement/createDatabaseIndex.tsx",
         dropDatabaseDialog: "src/reactviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
+        codeAnalysis: "src/reactviews/pages/CodeAnalysis/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         searchDatabase: "src/reactviews/pages/SearchDatabase/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",

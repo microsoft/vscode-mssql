@@ -30,6 +30,7 @@ import {
     ArrowUndo16Regular,
     BranchCompare16Regular,
     BranchCompare16Filled,
+    CheckmarkCircle16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -42,7 +43,13 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
-import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
+import {
+    buildSchemaFromFlowState,
+    foreignKeyUtils,
+    getTableHeight,
+    getTableWidth,
+    namingUtils,
+} from "../model";
 import {
     Button,
     Dialog,
@@ -64,6 +71,8 @@ import eventBus from "../schemaDesignerEvents";
 import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
+import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { CopilotReviewToolbar } from "./copilotReviewToolbar";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -81,6 +90,7 @@ export const SchemaDesignerFlow = () => {
 
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
+    const changeContext = useSchemaDesignerChangeContext();
 
     // State for nodes and edges
     const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
@@ -118,13 +128,13 @@ export const SchemaDesignerFlow = () => {
         const nextEdges = relationshipEdges.map((edge) => {
             const foreignKeyId = edge.data?.id;
             const shouldHighlight =
-                context.showChangesHighlight &&
+                changeContext.showChangesHighlight &&
                 !!foreignKeyId &&
-                context.newForeignKeyIds.has(foreignKeyId);
+                changeContext.newForeignKeyIds.has(foreignKeyId);
             const shouldShowModified =
-                context.showChangesHighlight &&
+                changeContext.showChangesHighlight &&
                 !!foreignKeyId &&
-                context.modifiedForeignKeyIds.has(foreignKeyId);
+                changeContext.modifiedForeignKeyIds.has(foreignKeyId);
 
             const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
             const classSet = new Set(baseClass);
@@ -152,42 +162,49 @@ export const SchemaDesignerFlow = () => {
 
         return didChange ? nextEdges : relationshipEdges;
     }, [
-        context.showChangesHighlight,
-        context.newForeignKeyIds,
-        context.modifiedForeignKeyIds,
+        changeContext.showChangesHighlight,
+        changeContext.newForeignKeyIds,
+        changeContext.modifiedForeignKeyIds,
         relationshipEdges,
     ]);
 
     const displayEdges = useMemo(() => {
-        if (!context.showChangesHighlight || context.deletedForeignKeyEdges.length === 0) {
+        if (
+            !changeContext.showChangesHighlight ||
+            changeContext.deletedForeignKeyEdges.length === 0
+        ) {
             return highlightedEdges;
         }
 
-        return [...highlightedEdges, ...context.deletedForeignKeyEdges];
-    }, [context.deletedForeignKeyEdges, context.showChangesHighlight, highlightedEdges]);
+        return [...highlightedEdges, ...changeContext.deletedForeignKeyEdges];
+    }, [
+        changeContext.deletedForeignKeyEdges,
+        changeContext.showChangesHighlight,
+        highlightedEdges,
+    ]);
 
     const displayNodes = useMemo(() => {
-        if (!context.showChangesHighlight) {
+        if (!changeContext.showChangesHighlight) {
             return schemaNodes;
         }
 
         return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
-    }, [context.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
+    }, [changeContext.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
 
     useEffect(() => {
-        if (!context.showChangesHighlight) {
+        if (!changeContext.showChangesHighlight) {
             setEdgeUndoState(null);
         }
-    }, [context.showChangesHighlight]);
+    }, [changeContext.showChangesHighlight]);
 
     useEffect(() => {
         setDeletedSchemaNodes((prev) => {
-            if (context.deletedTableNodes.length === 0) {
+            if (changeContext.deletedTableNodes.length === 0) {
                 return [];
             }
 
             const prevById = new Map(prev.map((node) => [node.id, node]));
-            return context.deletedTableNodes.map((node) => {
+            return changeContext.deletedTableNodes.map((node) => {
                 const existing = prevById.get(node.id);
                 if (!existing) {
                     return node;
@@ -199,7 +216,7 @@ export const SchemaDesignerFlow = () => {
                 };
             });
         });
-    }, [context.deletedTableNodes]);
+    }, [changeContext.deletedTableNodes]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -211,7 +228,7 @@ export const SchemaDesignerFlow = () => {
                 // Trigger script generation to update the changes panel
                 // This is necessary for restored sessions that may have changes
                 setTimeout(() => {
-                    eventBus.emit("getScript");
+                    context.notifySchemaChanged();
                 }, 0);
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
@@ -282,9 +299,9 @@ export const SchemaDesignerFlow = () => {
             const tgtNode = reactFlow.getNode(first.target) as Node<SchemaDesigner.Table>;
 
             if (srcNode && tgtNode) {
-                const width = flowUtils.getTableWidth();
-                const srcHeight = flowUtils.getTableHeight(srcNode.data);
-                const tgtHeight = flowUtils.getTableHeight(tgtNode.data);
+                const width = getTableWidth();
+                const srcHeight = getTableHeight(srcNode.data);
+                const tgtHeight = getTableHeight(tgtNode.data);
 
                 const srcCx = srcNode.position.x + width / 2;
                 const srcCy = srcNode.position.y + srcHeight / 2;
@@ -354,20 +371,16 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        const schema = flowUtils.extractSchemaModel(schemaNodes, relationshipEdges);
-
-        const existingForeignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
-            relationshipEdges,
-            sourceNode.data.id,
-            schema,
-        );
+        const schema = buildSchemaFromFlowState(schemaNodes, relationshipEdges);
+        const existingForeignKeys =
+            schema.tables.find((table) => table.id === sourceNode.data.id)?.foreignKeys ?? [];
 
         // Create the foreign key data
         const foreignKeyData = foreignKeyUtils.createForeignKeyFromConnection(
             sourceNode,
             targetNode,
-            sourceColumn.name,
-            targetColumn.name,
+            sourceColumn.id,
+            targetColumn.id,
             uuidv4(),
             namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
         );
@@ -389,7 +402,7 @@ export const SchemaDesignerFlow = () => {
         setRelationshipEdges((eds) => addEdge(newEdge, eds));
 
         // Update create script
-        eventBus.emit("getScript");
+        context.notifySchemaChanged();
         eventBus.emit("pushState");
     };
 
@@ -419,29 +432,29 @@ export const SchemaDesignerFlow = () => {
                 connectionState.toHandle.id,
             );
 
-            const sourceColumnName =
+            const validatedSourceColumnId =
                 (connectionState.fromNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === sourceColumnId,
-                )?.name ?? "";
-            const targetColumnName =
+                )?.id ?? "";
+            const validatedTargetColumnId =
                 (connectionState.toNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === targetColumnId,
-                )?.name ?? "";
+                )?.id ?? "";
 
-            if (!sourceColumnName || !targetColumnName) {
+            if (!validatedSourceColumnId || !validatedTargetColumnId) {
                 return;
             }
 
             const potentialForeignKey = foreignKeyUtils.createForeignKeyFromConnection(
                 connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,
                 connectionState.toNode as unknown as Node<SchemaDesigner.Table>,
-                sourceColumnName,
-                targetColumnName,
+                validatedSourceColumnId,
+                validatedTargetColumnId,
             );
 
             // Validate the foreign key
             const validationResult = foreignKeyUtils.isForeignKeyValid(
-                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges).tables,
+                buildSchemaFromFlowState(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
@@ -481,6 +494,7 @@ export const SchemaDesignerFlow = () => {
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
+            <CopilotReviewToolbar />
             <ReactFlow
                 nodes={displayNodes}
                 edges={displayEdges}
@@ -511,7 +525,7 @@ export const SchemaDesignerFlow = () => {
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
                 onEdgeMouseEnter={(event, edge) => {
-                    if (!context.showChangesHighlight || context.isExporting) {
+                    if (!changeContext.showChangesHighlight || context.isExporting) {
                         setEdgeUndoState(null);
                         return;
                     }
@@ -527,9 +541,9 @@ export const SchemaDesignerFlow = () => {
                     );
                     const changeAction = isDeleted
                         ? ChangeAction.Delete
-                        : context.newForeignKeyIds.has(foreignKeyId)
+                        : changeContext.newForeignKeyIds.has(foreignKeyId)
                           ? ChangeAction.Add
-                          : context.modifiedForeignKeyIds.has(foreignKeyId)
+                          : changeContext.modifiedForeignKeyIds.has(foreignKeyId)
                             ? ChangeAction.Modify
                             : undefined;
 
@@ -570,7 +584,7 @@ export const SchemaDesignerFlow = () => {
 
                     const x = event.clientX - rect.left + 6;
                     const y = event.clientY - rect.top - 6;
-                    const revertInfo = context.canRevertChange(change);
+                    const revertInfo = changeContext.canRevertChange(change);
                     setEdgeUndoState({
                         change,
                         canRevert: revertInfo.canRevert,
@@ -589,7 +603,7 @@ export const SchemaDesignerFlow = () => {
                     setEdgeUndoState(null);
                 }}
                 onDelete={() => {
-                    eventBus.emit("getScript");
+                    context.notifySchemaChanged();
                     eventBus.emit("pushState");
                 }}
                 onNodeDragStop={() => {
@@ -610,19 +624,21 @@ export const SchemaDesignerFlow = () => {
                     {context.isDabEnabled() && (
                         <ControlButton
                             onClick={() =>
-                                context.setShowChangesHighlight(!context.showChangesHighlight)
+                                changeContext.setShowChangesHighlight(
+                                    !changeContext.showChangesHighlight,
+                                )
                             }
                             title={
-                                context.showChangesHighlight
+                                changeContext.showChangesHighlight
                                     ? locConstants.schemaDesigner.hideChangesHighlight
                                     : locConstants.schemaDesigner.highlightChanges
                             }
                             aria-label={
-                                context.showChangesHighlight
+                                changeContext.showChangesHighlight
                                     ? locConstants.schemaDesigner.hideChangesHighlight
                                     : locConstants.schemaDesigner.highlightChanges
                             }>
-                            {context.showChangesHighlight ? (
+                            {changeContext.showChangesHighlight ? (
                                 <BranchCompare16Filled />
                             ) : (
                                 <BranchCompare16Regular />
@@ -642,8 +658,25 @@ export const SchemaDesignerFlow = () => {
                         top: edgeUndoState.position.y,
                         zIndex: 5,
                         padding: "10px",
+                        display: "flex",
+                        gap: "4px",
+                        alignItems: "center",
                     }}
                     onMouseLeave={() => setEdgeUndoState(null)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(edgeUndoState.change);
+                                    setEdgeUndoState(null);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             edgeUndoState.canRevert
@@ -728,7 +761,7 @@ export const SchemaDesignerFlow = () => {
                                 appearance="primary"
                                 onClick={() => {
                                     if (pendingEdgeUndoChange) {
-                                        context.revertChange(pendingEdgeUndoChange);
+                                        changeContext.revertChange(pendingEdgeUndoChange);
                                     }
                                     setEdgeUndoDialogOpen(false);
                                     setEdgeUndoState(null);

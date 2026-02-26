@@ -137,6 +137,9 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
     });
 }
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
+export let msgConnectionInProgress = l10n.t(
+    "A connection is already being established. Please wait for it to complete before running a query.",
+);
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
     'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.',
@@ -637,6 +640,109 @@ export let inMemoryDataProcessingThresholdExceeded = l10n.t(
 );
 
 export let newDeployment = l10n.t("New Deployment");
+
+export class Notebooks {
+    // Status bar
+    public static statusBarNotConnected = l10n.t("SQL: Not connected");
+    public static statusBarClickToChangeDatabase = l10n.t(
+        "SQL Notebooks: click to change database",
+    );
+    public static statusBarClickToConnect = l10n.t("SQL Notebooks: click to connect");
+
+    // Errors
+    public static connectionFailed = l10n.t("Connection failed");
+    public static queryExecutionFailed = l10n.t("Query execution failed");
+    public static noActiveNotebook = l10n.t("No active notebook.");
+    public static noActiveConnection = l10n.t("No active connection.");
+    public static noConnectionSelected = l10n.t("No connection selected.");
+
+    // Execution results
+    public static rowsAffected(count: number) {
+        return l10n.t({
+            message: "({0} row(s) affected)",
+            args: [count],
+            comment: ["{0} is the number of rows affected"],
+        });
+    }
+    public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
+    public static zeroRows = l10n.t("(0 rows)");
+    public static rowCountPlain(count: number) {
+        if (count === 1) {
+            return l10n.t({
+                message: "({0} row)",
+                args: [count],
+                comment: ["{0} is the number of rows (singular)"],
+            });
+        }
+        return l10n.t({
+            message: "({0} rows)",
+            args: [count],
+            comment: ["{0} is the number of rows (plural)"],
+        });
+    }
+
+    // Magic commands
+    public static disconnected = l10n.t("Disconnected.");
+    public static connectedTo(label: string) {
+        return l10n.t({
+            message: "Connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static switchedTo(label: string) {
+        return l10n.t({
+            message: "Switched to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static noDatabaseSelected = l10n.t("No database selected.");
+    public static unknownMagicCommand(cmd: string) {
+        return l10n.t({
+            message: "Unknown magic command: %%{0}",
+            args: [cmd],
+            comment: ["{0} is the magic command name"],
+        });
+    }
+
+    // UI
+    public static selectDatabase = l10n.t("Select Database");
+    public static chooseDatabasePlaceholder = l10n.t("Choose a database");
+    public static currentDatabaseLabel = l10n.t("(current)");
+
+    // Code lens
+    public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
+    public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
+
+    // Info
+    public static notebookConnectedTo(label: string) {
+        return l10n.t({
+            message: "SQL Notebook connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static errorPrefix(msg: string) {
+        return l10n.t({
+            message: "Error: {0}",
+            args: [msg],
+            comment: ["{0} is the error message"],
+        });
+    }
+
+    // Cancellation
+    public static executionCancelled = l10n.t("Query execution was cancelled.");
+
+    // Controller
+    public static controllerDescription = l10n.t("Execute SQL against SQL Server / Azure SQL");
+
+    // General
+    public static notConnected = l10n.t("Not connected");
+
+    // Renderer
+    public static parseError = l10n.t("Error: Failed to parse query result data.");
+}
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
@@ -1295,13 +1401,6 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static sqlServer2025ArmError = l10n.t(
-        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
-    );
-    public static sqlServer2025ArmErrorTooltip = l10n.t(
-        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
-    );
-
     // DAB (Data API Builder) deployment strings
     public static dabContainerNameInvalidOrInUse = l10n.t(
         "Container name is invalid or already in use",
@@ -1473,6 +1572,11 @@ export class PublishProject {
     );
 }
 
+export class CodeAnalysis {
+    public static Title = l10n.t("Code Analysis");
+    public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
@@ -1582,6 +1686,23 @@ export class SchemaDesigner {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
+    public static mcpServerAddedToWorkspace = (filePath: string) =>
+        l10n.t({
+            message: "MCP server added to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path where the MCP server was added"],
+        });
+    public static mcpServerAlreadyExists = (filePath: string) =>
+        l10n.t({
+            message: "MCP server is already configured in {0}",
+            args: [filePath],
+            comment: ["{0} is the file path where the MCP server configuration exists"],
+        });
+    public static noWorkspaceOpenForMcp = l10n.t(
+        "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    );
+    public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
+    public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
 }
 
 export class StatusBar {
@@ -2663,13 +2784,31 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
-    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationTitle = l10n.t(
+        "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    );
     public static adsMigrationDescription = l10n.t(
-        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+        "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
     public static editDataTitle = l10n.t("Edit Data (Preview)");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchDescription = l10n.t(
+        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    );
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreDescription = l10n.t(
+        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    );
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementDescription = l10n.t(
+        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    );
+    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerDescription = l10n.t(
+        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
@@ -2677,7 +2816,7 @@ export class Changelog {
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
     public static sqlProjPublishDescription = l10n.t(
         "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
@@ -2754,6 +2893,17 @@ export class Profiler {
     public static noTemplatesAvailable = l10n.t("No profiler templates available");
     public static sessionCreationTimedOut = l10n.t("Session creation timed out");
 
+    // XEL file error messages
+    public static failedToOpenXelFile = (error: string) =>
+        l10n.t({
+            message: "Failed to open XEL file: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static invalidXelFile = l10n.t("The selected file is not a valid XEL file.");
+    public static xelFileNotFound = l10n.t("The XEL file was not found.");
+    public static xelFileAccessDenied = l10n.t("Access to the XEL file was denied.");
+
     // Validation messages
     public static sessionNameEmpty = l10n.t("Session name cannot be empty");
     public static sessionNameTooLong = (maxLength: number) =>
@@ -2768,16 +2918,20 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t("New Profiler Session - Select Template");
+    public static newSessionSelectTemplate = l10n.t(
+        "New Query Profiler (Preview) - Select Template",
+    );
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Profiler Session - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",
             args: [engineType],
             comment: ["{0} is the engine type"],
         });
+    public static selectXelFile = l10n.t("Select XEL File");
+    public static xelFileFilter = l10n.t("Extended Events Log Files");
 
     // Success messages
     public static sessionCreatedSuccessfully = (sessionName: string) =>
@@ -2801,21 +2955,98 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static loadingXelFile = (fileName: string) =>
+        l10n.t({
+            message: "Loading XEL file: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedNotification = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedTooltip = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Profiler: No session");
-    public static statusBarTooltip = l10n.t("Profiler Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
+    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
+
+    // Panel titles
+    public static panelTitleWithSession = (name: string) =>
+        l10n.t({
+            message: "Query Profiler (Preview): {0}",
+            args: [name],
+            comment: ["{0} is the file name or session name"],
+        });
+    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
     public static stateNotStarted = l10n.t("Not Started");
+    public static stateReadOnly = l10n.t("Read-Only");
     public static eventsCount = (count: number) =>
         l10n.t({
             message: "{0} events",
             args: [count],
             comment: ["{0} is the number of events"],
         });
+    public static eventsCountFiltered = (filtered: number, total: number) =>
+        l10n.t({
+            message: "{0}/{1} events",
+            args: [filtered, total],
+            comment: ["{0} is the filtered count, {1} is the total count"],
+        });
+    public static fileSessionLabel = (fileName: string) =>
+        l10n.t({
+            message: "File: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
 
+    // Details panel
+    public static failedToOpenInEditor = (error: string) =>
+        l10n.t({
+            message: "Failed to open text in editor: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    // Export messages
+    public static defaultExportFileName = l10n.t("profiler_events");
+    public static exportToCsv = l10n.t("Export to CSV");
+    public static exportSuccess = (filePath: string) =>
+        l10n.t({
+            message: "Profiler events exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    public static openFile = l10n.t("Open File");
+    public static exportFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to export profiler events: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    public static copiedToClipboard = l10n.t("Copied to clipboard");
+    // Close prompt messages
+    public static unexportedEventsMessage = l10n.t(
+        "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    );
+    public static exportAndClose = l10n.t("Export & Close");
+    public static closeWithoutExport = l10n.t("Close Without Export");
+    public static closeSessionConfirmation = l10n.t(
+        "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
+    );
     // Database selection for Azure SQL
     public static selectDatabaseForProfiler = l10n.t(
         "Select a database for profiling (Azure SQL requires a specific database)",
@@ -2922,5 +3153,113 @@ export class BackupDatabase {
     };
     public static unableToLoadBackupConfig = l10n.t(
         "Unable to load backup configuration. Please try again.",
+    );
+    public static couldNotConnectToDatabase = (database: string) => {
+        return l10n.t({
+            message: "Could not connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for backup.",
+    );
+}
+
+export class FlatFileImport {
+    public static serviceStarting = (serviceName: string) =>
+        l10n.t({
+            message: "Starting '{0}'...",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStarted = (serviceName: string) =>
+        l10n.t({
+            message: "'{0}' started.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
+        l10n.t({
+            message: "Failed to start '{0}': {1}",
+            args: [serviceName, errorMessage],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
+    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
+    public static newTableName = l10n.t("New Table Name");
+    public static tableSchema = l10n.t("Table Schema");
+    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
+    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
+    public static selectFileToImport = l10n.t("Select file to import");
+    public static databaseRequired = l10n.t("Database is required");
+    public static importFileRequired = l10n.t("Import file is required");
+    public static tableNameRequired = l10n.t("Table name is required");
+    public static schemaRequired = l10n.t("Schema is required");
+    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
+    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
+    public static loadingSchemas = l10n.t("Loading schemas...");
+    public static noSchemasFound = l10n.t("No schemas found");
+    public static importFailed = l10n.t("Failed to import file.");
+    public static flatFilePathTooltip = l10n.t(
+        "Please ensure the file is not open in another application before importing",
+    );
+}
+
+export class RestoreDatabase {
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static sourceDatabase = l10n.t("Source Database");
+    public static targetDatabase = l10n.t("Target Database");
+    public static files = l10n.t("Files");
+    public static relocateDbFiles = l10n.t("Relocate all files");
+    public static general = l10n.t("General");
+    public static overwriteExistingDb = l10n.t("Overwrite the existing database");
+    public static overwriteExistingDbTooltip = l10n.t(
+        "Uses the WITH REPLACE option during restore",
+    );
+    public static preserveReplicationSettings = l10n.t("Preserve the replication settings");
+    public static preserveReplicationSettingsTooltip = l10n.t(
+        "Uses the WITH KEEP_REPLICATION option during restore",
+    );
+    public static restrictAccessToRestoredDb = l10n.t("Restrict access to the restored database");
+    public static restrictAccessToRestoredDbTooltip = l10n.t(
+        "Uses the WITH RESTRICTED_USER option during restore",
+    );
+    public static recoveryState = l10n.t("Recovery state");
+    public static restoreWithRecovery = l10n.t("RESTORE WITH RECOVERY");
+    public static restoreWithNoRecovery = l10n.t("RESTORE WITH NORECOVERY");
+    public static restoreWithStandby = l10n.t("RESTORE WITH STANDBY");
+    public static dataFileFolder = l10n.t("Data file folder");
+    public static logFileFolder = l10n.t("Log file folder");
+    public static standbyFile = l10n.t("Standby file");
+    public static tailLogBackup = l10n.t("Tail-log backup");
+    public static takeTailLogBackup = l10n.t("Take tail-log backup before restore");
+    public static leaveSourceDatabase = l10n.t("Leave the source database in the restoring state");
+    public static leaveSourceDatabaseTooltip = l10n.t(
+        "Uses the WITH NORECOVERY option during restore",
+    );
+    public static tailLogBackupFile = l10n.t("Tail-log backup file");
+    public static serverConnections = l10n.t("Server Connections");
+    public static closeExistingConnections = l10n.t(
+        "Close existing connections to destination database",
+    );
+    public static blob = l10n.t("Blob");
+    public static selectABlob = l10n.t("Select a blob");
+    public static blobIsRequired = l10n.t("Blob is required");
+    public static blobDatabaseError = l10n.t("Blob does not contain a valid database backup");
+    public static noBlobsFound = l10n.t("No blobs found");
+    public static backupFileDatabaseError = l10n.t(
+        "Selected backup file does not contain a valid database backup",
+    );
+    public static cannotGenerateScriptWithNoRestorePlan = l10n.t(
+        "Cannot generate script without a restore plan",
+    );
+    public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
+        "Please choose at least one backup set to restore",
+    );
+    public static noDatabasesWithBackups = l10n.t("No databases with backups found");
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for restore.",
     );
 }

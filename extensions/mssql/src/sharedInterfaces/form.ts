@@ -156,6 +156,7 @@ export enum FormItemType {
     Input = "input",
     Dropdown = "dropdown",
     Checkbox = "checkbox",
+    Combobox = "combobox",
     Password = "password",
     Button = "button",
     TextArea = "textarea",

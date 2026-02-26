@@ -2,23 +2,17 @@
     "name": "sql-database-projects-vscode",
     "displayName": "SQL Database Projects",
     "description": "Enables users to develop and publish database schemas for MSSQL Databases",
-    "version": "1.5.7",
+    "version": "1.5.8",
     "publisher": "ms-mssql",
     "preview": false,
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/sql-database-projects/README.md",
     "engines": {
-        "vscode": "^1.98.0",
-        "azdata": ">=1.47.0"
+        "vscode": "^1.98.0"
     },
     "license": "SEE LICENSE IN LICENSE.txt",
     "icon": "images/sqlDatabaseProjects.png",
     "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
     "activationEvents": [
-        "onCommand:sqlDatabaseProjects.createProjectFromDatabase",
-        "onCommand:sqlDatabaseProjects.updateProjectFromDatabase",
-        "onCommand:sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-        "onCommand:sqlDatabaseProjects.build",
-        "onCommand:sqlDatabaseProjects.buildWithCodeAnalysis",
         "workspaceContains:**/*.sqlproj",
         "onView:dataworkspace.views.main"
     ],
@@ -44,7 +38,7 @@
         "watch": "yarn build:prepare && run-p -l watch:extension",
         "lint": "eslint ./src",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
-        "test": "yarn build && node ./out/test/runTest.js",
+        "test": "yarn build && vscode-test --coverage",
         "package": "yarn build && vsce package --no-yarn"
     },
     "capabilities": {
@@ -87,6 +81,7 @@
                     },
                     "sqlDatabaseProjects.microsoftBuildSqlVersion": {
                         "type": "string",
+                        "default": "2.1.0",
                         "description": "%sqlDatabaseProjects.microsoftBuildSqlVersion%"
                     }
                 }
@@ -164,11 +159,6 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
-                "command": "sqlDatabaseProjects.publishDialog",
-                "title": "%sqlDatabaseProjects.publishDialog%",
-                "category": "%sqlDatabaseProjects.displayName%"
-            },
-            {
                 "command": "sqlDatabaseProjects.properties",
                 "title": "%sqlDatabaseProjects.properties%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -189,6 +179,11 @@
                 "title": "%sqlDatabaseProjects.updateProjectFromDatabase%",
                 "category": "%sqlDatabaseProjects.displayName%",
                 "icon": "images/databaseProjectToolbar.svg"
+            },
+            {
+                "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                "title": "%sqlDatabaseProjects.configureCodeAnalysisSettings%",
+                "category": "%sqlDatabaseProjects.displayName%"
             },
             {
                 "command": "sqlDatabaseProjects.addDatabaseReference",
@@ -259,11 +254,6 @@
                     "group": "1_currentWorkspace@1"
                 },
                 {
-                    "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                    "when": "view == dataworkspace.views.main && azdataAvailable",
-                    "group": "1_currentWorkspace@2"
-                },
-                {
                     "command": "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
                     "when": "view == dataworkspace.views.main && (config.workbench.enablePreviewFeatures || config.sqlDatabaseProjects.enablePreviewFeatures)",
                     "group": "1_currentWorkspace@3"
@@ -323,10 +313,6 @@
                     "when": "false"
                 },
                 {
-                    "command": "sqlDatabaseProjects.publishDialog",
-                    "when": "false"
-                },
-                {
                     "command": "sqlDatabaseProjects.properties",
                     "when": "false"
                 },
@@ -339,6 +325,10 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase"
+                },
+                {
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                    "when": "false"
                 },
                 {
                     "command": "sqlDatabaseProjects.addDatabaseReference",
@@ -406,12 +396,7 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.publish",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && !azdataAvailable",
-                    "group": "1_dbProjectsFirst@3"
-                },
-                {
-                    "command": "sqlDatabaseProjects.publishDialog",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && !azdataAvailable",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "1_dbProjectsFirst@3"
                 },
                 {
@@ -485,11 +470,6 @@
                     "group": "5_dbProjects_streamingJob"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openInDesigner",
-                    "when": "azdataAvailable && view == dataworkspace.views.main && viewItem == databaseProject.itemType.file.table",
-                    "group": "6_dbProjects_openInDesigner"
-                },
-                {
                     "command": "sqlDatabaseProjects.openReferencedSqlProject",
                     "when": "view == dataworkspace.views.main && viewItem == databaseProject.itemType.reference.sqlProject",
                     "group": "8_dbProjects_openReferencedSqlProject"
@@ -520,18 +500,23 @@
                     "group": "9_dbProjectsLast@7"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "9_dbProjectsLast@8"
                 },
                 {
+                    "command": "sqlDatabaseProjects.openContainingFolder",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "9_dbProjectsLast@9"
+                },
+                {
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
-                    "when": "!azdataAvailable && view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "sqldbproj@1"
                 },
                 {
                     "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                    "when": "!azdataAvailable && view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "sqldbproj@2"
                 },
                 {
@@ -587,13 +572,12 @@
     "dependencies": {
         "@microsoft/ads-extension-telemetry": "^3.0.1",
         "@xmldom/xmldom": "0.8.4",
-        "ajv": "^6.12.6",
+        "ajv": "^8.18.0",
         "axios": "^1.13.5",
         "extract-zip": "^2.0.1",
         "fast-glob": "^3.2.7",
         "fs-extra": "^5.0.0",
         "promisify-child-process": "^3.1.1",
-        "request": "^2.88.2",
         "semver": "^7.5.2",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
@@ -601,12 +585,10 @@
         "xml-formatter": "2.1.0"
     },
     "devDependencies": {
-        "@microsoft/azdata-test": "^3.0.4",
         "@types/chai": "^5.2.2",
         "@types/fs-extra": "^5.0.0",
         "@types/mocha": "^7.0.2",
         "@types/node": "^22.13.14",
-        "@types/request": "^2.48.8",
         "@types/semver": "^7.3.1",
         "@types/sinon": "^9.0.4",
         "@types/sinon-chai": "^4.0.0",
@@ -616,7 +598,7 @@
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
         "@vscode/l10n-dev": "^0.0.35",
-        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.1.1",
         "chai": "^5.3.3",
@@ -624,13 +606,13 @@
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",
         "mocha": "^9.2.2",
+        "mocha-junit-reporter": "^2.2.1",
+        "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",
         "nyc": "^17.1.0",
         "prettier": "^3.3.3",
-        "should": "^13.2.1",
         "sinon": "^9.0.2",
         "sinon-chai": "^4.0.1",
-        "typemoq": "^2.1.0",
         "typescript": "^5.8.3"
     },
     "__metadata": {}

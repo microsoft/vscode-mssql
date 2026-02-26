@@ -31,6 +31,7 @@ export const sqlProjTaskType = "sqlproj-build";
 export const dotnet = "dotnet";
 export const build = "build";
 export const runCodeAnalysisParam = "/p:RunSqlCodeAnalysis=true";
+export const checkoutOutputMessage = l10n.t("Check output pane for more details");
 
 //#endregion
 
@@ -96,6 +97,7 @@ export const schemaCompareStartCommand = "schemaCompare.start";
 export const schemaCompareRunComparisonCommand = "schemaCompare.runComparison";
 export const mssqlSchemaCompareCommand = "mssql.schemaCompare";
 export const mssqlPublishProjectCommand = "mssql.publishDatabaseProject";
+export const mssqlConfigureCodeAnalysisSettingsCommand = "mssql.configureCodeAnalysisSettings";
 export const vscodeOpenCommand = "vscode.open";
 export const refreshDataWorkspaceCommand = "dataworkspace.refresh";
 
@@ -182,7 +184,6 @@ export const reservedProjectFolders = ["Properties", "SQLCMD Variables", "Databa
 export const publishDialogName = l10n.t("Publish project");
 export const publish = l10n.t("Publish");
 export const cancelButtonText = l10n.t("Cancel");
-export const generateScriptButtonText = l10n.t("Generate Script");
 export const databaseNameLabel = l10n.t("Database");
 export const targetConnectionLabel = l10n.t("Connection");
 export const dataSourceRadioButtonLabel = l10n.t("Data sources");
@@ -206,7 +207,6 @@ export const saveProfileAsButtonText = l10n.t("Save As...");
 export const save = l10n.t("Save");
 export const dontUseProfile = l10n.t("Don't use profile");
 export const browseForProfileWithIcon = `$(folder) ${l10n.t("Browse for profile")}`;
-export const chooseAction = l10n.t("Choose action");
 export const chooseSqlcmdVarsToModify = l10n.t("Choose SQLCMD variables to modify");
 export const enterNewValueForVar = (varName: string) =>
     l10n.t("Enter new default value for variable '{0}'", varName);
@@ -226,9 +226,6 @@ export const selectDatabase = l10n.t("Select database");
 export const done = l10n.t("Done");
 export const nameMustNotBeEmpty = l10n.t("Name must not be empty");
 export const versionMustNotBeEmpty = l10n.t("Version must not be empty");
-export const saveProfile = l10n.t(
-    "Would you like to save the settings in a profile (.publish.xml)?",
-);
 
 //#endregion
 
@@ -243,212 +240,6 @@ export const OptionName: string = l10n.t("Option Name");
 export const OptionInclude: string = l10n.t("Include");
 export function OptionNotFoundWarningMessage(label: string) {
     return l10n.t("label: {0} does not exist in the options value name lookup", label);
-}
-
-//#endregion
-
-//#region Deploy
-export const SqlServerName = "SQL server";
-export const AzureSqlServerName = "Azure SQL server";
-export const SqlServerDockerImageName = "Microsoft SQL Server";
-export const SqlServerDocker2022ImageName = "Microsoft SQL Server 2022";
-export const AzureSqlDbFullDockerImageName = "Microsoft SQL Server";
-export const AzureSqlLogicalServerName = "Azure SQL logical server";
-export const selectPublishOption = l10n.t("Select where to publish the project to");
-export const defaultQuickPickItem = l10n.t(
-    "Default - image defined as default in the container registry",
-);
-export function publishToExistingServer(name: string) {
-    return l10n.t("Publish to an existing {0}", name);
-}
-export function publishToDockerContainer(name: string) {
-    return l10n.t("Publish to new {0} local development container", name);
-}
-export function publishToDockerContainerPreview(name: string) {
-    return l10n.t("Publish to new {0} local development container (Preview)", name);
-}
-export const publishToAzureEmulator = l10n.t(
-    "Publish to new SQL Server local development container",
-);
-export const publishToNewAzureServer = l10n.t("Publish to new Azure SQL logical server (Preview)");
-export const azureServerName = l10n.t("Azure SQL server name");
-export const azureSubscription = l10n.t("Azure subscription");
-export const resourceGroup = l10n.t("Resource group");
-export const azureLocation = l10n.t("Location");
-export const azureAccounts = l10n.t("Azure accounts");
-export function enterPortNumber(name: string) {
-    return l10n.t("Enter {0} port number or press enter to use the default value", name);
-}
-export function serverPortNumber(name: string) {
-    return l10n.t("{0} port number", name);
-}
-export function serverPassword(name: string) {
-    return l10n.t("{0} admin password", name);
-}
-export function confirmServerPassword(name: string) {
-    return l10n.t("Confirm {0} admin password", name);
-}
-export function baseDockerImage(name: string) {
-    return l10n.t("Base {0} Docker image", name);
-}
-export const publishTo = l10n.t("Publish Target");
-export const enterConnectionStringEnvName = l10n.t(
-    "Enter connection string environment variable name",
-);
-export const enterConnectionStringTemplate = l10n.t("Enter connection string template");
-export function enterUser(name: string) {
-    return l10n.t("Enter {0} admin user name", name);
-}
-export function enterPassword(name: string) {
-    return l10n.t("Enter {0} admin password", name);
-}
-export function confirmPassword(name: string) {
-    return l10n.t("Confirm {0} admin password", name);
-}
-export function selectBaseImage(name: string) {
-    return l10n.t("Select the base {0} docker image", name);
-}
-export function selectImageTag(name: string) {
-    return l10n.t("Select the image tag or press enter to use the default value", name);
-}
-export function invalidSQLPasswordMessage(name: string) {
-    return l10n.t(
-        "{0} password doesn't meet the password complexity requirement. For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
-        name,
-    );
-}
-export function passwordNotMatch(name: string) {
-    return l10n.t("{0} password doesn't match the confirmation password", name);
-}
-export const portMustBeNumber = l10n.t("Port must a be number");
-export const valueCannotBeEmpty = l10n.t("Value cannot be empty");
-export const imageTag = l10n.t("Image tag");
-export const dockerImageLabelPrefix = "source=sqldbproject";
-export const dockerImageNamePrefix = "sqldbproject";
-export const dockerImageDefaultTag = "latest";
-
-//#endregion
-
-//#region Publish to Container
-export const eulaAgreementTemplate = l10n.t({
-    message: "I accept the {0}.",
-    comment: ["The placeholders are contents of the line and should not be translated."],
-});
-export function eulaAgreementText(name: string) {
-    return l10n.t({
-        message: "I accept the {0}.",
-        args: [name],
-        comment: ["The placeholders are contents of the line and should not be translated."],
-    });
-}
-export const eulaAgreementTitle = l10n.t("Microsoft SQL Server License Agreement");
-export const sqlServerEulaLink = "https://aka.ms/mcr/osslegalnotice";
-export const connectionNamePrefix = "SQLDbProject";
-export const sqlServerDockerRegistry = "mcr.microsoft.com";
-export const sqlServerDockerRepository = "mssql/server";
-export const commandsFolderName = "commands";
-export const mssqlFolderName = ".mssql";
-export const dockerFileName = "Dockerfile";
-export const startCommandName = "start.sh";
-export const defaultPortNumber = "1433";
-export const defaultLocalServerName = "localhost";
-export const defaultLocalServerAdminName = "sa";
-export const defaultConnectionStringEnvVarName = "SQLConnectionString";
-export const defaultConnectionStringTemplate =
-    "Data Source=@@SERVER@@,@@PORT@@;Initial Catalog=@@DATABASE@@;User id=@@USER@@;Password=@@SA_PASSWORD@@;";
-export const azureFunctionLocalSettingsFileName = "local.settings.json";
-export const enterConnStringTemplateDescription = l10n.t(
-    "Enter a template for SQL connection string",
-);
-export const appSettingPrompt = l10n.t(
-    "Would you like to update Azure Function local.settings.json with the new connection string?",
-);
-export const enterConnectionStringEnvNameDescription = l10n.t(
-    "Enter environment variable for SQL connection string",
-);
-export const deployDbTaskName = l10n.t("Deploying SQL Db Project Locally");
-export const publishProjectSucceed = l10n.t("Database project published successfully");
-export const publishingProjectMessage = l10n.t("Publishing project in a container...");
-export const cleaningDockerImagesMessage = l10n.t("Cleaning existing deployments...");
-export const dockerImageMessage = l10n.t("Docker Image:");
-export const dockerImageEulaMessage = l10n.t("License Agreement:");
-export const creatingDeploymentSettingsMessage = l10n.t("Creating deployment settings ...");
-export const runningDockerMessage = l10n.t("Running the docker container ...");
-export function dockerNotRunningError(error: string) {
-    return l10n.t(
-        "Failed to verify docker. Please make sure docker is installed and running. Error: '{0}'",
-        error || "",
-    );
-}
-export const dockerContainerNotRunningErrorMessage = l10n.t("Docker container is not running");
-export const dockerContainerFailedToRunErrorMessage = l10n.t("Failed to run the docker container");
-export const connectingToSqlServerMessage = l10n.t("Connecting to SQL Server");
-export const serverCreated = l10n.t("Server created");
-export const deployProjectFailedMessage = l10n.t(
-    "Failed to open a connection to the deployed database'",
-);
-export const containerAlreadyExistForProject = l10n.t(
-    "Containers already exist for this project. Do you want to delete them before deploying a new one?",
-);
-export const checkoutOutputMessage = l10n.t("Check output pane for more details");
-export function creatingAzureSqlServer(name: string): string {
-    return l10n.t("Creating Azure SQL Server '{0}' ...", name);
-}
-export function azureSqlServerCreated(name: string): string {
-    return l10n.t("Azure SQL Server '{0}' created", name);
-}
-export function taskFailedError(taskName: string, err: string): string {
-    return l10n.t("Failed to complete task '{0}'. Error: {1}", taskName, err);
-}
-export function publishToContainerFailed(errorMessage: string) {
-    return l10n.t("Failed to publish to container. {0}", errorMessage);
-}
-export function publishToNewAzureServerFailed(errorMessage: string) {
-    return l10n.t("Failed to publish to new Azure SQL server. {0}", errorMessage);
-}
-export function deployAppSettingUpdateFailed(appSetting: string) {
-    return l10n.t("Failed to update app setting '{0}'", appSetting);
-}
-export function deployAppSettingUpdating(appSetting: string) {
-    return l10n.t("Updating app setting: '{0}'", appSetting);
-}
-export function connectionFailedError(error: string) {
-    return l10n.t("Connection failed error: '{0}'", error);
-}
-export function dockerContainerCreatedMessage(id: string) {
-    return l10n.t("Docker created id: '{0}'", id);
-}
-export function dockerLogMessage(log: string) {
-    return l10n.t("Docker logs: '{0}'", log);
-}
-export function retryWaitMessage(numberOfSeconds: number, name: string) {
-    return l10n.t(
-        "Waiting for {0} seconds before another attempt for operation '{1}'",
-        numberOfSeconds,
-        name,
-    );
-}
-export function retryRunMessage(attemptNumber: number, numberOfAttempts: number, name: string) {
-    return l10n.t(
-        "Running operation '{2}' Attempt {0} of {1}",
-        attemptNumber,
-        numberOfAttempts,
-        name,
-    );
-}
-export function retrySucceedMessage(name: string, result: string) {
-    return l10n.t("Operation '{0}' completed successfully. Result: {1}", name, result);
-}
-export function retryFailedMessage(name: string, result: string, error: string) {
-    return l10n.t(
-        "Operation '{0}' failed. Re-trying... Current Result: {1}. Error: '{2}'",
-        name,
-        result,
-        error,
-    );
-}
-export function retryMessage(name: string, error: string) {
-    return l10n.t("Operation '{0}' failed. Re-trying... Error: '{1}' ", name, error);
 }
 
 //#endregion
@@ -1075,12 +866,6 @@ export function getTargetPlatformFromVersion(version: string): string {
 }
 
 //#endregion
-
-export enum PublishTargetType {
-    existingServer = "existingServer",
-    docker = "docker",
-    newAzureServer = "newAzureServer",
-}
 
 //#region Configuration keys
 export const CollapseProjectNodesKey = "collapseProjectNodes";

@@ -11,7 +11,7 @@ steps:
       yarn install --frozen-lockfile
     displayName: Install root dependencies
     workingDirectory: "$(Build.SourcesDirectory)"
-  
+
   - template: ./templates/build-mssql.yml@self
     parameters:
       packageOffline: false # don't build offline packages for PR builds to speed runs up
@@ -19,6 +19,8 @@ steps:
   - template: ./templates/build-sql-database-projects.yml@self
 
   - template: ./templates/build-data-workspace.yml@self
+
+  - template: ./templates/build-database-management-keymap.yml@self
 
   - task: PublishPipelineArtifact@1
     displayName: Publish artifacts

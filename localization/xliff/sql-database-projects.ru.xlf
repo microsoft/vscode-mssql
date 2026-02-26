@@ -146,26 +146,6 @@
         <source xml:lang="en">Azure SQL Edge Database</source>
         <target state="translated">База данных SQL Azure для пограничных вычислений</target>
       </trans-unit>
-      <trans-unit id="++CODE++e0dd33d2e306b3a2e3d273d07d40614368bcd8d15f64bc7b9156720b6a04f8d9">
-        <source xml:lang="en">Azure SQL Server '{0}' created</source>
-        <target state="translated">Azure SQL Server ''{0}'' создан</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fd4ff34ed3d53481b84140f6780419aed8c407fcbcecb7067666e6f6aa359d10">
-        <source xml:lang="en">Azure SQL server name</source>
-        <target state="translated">Имя сервера Azure SQL</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9f5949834fcca4b4870ac2de5cecfbfd3c085b28d1e82dae8a216dc127f7f19c">
-        <source xml:lang="en">Azure accounts</source>
-        <target state="translated">Учетные записи Azure</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b5f6ad576c4f8a4c338e4c53c0ecbc8e7d4c4391c39e3244c42bbdabb69cf711">
-        <source xml:lang="en">Azure subscription</source>
-        <target state="translated">Подписка Azure</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1746d72f0bc218df5b7bd33b119c93c6b3302fc6d68bb66e7286b93c42c09b20">
-        <source xml:lang="en">Base {0} Docker image</source>
-        <target state="translated">Базовый образ Docker {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++a06957fcc715d602f999320581c943bdf57d5773107c22e71de68da88949b120">
         <source xml:lang="en">Browse folder</source>
         <target state="translated">Поиск папки</target>
@@ -230,45 +210,21 @@
         <source xml:lang="en">Choose SQLCMD variables to modify</source>
         <target state="translated">Выберите переменные SQLCMD для изменения</target>
       </trans-unit>
-      <trans-unit id="++CODE++3956a838e80d6589ffb2515779206fd46cbde3db1bc77306fd155273fe9836cc">
-        <source xml:lang="en">Choose action</source>
-        <target state="translated">Выберите действие</target>
-      </trans-unit>
       <trans-unit id="++CODE++c7a8b036403ce2f163af46818ab619f6fdb6da9e16e6eb28bc547ecebcd7ad0b">
         <source xml:lang="en">Circular reference from project {0} to project {1}</source>
         <target state="translated">Циклическая ссылка из проекта {0} на проект {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++46716000ac0f29f9cf999c93ddfe42050a83c4cf46acbe61a9f8ca908d54e34f">
-        <source xml:lang="en">Cleaning existing deployments...</source>
-        <target state="translated">Очистка существующих развертываний...</target>
       </trans-unit>
       <trans-unit id="++CODE++b2038796cc82692ba0c9cbbe3a19c54c677bff6216a35fb3345ca939957ced9a">
         <source xml:lang="en">Click "Learn More" button for more information about SDK-style projects</source>
         <target state="translated">Нажмите кнопку "Подробнее", чтобы получить дополнительные сведения о проектах в стиле пакета SDK.</target>
       </trans-unit>
-      <trans-unit id="++CODE++fdddb3fc9c10aaa4b8141c97822d7d311f66b3d4403bc0980314eb3d9430c0ad">
-        <source xml:lang="en">Confirm {0} admin password</source>
-        <target state="translated">Подтвердить пароль администратора {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++5ebcc3e4d3b5886d9ef6d81e6884d8fab0c7df8e9a141f2dd71f4e5b100a29eb">
-        <source xml:lang="en">Connecting to SQL Server</source>
-        <target state="translated">Подключение к SQL Server.</target>
-      </trans-unit>
       <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
         <source xml:lang="en">Connection</source>
         <target state="translated">Подключение</target>
       </trans-unit>
-      <trans-unit id="++CODE++5fa51340fc2658f4ed21548c3033ff642b7ac041f7ffbba9114bf072f3c4e614">
-        <source xml:lang="en">Connection failed error: '{0}'</source>
-        <target state="translated">Ошибка подключения: "{0}"</target>
-      </trans-unit>
       <trans-unit id="++CODE++dc273117482b4429ada500ecd2e0c75532454194892cb901ca64cc7df369fdf6">
         <source xml:lang="en">Connections</source>
         <target state="translated">Подключения</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8240cad2a39d48b9715b3495af3ea690041ba120c08641a43f72a5d2a5c5c5d1">
-        <source xml:lang="en">Containers already exist for this project. Do you want to delete them before deploying a new one?</source>
-        <target state="translated">Контейнеры для этого проекта уже существуют. Вы хотите удалить их перед развертыванием нового?</target>
       </trans-unit>
       <trans-unit id="++CODE++9ad6fe65e4341a2297371f3f36b2b9cf12241c8bd2fb0e6b35f96cf60b50a291">
         <source xml:lang="en">Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.</source>
@@ -289,14 +245,6 @@
       <trans-unit id="++CODE++df71f4b96b979f9c3e85500de3a22246aeeebfa03664d2f7ea8db2b79e01f222">
         <source xml:lang="en">Create project from database</source>
         <target state="translated">Создать проект из базы данных</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c77ce3d4777080be04581a95398a960a5c415789a41ba16d6b37316a797b659f">
-        <source xml:lang="en">Creating Azure SQL Server '{0}' ...</source>
-        <target state="translated">Создание Azure SQL Server \"{0}\"...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c8bf44bbc1748c3142ded9857fe30bc11ab49aefd7ae8afa66bb872c0a054704">
-        <source xml:lang="en">Creating deployment settings ...</source>
-        <target state="translated">Создание параметров развертывания...</target>
       </trans-unit>
       <trans-unit id="++CODE++00d386663f5a96480863a4c5115be637b95fb86b62b4be715a17a2a6cad93f1e">
         <source xml:lang="en">Current target platform: {0}. Select new target platform</source>
@@ -370,10 +318,6 @@
         <source xml:lang="en">Database project</source>
         <target state="translated">Проект базы данных</target>
       </trans-unit>
-      <trans-unit id="++CODE++f8b2553d1b34526d5b153aeb237abecb375fc6f98a33fc19acbdd329b14151f9">
-        <source xml:lang="en">Database project published successfully</source>
-        <target state="translated">Проект базы данных успешно опубликован</target>
-      </trans-unit>
       <trans-unit id="++CODE++2a45dc017898401fd1544ef64b1e930accd45e3f4058eec1e6d9671c47f4e374">
         <source xml:lang="en">Database reference type is required for adding a reference to a database</source>
         <target state="translated">Для добавления ссылки на базу данных требуется тип ссылки на базу данных</target>
@@ -394,17 +338,9 @@
         <source xml:lang="en">Date</source>
         <target state="translated">Дата</target>
       </trans-unit>
-      <trans-unit id="++CODE++8ec6d97365fad3a2cf4d9bc75d4ada86a223b51f3519142126ad2235851cfa29">
-        <source xml:lang="en">Default - image defined as default in the container registry</source>
-        <target state="translated">По умолчанию — образ, определенный как используемый по умолчанию в реестре контейнеров</target>
-      </trans-unit>
       <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
         <source xml:lang="en">Delete</source>
         <target state="translated">Удалить</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fb1155dfad92d5187cd64da5c3155ca4c6126d5377ff03d1334c93a6618d379b">
-        <source xml:lang="en">Deploying SQL Db Project Locally</source>
-        <target state="translated">Локальное развертывание проекта базы данных SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++183abd42381aa5566abd25bce8a093cc92cf2a39e0faf2130df23ccb00c5dad0">
         <source xml:lang="en">Develop and publish schemas for Azure SQL Database starting from an empty project</source>
@@ -429,22 +365,6 @@
       <trans-unit id="++CODE++cb997dad2c497f2da09a062a52ab0e4a22bc9372cafb01a7bbfd2b3942628e63">
         <source xml:lang="en">Do you want to configure SQL project build as the default build configuration for this folder?</source>
         <target state="translated">Вы хотите настроить сборку проекта SQL как конфигурацию сборки по умолчанию для этой папки?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d036997932f3e33b68797157342457def5f5d6cafbce707e9c494dd59695fa89">
-        <source xml:lang="en">Docker Image:</source>
-        <target state="translated">Образ Docker:</target>
-      </trans-unit>
-      <trans-unit id="++CODE++da788bf7dff5f609a543a7b6247726273b1f48b9f4dafc9ed08bd4a55d96a6ea">
-        <source xml:lang="en">Docker container is not running</source>
-        <target state="translated">Контейнер Docker не запущен</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1da7383926fa600607913cc37ec9e7f2776ae615f7a41ab9b07d7308336b0832">
-        <source xml:lang="en">Docker created id: '{0}'</source>
-        <target state="translated">Создан идентификатор Docker: "{0}"</target>
-      </trans-unit>
-      <trans-unit id="++CODE++0317f21e82566433416231ac72a287956e7e1c3514b5c2f8f25f89a9c4651a96">
-        <source xml:lang="en">Docker logs: '{0}'</source>
-        <target state="translated">Журналы Docker: "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++33adc66daa87a2ef80e7811a4454c1574b6db68d8f42d1a48e074593535cb48b">
         <source xml:lang="en">Don't Ask Again</source>
@@ -482,25 +402,9 @@
         <source xml:lang="en">Enter a database name for this system database</source>
         <target state="translated">Введите имя базы данных для этой системной базы данных</target>
       </trans-unit>
-      <trans-unit id="++CODE++92c2f61fcafa6511d86972b9ea0af93ff2fa53d679839988770c0ab60f9bd285">
-        <source xml:lang="en">Enter a template for SQL connection string</source>
-        <target state="translated">Введите шаблон для строки подключения SQL</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8c23287a220a47e0d74d3f537afb7355e6a8edcc864780a67a946d98e667949d">
-        <source xml:lang="en">Enter connection string environment variable name</source>
-        <target state="translated">Введите имя переменной среды для строки подключения</target>
-      </trans-unit>
-      <trans-unit id="++CODE++23ef46cfbca7e1590d725a457d5ce359d987837872f4848b53e0da4fc434ee67">
-        <source xml:lang="en">Enter connection string template</source>
-        <target state="translated">Введите шаблон строки подключения</target>
-      </trans-unit>
       <trans-unit id="++CODE++b0a5c146ef8b826a302ee88747026c213d56d4ec611da91be9cba8f1149ff718">
         <source xml:lang="en">Enter default value for SQLCMD variable '{0}'</source>
         <target state="translated">Введите значение по умолчанию для переменной SQLCMD "{0}".</target>
-      </trans-unit>
-      <trans-unit id="++CODE++73273ddcb07844adcaafbd3667d9a58d85e049dda5f505f67c47149cfaa73d31">
-        <source xml:lang="en">Enter environment variable for SQL connection string</source>
-        <target state="translated">Укажите переменную среды для строки подключения SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++6f9a90522b9bece2bb48355674aedfe8d6fe61c8cd03eededb55e97ffaf98127">
         <source xml:lang="en">Enter new SQLCMD Variable name</source>
@@ -521,18 +425,6 @@
       <trans-unit id="++CODE++d7caaddcb1559a9c6e14134143691acc8adabe992567bed4226ff812667142b2">
         <source xml:lang="en">Enter project name</source>
         <target state="translated">Введите имя проекта</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c9185ede7216d22cdc2130c68006298a107070b8f5b3a10ec7bc2e3d8bca4a42">
-        <source xml:lang="en">Enter {0} admin password</source>
-        <target state="translated">Введите пароль администратора {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++af1d4c772bc7ab9eafd9b3ab38efe0eb6b4f0234bf05c0ab9c3f648bc8c5c55a">
-        <source xml:lang="en">Enter {0} admin user name</source>
-        <target state="translated">Введите имя администратора {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++99d66b1bf580a4072a61a13952fca8cd3c9bcff5dad4a5e25c148f46d053cfde">
-        <source xml:lang="en">Enter {0} port number or press enter to use the default value</source>
-        <target state="translated">Введите номер порта {0} или нажмите клавишу ВВОД, чтобы использовать значение по умолчанию</target>
       </trans-unit>
       <trans-unit id="++CODE++e0bae86bdfb080a21f5931b75cc441576b072107cd2d7c85f85645ad75df114a">
         <source xml:lang="en">Error adding database reference to {0}. Error: {1}</source>
@@ -610,34 +502,6 @@
         <source xml:lang="en">Failed</source>
         <target state="translated">Сбой</target>
       </trans-unit>
-      <trans-unit id="++CODE++3c9b9af732450f209b50a9fa060fc6054e66ecf81ca03d6e771c2e61b18f9bf8">
-        <source xml:lang="en">Failed to complete task '{0}'. Error: {1}</source>
-        <target state="translated">Не удалось выполнить задачу "{0}". Ошибка: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++155ddbd1014dadf2c353483d9c755a34b23609f962edfcf96fd55a7807861a77">
-        <source xml:lang="en">Failed to open a connection to the deployed database'</source>
-        <target state="translated">Не удалось открыть подключение к развернутой базе данных</target>
-      </trans-unit>
-      <trans-unit id="++CODE++2df59def744cb81ab8c20092ec3a6bffea96378e0ce318d81b8db83b7753374f">
-        <source xml:lang="en">Failed to publish to container. {0}</source>
-        <target state="translated">Не удалось опубликовать в контейнере. {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++3100bcac939af097acdf17a9c0bed8277980a700f17e8375cae98f1156148c2c">
-        <source xml:lang="en">Failed to publish to new Azure SQL server. {0}</source>
-        <target state="translated">Не удалось опубликовать на новом сервере Azure SQL. {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e3bc3e651842509c44a10d1d692d2f85e29ecd74980ee1b78a7f438813085b53">
-        <source xml:lang="en">Failed to run the docker container</source>
-        <target state="translated">Не удалось запустить контейнер Docker</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fa5a1deac70dfdea417444e00c1e5144f466c1bad015697c3c83d6298276d92f">
-        <source xml:lang="en">Failed to update app setting '{0}'</source>
-        <target state="translated">Не удалось обновить параметр приложения "{0}"</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f6f044b1a6df4b4fdf3da1b993ba6ba4a96568143a66fc51ea60f5a1774f7bcd">
-        <source xml:lang="en">Failed to verify docker. Please make sure docker is installed and running. Error: '{0}'</source>
-        <target state="translated">Не удалось проверить Docker. Убедитесь, что инструмент Docker установлен и работает. Ошибка: "{0}"</target>
-      </trans-unit>
       <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
         <source xml:lang="en">File</source>
         <target state="translated">Файл</target>
@@ -670,10 +534,6 @@
         <source xml:lang="en">Folder structure</source>
         <target state="translated">Структура папок</target>
       </trans-unit>
-      <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
-        <source xml:lang="en">Generate Script</source>
-        <target state="translated">Сгенерировать скрипт</target>
-      </trans-unit>
       <trans-unit id="++CODE++a76ed378462a07646dbca3fbacf6097b26d2eb689a0a145c5305b0d9c19d8613">
         <source xml:lang="en">Generating new SQL project from {0}...  Check output window for details.</source>
         <target state="translated">Создание нового проекта SQL из {0}... См. дополнительную информацию в окне вывода.</target>
@@ -681,15 +541,6 @@
       <trans-unit id="++CODE++3c62b1e4d310e129e88e6543457c18ebd2fcf5f51adeb147e8caf70573a29965">
         <source xml:lang="en">Generating project via AutoRest failed.  Check output pane for more details. Error: {0}</source>
         <target state="translated">Не удалось создать проект через AutoRest.  Дополнительные сведения см. в области вывода. Ошибка: {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++6d0b0bb8956065a330d34de70938bb1e61d236532f7f5e3b3ea15be42249433a">
-        <source xml:lang="en">I accept the {0}.</source>
-        <note>The placeholders are contents of the line and should not be translated.</note>
-        <target state="translated">Я принимаю {0}.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
-        <source xml:lang="en">Image tag</source>
-        <target state="translated">Тег образа</target>
       </trans-unit>
       <trans-unit id="++CODE++459f619c9ccfe5e3fa7210a22a69e5a512c7c7c7c0ee12e38b2ff119582bc322">
         <source xml:lang="en">Import Elements</source>
@@ -755,10 +606,6 @@
         <source xml:lang="en">Learn More</source>
         <target state="translated">Дополнительные сведения</target>
       </trans-unit>
-      <trans-unit id="++CODE++c17d6896f3b05d4d38ca3f0ee27584b76b1f4af6c4fb8ad8c32c7b82378226bd">
-        <source xml:lang="en">License Agreement:</source>
-        <target state="translated">Лицензионное соглашение:</target>
-      </trans-unit>
       <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
         <source xml:lang="en">Load profile...</source>
         <target state="translated">Загрузка профиля...</target>
@@ -766,10 +613,6 @@
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">Расположение</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
-        <source xml:lang="en">Microsoft SQL Server License Agreement</source>
-        <target state="translated">Лицензионное соглашение Microsoft SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++c02d79e56f113063c85842818c6c44fef7133c8a9a68e6f6adf23c9d9d52c195">
         <source xml:lang="en">Missing 'version' entry in {0}</source>
@@ -867,18 +710,6 @@
         <source xml:lang="en">OpenAPI/Swagger spec</source>
         <target state="translated">Спецификация OpenAPI/Swagger</target>
       </trans-unit>
-      <trans-unit id="++CODE++4d2b0ac7a6b60f3256c7c5cbcbcf838904e389985d6604c94816517457a468c8">
-        <source xml:lang="en">Operation '{0}' completed successfully. Result: {1}</source>
-        <target state="translated">Операция "{0}" успешно завершена. Результат: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++86e2ab1470a17cd4f665115490260eddf6eed9ba11c177a0b06e673e80cb8090">
-        <source xml:lang="en">Operation '{0}' failed. Re-trying... Current Result: {1}. Error: '{2}'</source>
-        <target state="translated">Не удалось выполнить операцию "{0}". Повторная попытка... Текущий результат: {1}. Ошибка: "{2}"</target>
-      </trans-unit>
-      <trans-unit id="++CODE++25f9d8164617e51020aabb66edbaae8083a19e80799c598ddc09191c079d8d01">
-        <source xml:lang="en">Operation '{0}' failed. Re-trying... Error: '{1}' </source>
-        <target state="translated">Не удалось выполнить операцию \"{0}\". Повторная попытка... Ошибка: \"{1}\" </target>
-      </trans-unit>
       <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
         <source xml:lang="en">Option Description</source>
         <target state="translated">Описание варианта</target>
@@ -890,10 +721,6 @@
       <trans-unit id="++CODE++248d6fc3eeeea8a859f0b50d51cff03616d0d0a52c7ab563d7a2046e33849837">
         <source xml:lang="en">Package Reference</source>
         <target state="translated">Ссылка на пакет</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8260a92239ac78e7e8b34921f34231f2a42c33e2d155a83a006cd631dd959849">
-        <source xml:lang="en">Port must a be number</source>
-        <target state="translated">Порт должен быть числом</target>
       </trans-unit>
       <trans-unit id="++CODE++a37a2142ebde04c1b6e14939040584bba21a84f5a0028999e960e6d6fb9c21d3">
         <source xml:lang="en">PostDeploy Elements</source>
@@ -951,10 +778,6 @@
         <source xml:lang="en">Publish Settings File</source>
         <target state="translated">Опубликовать файл параметров</target>
       </trans-unit>
-      <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
-        <source xml:lang="en">Publish Target</source>
-        <target state="translated">Опубликовать целевой объект</target>
-      </trans-unit>
       <trans-unit id="++CODE++f71637b1d9044efd441c1e9e5eb4a908ea922edcd8160eabf4cf12bbfcea3840">
         <source xml:lang="en">Publish profile elements</source>
         <target state="translated">Элементы профиля публикации</target>
@@ -963,33 +786,9 @@
         <source xml:lang="en">Publish project</source>
         <target state="translated">Опубликовать проект</target>
       </trans-unit>
-      <trans-unit id="++CODE++5ff81b1f819c737cbc85a30773a298b92a7f4dd7fc7defa6047aa16a27139ede">
-        <source xml:lang="en">Publish to an existing {0}</source>
-        <target state="translated">Опубликовать в существующем {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d2f14bd4fa8209db1b9fdd84a46b16251fbc1a2469d6d39a8f0bcc429fb5ac6b">
-        <source xml:lang="en">Publish to new Azure SQL logical server (Preview)</source>
-        <target state="translated">Публикация на новом логическом сервере Azure SQL (предварительная версия)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f0401861224dd2795c8d944358a94b0a54a800c0f2f0b4b7a594b7e2254583ea">
-        <source xml:lang="en">Publish to new SQL Server local development container</source>
-        <target state="translated">Опубликовать в новый локальный контейнер разработки SQL Server</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ca140652980c2c4b0970c25c36b751fd6d4b88d8199faa6a138434c0c29ae5eb">
-        <source xml:lang="en">Publish to new {0} local development container</source>
-        <target state="translated">Опубликовать в новом {0} контейнере локальной разработки</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ce2922954d0ba334ed4971b9aeb711c1bedfdeaceeffb63dedd349034b29d746">
-        <source xml:lang="en">Publish to new {0} local development container (Preview)</source>
-        <target state="translated">Опубликовать в новом {0} контейнере локальной разработки (предварительная версия)</target>
-      </trans-unit>
       <trans-unit id="++CODE++860e9c668ed0758139bbed082a63e9ca462e6c08c622923e2d8e298237ce9aa4">
         <source xml:lang="en">Published data-tier application (.nupkg)</source>
         <target state="translated">Опубликовано приложение уровня данных (NUPKG)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++2737effe0f7def0b2a7ffb02ba716b1f1abfc35fc71c5fba4c09e2b0d93625f1">
-        <source xml:lang="en">Publishing project in a container...</source>
-        <target state="translated">Публикация проекта в контейнере...</target>
       </trans-unit>
       <trans-unit id="++CODE++20a7ecd141b81567b5df17dd4e13c22c9119e50e387685734002ec73c3ba509e">
         <source xml:lang="en">Reference Type</source>
@@ -1011,10 +810,6 @@
         <source xml:lang="en">Reset all variables</source>
         <target state="translated">Сбросить все переменные</target>
       </trans-unit>
-      <trans-unit id="++CODE++11b0ae8e2634e65c2bb62781cfdb9a384c55e85a0f5ed17a56cf1af11d340cc4">
-        <source xml:lang="en">Resource group</source>
-        <target state="translated">Группа ресурсов</target>
-      </trans-unit>
       <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">Вернуться к значениям проекта по умолчанию</target>
@@ -1022,14 +817,6 @@
       <trans-unit id="++CODE++3d5a16c9d23ac52584e85fb75c804eb9bb25af61fd490caed052e4e0c6a71215">
         <source xml:lang="en">Run via npx</source>
         <target state="translated">Запустить через npx</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b2dcd924c33423699a1475d6eaa32289c60ba9f8f8431bbd7bbfc29f9a1d9c9e">
-        <source xml:lang="en">Running operation '{2}' Attempt {0} of {1}</source>
-        <target state="translated">Выполнение операции "{2}". Попытка {0} из {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f2781c675078b12472e0a7013cde3e49a2c0883f66a617839f0f71298c8434d5">
-        <source xml:lang="en">Running the docker container ...</source>
-        <target state="translated">Запуск контейнера Docker...</target>
       </trans-unit>
       <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
         <source xml:lang="en">SDK-style project</source>
@@ -1155,18 +942,6 @@
         <source xml:lang="en">Select publish profile to load</source>
         <target state="translated">Выберите профиль публикации для загрузки</target>
       </trans-unit>
-      <trans-unit id="++CODE++f290a87fc5ed38e7479f99d7505a44f49832251ef20d58aaa90ffd8de6f1dc0e">
-        <source xml:lang="en">Select the base {0} docker image</source>
-        <target state="translated">Выберите базовый образ Docker {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9f3b0510fe642a9d1f9fe5430ffa3582842b55277b3c53f1df12088e42b02ac7">
-        <source xml:lang="en">Select the image tag or press enter to use the default value</source>
-        <target state="translated">Выберите тег изображения или нажмите клавишу ВВОД, чтобы использовать значение по умолчанию</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8d66c11ffe9d849ccb39c04ce5d102192c452fc9c89d376887dd576170ac2793">
-        <source xml:lang="en">Select where to publish the project to</source>
-        <target state="translated">Выберите место публикации проекта.</target>
-      </trans-unit>
       <trans-unit id="++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7">
         <source xml:lang="en">Sequence</source>
         <target state="translated">Последовательность</target>
@@ -1174,10 +949,6 @@
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
         <target state="translated">Сервер</target>
-      </trans-unit>
-      <trans-unit id="++CODE++64103f0c79d44c0b348d11c0b8a1274959e0e9e761bdff5f519f7e34e37041c2">
-        <source xml:lang="en">Server created</source>
-        <target state="translated">Сервер создан</target>
       </trans-unit>
       <trans-unit id="++CODE++21babfed6c3829985b43ce0de25b2d582154b45a779a71da5ea204c9d8a3cd20">
         <source xml:lang="en">Server name</source>
@@ -1387,10 +1158,6 @@
         <source xml:lang="en">Update {0} for cross-platform support?</source>
         <target state="translated">Обновить {0} для кроссплатформенной поддержки?</target>
       </trans-unit>
-      <trans-unit id="++CODE++8ee240bfa30c4113a8c8bb5b527a90f1408c949edd788c8254ca675c9977564a">
-        <source xml:lang="en">Updating app setting: '{0}'</source>
-        <target state="translated">Идет обновление параметра приложения: "{0}"</target>
-      </trans-unit>
       <trans-unit id="++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62">
         <source xml:lang="en">Updating {0} from {1}...</source>
         <target state="translated">Идет обновление {0} из {1}...</target>
@@ -1415,10 +1182,6 @@
         <source xml:lang="en">Value</source>
         <target state="translated">Значение</target>
       </trans-unit>
-      <trans-unit id="++CODE++8f73adcb45d0984043f93f35be4a8f03a943e8fc30e430b8b47ed6e6004424eb">
-        <source xml:lang="en">Value cannot be empty</source>
-        <target state="translated">Значение не может быть пустым.</target>
-      </trans-unit>
       <trans-unit id="++CODE++dd167905de0defcaf72de673ee44c07431770d129ccffab286bd2edfdaf62396">
         <source xml:lang="en">Version</source>
         <target state="translated">Версия</target>
@@ -1435,21 +1198,9 @@
         <source xml:lang="en">View changes in Schema Compare</source>
         <target state="translated">Просмотреть изменения в средстве сравнения схем</target>
       </trans-unit>
-      <trans-unit id="++CODE++2c2c07c87e14eba28c8bad35f750ec480ef306481fa641471dd22ad775643aa9">
-        <source xml:lang="en">Waiting for {0} seconds before another attempt for operation '{1}'</source>
-        <target state="translated">Ожидание {0} сек. до выполнения другой попытки операции "{1}"</target>
-      </trans-unit>
       <trans-unit id="++CODE++687f18249c3d167aac61254957df3d2cd669ee30d31548e228ae611f932b2b9e">
         <source xml:lang="en">Would you like to reload your database project?</source>
         <target state="translated">Вы хотите перезагрузить проект базы данных?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++811599ca6b99044df79bb12bb6442b01044bcbee3958779a25f9d6c16ae683e3">
-        <source xml:lang="en">Would you like to save the settings in a profile (.publish.xml)?</source>
-        <target state="translated">Сохранить параметры в профиле (.publish.xml)?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++43ef5bb1b921e9d7373f8ee73d6691747356ac92e63ac2286ec62fc39df2f954">
-        <source xml:lang="en">Would you like to update Azure Function local.settings.json with the new connection string?</source>
-        <target state="translated">Обновить функцию Azure local.settings.json с помощью новой строки подключения?</target>
       </trans-unit>
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
@@ -1502,22 +1253,6 @@
       <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
         <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
         <target state="translated">{0} Если проект был создан в SSDT, он продолжит работать в обоих инструментах. Обновить проект?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++22127281dfef4fc4fe2b99c5332e45a9fdf79971ffb2ada09eb8fd89f5847d95">
-        <source xml:lang="en">{0} admin password</source>
-        <target state="translated">Пароль администратора {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
-        <source xml:lang="en">{0} password doesn't match the confirmation password</source>
-        <target state="translated">Пароль {0} не совпадает с подтверждением</target>
-      </trans-unit>
-      <trans-unit id="++CODE++dd67465d5f08a1151583a1469fdd6af82d51267a1d949758a963f9bb5a48ba07">
-        <source xml:lang="en">{0} password doesn't meet the password complexity requirement. For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
-        <target state="translated">Пароль {0} не соответствует требованиям к сложности пароля. Дополнительные сведения см. по адресу https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ab1191cc9aaf61f200528e66e69548d04d5baf1076772851089dc2bb8964d57c">
-        <source xml:lang="en">{0} port number</source>
-        <target state="translated">Номер порта {0}</target>
       </trans-unit>
     </body>
   </file>
@@ -1590,6 +1325,10 @@
       <trans-unit id="sqlDatabaseProjects.close">
         <source xml:lang="en">Close Database Project</source>
         <target state="translated">Закрыть проект базы данных</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
+        <source xml:lang="en">Code Analysis Settings (Preview)</source>
+        <target state="translated">Параметры Code Analysis (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
         <source xml:lang="en">Convert to SDK-style project</source>
@@ -1680,10 +1419,6 @@
       <trans-unit id="sqlDatabaseProjects.publish">
         <source xml:lang="en">Publish</source>
         <target state="translated">Опубликовать</target>
-      </trans-unit>
-      <trans-unit id="sqlDatabaseProjects.publishDialog">
-        <source xml:lang="en">Publish...</source>
-        <target state="new">Publish...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
