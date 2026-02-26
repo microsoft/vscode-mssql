@@ -133,20 +133,27 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         const hasPanel = uri && this.hasPanel(uri);
         const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
 
-        if (hasWebviewViewState && !hasPanel) {
-            this.state = this.getQueryResultState(uri);
-        } else if (hasPanel) {
-            const editorViewColumn = editor?.viewColumn;
-            const panelViewColumn = this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
-
-            /**
-             * If the results are shown in webview panel, and the active editor is not in the same
-             * view column as the results, then reveal the panel to the foreground
-             */
-            if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
-                this.revealPanel(uri);
-            } else if (!this.shouldAutoRevealResultsPanel) {
+        if (hasWebviewViewState) {
+            if (hasPanel) {
+                const editorViewColumn = editor?.viewColumn;
+                const panelViewColumn =
+                    this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
+                /**
+                 * If the results are shown in webview panel, and the active editor is not in the same
+                 * view column as the results, then reveal the panel to the foreground. If we don't do
+                 * this, the user won't be able to see the query editor if the results are in the same
+                 * column as the editor, as we will immediately cover it with results panel.
+                 */
+                if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
+                    this.revealPanel(uri);
+                }
+                /**
+                 * If the results are shown in webview panel, we always set
+                 * the webview view to show splash screen.
+                 */
                 this.showSplashScreen();
+            } else {
+                this.state = this.getQueryResultState(uri);
             }
         } else {
             this.showSplashScreen();
