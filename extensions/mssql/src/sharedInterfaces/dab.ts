@@ -359,7 +359,8 @@ export namespace Dab {
      * Uses :latest tag intentionally so users always get the newest Data API Builder
      * features and bug fixes without manual version management.
      */
-    export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
+    export const DAB_CONTAINER_IMAGE =
+        "mcr.microsoft.com/azure-databases/data-api-builder:1.7.86-rc";
 
     /**
      * Default port for DAB container
