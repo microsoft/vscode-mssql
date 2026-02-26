@@ -6,9 +6,11 @@
 import { expect } from "chai";
 import * as os from "os";
 import * as fs from "fs";
+import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as path from "path";
 import { BuildHelper } from "../src/tools/buildHelper";
+import { HttpClient } from "../src/common/httpClient";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
 import * as sqldbproj from "sqldbproj";
@@ -16,6 +18,16 @@ import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";
 
 suite("BuildHelper: Build Helper tests", function (): void {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(function () {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(function () {
+        sandbox.restore();
+    });
+
     test("Should get correct build arguments for legacy-style projects", function (): void {
         // update settings and validate
         const buildHelper = new BuildHelper();
@@ -154,5 +166,73 @@ suite("BuildHelper: Build Helper tests", function (): void {
                 `Required file '${fileName}' should exist in build directory at ${filePath}`,
             ).to.be.true;
         }
+    });
+
+    test("Shows nugetDownloadFailedHelp message when nuget download throws", async function (): Promise<void> {
+        // Treat all files as missing so the download path is triggered.
+        sandbox.stub(utils, "exists").resolves(false);
+
+        // Make the actual HTTP download fail (simulates offline / proxy failure).
+        sandbox.stub(HttpClient.prototype, "download").rejects(new Error("ECONNREFUSED"));
+
+        // Capture the error message shown to the user.
+        let shownMessage: string | undefined;
+        sandbox
+            .stub(vscode.window, "showErrorMessage")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .callsFake((msg: string): any => {
+                shownMessage = msg;
+                return Promise.resolve(undefined);
+            });
+
+        const outputChannel = {
+            appendLine: () => {},
+        } as unknown as vscode.OutputChannel;
+
+        const buildHelper = new BuildHelper();
+        const buildDir = buildHelper.extensionBuildDirPath;
+
+        const result = await buildHelper.ensureNugetAndFilesPresence(
+            "Microsoft.Build.Sql",
+            "0.1.0",
+            ["Microsoft.Build.Sql.dll"],
+            "tools/net8.0",
+            outputChannel,
+        );
+
+        expect(result, "ensureNugetAndFilesPresence should return false on download failure").to.be
+            .false;
+        expect(shownMessage, "showErrorMessage should have been called").to.be.a("string");
+        expect(shownMessage).to.include(
+            buildDir,
+            "Error message should contain the build directory path so the user knows where to place DLLs",
+        );
+        expect(shownMessage).to.equal(
+            constants.nugetDownloadFailedHelp(buildDir),
+            "Error message should match nugetDownloadFailedHelp constant exactly",
+        );
+    });
+
+    test("Returns true without downloading when all expected files already exist", async function (): Promise<void> {
+        // All files already present → download should never be called.
+        sandbox.stub(utils, "exists").resolves(true);
+        const downloadSpy = sandbox.stub(HttpClient.prototype, "download");
+
+        const outputChannel = {
+            appendLine: () => {},
+        } as unknown as vscode.OutputChannel;
+
+        const buildHelper = new BuildHelper();
+        const result = await buildHelper.ensureNugetAndFilesPresence(
+            "Microsoft.Build.Sql",
+            "0.1.0",
+            ["Microsoft.Build.Sql.dll"],
+            "tools/net8.0",
+            outputChannel,
+        );
+
+        expect(result).to.be.true;
+        expect(downloadSpy.called, "download should NOT be called when files already exist").to.be
+            .false;
     });
 });
