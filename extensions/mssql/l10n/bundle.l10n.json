@@ -494,6 +494,16 @@
         "message": "({0} rows affected)",
         "comment": ["{0} is the number of rows affected"]
     },
+    "No rows affected": "No rows affected",
+    "Selected": "Selected",
+    "Rows": "Rows",
+    "Time": "Time",
+    "Running": "Running",
+    "Execution": "Execution",
+    "No selection": "No selection",
+    "Execution cancelled": "Execution cancelled",
+    "Execution time unavailable": "Execution time unavailable",
+    "Total execution time:": "Total execution time:",
     "Result Set Batch {0} - Query {1}/{0} is the batch number{1} is the query number": {
         "message": "Result Set Batch {0} - Query {1}",
         "comment": ["{0} is the batch number", "{1} is the query number"]
@@ -1471,7 +1481,6 @@
         "message": "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
         "comment": ["{0} is the XEL file name"]
     },
-    "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",
     "Not Started": "Not Started",

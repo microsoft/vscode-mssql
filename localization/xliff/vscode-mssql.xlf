@@ -2225,8 +2225,17 @@
     <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
       <source xml:lang="en">Executing query...</source>
     </trans-unit>
+    <trans-unit id="++CODE++a45cd4bd0998e5683cdf4839b883fc0c77599eecfa9c7b658b32dbbd499a8039">
+      <source xml:lang="en">Execution</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f93991ad07957c41dfc5212f2709590b0a723ccb5f5c397fb7c681b218de236d">
+      <source xml:lang="en">Execution cancelled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
+      <source xml:lang="en">Execution time unavailable</source>
     </trans-unit>
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
@@ -3975,6 +3984,9 @@
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
     </trans-unit>
+    <trans-unit id="++CODE++cdc59fbd2074445096076c2b3d3684fcc816879138cd2ac7b66627df573c4ab4">
+      <source xml:lang="en">No rows affected</source>
+    </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
     </trans-unit>
@@ -3992,6 +4004,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
       <source xml:lang="en">No script generated.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++211f6bbe2c56c016d33be98e6d3d9d9c7552182cfd0652284a2eaa30f71981cf">
+      <source xml:lang="en">No selection</source>
     </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
@@ -4827,6 +4842,9 @@
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
     </trans-unit>
+    <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
+      <source xml:lang="en">Rows</source>
+    </trans-unit>
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
     </trans-unit>
@@ -5272,6 +5290,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
       <source xml:lang="en">Select the SQL Server Container Image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
+      <source xml:lang="en">Selected</source>
     </trans-unit>
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
@@ -5930,6 +5951,9 @@
     <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
       <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
+      <source xml:lang="en">Time</source>
+    </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
     </trans-unit>
@@ -5973,6 +5997,9 @@
       <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
       <note>{0} is the part name
 {1} is the part input</note>
+    </trans-unit>
+    <trans-unit id="++CODE++78033ae5be44646dfc774d72849e02b99c5180227c92f07d450444d106dbd3d1">
+      <source xml:lang="en">Total execution time:</source>
     </trans-unit>
     <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
       <source xml:lang="en">Total execution time: {0}</source>
