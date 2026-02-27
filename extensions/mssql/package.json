@@ -1450,7 +1450,7 @@
                 "command": "mssql.runQuery",
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
             },
             {
                 "command": "mssql.connect",
