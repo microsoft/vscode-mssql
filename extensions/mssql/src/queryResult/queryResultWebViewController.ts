@@ -142,10 +142,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 const panelViewColumn =
                     this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
                 /**
-                 * If the results are shown in webview panel, and the active editor is not in the same
-                 * view column as the results, then reveal the panel to the foreground. If we don't do
-                 * this, the user won't be able to see the query editor if the results are in the same
-                 * column as the editor, as we will immediately cover it with results panel.
+                 * If the results are shown in a webview panel and the active editor is not in the same
+                 * view column as the results, then reveal the panel to the foreground. We explicitly
+                 * check that the editor and results are in different columns before revealing so that
+                 * we do not cover the query editor when the results share the same column.
                  */
                 if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
                     this.revealPanel(uri);
