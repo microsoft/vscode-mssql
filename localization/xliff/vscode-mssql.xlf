@@ -2738,6 +2738,9 @@
     <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
       <source xml:lang="en">File not found</source>
     </trans-unit>
+    <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
+      <source xml:lang="en">File path</source>
+    </trans-unit>
     <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
       <source xml:lang="en">File path is required</source>
     </trans-unit>
@@ -2870,6 +2873,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
       <source xml:lang="en">Folder is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
+      <source xml:lang="en">Folder path</source>
     </trans-unit>
     <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
       <source xml:lang="en">Folder path is required</source>
@@ -4393,12 +4399,6 @@
     <trans-unit id="++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5">
       <source xml:lang="en">Please choose a blob to load restore plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
-      <source xml:lang="en">Please choose a file</source>
-    </trans-unit>
-    <trans-unit id="++CODE++ea887fcdc3b25d5c543a6c7f3fb1e675e63420d492f1064f29d9d81be8efcca5">
-      <source xml:lang="en">Please choose a folder</source>
-    </trans-unit>
     <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
       <source xml:lang="en">Please choose a unique backup file name</source>
     </trans-unit>
@@ -4431,6 +4431,9 @@
     </trans-unit>
     <trans-unit id="++CODE++42990e221cd66206bd59e10ce7ba785f6e8a88282b99827f844bbe43089294d5">
       <source xml:lang="en">Please select a database node in Object Explorer to rename.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
+      <source xml:lang="en">Please select a file, not a folder.</source>
     </trans-unit>
     <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
       <source xml:lang="en">Please select a node from Object Explorer to script.</source>
