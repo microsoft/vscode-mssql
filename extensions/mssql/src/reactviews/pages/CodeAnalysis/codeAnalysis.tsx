@@ -289,6 +289,7 @@ export const CodeAnalysisDialog = () => {
 
     const resetToDefaults = () => {
         setLocalRules(dacfxStaticRules);
+        setLocalEnableCodeAnalysisOnBuild(false);
     };
 
     const changeSeverity = (ruleId: string, severity: string) => {

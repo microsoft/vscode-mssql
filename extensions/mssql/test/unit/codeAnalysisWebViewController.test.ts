@@ -592,6 +592,49 @@ suite("CodeAnalysisWebViewController Tests", () => {
         ).to.be.true;
     });
 
+    test("saveRules fires CodeAnalysisEnabledOnBuild or CodeAnalysisDisabledOnBuild telemetry based on checkbox value", async () => {
+        const { telemetryStubs } = createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: true,
+            errorMessage: "",
+        });
+
+        // enabled=true → CodeAnalysisEnabledOnBuild
+        telemetryStubs.sendActionEvent.resetHistory();
+        await saveRulesHandler?.(controller.state, {
+            rules: mockRules.slice(0, 1).map(toSqlCodeAnalysisRule),
+            closeAfterSave: false,
+            enableCodeAnalysisOnBuild: true,
+        });
+        expect(
+            telemetryStubs.sendActionEvent,
+            "CodeAnalysisEnabledOnBuild should fire when checkbox is checked",
+        ).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisEnabledOnBuild,
+            sinon.match.has("operationId"),
+        );
+
+        // enabled=false → CodeAnalysisDisabledOnBuild
+        telemetryStubs.sendActionEvent.resetHistory();
+        await saveRulesHandler?.(controller.state, {
+            rules: mockRules.slice(0, 1).map(toSqlCodeAnalysisRule),
+            closeAfterSave: false,
+            enableCodeAnalysisOnBuild: false,
+        });
+        expect(
+            telemetryStubs.sendActionEvent,
+            "CodeAnalysisDisabledOnBuild should fire when checkbox is unchecked",
+        ).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisDisabledOnBuild,
+            sinon.match.has("operationId"),
+        );
+    });
+
     test("loadRules sets enableCodeAnalysisOnBuild to false when project properties retrieval fails", async () => {
         createController();
         const internalController = getInternalController();
