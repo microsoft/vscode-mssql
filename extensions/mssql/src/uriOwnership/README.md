@@ -30,7 +30,7 @@ The extension's `displayName` from package.json will be used for user-facing mes
 ### 2. Set up the coordinator in your extension
 
 ```typescript
-import { UriOwnershipCoordinator } from "@microsoft/vscode-sql-common";
+import { UriOwnershipCoordinator } from "./uriOwnershipCore";
 
 // In your activate() function
 export function activate(context: vscode.ExtensionContext) {

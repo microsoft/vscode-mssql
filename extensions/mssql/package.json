@@ -144,7 +144,6 @@
         "@azure/msal-node": "^2.12.0",
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
-        "@microsoft/vscode-sql-common": "link:../../packages/vscode-sql-common",
         "@microsoft/vscode-azext-azureauth": "^4.1.1",
         "@xmldom/xmldom": "^0.8.11",
         "axios": "^1.13.5",
