@@ -585,7 +585,6 @@
         "xml-formatter": "2.1.0"
     },
     "devDependencies": {
-        "@microsoft/azdata-test": "^3.0.4",
         "@types/chai": "^5.2.2",
         "@types/fs-extra": "^5.0.0",
         "@types/mocha": "^7.0.2",

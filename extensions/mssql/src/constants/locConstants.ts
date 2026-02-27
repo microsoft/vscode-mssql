@@ -1695,6 +1695,23 @@ export class SchemaDesigner {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
+    public static mcpServerAddedToWorkspace = (filePath: string) =>
+        l10n.t({
+            message: "MCP server added to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path where the MCP server was added"],
+        });
+    public static mcpServerAlreadyExists = (filePath: string) =>
+        l10n.t({
+            message: "MCP server is already configured in {0}",
+            args: [filePath],
+            comment: ["{0} is the file path where the MCP server configuration exists"],
+        });
+    public static noWorkspaceOpenForMcp = l10n.t(
+        "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    );
+    public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
+    public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
 }
 
 export class StatusBar {

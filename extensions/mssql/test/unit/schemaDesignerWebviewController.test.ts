@@ -13,8 +13,11 @@ import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schema
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
+import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
+import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
+import * as copilotUtils from "../../src/copilot/copilotUtils";
 import {
     stubExtensionContext,
     stubUserSurvey,
@@ -163,6 +166,22 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(ctrl.schemaDesignerDetails).to.be.undefined;
         });
 
+        test("should initialize copilot chat discovery state from globalState", () => {
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"), false)
+                .returns(true);
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("dab"), false)
+                .returns(false);
+
+            const ctrl = createController();
+
+            expect(ctrl.state.copilotChatDiscoveryDismissed).to.deep.equal({
+                schemaDesigner: true,
+                dab: false,
+            });
+        });
+
         test("should set copilot availability to true when Copilot Chat extension is installed", () => {
             sandbox
                 .stub(vscode.extensions, "getExtension")
@@ -214,6 +233,38 @@ suite("SchemaDesignerWebviewController tests", () => {
                     SchemaDesigner.CloseSchemaDesignerNotification.type.method,
                 ),
             ).to.be.true;
+        });
+    });
+
+    suite("Copilot chat discovery reducer", () => {
+        test("dismissCopilotChatDiscovery persists the scenario and updates state", async () => {
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"), false)
+                .returns(true);
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("dab"), false)
+                .returns(false);
+            (mockContext.globalState.update as sinon.SinonStub).resolves();
+            const ctrl = createController();
+            const reducerHandler = requestHandlers.get(
+                ReducerRequest.type<SchemaDesigner.SchemaDesignerReducers>().method,
+            );
+
+            expect(reducerHandler).to.not.be.undefined;
+
+            await reducerHandler!({
+                type: "dismissCopilotChatDiscovery",
+                payload: { scenario: "dab" },
+            });
+
+            expect(mockContext.globalState.update).to.have.been.calledOnceWith(
+                CopilotChat.getDiscoveryDismissedStateKey("dab"),
+                true,
+            );
+            expect(ctrl.state.copilotChatDiscoveryDismissed).to.deep.equal({
+                schemaDesigner: true,
+                dab: true,
+            });
         });
     });
 
@@ -803,14 +854,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
-        suite("CopyConfigNotification handler", () => {
-            test("should register CopyConfigNotification handler", () => {
+        suite("CopyTextNotification handler", () => {
+            test("should register CopyTextNotification handler", () => {
                 createController();
 
-                expect(notificationHandlers.has(Dab.CopyConfigNotification.type.method)).to.be.true;
+                expect(notificationHandlers.has(Dab.CopyTextNotification.type.method)).to.be.true;
             });
 
-            test("should copy config content to clipboard and show notification", async () => {
+            test("should copy text to clipboard and show config message for Config type", async () => {
                 const writeTextStub = sandbox.stub().resolves();
                 sandbox.stub(vscode.env, "clipboard").value({
                     writeText: writeTextStub,
@@ -821,13 +872,33 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 createController();
 
-                const handler = notificationHandlers.get(Dab.CopyConfigNotification.type.method);
+                const handler = notificationHandlers.get(Dab.CopyTextNotification.type.method);
                 expect(handler).to.be.a("function");
 
-                const configContent = '{"$schema": "test"}';
-                await handler({ configContent });
+                const text = '{"$schema": "test"}';
+                await handler({ text, copyTextType: Dab.CopyTextType.Config });
 
-                expect(writeTextStub).to.have.been.calledOnceWith(configContent);
+                expect(writeTextStub).to.have.been.calledOnceWith(text);
+                expect(showInfoStub).to.have.been.calledOnce;
+            });
+
+            test("should show URL message for Url type", async () => {
+                const writeTextStub = sandbox.stub().resolves();
+                sandbox.stub(vscode.env, "clipboard").value({
+                    writeText: writeTextStub,
+                });
+                const showInfoStub = sandbox
+                    .stub(vscode.window, "showInformationMessage")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.CopyTextNotification.type.method);
+
+                const url = "http://localhost:5000/api";
+                await handler({ text: url, copyTextType: Dab.CopyTextType.Url });
+
+                expect(writeTextStub).to.have.been.calledOnceWith(url);
                 expect(showInfoStub).to.have.been.calledOnce;
             });
         });
@@ -943,6 +1014,59 @@ suite("SchemaDesignerWebviewController tests", () => {
                 } catch {
                     // Expected to fail in test environment without Docker
                 }
+            });
+        });
+
+        suite("AddMcpServerRequest handler", () => {
+            test("should register AddMcpServerRequest handler", () => {
+                createController();
+
+                expect(requestHandlers.has(Dab.AddMcpServerRequest.type.method)).to.be.true;
+            });
+
+            test("should delegate to addMcpServerToWorkspace with correct parameters", async () => {
+                const addMcpStub = sandbox
+                    .stub(copilotUtils, "addMcpServerToWorkspace")
+                    .resolves({ success: true });
+
+                createController();
+
+                const handler = requestHandlers.get(Dab.AddMcpServerRequest.type.method);
+                expect(handler).to.be.a("function");
+
+                const payload: Dab.AddMcpServerParams = {
+                    serverName: "DabMcp-5000",
+                    serverUrl: "http://localhost:5000/mcp",
+                };
+
+                const result = await handler(payload);
+
+                expect(addMcpStub).to.have.been.calledOnceWithExactly(
+                    "DabMcp-5000",
+                    "http://localhost:5000/mcp",
+                );
+                expect(result.success).to.be.true;
+            });
+
+            test("should return error response when addMcpServerToWorkspace fails", async () => {
+                sandbox.stub(copilotUtils, "addMcpServerToWorkspace").resolves({
+                    success: false,
+                    error: "No workspace folder is open.",
+                });
+
+                createController();
+
+                const handler = requestHandlers.get(Dab.AddMcpServerRequest.type.method);
+
+                const payload: Dab.AddMcpServerParams = {
+                    serverName: "DabMcp-5000",
+                    serverUrl: "http://localhost:5000/mcp",
+                };
+
+                const result = await handler(payload);
+
+                expect(result.success).to.be.false;
+                expect(result.error).to.equal("No workspace folder is open.");
             });
         });
     });

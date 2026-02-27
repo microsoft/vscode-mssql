@@ -7,18 +7,18 @@ import { RingBuffer } from "./ringBuffer";
 import { IndexedRow, FilterClause, FilterOperator, FilterTypeHint } from "./profilerTypes";
 
 /**
- * A filtered view over a RingBuffer that applies filter clauses client-side.
- * Separates filtering concerns from the ring buffer storage.
+ * A RingBuffer subclass that adds client-side filtering capabilities.
+ * Extends RingBuffer with filter clauses and quick filter support.
  *
  * Key behaviors:
- * - When filter is active, only matching rows are returned
+ * - When filter is active, only matching rows are returned via getFilteredRows()
  * - When filter is cleared, ALL events (including those hidden while filtering) are visible
  * - Filtering is client-side only; does not affect the underlying buffer storage
+ * - All RingBuffer methods (add, clear, getAllRows, etc.) remain available directly
  *
  * @template T - Row type that extends IndexedRow
  */
-export class FilteredBuffer<T extends IndexedRow> {
-    private _buffer: RingBuffer<T>;
+export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
     private _clauses: FilterClause[] = [];
     private _enabled: boolean = false;
     private _quickFilter: string | undefined;
@@ -30,18 +30,21 @@ export class FilteredBuffer<T extends IndexedRow> {
     private _rowConverter: ((row: T) => Record<string, unknown>) | undefined;
 
     /**
-     * Creates a new FilteredBuffer wrapping the given RingBuffer.
-     * @param buffer - The underlying RingBuffer to filter
+     * Cached array of references to rows matching the current filter.
+     * Stores references (pointers) to the same objects in the RingBuffer — no memory duplication.
+     * - undefined when no filter is active or cache has been invalidated.
+     * - Maintained incrementally by add() override when filter is active.
+     * - Rebuilt lazily on first read after invalidation.
      */
-    constructor(buffer: RingBuffer<T>) {
-        this._buffer = buffer;
-    }
+    private _filteredCache: T[] | undefined;
 
     /**
-     * Gets the underlying RingBuffer.
+     * Creates a new FilteredBuffer with the specified capacity.
+     * @param capacity - Maximum number of rows to store
+     * @param indexedFields - Fields to index for fast lookup (passed to RingBuffer)
      */
-    get buffer(): RingBuffer<T> {
-        return this._buffer;
+    constructor(capacity: number, indexedFields: string[] = []) {
+        super(capacity, indexedFields);
     }
 
     /**
@@ -76,21 +79,142 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Gets the total number of items in the underlying buffer (unfiltered count).
+     * Gets the total number of items in the buffer (unfiltered count).
      */
     get totalCount(): number {
-        return this._buffer.size;
+        return this.size;
     }
 
     /**
      * Gets the number of items that match the current filter (column + quick).
      * Returns total count if no filter is active.
+     * Uses cached value when available.
      */
     get filteredCount(): number {
         if (!this.isFilterActive) {
-            return this._buffer.size;
+            return this.size;
         }
-        return this.getFilteredRows().length;
+        return this.getFilteredCount();
+    }
+
+    /**
+     * Sets filter state and immediately builds the filtered-row cache.
+     *
+     * Call this instead of the lower-level setColumnFilters / setQuickFilter
+     * when you want the cache to be ready for subsequent getFilteredRows /
+     * getFilteredCount calls.
+     *
+     * @param options.clauses  Column filter clauses (AND logic). Pass [] to clear.
+     * @param options.quickFilter  Cross-column search term. Pass undefined to clear.
+     */
+    applyFilter(options: { clauses?: FilterClause[]; quickFilter?: string }): void {
+        if (options.clauses !== undefined) {
+            this._clauses = [...options.clauses];
+            this._enabled = options.clauses.length > 0;
+        }
+        if (options.quickFilter !== undefined) {
+            this._quickFilter = options.quickFilter.trim() !== "" ? options.quickFilter : undefined;
+        }
+        this.rebuildCache();
+    }
+
+    /**
+     * Clears all filter state (column filters + quick filter) and the cache.
+     * After this call, getFilteredRows() returns all rows.
+     */
+    resetFilter(): void {
+        this._clauses = [];
+        this._enabled = false;
+        this._quickFilter = undefined;
+        this._filteredCache = undefined;
+    }
+
+    /**
+     * Adds a row and incrementally maintains the filter cache.
+     *
+     * When the cache exists:
+     *  - Evicted row (if any): removed from front of cache if it matches — O(1).
+     *  - New row: evaluated against current filter — O(C) per clause.
+     *    Appended to cache if it matches.
+     */
+    override add(row: T): { added: T; removed?: T } | undefined {
+        const result = super.add(row);
+        if (!result || this._filteredCache === undefined) {
+            return result;
+        }
+
+        // Handle eviction: evicted row is always the oldest, so if it's in
+        // the cache it must be at index 0 (cache is chronological).
+        if (
+            result.removed &&
+            this._filteredCache.length > 0 &&
+            this._filteredCache[0] === result.removed
+        ) {
+            this._filteredCache.shift();
+        }
+
+        // Evaluate the newly added row against the current filter
+        if (this.rowMatchesFilter(row)) {
+            this._filteredCache.push(row);
+        }
+
+        return result;
+    }
+
+    /**
+     * Clears the buffer and the filter cache.
+     */
+    override clear(): void {
+        super.clear();
+        this._filteredCache = undefined;
+    }
+
+    /**
+     * Clears the oldest N rows and invalidates the cache.
+     * (clearRange is rare; a lazy rebuild on next read is acceptable.)
+     */
+    override clearRange(count: number): void {
+        super.clearRange(count);
+        this.invalidateCache();
+    }
+
+    /**
+     * Rebuilds the cache from scratch by scanning all rows — O(n·C).
+     */
+    private rebuildCache(): void {
+        if (!this.isFilterActive) {
+            this._filteredCache = undefined;
+            return;
+        }
+
+        this._filteredCache = this.getAllRows().filter((row) => this.rowMatchesFilter(row));
+    }
+
+    /**
+     * Invalidates the cache so it will be rebuilt lazily on the next read.
+     */
+    private invalidateCache(): void {
+        this._filteredCache = undefined;
+    }
+
+    /**
+     * Tests whether a single row matches the current filter (clauses + quick filter).
+     * Used by the add() override for incremental cache maintenance.
+     */
+    private rowMatchesFilter(row: T): boolean {
+        const targetRow = this._rowConverter ? (this._rowConverter(row) as T) : row;
+
+        if (this._enabled && this._clauses.length > 0 && !this.evaluateRow(targetRow)) {
+            return false;
+        }
+        if (
+            this._quickFilter !== undefined &&
+            this._quickFilter.trim() !== "" &&
+            !this.matchesQuickFilter(targetRow, this._quickFilter)
+        ) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -110,6 +234,7 @@ export class FilteredBuffer<T extends IndexedRow> {
     setColumnFilters(clauses: FilterClause[]): void {
         this._clauses = [...clauses];
         this._enabled = clauses.length > 0;
+        this.invalidateCache();
     }
 
     /**
@@ -120,6 +245,7 @@ export class FilteredBuffer<T extends IndexedRow> {
     clearColumnFilters(): void {
         this._clauses = [];
         this._enabled = false;
+        this.invalidateCache();
     }
 
     /**
@@ -128,6 +254,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     setQuickFilter(term: string | undefined): void {
         this._quickFilter = term && term.trim() !== "" ? term : undefined;
+        this.invalidateCache();
     }
 
     /**
@@ -135,14 +262,17 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     clearQuickFilter(): void {
         this._quickFilter = undefined;
+        this.invalidateCache();
     }
 
     /**
      * Clears both column filters and the quick filter.
      */
     clearAllFilters(): void {
-        this.clearColumnFilters();
-        this.clearQuickFilter();
+        this._clauses = [];
+        this._enabled = false;
+        this._quickFilter = undefined;
+        this._filteredCache = undefined;
     }
 
     /**
@@ -152,45 +282,41 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     setRowConverter(converter: ((row: T) => Record<string, unknown>) | undefined): void {
         this._rowConverter = converter;
+        this.invalidateCache();
     }
 
     /**
      * Gets all rows that match the current filter.
      * Returns all rows if no filter is active.
-     * When a row converter is set, filters operate on converted rows.
+     * Uses cached results when available — O(1) return vs O(n·C) scan.
+     * If the cache was invalidated (e.g. by a legacy setter), it is rebuilt lazily.
      */
     getFilteredRows(): T[] {
-        const allRows = this._buffer.getAllRows();
         if (!this.isFilterActive) {
-            return allRows;
+            return this.getAllRows();
         }
 
-        const hasClauseFilter = this._enabled && this._clauses.length > 0;
-        const hasQuickFilter = this._quickFilter !== undefined && this._quickFilter.trim() !== "";
+        if (this._filteredCache === undefined) {
+            this.rebuildCache();
+        }
 
-        return allRows.filter((row) => {
-            const targetRow = this._rowConverter ? (this._rowConverter(row) as T) : row;
-
-            if (hasClauseFilter && !this.evaluateRow(targetRow)) {
-                return false;
-            }
-            if (hasQuickFilter && !this.matchesQuickFilter(targetRow, this._quickFilter!)) {
-                return false;
-            }
-            return true;
-        });
+        return this._filteredCache!;
     }
 
     /**
      * Gets the count of rows that match the current filter (column + quick).
-     * When a row converter is set, filters operate on converted rows.
-     * More efficient than getFilteredRows().length when you only need the count.
+     * O(1) when cache is available.
      */
     getFilteredCount(): number {
         if (!this.isFilterActive) {
-            return this._buffer.size;
+            return this.size;
         }
-        return this.getFilteredRows().length;
+
+        if (this._filteredCache === undefined) {
+            this.rebuildCache();
+        }
+
+        return this._filteredCache!.length;
     }
 
     /**
@@ -201,7 +327,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      * @returns Sorted array of unique non-empty string values
      */
     getDistinctValuesForField(field: string): string[] {
-        const allRows = this._buffer.getAllRows();
+        const allRows = this.getAllRows();
         const seen = new Set<string>();
         for (const row of allRows) {
             const target = this._rowConverter
@@ -217,6 +343,7 @@ export class FilteredBuffer<T extends IndexedRow> {
 
     /**
      * Gets a range of filtered rows for pagination.
+     * O(k) slice from cached array when cache is available.
      * @param startIndex - The starting index in the filtered result set
      * @param count - Maximum number of rows to return
      * @returns Array of matching rows

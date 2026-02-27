@@ -112,6 +112,7 @@
     "Show password": "Show password",
     "Hide password": "Hide password",
     "Save": "Save",
+    "Try it": "Try it",
     "Dismiss": "Dismiss",
     "Error": "Error",
     "Get Started": "Get Started",
@@ -544,7 +545,11 @@
         "comment": ["{0} is the number of selected tables"]
     },
     "Chat": "Chat",
-    "Open Copilot Chat": "Open Copilot Chat",
+    "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
+    "New: Chat about your schema": "New: Chat about your schema",
+    "Ask questions about your schema or propose changes.": "Ask questions about your schema or propose changes.",
+    "New: Chat about your API config": "New: Chat about your API config",
+    "Review or update your Data API Builder configuration.": "Review or update your Data API Builder configuration.",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -904,6 +909,13 @@
     "Deployment Failed": "Deployment Failed",
     "DAB container is running!": "DAB container is running!",
     "Your API is available at:": "Your API is available at:",
+    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
+    "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
+        "message": "Copy {0} URL",
+        "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
+    },
+    "Add to VS Code": "Add to VS Code",
+    "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -1587,6 +1599,8 @@
     "Backup sets to restore": "Backup sets to restore",
     "Advanced restore options": "Advanced restore options",
     "Could not load restore plan": "Could not load restore plan",
+    "Please choose a backup file to load restore plan": "Please choose a backup file to load restore plan",
+    "Please choose a blob to load restore plan": "Please choose a blob to load restore plan",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -2449,6 +2463,17 @@
         "message": "Failed to generate publish script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
+    "MCP server added to {0}/{0} is the file path where the MCP server was added": {
+        "message": "MCP server added to {0}",
+        "comment": ["{0} is the file path where the MCP server was added"]
+    },
+    "MCP server is already configured in {0}/{0} is the file path where the MCP server configuration exists": {
+        "message": "MCP server is already configured in {0}",
+        "comment": ["{0} is the file path where the MCP server configuration exists"]
+    },
+    "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "Config copied to clipboard": "Config copied to clipboard",
+    "URL copied to clipboard": "URL copied to clipboard",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
@@ -2965,7 +2990,6 @@
     },
     "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
-    "Try it": "Try it",
     "Watch demo": "Watch demo",
     "Learn more": "Learn more",
     "Read docs": "Read docs",
