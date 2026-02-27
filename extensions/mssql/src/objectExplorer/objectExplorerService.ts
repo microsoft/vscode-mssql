@@ -115,7 +115,6 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
-        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -315,9 +314,7 @@ export class ObjectExplorerService {
     private getAddConnectionNodes(parent?: TreeNodeInfo): AddConnectionTreeNode[] {
         const nodeList: AddConnectionTreeNode[] = [];
         nodeList.push(new AddConnectionTreeNode(parent));
-        if (this._isRichExperienceEnabled) {
-            nodeList.push(new NewDeploymentTreeNode(parent));
-        }
+        nodeList.push(new NewDeploymentTreeNode(parent));
 
         return nodeList;
     }

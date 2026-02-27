@@ -104,6 +104,7 @@ const MainLayout = () => {
                                     : "none",
                         }}>
                         <SchemaDesignerPage
+                            activeView={activeView}
                             onNavigateToDab={() =>
                                 setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
                             }
@@ -137,7 +138,9 @@ const MainLayout = () => {
         );
     }
 
-    return <SchemaDesignerPage />;
+    return (
+        <SchemaDesignerPage activeView={SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner} />
+    );
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

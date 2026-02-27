@@ -71,6 +71,8 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             if (params.webviewPanel.viewColumn) {
                 this._viewColumn = params.webviewPanel.viewColumn;
             }
+
+            this._queryResultWebviewViewController.updateSelectionSummary();
         });
     }
 
@@ -88,6 +90,10 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     public revealToForeground() {
         this.panel.reveal(this._viewColumn, true);
+    }
+
+    public updateUri(uri: string): void {
+        this._uri = uri;
     }
 
     public getQueryResultWebviewViewController(): QueryResultWebviewController {

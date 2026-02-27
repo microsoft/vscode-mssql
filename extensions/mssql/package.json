@@ -210,12 +210,14 @@
             "objectExplorer": [
                 {
                     "id": "objectExplorer",
-                    "name": "%extension.connections%"
+                    "name": "%extension.connections%",
+                    "icon": "media/objectTypes/Database.svg"
                 },
                 {
                     "id": "queryHistory",
                     "name": "%extension.queryHistory%",
-                    "when": "config.mssql.enableQueryHistoryFeature"
+                    "when": "config.mssql.enableQueryHistoryFeature",
+                    "icon": "media/objectTypes/StoredProcedure.svg"
                 }
             ]
         },
@@ -519,7 +521,7 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "config.mssql.enableRichExperiences && view == objectExplorer",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
@@ -573,7 +575,7 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/ && config.mssql.enableRichExperiences",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
@@ -1325,11 +1327,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.enableRichExperiences",
-                "title": "%mssql.enableRichExperiences%",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
                 "category": "MS SQL"
@@ -1389,19 +1386,16 @@
             {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.deleteContainer",
                 "title": "%mssql.deleteContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.startContainer",
                 "title": "%mssql.startContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
@@ -1455,7 +1449,7 @@
                 "command": "mssql.runQuery",
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
             },
             {
                 "command": "mssql.connect",
@@ -1489,18 +1483,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
-                    "scope": "application"
-                },
-                "mssql.enableRichExperiences": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.enableRichExperiences.description%",
-                    "scope": "application"
-                },
-                "mssql.enableRichExperiencesDoNotShowPrompt": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
                     "scope": "application"
                 },
                 "mssql.openQueryResultsInTabByDefault": {
