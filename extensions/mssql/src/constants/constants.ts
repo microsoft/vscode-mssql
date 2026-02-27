@@ -97,7 +97,7 @@ export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
 export const cmdObjectExplorerCollapseOrExpandByDefault =
     "objectExplorer.collapseConnectionGroupsOnStartup";
-export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
+export const cmdEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
@@ -269,10 +269,6 @@ export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
-export const configEnableRichExperiences = "mssql.enableRichExperiences";
-export const configEnableRichExperiencesDoNotShowPrompt =
-    "mssql.enableRichExperiencesDoNotShowPrompt";
-export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
@@ -340,7 +336,6 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
-export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
