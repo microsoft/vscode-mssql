@@ -10,9 +10,10 @@ import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
+import debounce from "lodash/debounce";
 
 const useStyles = makeStyles({
     gridViewContainer: {
@@ -64,7 +65,7 @@ export const QueryResultsGridView = () => {
     const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement>>>(new Map());
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
-    const { keyBindings } = useVscodeWebview2();
+    const { keyBindings } = useVscodeWebview();
 
     // Derive a stable flat list for rendering
     const gridList: GridItem[] = useMemo(() => {
@@ -281,6 +282,20 @@ export const QueryResultsGridView = () => {
         });
     };
 
+    const persistGridPaneScrollPosition = useMemo(
+        () =>
+            debounce((scrollTop: number) => {
+                void context.extensionRpc.sendNotification(
+                    qr.SetGridPaneScrollPositionNotification.type,
+                    {
+                        uri: uri,
+                        scrollTop: scrollTop,
+                    },
+                );
+            }, 100),
+        [context.extensionRpc, uri],
+    );
+
     // Observe container height
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
@@ -299,19 +314,25 @@ export const QueryResultsGridView = () => {
         };
     }, [gridViewContainerRef]);
 
+    useEffect(() => {
+        const container = gridViewContainerRef.current;
+        if (!container) {
+            return;
+        }
+
+        const handleScroll = () => {
+            persistGridPaneScrollPosition(container.scrollTop);
+        };
+
+        container.addEventListener("scroll", handleScroll, { passive: true });
+        return () => {
+            container.removeEventListener("scroll", handleScroll);
+            persistGridPaneScrollPosition.cancel();
+        };
+    }, [persistGridPaneScrollPosition]);
+
     return (
-        <div
-            className={classes.gridViewContainer}
-            ref={gridViewContainerRef}
-            onScroll={async (e) => {
-                await context.extensionRpc.sendNotification(
-                    qr.SetGridPaneScrollPositionNotification.type,
-                    {
-                        uri: uri,
-                        scrollTop: e.currentTarget.scrollTop,
-                    },
-                );
-            }}>
+        <div className={classes.gridViewContainer} ref={gridViewContainerRef}>
             {gridList.map((item, index) => {
                 const gridKey = `${item.batchId}_${item.resultId}`;
                 const containerRef =

@@ -107,11 +107,27 @@ export class SqlOutputContentProvider {
         );
 
         /**
+         * Command to toggle the actual execution plan for the active query result
+         */
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdToggleActualPlan, async () => {
+                const uri = this._vscodeWrapper.activeTextEditorUri;
+
+                if (!uri) {
+                    return;
+                }
+
+                const isCurrentlyEnabled = this._actualPlanStatuses.includes(uri);
+                this.onToggleActualPlan(!isCurrentlyEnabled);
+            }),
+        );
+
+        /**
          * Command that reveals the query result
          */
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdrevealQueryResult, (uri: vscode.Uri) => {
-                this.revealQueryResult(uri.toString(true));
+                this.revealQueryResult(uri.toString());
             }),
         );
     }
@@ -724,7 +740,7 @@ export class SqlOutputContentProvider {
      * @param doc   The document that was closed
      */
     public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
-        const closedDocumentUri = doc.uri.toString(true);
+        const closedDocumentUri = doc.uri.toString();
 
         for (let [key, _value] of this._queryResultsMap.entries()) {
             if (closedDocumentUri === key) {
@@ -945,7 +961,7 @@ export class SqlOutputContentProvider {
     }
 
     private updateWebviewState(uri: string, state: qr.QueryResultWebviewState): void {
-        const activeEditorUri: string = vscode.window.activeTextEditor?.document.uri.toString(true);
+        const activeEditorUri: string = vscode.window.activeTextEditor?.document.uri.toString();
         // Update the state in cache first.
         this._queryResultWebviewController.setQueryResultState(uri, state);
         // Set the state to the right webview.

@@ -7,7 +7,6 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
-import eventBus from "../schemaDesignerEvents";
 
 const useStyles = makeStyles({
     editorFooter: {
@@ -39,7 +38,6 @@ export function SchemaDesignerEditorFooter() {
                 appearance="primary"
                 onClick={() => {
                     context.save();
-                    eventBus.emit("getScript");
                 }}
                 disabled={errorCount() > 0}>
                 {context.isNewTable

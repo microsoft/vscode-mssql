@@ -35,6 +35,7 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
         parentUrn?: string,
         objectUrn?: string,
         dialogTitle?: string,
+        webviewTitle?: string,
     ) {
         super(
             context,
@@ -42,6 +43,7 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             objectManagementService,
             ObjectManagementDialogType.DropDatabase,
             dialogTitle ?? LocConstants.dropDatabaseDialogTitle,
+            webviewTitle ?? LocConstants.dropDatabaseWebviewTitle,
             "dropDatabaseDialog",
             connectionUri,
             serverName,

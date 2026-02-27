@@ -23,6 +23,8 @@ import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
+import { CopilotChat } from "../sharedInterfaces/copilotChat";
+import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -34,7 +36,23 @@ function isDABEnabled(): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
+function isCopilotChatInstalled(): boolean {
+    return !!vscode.extensions.getExtension("github.copilot-chat");
+}
+
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+
+function getCopilotChatDiscoveryDismissedState(
+    context: vscode.ExtensionContext,
+): CopilotChat.DiscoveryDismissedState {
+    return {
+        schemaDesigner: context.globalState.get(
+            CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"),
+            false,
+        ),
+        dab: context.globalState.get(CopilotChat.getDiscoveryDismissedStateKey("dab"), false),
+    };
+}
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
@@ -43,6 +61,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     private _sessionId: string = "";
     private _key: string = "";
     private _serverName: string | undefined;
+    private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
@@ -67,6 +86,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
                 enableDAB: isDABEnabled(),
+                isCopilotChatInstalled: isCopilotChatInstalled(),
+                copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
@@ -90,8 +111,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this._key = `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
+        this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
         this.setupRequestHandlers();
+        this.setupReducers();
         this.setupConfigurationListener();
     }
 
@@ -386,6 +409,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
             return this._dabService.generateConfig(payload.config, {
                 connectionString: this.connectionString,
+                sqlServerContainerName: this._sqlServerContainerName,
             });
         });
 
@@ -397,9 +421,61 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
-        this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
-            await vscode.env.clipboard.writeText(payload.configContent);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+        this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            const message =
+                payload.copyTextType === Dab.CopyTextType.Url
+                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
+                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            await vscode.window.showInformationMessage(message);
+        });
+
+        // DAB deployment request handlers
+        this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            return this._dabService.runDeploymentStep(
+                payload.step,
+                payload.params,
+                payload.config,
+                this.connectionString
+                    ? {
+                          connectionString: this.connectionString,
+                          sqlServerContainerName: this._sqlServerContainerName,
+                      }
+                    : undefined,
+            );
+        });
+
+        this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
+            return this._dabService.validateDeploymentParams(payload.containerName, payload.port);
+        });
+
+        this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
+            return this._dabService.stopDeployment(payload.containerName);
+        });
+
+        this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
+            return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
+        });
+    }
+
+    private setupReducers() {
+        this.registerReducer("dismissCopilotChatDiscovery", async (state, payload) => {
+            if (!payload?.scenario) {
+                return state;
+            }
+
+            await this._context.globalState.update(
+                CopilotChat.getDiscoveryDismissedStateKey(payload.scenario),
+                true,
+            );
+
+            return {
+                ...state,
+                copilotChatDiscoveryDismissed: {
+                    ...state.copilotChatDiscoveryDismissed,
+                    [payload.scenario]: true,
+                },
+            };
         });
     }
 
@@ -409,12 +485,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 const newValue = isExpandCollapseButtonsEnabled();
 
                 this.updateState({
+                    ...this.state,
                     enableExpandCollapseButtons: newValue,
                 });
             }
             if (e.affectsConfiguration(configEnableDab)) {
                 const newValue = isDABEnabled();
                 this.updateState({
+                    ...this.state,
                     enableDAB: newValue,
                 });
             }
@@ -465,6 +543,25 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return this.sendRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, params);
     }
 
+    public async getDabToolState(): Promise<Dab.GetDabToolStateResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.GetDabToolStateRequest.type, undefined);
+    }
+
+    public async applyDabToolChanges(
+        params: Dab.ApplyDabToolChangesParams,
+    ): Promise<Dab.ApplyDabToolChangesResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
+    }
+
+    public showDabView(): void {
+        this.updateState({
+            ...this.state,
+            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+        });
+    }
+
     public get designerKey(): string {
         return this._key;
     }
@@ -485,6 +582,23 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         if (this.connectionUri) {
             return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
                 ?.credentials?.server;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Resolves the SQL Server container name from the connection profile.
+     * Returns undefined if the SQL Server is not running in a Docker container.
+     */
+    private resolveSqlServerContainerName(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.containerName;
+        }
+
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.containerName;
         }
 
         return undefined;

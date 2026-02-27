@@ -14,14 +14,10 @@ import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
+import { matchesStrictTargetHint, ToolTargetContext, ToolTargetHint } from "./toolsUtils";
 
 type IncludeOverviewColumns = "none" | "names" | "namesAndTypes";
 type IncludeTableColumns = IncludeOverviewColumns | "full";
-
-interface TargetHint {
-    server: string;
-    database: string;
-}
 
 export type SchemaDesignerToolParams =
     | { operation: "show"; connectionId: string }
@@ -35,7 +31,7 @@ export type SchemaDesignerToolParams =
           operation: "apply_edits";
           payload: {
               expectedVersion: string;
-              targetHint?: TargetHint;
+              targetHint?: ToolTargetHint;
               edits: SchemaDesigner.SchemaDesignerEdit[];
           };
       };
@@ -49,11 +45,6 @@ type ToolErrorReason =
     | "validation_error"
     | "invalid_request"
     | "internal_error";
-
-interface ToolTarget {
-    server?: string;
-    database?: string;
-}
 
 interface OverviewColumnView {
     name: string;
@@ -93,7 +84,7 @@ interface TableForeignKeyView {
     id?: string;
     name: string;
     referencedTable: { schema: string; name: string };
-    mappings: { column: string; referencedColumn: string }[];
+    mappings: { column: string; referencedColumn?: string }[];
     onDeleteAction: number;
     onUpdateAction: number;
 }
@@ -112,14 +103,19 @@ interface ApplyEditsReceipt {
     warnings: string[];
 }
 
+interface NormalizeForeignKeyEditsResult {
+    edits: SchemaDesigner.SchemaDesignerEdit[];
+    conversions: number;
+}
+
 interface SchemaDesignerToolError {
     success: false;
     reason: ToolErrorReason;
     message: string;
     server?: string;
     database?: string;
-    activeTarget?: ToolTarget;
-    targetHint?: TargetHint;
+    activeTarget?: ToolTargetContext;
+    targetHint?: ToolTargetHint;
     currentVersion?: string;
     currentOverview?: SchemaDesignerOverview;
     suggestedNextCall?: {
@@ -152,10 +148,9 @@ type NormalizedSchemaVersion = {
         }[];
         foreignKeys: {
             name: string;
-            columns: string[];
-            referencedSchemaName: string;
-            referencedTableName: string;
-            referencedColumns: string[];
+            columnIds: string[];
+            referencedTableId: string;
+            referencedColumnIds: string[];
             onDeleteAction: number;
             onUpdateAction: number;
         }[];
@@ -204,7 +199,10 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
             }
         };
 
-        const withTarget = (obj: any, designer: SchemaDesignerWebviewController | undefined) => {
+        const withTarget = <T extends object>(
+            obj: T,
+            designer: SchemaDesignerWebviewController | undefined,
+        ) => {
             if (!designer) return obj;
             return {
                 ...obj,
@@ -365,6 +363,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 }
 
                 const table = this.buildTableView(
+                    schema,
                     resolved.table,
                     includeColumns,
                     includeForeignKeys,
@@ -413,7 +412,13 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 }
 
                 const targetHint = options.input.payload?.targetHint;
-                if (targetHint && !this.matchesTarget(activeDesigner, targetHint)) {
+                if (
+                    targetHint &&
+                    !matchesStrictTargetHint(
+                        { server: activeDesigner.server, database: activeDesigner.database },
+                        targetHint,
+                    )
+                ) {
                     const err: SchemaDesignerToolError = {
                         success: false,
                         reason: "target_mismatch",
@@ -471,8 +476,14 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     return json(err);
                 }
 
+                const normalizedForeignKeyEdits = this.normalizeForeignKeyEdits(
+                    edits,
+                    currentSchema,
+                );
+                const normalizedEdits = normalizedForeignKeyEdits.edits;
+
                 activeDesigner.revealToForeground();
-                const applyResult = await activeDesigner.applyEdits({ edits });
+                const applyResult = await activeDesigner.applyEdits({ edits: normalizedEdits });
                 const postSchema = applyResult.schema ?? (await activeDesigner.getSchemaState());
                 const postVersion = this.computeSchemaVersion(postSchema);
 
@@ -493,30 +504,35 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         success: false,
                         reason: err.reason,
                         measurements: {
-                            editsCount: edits.length,
+                            editsCount: normalizedEdits.length,
                             appliedEdits: applyResult.appliedEdits ?? 0,
                             failedEditIndex: applyResult.failedEditIndex ?? -1,
-                            ...countEditOps(edits),
+                            ...countEditOps(normalizedEdits),
                         },
                     });
                     return json(err);
                 }
 
-                const appliedEdits = applyResult.appliedEdits ?? edits.length;
+                const appliedEdits = applyResult.appliedEdits ?? normalizedEdits.length;
                 const receipt: ApplyEditsReceipt = {
                     appliedEdits,
-                    changes: this.summarizeEdits(edits.slice(0, appliedEdits)),
-                    warnings: [],
+                    changes: this.summarizeEdits(normalizedEdits.slice(0, appliedEdits)),
+                    warnings:
+                        normalizedForeignKeyEdits.conversions > 0
+                            ? [
+                                  `Normalized ${normalizedForeignKeyEdits.conversions} drop_foreign_key + add_foreign_key pair(s) into set_foreign_key.`,
+                              ]
+                            : [],
                 };
 
                 sendToolTelemetry({
                     operation,
                     success: true,
                     measurements: {
-                        editsCount: edits.length,
+                        editsCount: normalizedEdits.length,
                         appliedEdits,
                         failedEditIndex: -1,
-                        ...countEditOps(edits),
+                        ...countEditOps(normalizedEdits),
                     },
                 });
                 return json(
@@ -604,8 +620,8 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         this.compareKeys(this.foreignKeySortKey(a), this.foreignKeySortKey(b)),
                     )
                     .map((foreignKey) => {
-                        const refs = foreignKey.referencedColumns ?? [];
-                        const pairs = (foreignKey.columns ?? []).map((column, i) => ({
+                        const refs = foreignKey.referencedColumnsIds ?? [];
+                        const pairs = (foreignKey.columnsIds ?? []).map((column, i) => ({
                             column,
                             referencedColumn: refs[i] ?? "",
                         }));
@@ -617,14 +633,9 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
 
                         return {
                             name: (foreignKey.name ?? "").toLowerCase(),
-                            columns: pairs.map((p) => p.column.toLowerCase()),
-                            referencedSchemaName: (
-                                foreignKey.referencedSchemaName ?? ""
-                            ).toLowerCase(),
-                            referencedTableName: (
-                                foreignKey.referencedTableName ?? ""
-                            ).toLowerCase(),
-                            referencedColumns: pairs.map((p) => p.referencedColumn.toLowerCase()),
+                            columnIds: pairs.map((p) => p.column.toLowerCase()),
+                            referencedTableId: (foreignKey.referencedTableId ?? "").toLowerCase(),
+                            referencedColumnIds: pairs.map((p) => p.referencedColumn.toLowerCase()),
                             onDeleteAction: foreignKey.onDeleteAction,
                             onUpdateAction: foreignKey.onUpdateAction,
                         };
@@ -642,11 +653,73 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     }
 
     private foreignKeySortKey(foreignKey: SchemaDesigner.ForeignKey): string {
-        return `${(foreignKey.name ?? "").toLowerCase()}.${(foreignKey.referencedSchemaName ?? "").toLowerCase()}.${(foreignKey.referencedTableName ?? "").toLowerCase()}`;
+        return `${(foreignKey.name ?? "").toLowerCase()}.${(foreignKey.referencedTableId ?? "").toLowerCase()}`;
     }
 
     private compareKeys(left: string, right: string): number {
         return left.localeCompare(right);
+    }
+
+    private normalizeForeignKeyEdits(
+        edits: SchemaDesigner.SchemaDesignerEdit[],
+        schema: SchemaDesigner.Schema,
+    ): NormalizeForeignKeyEditsResult {
+        const normalized: SchemaDesigner.SchemaDesignerEdit[] = [];
+        let conversions = 0;
+
+        const normalizeRef = (ref: SchemaDesigner.TableRef | undefined): string | undefined => {
+            if (!ref) {
+                return undefined;
+            }
+
+            const resolved = this.resolveTable(schema, ref);
+            if (resolved.success) {
+                return resolved.table.id;
+            }
+
+            if (ref.id) {
+                return `id:${ref.id.toLowerCase()}`;
+            }
+
+            return `name:${(ref.schema ?? "").toLowerCase()}.${(ref.name ?? "").toLowerCase()}`;
+        };
+
+        for (let i = 0; i < edits.length; i++) {
+            const current = edits[i];
+            const next = edits[i + 1];
+
+            if (
+                current.op === "drop_foreign_key" &&
+                next?.op === "add_foreign_key" &&
+                normalizeRef(current.table) === normalizeRef(next.table)
+            ) {
+                const foreignKeyRef = current.foreignKey;
+                const foreignKeyPayload = next.foreignKey;
+
+                if (foreignKeyRef && foreignKeyPayload) {
+                    normalized.push({
+                        op: "set_foreign_key",
+                        table: next.table,
+                        foreignKey: foreignKeyRef,
+                        name: foreignKeyPayload.name,
+                        referencedTable: foreignKeyPayload.referencedTable,
+                        mappings: foreignKeyPayload.mappings,
+                        onDeleteAction: foreignKeyPayload.onDeleteAction,
+                        onUpdateAction: foreignKeyPayload.onUpdateAction,
+                    });
+                    conversions += 1;
+                    i += 1;
+                    continue;
+                }
+            }
+
+            normalized.push(current);
+        }
+
+        return {
+            edits: normalized,
+            conversions,
+        };
     }
 
     private buildOverview(
@@ -729,6 +802,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     }
 
     private buildTableView(
+        schema: SchemaDesigner.Schema,
         table: SchemaDesigner.Table,
         includeColumns: IncludeTableColumns,
         includeForeignKeys: boolean,
@@ -771,14 +845,36 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         }
 
         if (includeForeignKeys) {
+            const tableById = new Map((schema.tables ?? []).map((t) => [t.id, t]));
+            const sourceColumnsById = new Map(
+                (table.columns ?? []).map((column) => [column.id, column]),
+            );
             view.foreignKeys = (table.foreignKeys ?? []).map((fk) => ({
+                referencedTable: {
+                    schema: tableById.get(fk.referencedTableId)?.schema ?? "",
+                    name: tableById.get(fk.referencedTableId)?.name ?? "",
+                },
+                mappings: (fk.columnsIds ?? [])
+                    .map((columnId, idx) => {
+                        const sourceColumnName = sourceColumnsById.get(columnId)?.name;
+                        if (!sourceColumnName) {
+                            return undefined;
+                        }
+
+                        const referencedColumnName = tableById
+                            .get(fk.referencedTableId)
+                            ?.columns.find(
+                                (column) => column.id === (fk.referencedColumnsIds ?? [])[idx],
+                            )?.name;
+
+                        return {
+                            column: sourceColumnName,
+                            referencedColumn: referencedColumnName,
+                        };
+                    })
+                    .filter((mapping) => mapping !== undefined),
                 id: includeColumns === "full" ? fk.id : undefined,
                 name: fk.name,
-                referencedTable: { schema: fk.referencedSchemaName, name: fk.referencedTableName },
-                mappings: (fk.columns ?? []).map((col, idx) => ({
-                    column: col,
-                    referencedColumn: (fk.referencedColumns ?? [])[idx],
-                })),
                 onDeleteAction: fk.onDeleteAction,
                 onUpdateAction: fk.onUpdateAction,
             }));
@@ -786,16 +882,6 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
 
         return view;
     }
-
-    private matchesTarget(designer: SchemaDesignerWebviewController, hint: TargetHint): boolean {
-        const activeServer = (designer.server ?? "").toLowerCase();
-        const activeDb = (designer.database ?? "").toLowerCase();
-        return (
-            activeServer === (hint.server ?? "").toLowerCase() &&
-            activeDb === (hint.database ?? "").toLowerCase()
-        );
-    }
-
     private summarizeEdits(edits: SchemaDesigner.SchemaDesignerEdit[]): Record<string, unknown> {
         const changes: Record<string, unknown> = {};
         const push = <T>(key: string, value: T) => {
@@ -853,7 +939,13 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     push("foreignKeysUpdated", {
                         table: { schema: edit.table.schema, name: edit.table.name },
                         foreignKey: { name: edit.foreignKey.name },
-                        set: edit.set,
+                        update: {
+                            name: edit.name,
+                            referencedTable: edit.referencedTable,
+                            mappings: edit.mappings,
+                            onDeleteAction: edit.onDeleteAction,
+                            onUpdateAction: edit.onUpdateAction,
+                        },
                     });
                     break;
             }

@@ -12,7 +12,6 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
-    ToolbarButton,
     Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -21,7 +20,7 @@ import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Node, Edge, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { flowUtils } from "../schemaDesignerUtils";
+import { layoutFlowComponents } from "../model";
 import eventBus from "../schemaDesignerEvents";
 
 export function AutoArrangeButton() {
@@ -32,7 +31,7 @@ export function AutoArrangeButton() {
         eventBus.emit("pushState");
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-        const generateComponenets = flowUtils.generatePositions(nodes, edges);
+        const generateComponenets = layoutFlowComponents(nodes, edges);
         reactFlow.setNodes(generateComponenets.nodes);
         reactFlow.setEdges(generateComponenets.edges);
         context.resetView();
@@ -44,7 +43,12 @@ export function AutoArrangeButton() {
         <Dialog>
             <DialogTrigger>
                 <Tooltip content={locConstants.schemaDesigner.autoArrange} relationship="label">
-                    <ToolbarButton appearance="subtle" icon={<FluentIcons.Flowchart20Regular />} />
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.Flowchart16Regular />}>
+                        {locConstants.schemaDesigner.autoArrange}
+                    </Button>
                 </Tooltip>
             </DialogTrigger>
             <DialogSurface>

@@ -11,11 +11,11 @@ import {
     Circle20Regular,
     Dismiss20Regular,
 } from "@fluentui/react-icons";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DockerStep } from "../../../../sharedInterfaces/localContainers";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -61,7 +61,7 @@ interface StepCardProps {
 
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
+    const stateExists = useDeploymentSelector((s) => s != null);
     const [expanded, setExpanded] = useState(true);
     // This state is used to track if the step has just errored, and expand then
     const [isNewlyErrored, setIsNewlyErrored] = useState(false);
@@ -69,7 +69,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!context) {
+    if (!stateExists) {
         return undefined;
     }
 
@@ -78,7 +78,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
             setExpanded(true);
             setIsNewlyErrored(true);
         }
-    }, [context.state]);
+    }, [step.loadState]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {

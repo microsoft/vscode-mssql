@@ -6,6 +6,7 @@
 import {
     Button,
     Checkbox,
+    Combobox,
     Dropdown,
     Field,
     FieldProps,
@@ -28,14 +29,60 @@ import {
 import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
+import { EventType, KeyCode } from "../keys";
+
+export const useFormStyles = makeStyles({
+    formRoot: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+    },
+    formDiv: {
+        padding: "10px",
+        maxWidth: "650px",
+        display: "flex",
+        flexDirection: "column",
+        "> *": {
+            margin: "5px",
+        },
+    },
+    formComponentDiv: {
+        "> *": {
+            margin: "5px",
+        },
+    },
+    formComponentActionDiv: {
+        display: "flex",
+        flexDirection: "row",
+        "> *": {
+            margin: "5px",
+        },
+    },
+    formNavTrayButton: {
+        width: "150px",
+        alignSelf: "center",
+        margin: "0px 10px",
+    },
+    formNavTray: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 0px",
+    },
+    formNavTrayRight: {
+        display: "flex",
+        marginLeft: "auto",
+    },
+});
 
 export const FormInput = <
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm>,
 >({
     context,
+    formState: _formState,
     value,
     target,
     type,
@@ -43,6 +90,7 @@ export const FormInput = <
     props,
 }: {
     context: TContext;
+    formState: TForm;
     value: string;
     target: keyof TForm;
     type: "input" | "password" | "textarea";
@@ -132,15 +180,17 @@ export const FormField = <
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm>,
 >({
     context,
+    formState,
     component,
     idx,
     props,
     componentProps,
 }: {
     context: TContext;
+    formState: TForm;
     component: TFormItemSpec;
     idx: number;
     props?: FieldProps;
@@ -195,6 +245,7 @@ export const FormField = <
                 style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
                     context,
+                    formState,
                     component,
                     componentProps,
                 )}
@@ -227,15 +278,14 @@ export function generateFormComponent<
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
->(context: TContext, component: TFormItemSpec, props?: any) {
-    const formState = context.state.formState;
-
+    TContext extends FormContextProps<TForm>,
+>(context: TContext, formState: TForm, component: TFormItemSpec, props?: any) {
     switch (component.type) {
         case FormItemType.Input:
             return (
                 <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
+                    formState={formState}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="input"
@@ -247,6 +297,7 @@ export function generateFormComponent<
             return (
                 <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
+                    formState={formState}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="textarea"
@@ -258,6 +309,7 @@ export function generateFormComponent<
             return (
                 <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
+                    formState={formState}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     placeholder={component.placeholder ?? ""}
@@ -323,6 +375,73 @@ export function generateFormComponent<
                     })}
                 </Dropdown>
             );
+        case FormItemType.Combobox:
+            if (component.options === undefined) {
+                throw new Error("Combobox component must have options");
+            }
+            // options that sets whether a user can enter a freeform value or must select from the list of options
+            const isFreeform = props && props.freeform;
+            const optionDisplayName =
+                component.options.find(
+                    (option) => option.value === formState[component.propertyName],
+                )?.displayName ?? "";
+            return (
+                <Combobox
+                    size="small"
+                    placeholder={component.placeholder ?? ""}
+                    value={
+                        isFreeform
+                            ? (formState[component.propertyName] as string)
+                            : optionDisplayName
+                    }
+                    selectedOptions={
+                        optionDisplayName !== ""
+                            ? [formState[component.propertyName] as string]
+                            : []
+                    }
+                    autoComplete={isFreeform ? "off" : "on"}
+                    onChange={(event) => {
+                        if (isFreeform) {
+                            if (props.onChange) {
+                                props.onChange(event);
+                            } else {
+                                context?.formAction({
+                                    propertyName: component.propertyName,
+                                    isAction: false,
+                                    value: event.target.value,
+                                });
+                            }
+                        }
+                    }}
+                    onOptionSelect={(event, data) => {
+                        // if user pressed enter after typing a freeform value that doesn't match an option,
+                        // don't trigger onOptionSelect and instead let onChange handle it
+                        if (
+                            isFreeform &&
+                            !optionDisplayName &&
+                            event.type === EventType.Keydown &&
+                            (event as React.KeyboardEvent).key === KeyCode.Enter
+                        ) {
+                            return;
+                        }
+                        if (props && props.onOptionSelect) {
+                            props.onOptionSelect(event, data);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                        }
+                    }}
+                    {...props}>
+                    {component.options.map((option) => (
+                        <Option key={option.value} value={option.value}>
+                            {option.displayName}
+                        </Option>
+                    ))}
+                </Combobox>
+            );
         case FormItemType.SearchableDropdown:
             if (component.options === undefined) {
                 throw new Error("Dropdown component must have options");
@@ -377,47 +496,3 @@ export function generateFormComponent<
             );
     }
 }
-
-export const useFormStyles = makeStyles({
-    formRoot: {
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-    },
-    formDiv: {
-        padding: "10px",
-        maxWidth: "650px",
-        display: "flex",
-        flexDirection: "column",
-        "> *": {
-            margin: "5px",
-        },
-    },
-    formComponentDiv: {
-        "> *": {
-            margin: "5px",
-        },
-    },
-    formComponentActionDiv: {
-        display: "flex",
-        flexDirection: "row",
-        "> *": {
-            margin: "5px",
-        },
-    },
-    formNavTrayButton: {
-        width: "150px",
-        alignSelf: "center",
-        margin: "0px 10px",
-    },
-    formNavTray: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 0px",
-    },
-    formNavTrayRight: {
-        display: "flex",
-        marginLeft: "auto",
-    },
-});

@@ -23,6 +23,7 @@ try {
     execSync(`yarn build:extension-bundle ${prodArg}`, { stdio: "inherit" });
     execSync(`yarn build:webviews`, { stdio: "inherit" });
     execSync(`yarn build:webviews-bundle ${prodArg}`, { stdio: "inherit" });
+    execSync(`yarn build:notebook-renderer-bundle ${prodArg}`, { stdio: "inherit" });
 } catch (error) {
     process.exit(1);
 }

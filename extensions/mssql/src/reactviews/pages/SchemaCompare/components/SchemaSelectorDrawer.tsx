@@ -26,6 +26,7 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { locConstants as loc } from "../../../common/locConstants";
 import {
     SchemaCompareEndpointType,
@@ -103,11 +104,17 @@ const SchemaSelectorDrawer = (props: Props) => {
     const classes = useStyles();
 
     const context = useContext(schemaCompareContext);
+    const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
+    const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
+    const auxiliaryEndpointInfo = useSchemaCompareSelector((s) => s.auxiliaryEndpointInfo);
+    const activeServers = useSchemaCompareSelector((s) => s.activeServers);
+    const databases = useSchemaCompareSelector((s) => s.databases);
+    const isSqlProjectExtensionInstalled = useSchemaCompareSelector(
+        (s) => s.isSqlProjectExtensionInstalled,
+    );
 
     const currentEndpoint =
-        props.endpointType === "source"
-            ? context.state.sourceEndpointInfo
-            : context.state.targetEndpointInfo;
+        props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
 
     const [schemaType, setSchemaType] = useState(
         endpointTypeToString(currentEndpoint?.endpointType || SchemaCompareEndpointType.Database),
@@ -146,7 +153,7 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     useEffect(() => {
         updateOkButtonState(schemaType);
-    }, [context.state.auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
+    }, [auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
 
     // Handle auto-selection of newly created connections
     useEffect(() => {
@@ -177,14 +184,12 @@ const SchemaSelectorDrawer = (props: Props) => {
             setDisableOkButton(false);
         } else if (
             type === "dacpac" &&
-            (context.state.auxiliaryEndpointInfo?.packageFilePath ||
-                currentEndpoint?.packageFilePath)
+            (auxiliaryEndpointInfo?.packageFilePath || currentEndpoint?.packageFilePath)
         ) {
             setDisableOkButton(false);
         } else if (
             type === "sqlproj" &&
-            (context.state.auxiliaryEndpointInfo?.projectFilePath ||
-                currentEndpoint?.projectFilePath)
+            (auxiliaryEndpointInfo?.projectFilePath || currentEndpoint?.projectFilePath)
         ) {
             setDisableOkButton(false);
         } else {
@@ -194,17 +199,9 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     const getFilePathForProjectOrDacpac = () => {
         if (schemaType === "dacpac") {
-            return (
-                context.state.auxiliaryEndpointInfo?.packageFilePath ||
-                currentEndpoint?.packageFilePath ||
-                ""
-            );
+            return auxiliaryEndpointInfo?.packageFilePath || currentEndpoint?.packageFilePath || "";
         } else if (schemaType === "sqlproj") {
-            return (
-                context.state.auxiliaryEndpointInfo?.projectFilePath ||
-                currentEndpoint?.projectFilePath ||
-                ""
-            );
+            return auxiliaryEndpointInfo?.projectFilePath || currentEndpoint?.projectFilePath || "";
         }
     };
 
@@ -230,10 +227,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     };
 
     const handleSelectFile = (fileType: "dacpac" | "sqlproj") => {
-        const endpoint =
-            props.endpointType === "source"
-                ? context.state.sourceEndpointInfo
-                : context.state.targetEndpointInfo;
+        const endpoint = props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
 
         context.selectFile(endpoint, props.endpointType, fileType);
     };
@@ -254,7 +248,7 @@ const SchemaSelectorDrawer = (props: Props) => {
         props.showDrawer(false);
     };
 
-    let isSqlProjExtensionInstalled = context.state.isSqlProjectExtensionInstalled;
+    let isSqlProjExtensionInstalled = isSqlProjectExtensionInstalled;
 
     return (
         <Drawer
@@ -300,11 +294,11 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseServerSelected(event, data)
                                 }>
-                                {Object.keys(context.state.activeServers).map((connUri) => {
+                                {Object.keys(activeServers).map((connUri) => {
                                     return (
                                         <Option key={connUri} value={connUri}>
-                                            {context.state.activeServers[connUri].profileName ||
-                                                context.state.activeServers[connUri].server}
+                                            {activeServers[connUri].profileName ||
+                                                activeServers[connUri].server}
                                         </Option>
                                     );
                                 })}
@@ -328,7 +322,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
                                 }>
-                                {context.state.databases.map((db) => {
+                                {databases.map((db) => {
                                     return (
                                         <Option key={db} value={db}>
                                             {db}

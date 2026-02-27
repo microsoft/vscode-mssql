@@ -38,8 +38,8 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         document: vscode.TextDocument,
         _token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
-        // Hide CodeLens if the URI is owned by a coordinating extension (e.g., PostgreSQL)
-        if (uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(document.uri)) {
+        // Defer to notebook-specific code lens provider for notebook cells
+        if (document.uri.scheme === "vscode-notebook-cell" || uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(document.uri)) {
             return [];
         }
 
@@ -50,12 +50,20 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
             return [];
         }
 
-        const connection = this._connectionManager.getConnectionInfo(document.uri.toString(true));
+        const connection = this._connectionManager.getConnectionInfo(document.uri.toString());
         if (!connection) {
             // On no connection, show a single "Connect" CodeLens
             return [
                 new vscode.CodeLens(connectionCodeLensRange, {
                     title: QueryEditor.codeLensConnect,
+                    command: Constants.cmdConnect,
+                }),
+            ];
+        } else if (connection.connecting) {
+            // While connecting, show a single "Connecting" CodeLens.
+            return [
+                new vscode.CodeLens(connectionCodeLensRange, {
+                    title: `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`,
                     command: Constants.cmdConnect,
                 }),
             ];

@@ -23,6 +23,7 @@ import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
 import { UriOwnershipCoordinator } from "@microsoft/vscode-sql-common";
+import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
 
 /**
  * VS Code context key used to indicate when the active editor's URI is owned by another extension.
@@ -43,6 +44,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
+    // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
+    initializeWebviewLocalizationCache();
 
     IconUtils.initialize(context.extensionUri);
 

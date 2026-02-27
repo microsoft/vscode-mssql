@@ -67,7 +67,8 @@ export const AdvancedDeploymentOptionsDrawer = ({
     const [searchText, setSearchText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
     const loc = LocConstants.getInstance();
-    const state = usePublishDialogSelector((s) => s);
+    const deploymentOptions = usePublishDialogSelector((s) => s?.deploymentOptions);
+    const defaultDeploymentOptions = usePublishDialogSelector((s) => s?.defaultDeploymentOptions);
     const [localChanges, setLocalChanges] = useState<Array<{ optionName: string; value: boolean }>>(
         [],
     );
@@ -90,7 +91,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
 
     // Create option groups from base deployment options, applying local changes
     const optionGroups = useMemo(() => {
-        if (!state.deploymentOptions) return [];
+        if (!deploymentOptions) return [];
 
         const groups: Array<{
             key: string;
@@ -104,9 +105,9 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }> = [];
 
         // Process boolean options and split into General and Ignore groups
-        if (state.deploymentOptions.booleanOptionsDictionary) {
+        if (deploymentOptions.booleanOptionsDictionary) {
             const allBooleanEntries = Object.entries(
-                state.deploymentOptions.booleanOptionsDictionary,
+                deploymentOptions.booleanOptionsDictionary,
             ).map(([key, option]) => ({
                 key,
                 displayName: option.displayName,
@@ -142,9 +143,9 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }
 
         // Exclude Object Types group
-        if (state.deploymentOptions.objectTypesDictionary) {
-            const baseExcludedTypes = state.deploymentOptions.excludeObjectTypes?.value || [];
-            const excludeEntries = Object.entries(state.deploymentOptions.objectTypesDictionary)
+        if (deploymentOptions.objectTypesDictionary) {
+            const baseExcludedTypes = deploymentOptions.excludeObjectTypes?.value || [];
+            const excludeEntries = Object.entries(deploymentOptions.objectTypesDictionary)
                 .map(([key, displayName]) => {
                     const baseExcluded = baseExcludedTypes.some(
                         (excludedType) => excludedType.toLowerCase() === key.toLowerCase(),
@@ -170,7 +171,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }
 
         return groups;
-    }, [state.deploymentOptions, getCurrentValue, loc]);
+    }, [deploymentOptions, getCurrentValue, loc]);
 
     // Options change handler, inserts and removes the changed option in localChanges
     const handleOptionChange = (optionName: string, checked: boolean) => {
@@ -188,20 +189,20 @@ export const AdvancedDeploymentOptionsDrawer = ({
 
     // Options reset handler, clears all local changes (reset to base deployment options)
     const handleReset = () => {
-        if (state.defaultDeploymentOptions) {
-            context?.updateDeploymentOptions(state.defaultDeploymentOptions);
+        if (defaultDeploymentOptions) {
+            context?.updateDeploymentOptions(defaultDeploymentOptions);
         }
         setLocalChanges([]);
     };
 
     // Handle ok button click, Apply local changes and close drawer
     const handleOk = () => {
-        if (!state.deploymentOptions || localChanges.length === 0) {
+        if (!deploymentOptions || localChanges.length === 0) {
             setIsAdvancedDrawerOpen(false);
             return;
         }
 
-        const updatedOptions = structuredClone(state.deploymentOptions);
+        const updatedOptions = structuredClone(deploymentOptions);
 
         // Apply each local change to the deployment options
         localChanges.forEach(({ optionName, value }) => {

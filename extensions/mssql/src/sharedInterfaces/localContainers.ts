@@ -8,8 +8,7 @@ import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 
 export class LocalContainersState
-    implements
-        FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
+    implements FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
@@ -58,12 +57,7 @@ export interface LocalContainersFormItemSpec
     componentWidth: string;
 }
 
-export interface LocalContainersContextProps
-    extends FormContextProps<
-        DockerConnectionProfile,
-        LocalContainersState,
-        LocalContainersFormItemSpec
-    > {
+export interface LocalContainersContextProps extends FormContextProps<DockerConnectionProfile> {
     /**
      * Checks the selected Docker profile's availability and configuration.
      */
@@ -78,11 +72,6 @@ export interface LocalContainersContextProps
      * Resets the states of the current Docker step to NotStarted.
      */
     resetDockerStepState(): void;
-
-    /**
-     * Closes the ARM SQL 2025 error dialog.
-     */
-    closeArmSql2025ErrorDialog(): void;
 }
 
 export interface LocalContainersReducers {
@@ -101,11 +90,6 @@ export interface LocalContainersReducers {
      * Reducer for Docker profile validation.
      */
     checkDockerProfile: {};
-
-    /**
-     * Reducer for closing the ARM SQL 2025 error dialog.
-     */
-    closeArmSql2025ErrorDialog: {};
 }
 
 /**

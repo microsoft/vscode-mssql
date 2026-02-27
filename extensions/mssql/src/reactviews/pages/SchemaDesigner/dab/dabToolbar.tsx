@@ -5,19 +5,19 @@
 
 import {
     Button,
-    Dropdown,
+    Checkbox,
+    Divider,
+    Input,
     makeStyles,
-    Option,
     Text,
     tokens,
-    ToggleButton,
-    Toolbar,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { useContext } from "react";
+import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { useDabContext } from "./dabContext";
+import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -56,8 +56,9 @@ const useStyles = makeStyles({
         fontSize: "13px",
         color: tokens.colorNeutralForeground2,
     },
-    apiTypeButtons: {
+    apiTypeCheckboxes: {
         display: "flex",
+        alignItems: "center",
         gap: "4px",
     },
     filterRow: {
@@ -66,18 +67,9 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         width: "100%",
     },
-    filterLeft: {
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-    },
-    entityEndpointsLabel: {
-        fontSize: "13px",
-        fontWeight: 500,
-    },
-    schemaDropdown: {
-        minWidth: "120px",
-        maxWidth: "250px",
+    searchInput: {
+        minWidth: "180px",
+        maxWidth: "300px",
     },
     enabledCount: {
         fontSize: "12px",
@@ -85,11 +77,22 @@ const useStyles = makeStyles({
     },
 });
 
-export function DabToolbar() {
+interface DabToolbarProps {
+    showDiscovery: boolean;
+    onNavigateToSchema?: () => void;
+}
+
+export function DabToolbar({ showDiscovery, onNavigateToSchema }: DabToolbarProps) {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
-    const { dabConfig, updateDabApiTypes, dabSchemaFilter, setDabSchemaFilter, generateDabConfig } =
-        context;
+    const context = useDabContext();
+    const {
+        dabConfig,
+        updateDabApiTypes,
+        dabTextFilter,
+        setDabTextFilter,
+        generateDabConfig,
+        openDabDeploymentDialog,
+    } = context;
 
     if (!dabConfig) {
         return null;
@@ -104,19 +107,33 @@ export function DabToolbar() {
         { type: Dab.ApiType.Mcp, label: locConstants.schemaDesigner.mcp },
     ];
 
-    // Get unique schemas from entities for the filter dropdown
-    const availableSchemas = Array.from(
-        new Set(dabConfig.entities.map((e) => e.schemaName)),
-    ).sort();
+    const allApiTypes = apiTypeOptions.map((o) => o.type);
+    const allApiTypesSelected = allApiTypes.every((t) => dabConfig.apiTypes.includes(t));
+    const noneApiTypesExtraSelected = dabConfig.apiTypes.length <= 1;
 
     return (
         <div className={classes.toolbarContainer}>
             {/* Header row with title and action buttons */}
             <div className={classes.headerRow}>
                 <div className={classes.titleSection}>
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.ArrowLeft16Regular />}
+                        onClick={onNavigateToSchema}>
+                        {locConstants.schemaDesigner.backToSchema}
+                    </Button>
+                    <Divider vertical style={{ height: "20px" }} />
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
+                    <SchemaDesignerWebviewCopilotChatEntry
+                        scenario="dab"
+                        entryPoint="dabToolbar"
+                        discoveryTitle={locConstants.schemaDesigner.dabCopilotDiscoveryTitle}
+                        discoveryBody={locConstants.schemaDesigner.dabCopilotDiscoveryBody}
+                        showDiscovery={showDiscovery}
+                    />
                     <Button
                         appearance="subtle"
                         icon={<FluentIcons.DocumentCopy16Regular />}
@@ -129,7 +146,8 @@ export function DabToolbar() {
                         appearance="primary"
                         icon={<FluentIcons.Play16Filled />}
                         size="small"
-                        title={locConstants.schemaDesigner.deploy}>
+                        title={locConstants.schemaDesigner.deploy}
+                        onClick={openDabDeploymentDialog}>
                         {locConstants.schemaDesigner.deploy}
                     </Button>
                 </div>
@@ -138,63 +156,62 @@ export function DabToolbar() {
             {/* API Type selection row */}
             <div className={classes.apiTypeRow}>
                 <Text className={classes.apiTypeLabel}>{locConstants.schemaDesigner.apiType}</Text>
-                <Toolbar size="small" className={classes.apiTypeButtons}>
+                <div className={classes.apiTypeCheckboxes}>
                     {apiTypeOptions.map(({ type, label }) => {
                         const isSelected = dabConfig.apiTypes.includes(type);
                         const isLastSelected = isSelected && dabConfig.apiTypes.length === 1;
                         return (
-                            <ToggleButton
+                            <Checkbox
                                 key={type}
-                                appearance={isSelected ? "primary" : "subtle"}
-                                size="small"
+                                label={label}
                                 checked={isSelected}
                                 disabled={isLastSelected}
-                                onClick={() => {
-                                    const updated = isSelected
-                                        ? dabConfig.apiTypes.filter((t) => t !== type)
-                                        : [...dabConfig.apiTypes, type];
+                                onChange={(_, data) => {
+                                    const updated = data.checked
+                                        ? [...dabConfig.apiTypes, type]
+                                        : dabConfig.apiTypes.filter((t) => t !== type);
                                     updateDabApiTypes(updated);
-                                }}>
-                                {label}
-                            </ToggleButton>
+                                }}
+                            />
                         );
                     })}
-                </Toolbar>
+                    <Divider vertical style={{ height: "20px" }} />
+                    <Checkbox
+                        label={locConstants.schemaDesigner.all}
+                        checked={
+                            allApiTypesSelected ? true : noneApiTypesExtraSelected ? false : "mixed"
+                        }
+                        onChange={(_, data) => {
+                            const updated = data.checked ? allApiTypes : [allApiTypes[0]];
+                            updateDabApiTypes(updated);
+                        }}
+                    />
+                </div>
             </div>
 
-            {/* Entity Endpoints filter row */}
+            {/* Filter row */}
             <div className={classes.filterRow}>
-                <div className={classes.filterLeft}>
-                    <Text className={classes.entityEndpointsLabel}>
-                        {locConstants.schemaDesigner.entityEndpoints}
-                    </Text>
-                    <Dropdown
-                        className={classes.schemaDropdown}
-                        size="small"
-                        multiselect
-                        button={{
-                            style: {
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                            },
-                        }}
-                        value={
-                            dabSchemaFilter.length === 0
-                                ? locConstants.schemaDesigner.allSchemas
-                                : dabSchemaFilter.join(", ")
-                        }
-                        selectedOptions={dabSchemaFilter}
-                        onOptionSelect={(_, data) => {
-                            setDabSchemaFilter(data.selectedOptions);
-                        }}>
-                        {availableSchemas.map((schema) => (
-                            <Option key={schema} value={schema}>
-                                {schema}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </div>
+                <Input
+                    className={classes.searchInput}
+                    size="small"
+                    placeholder={locConstants.schemaDesigner.filterEntities}
+                    aria-label={locConstants.schemaDesigner.filterEntities}
+                    value={dabTextFilter}
+                    onChange={(_, data) => setDabTextFilter(data.value)}
+                    contentBefore={<Search16Regular />}
+                    contentAfter={
+                        dabTextFilter ? (
+                            <Button
+                                appearance="transparent"
+                                icon={<Dismiss16Regular />}
+                                size="small"
+                                aria-label={locConstants.common.clear}
+                                onClick={() => setDabTextFilter("")}
+                                style={{ minWidth: "auto", padding: 0 }}
+                            />
+                        ) : null
+                    }
+                />
                 <Text className={classes.enabledCount}>
                     {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
                 </Text>

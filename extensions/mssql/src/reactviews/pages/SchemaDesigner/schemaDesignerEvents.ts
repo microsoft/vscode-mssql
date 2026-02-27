@@ -7,12 +7,9 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { TypedEventEmitter } from "../../common/eventEmitter";
 
 export type MyEvents = {
-    getScript: () => void;
     refreshFlowState: () => void;
     revealForeignKeyEdges: (foreignKeyId: string) => void;
     clearEdgeSelection: () => void;
-    openCodeDrawer: () => void;
-    toggleChangesPanel: () => void;
     editTable: (
         table: SchemaDesigner.Table,
         schema: SchemaDesigner.Schema,
@@ -24,6 +21,13 @@ export type MyEvents = {
     undo: () => void;
     redo: () => void;
     updateUndoRedoState: (undoEnabled: boolean, redoEnabled: boolean) => void;
+    /**
+     * Emitted when the user manually edits entities (tables, columns, foreign keys)
+     * through the editor drawer. Carries the set of entity IDs that were modified.
+     * Used by CopilotChangesProvider to auto-remove copilot-tracked changes for
+     * entities the user has taken ownership of.
+     */
+    userEditedEntities: (entityIds: Set<string>) => void;
 };
 
 const eventBus = new TypedEventEmitter<MyEvents>();

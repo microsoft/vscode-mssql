@@ -25,6 +25,7 @@ import {
     registerCommonRequestHandlers,
 } from "./utils";
 import { Deferred } from "../protocol";
+import { getUriKey } from "../utils/utils";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -64,7 +65,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 this.updateSelectionSummary();
-                const uri = editor?.document?.uri?.toString(true);
+
+                const uri = getUriKey(editor?.document?.uri);
                 const hasPanel = uri && this.hasPanel(uri);
                 const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
 
@@ -91,7 +93,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
             this.vscodeWrapper.onDidOpenTextDocument((document) => {
-                const uri = document.uri.toString(true);
+                const uri = getUriKey(document.uri);
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
                 }
@@ -366,15 +368,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
             // Check if we should keep the state instead of cleaning up
             const documentStillOpen = this.vscodeWrapper.textDocuments.some(
-                (doc) => doc.uri.toString(true) === uri,
+                (doc) => getUriKey(doc.uri) === uri,
             );
             const shouldKeepState =
                 documentStillOpen && !this.isOpenQueryResultsInTabByDefaultEnabled;
 
             if (shouldKeepState) {
                 // Keep the state - only show in webview view if the document is active
-                const activeDocumentUri =
-                    this.vscodeWrapper.activeTextEditor?.document?.uri?.toString(true);
+                const activeDocumentUri = getUriKey(
+                    this.vscodeWrapper.activeTextEditor?.document?.uri,
+                );
                 if (activeDocumentUri === uri && this.isVisible()) {
                     this.state = this.getQueryResultState(uri);
                 }
@@ -479,7 +482,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         );
 
         if (!activeUri) {
-            activeUri = vscode.window.activeTextEditor?.document.uri.toString(true);
+            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
         }
 
         if (!this._queryResultStateMap.has(activeUri)) {

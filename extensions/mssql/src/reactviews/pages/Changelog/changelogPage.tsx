@@ -27,7 +27,7 @@ import {
     ChangelogLinkRequest,
     CloseChangelogRequest,
 } from "../../../sharedInterfaces/changelog";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useChangelogSelector } from "./changelogSelector";
 import { locConstants } from "../../common/locConstants";
 import { getActionIcon } from "../../common/icons/iconUtils";
@@ -131,6 +131,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
         overflowY: "auto",
+        minHeight: 0,
         paddingRight: "8px",
     },
     mainGrid: {
@@ -191,13 +192,16 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "16px",
+        minHeight: 0,
+        overflowY: "auto",
+        paddingRight: "8px",
     },
     sidebarCard: {
         borderRadius: "12px",
         border: "1px solid var(--vscode-editorWidget-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
         padding: "15px",
-        overflowY: "auto",
+        flexShrink: 0,
     },
     list: {
         display: "flex",
@@ -233,11 +237,11 @@ const changelogIcons: Record<string, string> = {
 
 export const ChangelogPage = () => {
     const classes = useStyles();
-    const { extensionRpc } = useVscodeWebview2();
-    const state = useChangelogSelector((s) => s ?? {});
-    const mainContent = state?.mainContent ?? {};
-    const secondaryContent = state?.secondaryContent ?? {};
-    const sidebarContent = state?.sidebarContent ?? [];
+    const { extensionRpc } = useVscodeWebview();
+    const mainContent = useChangelogSelector((s) => s?.mainContent) ?? {};
+    const secondaryContent = useChangelogSelector((s) => s?.secondaryContent) ?? {};
+    const sidebarContent = useChangelogSelector((s) => s?.sidebarContent) ?? [];
+    const version = useChangelogSelector((s) => s?.version);
 
     const [showBanner, setShowBanner] = useState(true);
     const [secondaryCollapsed, setSecondaryCollapsed] = useState(true);
@@ -604,7 +608,7 @@ export const ChangelogPage = () => {
                 </div>
 
                 <div className={classes.footer}>
-                    <Text>{locConstants.changelog.footerText(state.version)}</Text>
+                    <Text>{locConstants.changelog.footerText(version)}</Text>
                     <div
                         style={{
                             display: "flex",

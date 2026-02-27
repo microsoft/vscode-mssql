@@ -85,6 +85,7 @@ export const FileBrowserDialog = ({
     fileTypeOptions,
     closeDialog,
     showFoldersOnly,
+    propertyName,
 }: {
     ownerUri: string;
     defaultFilePath: string;
@@ -93,6 +94,7 @@ export const FileBrowserDialog = ({
     fileTypeOptions: FileTypeOption[];
     closeDialog: () => void;
     showFoldersOnly: boolean;
+    propertyName?: string;
 }) => {
     const classes = useStyles();
 
@@ -147,7 +149,7 @@ export const FileBrowserDialog = ({
     };
 
     const handleSubmit = async () => {
-        await provider.submitFilePath(selectedPath);
+        await provider.submitFilePath(selectedPath, propertyName);
         await handleDialogClose();
     };
 
@@ -168,7 +170,9 @@ export const FileBrowserDialog = ({
                 <DialogBody className={classes.dialogBodyDiv}>
                     <DialogTitle className={classes.titleDiv}>
                         <Text className={classes.titleText}>
-                            {Loc.fileBrowser.fileBrowserTitle}
+                            {showFoldersOnly
+                                ? Loc.fileBrowser.fileBrowserFolderTitle
+                                : Loc.fileBrowser.fileBrowserFileTitle}
                         </Text>
                     </DialogTitle>
                     <DialogContent className={classes.contentDiv}>

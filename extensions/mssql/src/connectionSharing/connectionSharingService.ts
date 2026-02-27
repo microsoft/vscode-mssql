@@ -16,6 +16,7 @@ import { Logger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { QueryCancelRequest } from "../models/contracts/queryCancel";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
 
@@ -332,7 +333,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const activeEditorUri = activeEditor.document.uri.toString(true);
+        const activeEditorUri = activeEditor.document.uri.toString();
         const isConnected = this._connectionManager.isConnected(activeEditorUri);
 
         if (!isConnected) {
@@ -359,7 +360,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const activeEditorUri = activeEditor.document.uri.toString(true);
+        const activeEditorUri = activeEditor.document.uri.toString();
         const isConnected = this._connectionManager.isConnected(activeEditorUri);
 
         if (!isConnected) {
@@ -492,6 +493,15 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             },
         );
         return result;
+    }
+
+    public async cancelQuery(connectionUri: string): Promise<void> {
+        if (!connectionUri) {
+            return;
+        }
+        await this._client.sendRequest(QueryCancelRequest.type, {
+            ownerUri: connectionUri,
+        });
     }
 
     public getServerInfo(connectionUri: string): mssql.IServerInfo {

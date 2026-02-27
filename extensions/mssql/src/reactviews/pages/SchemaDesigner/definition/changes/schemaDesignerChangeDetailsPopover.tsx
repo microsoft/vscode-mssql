@@ -1,0 +1,244 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { useMemo, useState } from "react";
+import {
+    Button,
+    makeStyles,
+    mergeClasses,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
+    Text,
+    ToolbarButton,
+} from "@fluentui/react-components";
+import {
+    Column20Regular,
+    Dismiss12Regular,
+    Key20Regular,
+    Table20Regular,
+} from "@fluentui/react-icons";
+import { locConstants } from "../../../../common/locConstants";
+import { ChangeCategory, type PropertyChange, type SchemaChange } from "../../diff/diffUtils";
+import { formatSchemaDesignerChangeValue } from "./schemaDesignerChangeValueFormatter";
+
+const useStyles = makeStyles({
+    badgeButton: {
+        minWidth: "24px",
+        height: "24px",
+        padding: 0,
+        borderRadius: "6px",
+    },
+    surface: {
+        padding: "10px",
+        minWidth: "460px",
+        maxWidth: "min(920px, calc(100vw - 48px))",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        border: "1px solid var(--vscode-editorWidget-border)",
+        borderRadius: "10px",
+        boxShadow: "var(--vscode-widget-shadow)",
+    },
+    header: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+        marginBottom: "8px",
+    },
+    headerLeft: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        minWidth: 0,
+    },
+    headerIcon: {
+        color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
+    },
+    headerTitle: {
+        fontSize: "14px",
+        fontWeight: 600,
+        color: "var(--vscode-foreground)",
+    },
+    headerBadge: {
+        fontSize: "11px",
+        fontWeight: 600,
+        padding: "2px 8px",
+        borderRadius: "6px",
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 18%, transparent)",
+        whiteSpace: "nowrap",
+    },
+    closeButton: {
+        minWidth: "24px",
+        height: "24px",
+        borderRadius: "6px",
+    },
+    gridHeader: {
+        display: "grid",
+        gridTemplateColumns: "minmax(120px, 1.1fr) minmax(0, 1fr) minmax(0, 1fr)",
+        gap: "8px",
+        fontSize: "11px",
+        fontWeight: 600,
+        color: "var(--vscode-descriptionForeground)",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        marginBottom: "4px",
+    },
+    rowsContainer: {
+        maxHeight: "132px",
+        overflowY: "auto",
+        overflowX: "hidden",
+    },
+    row: {
+        display: "grid",
+        gridTemplateColumns: "minmax(120px, 1.1fr) minmax(0, 1fr) minmax(0, 1fr)",
+        gap: "8px",
+        alignItems: "start",
+        padding: "5px 0",
+        borderTop: "1px solid var(--vscode-editorWidget-border)",
+    },
+    propertyName: {
+        color: "var(--vscode-foreground)",
+        fontSize: "12px",
+    },
+    valuePill: {
+        padding: "2px 8px",
+        borderRadius: "6px",
+        fontSize: "11px",
+        fontWeight: 600,
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "4px",
+        minHeight: "20px",
+        width: "100%",
+        boxSizing: "border-box",
+        whiteSpace: "normal",
+        overflowWrap: "anywhere",
+        wordBreak: "break-word",
+    },
+    beforeValue: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 20%, transparent)",
+        textDecoration: "line-through",
+    },
+    afterValue: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 20%, transparent)",
+    },
+    emptyState: {
+        padding: "12px 0",
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: "12px",
+    },
+});
+
+type SchemaDesignerChangeDetailsPopoverProps = {
+    change: SchemaChange;
+    title: string;
+    badgeLetter: string;
+    badgeClassName: string;
+    badgeButtonClassName?: string;
+};
+
+const getChangeIcon = (category: ChangeCategory) => {
+    switch (category) {
+        case ChangeCategory.Table:
+            return <Table20Regular />;
+        case ChangeCategory.Column:
+            return <Column20Regular />;
+        case ChangeCategory.ForeignKey:
+            return <Key20Regular />;
+    }
+};
+
+const getChangeCountLabel = (changes: PropertyChange[]) =>
+    locConstants.schemaDesigner.changesPanel.changeCountLabel(changes.length);
+
+export const SchemaDesignerChangeDetailsPopover = ({
+    change,
+    title,
+    badgeLetter,
+    badgeClassName,
+    badgeButtonClassName,
+}: SchemaDesignerChangeDetailsPopoverProps) => {
+    const classes = useStyles();
+    const [open, setOpen] = useState(false);
+    const propertyChanges = change.propertyChanges ?? [];
+
+    const icon = useMemo(() => getChangeIcon(change.category), [change.category]);
+
+    return (
+        <Popover
+            withArrow
+            positioning="below-start"
+            open={open}
+            onOpenChange={(_, data) => setOpen(data.open)}>
+            <PopoverTrigger disableButtonEnhancement>
+                <ToolbarButton
+                    appearance="transparent"
+                    className={mergeClasses(
+                        classes.badgeButton,
+                        badgeButtonClassName,
+                        badgeClassName,
+                    )}
+                    aria-label={title}>
+                    {badgeLetter}
+                </ToolbarButton>
+            </PopoverTrigger>
+            <PopoverSurface className={classes.surface}>
+                <div className={classes.header}>
+                    <div className={classes.headerLeft}>
+                        <span className={classes.headerIcon}>{icon}</span>
+                        <Text className={classes.headerTitle}>{title}</Text>
+                        <span className={classes.headerBadge}>
+                            {getChangeCountLabel(propertyChanges)}
+                        </span>
+                    </div>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        icon={<Dismiss12Regular />}
+                        className={classes.closeButton}
+                        aria-label={locConstants.schemaDesigner.close}
+                        onClick={() => setOpen(false)}
+                    />
+                </div>
+
+                <div className={classes.gridHeader}>
+                    <span>{locConstants.schemaDesigner.changesPanel.propertyHeader}</span>
+                    <span>{locConstants.schemaDesigner.changesPanel.beforeHeader}</span>
+                    <span>{locConstants.schemaDesigner.changesPanel.afterHeader}</span>
+                </div>
+
+                {propertyChanges.length === 0 ? (
+                    <div className={classes.emptyState}>
+                        {locConstants.schemaDesigner.changesPanel.noPropertyChanges}
+                    </div>
+                ) : (
+                    <div className={classes.rowsContainer}>
+                        {propertyChanges.map((propertyChange) => (
+                            <div key={propertyChange.property} className={classes.row}>
+                                <span className={classes.propertyName}>
+                                    {propertyChange.displayName}
+                                </span>
+                                <span
+                                    className={mergeClasses(
+                                        classes.valuePill,
+                                        classes.beforeValue,
+                                    )}>
+                                    {formatSchemaDesignerChangeValue(propertyChange.oldValue)}
+                                </span>
+                                <span
+                                    className={mergeClasses(classes.valuePill, classes.afterValue)}>
+                                    {formatSchemaDesignerChangeValue(propertyChange.newValue)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </PopoverSurface>
+        </Popover>
+    );
+};

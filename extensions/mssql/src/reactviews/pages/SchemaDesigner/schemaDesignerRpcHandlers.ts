@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
 import { v4 as uuidv4 } from "uuid";
-import { tableUtils } from "./schemaDesignerUtils";
+import { tableUtils } from "./model";
 
-export function registerSchemaDesignerApplyEditsHandler(params: {
+export interface SchemaDesignerApplyEditsHandlerParams {
     isInitialized: boolean;
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
@@ -34,10 +35,13 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     ) => string | undefined;
     onPushUndoState: () => void;
     onRequestScriptRefresh: () => void;
-}) {
+}
+
+export function createSchemaDesignerApplyEditsHandler(
+    params: SchemaDesignerApplyEditsHandlerParams,
+) {
     const {
         isInitialized,
-        extensionRpc,
         schemaNames,
         datatypes,
         waitForNextFrame,
@@ -47,7 +51,6 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         updateTable,
         deleteTable,
         normalizeColumn,
-        normalizeTable,
         validateTable,
         onPushUndoState,
         onRequestScriptRefresh,
@@ -239,11 +242,11 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         };
     };
 
-    const resolveColumnNameByName = (
+    const resolveColumnIdByName = (
         table: SchemaDesigner.Table,
         columnName: unknown,
     ):
-        | { success: true; name: string }
+        | { success: true; id: string }
         | {
               success: false;
               reason: SchemaDesigner.ApplyEditsWebviewResponse["reason"];
@@ -261,7 +264,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             (c) => normalizeIdentifier(c.name) === normalizeIdentifier(columnName),
         );
         if (matches.length === 1) {
-            return { success: true, name: matches[0].name };
+            return { success: true, id: matches[0].id };
         }
         if (matches.length === 0) {
             return {
@@ -283,7 +286,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         referencedTable: SchemaDesigner.Table,
         mappings: unknown,
     ):
-        | { success: true; columns: string[]; referencedColumns: string[] }
+        | { success: true; columnIds: string[]; referencedColumnIds: string[] }
         | {
               success: false;
               reason: SchemaDesigner.ApplyEditsWebviewResponse["reason"];
@@ -299,12 +302,16 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             };
         }
 
-        const columns: string[] = [];
-        const referencedColumns: string[] = [];
+        const columnIds: string[] = [];
+        const referencedColumnIds: string[] = [];
 
         for (const m of mappings) {
-            const col = (m as any)?.column;
-            const refCol = (m as any)?.referencedColumn;
+            const mapping =
+                typeof m === "object" && m !== undefined
+                    ? (m as { column?: unknown; referencedColumn?: unknown })
+                    : {};
+            const col = mapping.column;
+            const refCol = mapping.referencedColumn;
             if (typeof col !== "string" || typeof refCol !== "string" || !col || !refCol) {
                 return {
                     success: false,
@@ -314,7 +321,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                 };
             }
 
-            const src = resolveColumnNameByName(sourceTable, col);
+            const src = resolveColumnIdByName(sourceTable, col);
             if (src.success === false) {
                 return {
                     success: false,
@@ -322,7 +329,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                     message: src.message,
                 };
             }
-            const tgt = resolveColumnNameByName(referencedTable, refCol);
+            const tgt = resolveColumnIdByName(referencedTable, refCol);
             if (tgt.success === false) {
                 return {
                     success: false,
@@ -331,11 +338,11 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                 };
             }
 
-            columns.push(src.name);
-            referencedColumns.push(tgt.name);
+            columnIds.push(src.id);
+            referencedColumnIds.push(tgt.id);
         }
 
-        return { success: true, columns, referencedColumns };
+        return { success: true, columnIds, referencedColumnIds };
     };
 
     const handleApplyEdits = async (
@@ -448,19 +455,13 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             );
                         }
 
-                        const deletedSchemaName = resolved.table.schema;
-                        const deletedTableName = resolved.table.name;
                         workingSchema = {
                             tables: workingSchema.tables
                                 .filter((t) => t.id !== resolved.table.id)
                                 .map((t) => ({
                                     ...t,
                                     foreignKeys: (t.foreignKeys ?? []).filter(
-                                        (fk) =>
-                                            normalizeIdentifier(fk.referencedSchemaName) !==
-                                                normalizeIdentifier(deletedSchemaName) ||
-                                            normalizeIdentifier(fk.referencedTableName) !==
-                                                normalizeIdentifier(deletedTableName),
+                                        (fk) => fk.referencedTableId !== resolved.table.id,
                                     ),
                                 })),
                         };
@@ -476,8 +477,6 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         if (resolved.success === false) {
                             return fail(resolved.reason, resolved.message);
                         }
-                        const previousSchemaName = resolved.table.schema;
-                        const previousTableName = resolved.table.name;
                         const updated: SchemaDesigner.Table = {
                             ...resolved.table,
                             name: edit.set?.name ?? resolved.table.name,
@@ -499,29 +498,9 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                         needsScriptRefresh = true;
                         workingSchema = {
-                            tables: workingSchema.tables.map((t) => {
-                                if (t.id === updated.id) {
-                                    return updated;
-                                }
-
-                                const foreignKeys = (t.foreignKeys ?? []).map((fk) => {
-                                    if (
-                                        normalizeIdentifier(fk.referencedSchemaName) ===
-                                            normalizeIdentifier(previousSchemaName) &&
-                                        normalizeIdentifier(fk.referencedTableName) ===
-                                            normalizeIdentifier(previousTableName)
-                                    ) {
-                                        return {
-                                            ...fk,
-                                            referencedSchemaName: updated.schema,
-                                            referencedTableName: updated.name,
-                                        };
-                                    }
-                                    return fk;
-                                });
-
-                                return { ...t, foreignKeys };
-                            }),
+                            tables: workingSchema.tables.map((t) =>
+                                t.id === updated.id ? updated : t,
+                            ),
                         };
                         appliedEdits++;
                         didMutateThisEdit = true;
@@ -554,20 +533,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             columns: [...(resolved.table.columns ?? []), newColumn],
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -578,7 +549,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -608,20 +579,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             ),
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -632,7 +595,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -662,12 +625,20 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             return fail("validation_error", dataTypeError);
                         }
 
-                        const updatedColumn = normalizeColumn({
+                        const definedSetPatch = Object.fromEntries(
+                            Object.entries(edit.set ?? {}).filter(
+                                ([, value]) => value !== undefined,
+                            ),
+                        ) as Partial<SchemaDesigner.Column>;
+
+                        const updatedColumn = {
                             ...resolvedColumn.column,
-                            ...(edit.set ?? {}),
-                            name: edit.set?.name ?? resolvedColumn.column.name,
+                            ...definedSetPatch,
+                            name:
+                                (definedSetPatch.name as string | undefined) ??
+                                resolvedColumn.column.name,
                             dataType: nextDataType,
-                        } as SchemaDesigner.Column);
+                        } as SchemaDesigner.Column;
 
                         const updated: SchemaDesigner.Table = {
                             ...resolvedTable.table,
@@ -676,20 +647,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             ),
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -700,7 +663,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -746,10 +709,9 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         const newForeignKey: SchemaDesigner.ForeignKey = {
                             id: uuidv4(),
                             name: edit.foreignKey.name,
-                            columns: mappingsResult.columns,
-                            referencedSchemaName: referenced.table.schema,
-                            referencedTableName: referenced.table.name,
-                            referencedColumns: mappingsResult.referencedColumns,
+                            columnsIds: mappingsResult.columnIds,
+                            referencedTableId: referenced.table.id,
+                            referencedColumnsIds: mappingsResult.referencedColumnIds,
                             onDeleteAction: edit.foreignKey.onDeleteAction,
                             onUpdateAction: edit.foreignKey.onUpdateAction,
                         };
@@ -762,20 +724,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             ],
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -786,7 +740,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -819,20 +773,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             ),
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -843,7 +789,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -869,53 +815,69 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             return fail(resolvedForeignKey.reason, resolvedForeignKey.message);
                         }
 
-                        let referencedSchemaName =
-                            resolvedForeignKey.foreignKey.referencedSchemaName;
-                        let referencedTableName = resolvedForeignKey.foreignKey.referencedTableName;
-                        if (edit.set?.referencedTable) {
-                            const referenced = resolveTable(schema, edit.set.referencedTable);
-                            if (referenced.success === false) {
-                                return fail(referenced.reason, referenced.message);
-                            }
-                            referencedSchemaName = referenced.table.schema;
-                            referencedTableName = referenced.table.name;
-                        }
+                        const setPayload = edit;
 
-                        let nextColumns = resolvedForeignKey.foreignKey.columns;
-                        let nextReferencedColumns = resolvedForeignKey.foreignKey.referencedColumns;
-                        const referencedTableForMappings = resolveTable(schema, {
-                            schema: referencedSchemaName,
-                            name: referencedTableName,
-                        });
-                        if (referencedTableForMappings.success === false) {
+                        const hasSetFields =
+                            setPayload.name !== undefined ||
+                            setPayload.referencedTable !== undefined ||
+                            setPayload.mappings !== undefined ||
+                            setPayload.onDeleteAction !== undefined ||
+                            setPayload.onUpdateAction !== undefined;
+
+                        if (!hasSetFields) {
                             return fail(
-                                referencedTableForMappings.reason,
-                                referencedTableForMappings.message,
+                                "invalid_request",
+                                "Missing fields to update for set_foreign_key.",
                             );
                         }
 
-                        if (edit.set && Array.isArray(edit.set.mappings)) {
+                        let referencedTableId = resolvedForeignKey.foreignKey.referencedTableId;
+
+                        if (setPayload.referencedTable) {
+                            const referenced = resolveTable(schema, setPayload.referencedTable);
+                            if (referenced.success === false) {
+                                return fail(referenced.reason, referenced.message);
+                            }
+                            referencedTableId = referenced.table.id;
+                        }
+
+                        let nextColumnIds = resolvedForeignKey.foreignKey.columnsIds;
+                        let nextReferencedColumnIds =
+                            resolvedForeignKey.foreignKey.referencedColumnsIds;
+                        const referencedTableForMappings = workingSchema.tables.find(
+                            (table) => table.id === referencedTableId,
+                        );
+                        if (!referencedTableForMappings) {
+                            return fail(
+                                "not_found",
+                                locConstants.schemaDesigner.referencedTableNotFound(
+                                    referencedTableId,
+                                ),
+                            );
+                        }
+
+                        if (Array.isArray(setPayload.mappings)) {
                             const mappingsResult = resolveForeignKeyMappings(
                                 resolvedTable.table,
-                                referencedTableForMappings.table,
-                                edit.set.mappings,
+                                referencedTableForMappings,
+                                setPayload.mappings,
                             );
                             if (mappingsResult.success === false) {
                                 return fail(mappingsResult.reason, mappingsResult.message);
                             }
 
-                            nextColumns = mappingsResult.columns;
-                            nextReferencedColumns = mappingsResult.referencedColumns;
+                            nextColumnIds = mappingsResult.columnIds;
+                            nextReferencedColumnIds = mappingsResult.referencedColumnIds;
                         }
 
-                        if (edit.set?.onDeleteAction !== undefined) {
-                            const err = validateOnAction(edit.set.onDeleteAction);
+                        if (setPayload.onDeleteAction !== undefined) {
+                            const err = validateOnAction(setPayload.onDeleteAction);
                             if (err) {
                                 return fail("validation_error", err);
                             }
                         }
-                        if (edit.set?.onUpdateAction !== undefined) {
-                            const err = validateOnAction(edit.set.onUpdateAction);
+                        if (setPayload.onUpdateAction !== undefined) {
+                            const err = validateOnAction(setPayload.onUpdateAction);
                             if (err) {
                                 return fail("validation_error", err);
                             }
@@ -923,16 +885,15 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                         const updatedForeignKey: SchemaDesigner.ForeignKey = {
                             ...resolvedForeignKey.foreignKey,
-                            name: edit.set?.name ?? resolvedForeignKey.foreignKey.name,
-                            columns: nextColumns,
-                            referencedSchemaName,
-                            referencedTableName,
-                            referencedColumns: nextReferencedColumns,
+                            name: setPayload.name ?? resolvedForeignKey.foreignKey.name,
+                            columnsIds: nextColumnIds,
+                            referencedTableId,
+                            referencedColumnsIds: nextReferencedColumnIds,
                             onDeleteAction:
-                                edit.set?.onDeleteAction ??
+                                setPayload.onDeleteAction ??
                                 resolvedForeignKey.foreignKey.onDeleteAction,
                             onUpdateAction:
-                                edit.set?.onUpdateAction ??
+                                setPayload.onUpdateAction ??
                                 resolvedForeignKey.foreignKey.onUpdateAction,
                         };
 
@@ -943,20 +904,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             ),
                         };
 
-                        const normalized = normalizeTable(updated);
-                        if (!normalized) {
-                            return fail(
-                                "validation_error",
-                                locConstants.schemaDesigner.invalidTablePayload,
-                            );
-                        }
-
-                        const validationError = validateTable(schema, normalized, schemaNames);
+                        const validationError = validateTable(schema, updated, schemaNames);
                         if (validationError) {
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(normalized);
+                        const success = await updateTable(updated);
                         if (!success) {
                             return fail(
                                 "internal_error",
@@ -967,7 +920,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         needsScriptRefresh = true;
                         workingSchema = {
                             tables: workingSchema.tables.map((t) =>
-                                t.id === normalized.id ? normalized : t,
+                                t.id === updated.id ? updated : t,
                             ),
                         };
                         appliedEdits++;
@@ -976,7 +929,10 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                     }
 
                     default:
-                        return fail("invalid_request", `Unknown edit op: ${(edit as any)?.op}`);
+                        return fail(
+                            "invalid_request",
+                            `Unknown edit op: ${String((edit as { op?: unknown }).op)}`,
+                        );
                 }
 
                 if (didMutateThisEdit) {
@@ -1014,7 +970,14 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         }
     };
 
-    extensionRpc.onRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, handleApplyEdits);
+    return handleApplyEdits;
+}
+
+export function registerSchemaDesignerApplyEditsHandler(
+    params: SchemaDesignerApplyEditsHandlerParams,
+) {
+    const handleApplyEdits = createSchemaDesignerApplyEditsHandler(params);
+    params.extensionRpc.onRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, handleApplyEdits);
 }
 
 export function registerSchemaDesignerGetSchemaStateHandler(params: {
@@ -1034,4 +997,655 @@ export function registerSchemaDesignerGetSchemaStateHandler(params: {
     };
 
     extensionRpc.onRequest(SchemaDesigner.GetSchemaStateRequest.type, handleGetSchemaState);
+}
+
+type DabApplyFailureReason = Extract<Dab.ApplyDabToolChangesResponse, { success: false }>["reason"];
+type ApplyReturnState = "full" | "summary" | "none";
+
+const GET_STATE_ENTITY_THRESHOLD = 150;
+const APPLY_CHANGES_ENTITY_THRESHOLD = 100;
+
+function cloneDabConfig(config: Dab.DabConfig): Dab.DabConfig {
+    return {
+        apiTypes: [...config.apiTypes],
+        entities: config.entities.map((entity) => ({
+            ...entity,
+            enabledActions: [...entity.enabledActions],
+            advancedSettings: { ...entity.advancedSettings },
+        })),
+    };
+}
+
+function normalizeIdentifier(value: string | undefined): string {
+    return (value ?? "").trim().toLowerCase();
+}
+
+function buildDabSummary(config: Dab.DabConfig): Dab.DabToolSummary {
+    return {
+        entityCount: config.entities.length,
+        enabledEntityCount: config.entities.filter((entity) => entity.isEnabled).length,
+        apiTypes: [...config.apiTypes],
+    };
+}
+
+function isApplyReturnState(value: unknown): value is ApplyReturnState {
+    return value === "full" || value === "summary" || value === "none";
+}
+
+async function buildApplyStatePayload(
+    config: Dab.DabConfig,
+    requestedReturnState: ApplyReturnState,
+    precomputedVersion?: string,
+): Promise<
+    Pick<
+        Extract<Dab.ApplyDabToolChangesResponse, { success: true }>,
+        "returnState" | "stateOmittedReason" | "version" | "summary" | "config"
+    >
+> {
+    const summary = buildDabSummary(config);
+    const version = precomputedVersion ?? (await computeDabVersion(config));
+
+    if (requestedReturnState === "none") {
+        return {
+            returnState: "none",
+            stateOmittedReason: "caller_requested_none",
+            version,
+            summary,
+        };
+    }
+
+    if (requestedReturnState === "summary") {
+        return {
+            returnState: "summary",
+            stateOmittedReason: "caller_requested_summary",
+            version,
+            summary,
+        };
+    }
+
+    if (summary.entityCount > APPLY_CHANGES_ENTITY_THRESHOLD) {
+        return {
+            returnState: "summary",
+            stateOmittedReason: "entity_count_over_threshold",
+            version,
+            summary,
+        };
+    }
+
+    return {
+        returnState: "full",
+        version,
+        summary,
+        config,
+    };
+}
+
+function normalizeDabConfigForVersion(config: Dab.DabConfig) {
+    return {
+        apiTypes: [...config.apiTypes].map(normalizeIdentifier).sort((a, b) => a.localeCompare(b)),
+        entities: [...config.entities]
+            .map((entity) => ({
+                id: normalizeIdentifier(entity.id),
+                tableName: normalizeIdentifier(entity.tableName),
+                schemaName: normalizeIdentifier(entity.schemaName),
+                isEnabled: entity.isEnabled,
+                enabledActions: [...entity.enabledActions]
+                    .map(normalizeIdentifier)
+                    .sort((a, b) => a.localeCompare(b)),
+                advancedSettings: {
+                    entityName: normalizeIdentifier(entity.advancedSettings.entityName),
+                    authorizationRole: normalizeIdentifier(
+                        entity.advancedSettings.authorizationRole,
+                    ),
+                    customRestPath:
+                        entity.advancedSettings.customRestPath !== undefined
+                            ? entity.advancedSettings.customRestPath
+                            : undefined,
+                    customGraphQLType:
+                        entity.advancedSettings.customGraphQLType !== undefined
+                            ? entity.advancedSettings.customGraphQLType
+                            : undefined,
+                },
+            }))
+            .sort((a, b) => {
+                const bySchema = a.schemaName.localeCompare(b.schemaName);
+                if (bySchema !== 0) {
+                    return bySchema;
+                }
+                const byTable = a.tableName.localeCompare(b.tableName);
+                if (byTable !== 0) {
+                    return byTable;
+                }
+                return a.id.localeCompare(b.id);
+            }),
+    };
+}
+
+async function computeDabVersion(config: Dab.DabConfig): Promise<string> {
+    const payload = JSON.stringify(normalizeDabConfigForVersion(config));
+    const encoder = new TextEncoder();
+    const digest = await crypto.subtle.digest("SHA-256", encoder.encode(payload));
+    const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0"))
+        .join("")
+        .toLowerCase();
+    return `dabcfg_${hash}`;
+}
+
+function ensureInitializedAndSyncedDabConfig(
+    currentConfig: Dab.DabConfig | null,
+    schemaTables: SchemaDesigner.Table[],
+): { config: Dab.DabConfig; changed: boolean } {
+    let changed = false;
+    const normalizedConfig = currentConfig
+        ? cloneDabConfig(currentConfig)
+        : Dab.createDefaultConfig(schemaTables);
+    if (!currentConfig) {
+        changed = true;
+    }
+
+    const tablesById = new Map(schemaTables.map((table) => [table.id, table]));
+    const syncedEntities: Dab.DabEntityConfig[] = [];
+
+    for (const entity of normalizedConfig.entities) {
+        const table = tablesById.get(entity.id);
+        if (!table) {
+            changed = true;
+            continue;
+        }
+
+        if (entity.tableName !== table.name || entity.schemaName !== table.schema) {
+            changed = true;
+        }
+
+        syncedEntities.push({
+            ...entity,
+            tableName: table.name,
+            schemaName: table.schema,
+        });
+        tablesById.delete(entity.id);
+    }
+
+    for (const table of schemaTables) {
+        if (!tablesById.has(table.id)) {
+            continue;
+        }
+        syncedEntities.push(Dab.createDefaultEntityConfig(table));
+        changed = true;
+    }
+
+    return {
+        config: {
+            ...normalizedConfig,
+            entities: syncedEntities,
+        },
+        changed,
+    };
+}
+
+function getDuplicateEntityName(config: Dab.DabConfig): string | undefined {
+    const seen = new Set<string>();
+    for (const entity of config.entities) {
+        const normalizedEntityName = normalizeIdentifier(entity.advancedSettings.entityName);
+        if (!normalizedEntityName) {
+            continue;
+        }
+        if (seen.has(normalizedEntityName)) {
+            return entity.advancedSettings.entityName;
+        }
+        seen.add(normalizedEntityName);
+    }
+    return undefined;
+}
+
+function resolveEntityRef(
+    config: Dab.DabConfig,
+    entityRef: Dab.DabEntityRef,
+):
+    | { success: true; entity: Dab.DabEntityConfig; index: number }
+    | { success: false; reason: DabApplyFailureReason; message: string } {
+    const hasId = typeof (entityRef as { id?: unknown }).id === "string";
+    const hasSchemaTable =
+        typeof (entityRef as { schemaName?: unknown }).schemaName === "string" &&
+        typeof (entityRef as { tableName?: unknown }).tableName === "string";
+
+    if (hasId === hasSchemaTable) {
+        return {
+            success: false,
+            reason: "invalid_request",
+            message: "Invalid entity reference. Use either id OR schemaName+tableName.",
+        };
+    }
+
+    if (hasId) {
+        const id = (entityRef as { id: string }).id;
+        const index = config.entities.findIndex((entity) => entity.id === id);
+        if (index < 0) {
+            return {
+                success: false,
+                reason: "not_found",
+                message: `Entity not found: ${id}`,
+            };
+        }
+        return { success: true, entity: config.entities[index], index };
+    }
+
+    const schemaName = normalizeIdentifier((entityRef as { schemaName: string }).schemaName);
+    const tableName = normalizeIdentifier((entityRef as { tableName: string }).tableName);
+    const matches = config.entities
+        .map((entity, index) => ({ entity, index }))
+        .filter(
+            ({ entity }) =>
+                normalizeIdentifier(entity.schemaName) === schemaName &&
+                normalizeIdentifier(entity.tableName) === tableName,
+        );
+
+    if (matches.length === 0) {
+        return {
+            success: false,
+            reason: "not_found",
+            message: `Entity not found: ${(entityRef as { schemaName: string }).schemaName}.${(entityRef as { tableName: string }).tableName}`,
+        };
+    }
+
+    if (matches.length > 1) {
+        return {
+            success: false,
+            reason: "validation_error",
+            message: `Entity reference resolved to more than one entity: ${(entityRef as { schemaName: string }).schemaName}.${(entityRef as { tableName: string }).tableName}`,
+        };
+    }
+
+    return {
+        success: true,
+        entity: matches[0].entity,
+        index: matches[0].index,
+    };
+}
+
+function applyDabToolChange(
+    config: Dab.DabConfig,
+    change: Dab.DabToolChange,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    const allowedApiTypes = new Set<Dab.ApiType>(Object.values(Dab.ApiType));
+    const allowedActions = new Set<Dab.EntityAction>(Object.values(Dab.EntityAction));
+
+    switch (change.type) {
+        case "set_api_types": {
+            if (!Array.isArray(change.apiTypes) || change.apiTypes.length === 0) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "apiTypes must be a non-empty array.",
+                };
+            }
+            const uniqueApiTypes = new Set(change.apiTypes);
+            if (uniqueApiTypes.size !== change.apiTypes.length) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "apiTypes must be unique.",
+                };
+            }
+            if (change.apiTypes.some((apiType) => !allowedApiTypes.has(apiType))) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "apiTypes contains unsupported values.",
+                };
+            }
+            config.apiTypes = [...change.apiTypes];
+            return { success: true };
+        }
+
+        case "set_entity_enabled": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                isEnabled: change.isEnabled,
+            };
+            return { success: true };
+        }
+
+        case "set_entity_actions": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+
+            if (!Array.isArray(change.actions) || change.actions.length === 0) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "actions must be a non-empty array.",
+                };
+            }
+            const uniqueActions = new Set(change.actions);
+            if (uniqueActions.size !== change.actions.length) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "actions must be unique.",
+                };
+            }
+            if (change.actions.some((action) => !allowedActions.has(action))) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "actions contains unsupported values.",
+                };
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                enabledActions: [...change.actions],
+            };
+            return { success: true };
+        }
+
+        case "patch_entity_settings": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+
+            const patch = change.set ?? {};
+            const patchKeys = Object.keys(patch);
+            if (patchKeys.length === 0) {
+                return {
+                    success: false,
+                    reason: "invalid_request",
+                    message: "patch_entity_settings.set must include at least one property.",
+                };
+            }
+
+            const updatedSettings: Dab.EntityAdvancedSettings = {
+                ...resolvedEntity.entity.advancedSettings,
+            };
+
+            for (const key of patchKeys) {
+                const value = (patch as Record<string, unknown>)[key];
+                switch (key) {
+                    case "entityName":
+                        if (typeof value !== "string" || value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "entityName must be a non-empty string.",
+                            };
+                        }
+                        updatedSettings.entityName = value.trim();
+                        break;
+                    case "authorizationRole":
+                        if (
+                            value !== Dab.AuthorizationRole.Anonymous &&
+                            value !== Dab.AuthorizationRole.Authenticated
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "authorizationRole must be 'anonymous' or 'authenticated'.",
+                            };
+                        }
+                        updatedSettings.authorizationRole = value;
+                        break;
+                    case "customRestPath":
+                        if (value === null || typeof value === "undefined") {
+                            delete updatedSettings.customRestPath;
+                            break;
+                        }
+                        if (typeof value !== "string") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customRestPath must be a string or null.",
+                            };
+                        }
+                        if (value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customRestPath cannot be an empty string.",
+                            };
+                        }
+                        updatedSettings.customRestPath = value.trim();
+                        break;
+                    case "customGraphQLType":
+                        if (value === null || typeof value === "undefined") {
+                            delete updatedSettings.customGraphQLType;
+                            break;
+                        }
+                        if (typeof value !== "string") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customGraphQLType must be a string or null.",
+                            };
+                        }
+                        if (value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customGraphQLType cannot be an empty string.",
+                            };
+                        }
+                        updatedSettings.customGraphQLType = value.trim();
+                        break;
+                    default:
+                        return {
+                            success: false,
+                            reason: "invalid_request",
+                            message: `Unsupported patch property: ${key}.`,
+                        };
+                }
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                advancedSettings: updatedSettings,
+            };
+
+            const duplicateEntityName = getDuplicateEntityName(config);
+            if (duplicateEntityName) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: `entityName must be unique across entities. Duplicate: ${duplicateEntityName}`,
+                };
+            }
+
+            return { success: true };
+        }
+
+        case "set_only_enabled_entities": {
+            if (!Array.isArray(change.entities) || change.entities.length === 0) {
+                return {
+                    success: false,
+                    reason: "invalid_request",
+                    message: "set_only_enabled_entities.entities must be a non-empty array.",
+                };
+            }
+
+            const selectedEntityIds = new Set<string>();
+            for (const entityRef of change.entities) {
+                const resolvedEntity = resolveEntityRef(config, entityRef);
+                if (resolvedEntity.success === false) {
+                    return resolvedEntity;
+                }
+                selectedEntityIds.add(resolvedEntity.entity.id);
+            }
+
+            config.entities = config.entities.map((entity) => ({
+                ...entity,
+                isEnabled: selectedEntityIds.has(entity.id),
+            }));
+            return { success: true };
+        }
+
+        case "set_all_entities_enabled": {
+            config.entities = config.entities.map((entity) => ({
+                ...entity,
+                isEnabled: change.isEnabled,
+            }));
+            return { success: true };
+        }
+
+        default:
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: `Unknown change type: ${(change as { type?: string }).type ?? "unknown"}`,
+            };
+    }
+}
+
+export function registerSchemaDesignerDabToolHandlers(params: {
+    extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
+    isInitializedRef: { current: boolean };
+    getCurrentDabConfig: () => Dab.DabConfig | null;
+    getCurrentSchemaTables: () => SchemaDesigner.Table[];
+    commitDabConfig: (config: Dab.DabConfig) => void;
+}) {
+    const {
+        extensionRpc,
+        isInitializedRef,
+        getCurrentDabConfig,
+        getCurrentSchemaTables,
+        commitDabConfig,
+    } = params;
+
+    const handleGetState = async (): Promise<Dab.GetDabToolStateResponse> => {
+        if (!isInitializedRef.current) {
+            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+        }
+
+        const baseSnapshot = getCurrentDabConfig();
+        const schemaTables = getCurrentSchemaTables();
+        const syncedSnapshot = ensureInitializedAndSyncedDabConfig(baseSnapshot, schemaTables);
+
+        if (syncedSnapshot.changed) {
+            commitDabConfig(syncedSnapshot.config);
+        }
+
+        const summary = buildDabSummary(syncedSnapshot.config);
+        const version = await computeDabVersion(syncedSnapshot.config);
+        const returnState =
+            summary.entityCount > GET_STATE_ENTITY_THRESHOLD
+                ? ("summary" as const)
+                : ("full" as const);
+
+        if (returnState === "full") {
+            return {
+                returnState,
+                version,
+                summary,
+                config: syncedSnapshot.config,
+            };
+        }
+
+        return {
+            returnState,
+            stateOmittedReason: "entity_count_over_threshold",
+            version,
+            summary,
+        };
+    };
+
+    const handleApplyChanges = async (
+        request: Dab.ApplyDabToolChangesParams,
+    ): Promise<Dab.ApplyDabToolChangesResponse> => {
+        if (!isInitializedRef.current) {
+            return {
+                success: false,
+                reason: "internal_error",
+                message: locConstants.schemaDesigner.schemaDesignerNotInitialized,
+            };
+        }
+
+        if (!request?.expectedVersion) {
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: "Missing expectedVersion.",
+            };
+        }
+
+        if (!Array.isArray(request.changes) || request.changes.length === 0) {
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: "Missing changes (non-empty array).",
+            };
+        }
+
+        const requestedReturnState = request.options?.returnState ?? "full";
+        if (!isApplyReturnState(requestedReturnState)) {
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: `Unsupported returnState: ${String(requestedReturnState)}`,
+            };
+        }
+
+        const baseSnapshot = ensureInitializedAndSyncedDabConfig(
+            getCurrentDabConfig(),
+            getCurrentSchemaTables(),
+        ).config;
+        const version = await computeDabVersion(baseSnapshot);
+
+        if (request.expectedVersion !== version) {
+            const staleState = await buildApplyStatePayload(
+                baseSnapshot,
+                requestedReturnState,
+                version,
+            );
+            return {
+                success: false,
+                reason: "stale_state",
+                message: "DAB configuration changed since last read.",
+                version: staleState.version,
+                summary: staleState.summary,
+                returnState: staleState.returnState,
+                ...(staleState.stateOmittedReason
+                    ? { stateOmittedReason: staleState.stateOmittedReason }
+                    : {}),
+                ...(staleState.config ? { config: staleState.config } : {}),
+            };
+        }
+
+        const workingSnapshot = cloneDabConfig(baseSnapshot);
+        let appliedChanges = 0;
+
+        for (let i = 0; i < request.changes.length; i++) {
+            const applyResult = applyDabToolChange(workingSnapshot, request.changes[i]);
+            if (applyResult.success === false) {
+                commitDabConfig(workingSnapshot);
+                return {
+                    success: false,
+                    reason: applyResult.reason,
+                    message: applyResult.message,
+                    failedChangeIndex: i,
+                    appliedChanges,
+                    version: await computeDabVersion(workingSnapshot),
+                    summary: buildDabSummary(workingSnapshot),
+                };
+            }
+            appliedChanges++;
+        }
+
+        commitDabConfig(workingSnapshot);
+        const successState = await buildApplyStatePayload(workingSnapshot, requestedReturnState);
+
+        return {
+            success: true,
+            appliedChanges,
+            ...successState,
+        };
+    };
+
+    extensionRpc.onRequest(Dab.GetDabToolStateRequest.type, handleGetState);
+    extensionRpc.onRequest(Dab.ApplyDabToolChangesRequest.type, handleApplyChanges);
 }

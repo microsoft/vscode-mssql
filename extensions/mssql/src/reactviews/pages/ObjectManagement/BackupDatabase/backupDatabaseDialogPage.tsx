@@ -12,11 +12,13 @@ import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
 import { BackupDatabaseForm } from "./backupDatabaseForm";
 import { ObjectManagementDialog } from "../../../common/objectManagementDialog";
 import {
+    DisasterRecoveryType,
     ObjectManagementCancelNotification,
     ObjectManagementHelpNotification,
 } from "../../../../sharedInterfaces/objectManagement";
 import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { url } from "../../../common/constants";
+import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -42,18 +44,21 @@ const useStyles = makeStyles({
 export const BackupDatabaseDialogPage = () => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
-    const state = context?.state;
+    const viewModel = useBackupDatabaseSelector((s) => s.viewModel);
+    const formComponents = useBackupDatabaseSelector((s) => s.formComponents);
+    const formState = useBackupDatabaseSelector((s) => s.formState);
+    const formErrors = useBackupDatabaseSelector((s) => s.formErrors);
+    const errorMessage = useBackupDatabaseSelector((s) => s.errorMessage);
 
-    if (!context || !state) {
+    if (!context || !viewModel) {
         return null;
     }
 
     const [fileErrors, setFileErrors] = useState<number[]>([]);
-    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+    const backupViewModel = viewModel.model as BackupDatabaseViewModel;
 
     const shouldDisableBackupButton = (): boolean => {
-        const formComponents = state.formComponents;
-        const isUrlBackup = backupViewModel.saveToUrl;
+        const isUrlBackup = backupViewModel.type === DisasterRecoveryType.Url;
 
         const requiredComponents = Object.values(formComponents).filter((component) => {
             if (!component.required) {
@@ -64,11 +69,11 @@ export const BackupDatabaseDialogPage = () => {
         });
 
         const hasMissingRequiredValue = requiredComponents.some((component) => {
-            const value = state.formState[component.propertyName as keyof typeof state.formState];
+            const value = formState[component.propertyName as keyof typeof formState];
             return value === undefined || value === null || value === "";
         });
 
-        const hasFormErrors = state.formErrors.length > 0;
+        const hasFormErrors = formErrors.length > 0;
         const hasNoBackupFiles = !isUrlBackup && backupViewModel.backupFiles.length === 0;
         const hasFileErrors = !isUrlBackup && fileErrors.length > 0;
         const isAzureNotReady =
@@ -99,7 +104,7 @@ export const BackupDatabaseDialogPage = () => {
                     <ObjectManagementDialog
                         title={undefined}
                         description={undefined}
-                        errorMessage={state?.errorMessage}
+                        errorMessage={errorMessage}
                         primaryLabel={locConstants.backupDatabase.backup}
                         cancelLabel={locConstants.createDatabase.cancelButton}
                         helpLabel={locConstants.createDatabase.helpButton}
@@ -129,7 +134,7 @@ export const BackupDatabaseDialogPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{state?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }
