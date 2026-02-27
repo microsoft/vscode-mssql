@@ -354,7 +354,15 @@ export default class SqlDocumentService implements vscode.Disposable {
      * @param editor The new active text editor.
      */
     public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): Promise<void> {
-        this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+        try {
+            this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+
+            this._outputContentProvider?.queryResultWebviewController?.updateResultsOnActiveEditorChange(
+                editor,
+            );
+        } catch {
+            // No op is needed here since we don't want to block rest of the code.
+        }
 
         if (!editor?.document) {
             return;
