@@ -193,12 +193,21 @@ export default class SqlToolsServiceClient {
 
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
-    public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
+    public async initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
         this._logger.appendLine(Constants.serviceInitializing);
         this._logPath = context.logUri.fsPath;
-        return PlatformInformation.getCurrent().then((platformInfo) => {
-            return this.initializeForPlatform(platformInfo, context);
-        });
+        const platformInfo = await PlatformInformation.getCurrent();
+        const result = await this.initializeForPlatform(platformInfo, context);
+
+        if (result.isRunning) {
+            this.logger.appendLine(
+                `Service ${result.installedBeforeInitializing ? "installed and running" : "running"} at ${result.serverPath}`,
+            );
+        } else {
+            this.logger.appendLine(`Service failed to start at ${result.serverPath}`);
+        }
+
+        return result;
     }
 
     public initializeForPlatform(
