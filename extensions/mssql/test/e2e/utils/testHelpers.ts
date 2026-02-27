@@ -73,11 +73,8 @@ export async function disconnect(vsCodePage: Page): Promise<void> {
 }
 
 export async function executeQuery(vsCodePage: Page): Promise<void> {
-    // Is cancel connection button is visible, wait for a few seconds for connection to complete.
-    if (await vsCodePage.locator('a[aria-label^="Cancel Connection"]').isVisible()) {
-        await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-    }
     const executeQueryButton = vsCodePage.locator('[aria-label^="Execute Query"]');
+    await expect(executeQueryButton.first()).toBeVisible({ timeout: 5000 });
     await executeQueryButton.first().click();
     return;
 }
