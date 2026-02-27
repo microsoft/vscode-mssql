@@ -360,7 +360,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             this._outputContentProvider?.queryResultWebviewController?.updateResultsOnActiveEditorChange(
                 editor,
             );
-        } catch (err) {
+        } catch {
             // No op is needed here since we don't want to block rest of the code.
         }
 
