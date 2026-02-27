@@ -2605,10 +2605,6 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">Activer « Approuver le certificat de serveur »</target>
       </trans-unit>
-      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
-        <source xml:lang="en">Enable Experiences &amp; Reload</source>
-        <target state="translated">Activer les expériences et recharger</target>
-      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Activer Approuver le certificat de serveur</target>
@@ -7805,11 +7801,6 @@ Requête : {2}</target>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Onglet de texte : affiche les données de texte SQL</target>
       </trans-unit>
-      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
-        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
-        <note>{0} is a url to learn more about the new features</note>
-        <target state="translated">L’extension MSSQL pour VS Code introduit de nouvelles fonctionnalités de développement de données modernes ! Voulez-vous les activer ? [Learn more]({0})</target>
-      </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
         <target state="translated">Le fichier XEL n’a pas été trouvé.</target>
@@ -8905,8 +8896,8 @@ Requête : {2}</target>
         <target state="translated">Intention de l’application</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
-        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">Afficher automatiquement les résultats de la requête dans un nouvel onglet au lieu du volet de requête. Cette option prend effet uniquement si « mssql.enableRichExperiences » est activé.</target>
+        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
+        <target state="new">Automatically display query results in a new tab instead of the query pane.</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
@@ -9098,10 +9089,6 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
         <target state="translated">Ne pas afficher les invites pour afficher les résultats de la requête dans un nouvel onglet.</target>
       </trans-unit>
-      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-        <source xml:lang="en">Do not show prompts to enable UI-based features</source>
-        <target state="translated">Ne pas afficher les invites pour activer les fonctionnalités basées sur l’interface utilisateur</target>
-      </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">Supprimer la base de données (préversion)</target>
@@ -9129,14 +9116,6 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">Activer Grouper par schéma</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">Activer les fonctionnalités modernes</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">Activer les fonctionnalités modernes</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -9226,23 +9205,9 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">Activez les boutons d'expansion/réduction dans les nœuds de table du Schéma Designer lorsque les tables comportent plus de 10 colonnes</target>
       </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
-        <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="translated">Activer les fonctionnalités modernes dans MSSQL</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
-        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="translated">Activez le nouvel ensemble de fonctionnalités de développement de données qui proposent un moyen moderne pour travailler avec votre base de données SQL dans VS Code.
-[Activer les nouvelles expériences](command:mssql.enableRichExperiences)</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">Activé</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences.description">
-        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">Permet d’activer les fonctionnalités basées sur l’interface utilisateur dans l’extension MSSQL pour des fonctionnalités enrichies et plus puissantes. Redémarrez Visual Studio Code après avoir modifié ce paramètre.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>

@@ -2605,10 +2605,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">启用“信任服务器证书”</target>
       </trans-unit>
-      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
-        <source xml:lang="en">Enable Experiences &amp; Reload</source>
-        <target state="translated">启用体验并重新加载</target>
-      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">启用“信任服务器证书”</target>
@@ -7805,11 +7801,6 @@ Query: {2}</source>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">文本选项卡 - 显示 SQL 文本数据</target>
       </trans-unit>
-      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
-        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
-        <note>{0} is a url to learn more about the new features</note>
-        <target state="translated">MSSQL for VS Code 扩展正在引入新的新式数据开发功能!是否要启用它们? [了解详细信息]({0})</target>
-      </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
         <target state="translated">找不到 XEL 文件。</target>
@@ -8905,8 +8896,8 @@ Query: {2}</source>
         <target state="translated">应用程序意向</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
-        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">在新选项卡而不是查询窗格中自动显示查询结果。仅当启用了 `mssql.enableRichExperiences` 时，此选项才会生效。</target>
+        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
+        <target state="new">Automatically display query results in a new tab instead of the query pane.</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
@@ -9098,10 +9089,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
         <target state="translated">不显示在新选项卡中显示查询结果的提示。</target>
       </trans-unit>
-      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-        <source xml:lang="en">Do not show prompts to enable UI-based features</source>
-        <target state="translated">不显示启用基于 UI 的功能的提示</target>
-      </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">删除数据库(预览版)</target>
@@ -9129,14 +9116,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">按架构启用分组</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">启用新式功能</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">启用新式功能</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -9226,23 +9205,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">当表超过 10 列时，在架构设计器表节点中启用“展开/折叠”按钮</target>
       </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
-        <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="translated">在 MSSQL 中启用新式功能</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
-        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="translated">启用一组新的数据开发功能，这些功能提供了在 VS Code 中使用 SQL 数据库的新式方法。
-[启用新体验](command:mssql.enableRichExperiences)</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">已启用</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences.description">
-        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">在 MSSQL 扩展中启用基于 UI 的功能，以获得更丰富、更强大的功能。请在更改此设置后重启 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>

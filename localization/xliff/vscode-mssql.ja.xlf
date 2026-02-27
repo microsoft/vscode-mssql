@@ -2605,10 +2605,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">'サーバー証明書の信頼' を有効にする</target>
       </trans-unit>
-      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
-        <source xml:lang="en">Enable Experiences &amp; Reload</source>
-        <target state="translated">エクスペリエンスの有効化と再読み込み</target>
-      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">信頼サーバー証明書を有効にする</target>
@@ -7805,11 +7801,6 @@ Query: {2}</source>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">[テキスト] タブ - SQL テキスト データを表示します</target>
       </trans-unit>
-      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
-        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
-        <note>{0} is a url to learn more about the new features</note>
-        <target state="translated">MSSQL for VS Code 拡張機能では、新しい最新のデータ開発機能が導入されています。有効にしますか? [詳細情報]({0})</target>
-      </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
         <target state="translated">XEL ファイルが見つかりませんでした。</target>
@@ -8905,8 +8896,8 @@ Query: {2}</source>
         <target state="translated">アプリケーションの意図</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
-        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">クエリ ウィンドウではなく新しいタブにクエリ結果を自動的に表示します。このオプションは、'mssql.enableRichExperiences' が有効になっている場合にのみ有効になります。</target>
+        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
+        <target state="new">Automatically display query results in a new tab instead of the query pane.</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
@@ -9098,10 +9089,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
         <target state="translated">クエリ結果を新しいタブに表示するためのプロンプトを表示しません。</target>
       </trans-unit>
-      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-        <source xml:lang="en">Do not show prompts to enable UI-based features</source>
-        <target state="translated">UI ベースの機能を有効にするプロンプトを表示しない</target>
-      </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">データベースの削除 (プレビュー)</target>
@@ -9129,14 +9116,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">スキーマによるグループ化を有効にする</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">最新の機能を有効にする</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">最新の機能を有効にする</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -9226,23 +9205,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">テーブルに 10 を超える列がある場合に、スキーマ デザイナーのテーブル ノードの展開/折りたたみボタンを有効にする</target>
       </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
-        <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="translated">MSSQL で最新の機能を有効にする</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
-        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="translated">VS Code で SQL データベースを操作する最新の方法を提供する新しいデータ開発機能セットを有効にします。
-[新しいエクスペリエンスを有効にする](command:mssql.enableRichExperiences)</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">有効</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences.description">
-        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">MSSQL 拡張機能で UI ベースの機能を有効にして、より充実した強力な機能を実現します。この設定を変更した後、Visual Studio Code を再起動します。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
