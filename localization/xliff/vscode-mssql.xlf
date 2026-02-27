@@ -35,15 +35,36 @@
     <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
       <source xml:lang="en">(0 rows affected)</source>
     </trans-unit>
+    <trans-unit id="++CODE++46d92f6624a397f87a752409b0d15b0777438ad6fcbebfb6573a2720b065b094">
+      <source xml:lang="en">(0 rows)</source>
+    </trans-unit>
     <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
       <source xml:lang="en">(1 row affected)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f">
+      <source xml:lang="en">(Command completed successfully)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9">
+      <source xml:lang="en">(current)</source>
     </trans-unit>
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
     </trans-unit>
+    <trans-unit id="++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340">
+      <source xml:lang="en">({0} row(s) affected)</source>
+      <note>{0} is the number of rows affected</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e4da59cc908db66f1c176e3b1ca74b35f3e1f863a6a07156a2f5516f3991a051">
+      <source xml:lang="en">({0} row)</source>
+      <note>{0} is the number of rows (singular)</note>
+    </trans-unit>
     <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
       <source xml:lang="en">({0} rows affected)</source>
       <note>{0} is the number of rows affected</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d7dc6d22bafdce672e9ed0f4266f83ead05837f27d30656b5e480b1893188d5e">
+      <source xml:lang="en">({0} rows)</source>
+      <note>{0} is the number of rows (plural)</note>
     </trans-unit>
     <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
       <source xml:lang="en">+ Add Azure Account</source>
@@ -153,6 +174,9 @@
       <source xml:lang="en">Add Firewall Rule to {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e">
+      <source xml:lang="en">Add MCP server to workspace configuration</source>
+    </trans-unit>
     <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
       <source xml:lang="en">Add Row</source>
     </trans-unit>
@@ -177,6 +201,9 @@
     </trans-unit>
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
+      <source xml:lang="en">Add to VS Code</source>
     </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
@@ -844,6 +871,9 @@
     <trans-unit id="++CODE++b05ab4483a5949bf2effb49592a7bb9dceafedb9a3c6aae12a32341025fc1511">
       <source xml:lang="en">Choose a connection profile from the list below</source>
     </trans-unit>
+    <trans-unit id="++CODE++c7bd40bc64cc1051c5198092da16048ef651147d7b291becd00c0467d63408e0">
+      <source xml:lang="en">Choose a database</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
     </trans-unit>
@@ -929,6 +959,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
       <source xml:lang="en">Click to cancel loading summary</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
+      <source xml:lang="en">Click to change database</source>
     </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
@@ -1083,6 +1116,9 @@
     <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
       <source xml:lang="en">Compression</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
+      <source xml:lang="en">Config copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
       <source xml:lang="en">Configuration to Import</source>
     </trans-unit>
@@ -1119,6 +1155,9 @@
     <trans-unit id="++CODE++4559fb568a70152599e0f4c5aeae4ca533de114086a7fbd57f5281732c9db33b">
       <source xml:lang="en">Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
+      <source xml:lang="en">Connect to SQL Server</source>
+    </trans-unit>
     <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
       <source xml:lang="en">Connect to Server</source>
     </trans-unit>
@@ -1150,6 +1189,10 @@
       <note>{0} is the server name
 {1} is the document name
 {2} is the server info</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d977ea679b0fb21f4bc301903e62002a433ffbcd7048c1f06828c8b02b9a77ae">
+      <source xml:lang="en">Connected to {0}</source>
+      <note>{0} is the connection label</note>
     </trans-unit>
     <trans-unit id="++CODE++00aaa2ec4a2146b807cc64a6f59880630adc5d451cd1a68a80e2d2ccf2d21bbc">
       <source xml:lang="en">Connected to:</source>
@@ -1237,6 +1280,9 @@
     <trans-unit id="++CODE++6bc9f61b6c77fbd2c69ef9bb0cbfb74f2f01ec0e9ba331938cb1b4a0d62e4f09">
       <source xml:lang="en">Connection error: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++596c52f1eb65c1c3c65404e5f75974937fee4fc77d0970abeddf580e7123ce0c">
+      <source xml:lang="en">Connection failed</source>
     </trans-unit>
     <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
       <source xml:lang="en">Connection failed: {0}</source>
@@ -1396,6 +1442,10 @@
     </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3044963803237002cd39b23ffdbf08d431d1667985a812f1793c48f8fae7b3a4">
+      <source xml:lang="en">Copy {0} URL</source>
+      <note>{0} is the API type name, e.g. REST API or GraphQL</note>
     </trans-unit>
     <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
       <source xml:lang="en">Copy-only Backup</source>
@@ -1813,6 +1863,9 @@
     <trans-unit id="++CODE++459c45733e24412e32c08ebea6b6819b4a29ca99ec1b99e5c8036d0165df44b7">
       <source xml:lang="en">Disconnected successfully</source>
     </trans-unit>
+    <trans-unit id="++CODE++7fcdbd4a0ca24d27e5a77bd0c4e6de424a4be6a97f3749e5dca265ddf0614298">
+      <source xml:lang="en">Disconnected.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b9d150a1c239a564e634666c8cebbaad8712f8f67c6fdf37c97d17643b3af579">
       <source xml:lang="en">Disconnecting from connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
@@ -2180,11 +2233,18 @@
     <trans-unit id="++CODE++8eecdde079a9092758e271d5a21f28eadbeedb35716353e07cfeb33f52e8005c">
       <source xml:lang="en">Error: </source>
     </trans-unit>
+    <trans-unit id="++CODE++ff9264103992fdc97a96b2f801ba367f6b82a97c0cfe7884ccb80233b599aac3">
+      <source xml:lang="en">Error: Failed to parse query result data.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c1ebcf47761be137441b5293902752b802776fa5edd4ebf0193950f1adff0e8">
       <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
     </trans-unit>
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
+      <source xml:lang="en">Error: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
@@ -2213,6 +2273,9 @@
     <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
       <source xml:lang="en">Execute &apos;{0}&apos; operation on the schema designer?</source>
       <note>{0} is the operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d">
+      <source xml:lang="en">Execute SQL against SQL Server / Azure SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
       <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API Builder</source>
@@ -3524,6 +3587,14 @@
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
     </trans-unit>
+    <trans-unit id="++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1">
+      <source xml:lang="en">MCP server added to {0}</source>
+      <note>{0} is the file path where the MCP server was added</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5d50fcab6afa8bf3d21623505a4148c817c4cff4ec9873bf8f9693e9e8f39415">
+      <source xml:lang="en">MCP server is already configured in {0}</source>
+      <note>{0} is the file path where the MCP server configuration exists</note>
+    </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
@@ -3830,8 +3901,14 @@
     <trans-unit id="++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574">
       <source xml:lang="en">No active connection for schema view</source>
     </trans-unit>
+    <trans-unit id="++CODE++2427093f6a4ccd3d9c91b3682f7bf06dcbb6b77b636d3edc311b9ca3f2a3721a">
+      <source xml:lang="en">No active connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
       <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19">
+      <source xml:lang="en">No active notebook.</source>
     </trans-unit>
     <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
       <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
@@ -3879,6 +3956,9 @@
     <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
       <source xml:lang="en">No connection profile to remove.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
+      <source xml:lang="en">No connection selected.</source>
+    </trans-unit>
     <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
       <source xml:lang="en">No connection was found. Please connect to a server first.</source>
     </trans-unit>
@@ -3902,6 +3982,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b15c8fb94bc966c85617c43fecf9a75b8a24edc609b0b410743efbcea68da5a9">
       <source xml:lang="en">No database files found in the restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++979ea4dd600dbdf9f324b9fcc58626178a88362bea00d193ca63b85c5496599f">
+      <source xml:lang="en">No database selected.</source>
     </trans-unit>
     <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
       <source xml:lang="en">No databases found in the selected workspace.</source>
@@ -4020,6 +4103,9 @@
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
+    <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
+      <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
       <source xml:lang="en">No workspaces found</source>
     </trans-unit>
@@ -4052,6 +4138,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b63db09b404fbb32d9a1c00b76e17be0b11b81dac474a8aa6dc39fb0304cee6">
       <source xml:lang="en">Not available for read-only file sessions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0303e182467081801f8b614862519a3b174c0ae84ff08b70e7d126080c3f4b95">
+      <source xml:lang="en">Not connected</source>
     </trans-unit>
     <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
       <source xml:lang="en">Not contains</source>
@@ -4549,6 +4638,12 @@
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
     </trans-unit>
+    <trans-unit id="++CODE++d58adeac69d8e840d82fe6c12086fda72d491949f9800d1fb049324b37c2f3cb">
+      <source xml:lang="en">Query execution failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974">
+      <source xml:lang="en">Query execution was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
       <source xml:lang="en">Query failed</source>
     </trans-unit>
@@ -4880,6 +4975,16 @@
     <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
       <source xml:lang="en">SQL Login</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9">
+      <source xml:lang="en">SQL Notebook connected to {0}</source>
+      <note>{0} is the connection label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7">
+      <source xml:lang="en">SQL Notebooks: click to change database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58">
+      <source xml:lang="en">SQL Notebooks: click to connect</source>
+    </trans-unit>
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
     </trans-unit>
@@ -4901,6 +5006,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
       <source xml:lang="en">SQL database in Fabric (Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94">
+      <source xml:lang="en">SQL: Not connected</source>
     </trans-unit>
     <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
       <source xml:lang="en">SQLCMD Variables</source>
@@ -5133,6 +5241,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fb36706789e855faf92bf6900c060554f0e8513ebb831ffe81ed991b28d07f8c">
       <source xml:lang="en">Select Connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8c077bff66494e2aeee6280e4f591761cba31b94a22b87e617c3a5d80656ac84">
+      <source xml:lang="en">Select Database</source>
     </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
@@ -5701,6 +5812,10 @@
       <source xml:lang="en">Switch to Text View ({0})</source>
       <note>{0} is the keyboard shortcut for switching to text view</note>
     </trans-unit>
+    <trans-unit id="++CODE++ed15b242aa1a7a4a806b10b44d2a0010fdcd7582ee1d23ff253e9d376230e87b">
+      <source xml:lang="en">Switched to {0}</source>
+      <note>{0} is the connection label</note>
+    </trans-unit>
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
     </trans-unit>
@@ -5999,6 +6114,9 @@
     <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
       <source xml:lang="en">URL</source>
     </trans-unit>
+    <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
+      <source xml:lang="en">URL copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
     </trans-unit>
@@ -6050,6 +6168,10 @@
     </trans-unit>
     <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
       <source xml:lang="en">Unknown error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ba171e467536aa07cf200f98a6910142cd4bc9c82715767474325f0631f3bbc">
+      <source xml:lang="en">Unknown magic command: %%{0}</source>
+      <note>{0} is the magic command name</note>
     </trans-unit>
     <trans-unit id="++CODE++47910f2afddaf1712b164656a035d7fd1f09b784038c43c65b190ea778c68f58">
       <source xml:lang="en">Unknown object management dialog.</source>
@@ -6281,6 +6403,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f86597d07cc9ee182bac4dce2a2850eb6cc8509b3199ec6ab9d6e3e89fff8aae">
       <source xml:lang="en">Your API is available at:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++218a10d5a69c30b5a238c1ef9158c0427b0a183bc40cb11117e8eb7563807c9a">
+      <source xml:lang="en">Your APIs are available at the following endpoints:</source>
     </trans-unit>
     <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
       <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
@@ -6665,6 +6790,12 @@
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>
     </trans-unit>
+    <trans-unit id="mssql.notebooks.changeConnection">
+      <source xml:lang="en">Change Notebook Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.changeDatabase">
+      <source xml:lang="en">Change Notebook Database</source>
+    </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
     </trans-unit>
@@ -6730,6 +6861,9 @@
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
       <source xml:lang="en">Create Database (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.createNotebook">
+      <source xml:lang="en">Create SQL Notebook</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>

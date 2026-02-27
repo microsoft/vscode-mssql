@@ -280,6 +280,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Primary key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Первичный ключ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server port number]]></Val>
@@ -312,6 +321,15 @@
           <Val><![CDATA[Connecting to your SQL Server Docker container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Подключение к контейнеру Docker с SQL Server]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++03e884ddf92692afa483662c376c0ddbe134c6b0e73c8506a40d7731d2f9fe3d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change {0} of {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Изменение {0} из {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -856,6 +874,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b231621413a53ac597977d0754cfc55a3063d534bb85a873370e98a9b8856dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to load code analysis rules]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Не удалось загрузить правила анализа кода]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to open scmp file: '{0}']]></Val>
@@ -1117,6 +1144,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0ee88bcfd6a2821d3cc887bbe2dd847b85c2f59a4b3e217be73ac5222802c95e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Undo All]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Отменить все]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0ef2471661442a695e9e07fcfc1addd4da56f83fc076649fb2dcfc5b4865fbe2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Referenced table]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Упоминаемая таблица]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0f044feb6ca7d6764650e6b800425a84b5ea518d6f531ee92c3995d6c3eca11e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Operation]]></Val>
@@ -1194,6 +1239,15 @@
           <Val><![CDATA[{0} connection imported]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Импортировано {0} подключение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0fedcf43eba06c5379c3c9a1d2242e2c7a929c3067e3a2e9cfa8fbd85d7d9c6c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot delete column because it is used by a foreign key.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Невозможно удалить столбец, так как его использует внешний ключ.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2278,6 +2332,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copilot Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Изменения Copilot]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publish Changes]]></Val>
@@ -2580,6 +2643,15 @@
           <Val><![CDATA[Foreign Column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Внешний столбец]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++23950c524f395d8a86f042de7ea4cbba348146e9c1c79acb3d7fbb89d4198080" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Развернуть {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3003,6 +3075,15 @@
           <Val><![CDATA[Category]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Категория]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No code analysis rules available.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Нет доступных правил анализа кода.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3943,6 +4024,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++379d2eaa80ebde0d69484f3d26df5ee45336d941fd6173c91708a997f9f017b6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Referenced columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Упоминаемые столбцы]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse settings]]></Val>
@@ -4258,6 +4348,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Code Analysis]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Code Analysis]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse connections]]></Val>
@@ -4384,6 +4483,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3e86b1723088cc27e8589fe3f3a24b4ceb5d70f2d857414e77ff2580a688724c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept All]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Принять все]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export all captured events to a CSV file]]></Val>
@@ -4447,6 +4555,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3f6908b78d6f2f27272b632f69f324d590acb726493fe644e79cf8d0b01e9f43" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выбрать все {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3f91e357af9abc12f947a78cc2b4b0aa8cdd513fb4bec19a10cbee4d133445af" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to update cell: {0}]]></Val>
@@ -4461,6 +4578,15 @@
           <Val><![CDATA[Loading workspaces...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Загрузка рабочих областей...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4668,6 +4794,15 @@
           <Val><![CDATA[Very Satisfied]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Очень нравится]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rules]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Правила]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4942,6 +5077,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++460b3a7da007b7af9d35bca54181dc91382263b2bf133ca214871ca1fed1fc1c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Chat]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Чат]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.]]></Val>
@@ -5028,6 +5172,15 @@
           <Val><![CDATA[Unknown object management dialog.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Диалоговое окно управления неизвестным объектом.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++47bfaa5d500415abb1304d2f26f8faf8874320419d65476c51968c75a7ba088a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Undo All Copilot Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Отменить все изменения Copilot]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5271,6 +5424,15 @@
           <Val><![CDATA[Subscription]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Подписка]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow null]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Разрешить значение null]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5919,6 +6081,15 @@
           <Val><![CDATA[{0} of {1} connection groups selected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Выбрано столько групп подключений: {0} из {1}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++51fb172a8d569d8820009c7a05d941da1d7ecc21f5248c355fbd7b50899c4c7d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Тип данных]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6958,6 +7129,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++623971e6013bb7ca0de198ee8a596add57884bbf22821d9574acab573cd8ca7a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copilot Changes ({0})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Изменения Copilot ({0})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Text View]]></Val>
@@ -6990,6 +7170,15 @@
           <Val><![CDATA[Refresh Credentials]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Обновить учетные данные]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++62845f31a2fe00be3ebaaeb93f5b27af82ab81dfcbaa1871c76f596cd98cf3c9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rule]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Правило]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7314,6 +7503,15 @@
           <Val><![CDATA[Drop '{0}' from '{1}'. This action cannot be undone.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Удалить "{0}" из "{1}". Это необратимое действие.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reviewing Copilot Change]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Просмотр изменения Copilot]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7674,6 +7872,15 @@
           <Val><![CDATA[Click to connect to a database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Щелкните здесь, чтобы подключиться к базе данных]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6bcb323d511607dca30c45a57b338635a4000f776e096397505e7ba5051a410a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open Copilot Chat]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Открыть Copilot Chat]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8245,6 +8452,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++734fe7596bed714a9902c100524bdcd5e92d18970daa3d1f7776394185b7e211" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Foreign keys]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Внешние ключи]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Source Name]]></Val>
@@ -8664,6 +8880,15 @@
           <Val><![CDATA[Table Name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Имя таблицы]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++782e08de4b6ec5793be8ace39d20ee91bd05ddc327a36e3d736299c6267f75d4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Toggle all entities in {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Переключить все сущности в {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9105,6 +9330,15 @@
           <Val><![CDATA[Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Учетная запись]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7e4bf1f743585db3be8afd457365a3b7f162846f32d1ef1bfd620c5958c72281" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot delete column because it is referenced by a foreign key.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Невозможно удалить столбец, так как на него ссылается внешний ключ.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9663,6 +9897,15 @@
           <Val><![CDATA[Currently signed in as:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Вход выполнен от имени:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++87b761377cb8a3bdfa0eac508b5e6ac720c61d1410a1e7fef3f93165df3ddd2e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} action for {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Действие {0} над {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10680,6 +10923,15 @@
           <Val><![CDATA[No active connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Нет активного подключения]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++96a25dbc9f2e88758412917d948b79e1d95b419209b5bbd641b4b790474fa1b7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Severity for {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Серьезность для {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12034,6 +12286,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++aa77fc627924038ff6102753f77884b3fac27ed5e3f422e7b96ea681cb99a417" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Действительно отменить все изменения Copilot? Это отменит все отслеживаемые изменения с возвратом к исходному состоянию.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Paste connection string from clipboard]]></Val>
@@ -12138,6 +12399,15 @@
           <Val><![CDATA[Server Connections]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Подключения к серверу]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reject]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Отклонить]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12430,6 +12700,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}, +{1} more]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}, + еще {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading results...]]></Val>
@@ -12543,6 +12822,15 @@
           <Val><![CDATA[Reveal in Explorer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Открыть в обозревателе]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Settings for {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Настройки {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13123,6 +13411,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ba5528fbaf5a47fa7cb9ab8214c97d40ed77a42a1258edd947bff8447eb8dabf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL Database is not supported for backup.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Резервное копирование Базы данных SQL Azure не поддерживается.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No databases found in the selected workspace.]]></Val>
@@ -13182,6 +13479,15 @@
           <Val><![CDATA[Freeze columns]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Закрепить столбцы]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb58744a335d26ffe911eb87fea07fb73d8d4e3569295bbb62c143a5fe561b15" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot delete column because it is part of foreign key relationships.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Невозможно удалить столбец, так как он является частью связей внешнего ключа.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13272,6 +13578,15 @@
           <Val><![CDATA[Unknown Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Неизвестное подключение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL Database is not supported for restore.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Восстановление Базы данных SQL Azure не поддерживается.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13933,6 +14248,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No databases with backups found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Не найдены базы данных с резервными копиями]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to revert cell: {0}]]></Val>
@@ -13956,6 +14280,15 @@
           <Val><![CDATA[encrypt]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[шифровать]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable all rules in {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить все правила в {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14491,6 +14824,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ce767f8068bba3846263c85f968cda6378384e175ff05bbf8efc38cab8476223" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Свернуть {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Fabric API error occurred ({0}): {1}]]></Val>
@@ -14532,6 +14874,15 @@
           <Val><![CDATA[Azure (US Government)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure (для государственных организаций США)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cf927568d4b7bc9996db21639e81c140affb7858a0b68db0cfc6e502b022f98c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} rules]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Правил: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14613,6 +14964,15 @@
           <Val><![CDATA[Error code: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Код ошибки: ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d09445114806a6fe8a7faaeca21eb7f879a1b94fa056c9c06abde171f5c36f5f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Code Analysis - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Code Analysis — {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15544,15 +15904,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++dcbf82a20d3f8aa6064bc6fb7d8fdbca30e2444075d3055ccf3346f8be51dc26" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Show Changes ({0})]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Показать изменения ({0})]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[View]]></Val>
@@ -16161,6 +16512,15 @@
           <Val><![CDATA[Start]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Запустить]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e4c32239eaf3f27f3f4de229bde11e89be19a972ef77bddca6ffba07e07e8202" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16858,6 +17218,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++edd969c69f64aff645b3027bab51746e3b4b8bbafdc573981df42125e9e85dbe" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Показать изменения]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft SQL Server License Agreement]]></Val>
@@ -16980,6 +17349,15 @@
           <Val><![CDATA[Successfully refreshed token for connection {0} with uri {1}, {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Обновлен маркер для подключения {0} с URI {1}, {2}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter entities...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Фильтр сущностей...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17277,6 +17655,24 @@
           <Val><![CDATA[Modified foreign key '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Изменён внешний ключ '{0}']]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f42dc68b6c07746e76ce1891ba437df7a1d82524ba74c2ef4c9c770bfe5b787f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading code analysis rules...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Загрузка правил анализа кода…]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f42e7cb49016fa824e41c1f7fdf957665ad22c0b8621c28b1fe956ecb3af5cde" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Referenced schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Упоминаемая схема]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
