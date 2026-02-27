@@ -479,6 +479,10 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         expect(panelStub.dispose, "panel should be disposed when closeAfterSave is true").to.have
             .been.calledOnce;
+        expect(
+            vscodeWrapperStub.logToOutputChannel,
+            "logToOutputChannel should be called with success message when closeAfterSave is true",
+        ).to.have.been.calledWith(ExtLoc.rulesSaved);
         expect(closingState.message, "message should be undefined when panel closes after save").to
             .be.undefined;
     });

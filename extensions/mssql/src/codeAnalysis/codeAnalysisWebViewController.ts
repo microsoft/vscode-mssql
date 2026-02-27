@@ -131,6 +131,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 });
                 if (!result.success) {
                     const errorMsg = result.errorMessage || Loc.failedToSaveRules;
+                    this.logger.error(`Failed to save code analysis rules: ${errorMsg}`);
                     this.sendError(
                         TelemetryActions.CodeAnalysisRulesSaveError,
                         new Error(errorMsg),
@@ -152,6 +153,8 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     },
                 );
                 if (payload.closeAfterSave) {
+                    this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
+                    this.vscodeWrapper.outputChannel.show();
                     this.panel.dispose();
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty
@@ -163,6 +166,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                         : ({ message: Loc.rulesSaved, intent: "success" } as DialogMessageSpec),
                 };
             } catch (error) {
+                this.logger.error(`Failed to save code analysis rules: ${getErrorMessage(error)}`);
                 this.sendError(
                     TelemetryActions.CodeAnalysisRulesSaveError,
                     error instanceof Error ? error : new Error(getErrorMessage(error)),
@@ -206,10 +210,14 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 // so the user understands why their saved overrides weren't applied.
                 this.state.rules = dacfxStaticRules;
                 const detail = projectProps.errorMessage;
+                const overridesMsg = detail
+                    ? `${Loc.failedToLoadOverrides}: ${detail}`
+                    : Loc.failedToLoadOverrides;
+                this.logger.error(
+                    `Failed to load code analysis rule overrides: ${detail ?? Loc.failedToLoadOverrides}`,
+                );
                 this.state.message = {
-                    message: detail
-                        ? `${Loc.failedToLoadOverrides}: ${detail}`
-                        : Loc.failedToLoadOverrides,
+                    message: overridesMsg,
                     intent: "warning",
                 } as DialogMessageSpec;
                 this.sendError(
@@ -224,6 +232,9 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             // Fall back to DacFx defaults and show a non-blocking warning so the
             // dialog is still usable even if the .sqlproj can't be read.
             this.state.rules = dacfxStaticRules;
+            this.logger.error(
+                `Failed to load code analysis rule overrides: ${getErrorMessage(propsError)}`,
+            );
             this.state.message = {
                 message: `${Loc.failedToLoadOverrides}: ${getErrorMessage(propsError)}`,
                 intent: "warning",
@@ -292,6 +303,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             });
         } catch (error) {
             this.state.isLoading = false;
+            this.logger.error(`Failed to load code analysis rules: ${getErrorMessage(error)}`);
             this.state.message = {
                 message: getErrorMessage(error),
                 intent: "error",
