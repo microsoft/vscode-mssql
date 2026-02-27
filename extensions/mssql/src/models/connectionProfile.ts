@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from "../constants/locConstants";
-import * as crypto from "crypto";
 import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import { ConnectionCredentials } from "./connectionCredentials";
 import { INameValueChoice } from "../prompts/question";
 import * as utils from "./utils";
+import { uuid } from "../utils/utils";
 import { AccountStore } from "../azure/accountStore";
 import { AzureAuthType } from "./contracts/azure";
 import { ConfigTarget } from "../connectionconfig/connectionconfig";
@@ -50,7 +50,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
     public static addIdIfMissing(profile: IConnectionProfile): boolean {
         if (profile && profile.id === undefined) {
-            profile.id = crypto.randomUUID();
+            profile.id = uuid();
             return true;
         }
 

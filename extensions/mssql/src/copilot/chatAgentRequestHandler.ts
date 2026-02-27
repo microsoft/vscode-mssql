@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
@@ -22,7 +21,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { Logger } from "../models/logger";
@@ -70,7 +69,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
-        const correlationId = crypto.randomUUID();
+        const correlationId = uuid();
         const logger = getLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;

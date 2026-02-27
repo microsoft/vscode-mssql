@@ -5,6 +5,7 @@
 
 import { KeyCode } from "./keys";
 import { EventManager } from "./eventManager";
+import { uuid } from "./utils";
 
 const defaultConfig = {
     itemHeight: 20,
@@ -12,7 +13,7 @@ const defaultConfig = {
 };
 
 export class VirtualizedList<T> {
-    private _listId: string = window.crypto.randomUUID();
+    private _listId: string = uuid();
     private _visibleCount: number;
     private _scrollOffset: number;
     private _eventManager: EventManager = new EventManager();

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
 import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
@@ -47,7 +46,7 @@ import {
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
@@ -1215,7 +1214,7 @@ export default class ConnectionManager {
         );
 
         if (!fileUri) {
-            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${crypto.randomUUID()}`;
+            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${uuid()}`;
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);

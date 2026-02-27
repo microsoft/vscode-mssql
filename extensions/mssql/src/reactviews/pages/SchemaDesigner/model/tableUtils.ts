@@ -5,6 +5,7 @@
 
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { namingUtils } from "./namingUtils";
 
 export const tableUtils = {
@@ -59,7 +60,7 @@ export const tableUtils = {
                     scale: 0,
                     isNullable: false,
                     isPrimaryKey: true,
-                    id: crypto.randomUUID(),
+                    id: uuid(),
                     isIdentity: true,
                     identitySeed: 1,
                     identityIncrement: 1,
@@ -70,7 +71,7 @@ export const tableUtils = {
                 },
             ],
             foreignKeys: [],
-            id: crypto.randomUUID(),
+            id: uuid(),
         };
     },
 };

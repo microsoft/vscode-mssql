@@ -32,6 +32,7 @@ import {
     useTableFeatures,
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { columnUtils, namingUtils, tableUtils } from "../model";
@@ -636,7 +637,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     const addColumn = () => {
         const newColumns = [...context.table.columns];
         newColumns.push({
-            id: crypto.randomUUID(),
+            id: uuid(),
             name: namingUtils.getNextColumnName(newColumns),
             dataType: "int",
             isPrimaryKey: newColumns.length === 0, // First column is primary key by default

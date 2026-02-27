@@ -11,6 +11,10 @@ import * as os from "os";
 import { FormItemSpec, FormState } from "../sharedInterfaces/form";
 import xmlFormatter from "xml-formatter";
 
+export function uuid(): string {
+    return crypto.randomUUID();
+}
+
 export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
     if (uri) {
         const fullPath = vscode.Uri.joinPath(uri, path);

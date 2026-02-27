@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import type { Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { columnUtils } from "./columnUtils";
 import { foreignKeyUtils } from "./foreignKeyUtils";
 import { layoutFlowComponents } from "./flowLayout";
@@ -42,7 +43,7 @@ export const normalizeColumn = (column: SchemaDesigner.Column): SchemaDesigner.C
     const isPrimaryKey = column.isPrimaryKey ?? false;
     const isNullable = column.isNullable !== undefined ? column.isNullable : !isPrimaryKey;
     const normalized: SchemaDesigner.Column = {
-        id: column.id || crypto.randomUUID(),
+        id: column.id || uuid(),
         name: column.name ?? "",
         dataType,
         maxLength: column.maxLength ?? "",
@@ -87,7 +88,7 @@ export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Tabl
     const normalizedForeignKeys = Array.isArray(table.foreignKeys)
         ? table.foreignKeys.map((fk) => ({
               ...fk,
-              id: fk.id || crypto.randomUUID(),
+              id: fk.id || uuid(),
               columnsIds: Array.isArray(fk.columnsIds) ? fk.columnsIds : [],
               referencedTableId: fk.referencedTableId || "",
               referencedColumnsIds: Array.isArray(fk.referencedColumnsIds)
@@ -98,7 +99,7 @@ export const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Tabl
 
     return {
         ...table,
-        id: table.id || crypto.randomUUID(),
+        id: table.id || uuid(),
         columns: normalizedColumns,
         foreignKeys: normalizedForeignKeys,
     };

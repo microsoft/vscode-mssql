@@ -7,13 +7,13 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import * as crypto from "crypto";
 import { test as baseTest, BrowserContext } from "@playwright/test";
+import { uuid } from "../../src/utils/utils";
 
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
 export function generateUUID(): string {
-    return crypto.randomUUID();
+    return uuid();
 }
 
 export const test = baseTest.extend<{

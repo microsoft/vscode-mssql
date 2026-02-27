@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import ConnectionManager from "../controllers/connectionManager";
 import {
@@ -56,7 +55,7 @@ import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 
 export interface CreateSessionResult {
@@ -711,7 +710,7 @@ export class ObjectExplorerService {
         }
 
         if (!connectionProfile.id) {
-            connectionProfile.id = crypto.randomUUID();
+            connectionProfile.id = uuid();
         }
 
         // Local container, ensure it is started

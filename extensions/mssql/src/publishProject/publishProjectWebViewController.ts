@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import * as path from "path";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
@@ -38,7 +37,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
-import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
+import { hasAnyMissingRequiredValues, getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ProjectController } from "../controllers/projectController";
 import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
@@ -1455,7 +1454,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         state: PublishDialogState,
         connectionString: string,
     ): Promise<string | undefined> {
-        const fileUri = `mssql://publish-profile-${crypto.randomUUID()}`;
+        const fileUri = `mssql://publish-profile-${uuid()}`;
 
         // Show loading indicator
         state.loadConnectionStatus = ApiStatus.Loading;

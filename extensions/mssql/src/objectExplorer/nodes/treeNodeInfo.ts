@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import * as vscodeMssql from "vscode-mssql";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
-import { removeUndefinedProperties } from "../../utils/utils";
+import { removeUndefinedProperties, uuid } from "../../utils/utils";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -87,7 +86,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     // Generating a unique ID for the node
     protected generateId(): string {
-        return `${this._connectionProfile?.id}-${this._nodePath}-${crypto.randomUUID()}`;
+        return `${this._connectionProfile?.id}-${this._nodePath}-${uuid()}`;
     }
 
     public static fromNodeInfo(

@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
-import { removeUndefinedProperties, getUriKey } from "../utils/utils";
+import { removeUndefinedProperties, getUriKey, uuid } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -355,7 +354,7 @@ export default class SqlDocumentService implements vscode.Disposable {
      * @returns The newly created text editor
      */
     public async newQuery(options: NewQueryOptions = {}): Promise<vscode.TextEditor> {
-        const operationKey = crypto.randomUUID();
+        const operationKey = uuid();
 
         try {
             const newQueryPromise = this.createNewQueryDocument(options);

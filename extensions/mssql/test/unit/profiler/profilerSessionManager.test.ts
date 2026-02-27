@@ -6,11 +6,11 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import * as crypto from "crypto";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import { ProfilerSessionOptions } from "../../../src/profiler/profilerSession";
 import { SessionType, SessionState, EventRow } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
+import { uuid } from "../../../src/utils/utils";
 
 /**
  * Creates a mock ProfilerService for testing.
@@ -47,7 +47,7 @@ suite("ProfilerSessionManager Tests", () => {
     let nextEventNumber = 1;
     function createTestEvent(overrides: Partial<EventRow> = {}): EventRow {
         return {
-            id: crypto.randomUUID(),
+            id: uuid(),
             eventNumber: nextEventNumber++,
             timestamp: new Date(),
             eventClass: "SQL:BatchCompleted",

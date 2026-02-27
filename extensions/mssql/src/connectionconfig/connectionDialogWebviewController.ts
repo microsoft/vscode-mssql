@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as os from "os";
-import * as crypto from "crypto";
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 
@@ -61,7 +60,7 @@ import {
     getServerTypes,
     getDefaultConnection,
 } from "../models/connectionInfo";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
@@ -1068,7 +1067,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
-                const tempConnectionUri = crypto.randomUUID();
+                const tempConnectionUri = uuid();
                 const result = await this._mainController.connectionManager.connect(
                     tempConnectionUri,
                     cleanedConnection,
