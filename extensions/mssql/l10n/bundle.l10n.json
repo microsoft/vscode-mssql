@@ -546,7 +546,7 @@
     },
     "Chat": "Chat",
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
-    "New: Design Schemas with GitHub Copilot": "New: Design Schemas with GitHub Copilot",
+    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
     "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",

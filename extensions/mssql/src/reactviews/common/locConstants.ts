@@ -788,7 +788,7 @@ export class LocConstants {
             publishChanges: l10n.t("Publish Changes"),
             openCopilotForSchemaDesigner: l10n.t("Chat"),
             openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t("New: Design Schemas with GitHub Copilot"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
