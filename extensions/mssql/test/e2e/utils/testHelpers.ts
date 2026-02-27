@@ -78,7 +78,7 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
      * If the query editor is in connecting state, the execute query button will be disabled and not visible.
      * So we need to wait for it to be visible before clicking it.
      */
-    await executeQueryButton.first().isVisible();
+    await executeQueryButton.first().isVisible({ timeout: 5000 });
     await executeQueryButton.first().click();
 }
 
