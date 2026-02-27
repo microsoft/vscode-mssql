@@ -28,23 +28,19 @@ export interface IHttpClientDependencies {
     messages?: IHttpClientMessages;
 }
 
+/**
+ * Core HTTP client class that is independent of VS Code APIs and can be used in any context, like the build/pipeline infrastructure.
+ * The HttpClient class extends this core class and provides VS Code specific implementations of the dependencies.
+ */
 export class HttpClientCore {
     constructor(
         protected readonly logger?: ILogger,
         private readonly dependencies: IHttpClientDependencies = {},
     ) {}
 
-    public setupRequest(
-        requestUrl: string,
-        token?: string,
-    ): { requestUrl: string; config: AxiosRequestConfig } {
-        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
-        return {
-            requestUrl: this.constructRequestUrl(requestUrl, config),
-            config,
-        };
-    }
-
+    /**
+     * Makes a GET request to the specified URL with the provided token.
+     */
     public async makeGetRequest<TResponse>(
         requestUrl: string,
         token: string,
@@ -71,6 +67,9 @@ export class HttpClientCore {
         return response;
     }
 
+    /**
+     * Makes a POST request to the specified URL with the provided token and payload.
+     */
     public async makePostRequest<TResponse, TPayload>(
         requestUrl: string,
         token: string,
@@ -92,6 +91,13 @@ export class HttpClientCore {
         return response;
     }
 
+    /**
+     * Downloads a file from the specified URL to the destination file descriptor, with optional callbacks for headers and data received.
+     * @param requestUrl request URL to download the file from
+     * @param destinationFd file descriptor of the destination file to write the downloaded content to
+     * @param options optional callbacks for headers and data received
+     * @returns result of the download operation, including the HTTP status and response headers
+     */
     public async downloadFile(
         requestUrl: string,
         destinationFd: number,
@@ -179,6 +185,30 @@ export class HttpClientCore {
         }
     }
 
+    protected setupRequest(
+        requestUrl: string,
+        token?: string,
+    ): { requestUrl: string; config: AxiosRequestConfig } {
+        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
+        return {
+            requestUrl: this.constructRequestUrl(requestUrl, config),
+            config,
+        };
+    }
+
+    /**
+     * Builds an Axios request config with headers, auth token, and proxy/agent settings.
+     *
+     * - Adds JSON content type and bearer token headers.
+     * - Disables Axios status throwing (`validateStatus` always true).
+     * - Checks VS Code HTTP proxy settings or environment variables.
+     * - If a proxy is found, disables Axios' default proxy handling
+     *   and attaches a custom HTTP/HTTPS agent.
+     *
+     * @param requestUrl - The target request URL.
+     * @param token - Bearer token for the Authorization header.
+     * @returns AxiosRequestConfig with headers and proxy/agent configuration.
+     */
     private setupConfigAndProxyForRequest(requestUrl: string, token?: string): AxiosRequestConfig {
         const headers: { "Content-Type": string; Authorization?: string } = {
             "Content-Type": "application/json",
@@ -218,6 +248,12 @@ export class HttpClientCore {
         return config;
     }
 
+    /**
+     * Attempts to read proxy configuration in priority order:
+     * 1. VS Code settings (http.proxy config key)
+     * 2. environment variables (HTTP_PROXY, then HTTPS_PROXY)
+     * @returns found proxy information
+     */
     private loadProxyConfig(): string | undefined {
         let proxy: string | undefined = this.dependencies.getProxyConfig?.();
 
@@ -231,10 +267,21 @@ export class HttpClientCore {
         return proxy;
     }
 
+    /**
+     * Constructs a request URL that explicitly includes the port number when no proxy is configured.
+     *
+     * If a proxy is configured in the request config, the original URL is returned unchanged.
+     *
+     * @param requestUrl - The original request URL.
+     * @param config - The Axios request configuration, which may contain proxy settings.
+     * @returns A URL string with the appropriate port included if no proxy is configured,
+     *          otherwise the original request URL.
+     */
     private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
         if (!config.proxy) {
             // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
             // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
+
             const HTTPS_PORT = 443;
             const HTTP_PORT = 80;
             const parsedRequestUrl = new URL(requestUrl);
@@ -258,15 +305,18 @@ export class HttpClientCore {
 
         if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
             this.logger?.verbose("Loading proxy value from HTTP_PROXY environment variable.");
+
             return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
         } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
             this.logger?.verbose("Loading proxy value from HTTPS_PROXY environment variable.");
+
             return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
         }
 
         this.logger?.verbose(
             "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
         );
+
         return undefined;
     }
 
@@ -330,6 +380,9 @@ export class HttpClientCore {
         }
     }
 
+    /*
+     * Returns the proxy agent using the proxy url in the parameters or the system proxy. Returns null if no proxy found
+     */
     private getProxyAgentOptions(
         requestURL: URL,
         proxy?: string,
