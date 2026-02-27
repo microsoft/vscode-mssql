@@ -78,13 +78,13 @@ export class StubLogger implements ILogger {
 const config = new ConfigUtils();
 const logger = new StubLogger(console.log);
 const statusView = new StubStatusView(console.log);
-const httpClient = new DownloadHelper();
+const downloadHelper = new DownloadHelper();
 const decompressProvider = new DecompressProvider();
 let downloadProvider = new ServiceDownloadProvider(
     config,
     logger,
     statusView,
-    httpClient,
+    downloadHelper,
     decompressProvider,
     DownloadType.SqlToolsService,
 );

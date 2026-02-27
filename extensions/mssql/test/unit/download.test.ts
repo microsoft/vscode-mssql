@@ -31,7 +31,7 @@ suite("ServiceDownloadProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let config: sinon.SinonStubbedInstance<ConfigUtils>;
     let statusView: sinon.SinonStubbedInstance<IStatusView>;
-    let testHttpClient: sinon.SinonStubbedInstance<DownloadHelper>;
+    let testDownloadHelper: sinon.SinonStubbedInstance<DownloadHelper>;
     let testDecompressProvider: sinon.SinonStubbedInstance<DecompressProvider>;
     let testLogger: sinon.SinonStubbedInstance<Logger>;
 
@@ -39,7 +39,7 @@ suite("ServiceDownloadProvider Tests", () => {
         sandbox = sinon.createSandbox();
         config = sandbox.createStubInstance(ConfigUtils);
         statusView = sandbox.createStubInstance(ServerStatusView);
-        testHttpClient = sandbox.createStubInstance(DownloadHelper);
+        testDownloadHelper = sandbox.createStubInstance(DownloadHelper);
         testDecompressProvider = sandbox.createStubInstance(DecompressProvider);
         testLogger = sandbox.createStubInstance(Logger);
     });
@@ -58,7 +58,7 @@ suite("ServiceDownloadProvider Tests", () => {
             config,
             undefined,
             statusView,
-            testHttpClient,
+            testDownloadHelper,
             testDecompressProvider,
             DownloadType.SqlToolsService,
         );
@@ -76,7 +76,7 @@ suite("ServiceDownloadProvider Tests", () => {
             config,
             undefined,
             statusView,
-            testHttpClient,
+            testDownloadHelper,
             testDecompressProvider,
             DownloadType.SqlToolsService,
         );
@@ -95,7 +95,7 @@ suite("ServiceDownloadProvider Tests", () => {
             config,
             undefined,
             statusView,
-            testHttpClient,
+            testDownloadHelper,
             testDecompressProvider,
             DownloadType.SqlToolsService,
         );
@@ -111,7 +111,7 @@ suite("ServiceDownloadProvider Tests", () => {
             config,
             undefined,
             statusView,
-            testHttpClient,
+            testDownloadHelper,
             testDecompressProvider,
             DownloadType.SqlToolsService,
         );
@@ -142,14 +142,14 @@ suite("ServiceDownloadProvider Tests", () => {
         testDecompressProvider.decompress.callsFake(() => {
             return fixture.decompressResult;
         });
-        testHttpClient.downloadFile.callsFake(() => {
+        testDownloadHelper.downloadFile.callsFake(() => {
             return fixture.downloadResult;
         });
         const downloadProvider = new ServiceDownloadProvider(
             config,
             testLogger,
             statusView,
-            testHttpClient,
+            testDownloadHelper,
             testDecompressProvider,
             DownloadType.SqlToolsService,
         );
@@ -169,8 +169,8 @@ suite("ServiceDownloadProvider Tests", () => {
         fixture = await createDownloadProvider(fixture);
         await fixture.downloadProvider!.installService(Runtime.Windows_64);
 
-        expect(testHttpClient.downloadFile).to.have.been.calledOnce;
-        expect(testHttpClient.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
+        expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
+        expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
         expect(testDecompressProvider.decompress).to.have.been.calledOnce;
     });
 
@@ -185,8 +185,8 @@ suite("ServiceDownloadProvider Tests", () => {
 
         fixture = await createDownloadProvider(fixture);
         return fixture.downloadProvider!.installService(Runtime.Windows_64).catch((_) => {
-            expect(testHttpClient.downloadFile).to.have.been.calledOnce;
-            expect(testHttpClient.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
+            expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
+            expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
             expect(testDecompressProvider.decompress).to.not.have.been.called;
         });
     });
@@ -201,8 +201,8 @@ suite("ServiceDownloadProvider Tests", () => {
 
         fixture = await createDownloadProvider(fixture);
         return fixture.downloadProvider!.installService(Runtime.Windows_64).catch((_) => {
-            expect(testHttpClient.downloadFile).to.have.been.calledOnce;
-            expect(testHttpClient.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
+            expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
+            expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
             expect(testDecompressProvider.decompress).to.have.been.calledOnce;
         });
     });

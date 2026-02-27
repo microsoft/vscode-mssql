@@ -168,13 +168,13 @@ export default class SqlToolsServiceClient {
             let logger = Logger.create(vscodeWrapper.outputChannel, "SQL Tools Service");
 
             let serverStatusView = new ServerStatusView();
-            let httpClient = new DownloadHelper();
+            let downloadHelper = new DownloadHelper();
             let decompressProvider = new DecompressProvider();
             let downloadProvider = new ServiceDownloadProvider(
                 config,
                 logger,
                 serverStatusView,
-                httpClient,
+                downloadHelper,
                 decompressProvider,
                 DownloadType.SqlToolsService,
             );
