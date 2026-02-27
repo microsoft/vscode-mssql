@@ -169,11 +169,11 @@ export const CodeAnalysisDialog = () => {
     >(new Map());
 
     useEffect(() => {
-        // Avoid overwriting in-progress user edits while a save is ongoing.
-        if (!isSaving) {
-            setLocalRules(rules);
-        }
-    }, [rules, isSaving]);
+        // Sync localRules only when the authoritative rules change (initial load or
+        // successful save). On a failed save the reducer leaves rules unchanged, so
+        // this effect does not fire and the user's unsaved edits are preserved.
+        setLocalRules(rules);
+    }, [rules]);
 
     // Reset isSaving when the save completes: the reducer updates `rules` on
     // success and `message` on error — either signals the round-trip is done.
