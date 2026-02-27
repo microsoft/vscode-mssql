@@ -840,4 +840,46 @@ suite("SqlDocumentService Tests", () => {
             expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
         });
     });
+
+    suite("transferActiveEditorConnections flag", () => {
+        let configFlagStub: sinon.SinonStub;
+
+        setup(() => {
+            configFlagStub = sandbox.stub();
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: configFlagStub,
+            } as unknown as vscode.WorkspaceConfiguration);
+        });
+
+        test("should transfer connection when transferActiveEditorConnections is true", async () => {
+            configFlagStub.withArgs(Constants.configTransferActiveEditorConnections).returns(true);
+
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            expect(connectionManager.connect).to.have.been.calledOnce;
+            expect(connectionManager.connect.firstCall.args[0]).to.equal(document.uri.toString());
+        });
+
+        test("should NOT transfer connection when transferActiveEditorConnections is false", async () => {
+            configFlagStub.withArgs(Constants.configTransferActiveEditorConnections).returns(false);
+
+            // Set a last active connection
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            expect(connectionManager.connect).to.not.have.been.called;
+        });
+    });
 });
