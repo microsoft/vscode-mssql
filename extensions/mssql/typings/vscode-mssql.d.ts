@@ -134,6 +134,10 @@ declare module "vscode-mssql" {
          * APIs for working with mssql connections
          */
         connectionSharing: IConnectionSharingService;
+        /**
+         * APIs for coordinating URI ownership with other database extensions
+         */
+        uriOwnershipApi: UriOwnershipApi;
     }
 
     /**
@@ -2663,6 +2667,11 @@ declare module "vscode-mssql" {
          * The parent object type name such as Table, View, etc.
          */
         parentTypeName?: string;
+    }
+
+    export interface UriOwnershipApi {
+        ownsUri(uri: vscode.Uri): boolean;
+        onDidChangeUriOwnership: vscode.Event<void>;
     }
 
     /**

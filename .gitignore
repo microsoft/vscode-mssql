@@ -1,7 +1,7 @@
 # Build outputs
 out
 dist
-packages
+BuildDirectory
 extensions/sql-database-projects/BuildDirectory/*
 
 # Dependencies

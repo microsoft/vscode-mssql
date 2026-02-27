@@ -9,6 +9,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { QueryEditor } from "../constants/locConstants";
 import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 import * as LocalizedConstants from "../constants/locConstants";
+import { uriOwnershipCoordinator } from "../extension";
 
 export const connectionCodeLensRange = new vscode.Range(0, 0, 0, 0);
 
@@ -23,6 +24,14 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
                 this._codeLensChangedEmitter.fire();
             }),
         );
+
+        if (uriOwnershipCoordinator) {
+            this._disposables.push(
+                uriOwnershipCoordinator.onCoordinatingOwnershipChanged(() => {
+                    this._codeLensChangedEmitter.fire();
+                }),
+            );
+        }
     }
 
     public provideCodeLenses(
@@ -30,7 +39,10 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         _token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         // Defer to notebook-specific code lens provider for notebook cells
-        if (document.uri.scheme === "vscode-notebook-cell") {
+        if (
+            document.uri.scheme === "vscode-notebook-cell" ||
+            uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(document.uri)
+        ) {
             return [];
         }
 

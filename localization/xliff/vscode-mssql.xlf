@@ -6793,13 +6793,13 @@
       <source xml:lang="en">Backup Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
-      <source xml:lang="en">Cancel Query</source>
+      <source xml:lang="en">Cancel Query (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
-      <source xml:lang="en">Change Connection</source>
+      <source xml:lang="en">Change Connection (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.changeDatabase">
-      <source xml:lang="en">Change Database</source>
+      <source xml:lang="en">Change Database (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.changeConnection">
       <source xml:lang="en">Change Notebook Connection</source>
@@ -6835,7 +6835,7 @@
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
-      <source xml:lang="en">Connect</source>
+      <source xml:lang="en">Connect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
@@ -6913,7 +6913,7 @@
       <source xml:lang="en">Disabled</source>
     </trans-unit>
     <trans-unit id="mssql.disconnect">
-      <source xml:lang="en">Disconnect</source>
+      <source xml:lang="en">Disconnect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
       <source xml:lang="en">Display results in a formatted text format.</source>
@@ -7027,10 +7027,10 @@
       <source xml:lang="en">Estimated Plan</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
-      <source xml:lang="en">Execute Current Statement</source>
+      <source xml:lang="en">Execute Current Statement (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.runQuery">
-      <source xml:lang="en">Execute Query</source>
+      <source xml:lang="en">Execute Query (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.explainQuery">
       <source xml:lang="en">Explain Query</source>
@@ -7195,7 +7195,7 @@
       <source xml:lang="en">Restore Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
-      <source xml:lang="en">Reveal Query Result</source>
+      <source xml:lang="en">Reveal Query Result (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>

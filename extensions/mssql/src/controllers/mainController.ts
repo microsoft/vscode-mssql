@@ -48,6 +48,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
+import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
@@ -240,6 +241,9 @@ export default class MainController implements vscode.Disposable {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
             this._event.on(Constants.cmdConnect, () => {
+                if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+                    return;
+                }
                 void this.runAndLogErrors(this.promptToConnect());
             });
             this.registerCommand(Constants.cmdChangeConnection);
@@ -252,6 +256,9 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
+                if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+                    return;
+                }
                 void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
                 void this.onRunQuery();
             });

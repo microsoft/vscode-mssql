@@ -79,9 +79,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await openQueryButtonLocator.click();
         const queryText = vsCodePage.getByText("select * from sys.all_views").last();
         await expect(queryText).toBeVisible();
-        const ensureSqlFileOpened = vsCodePage.locator(
-            '[aria-label="Execute Query (Ctrl+Shift+E)"]',
-        );
+        const ensureSqlFileOpened = vsCodePage.locator('[aria-label^="Execute Query (MSSQL)"]');
         await expect(ensureSqlFileOpened).toBeVisible();
     });
 
