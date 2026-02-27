@@ -15,6 +15,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     activateExtension,
     initializeIconUtils,
+    stubTelemetry,
     stubExtensionContext,
     stubVscodeWrapper,
 } from "./utils";
@@ -26,8 +27,9 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
-import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
+import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import * as Prompts from "../../src/copilot/prompts";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 
@@ -715,10 +717,6 @@ suite("MainController Tests", function () {
     });
 
     suite("Schema Designer Copilot Agent Command", () => {
-        const flushAsyncHandlers = async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
-        };
-
         const createIsolatedController = () => {
             const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
             const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
@@ -733,26 +731,40 @@ suite("MainController Tests", function () {
 
         test("command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(SchemaDesigner.openCopilotAgentCommand);
+            expect(commands).to.include(CopilotChat.openFromUiCommand);
         });
 
         test("shows error when no active schema designer exists", async () => {
-            const showErrorMessageStub = sandbox.stub().resolves(undefined);
-            (mainController as any)._vscodeWrapper = {
-                showErrorMessage: showErrorMessageStub,
-            };
+            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
             const findChatOpenAgentCommandStub = sandbox.stub(
-                mainController as any,
+                isolatedController as any,
                 "findChatOpenAgentCommand",
             );
-            (SchemaDesignerWebviewManager.getInstance() as any)._activeDesigner = undefined;
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getActiveDesigner: sandbox.stub().returns(undefined),
+            } as any);
 
-            await vscode.commands.executeCommand(SchemaDesigner.openCopilotAgentCommand);
-            await flushAsyncHandlers();
+            await (isolatedController as any).openCopilotChatFromUi({
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerToolbar",
+            });
 
             expect(findChatOpenAgentCommandStub).to.not.have.been.called;
             expect(showErrorMessageStub).to.have.been.calledOnceWith(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
+            );
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.Open,
+                {
+                    entryPoint: "schemaDesignerToolbar",
+                    scenario: "schemaDesigner",
+                    mode: "agent",
+                    success: "false",
+                    reason: "noActiveDesigner",
+                },
             );
         });
 
@@ -764,7 +776,10 @@ suite("MainController Tests", function () {
             } as any);
             sandbox.stub(isolatedController as any, "findChatOpenAgentCommand").resolves(undefined);
 
-            await (isolatedController as any).openSchemaDesignerCopilotChat();
+            await (isolatedController as any).openCopilotChatFromUi({
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerToolbar",
+            });
 
             expect(showErrorMessageStub).to.have.been.calledOnceWith(
                 LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
@@ -784,12 +799,51 @@ suite("MainController Tests", function () {
                 .stub(isolatedController as any, "findChatOpenAgentCommand")
                 .resolves(Constants.vscodeWorkbenchChatOpenAgent);
 
-            await (isolatedController as any).openSchemaDesignerCopilotChat();
+            await (isolatedController as any).openCopilotChatFromUi({
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerToolbar",
+            });
 
             expect(showErrorMessageStub).to.not.have.been.called;
             expect(executeCommandStub).to.have.been.calledWith(
                 Constants.vscodeWorkbenchChatOpenAgent,
                 Prompts.schemaDesignerAgentPrompt,
+            );
+        });
+
+        test("opens chat with dab starter prompt and sends telemetry", async () => {
+            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const executeCommandStub = sandbox
+                .stub(vscode.commands, "executeCommand")
+                .resolves(undefined);
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getActiveDesigner: sandbox.stub().returns({}),
+            } as any);
+            sandbox
+                .stub(isolatedController as any, "findChatOpenAgentCommand")
+                .resolves(Constants.vscodeWorkbenchChatOpenAgent);
+
+            await (isolatedController as any).openCopilotChatFromUi({
+                scenario: "dab",
+                entryPoint: "dabToolbar",
+            });
+
+            expect(showErrorMessageStub).to.not.have.been.called;
+            expect(executeCommandStub).to.have.been.calledWith(
+                Constants.vscodeWorkbenchChatOpenAgent,
+                Prompts.dabAgentPrompt,
+            );
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.Open,
+                {
+                    entryPoint: "dabToolbar",
+                    scenario: "dab",
+                    mode: "agent",
+                    success: "true",
+                },
             );
         });
     });

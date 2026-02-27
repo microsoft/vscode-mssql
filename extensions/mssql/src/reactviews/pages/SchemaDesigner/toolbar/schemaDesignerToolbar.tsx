@@ -14,10 +14,11 @@ import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
 import { ShowChangesButton } from "./showChangesButton";
 import { ShowCopilotChangesButton } from "./showCopilotChangesButton";
-import { OpenCopilotChatButton } from "./openCopilotChatButton";
+import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 import { DesignApiButton } from "./designApiButton";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
+import { locConstants } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -39,10 +40,14 @@ const useStyles = makeStyles({
 });
 
 interface SchemaDesignerToolbarProps {
+    showDiscovery: boolean;
     onNavigateToDab?: () => void;
 }
 
-export function SchemaDesignerToolbar({ onNavigateToDab }: SchemaDesignerToolbarProps) {
+export function SchemaDesignerToolbar({
+    showDiscovery,
+    onNavigateToDab,
+}: SchemaDesignerToolbarProps) {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
 
@@ -62,7 +67,17 @@ export function SchemaDesignerToolbar({ onNavigateToDab }: SchemaDesignerToolbar
                 <FilterTablesButton />
                 {context.isDabEnabled() && (
                     <>
-                        <OpenCopilotChatButton />
+                        <SchemaDesignerWebviewCopilotChatEntry
+                            scenario="schemaDesigner"
+                            entryPoint="schemaDesignerToolbar"
+                            discoveryTitle={
+                                locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryTitle
+                            }
+                            discoveryBody={
+                                locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryBody
+                            }
+                            showDiscovery={showDiscovery}
+                        />
                         <ToolbarDivider />
                         <ShowChangesButton />
                         <ShowCopilotChangesButton />
