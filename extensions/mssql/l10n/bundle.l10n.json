@@ -230,10 +230,11 @@
     },
     "Reset": "Reset",
     "Reset to Defaults?": "Reset to Defaults?",
-    "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?",
+    "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
     "Unsaved Changes": "Unsaved Changes",
     "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
     "Don't Save": "Don't Save",
+    "Enable Code Analysis on Build": "Enable Code Analysis on Build",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]

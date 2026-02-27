@@ -1974,6 +1974,9 @@
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
+    <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
+      <source xml:lang="en">Enable Code Analysis on Build</source>
+    </trans-unit>
     <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
       <source xml:lang="en">Enable Experiences &amp; Reload</source>
     </trans-unit>
@@ -6036,8 +6039,8 @@
     <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
       <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
     </trans-unit>
-    <trans-unit id="++CODE++51338842c0b95f02deebfcbe26d1e5a4052518617a3a72d7a8c56a886e720287">
-      <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</source>
+    <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
+      <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
