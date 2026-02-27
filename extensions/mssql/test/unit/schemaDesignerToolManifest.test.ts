@@ -80,8 +80,9 @@ suite("Schema Designer LM tool manifest schema", () => {
         expect(addColumn.properties.column.required).to.include.members(["name", "dataType"]);
 
         const setForeignKey = byOp.get("set_foreign_key");
-        expect(setForeignKey.required).to.include.members(["table", "foreignKey", "set"]);
-        expect(setForeignKey.properties.set.properties).to.have.property("mappings");
+        expect(setForeignKey.required).to.include.members(["table", "foreignKey"]);
+        expect(setForeignKey.properties).to.have.property("mappings");
+        expect(setForeignKey.properties).to.not.have.property("set");
     });
 
     test("mssql_schema_designer apply_edits requires payload.expectedVersion", () => {

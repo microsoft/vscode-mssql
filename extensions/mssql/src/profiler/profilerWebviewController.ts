@@ -35,7 +35,6 @@ import {
     ColumnDataType,
     XelFileInfo,
 } from "./profilerTypes";
-import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
 import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -71,8 +70,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
-    /** Filtered buffer for applying client-side filtering */
-    private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
     /** Persisted filter state per session (keyed by session ID) */
     private _sessionFilterState = new Map<string, FilterState>();
     private _isReadOnly: boolean;
@@ -428,7 +425,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 void this.sendNotification(ProfilerNotifications.RowsAvailable, response);
 
                 // Update filtered count from actual fetch result when filter is active
-                if (this._filteredBuffer?.isFilterActive) {
+                if (this._currentSession?.events.isFilterActive) {
                     this.state = {
                         ...state,
                         filteredRowCount: response.totalCount,
@@ -443,12 +440,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle apply filter request from webview (client-side only)
         this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
-            if (!this._filteredBuffer) {
+            if (!this._currentSession) {
                 return state;
             } else {
-                this._filteredBuffer.setColumnFilters(payload.clauses);
-                const totalCount = this._filteredBuffer.totalCount;
-                const filteredCount = this._filteredBuffer.getFilteredCount();
+                this._currentSession.events.applyFilter({ clauses: payload.clauses });
+                const totalCount = this._currentSession.events.totalCount;
+                const filteredCount = this._currentSession.events.getFilteredCount();
 
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();
@@ -469,7 +466,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     filterState: {
                         enabled: payload.clauses.length > 0,
                         clauses: payload.clauses,
-                        quickFilter: this._filteredBuffer.quickFilter,
+                        quickFilter: this._currentSession.events.quickFilter,
                     },
                     totalRowCount: totalCount,
                     filteredRowCount: filteredCount,
@@ -492,9 +489,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle clear filter request from webview
         this.registerReducer("clearFilter", (state) => {
-            if (this._filteredBuffer) {
-                this._filteredBuffer.clearAllFilters();
-                const totalCount = this._filteredBuffer.totalCount;
+            if (this._currentSession) {
+                this._currentSession.events.resetFilter();
+                const totalCount = this._currentSession.events.totalCount;
 
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();
@@ -527,9 +524,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.onRequest(
             ProfilerRequests.GetDistinctValues,
             async (payload: { field: string }): Promise<DistinctValuesResponse> => {
-                if (this._filteredBuffer) {
+                if (this._currentSession) {
                     this.updateFilteredBufferConverter();
-                    const values = this._filteredBuffer.getDistinctValuesForField(payload.field);
+                    const values = this._currentSession.events.getDistinctValuesForField(
+                        payload.field,
+                    );
                     return {
                         field: payload.field,
                         values,
@@ -617,7 +616,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle set quick filter request from webview
         this.registerReducer("setQuickFilter", (state, payload: { term: string }) => {
-            if (!this._filteredBuffer) {
+            if (!this._currentSession) {
                 return state;
             } else {
                 const quickFilter = payload.term.trim();
@@ -626,10 +625,18 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 const hasQuickFilter = quickFilter !== "";
 
                 // Delegate quick filter to FilteredBuffer
-                this._filteredBuffer.setQuickFilter(hasQuickFilter ? quickFilter : undefined);
+                this._currentSession.events.applyFilter({
+                    clauses: hasColumnFilters ? clauses : undefined,
+                    quickFilter: hasQuickFilter ? quickFilter : undefined,
+                });
 
-                const totalCount = this._filteredBuffer.totalCount;
-                const filteredCount = this._filteredBuffer.getFilteredCount();
+                // Also clear filters if everything is being removed
+                if (!hasColumnFilters && !hasQuickFilter) {
+                    this._currentSession.events.resetFilter();
+                }
+
+                const totalCount = this._currentSession.events.totalCount;
+                const filteredCount = this._currentSession.events.getFilteredCount();
 
                 // Notify webview to clear and refetch
                 void this.sendNotification(ProfilerNotifications.ClearGrid, {});
@@ -686,15 +693,15 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Send filter state changed notification to the webview
      */
     private async sendFilterStateChanged(): Promise<void> {
-        if (!this._filteredBuffer) {
+        if (!this._currentSession) {
             return;
         }
 
         const params: FilterStateChangedParams = {
-            isFilterActive: this._filteredBuffer.isFilterActive,
-            clauseCount: this._filteredBuffer.clauses.length,
-            totalCount: this._filteredBuffer.totalCount,
-            filteredCount: this._filteredBuffer.getFilteredCount(),
+            isFilterActive: this._currentSession.events.isFilterActive,
+            clauseCount: this._currentSession.events.clauses.length,
+            totalCount: this._currentSession.events.totalCount,
+            filteredCount: this._currentSession.events.getFilteredCount(),
         };
 
         await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
@@ -740,7 +747,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const totalRowCount = this._currentSession?.events.size ?? state.totalRowCount ?? 0;
 
         // Use FilteredBuffer as single source of truth for filter state
-        const isFilterActive = this._filteredBuffer?.isFilterActive ?? false;
+        const isFilterActive = this._currentSession?.events.isFilterActive ?? false;
         const filteredRowCount = isFilterActive
             ? (state.filteredRowCount ?? totalRowCount)
             : totalRowCount;
@@ -868,9 +875,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Update state with the current session ID and its actual state
         if (session) {
-            // Create a filtered buffer wrapping the session's ring buffer
-            this._filteredBuffer = new FilteredBuffer(session.events);
-
             // Set up a row converter so filtering operates on view-level column names
             this.updateFilteredBufferConverter();
 
@@ -884,13 +888,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 savedFilterState.enabled &&
                 savedFilterState.clauses.length > 0
             ) {
-                // Re-apply saved filter to the new buffer
-                this._filteredBuffer.setColumnFilters(savedFilterState.clauses);
-            }
-
-            // Restore quick filter if present
-            if (savedFilterState?.quickFilter) {
-                this._filteredBuffer.setQuickFilter(savedFilterState.quickFilter);
+                // Re-apply saved filter to the new buffer (builds cache)
+                session.events.applyFilter({
+                    clauses: savedFilterState.clauses,
+                    quickFilter: savedFilterState.quickFilter,
+                });
+            } else if (savedFilterState?.quickFilter) {
+                // Restore quick filter only (builds cache)
+                session.events.applyFilter({ quickFilter: savedFilterState.quickFilter });
             }
 
             this.state = {
@@ -900,12 +905,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 sessionName: session.sessionName,
                 totalRowCount: session.events.size,
                 filteredRowCount: savedFilterState?.enabled
-                    ? this._filteredBuffer.filteredCount
+                    ? session.events.filteredCount
                     : session.events.size,
                 filterState: savedFilterState ?? { enabled: false, clauses: [] },
             };
         } else {
-            this._filteredBuffer = undefined;
             this.state = {
                 ...this.state,
                 currentSessionId: undefined,
@@ -933,15 +937,17 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * When filter is active, only notifies about events that match the filter.
      */
     public notifyNewEvents(newCount: number): void {
-        if (!this._currentSession || !this._filteredBuffer) {
+        if (!this._currentSession) {
             return;
         }
 
         const totalCount = this._currentSession.events.size;
 
         // Delegate filtered count calculation to FilteredBuffer
-        const hasAnyFilter = this._filteredBuffer.isFilterActive;
-        const filteredCount = hasAnyFilter ? this._filteredBuffer.getFilteredCount() : totalCount;
+        const hasAnyFilter = this._currentSession.events.isFilterActive;
+        const filteredCount = hasAnyFilter
+            ? this._currentSession.events.getFilteredCount()
+            : totalCount;
 
         this.state = {
             ...this.state,
@@ -1004,7 +1010,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * the raw EventRows to ProfilerGridRows using the current view config.
      */
     private fetchRowsFromBuffer(startIndex: number, count: number): FetchRowsResponse {
-        if (!this._currentSession || !this._filteredBuffer) {
+        if (!this._currentSession) {
             return {
                 rows: [],
                 startIndex,
@@ -1016,8 +1022,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.updateFilteredBufferConverter();
 
         // Get filtered + paginated raw rows and total filtered count from FilteredBuffer
-        const filteredRows = this._filteredBuffer.getFilteredRange(startIndex, count);
-        const totalCount = this._filteredBuffer.getFilteredCount();
+        const filteredRows = this._currentSession.events.getFilteredRange(startIndex, count);
+        const totalCount = this._currentSession.events.getFilteredCount();
 
         // Convert raw EventRows to view-specific grid rows
         const configService = getProfilerConfigService();
@@ -1038,7 +1044,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Should be called whenever the view changes or when a session is set.
      */
     private updateFilteredBufferConverter(): void {
-        if (!this._filteredBuffer) {
+        if (!this._currentSession) {
             return;
         }
         const configService = getProfilerConfigService();
@@ -1049,12 +1055,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 view = views[0];
                 this._currentViewId = view.id!;
             } else {
-                this._filteredBuffer.setRowConverter(undefined);
+                this._currentSession.events.setRowConverter(undefined);
                 return;
             }
         }
         const viewRef = view;
-        this._filteredBuffer.setRowConverter((event) => {
+        this._currentSession.events.setRowConverter((event) => {
             return configService.convertEventToViewRow(event, viewRef) as Record<string, unknown>;
         });
     }

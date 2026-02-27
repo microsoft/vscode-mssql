@@ -57,6 +57,7 @@ export class LocConstants {
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
             save: l10n.t("Save"),
+            tryIt: l10n.t("Try it"),
             dismiss: l10n.t("Dismiss"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
@@ -742,6 +743,15 @@ export class LocConstants {
             dataType: l10n.t("Type"),
             primaryKey: l10n.t("Primary Key"),
             delete: l10n.t("Delete"),
+            cannotDeleteColumnUsedInForeignKey: l10n.t(
+                "Cannot delete column because it is used by a foreign key.",
+            ),
+            cannotDeleteColumnReferencedByForeignKey: l10n.t(
+                "Cannot delete column because it is referenced by a foreign key.",
+            ),
+            cannotDeleteColumnUsedByForeignKeyRelations: l10n.t(
+                "Cannot delete column because it is part of foreign key relationships.",
+            ),
             newForeignKey: l10n.t("Add new foreign key"),
             foreignKeyIndex: (index: number) =>
                 l10n.t({
@@ -777,7 +787,15 @@ export class LocConstants {
             applyFilter: l10n.t("Apply"),
             publishChanges: l10n.t("Publish Changes"),
             openCopilotForSchemaDesigner: l10n.t("Chat"),
-            openCopilotForSchemaDesignerTooltip: l10n.t("Open Copilot Chat"),
+            openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("New: Chat about your schema"),
+            schemaDesignerCopilotDiscoveryBody: l10n.t(
+                "Ask questions about your schema or propose changes.",
+            ),
+            dabCopilotDiscoveryTitle: l10n.t("New: Chat about your API config"),
+            dabCopilotDiscoveryBody: l10n.t(
+                "Review or update your Data API Builder configuration.",
+            ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
@@ -1256,6 +1274,7 @@ export class LocConstants {
             generateConfig: l10n.t("Generate Config"),
             deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
+            designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
             entityName: l10n.t("Entity Name"),
@@ -1333,6 +1352,16 @@ export class LocConstants {
             deploymentFailed: l10n.t("Deployment Failed"),
             dabContainerRunning: l10n.t("DAB container is running!"),
             apiAvailableAt: l10n.t("Your API is available at:"),
+            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
+            copyUrl: (apiType: string) =>
+                l10n.t({
+                    message: "Copy {0} URL",
+                    args: [apiType],
+                    comment: ["{0} is the API type name, e.g. REST API or GraphQL"],
+                }),
+            addToVSCode: l10n.t("Add to VS Code"),
+            addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
+            mcpServerAdded: l10n.t("Added"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
@@ -2436,6 +2465,8 @@ export class LocConstants {
             backupSetsToRestore: l10n.t("Backup sets to restore"),
             advancedRestoreOptions: l10n.t("Advanced restore options"),
             couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
+            chooseBackupFile: l10n.t("Please choose a backup file to load restore plan"),
+            chooseBlob: l10n.t("Please choose a blob to load restore plan"),
         };
     }
 }

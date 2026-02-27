@@ -46,6 +46,7 @@ export enum TelemetryViews {
     FlatFile = "FlatFile",
     Profiler = "Profiler",
     Restore = "Restore",
+    SqlNotebooks = "SqlNotebooks",
 }
 
 export enum TelemetryActions {
@@ -109,7 +110,6 @@ export enum TelemetryActions {
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
     CopyHeaders = "CopyHeaders",
-    EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
     Restore = "Restore",
@@ -242,6 +242,15 @@ export enum TelemetryActions {
     CodeAnalysisDialogOpened = "CodeAnalysisDialogOpened",
     CodeAnalysisRulesLoaded = "CodeAnalysisRulesLoaded",
     CodeAnalysisRulesLoadError = "CodeAnalysisRulesLoadError",
+    // SQL Notebooks
+    CreateNotebook = "CreateNotebook",
+    ExecuteCell = "ExecuteCell",
+    MagicCommand = "MagicCommand",
+    NotebookConnect = "NotebookConnect",
+    NotebookDisconnect = "NotebookDisconnect",
+    NotebookChangeDatabase = "NotebookChangeDatabase",
+    CancelCellExecution = "CancelCellExecution",
+    KernelSelected = "KernelSelected",
 }
 
 /**

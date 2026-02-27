@@ -11,6 +11,7 @@ import {
 } from "../../../common/definitionPanel";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
 
 export interface DabDefinitionsPanelRef {
@@ -50,7 +51,8 @@ export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, re
                 language: "json",
                 themeKind,
                 openInEditor: context.openDabConfigInEditor,
-                copyToClipboard: context.copyToClipboard,
+                copyToClipboard: (text: string) =>
+                    context.copyToClipboard(text, Dab.CopyTextType.Config),
             }}
             activeTab={DesignerDefinitionTabs.Script}
         />

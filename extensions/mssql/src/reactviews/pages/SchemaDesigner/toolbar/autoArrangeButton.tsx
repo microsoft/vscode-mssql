@@ -20,7 +20,7 @@ import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Node, Edge, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { flowUtils } from "../schemaDesignerUtils";
+import { layoutFlowComponents } from "../model";
 import eventBus from "../schemaDesignerEvents";
 
 export function AutoArrangeButton() {
@@ -31,7 +31,7 @@ export function AutoArrangeButton() {
         eventBus.emit("pushState");
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-        const generateComponenets = flowUtils.generatePositions(nodes, edges);
+        const generateComponenets = layoutFlowComponents(nodes, edges);
         reactFlow.setNodes(generateComponenets.nodes);
         reactFlow.setEdges(generateComponenets.edges);
         context.resetView();

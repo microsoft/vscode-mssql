@@ -7,8 +7,13 @@ import * as Constants from "../constants/constants";
 
 export const genericChatStart = `@${Constants.mssqlChatParticipantName} Hello!`;
 export const schemaDesignerAgentPrompt = `Use mssql_schema_designer for the active schema designer.
-Run get_overview, summarize the schema, then ask what I want to change.
+Run get_overview, briefly summarize the schema, then ask what I want to explore or change.
 Do not apply edits until I confirm.`;
+
+export const dabAgentPrompt = `Use mssql_dab for the active Data API Builder configuration.
+Run get_state, briefly summarize the current configuration, then ask what I want to review or change.
+Prefer mssql_dab for configuration tasks, and only use mssql_schema_designer if schema context is needed.
+Do not apply changes until I confirm.`;
 
 export const analyzeQueryPerformancePrompt = `@${Constants.mssqlChatParticipantName} Analyze the performance of this query.
 Provide a detailed analysis, including a summary of the execution plan,

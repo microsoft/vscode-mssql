@@ -215,11 +215,8 @@
     "mssql.clearFilters": "Clear Filters",
     "mssql.openExecutionPlanFile": "Open Execution Plan File",
     "mssql.enableExperimentalFeatures.description": "Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
-    "mssql.enableRichExperiences": "Enable Modern Features",
-    "mssql.enableRichExperiences.description": "Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
-    "mssql.enableRichExperiencesDoNotShowPrompt.description": "Do not show prompts to enable UI-based features",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
-    "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
+    "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.defaultQueryResultsViewMode.description": "Default view mode for query results display.",
     "mssql.defaultQueryResultsViewMode.grid.description": "Display results in a tabular grid format (default)",
@@ -233,9 +230,6 @@
     "mssql.startContainer": "Start Container",
     "mssql.walkthroughs.getStarted.title": "Get Started with MSSQL for Visual Studio Code",
     "mssql.walkthroughs.getStarted.description": "Your first steps for connecting to and developing with a SQL database",
-    "mssql.walkthroughs.getStarted.enableModernFeatures.title": "Enable Modern Features",
-    "mssql.walkthroughs.getStarted.enableModernFeatures.description": "Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.\n[Enable New Experiences](command:mssql.enableRichExperiences)",
-    "mssql.walkthroughs.getStarted.enableModernFeatures.altText": "Enable modern features in MSSQL",
     "mssql.walkthroughs.getStarted.connectToDatabase.title": "Connect to a SQL Database",
     "mssql.walkthroughs.getStarted.connectToDatabase.description": "Make a new connection to a SQL database, or edit existing connections with the connection dialog.\nYou can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.\n[Open Connection Dialog](command:mssql.addObjectExplorer)",
     "mssql.walkthroughs.getStarted.connectToDatabase.altText": "Connection Dialog",
@@ -279,5 +273,8 @@
     "mssql.profiler.xelEditorDisplayName": "SQL Server Extended Events Log",
     "mssql.backupDatabase": "Backup Database (Preview)",
     "mssql.restoreDatabase": "Restore Database (Preview)",
-    "mssql.flatFileImport": "Import Flat File (Preview)"
+    "mssql.flatFileImport": "Import Flat File (Preview)",
+    "mssql.notebooks.createNotebook": "Create SQL Notebook",
+    "mssql.notebooks.changeDatabase": "Change Notebook Database",
+    "mssql.notebooks.changeConnection": "Change Notebook Connection"
 }

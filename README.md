@@ -189,7 +189,6 @@ Configure the MSSQL extension using these settings. Set them in user preferences
 // General Settings
 {
   "mssql.enableExperimentalFeatures": false,                // Enable experimental features for early testing
-  "mssql.enableRichExperiences": true,                     // Enable rich UI experiences (tables, schema designer)
   "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
   "mssql.messagesDefaultOpen": true,                       // Show messages panel by default after query execution
   "mssql.autoRevealResultsPanel": false,                    // Auto-reveal results panel when switching to an editor with query results (only applies when openQueryResultsInTabByDefault is enabled)

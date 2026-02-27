@@ -97,7 +97,7 @@ export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
 export const cmdObjectExplorerCollapseOrExpandByDefault =
     "objectExplorer.collapseConnectionGroupsOnStartup";
-export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
+export const cmdEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
@@ -140,6 +140,10 @@ export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
 export const cmdFlatFileImport = "mssql.flatFileImport";
+export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
+export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
+export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
+
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -263,10 +267,6 @@ export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
-export const configEnableRichExperiences = "mssql.enableRichExperiences";
-export const configEnableRichExperiencesDoNotShowPrompt =
-    "mssql.enableRichExperiencesDoNotShowPrompt";
-export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
@@ -334,7 +334,6 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
-export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";

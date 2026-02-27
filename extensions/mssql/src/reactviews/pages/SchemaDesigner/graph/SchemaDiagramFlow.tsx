@@ -43,7 +43,13 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
-import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
+import {
+    buildSchemaFromFlowState,
+    foreignKeyUtils,
+    getTableHeight,
+    getTableWidth,
+    namingUtils,
+} from "../model";
 import {
     Button,
     Dialog,
@@ -293,9 +299,9 @@ export const SchemaDesignerFlow = () => {
             const tgtNode = reactFlow.getNode(first.target) as Node<SchemaDesigner.Table>;
 
             if (srcNode && tgtNode) {
-                const width = flowUtils.getTableWidth();
-                const srcHeight = flowUtils.getTableHeight(srcNode.data);
-                const tgtHeight = flowUtils.getTableHeight(tgtNode.data);
+                const width = getTableWidth();
+                const srcHeight = getTableHeight(srcNode.data);
+                const tgtHeight = getTableHeight(tgtNode.data);
 
                 const srcCx = srcNode.position.x + width / 2;
                 const srcCy = srcNode.position.y + srcHeight / 2;
@@ -365,20 +371,16 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        const schema = flowUtils.extractSchemaModel(schemaNodes, relationshipEdges);
-
-        const existingForeignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
-            relationshipEdges,
-            sourceNode.data.id,
-            schema,
-        );
+        const schema = buildSchemaFromFlowState(schemaNodes, relationshipEdges);
+        const existingForeignKeys =
+            schema.tables.find((table) => table.id === sourceNode.data.id)?.foreignKeys ?? [];
 
         // Create the foreign key data
         const foreignKeyData = foreignKeyUtils.createForeignKeyFromConnection(
             sourceNode,
             targetNode,
-            sourceColumn.name,
-            targetColumn.name,
+            sourceColumn.id,
+            targetColumn.id,
             uuidv4(),
             namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
         );
@@ -430,29 +432,29 @@ export const SchemaDesignerFlow = () => {
                 connectionState.toHandle.id,
             );
 
-            const sourceColumnName =
+            const validatedSourceColumnId =
                 (connectionState.fromNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === sourceColumnId,
-                )?.name ?? "";
-            const targetColumnName =
+                )?.id ?? "";
+            const validatedTargetColumnId =
                 (connectionState.toNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === targetColumnId,
-                )?.name ?? "";
+                )?.id ?? "";
 
-            if (!sourceColumnName || !targetColumnName) {
+            if (!validatedSourceColumnId || !validatedTargetColumnId) {
                 return;
             }
 
             const potentialForeignKey = foreignKeyUtils.createForeignKeyFromConnection(
                 connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,
                 connectionState.toNode as unknown as Node<SchemaDesigner.Table>,
-                sourceColumnName,
-                targetColumnName,
+                validatedSourceColumnId,
+                validatedTargetColumnId,
             );
 
             // Validate the foreign key
             const validationResult = foreignKeyUtils.isForeignKeyValid(
-                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges).tables,
+                buildSchemaFromFlowState(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
