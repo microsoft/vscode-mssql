@@ -424,6 +424,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         const newState = (await saveRulesHandler?.(controller.state, {
             rules: payloadRules,
             closeAfterSave: false,
+            enableCodeAnalysisOnBuild: false,
         })) as typeof controller.state;
 
         expect(
@@ -439,6 +440,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
                 ruleId: rule.ruleId,
                 severity: rule.severity,
             })),
+            runSqlCodeAnalysis: false,
         });
         expect(newState.rules, "state rules should be updated to the saved payload").to.deep.equal(
             payloadRules,
@@ -475,6 +477,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         const closingState = (await saveRulesHandler?.(controller.state, {
             rules: mockRules.slice(0, 2).map(toSqlCodeAnalysisRule),
             closeAfterSave: true,
+            enableCodeAnalysisOnBuild: false,
         })) as typeof controller.state;
 
         expect(panelStub.dispose, "panel should be disposed when closeAfterSave is true").to.have
@@ -504,6 +507,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         const newState = (await saveRulesHandler?.(controller.state, {
             rules: [toSqlCodeAnalysisRule(mockRules[2])],
             closeAfterSave: false,
+            enableCodeAnalysisOnBuild: false,
         })) as typeof controller.state;
 
         expect(newState.message?.intent, "message intent should be error on save failure").to.equal(
@@ -534,6 +538,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
             outputPath: "bin/Debug",
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
             sqlCodeAnalysisRules: "-Microsoft.Rules.Data.SR0001;+!Microsoft.Rules.Data.SR0002",
+            runSqlCodeAnalysis: true,
         } as GetProjectPropertiesResult);
 
         await internalController.loadRules();
@@ -553,6 +558,54 @@ suite("CodeAnalysisWebViewController Tests", () => {
         expect(sr0003?.severity, "SR0003 should remain Warning with no override").to.equal(
             CodeAnalysisRuleSeverity.Warning,
         );
+        expect(
+            controller.state.enableCodeAnalysisOnBuild,
+            "enableCodeAnalysisOnBuild should be loaded from runSqlCodeAnalysis project property",
+        ).to.be.true;
+    });
+
+    test("saveRules passes enableCodeAnalysisOnBuild as runSqlCodeAnalysis to the service", async () => {
+        createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: true,
+            errorMessage: "",
+        });
+
+        const newState = (await saveRulesHandler?.(controller.state, {
+            rules: mockRules.slice(0, 1).map(toSqlCodeAnalysisRule),
+            closeAfterSave: false,
+            enableCodeAnalysisOnBuild: true,
+        })) as typeof controller.state;
+
+        expect(
+            sqlProjectsServiceStub.updateCodeAnalysisRules,
+            "updateCodeAnalysisRules should receive runSqlCodeAnalysis: true",
+        ).to.have.been.calledWithMatch({
+            runSqlCodeAnalysis: true,
+        });
+        expect(
+            newState.enableCodeAnalysisOnBuild,
+            "state should reflect the saved enableCodeAnalysisOnBuild value",
+        ).to.be.true;
+    });
+
+    test("loadRules sets enableCodeAnalysisOnBuild to false when project properties retrieval fails", async () => {
+        createController();
+        const internalController = getInternalController();
+        sqlProjectsServiceStub.getProjectProperties.resolves({
+            success: false,
+            errorMessage: "Failed to get project properties",
+        } as GetProjectPropertiesResult);
+
+        await internalController.loadRules();
+
+        expect(
+            controller.state.enableCodeAnalysisOnBuild,
+            "enableCodeAnalysisOnBuild should default to false when project properties retrieval fails",
+        ).to.be.false;
     });
 
     test("loadRules falls back to default rules when getProjectProperties fails", async () => {

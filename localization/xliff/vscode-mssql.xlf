@@ -1974,6 +1974,9 @@
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
+    <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
+      <source xml:lang="en">Enable Code Analysis on Build</source>
+    </trans-unit>
     <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
       <source xml:lang="en">Enable Experiences &amp; Reload</source>
     </trans-unit>

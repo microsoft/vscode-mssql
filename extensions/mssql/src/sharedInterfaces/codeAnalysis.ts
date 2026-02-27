@@ -44,6 +44,8 @@ export interface CodeAnalysisState {
     rules: SqlCodeAnalysisRule[];
     /** DacFx factory defaults — set once on load, never overwritten; used for Reset */
     dacfxStaticRules: SqlCodeAnalysisRule[];
+    /** Whether code analysis should run as part of every project build */
+    enableCodeAnalysisOnBuild: boolean;
     /** Message to display to the user (errors, warnings, etc.) */
     message?: DialogMessageSpec;
 }
@@ -57,7 +59,11 @@ export interface CodeAnalysisReducers {
     /** Clear the message bar */
     closeMessage: {};
     /** Save rule overrides to the .sqlproj file */
-    saveRules: { rules: SqlCodeAnalysisRule[]; closeAfterSave: boolean };
+    saveRules: {
+        rules: SqlCodeAnalysisRule[];
+        closeAfterSave: boolean;
+        enableCodeAnalysisOnBuild: boolean;
+    };
 }
 
 /**
@@ -66,5 +72,9 @@ export interface CodeAnalysisReducers {
 export interface CodeAnalysisProvider {
     close: () => void;
     closeMessage: () => void;
-    saveRules: (rules: SqlCodeAnalysisRule[], closeAfterSave: boolean) => void;
+    saveRules: (
+        rules: SqlCodeAnalysisRule[],
+        closeAfterSave: boolean,
+        enableCodeAnalysisOnBuild: boolean,
+    ) => void;
 }

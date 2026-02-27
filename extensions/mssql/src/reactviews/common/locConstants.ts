@@ -253,6 +253,7 @@ export class LocConstants {
                 "You have unsaved changes. Do you want to save before closing?",
             ),
             dontSave: l10n.t("Don't Save"),
+            enableCodeAnalysisOnBuild: l10n.t("Enable Code Analysis on Build"),
         };
     }
 
