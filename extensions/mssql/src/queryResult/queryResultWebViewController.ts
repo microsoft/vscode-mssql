@@ -90,10 +90,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             }),
         );
 
-        // not the best api but it's the best we can do in VSCode
+        // Cleanup state when documents are closed.
         context.subscriptions.push(
-            this.vscodeWrapper.onDidOpenTextDocument((document) => {
+            this.vscodeWrapper.onDidCloseTextDocument((document) => {
                 const uri = getUriKey(document.uri);
+                if (this._sqlDocumentService?.isUriBeingRenamedOrSaved(uri)) {
+                    return;
+                }
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
                 }
@@ -350,6 +353,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this._queryResultStateMap.set(uri, state);
     }
 
+    public hasQueryResultState(uri: string): boolean {
+        return this._queryResultStateMap.has(uri);
+    }
+
     public deleteQueryResultState(uri: string): void {
         this._queryResultStateMap.delete(uri);
     }
@@ -359,6 +366,41 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
                 .updateState(this.getQueryResultState(uri));
+        }
+    }
+
+    private updatePanelUri(oldUri: string, newUri: string): void {
+        const controller = this._queryResultWebviewPanelControllerMap.get(oldUri);
+        if (!controller || oldUri === newUri) {
+            return;
+        }
+
+        this._queryResultWebviewPanelControllerMap.delete(oldUri);
+        this._queryResultWebviewPanelControllerMap.set(newUri, controller);
+        controller.updateUri(newUri);
+    }
+
+    public updateUri(oldUri: string, newUri: string): void {
+        if (oldUri === newUri) {
+            return;
+        }
+
+        this.updatePanelUri(oldUri, newUri);
+
+        if (!this._queryResultStateMap.has(oldUri)) {
+            return;
+        }
+
+        const state = this.getQueryResultState(oldUri);
+        state.uri = newUri;
+        this._queryResultStateMap.set(newUri, state);
+        this._queryResultStateMap.delete(oldUri);
+
+        // Update state in panel or webview view depending on where it is currently shown
+        if (this._queryResultWebviewPanelControllerMap.has(newUri)) {
+            this._queryResultWebviewPanelControllerMap.get(newUri).updateState(state);
+        } else if (this.isVisible()) {
+            this.state = state;
         }
     }
 

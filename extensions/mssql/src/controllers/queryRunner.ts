@@ -101,6 +101,7 @@ export default class QueryRunner {
     private _isSqlCmd: boolean = false;
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
+    private _registeredNotificationUris = new Set<string>();
     private static _runningQueries = [];
 
     private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
@@ -430,7 +431,7 @@ export default class QueryRunner {
 
         QueryRunner.addRunningQuery(this._ownerUri);
 
-        this._notificationHandler.registerRunner(this, this._ownerUri);
+        this.registerNotificationUri(this._ownerUri);
     }
 
     // handle the result of the notification
@@ -464,6 +465,7 @@ export default class QueryRunner {
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
+        this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
             totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
             hasError,
@@ -618,7 +620,7 @@ export default class QueryRunner {
         });
         this._statusView.executedQuery(this._ownerUri);
 
-        this._notificationHandler.unregisterRunner(this._ownerUri);
+        this.unregisterAllNotificationUris();
 
         if (errorMsg) {
             this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
@@ -1229,6 +1231,40 @@ export default class QueryRunner {
     }
 
     public updateQueryRunnerUri(oldUri: string, newUri: string): void {
+        if (oldUri === newUri) {
+            return;
+        }
+
+        /*
+         * When the uri updates we need to make sure to migrate all the pending promises
+         * from the old uri to the new one.
+         */
+        const pendingPromise = this._uriToQueryPromiseMap.get(oldUri);
+        if (pendingPromise) {
+            this._uriToQueryPromiseMap.set(newUri, pendingPromise);
+            this._uriToQueryPromiseMap.delete(oldUri);
+        }
+
+        /**
+         * Transfer the query string mapping to the new URI.
+         */
+        const queryString = this._uriToQueryStringMap.get(oldUri);
+        if (queryString !== undefined) {
+            this._uriToQueryStringMap.set(newUri, queryString);
+            this._uriToQueryStringMap.delete(oldUri);
+        }
+
+        // During rename/save while executing, notifications may arrive on either URI.
+        // Register both and clean up old and new URIs on completion/cancel.
+        if (this._isExecuting) {
+            this.registerNotificationUri(newUri);
+        } else if (this._registeredNotificationUris.has(oldUri)) {
+            this._registeredNotificationUris.delete(oldUri);
+            this._registeredNotificationUris.add(newUri);
+        }
+
+        QueryRunner.replaceRunningQueryUri(oldUri, newUri);
+
         let queryConnectionUriChangeParams: QueryConnectionUriChangeParams = {
             newOwnerUri: newUri,
             originalOwnerUri: oldUri,
@@ -1282,6 +1318,38 @@ export default class QueryRunner {
         const key = vscode.Uri.parse(ownerUri).fsPath;
         QueryRunner._runningQueries.push(key);
         QueryRunner.updateRunningQueries();
+    }
+
+    private static replaceRunningQueryUri(oldUri: string, newUri: string): void {
+        const oldKey = vscode.Uri.parse(oldUri).fsPath;
+        const newKey = vscode.Uri.parse(newUri).fsPath;
+        let hasUpdates = false;
+        QueryRunner._runningQueries = QueryRunner._runningQueries.map((fileName) => {
+            if (fileName === oldKey) {
+                hasUpdates = true;
+                return newKey;
+            }
+            return fileName;
+        });
+        if (hasUpdates) {
+            QueryRunner.updateRunningQueries();
+        }
+    }
+
+    private registerNotificationUri(uri: string): void {
+        if (this._registeredNotificationUris.has(uri)) {
+            return;
+        }
+
+        this._notificationHandler.registerRunner(this, uri);
+        this._registeredNotificationUris.add(uri);
+    }
+
+    private unregisterAllNotificationUris(): void {
+        for (const uri of this._registeredNotificationUris) {
+            this._notificationHandler.unregisterRunner(uri);
+        }
+        this._registeredNotificationUris.clear();
     }
 
     /**

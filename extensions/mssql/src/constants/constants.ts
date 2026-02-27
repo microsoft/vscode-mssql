@@ -97,7 +97,7 @@ export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
 export const cmdObjectExplorerCollapseOrExpandByDefault =
     "objectExplorer.collapseConnectionGroupsOnStartup";
-export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
+export const cmdEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
@@ -183,8 +183,6 @@ export const localhost = "localhost";
 export const defaultSqlServerContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
-export const untitledSaveTimeThreshold = 50.0;
-export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
@@ -269,10 +267,6 @@ export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
-export const configEnableRichExperiences = "mssql.enableRichExperiences";
-export const configEnableRichExperiencesDoNotShowPrompt =
-    "mssql.enableRichExperiencesDoNotShowPrompt";
-export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
@@ -340,7 +334,6 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
-export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
