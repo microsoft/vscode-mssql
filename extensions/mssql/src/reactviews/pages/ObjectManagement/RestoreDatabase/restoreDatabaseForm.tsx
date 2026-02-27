@@ -297,12 +297,17 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                 {dialog?.type === "fileBrowser" && fileBrowserState && (
                     <FileBrowserDialog
                         ownerUri={ownerUri}
-                        defaultFilePath={defaultFileBrowserExpandPath}
+                        defaultFileBrowserExpandPath={defaultFileBrowserExpandPath}
                         fileTree={fileBrowserState.fileTree}
                         showFoldersOnly={fileBrowserState.showFoldersOnly}
                         provider={context as FileBrowserProvider}
                         fileTypeOptions={fileFilterOptions}
                         closeDialog={() => context.toggleFileBrowserDialog(false, false)}
+                        defaultSelectedPath={
+                            fileBrowserState.showFoldersOnly
+                                ? defaultFileBrowserExpandPath
+                                : undefined
+                        }
                     />
                 )}
                 <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
