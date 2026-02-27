@@ -5755,6 +5755,14 @@ Error:
         <source xml:lang="en">Please Accept the SQL Server EULA</source>
         <target state="translated">SQL Server EULA に同意してください</target>
       </trans-unit>
+      <trans-unit id="++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785">
+        <source xml:lang="en">Please choose a backup file to load restore plan</source>
+        <target state="new">Please choose a backup file to load restore plan</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5">
+        <source xml:lang="en">Please choose a blob to load restore plan</source>
+        <target state="new">Please choose a blob to load restore plan</target>
+      </trans-unit>
       <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
         <source xml:lang="en">Please choose a file</source>
         <target state="translated">ファイルを選択してください</target>
