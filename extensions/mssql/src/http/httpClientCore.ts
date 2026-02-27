@@ -185,7 +185,11 @@ export class HttpClientCore {
         }
     }
 
-    protected setupRequest(
+    /**
+     * Sets up the request URL and Axios request configuration, including headers and proxy/agent settings, based on the provided URL and token.
+     * Public for testing purposes.
+     */
+    public setupRequest(
         requestUrl: string,
         token?: string,
     ): { requestUrl: string; config: AxiosRequestConfig } {
