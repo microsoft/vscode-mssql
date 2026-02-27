@@ -18,6 +18,7 @@ import { ErrorDialog } from "../../common/errorDialog";
 import { SchemaDesignerDefinitionPanelProvider } from "./definition/schemaDesignerDefinitionPanelContext";
 import { SchemaDesignerChangeProvider } from "./definition/changes/schemaDesignerChangeContext";
 import { CopilotChangesProvider } from "./definition/copilot/copilotChangesContext";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -25,13 +26,23 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-editorWidget-border)",
     },
 });
-export const SchemaDesignerPage = () => {
+interface SchemaDesignerPageProps {
+    activeView?: SchemaDesigner.SchemaDesignerActiveView;
+    onNavigateToDab?: () => void;
+}
+
+export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesignerPageProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
 
     if (!context) {
         return undefined;
     }
+
+    const canShowDiscovery =
+        activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab &&
+        context.isInitialized &&
+        !context.initializationError;
 
     return (
         <>
@@ -43,7 +54,10 @@ export const SchemaDesignerPage = () => {
                             <CopilotChangesProvider>
                                 <Panel defaultSize={100}>
                                     <GraphContainer>
-                                        <SchemaDesignerToolbar />
+                                        <SchemaDesignerToolbar
+                                            showDiscovery={canShowDiscovery}
+                                            onNavigateToDab={onNavigateToDab}
+                                        />
                                         <SchemaDesignerFlow />
                                     </GraphContainer>
                                 </Panel>

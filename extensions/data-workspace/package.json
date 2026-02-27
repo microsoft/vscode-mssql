@@ -206,7 +206,6 @@
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
-        "@microsoft/azdata-test": "^3.0.4",
         "@microsoft/vscodetestcover": "^1.2.2",
         "@types/chai": "^5.2.2",
         "@types/glob": "^8.1.0",
@@ -231,7 +230,6 @@
         "sinon-chai": "^4.0.1",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
-        "typemoq": "^2.1.0",
         "typescript": "^5.8.3"
     }
 }

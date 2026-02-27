@@ -272,7 +272,30 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
     private registerBackupRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            return await disasterRecoveryFormAction<BackupDatabaseFormState>(state, payload);
+            if (payload.event.propertyName === "backupName") {
+                (state.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty = true;
+            }
+            const updatedState = await disasterRecoveryFormAction<BackupDatabaseFormState>(
+                state,
+                payload,
+            );
+            // if the backup name is not dirty, ie. the default backup name
+            // and the property changed is backup type, then update the backup name to reflect the backup type change
+            if (
+                payload.event.propertyName === "backupType" &&
+                !(updatedState.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty
+            ) {
+                // this is guaranteed to have more than 1 part because the default backup name is
+                // generated in the format of database_backupType_timestamp.bak
+                //
+                const locBackupType = this.state.formComponents["backupType"].options.find(
+                    (option) => option.value === updatedState.formState.backupType,
+                )?.displayName;
+                const splitBackupName = updatedState.formState.backupName.split("_");
+                splitBackupName[1] = locBackupType;
+                updatedState.formState.backupName = splitBackupName.join("_");
+            }
+            return updatedState;
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
@@ -392,7 +415,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
      */
     private getDefaultBackupFileName(state: BackupDatabaseViewModel): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = state.databaseName;
+        let name = `${state.databaseName}_${BackupType.Full}`;
         if (newFiles.length > 0) {
             name += `_${newFiles.length}`;
         }

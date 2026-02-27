@@ -37,7 +37,8 @@
     ],
     "activationEvents": [
         "onUri",
-        "onCommand:mssql.loadCompletionExtension"
+        "onCommand:mssql.loadCompletionExtension",
+        "onNotebook:jupyter-notebook"
     ],
     "main": "./dist/extension",
     "l10n": "./l10n",
@@ -57,12 +58,14 @@
         "build:extension-bundle": "node scripts/bundle-extension.js",
         "build:webviews": "tsc -p tsconfig.react.json",
         "build:webviews-bundle": "node scripts/bundle-reactviews.js",
+        "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node scripts/bundle-extension.js --watch",
         "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
         "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
-        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle",
+        "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
+        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "../../node_modules/.bin/eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
@@ -208,12 +211,14 @@
             "objectExplorer": [
                 {
                     "id": "objectExplorer",
-                    "name": "%extension.connections%"
+                    "name": "%extension.connections%",
+                    "icon": "media/objectTypes/Database.svg"
                 },
                 {
                     "id": "queryHistory",
                     "name": "%extension.queryHistory%",
-                    "when": "config.mssql.enableQueryHistoryFeature"
+                    "when": "config.mssql.enableQueryHistoryFeature",
+                    "icon": "media/objectTypes/StoredProcedure.svg"
                 }
             ]
         },
@@ -310,6 +315,16 @@
                     }
                 ],
                 "priority": "default"
+            }
+        ],
+        "notebookRenderer": [
+            {
+                "id": "ms-mssql.sql-result-renderer",
+                "displayName": "SQL Query Results",
+                "entrypoint": "./dist/notebookRenderer.js",
+                "mimeTypes": [
+                    "application/vnd.mssql.query-result"
+                ]
             }
         ],
         "languages": [
@@ -507,7 +522,7 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "config.mssql.enableRichExperiences && view == objectExplorer",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
@@ -561,7 +576,7 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/ && config.mssql.enableRichExperiences",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
@@ -618,6 +633,11 @@
                     "command": "mssql.flatFileImport",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
                     "group": "2_MSSQL_serverDbActions@9"
+                },
+                {
+                    "command": "mssql.notebooks.createNotebook",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "sqlnotebooks@1"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
@@ -1308,11 +1328,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.enableRichExperiences",
-                "title": "%mssql.enableRichExperiences%",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
                 "category": "MS SQL"
@@ -1372,19 +1387,16 @@
             {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.deleteContainer",
                 "title": "%mssql.deleteContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.startContainer",
                 "title": "%mssql.startContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
@@ -1415,6 +1427,21 @@
             {
                 "command": "mssql.restoreDatabase",
                 "title": "%mssql.restoreDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.notebooks.createNotebook",
+                "title": "%mssql.notebooks.createNotebook%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.notebooks.changeDatabase",
+                "title": "%mssql.notebooks.changeDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.notebooks.changeConnection",
+                "title": "%mssql.notebooks.changeConnection%",
                 "category": "MS SQL"
             }
         ],
@@ -1457,18 +1484,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
-                    "scope": "application"
-                },
-                "mssql.enableRichExperiences": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.enableRichExperiences.description%",
-                    "scope": "application"
-                },
-                "mssql.enableRichExperiencesDoNotShowPrompt": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
                     "scope": "application"
                 },
                 "mssql.openQueryResultsInTabByDefault": {
