@@ -6930,9 +6930,6 @@
     <trans-unit id="mssql.query.alwaysEncryptedParameterization">
       <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
     </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.enablePreviewFeatures.title">
-      <source xml:lang="en">Enable Preview Features</source>
-    </trans-unit>
     <trans-unit id="mssql.enableQueryHistoryCapture">
       <source xml:lang="en">Enable Query History Capture</source>
     </trans-unit>
@@ -6995,12 +6992,6 @@
     </trans-unit>
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
-    </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.enablePreviewFeatures.altText">
-      <source xml:lang="en">Enable preview features in MSSQL</source>
-    </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.enablePreviewFeatures.description">
-      <source xml:lang="en">Enable preview features in the MSSQL extension to try out the latest capabilities.&#10;[Enable Preview Experiences](command:mssql.enableExperimentalFeatures)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
