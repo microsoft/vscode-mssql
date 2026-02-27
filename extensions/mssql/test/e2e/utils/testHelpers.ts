@@ -73,13 +73,13 @@ export async function disconnect(vsCodePage: Page): Promise<void> {
 }
 
 export async function executeQuery(vsCodePage: Page): Promise<void> {
-    const executeQueryButton = vsCodePage.locator('a[aria-label^="Execute Query"]');
-    /**
-     * If the query editor is in connecting state, the execute query button will be disabled and not visible.
-     * So we need to wait for it to be visible before clicking it.
-     */
-    await executeQueryButton.first().isVisible({ timeout: 5000 });
+    // Is cancel connection button is visible, wait for a few seconds for connection to complete.
+    if (await vsCodePage.locator('a[aria-label^="Cancel Connection"]').isVisible()) {
+        await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+    }
+    const executeQueryButton = vsCodePage.locator('[aria-label^="Execute Query"]');
     await executeQueryButton.first().click();
+    return;
 }
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
