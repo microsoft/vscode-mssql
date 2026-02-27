@@ -497,6 +497,18 @@ export class SqlOutputContentProvider {
             );
 
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
+                // Check configuration to see if batch messages should be shown
+                let queryUri = queryRunner.uri;
+                let extConfig = this._vscodeWrapper.getConfiguration(
+                    Constants.extensionConfigSectionName,
+                    queryUri,
+                );
+                let showBatchMessages: boolean = extConfig.get(Constants.configShowBatchMessages);
+
+                if (showBatchMessages === false) {
+                    return;
+                }
+
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
                     time = new Date(batch.executionStart).toLocaleTimeString();
