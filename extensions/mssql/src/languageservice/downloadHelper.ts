@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ILogger } from "../models/interfaces";
-import { HttpDownloadError, HttpClient, IDownloadFileResult } from "../http/httpClient";
+import { HttpDownloadError, HttpClientCore, IDownloadFileResult } from "../http/httpClientCore";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
 
 /*
@@ -40,7 +40,7 @@ export default class DownloadHelper {
             downloadPercentage: 0,
         };
 
-        const httpHelper = new HttpClient();
+        const httpHelper = new HttpClientCore();
 
         try {
             const result: IDownloadFileResult = await httpHelper.downloadFile(

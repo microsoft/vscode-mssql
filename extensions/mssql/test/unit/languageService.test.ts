@@ -21,6 +21,10 @@ suite("Language Service Tests", () => {
             };
             let testLogger: ILogger = {
                 logDebug: undefined,
+                verbose: undefined,
+                warn: undefined,
+                error: undefined,
+                piiSanitized: undefined,
                 increaseIndent: undefined,
                 decreaseIndent: undefined,
                 append: undefined,
@@ -46,6 +50,10 @@ suite("Language Service Tests", () => {
             };
             let testLogger: ILogger = {
                 logDebug: () => undefined,
+                verbose: () => undefined,
+                warn: () => undefined,
+                error: () => undefined,
+                piiSanitized: () => undefined,
                 increaseIndent: () => undefined,
                 decreaseIndent: () => undefined,
                 append: () => undefined,

@@ -38,6 +38,27 @@ export class StubLogger implements ILogger {
         this._log(message);
     }
 
+    verbose(msg: any, ..._vals: any[]): void {
+        this._log(msg);
+    }
+
+    warn(msg: any, ..._vals: any[]): void {
+        this._log(msg);
+    }
+
+    error(msg: any, ..._vals: any[]): void {
+        this._log(msg);
+    }
+
+    piiSanitized(
+        _msg: any,
+        _objsToSanitize: { name: string; objOrArray: any | any[] }[],
+        _stringsToShorten: { name: string; value: string }[],
+        ..._vals: any[]
+    ): void {
+        // no-op
+    }
+
     increaseIndent(): void {
         // no-op
     }
