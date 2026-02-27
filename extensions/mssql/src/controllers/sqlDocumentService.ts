@@ -309,14 +309,15 @@ export default class SqlDocumentService implements vscode.Disposable {
             uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(editor.document.uri)
         ) {
             this._lastActiveConnectionInfo = undefined;
-        }
-
-        /**
-         * Update the last active connection info only if:
-         * 1. Active connection has been established (has connectionId), AND
-         * 2. It's not still in the process of connecting (connecting is false)
-         */
-        if (connectionInfo?.connectionId && !connectionInfo?.connecting) {
+        } else if (
+            /**
+             * Update the last active connection info only if:
+             * 1. Active connection has been established (has connectionId), AND
+             * 2. It's not still in the process of connecting (connecting is false)
+             */
+            connectionInfo?.connectionId &&
+            !connectionInfo?.connecting
+        ) {
             this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
         }
         this._statusview?.updateStatusBarForEditor(editor, connectionInfo);
