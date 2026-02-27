@@ -154,13 +154,15 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                         ruleCount: overrides.length.toString(),
                     },
                 );
-                sendActionEvent(
-                    TelemetryViews.SqlProjects,
-                    payload.enableCodeAnalysisOnBuild
-                        ? TelemetryActions.CodeAnalysisEnabledOnBuild
-                        : TelemetryActions.CodeAnalysisDisabledOnBuild,
-                    { operationId: this._operationId },
-                );
+                if (payload.enableCodeAnalysisOnBuild !== state.enableCodeAnalysisOnBuild) {
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        payload.enableCodeAnalysisOnBuild
+                            ? TelemetryActions.CodeAnalysisEnabledOnBuild
+                            : TelemetryActions.CodeAnalysisDisabledOnBuild,
+                        { operationId: this._operationId },
+                    );
+                }
                 if (payload.closeAfterSave) {
                     this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
                     this.vscodeWrapper.outputChannel.show();

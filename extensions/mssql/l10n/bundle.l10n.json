@@ -230,7 +230,7 @@
     },
     "Reset": "Reset",
     "Reset to Defaults?": "Reset to Defaults?",
-    "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?",
+    "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
     "Unsaved Changes": "Unsaved Changes",
     "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
     "Don't Save": "Don't Save",
