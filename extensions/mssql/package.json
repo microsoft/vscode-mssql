@@ -1351,6 +1351,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.resetCopilotChatDiscoveryState",
+                "title": "%mssql.resetCopilotChatDiscoveryState%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.connectionSharing.editConnectionSharingPermissions",
                 "title": "%mssql.connectionSharing.editConnectionSharingPermissions%",
                 "category": "MSSQL"

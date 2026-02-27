@@ -3020,6 +3020,9 @@
     <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
       <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
     </trans-unit>
+    <trans-unit id="++CODE++3317d7db225668b8193da190e84a1df1ecd8a790fdde3b82f872bec3cf378f93">
+      <source xml:lang="en">GitHub Copilot chat discovery state reset.</source>
+    </trans-unit>
     <trans-unit id="++CODE++737f47ca3f9975103a99da74b37a986e6a1e97b77817a154b27d53d840a9a599">
       <source xml:lang="en">GitHub Copilot integration</source>
     </trans-unit>
@@ -7209,6 +7212,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
+    </trans-unit>
+    <trans-unit id="mssql.resetCopilotChatDiscoveryState">
+      <source xml:lang="en">Reset GitHub Copilot Chat Discovery State</source>
     </trans-unit>
     <trans-unit id="mssql.restoreDatabase">
       <source xml:lang="en">Restore Database (Preview)</source>

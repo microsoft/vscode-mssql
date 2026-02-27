@@ -2786,6 +2786,7 @@
     "Unknown error": "Unknown error",
     "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
     "Chat command not available in this VS Code version": "Chat command not available in this VS Code version",
+    "GitHub Copilot chat discovery state reset.": "GitHub Copilot chat discovery state reset.",
     "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.": "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
     "What I can do for you:": "What I can do for you:",
     "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance": "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance",

@@ -558,6 +558,10 @@ export default class MainController implements vscode.Disposable {
                     await this.openCopilotChatFromUi(args);
                 },
             );
+            this.registerCommand(CopilotChat.resetDiscoveryCommand);
+            this._event.on(CopilotChat.resetDiscoveryCommand, async () => {
+                await this.resetCopilotChatDiscoveryState();
+            });
 
             // -- NEW QUERY WITH CONNECTION (Copilot) --
             this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
@@ -986,6 +990,20 @@ export default class MainController implements vscode.Disposable {
             this.getCopilotChatPromptForScenario(scenario),
         );
         sendCopilotChatEntryTelemetry(true);
+    }
+
+    private async resetCopilotChatDiscoveryState(): Promise<void> {
+        await this._context.globalState.update(
+            CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"),
+            undefined,
+        );
+        await this._context.globalState.update(
+            CopilotChat.getDiscoveryDismissedStateKey("dab"),
+            undefined,
+        );
+        await this._vscodeWrapper.showInformationMessage(
+            LocalizedConstants.MssqlChatAgent.copilotChatDiscoveryStateReset,
+        );
     }
 
     public get context(): vscode.ExtensionContext {

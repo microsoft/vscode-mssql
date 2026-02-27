@@ -5,6 +5,7 @@
 
 export namespace CopilotChat {
     export const openFromUiCommand = "mssql.openCopilotChatFromUi";
+    export const resetDiscoveryCommand = "mssql.resetCopilotChatDiscoveryState";
     const discoveryDismissedStateKeyPrefix = "mssql.copilotChatDiscoveryDismissed";
 
     export type Scenario = "schemaDesigner" | "dab";

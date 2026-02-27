@@ -2346,6 +2346,9 @@ export class MssqlChatAgent {
     public static chatCommandNotAvailable = l10n.t(
         "Chat command not available in this VS Code version",
     );
+    public static copilotChatDiscoveryStateReset = l10n.t(
+        "GitHub Copilot chat discovery state reset.",
+    );
 
     // Help command strings
     public static helpWelcome = l10n.t(

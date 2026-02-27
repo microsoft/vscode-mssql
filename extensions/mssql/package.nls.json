@@ -53,6 +53,7 @@
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance",
     "mssql.copilot.rewriteQuery": "Rewrite Query",
     "mssql.copilot.newQueryWithConnection": "Open New Query and Connect",
+    "mssql.resetCopilotChatDiscoveryState": "Reset GitHub Copilot Chat Discovery State",
     "mssql.schemaCompare": "Schema Compare",
     "mssql.tableExplorer": "Edit Data (Preview)",
     "mssql.searchDatabase": "Search Database Objects",
