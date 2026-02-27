@@ -38,7 +38,7 @@ suite("Language Service Tests", () => {
         });
     });
 
-    suite("HttpClient Tests", () => {
+    suite("DownloadHelper Tests", () => {
         let downloadHelper = new DownloadHelper();
 
         test("handleDataReceivedEvent test", () => {

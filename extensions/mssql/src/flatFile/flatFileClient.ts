@@ -33,7 +33,7 @@ export class FlatFileClient {
     private config: ExtConfig = new ExtConfig();
     private logger: Logger;
     private serverStatusView: ServerStatusView = new ServerStatusView();
-    private httpClient: DownloadHelper = new DownloadHelper();
+    private downloadHelper: DownloadHelper = new DownloadHelper();
     private decompressProvider = new DecompressProvider();
     private downloadProvider: ServiceDownloadProvider;
     private serverProvider: ServerProvider;
@@ -45,7 +45,7 @@ export class FlatFileClient {
             this.config,
             this.logger,
             this.serverStatusView,
-            this.httpClient,
+            this.downloadHelper,
             this.decompressProvider,
             DownloadType.FlatFileService,
         );

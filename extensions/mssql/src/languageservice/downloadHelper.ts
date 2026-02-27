@@ -95,7 +95,7 @@ export default class DownloadHelper {
         if (progress.packageSize > 0) {
             let newPercentage = Math.ceil(100 * (progress.downloadedBytes / progress.packageSize));
             if (newPercentage !== progress.downloadPercentage) {
-                statusView.updateServiceDownloadingProgress(progress.downloadPercentage);
+                statusView.updateServiceDownloadingProgress(newPercentage);
                 progress.downloadPercentage = newPercentage;
             }
 
