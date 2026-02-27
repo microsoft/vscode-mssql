@@ -24,7 +24,11 @@ import {
  * Pulls the DAB container image from MCR
  */
 export async function pullDabContainerImage(): Promise<DockerCommandParams> {
-    return pullContainerImage(Dab.DAB_CONTAINER_IMAGE, LocalContainers.dabPullImageError);
+    return pullContainerImage(
+        Dab.DAB_CONTAINER_IMAGE,
+        LocalContainers.dabPullImageError,
+        Dab.DAB_CONTAINER_PLATFORM,
+    );
 }
 
 /**

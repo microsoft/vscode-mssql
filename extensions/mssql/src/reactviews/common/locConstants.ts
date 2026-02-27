@@ -1274,6 +1274,7 @@ export class LocConstants {
             generateConfig: l10n.t("Generate Config"),
             deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
+            designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
             entityName: l10n.t("Entity Name"),
@@ -1351,6 +1352,16 @@ export class LocConstants {
             deploymentFailed: l10n.t("Deployment Failed"),
             dabContainerRunning: l10n.t("DAB container is running!"),
             apiAvailableAt: l10n.t("Your API is available at:"),
+            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
+            copyUrl: (apiType: string) =>
+                l10n.t({
+                    message: "Copy {0} URL",
+                    args: [apiType],
+                    comment: ["{0} is the API type name, e.g. REST API or GraphQL"],
+                }),
+            addToVSCode: l10n.t("Add to VS Code"),
+            addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
+            mcpServerAdded: l10n.t("Added"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),

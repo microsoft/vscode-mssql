@@ -24,6 +24,7 @@ import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
+import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -420,9 +421,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
-        this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
-            await vscode.env.clipboard.writeText(payload.configContent);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+        this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            const message =
+                payload.copyTextType === Dab.CopyTextType.Url
+                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
+                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            await vscode.window.showInformationMessage(message);
         });
 
         // DAB deployment request handlers
@@ -446,6 +451,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
             return this._dabService.stopDeployment(payload.containerName);
+        });
+
+        this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
+            return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
     }
 

@@ -11,7 +11,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 interface DabContextProps {
     isInitialized: boolean;
-    copyToClipboard: (text: string) => void;
+    copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
@@ -37,6 +37,7 @@ interface DabContextProps {
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
     retryDabDeploymentSteps: () => void;
+    addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
 }
 
 const DabContext = createContext<DabContextProps | undefined>(undefined);
@@ -47,7 +48,7 @@ interface DabProviderProps {
 
 export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
-    const { extensionRpc, extractSchema, copyToClipboard, isInitialized } = schemaDesignerContext;
+    const { extensionRpc, extractSchema, isInitialized } = schemaDesignerContext;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
@@ -188,6 +189,16 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             setDabConfigRequestId((id) => id + 1);
         }
     }, [dabConfig, extensionRpc]);
+
+    const copyToClipboard = useCallback(
+        (text: string, copyTextType: Dab.CopyTextType) => {
+            void extensionRpc.sendNotification(Dab.CopyTextNotification.type, {
+                text,
+                copyTextType,
+            });
+        },
+        [extensionRpc],
+    );
 
     const openDabConfigInEditor = useCallback(
         (configContent: string) => {
@@ -339,6 +350,16 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         }));
     }, []);
 
+    const addDabMcpServer = useCallback(
+        async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {
+            return extensionRpc.sendRequest(Dab.AddMcpServerRequest.type, {
+                serverName: `DabMcp-${dabDeploymentState.params.port}`,
+                serverUrl,
+            });
+        },
+        [extensionRpc, dabDeploymentState.params.port],
+    );
+
     return (
         <DabContext.Provider
             value={{
@@ -366,6 +387,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 runDabDeploymentStep,
                 resetDabDeploymentState,
                 retryDabDeploymentSteps,
+                addDabMcpServer,
             }}>
             {children}
         </DabContext.Provider>

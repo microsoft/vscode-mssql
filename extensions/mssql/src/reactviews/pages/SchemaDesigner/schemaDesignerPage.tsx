@@ -28,9 +28,10 @@ const useStyles = makeStyles({
 });
 interface SchemaDesignerPageProps {
     activeView?: SchemaDesigner.SchemaDesignerActiveView;
+    onNavigateToDab?: () => void;
 }
 
-export const SchemaDesignerPage = ({ activeView }: SchemaDesignerPageProps) => {
+export const SchemaDesignerPage = ({ activeView, onNavigateToDab }: SchemaDesignerPageProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
 
@@ -53,7 +54,10 @@ export const SchemaDesignerPage = ({ activeView }: SchemaDesignerPageProps) => {
                             <CopilotChangesProvider>
                                 <Panel defaultSize={100}>
                                     <GraphContainer>
-                                        <SchemaDesignerToolbar showDiscovery={canShowDiscovery} />
+                                        <SchemaDesignerToolbar
+                                            showDiscovery={canShowDiscovery}
+                                            onNavigateToDab={onNavigateToDab}
+                                        />
                                         <SchemaDesignerFlow />
                                     </GraphContainer>
                                 </Panel>

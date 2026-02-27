@@ -42,9 +42,10 @@ const useStyles = makeStyles({
 
 interface DabPageProps {
     activeView?: SchemaDesigner.SchemaDesignerActiveView;
+    onNavigateToSchema?: () => void;
 }
 
-export const DabPage = ({ activeView }: DabPageProps) => {
+export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
     const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
         useDabContext();
@@ -96,7 +97,10 @@ export const DabPage = ({ activeView }: DabPageProps) => {
             <PanelGroup direction="vertical">
                 <Panel defaultSize={100}>
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                        <DabToolbar showDiscovery={canShowDiscovery} />
+                        <DabToolbar
+                            showDiscovery={canShowDiscovery}
+                            onNavigateToSchema={onNavigateToSchema}
+                        />
                         <div className={classes.content}>
                             <DabEntityTable />
                         </div>
