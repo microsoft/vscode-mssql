@@ -103,7 +103,7 @@ const MainLayout = () => {
                                     ? "block"
                                     : "none",
                         }}>
-                        <SchemaDesignerPage />
+                        <SchemaDesignerPage activeView={activeView} />
                     </div>
                     <div
                         style={{
@@ -126,7 +126,9 @@ const MainLayout = () => {
         );
     }
 
-    return <SchemaDesignerPage />;
+    return (
+        <SchemaDesignerPage activeView={SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner} />
+    );
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

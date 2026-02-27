@@ -23,6 +23,7 @@ import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
+import { CopilotChat } from "../sharedInterfaces/copilotChat";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -39,6 +40,18 @@ function isCopilotChatInstalled(): boolean {
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+
+function getCopilotChatDiscoveryDismissedState(
+    context: vscode.ExtensionContext,
+): CopilotChat.DiscoveryDismissedState {
+    return {
+        schemaDesigner: context.globalState.get(
+            CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"),
+            false,
+        ),
+        dab: context.globalState.get(CopilotChat.getDiscoveryDismissedStateKey("dab"), false),
+    };
+}
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
@@ -73,6 +86,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
                 enableDAB: isDABEnabled(),
                 isCopilotChatInstalled: isCopilotChatInstalled(),
+                copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
@@ -99,6 +113,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
         this.setupRequestHandlers();
+        this.setupReducers();
         this.setupConfigurationListener();
     }
 
@@ -434,18 +449,41 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
     }
 
+    private setupReducers() {
+        this.registerReducer("dismissCopilotChatDiscovery", async (state, payload) => {
+            if (!payload?.scenario) {
+                return state;
+            }
+
+            await this._context.globalState.update(
+                CopilotChat.getDiscoveryDismissedStateKey(payload.scenario),
+                true,
+            );
+
+            return {
+                ...state,
+                copilotChatDiscoveryDismissed: {
+                    ...state.copilotChatDiscoveryDismissed,
+                    [payload.scenario]: true,
+                },
+            };
+        });
+    }
+
     private setupConfigurationListener() {
         const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(configSchemaDesignerEnableExpandCollapseButtons)) {
                 const newValue = isExpandCollapseButtonsEnabled();
 
                 this.updateState({
+                    ...this.state,
                     enableExpandCollapseButtons: newValue,
                 });
             }
             if (e.affectsConfiguration(configEnableDab)) {
                 const newValue = isDABEnabled();
                 this.updateState({
+                    ...this.state,
                     enableDAB: newValue,
                 });
             }

@@ -120,7 +120,7 @@ import { FlatFileImportWebviewController } from "./flatFileImportWebviewControll
 import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
-import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
+import { CopilotChat } from "../sharedInterfaces/copilotChat";
 
 /**
  * The main controller class that initializes the extension
@@ -549,10 +549,13 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
-            this.registerCommand(SchemaDesigner.openCopilotAgentCommand);
-            this._event.on(SchemaDesigner.openCopilotAgentCommand, async () => {
-                await this.openSchemaDesignerCopilotChat();
-            });
+            this.registerCommandWithArgs(CopilotChat.openFromUiCommand);
+            this._event.on(
+                CopilotChat.openFromUiCommand,
+                async (args?: CopilotChat.OpenFromUiArgs) => {
+                    await this.openCopilotChatFromUi(args);
+                },
+            );
 
             // -- NEW QUERY WITH CONNECTION (Copilot) --
             this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
@@ -900,13 +903,26 @@ export default class MainController implements vscode.Disposable {
         return undefined;
     }
 
-    private async openSchemaDesignerCopilotChat(): Promise<void> {
-        const sendSchemaDesignerChatEntryTelemetry = (
+    private getCopilotChatPromptForScenario(scenario: CopilotChat.Scenario): string {
+        switch (scenario) {
+            case "dab":
+                return Prompts.dabAgentPrompt;
+            case "schemaDesigner":
+            default:
+                return Prompts.schemaDesignerAgentPrompt;
+        }
+    }
+
+    private async openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void> {
+        const scenario = args?.scenario ?? "schemaDesigner";
+        const entryPoint = args?.entryPoint ?? "schemaDesignerToolbar";
+        const sendCopilotChatEntryTelemetry = (
             success: boolean,
             reason?: "noActiveDesigner" | "chatCommandMissing",
         ) => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
-                entryPoint: "schemaDesignerToolbar",
+                entryPoint,
+                scenario,
                 mode: "agent",
                 success: success.toString(),
                 ...(reason ? { reason } : {}),
@@ -914,7 +930,7 @@ export default class MainController implements vscode.Disposable {
         };
 
         if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
-            sendSchemaDesignerChatEntryTelemetry(false, "noActiveDesigner");
+            sendCopilotChatEntryTelemetry(false, "noActiveDesigner");
             this._vscodeWrapper.showErrorMessage(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
             );
@@ -923,15 +939,18 @@ export default class MainController implements vscode.Disposable {
 
         const chatCommand = await this.findChatOpenAgentCommand();
         if (!chatCommand) {
-            sendSchemaDesignerChatEntryTelemetry(false, "chatCommandMissing");
+            sendCopilotChatEntryTelemetry(false, "chatCommandMissing");
             this._vscodeWrapper.showErrorMessage(
                 LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
             );
             return;
         }
 
-        await vscode.commands.executeCommand(chatCommand, Prompts.schemaDesignerAgentPrompt);
-        sendSchemaDesignerChatEntryTelemetry(true);
+        await vscode.commands.executeCommand(
+            chatCommand,
+            this.getCopilotChatPromptForScenario(scenario),
+        );
+        sendCopilotChatEntryTelemetry(true);
     }
 
     public get context(): vscode.ExtensionContext {

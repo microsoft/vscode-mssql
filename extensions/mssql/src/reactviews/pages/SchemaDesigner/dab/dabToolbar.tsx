@@ -17,6 +17,7 @@ import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
+import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -76,7 +77,11 @@ const useStyles = makeStyles({
     },
 });
 
-export function DabToolbar() {
+interface DabToolbarProps {
+    showDiscovery: boolean;
+}
+
+export function DabToolbar({ showDiscovery }: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
     const {
@@ -113,6 +118,13 @@ export function DabToolbar() {
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
+                    <SchemaDesignerWebviewCopilotChatEntry
+                        scenario="dab"
+                        entryPoint="dabToolbar"
+                        discoveryTitle={locConstants.schemaDesigner.dabCopilotDiscoveryTitle}
+                        discoveryBody={locConstants.schemaDesigner.dabCopilotDiscoveryBody}
+                        showDiscovery={showDiscovery}
+                    />
                     <Button
                         appearance="subtle"
                         icon={<FluentIcons.DocumentCopy16Regular />}
