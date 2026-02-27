@@ -34,7 +34,7 @@ import {
 import { locConstants } from "../../../common/locConstants";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
-import { columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { columnUtils, namingUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import { SchemaDesignerEditorContext, TABLE_NAME_ERROR_KEY } from "./schemaDesignerEditorDrawer";

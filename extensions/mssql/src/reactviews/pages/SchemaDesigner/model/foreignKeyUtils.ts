@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Connection, Edge, Node } from "@xyflow/react";
-import { v4 as uuidv4 } from "uuid";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { buildSchemaFromFlowState } from "./schemaFromFlowState";
@@ -234,7 +233,7 @@ export const foreignKeyUtils = {
         existingFkName?: string,
     ): SchemaDesigner.ForeignKey => {
         return {
-            id: existingFkId || uuidv4(),
+            id: existingFkId || crypto.randomUUID(),
             name: existingFkName || `FK_${sourceNode.data.name}_${targetNode.data.name}`,
             columnsIds: [sourceColumnId],
             referencedTableId: targetNode.data.id,
