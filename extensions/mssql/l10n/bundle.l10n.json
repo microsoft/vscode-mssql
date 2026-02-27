@@ -1395,7 +1395,7 @@
     "Select a folder": "Select a folder",
     "Folder is required": "Folder is required",
     "File is required": "File is required",
-    "Please select a file": "Please select a file",
+    "Please select a file, not a folder.": "Please select a file, not a folder.",
     "Selected Path": "Selected Path",
     "Files of Type": "Files of Type",
     "File path": "File path",

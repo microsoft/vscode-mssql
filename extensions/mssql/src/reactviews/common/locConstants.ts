@@ -2150,7 +2150,7 @@ export class LocConstants {
             fileBrowserFolderTitle: l10n.t("Select a folder"),
             folderRequired: l10n.t("Folder is required"),
             fileRequired: l10n.t("File is required"),
-            pleaseSelectAFile: l10n.t("Please select a file"),
+            pleaseSelectAFile: l10n.t("Please select a file, not a folder."),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
             filePath: l10n.t("File path"),
