@@ -52,7 +52,7 @@ export class ReactWebviewPanelController<
         this.initializeBase();
     }
 
-    private createWebviewPanel() {
+    protected createWebviewPanel() {
         this._panel = vscode.window.createWebviewPanel(
             "mssql-react-webview",
             this._options.title,
@@ -74,7 +74,11 @@ export class ReactWebviewPanelController<
             this._panel.onDidDispose(async () => {
                 let prompt;
                 if (this._options.showRestorePromptAfterClose) {
-                    prompt = await this.showRestorePrompt();
+                    try {
+                        prompt = await this.showRestorePrompt();
+                    } catch (e) {
+                        console.error("Error showing restore prompt:", e);
+                    }
                 }
                 if (prompt) {
                     await prompt.run();

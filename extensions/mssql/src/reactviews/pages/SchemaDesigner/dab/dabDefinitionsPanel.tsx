@@ -3,21 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from "react";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import {
-    DesignerDefinitionPane,
-    DesignerDefinitionPaneRef,
+    DefinitionPanel,
+    DefinitionPanelController,
     DesignerDefinitionTabs,
-} from "../../../common/designerDefinitionPane";
+} from "../../../common/definitionPanel";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { Dab } from "../../../../sharedInterfaces/dab";
+import { useDabContext } from "./dabContext";
 
 export interface DabDefinitionsPanelRef {
     togglePanel: () => void;
 }
 
 export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, ref) => {
-    const context = useContext(SchemaDesignerContext);
-    const definitionPaneRef = useRef<DesignerDefinitionPaneRef>(null);
+    const context = useDabContext();
+    const { themeKind } = useVscodeWebview<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
+    const definitionPaneRef = useRef<DefinitionPanelController>(null);
 
     useImperativeHandle(
         ref,
@@ -37,13 +44,16 @@ export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, re
     }, [context.dabConfigRequestId]);
 
     return (
-        <DesignerDefinitionPane
+        <DefinitionPanel
             ref={definitionPaneRef}
-            script={context.dabConfigContent}
-            language="json"
-            themeKind={context.themeKind}
-            openInEditor={context.openDabConfigInEditor}
-            copyToClipboard={context.copyToClipboard}
+            scriptTab={{
+                value: context.dabConfigContent,
+                language: "json",
+                themeKind,
+                openInEditor: context.openDabConfigInEditor,
+                copyToClipboard: (text: string) =>
+                    context.copyToClipboard(text, Dab.CopyTextType.Config),
+            }}
             activeTab={DesignerDefinitionTabs.Script}
         />
     );

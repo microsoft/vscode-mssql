@@ -480,7 +480,7 @@ export default class SqlDocumentService implements vscode.Disposable {
 
             case ConnectionStrategy.PromptForConnection:
             default:
-                const credentials = await this._connectionMgr.onNewConnection();
+                const credentials = await this._connectionMgr.promptToConnect();
                 return { shouldConnect: true, connectionInfo: Utils.deepClone(credentials) };
         }
     }
@@ -506,7 +506,7 @@ export default class SqlDocumentService implements vscode.Disposable {
 
     private async updateUri(oldUri: string, newUri: string) {
         // Transfer the connection to the new URI
-        await this._connectionMgr?.copyConnectionToFile(oldUri, newUri);
+        await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
 
         // Call STS  & Query Runner to update URI
         await this._outputContentProvider?.updateQueryRunnerUri(oldUri, newUri);

@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from "mssql";
 import * as vscodeMssql from "vscode-mssql";
 
-type ExtractTarget = mssql.ExtractTarget | vscodeMssql.ExtractTarget;
+type ExtractTarget = vscodeMssql.ExtractTarget;
 
 /**
  * Data model to communicate for Import API

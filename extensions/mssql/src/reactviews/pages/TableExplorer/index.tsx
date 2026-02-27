@@ -5,14 +5,14 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
-import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { TableExplorerPage } from "./TableExplorerPage";
 import { TableExplorerStateProvider } from "./TableExplorerStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
+    <VscodeWebviewProvider>
         <TableExplorerStateProvider>
             <TableExplorerPage />
         </TableExplorerStateProvider>
-    </VscodeWebviewProvider2>,
+    </VscodeWebviewProvider>,
 );

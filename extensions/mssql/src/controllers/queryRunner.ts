@@ -1182,7 +1182,7 @@ export default class QueryRunner {
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
         const docExists = this._vscodeWrapper.textDocuments.find(
-            (textDoc) => textDoc.uri.toString(true) === this.uri,
+            (textDoc) => textDoc.uri.toString() === this.uri,
         );
         if (docExists) {
             let column = vscode.ViewColumn.One;

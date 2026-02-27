@@ -1,13 +1,20 @@
-import * as testCli from "@vscode/test-cli";
+import { defineConfig } from "@vscode/test-cli";
+import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-test-config.mjs";
 
-export default testCli.defineConfig([
-    {
-        label: "Unit Tests",
-        files: "out/test/**/*.test.js",
-        version: "insiders",
-        mocha: {
-            ui: "tdd",
-            timeout: 6_000,
+export default defineConfig({
+    tests: [
+        {
+            label: "Unit Tests",
+            files: "out/test/unit/**/*.test.js",
+            version: "insiders",
+            env: {
+                VSCODE_LOG_LEVEL: "error",
+            },
+            mocha: createMochaConfig({
+                ui: "tdd",
+                timeout: 30_000,
+            }),
         },
-    },
-]);
+    ],
+    coverage: defaultCoverageConfig,
+});

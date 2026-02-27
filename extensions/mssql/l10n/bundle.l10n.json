@@ -57,7 +57,6 @@
     "Check Constraint": "Check Constraint",
     "New Check Constraint": "New Check Constraint",
     "Advanced Options": "Advanced Options",
-    "Search term cannot be empty": "Search term cannot be empty",
     "{0} issue/{0} is the number of issues": {
         "message": "{0} issue",
         "comment": ["{0} is the number of issues"]
@@ -80,6 +79,11 @@
     "Expand": "Expand",
     "Collapse": "Collapse",
     "Filter Settings": "Filter Settings",
+    "Select All": "Select All",
+    "Copy": "Copy",
+    "Copy with Headers": "Copy with Headers",
+    "Copy Headers": "Copy Headers",
+    "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -107,6 +111,7 @@
     "Refresh": "Refresh",
     "Show password": "Show password",
     "Hide password": "Hide password",
+    "Save": "Save",
     "Dismiss": "Dismiss",
     "Error": "Error",
     "Get Started": "Get Started",
@@ -115,8 +120,9 @@
     "Sign In": "Sign In",
     "Loading": "Loading",
     "General": "General",
-    "Clear All": "Clear All",
+    "Previous": "Previous",
     "OK": "OK",
+    "Clear All": "Clear All",
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -188,10 +194,41 @@
     },
     "Schema": "Schema",
     "Back to preview": "Back to preview",
-    "Copy": "Copy",
     "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
     "Publish Changes": "Publish Changes",
     "Open Publish Script": "Open Publish Script",
+    "Code Analysis - {0}/{0} is the name of the database project": {
+        "message": "Code Analysis - {0}",
+        "comment": ["{0} is the name of the database project"]
+    },
+    "Loading code analysis rules...": "Loading code analysis rules...",
+    "No code analysis rules available.": "No code analysis rules available.",
+    "{0} rules/{0} is the number of code analysis rules": {
+        "message": "{0} rules",
+        "comment": ["{0} is the number of code analysis rules"]
+    },
+    "Rules": "Rules",
+    "Enable {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Enable all rules in {0}/{0} is the category name, e.g. Design": {
+        "message": "Enable all rules in {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Expand {0}/{0} is the category name, e.g. Design": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Collapse {0}/{0} is the category name, e.g. Design": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Severity for {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Severity for {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Reset": "Reset",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -350,7 +387,6 @@
     "Expand All": "Expand All",
     "Collapse All": "Collapse All",
     "Filter for any field...": "Filter for any field...",
-    "Previous": "Previous",
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
     "Very Satisfied": "Very Satisfied",
@@ -421,9 +457,6 @@
         "comment": ["{0} is the keyboard shortcut for the query plan tab"]
     },
     "Query Plan": "Query Plan",
-    "Select All": "Select All",
-    "Copy with Headers": "Copy with Headers",
-    "Copy Headers": "Copy Headers",
     "Copy As": "Copy As",
     "Copy as CSV": "Copy as CSV",
     "Copy as JSON": "Copy as JSON",
@@ -490,8 +523,10 @@
     },
     "Add new column": "Add new column",
     "Table": "Table",
-    "Save": "Save",
     "Add": "Add",
+    "Cannot delete column because it is used by a foreign key.": "Cannot delete column because it is used by a foreign key.",
+    "Cannot delete column because it is referenced by a foreign key.": "Cannot delete column because it is referenced by a foreign key.",
+    "Cannot delete column because it is part of foreign key relationships.": "Cannot delete column because it is part of foreign key relationships.",
     "Add new foreign key": "Add new foreign key",
     "Foreign Key {0}/{0} is the index of the foreign key": {
         "message": "Foreign Key {0}",
@@ -508,6 +543,8 @@
         "message": "Filter ({0})",
         "comment": ["{0} is the number of selected tables"]
     },
+    "Chat": "Chat",
+    "Open Copilot Chat": "Open Copilot Chat",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -656,15 +693,17 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
-    "Show Changes ({0})/{0} is the number of schema changes": {
-        "message": "Show Changes ({0})",
-        "comment": ["{0} is the number of schema changes"]
-    },
+    "Show Changes": "Show Changes",
+    "Copilot Changes": "Copilot Changes",
     "Highlight Changes": "Highlight Changes",
     "Hide Changes Highlight": "Hide Changes Highlight",
     "Changes ({0})/{0} is the number of schema changes": {
         "message": "Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
+    },
+    "Copilot Changes ({0})/{0} is the number of copilot changes": {
+        "message": "Copilot Changes ({0})",
+        "comment": ["{0} is the number of copilot changes"]
     },
     "No changes yet.": "No changes yet.",
     "Edit your schema to see changes here.": "Edit your schema to see changes here.",
@@ -753,6 +792,9 @@
     "Revert": "Revert",
     "Search changes...": "Search changes...",
     "No changes match your search.": "No changes match your search.",
+    "Changes view mode": "Changes view mode",
+    "Schema Changes": "Schema Changes",
+    "Schema Diff": "Schema Diff",
     "Navigate to this item in the diagram": "Navigate to this item in the diagram",
     "Revert this change to its original state": "Revert this change to its original state",
     "Cannot revert: The referenced table or column has been deleted": "Cannot revert: The referenced table or column has been deleted",
@@ -761,6 +803,32 @@
         "message": "{0} change(s)",
         "comment": ["{0} is the number of changes"]
     },
+    "Accept": "Accept",
+    "Accept All": "Accept All",
+    "Undo All": "Undo All",
+    "Undo All Copilot Changes": "Undo All Copilot Changes",
+    "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.": "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
+    "Reject": "Reject",
+    "Reviewing Copilot Change": "Reviewing Copilot Change",
+    "Change {0} of {1}/{0} is the current change number{1} is the total number of changes": {
+        "message": "Change {0} of {1}",
+        "comment": ["{0} is the current change number", "{1} is the total number of changes"]
+    },
+    "Unknown": "Unknown",
+    "Referenced schema": "Referenced schema",
+    "Referenced table": "Referenced table",
+    "Referenced columns": "Referenced columns",
+    "Foreign keys": "Foreign keys",
+    "Data type": "Data type",
+    "Primary key": "Primary key",
+    "Allow null": "Allow null",
+    "{0}, +{1} more/{0} is the first changed property label{1} is the count of additional changed properties": {
+        "message": "{0}, +{1} more",
+        "comment": [
+            "{0} is the first changed property label",
+            "{1} is the count of additional changed properties"
+        ]
+    },
     "Data API Builder Configuration": "Data API Builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
@@ -768,6 +836,7 @@
     "MCP": "MCP",
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
+    "Filter entities...": "Filter entities...",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
@@ -779,6 +848,7 @@
     "Generate Config": "Generate Config",
     "Deploy": "Deploy",
     "Back to Schema": "Back to Schema",
+    "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
     "Entity Name": "Entity Name",
     "Used in API routes and responses": "Used in API routes and responses",
@@ -797,6 +867,62 @@
     "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
+    "Toggle all entities in {0}/{0} is the schema name": {
+        "message": "Toggle all entities in {0}",
+        "comment": ["{0} is the schema name"]
+    },
+    "Enable {0}/{0} is the entity name": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
+        "message": "{0} action for {1}",
+        "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
+    },
+    "Settings for {0}/{0} is the entity name": {
+        "message": "Settings for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Select all {0}/{0} is the action name (Create, Read, etc.)": {
+        "message": "Select all {0}",
+        "comment": ["{0} is the action name (Create, Read, etc.)"]
+    },
+    "Deploy DAB Container": "Deploy DAB Container",
+    "Local Container Deployment": "Local Container Deployment",
+    "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.": "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+    "Requirements:": "Requirements:",
+    "Docker Desktop must be installed and running on your machine.": "Docker Desktop must be installed and running on your machine.",
+    "Container Settings": "Container Settings",
+    "Container Name": "Container Name",
+    "Container name is required": "Container name is required",
+    "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens": "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
+    "Name for the Docker container running DAB": "Name for the Docker container running DAB",
+    "Port": "Port",
+    "Port must be between 1 and 65535": "Port must be between 1 and 65535",
+    "Port to expose the API on (default: 5000)": "Port to expose the API on (default: 5000)",
+    "Deployment Complete": "Deployment Complete",
+    "Deployment Failed": "Deployment Failed",
+    "DAB container is running!": "DAB container is running!",
+    "Your API is available at:": "Your API is available at:",
+    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
+    "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
+        "message": "Copy {0} URL",
+        "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
+    },
+    "Add to VS Code": "Add to VS Code",
+    "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
+    "Checking Docker installation": "Checking Docker installation",
+    "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
+    "Starting Docker Desktop": "Starting Docker Desktop",
+    "Ensuring Docker Desktop is running": "Ensuring Docker Desktop is running",
+    "Checking Docker engine": "Checking Docker engine",
+    "Verifying Docker engine is ready": "Verifying Docker engine is ready",
+    "Pulling DAB container image": "Pulling DAB container image",
+    "Downloading the Data API Builder container image": "Downloading the Data API Builder container image",
+    "Starting DAB container": "Starting DAB container",
+    "Creating and starting the container": "Creating and starting the container",
+    "Checking container readiness": "Checking container readiness",
+    "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
@@ -817,7 +943,6 @@
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
     "Option Description": "Option Description",
-    "Reset": "Reset",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
@@ -920,7 +1045,7 @@
     "Simple Container Management": "Simple Container Management",
     "Start, stop, and remove containers directly from the extension.": "Start, stop, and remove containers directly from the extension.",
     "Choose the Right Version": "Choose the Right Version",
-    "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.": "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+    "Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.": "Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.",
     "Learn more about SQL Server 2025 features": "Learn more about SQL Server 2025 features",
     "Compare SQL Server editions": "Compare SQL Server editions",
     "Configure and customize SQL Server containers": "Configure and customize SQL Server containers",
@@ -932,10 +1057,6 @@
     "Hide full error message": "Hide full error message",
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
-    "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.": "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
-    "To continue, run SQL Server on a machine with a supported processor. Check ": "To continue, run SQL Server on a machine with a supported processor. Check ",
-    "the documentation ": "the documentation ",
-    "for more information.": "for more information.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Loading fabric provisioning...": "Loading fabric provisioning...",
     "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
@@ -948,7 +1069,6 @@
     "Workspace": "Workspace",
     "Start Time": "Start Time",
     "Provisioning": "Provisioning",
-    "Deployment Failed": "Deployment Failed",
     "Connection Failed": "Connection Failed",
     "Connecting to Database": "Connecting to Database",
     "OLTP, built on Azure SQL": "OLTP, built on Azure SQL",
@@ -1085,6 +1205,43 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
+    "Search Database Objects": "Search Database Objects",
+    "Loading database objects": "Loading database objects",
+    "Connecting to {0}.../{0} is the server name": {
+        "message": "Connecting to {0}...",
+        "comment": ["{0} is the server name"]
+    },
+    "An error occurred while loading data.": "An error occurred while loading data.",
+    "Error loading database objects": "Error loading database objects",
+    "Searching...": "Searching...",
+    "{0} objects found/{0} is the number of objects found": {
+        "message": "{0} objects found",
+        "comment": ["{0} is the number of objects found"]
+    },
+    "Object Types": "Object Types",
+    "Tables": "Tables",
+    "Views": "Views",
+    "Stored Procedures": "Stored Procedures",
+    "Functions": "Functions",
+    "Schemas": "Schemas",
+    "None": "None",
+    "View": "View",
+    "Stored Procedure": "Stored Procedure",
+    "Function": "Function",
+    "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)": "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
+    "Actions": "Actions",
+    "No objects found": "No objects found",
+    "Try adjusting your search or filters": "Try adjusting your search or filters",
+    "Filter by name": "Filter by name",
+    "Filter by schema": "Filter by schema",
+    "Filter {0}": "Filter {0}",
+    "Select Top 1000": "Select Top 1000",
+    "Script as Drop": "Script as Drop",
+    "Script as Alter": "Script as Alter",
+    "Script as Execute": "Script as Execute",
+    "Edit Data": "Edit Data",
+    "Modify Table": "Modify Table",
+    "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
     "Starts with": "Starts with",
@@ -1132,8 +1289,8 @@
     "Unfreeze columns": "Unfreeze columns",
     "x of y selected": "x of y selected",
     "Equal to": "Equal to",
-    "Azure Data Studio Migration - Connections": "Azure Data Studio Migration - Connections",
-    "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+    "Azure Data Studio Migration": "Azure Data Studio Migration",
+    "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
     "Azure Data Studio settings file": "Azure Data Studio settings file",
     "Select the Azure Data Studio settings.json file to scan for connection groups and connections.": "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
     "Browse to Azure Data Studio settings.json": "Browse to Azure Data Studio settings.json",
@@ -1196,6 +1353,42 @@
     "Select account": "Select account",
     "Select an account for authentication": "Select an account for authentication",
     "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.": "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
+    "Settings and Keybindings": "Settings and Keybindings",
+    "Collapse settings": "Collapse settings",
+    "Expand settings": "Expand settings",
+    "Import connection configuration settings from Azure Data Studio": "Import connection configuration settings from Azure Data Studio",
+    "View settings": "View settings",
+    "Configuration to Import": "Configuration to Import",
+    "Setting": "Setting",
+    "No customized settings found": "No customized settings found",
+    "No customized settings found in Azure Data Studio": "No customized settings found in Azure Data Studio",
+    "Looking for Azure Data Studio key bindings, like F5 to execute queries?": "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+    "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.": "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.",
+    "Install the MSSQL Database Management Keymap extension": "Install the MSSQL Database Management Keymap extension",
+    "{0} connection group imported/{0} is the number of connection groups imported (singular)": {
+        "message": "{0} connection group imported",
+        "comment": ["{0} is the number of connection groups imported (singular)"]
+    },
+    "{0} connection groups imported/{0} is the number of connection groups imported (plural)": {
+        "message": "{0} connection groups imported",
+        "comment": ["{0} is the number of connection groups imported (plural)"]
+    },
+    "{0} connection imported/{0} is the number of connections imported (singular)": {
+        "message": "{0} connection imported",
+        "comment": ["{0} is the number of connections imported (singular)"]
+    },
+    "{0} connections imported/{0} is the number of connections imported (plural)": {
+        "message": "{0} connections imported",
+        "comment": ["{0} is the number of connections imported (plural)"]
+    },
+    "{0} setting imported/{0} is the number of settings imported (singular)": {
+        "message": "{0} setting imported",
+        "comment": ["{0} is the number of settings imported (singular)"]
+    },
+    "{0} settings imported/{0} is the number of settings imported (plural)": {
+        "message": "{0} settings imported",
+        "comment": ["{0} is the number of settings imported (plural)"]
+    },
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
@@ -1206,8 +1399,13 @@
     },
     "Don't show this again": "Don't show this again",
     "Select a file": "Select a file",
+    "Select a folder": "Select a folder",
+    "Folder is required": "Folder is required",
+    "File is required": "File is required",
     "Selected Path": "Selected Path",
     "Files of Type": "Files of Type",
+    "Please choose a file": "Please choose a file",
+    "Please choose a folder": "Please choose a folder",
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1238,9 +1436,12 @@
     "Resume": "Resume",
     "Clear Data": "Clear Data",
     "Auto-scroll": "Auto-scroll",
+    "Filter...": "Filter...",
+    "Clear Filter": "Clear Filter",
     "Select Session:": "Select Session:",
     "View:": "View:",
     "Select a session...": "Select a session...",
+    "File (Read-Only)": "File (Read-Only)",
     "Creating session...": "Creating session...",
     "Create a new profiling session": "Create a new profiling session",
     "No templates available": "No templates available",
@@ -1254,23 +1455,150 @@
     "Clear all events (keeps session running)": "Clear all events (keeps session running)",
     "Auto-scroll enabled": "Auto-scroll enabled",
     "Auto-scroll disabled": "Auto-scroll disabled",
+    "Filter events by column values": "Filter events by column values",
+    "Sort column": "Sort column",
+    "Clear all filters and show all events": "Clear all filters and show all events",
+    "No filter is currently active": "No filter is currently active",
+    "=": "=",
+    "<>": "<>",
+    "<": "<",
+    "<=": "<=",
+    ">": ">",
+    ">=": ">=",
+    "Is Null": "Is Null",
+    "Is Not Null": "Is Not Null",
+    "In": "In",
+    "Filter active": "Filter active",
+    "Showing {0} of {1} events/{0} is filtered count, {1} is total count": {
+        "message": "Showing {0} of {1} events",
+        "comment": ["{0} is filtered count, {1} is total count"]
+    },
+    "Not available for read-only file sessions": "Not available for read-only file sessions",
+    "Cannot change session while active": "Cannot change session while active",
+    "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection./{0} is the XEL file name": {
+        "message": "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+        "comment": ["{0} is the XEL file name"]
+    },
     "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",
     "Not Started": "Not Started",
-    "Profiler: No session": "Profiler: No session",
-    "Profiler Session Status": "Profiler Session Status",
+    "Read-Only": "Read-Only",
+    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
+    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
     },
+    "Filter: {0}/{0} is the column name": {
+        "message": "Filter: {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Search values...": "Search values...",
+    "Enter text...": "Enter text...",
+    "Enter a number...": "Enter a number...",
+    "Enter a date...": "Enter a date...",
+    "Deselect All": "Deselect All",
+    "Example: Find queries with {0} > 100/{0} is the column name": {
+        "message": "Example: Find queries with {0} > 100",
+        "comment": ["{0} is the column name"]
+    },
+    "Search within {0} text content/{0} is the column name": {
+        "message": "Search within {0} text content",
+        "comment": ["{0} is the column name"]
+    },
+    "No results match the current filters": "No results match the current filters",
+    "No data to display.": "No data to display.",
+    "Quick filter all columns...": "Quick filter all columns...",
+    "Clear All Filters": "Clear All Filters",
+    "Clear quick filter and all column filters": "Clear quick filter and all column filters",
+    "{0}/{1}/{0} is selected count{1} is total count": {
+        "message": "{0}/{1}",
+        "comment": ["{0} is selected count", "{1} is total count"]
+    },
+    "YYYY-MM-DD HH:mm:ss": "YYYY-MM-DD HH:mm:ss",
+    "Use format: YYYY-MM-DD HH:mm:ss[.SSS]": "Use format: YYYY-MM-DD HH:mm:ss[.SSS]",
+    "Filter value": "Filter value",
+    "Filter operator": "Filter operator",
+    "Value is required": "Value is required",
+    "Must be a valid number": "Must be a valid number",
+    "none selected": "none selected",
+    "{0} selected/{0} is the number of selected filter values": {
+        "message": "{0} selected",
+        "comment": ["{0} is the number of selected filter values"]
+    },
+    "Active filters:": "Active filters:",
+    "{0}: {1}/{0} is the column name{1} is the filter description": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the column name", "{1} is the filter description"]
+    },
+    "Remove filter for {0}/{0} is the column name": {
+        "message": "Remove filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Text": "Text",
+    "No event selected": "No event selected",
+    "No text data available": "No text data available",
+    "Open text data in a new editor": "Open text data in a new editor",
+    "Copy text data to clipboard": "Copy text data to clipboard",
+    "Maximize details panel": "Maximize details panel",
+    "Close details panel": "Close details panel",
+    "Text tab - displays SQL text data": "Text tab - displays SQL text data",
+    "Details tab - displays all event properties": "Details tab - displays all event properties",
+    "Read-only SQL text editor": "Read-only SQL text editor",
+    "Event properties list": "Event properties list",
+    "Copied to clipboard": "Copied to clipboard",
+    "Details panel tabs": "Details panel tabs",
+    "Details panel actions": "Details panel actions",
+    "Event details for {0}/{0} is the name of the profiler event": {
+        "message": "Event details for {0}",
+        "comment": ["{0} is the name of the profiler event"]
+    },
+    "Export all captured events to a CSV file": "Export all captured events to a CSV file",
+    "No events to export": "No events to export",
+    "profiler_events": "profiler_events",
+    "Import File": "Import File",
+    "Step 1: Specify Input File": "Step 1: Specify Input File",
+    "Loading flat file import...": "Loading flat file import...",
+    "Loading table preview...": "Loading table preview...",
+    "Step 2: Preview Data": "Step 2: Preview Data",
+    "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.": "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+    "Step 3: Modify Columns": "Step 3: Modify Columns",
+    "Import Data": "Import Data",
+    "Step 4: Summary": "Step 4: Summary",
+    "Import Information": "Import Information",
+    "Import Status": "Import Status",
+    "Server Name": "Server Name",
+    "Table Name": "Table Name",
+    "Table Schema": "Table Schema",
+    "File to be imported": "File to be imported",
+    "Importing data...": "Importing data...",
+    "File imported successfully": "File imported successfully",
+    "Import New File": "Import New File",
+    "Loading restore database...": "Loading restore database...",
+    "Restore Database": "Restore Database",
+    "Backup File": "Backup File",
+    "URL": "URL",
+    "Browse files": "Browse files",
+    "Tail-log backup": "Tail-log backup",
+    "Files": "Files",
+    "Loading restore plan...": "Loading restore plan...",
+    "No backup sets found in the restore plan": "No backup sets found in the restore plan",
+    "No database files found in the restore plan": "No database files found in the restore plan",
+    "Invalid table type": "Invalid table type",
+    "Logical file name": "Logical file name",
+    "Original file name": "Original file name",
+    "Restore as": "Restore as",
+    "File type": "File type",
+    "Backup sets to restore": "Backup sets to restore",
+    "Advanced restore options": "Advanced restore options",
+    "Could not load restore plan": "Could not load restore plan",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
     "Enabled": "Enabled",
     "Disabled": "Disabled",
     "User": "User",
-    "Port": "Port",
     "SQL Container Name": "SQL Container Name",
     "SQL Container Version": "SQL Container Version",
     "Application Intent": "Application Intent",
@@ -1281,7 +1609,6 @@
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
-    "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
     "Drop Database": "Drop Database",
@@ -1343,6 +1670,7 @@
         "comment": ["{0} is the error number", "{1} is the error message"]
     },
     "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
+    "A connection is already being established. Please wait for it to complete before running a query.": "A connection is already being established. Please wait for it to complete before running a query.",
     "Confirm to clear recent connections list": "Confirm to clear recent connections list",
     "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
     "Choose a connection profile from the list below": "Choose a connection profile from the list below",
@@ -1564,7 +1892,6 @@
     },
     "Save results command cannot be used with multiple selections.": "Save results command cannot be used with multiple selections.",
     "MSSQL": "MSSQL",
-    "None": "None",
     "Choose SQL Language": "Choose SQL Language",
     "Use T-SQL intellisense and syntax error checking on current document": "Use T-SQL intellisense and syntax error checking on current document",
     "Disable intellisense and syntax error checking on current document": "Disable intellisense and syntax error checking on current document",
@@ -1627,23 +1954,6 @@
     "Reload Visual Studio Code": "Reload Visual Studio Code",
     "Switch to MSAL": "Switch to MSAL",
     "Query succeeded": "Query succeeded",
-    "Search for database objects...": "Search for database objects...",
-    "Enter part of an object name to search for": "Enter part of an object name to search for",
-    "No database objects found matching '{0}'/{0} is the search term": {
-        "message": "No database objects found matching '{0}'",
-        "comment": ["{0} is the search term"]
-    },
-    "An error occurred while searching database objects": "An error occurred while searching database objects",
-    "An error occurred while searching database objects: {0}/{0} is the error detail returned from the search operation": {
-        "message": "An error occurred while searching database objects: {0}",
-        "comment": ["{0} is the error detail returned from the search operation"]
-    },
-    "No active database connection. Please connect to a database first.": "No active database connection. Please connect to a database first.",
-    "Select an object to view its definition ({0} results)/{0} is the number of results": {
-        "message": "Select an object to view its definition ({0} results)",
-        "comment": ["{0} is the number of results"]
-    },
-    "Invalid connection URI. Please ensure you have an active database connection.": "Invalid connection URI. Please ensure you have an active database connection.",
     "Query failed": "Query failed",
     "Execution Plan": "Execution Plan",
     "SQL Plan Files": "SQL Plan Files",
@@ -1661,6 +1971,58 @@
     },
     "Enable Experiences & Reload": "Enable Experiences & Reload",
     "New Deployment": "New Deployment",
+    "SQL: Not connected": "SQL: Not connected",
+    "SQL Notebooks: click to change database": "SQL Notebooks: click to change database",
+    "SQL Notebooks: click to connect": "SQL Notebooks: click to connect",
+    "Connection failed": "Connection failed",
+    "Query execution failed": "Query execution failed",
+    "No active notebook.": "No active notebook.",
+    "No active connection.": "No active connection.",
+    "No connection selected.": "No connection selected.",
+    "({0} row(s) affected)/{0} is the number of rows affected": {
+        "message": "({0} row(s) affected)",
+        "comment": ["{0} is the number of rows affected"]
+    },
+    "(Command completed successfully)": "(Command completed successfully)",
+    "(0 rows)": "(0 rows)",
+    "({0} row)/{0} is the number of rows (singular)": {
+        "message": "({0} row)",
+        "comment": ["{0} is the number of rows (singular)"]
+    },
+    "({0} rows)/{0} is the number of rows (plural)": {
+        "message": "({0} rows)",
+        "comment": ["{0} is the number of rows (plural)"]
+    },
+    "Disconnected.": "Disconnected.",
+    "Connected to {0}/{0} is the connection label": {
+        "message": "Connected to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "Switched to {0}/{0} is the connection label": {
+        "message": "Switched to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "No database selected.": "No database selected.",
+    "Unknown magic command: %%{0}/{0} is the magic command name": {
+        "message": "Unknown magic command: %%{0}",
+        "comment": ["{0} is the magic command name"]
+    },
+    "Select Database": "Select Database",
+    "Choose a database": "Choose a database",
+    "(current)": "(current)",
+    "Click to change database": "Click to change database",
+    "Connect to SQL Server": "Connect to SQL Server",
+    "SQL Notebook connected to {0}/{0} is the connection label": {
+        "message": "SQL Notebook connected to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "Error: {0}/{0} is the error message": {
+        "message": "Error: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Query execution was cancelled.": "Query execution was cancelled.",
+    "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
+    "Not connected": "Not connected",
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -1927,7 +2289,6 @@
     },
     "SQL Server Container SA Password": "SQL Server Container SA Password",
     "Please choose a unique name for the profile": "Please choose a unique name for the profile",
-    "Container Name": "Container Name",
     "Choose a name for the SQL Server Docker Container": "Choose a name for the SQL Server Docker Container",
     "Please choose a unique name for the container": "Please choose a unique name for the container",
     "Choose a port to host the SQL Server Docker Container": "Choose a port to host the SQL Server Docker Container",
@@ -1990,8 +2351,22 @@
     "Enter container name": "Enter container name",
     "Enter port": "Enter port",
     "Enter hostname": "Enter hostname",
-    "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.": "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
-    "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.": "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+    "Container name is invalid or already in use": "Container name is invalid or already in use",
+    "Port {0} is already in use/{0} is the port number": {
+        "message": "Port {0} is already in use",
+        "comment": ["{0} is the port number"]
+    },
+    "Container name, port, and config content are required to start the container.": "Container name, port, and config content are required to start the container.",
+    "Failed to start DAB container.": "Failed to start DAB container.",
+    "Container name and port are required to check container readiness.": "Container name and port are required to check container readiness.",
+    "Unknown deployment step: {0}/{0} is the deployment step number": {
+        "message": "Unknown deployment step: {0}",
+        "comment": ["{0} is the deployment step number"]
+    },
+    "Failed to pull DAB container image. Please check your network connection.": "Failed to pull DAB container image. Please check your network connection.",
+    "Failed to start DAB container. Please check the Docker logs for details.": "Failed to start DAB container. Please check the Docker logs for details.",
+    "DAB container failed to become ready within the timeout period.": "DAB container failed to become ready within the timeout period.",
+    "Failed to stop and remove DAB container.": "Failed to stop and remove DAB container.",
     "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
     "What can we do to improve?": "What can we do to improve?",
     "Take Survey": "Take Survey",
@@ -2012,7 +2387,6 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
-    "Publish Project (Preview)": "Publish Project (Preview)",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
@@ -2053,6 +2427,8 @@
     "Failed to get connection string: {0}": "Failed to get connection string: {0}",
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
+    "Code Analysis": "Code Analysis",
+    "Failed to load code analysis rules": "Failed to load code analysis rules",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -2079,6 +2455,17 @@
         "message": "Failed to generate publish script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
+    "MCP server added to {0}/{0} is the file path where the MCP server was added": {
+        "message": "MCP server added to {0}",
+        "comment": ["{0} is the file path where the MCP server was added"]
+    },
+    "MCP server is already configured in {0}/{0} is the file path where the MCP server configuration exists": {
+        "message": "MCP server is already configured in {0}",
+        "comment": ["{0} is the file path where the MCP server configuration exists"]
+    },
+    "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "Config copied to clipboard": "Config copied to clipboard",
+    "URL copied to clipboard": "URL copied to clipboard",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
@@ -2466,7 +2853,6 @@
     "Database name is too long. Maximum length is 128 characters": "Database name is too long. Maximum length is 128 characters",
     "Database not found on the server": "Database not found on the server",
     "Validation failed. Please check your inputs": "Validation failed. Please check your inputs",
-    "Files": "Files",
     "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     "Reveal in Explorer": "Reveal in Explorer",
     "Reveal in Finder": "Reveal in Finder",
@@ -2486,6 +2872,27 @@
     "BACPAC exported successfully to '{0}'/{0} is the file path": {
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
+    },
+    "Search Database Objects - {0}/{0} is the server name": {
+        "message": "Search Database Objects - {0}",
+        "comment": ["{0} is the server name"]
+    },
+    "Failed to establish connection": "Failed to establish connection",
+    "Copied \"{0}\" to clipboard/{0} is the object name": {
+        "message": "Copied \"{0}\" to clipboard",
+        "comment": ["{0} is the object name"]
+    },
+    "Failed to script object: {0}/{0} is the error message": {
+        "message": "Failed to script object: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Edit Data: {0}/{0} is the error message": {
+        "message": "Failed to open Edit Data: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Modify Table: {0}/{0} is the error message": {
+        "message": "Failed to open Modify Table: {0}",
+        "comment": ["{0} is the error message"]
     },
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
     "Changes saved successfully.": "Changes saved successfully.",
@@ -2547,7 +2954,6 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Azure Data Studio Migration": "Azure Data Studio Migration",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
     "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",
@@ -2585,13 +2991,21 @@
     "Read docs on Microsoft Learn": "Read docs on Microsoft Learn",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
-    "Azure Data Studio Connection Migration Toolkit": "Azure Data Studio Connection Migration Toolkit",
-    "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.": "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+    "Azure Data Studio Migration Toolkit - Now Including Keymap!": "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.": "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     "Edit Data (Preview)": "Edit Data (Preview)",
     "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.": "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    "Global Object Search": "Global Object Search",
+    "Search for database objects — tables, views, stored procedures, and more — across your entire database.": "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    "Backup/Restore Dialogs (Preview)": "Backup/Restore Dialogs (Preview)",
+    "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.": "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    "Database Management Dialogs (Preview)": "Database Management Dialogs (Preview)",
+    "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.": "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    "Query Profiler (Preview)": "Query Profiler (Preview)",
+    "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
     "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
-    "SQL Database Projects – Publish Dialog (Preview)": "SQL Database Projects – Publish Dialog (Preview)",
+    "SQL Database Projects – Publish Dialog": "SQL Database Projects – Publish Dialog",
     "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.": "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     "In case you missed it": "In case you missed it",
     "Previously released features you may not have explored yet.": "Previously released features you may not have explored yet.",
@@ -2631,6 +3045,13 @@
     "No saved connections found. Please create a connection first.": "No saved connections found. Please create a connection first.",
     "No profiler templates available": "No profiler templates available",
     "Session creation timed out": "Session creation timed out",
+    "Failed to open XEL file: {0}/{0} is the error message": {
+        "message": "Failed to open XEL file: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "The selected file is not a valid XEL file.": "The selected file is not a valid XEL file.",
+    "The XEL file was not found.": "The XEL file was not found.",
+    "Access to the XEL file was denied.": "Access to the XEL file was denied.",
     "Session name cannot be empty": "Session name cannot be empty",
     "Session name must be {0} characters or less/{0} is the maximum length": {
         "message": "Session name must be {0} characters or less",
@@ -2638,14 +3059,16 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
     },
+    "Select XEL File": "Select XEL File",
+    "Extended Events Log Files": "Extended Events Log Files",
     "Profiler session '{0}' created successfully. Starting profiling.../{0} is the session name": {
         "message": "Profiler session '{0}' created successfully. Starting profiling...",
         "comment": ["{0} is the session name"]
@@ -2659,6 +3082,47 @@
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
     },
+    "Loading XEL file: {0}/{0} is the file name": {
+        "message": "Loading XEL file: {0}",
+        "comment": ["{0} is the file name"]
+    },
+    "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection./{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
+        "comment": ["{0} is the file name"]
+    },
+    "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection/{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
+        "comment": ["{0} is the file name"]
+    },
+    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
+        "message": "Query Profiler (Preview): {0}",
+        "comment": ["{0} is the file name or session name"]
+    },
+    "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
+        "message": "{0}/{1} events",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
+    },
+    "File: {0}/{0} is the file name": {
+        "message": "File: {0}",
+        "comment": ["{0} is the file name"]
+    },
+    "Failed to open text in editor: {0}/{0} is the error message": {
+        "message": "Failed to open text in editor: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Profiler events exported successfully to {0}/{0} is the file path": {
+        "message": "Profiler events exported successfully to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Open File": "Open File",
+    "Failed to export profiler events: {0}/{0} is the error message": {
+        "message": "Failed to export profiler events: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    "Export & Close": "Export & Close",
+    "Close Without Export": "Close Without Export",
+    "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
@@ -2729,6 +3193,70 @@
         "comment": ["{0} is the error message"]
     },
     "Unable to load backup configuration. Please try again.": "Unable to load backup configuration. Please try again.",
+    "Could not connect to database: {0}/{0} is the database name": {
+        "message": "Could not connect to database: {0}",
+        "comment": ["{0} is the database name"]
+    },
+    "Azure SQL Database is not supported for backup.": "Azure SQL Database is not supported for backup.",
+    "Starting '{0}'.../{0} is the service name": {
+        "message": "Starting '{0}'...",
+        "comment": ["{0} is the service name"]
+    },
+    "'{0}' started./{0} is the service name": {
+        "message": "'{0}' started.",
+        "comment": ["{0} is the service name"]
+    },
+    "Failed to start '{0}': {1}/{0} is the service name{1} is the error message": {
+        "message": "Failed to start '{0}': {1}",
+        "comment": ["{0} is the service name", "{1} is the error message"]
+    },
+    "Import Flat File (Preview)": "Import Flat File (Preview)",
+    "Database the table is created in": "Database the table is created in",
+    "Location of the file to be imported": "Location of the file to be imported",
+    "New Table Name": "New Table Name",
+    "CSV/TXT Files (*.csv;*.txt)": "CSV/TXT Files (*.csv;*.txt)",
+    "No databases found to import into.": "No databases found to import into.",
+    "Select file to import": "Select file to import",
+    "Database is required": "Database is required",
+    "Import file is required": "Import file is required",
+    "Table name is required": "Table name is required",
+    "Schema is required": "Schema is required",
+    "Error fetching the table preview.": "Error fetching the table preview.",
+    "Error fetching schemas for the selected database.": "Error fetching schemas for the selected database.",
+    "Loading schemas...": "Loading schemas...",
+    "No schemas found": "No schemas found",
+    "Failed to import file.": "Failed to import file.",
+    "Please ensure the file is not open in another application before importing": "Please ensure the file is not open in another application before importing",
+    "Relocate all files": "Relocate all files",
+    "Overwrite the existing database": "Overwrite the existing database",
+    "Uses the WITH REPLACE option during restore": "Uses the WITH REPLACE option during restore",
+    "Preserve the replication settings": "Preserve the replication settings",
+    "Uses the WITH KEEP_REPLICATION option during restore": "Uses the WITH KEEP_REPLICATION option during restore",
+    "Restrict access to the restored database": "Restrict access to the restored database",
+    "Uses the WITH RESTRICTED_USER option during restore": "Uses the WITH RESTRICTED_USER option during restore",
+    "Recovery state": "Recovery state",
+    "RESTORE WITH RECOVERY": "RESTORE WITH RECOVERY",
+    "RESTORE WITH NORECOVERY": "RESTORE WITH NORECOVERY",
+    "RESTORE WITH STANDBY": "RESTORE WITH STANDBY",
+    "Data file folder": "Data file folder",
+    "Log file folder": "Log file folder",
+    "Standby file": "Standby file",
+    "Take tail-log backup before restore": "Take tail-log backup before restore",
+    "Leave the source database in the restoring state": "Leave the source database in the restoring state",
+    "Uses the WITH NORECOVERY option during restore": "Uses the WITH NORECOVERY option during restore",
+    "Tail-log backup file": "Tail-log backup file",
+    "Server Connections": "Server Connections",
+    "Close existing connections to destination database": "Close existing connections to destination database",
+    "Blob": "Blob",
+    "Select a blob": "Select a blob",
+    "Blob is required": "Blob is required",
+    "Blob does not contain a valid database backup": "Blob does not contain a valid database backup",
+    "No blobs found": "No blobs found",
+    "Selected backup file does not contain a valid database backup": "Selected backup file does not contain a valid database backup",
+    "Cannot generate script without a restore plan": "Cannot generate script without a restore plan",
+    "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
+    "No databases with backups found": "No databases with backups found",
+    "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

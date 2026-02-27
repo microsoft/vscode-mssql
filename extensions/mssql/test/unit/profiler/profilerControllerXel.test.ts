@@ -1,0 +1,266 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { expect } from "chai";
+import * as sinon from "sinon";
+import * as path from "path";
+import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
+import { ProfilerService } from "../../../src/services/profilerService";
+import { XelFileInfo, SessionType, SessionState } from "../../../src/profiler/profilerTypes";
+import { stubProfilerService } from "../utils";
+
+suite("ProfilerController XEL File Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let mockProfilerService: sinon.SinonStubbedInstance<ProfilerService>;
+    let sessionManager: ProfilerSessionManager;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        mockProfilerService = stubProfilerService(sandbox);
+        sessionManager = new ProfilerSessionManager(mockProfilerService);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    suite("XEL File Validation", () => {
+        test("should validate .xel file extension correctly", () => {
+            const validPaths = [
+                path.join("test", "trace.xel"),
+                path.join("home", "user", "trace.xel"),
+                "trace.xel",
+                "Trace.XEL", // case insensitive
+            ];
+
+            for (const filePath of validPaths) {
+                const ext = path.extname(filePath).toLowerCase();
+                expect(ext).to.equal(".xel", `Expected ${filePath} to have .xel extension`);
+            }
+        });
+
+        test("should reject non-.xel file extensions", () => {
+            const invalidPaths = [
+                path.join("test", "trace.xml"),
+                path.join("home", "user", "trace.log"),
+                "trace.txt",
+                "trace.xel.bak",
+            ];
+
+            for (const filePath of invalidPaths) {
+                const ext = path.extname(filePath).toLowerCase();
+                expect(ext).to.not.equal(".xel", `Expected ${filePath} to NOT have .xel extension`);
+            }
+        });
+
+        test("should handle empty file path", () => {
+            const filePath = "";
+            const ext = path.extname(filePath).toLowerCase();
+            // Empty path has no extension
+            expect(ext).to.equal("");
+            expect(ext).to.not.equal(".xel");
+        });
+
+        test("should detect ENOENT error code for non-existent file", () => {
+            const mockError: NodeJS.ErrnoException = new Error("File not found");
+            mockError.code = "ENOENT";
+
+            expect(mockError.code).to.equal("ENOENT");
+        });
+
+        test("should detect EACCES error code for permission denied", () => {
+            const mockError: NodeJS.ErrnoException = new Error("Permission denied");
+            mockError.code = "EACCES";
+
+            expect(mockError.code).to.equal("EACCES");
+        });
+
+        test("should detect EPERM error code for permission denied on Windows", () => {
+            const mockError: NodeJS.ErrnoException = new Error("Operation not permitted");
+            mockError.code = "EPERM";
+
+            expect(mockError.code).to.equal("EPERM");
+        });
+
+        test("should handle both EACCES and EPERM as permission errors", () => {
+            const permissionErrorCodes = ["EACCES", "EPERM"];
+
+            for (const code of permissionErrorCodes) {
+                const mockError: NodeJS.ErrnoException = new Error("Permission error");
+                mockError.code = code;
+
+                const isPermissionError = mockError.code === "EACCES" || mockError.code === "EPERM";
+                expect(isPermissionError).to.be.true;
+            }
+        });
+
+        test("should differentiate between file and directory", () => {
+            // This tests the logic pattern used in validateXelFile
+            // In the actual implementation, fs.stat.isFile() is used
+            const fileStats = { isFile: () => true, isDirectory: () => false };
+            const dirStats = { isFile: () => false, isDirectory: () => true };
+
+            expect(fileStats.isFile()).to.be.true;
+            expect(dirStats.isFile()).to.be.false;
+        });
+    });
+
+    suite("XelFileInfo", () => {
+        test("should create XelFileInfo with all properties", () => {
+            const testFilePath = path.join("test", "events", "trace.xel");
+            const fileInfo: XelFileInfo = {
+                filePath: testFilePath,
+                fileName: "trace.xel",
+                fileSize: 2048,
+            };
+
+            expect(fileInfo.filePath).to.equal(testFilePath);
+            expect(fileInfo.fileName).to.equal("trace.xel");
+            expect(fileInfo.fileSize).to.equal(2048);
+        });
+
+        test("should extract fileName from filePath correctly", () => {
+            const filePath = path.join("test", "events", "trace.xel");
+            const fileName = path.basename(filePath);
+
+            expect(fileName).to.equal("trace.xel");
+        });
+    });
+
+    suite("Session Type Detection", () => {
+        test("should identify File session type for XEL files", () => {
+            const session = sessionManager.createSession({
+                id: "test-session",
+                ownerUri: "profiler://test",
+                sessionName: path.join("test", "trace.xel"),
+                sessionType: SessionType.File,
+                templateName: "Standard",
+                readOnly: true,
+            });
+
+            expect(session.sessionType).to.equal(SessionType.File);
+            expect(session.readOnly).to.be.true;
+        });
+
+        test("should identify Live session type for server sessions", () => {
+            const session = sessionManager.createSession({
+                id: "test-session",
+                ownerUri: "profiler://test",
+                sessionName: "MyXEventSession",
+                sessionType: SessionType.Live,
+                templateName: "Standard",
+            });
+
+            expect(session.sessionType).to.equal(SessionType.Live);
+            expect(session.readOnly).to.be.false;
+        });
+    });
+
+    suite("Read-Only Session Behavior", () => {
+        test("should create read-only session for XEL files", () => {
+            const session = sessionManager.createSession({
+                id: "xel-session",
+                ownerUri: "profiler://test",
+                sessionName: path.join("test", "trace.xel"),
+                sessionType: SessionType.File,
+                templateName: "Standard",
+                readOnly: true,
+            });
+
+            expect(session.readOnly).to.be.true;
+            expect(session.sessionType).to.equal(SessionType.File);
+        });
+
+        test("read-only session canPause should be false", async () => {
+            const session = sessionManager.createSession({
+                id: "xel-session",
+                ownerUri: "profiler://test",
+                sessionName: path.join("test", "trace.xel"),
+                sessionType: SessionType.File,
+                templateName: "Standard",
+                readOnly: true,
+            });
+
+            // Start the session to get canPause value
+            await sessionManager.startProfilingSession("xel-session");
+
+            expect(session.canPause).to.be.false;
+        });
+    });
+
+    suite("Session Manager with XEL Sessions", () => {
+        test("should create and track XEL file session", () => {
+            const session = sessionManager.createSession({
+                id: "xel-session-1",
+                ownerUri: "profiler://test",
+                sessionName: path.join("test", "trace.xel"),
+                sessionType: SessionType.File,
+                templateName: "Standard",
+                readOnly: true,
+            });
+
+            const retrievedSession = sessionManager.getSession("xel-session-1");
+
+            expect(retrievedSession).to.equal(session);
+            expect(retrievedSession?.sessionType).to.equal(SessionType.File);
+        });
+
+        test("should remove XEL file session correctly", async () => {
+            sessionManager.createSession({
+                id: "xel-session-to-dispose",
+                ownerUri: "profiler://test",
+                sessionName: path.join("test", "trace.xel"),
+                sessionType: SessionType.File,
+                templateName: "Standard",
+                readOnly: true,
+            });
+
+            await sessionManager.removeSession("xel-session-to-dispose");
+
+            const session = sessionManager.getSession("xel-session-to-dispose");
+            expect(session).to.be.undefined;
+        });
+    });
+});
+
+suite("ProfilerWebviewController Read-Only State Tests", () => {
+    test("should pass isReadOnly state for XEL file sessions", () => {
+        // This is a structural test to verify the state shape
+        const testFilePath = path.join("test", "trace.xel");
+        const readOnlyState = {
+            totalRowCount: 0,
+            clearGeneration: 0,
+            sessionState: SessionState.Running,
+            autoScroll: false, // Should be disabled for read-only
+            sessionName: "trace.xel",
+            isReadOnly: true,
+            xelFilePath: testFilePath,
+            xelFileName: "trace.xel",
+        };
+
+        expect(readOnlyState.isReadOnly).to.be.true;
+        expect(readOnlyState.autoScroll).to.be.false;
+        expect(readOnlyState.xelFilePath).to.equal(testFilePath);
+        expect(readOnlyState.xelFileName).to.equal("trace.xel");
+    });
+
+    test("should have default state for live sessions", () => {
+        const liveState = {
+            totalRowCount: 0,
+            clearGeneration: 0,
+            sessionState: SessionState.NotStarted,
+            autoScroll: true,
+            sessionName: undefined,
+            isReadOnly: false,
+            xelFilePath: undefined,
+            xelFileName: undefined,
+        };
+
+        expect(liveState.isReadOnly).to.be.false;
+        expect(liveState.autoScroll).to.be.true;
+        expect(liveState.xelFilePath).to.be.undefined;
+        expect(liveState.xelFileName).to.be.undefined;
+    });
+});

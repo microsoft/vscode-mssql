@@ -118,7 +118,14 @@ export function sendActionEvent(
         actionEvent = actionEvent.withConnectionInfo(connectionInfo);
     }
     if (serverInfo) {
-        actionEvent = actionEvent.withServerInfo(serverInfo);
+        // transform serverInfo.engineEditionId from number to string so that telemetry pipeline can process it as a property
+        const transformedServerInfo = {
+            ...serverInfo,
+            engineEditionId: String(serverInfo.engineEditionId),
+        };
+        actionEvent = actionEvent.withServerInfo(
+            transformedServerInfo as unknown as vscodeMssql.IServerInfo,
+        );
     }
     actionEvent.send();
 }

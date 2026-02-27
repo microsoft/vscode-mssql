@@ -3,205 +3,227 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { promises as fs } from 'fs';
-import * as utils from '../common/utils';
-import * as sqldbproj from 'sqldbproj';
-import * as extractZip from 'extract-zip';
-import * as constants from '../common/constants';
-import { HttpClient } from '../common/httpClient';
-import { DBProjectConfigurationKey } from './netcoreTool';
-import { ProjectType } from '../common/typeHelper';
-import * as mssql from 'mssql';
-import * as vscodeMssql from 'vscode-mssql';
+import * as vscode from "vscode";
+import * as path from "path";
+import { promises as fs } from "fs";
+import * as utils from "../common/utils";
+import * as sqldbproj from "sqldbproj";
+import * as extractZip from "extract-zip";
+import * as constants from "../common/constants";
+import { HttpClient } from "../common/httpClient";
+import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
+import { ProjectType } from "../common/typeHelper";
+import * as vscodeMssql from "vscode-mssql";
 
-const buildDirectory = 'BuildDirectory';
+const buildDirectory = "BuildDirectory";
 
 export class BuildHelper {
+    private extensionDir: string;
+    private extensionBuildDir: string;
+    private initialized: boolean = false;
 
-	private extensionDir: string;
-	private extensionBuildDir: string;
-	private initialized: boolean = false;
+    constructor() {
+        const extName = sqldbproj.extension.vsCodeName;
+        this.extensionDir = vscode.extensions.getExtension(extName)?.extensionPath ?? "";
+        this.extensionBuildDir = path.join(this.extensionDir, buildDirectory);
+    }
 
-	constructor() {
-		const extName = utils.getAzdataApi() ? sqldbproj.extension.name : sqldbproj.extension.vsCodeName;
-		this.extensionDir = vscode.extensions.getExtension(extName)?.extensionPath ?? '';
-		this.extensionBuildDir = path.join(this.extensionDir, buildDirectory);
-	}
+    /**
+     * Create build dlls directory with the dlls and targets needed for building a sqlproj
+     * @param outputChannel
+     */
+    public async createBuildDirFolder(outputChannel: vscode.OutputChannel): Promise<boolean> {
+        if (this.initialized) {
+            return true;
+        }
 
-	/**
-	 * Create build dlls directory with the dlls and targets needed for building a sqlproj
-	 * @param outputChannel
-	 */
-	public async createBuildDirFolder(outputChannel: vscode.OutputChannel): Promise<boolean> {
-		if (this.initialized) {
-			return true;
-		}
+        if (!(await utils.exists(this.extensionBuildDir))) {
+            await fs.mkdir(this.extensionBuildDir);
+        }
 
-		if (!await utils.exists(this.extensionBuildDir)) {
-			await fs.mkdir(this.extensionBuildDir);
-		}
+        const dacFxDllsExist = await this.ensureDacFxDllsPresence(outputChannel);
+        const scriptDomExists = await this.ensureScriptDomDllPresence(outputChannel);
 
-		const dacFxDllsExist = await this.ensureDacFxDllsPresence(outputChannel);
-		const scriptDomExists = await this.ensureScriptDomDllPresence(outputChannel);
+        if (!dacFxDllsExist || !scriptDomExists) {
+            return false;
+        }
 
-		if (!dacFxDllsExist || !scriptDomExists) {
-			return false;
-		}
+        this.initialized = true;
+        return true;
+    }
 
-		this.initialized = true;
-		return true;
-	}
+    public async ensureDacFxDllsPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
+        const sdkName = "Microsoft.Build.Sql";
+        const dacFxBuildFiles: string[] = [
+            "Microsoft.Build.Sql.dll",
+            "Microsoft.Data.SqlClient.dll",
+            "Microsoft.Data.Tools.Schema.Sql.dll",
+            "Microsoft.Data.Tools.Schema.Tasks.Sql.dll",
+            "Microsoft.Data.Tools.Utilities.dll",
+            "Microsoft.SqlServer.Dac.dll",
+            "Microsoft.SqlServer.Dac.Extensions.dll",
+            "Microsoft.SqlServer.Types.dll",
+            "System.ComponentModel.Composition.dll",
+            "System.IO.Packaging.dll",
+            "Microsoft.Data.Tools.Schema.SqlTasks.targets",
+            "Microsoft.SqlServer.Server.dll",
+        ];
 
-	public async ensureDacFxDllsPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
-		const sdkName = 'Microsoft.Build.Sql';
-		const microsoftBuildSqlDefaultVersion = '2.0.0'; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
+        const sdkVersion = getMicrosoftBuildSqlVersion(constants.microsoftBuildSqlVersionKey);
 
-		const dacFxBuildFiles: string[] = [
-			'Microsoft.Build.Sql.dll',
-			'Microsoft.Data.SqlClient.dll',
-			'Microsoft.Data.Tools.Schema.Sql.dll',
-			'Microsoft.Data.Tools.Schema.Tasks.Sql.dll',
-			'Microsoft.Data.Tools.Utilities.dll',
-			'Microsoft.SqlServer.Dac.dll',
-			'Microsoft.SqlServer.Dac.Extensions.dll',
-			'Microsoft.SqlServer.Types.dll',
-			'System.ComponentModel.Composition.dll',
-			'System.IO.Packaging.dll',
-			'Microsoft.Data.Tools.Schema.SqlTasks.targets',
-			'Microsoft.SqlServer.Server.dll'
-		];
+        const microsoftBuildSqlDllLocation = path.join("tools", "net8.0");
+        return this.ensureNugetAndFilesPresence(
+            sdkName,
+            sdkVersion,
+            dacFxBuildFiles,
+            microsoftBuildSqlDllLocation,
+            outputChannel,
+        );
+    }
 
-		// check if the settings has a version specified for Microsoft.Build.Sql, otherwise use default
-		const microsoftBuildSqlVersionConfig = vscode.workspace.getConfiguration(DBProjectConfigurationKey)[constants.microsoftBuildSqlVersionKey];
-		const sdkVersion = !!microsoftBuildSqlVersionConfig ? microsoftBuildSqlVersionConfig : microsoftBuildSqlDefaultVersion;
+    public async ensureScriptDomDllPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
+        const scriptdomNugetPkgName = "Microsoft.SqlServer.TransactSql.ScriptDom";
+        const scriptDomDll = "Microsoft.SqlServer.TransactSql.ScriptDom.dll";
+        const scriptDomNugetVersion = "170.128.0"; // TODO: make this a configurable setting, like the Microsoft.Build.Sql version
+        const scriptDomDllLocation = path.join("lib", "netstandard2.1");
 
-		const microsoftBuildSqlDllLocation = path.join('tools', 'net8.0');
-		return this.ensureNugetAndFilesPresence(sdkName, sdkVersion, dacFxBuildFiles, microsoftBuildSqlDllLocation, outputChannel);
-	}
+        return this.ensureNugetAndFilesPresence(
+            scriptdomNugetPkgName,
+            scriptDomNugetVersion,
+            [scriptDomDll],
+            scriptDomDllLocation,
+            outputChannel,
+        );
+    }
 
-	public async ensureScriptDomDllPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
-		const scriptdomNugetPkgName = 'Microsoft.SqlServer.TransactSql.ScriptDom';
-		const scriptDomDll = 'Microsoft.SqlServer.TransactSql.ScriptDom.dll';
-		const scriptDomNugetVersion = '170.128.0'; // TODO: make this a configurable setting, like the Microsoft.Build.Sql version
-		const scriptDomDllLocation = path.join('lib', 'netstandard2.1');
+    /**
+     * Ensures a nuget package and expected files exist in the BuildDirectory
+     * @param nugetName Name of the nuget package
+     * @param nugetVersion versiion of the nuget files
+     * @param expectedFiles array of expected files from the nuget in the BuildDirectory
+     * @param nugetFolderWithExpectedfiles folder in the nuget containing the expected files
+     * @param outputChannel
+     * @returns true if expected files exist in the BuildDirectory
+     */
+    public async ensureNugetAndFilesPresence(
+        nugetName: string,
+        nugetVersion: string,
+        expectedFiles: string[],
+        nugetFolderWithExpectedfiles: string,
+        outputChannel: vscode.OutputChannel,
+    ): Promise<boolean> {
+        let missingNuget = false;
 
-		return this.ensureNugetAndFilesPresence(scriptdomNugetPkgName, scriptDomNugetVersion, [scriptDomDll], scriptDomDllLocation, outputChannel);
-	}
+        const fullNugetName = `${nugetName}.${nugetVersion}`;
+        const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
 
-	/**
-	 * Ensures a nuget package and expected files exist in the BuildDirectory
-	 * @param nugetName Name of the nuget package
-	 * @param nugetVersion versiion of the nuget files
-	 * @param expectedFiles array of expected files from the nuget in the BuildDirectory
-	 * @param nugetFolderWithExpectedfiles folder in the nuget containing the expected files
-	 * @param outputChannel
-	 * @returns true if expected files exist in the BuildDirectory
-	 */
-	public async ensureNugetAndFilesPresence(nugetName: string, nugetVersion: string, expectedFiles: string[], nugetFolderWithExpectedfiles: string, outputChannel: vscode.OutputChannel): Promise<boolean> {
-		let missingNuget = false;
+        // check if the correct nuget version has been previously downloaded before checking if the files exist.
+        // TODO: handle when multiple nugets are in the BuildDirectory and a user wants to switch back to an older one - probably should
+        // remove other versions of this nuget when a new one is downloaded
+        if (await utils.exists(fullNugetPath)) {
+            // if it does exist, make sure all the necessary files are also in the BuildDirectory
+            for (const fileName of expectedFiles) {
+                if (!(await utils.exists(path.join(this.extensionBuildDir, fileName)))) {
+                    missingNuget = true;
+                    break;
+                }
+            }
+        } else {
+            // if the nuget isn't there, it needs to be downloaded and the build dlls extracted
+            missingNuget = true;
+        }
 
-		const fullNugetName = `${nugetName}.${nugetVersion}`;
-		const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
+        if (!missingNuget) {
+            return true;
+        }
 
-		// check if the correct nuget version has been previously downloaded before checking if the files exist.
-		// TODO: handle when multiple nugets are in the BuildDirectory and a user wants to switch back to an older one - probably should
-		// remove other versions of this nuget when a new one is downloaded
-		if (await utils.exists(fullNugetPath)) {
-			// if it does exist, make sure all the necessary files are also in the BuildDirectory
-			for (const fileName of expectedFiles) {
-				if (!await (utils.exists(path.join(this.extensionBuildDir, fileName)))) {
-					missingNuget = true;
-					break;
-				}
-			}
-		} else {
-			// if the nuget isn't there, it needs to be downloaded and the build dlls extracted
-			missingNuget = true;
-		}
+        outputChannel.appendLine(constants.downloadingNuget(fullNugetName));
 
-		if (!missingNuget) {
-			return true;
-		}
+        const nugetUrl = `https://www.nuget.org/api/v2/package/${nugetName}/${nugetVersion}`;
+        const extractedFolderPath = path.join(this.extensionDir, buildDirectory, nugetName);
 
-		outputChannel.appendLine(constants.downloadingNuget(fullNugetName));
+        try {
+            await this.downloadAndExtractNuget(
+                nugetUrl,
+                fullNugetPath,
+                extractedFolderPath,
+                outputChannel,
+            );
+        } catch (e) {
+            void vscode.window.showErrorMessage(e);
+            return false;
+        }
 
-		const nugetUrl = `https://www.nuget.org/api/v2/package/${nugetName}/${nugetVersion}`;
-		const extractedFolderPath = path.join(this.extensionDir, buildDirectory, nugetName);
+        // copy the dlls and targets file to the BuildDirectory folder
+        const buildfilesPath = path.join(extractedFolderPath, nugetFolderWithExpectedfiles);
 
-		try {
-			await this.downloadAndExtractNuget(nugetUrl, fullNugetPath, extractedFolderPath, outputChannel);
-		} catch (e) {
-			void vscode.window.showErrorMessage(e);
-			return false;
-		}
+        for (const fileName of expectedFiles) {
+            if (await utils.exists(path.join(buildfilesPath, fileName))) {
+                await fs.copyFile(
+                    path.join(buildfilesPath, fileName),
+                    path.join(this.extensionBuildDir, fileName),
+                );
+            }
+        }
 
-		// copy the dlls and targets file to the BuildDirectory folder
-		const buildfilesPath = path.join(extractedFolderPath, nugetFolderWithExpectedfiles);
+        // cleanup extracted folder
+        await fs.rm(extractedFolderPath, { recursive: true });
 
-		for (const fileName of expectedFiles) {
-			if (await (utils.exists(path.join(buildfilesPath, fileName)))) {
-				await fs.copyFile(path.join(buildfilesPath, fileName), path.join(this.extensionBuildDir, fileName));
-			}
-		}
+        return true;
+    }
 
-		// cleanup extracted folder
-		await fs.rm(extractedFolderPath, { recursive: true });
+    /**
+     * Downloads and extracts a nuget package
+     * @param downloadUrl Url to download the nuget package from
+     * @param nugetPath Path to download the nuget package to
+     * @param extractFolderPath Folder path to extract the nuget package contents to
+     * @param outputChannel
+     */
+    public async downloadAndExtractNuget(
+        downloadUrl: string,
+        nugetPath: string,
+        extractFolderPath: string,
+        outputChannel: vscode.OutputChannel,
+    ): Promise<void> {
+        try {
+            const httpClient = new HttpClient();
+            outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
+            await httpClient.download(downloadUrl, nugetPath, outputChannel);
+        } catch (e) {
+            throw constants.errorDownloading(extractFolderPath, utils.getErrorMessage(e));
+        }
 
-		return true;
-	}
+        try {
+            await extractZip(nugetPath, { dir: extractFolderPath });
+        } catch (e) {
+            throw constants.errorExtracting(nugetPath, utils.getErrorMessage(e));
+        }
+    }
 
-	/**
-	 * Downloads and extracts a nuget package
-	 * @param downloadUrl Url to download the nuget package from
-	 * @param nugetPath Path to download the nuget package to
-	 * @param extractFolderPath Folder path to extract the nuget package contents to
-	 * @param outputChannel
-	 */
-	public async downloadAndExtractNuget(downloadUrl: string, nugetPath: string, extractFolderPath: string, outputChannel: vscode.OutputChannel): Promise<void> {
-		try {
-			const httpClient = new HttpClient();
-			outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
-			await httpClient.download(downloadUrl, nugetPath, outputChannel);
-		} catch (e) {
-			throw constants.errorDownloading(extractFolderPath, utils.getErrorMessage(e));
-		}
+    public get extensionBuildDirPath(): string {
+        return this.extensionBuildDir;
+    }
 
-		try {
-			await extractZip(nugetPath, { dir: extractFolderPath });
-		} catch (e) {
-			throw constants.errorExtracting(nugetPath, utils.getErrorMessage(e));
-		}
-	}
+    /**
+     * Constructs the build arguments for building a sqlproj file
+     * @param buildDirPath The path to the build directory where the dlls and targets are located
+     * @param sqlProjStyle The type of the sqlproj project (LegacyStyle or SdkStyle)
+     * @returns An array of arguments to be used for building the sqlproj file
+     */
+    public constructBuildArguments(buildDirPath: string, sqlProjStyle: ProjectType): string[] {
+        buildDirPath = utils.getQuotedPath(buildDirPath);
+        const args: string[] = [
+            constants.netCoreBuildArg,
+            `${constants.systemDacpacsLocationArgPrefix}${buildDirPath}`,
+        ];
 
-	public get extensionBuildDirPath(): string {
-		return this.extensionBuildDir;
-	}
+        // Adding NETCoreTargetsPath only for non-SDK style projects
+        const isSdkStyle = sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
 
-	/**
-	 * Constructs the build arguments for building a sqlproj file
-	 * @param buildDirPath The path to the build directory where the dlls and targets are located
-	 * @param sqlProjStyle The type of the sqlproj project (LegacyStyle or SdkStyle)
-	 * @returns An array of arguments to be used for building the sqlproj file
-	 */
-	public constructBuildArguments(buildDirPath: string, sqlProjStyle: ProjectType): string[] {
-		buildDirPath = utils.getQuotedPath(buildDirPath);
-		const args: string[] = [
-			constants.netCoreBuildArg,
-			`${constants.systemDacpacsLocationArgPrefix}${buildDirPath}`
-		];
+        if (!isSdkStyle) {
+            args.push(`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`);
+        }
 
-		// Adding NETCoreTargetsPath only for non-SDK style projects
-		const isSdkStyle = utils.getAzdataApi()
-			? sqlProjStyle === mssql.ProjectType.SdkStyle
-			: sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
-
-		if (!isSdkStyle) {
-			args.push(`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`);
-		}
-
-		return args;
-	}
+        return args;
+    }
 }
-

@@ -6,8 +6,8 @@
 import * as ep from "../../../sharedInterfaces/executionPlan";
 
 import { ReactNode, createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 
 export interface ExecutionPlanContextProps extends ep.ExecutionPlanProvider {}
 
@@ -18,11 +18,11 @@ interface ExecutionPlanProviderProps {
 }
 
 const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ep.ExecutionPlanState, ep.ExecutionPlanReducers>();
+    const { extensionRpc } = useVscodeWebview<ep.ExecutionPlanState, ep.ExecutionPlanReducers>();
 
     const commands = useMemo<ExecutionPlanContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             getExecutionPlan: function (): void {
                 extensionRpc.action("getExecutionPlan", {});
             },

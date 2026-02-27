@@ -4,17 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactNode, createContext } from "react";
-import { BackupDatabaseProvider } from "../../../../sharedInterfaces/backup";
+import {
+    BackupDatabaseFormState,
+    BackupDatabaseProvider,
+    BackupDatabaseReducers,
+} from "../../../../sharedInterfaces/backup";
 import { getCoreRPCs } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
-    ObjectManagementReducers,
+    DisasterRecoveryType,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 import { WebviewRpc } from "../../../common/rpc";
 
 export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
-    extensionRpc: WebviewRpc<ObjectManagementReducers>;
+    extensionRpc: WebviewRpc<BackupDatabaseReducers<BackupDatabaseFormState>>;
 }
 
 const BackupDatabaseContext = createContext<BackupDatabaseContextProps | undefined>(undefined);
@@ -24,32 +28,32 @@ interface BackupDatabaseProviderProps {
 }
 
 const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
-    const webviewState = useVscodeWebview<ObjectManagementWebviewState, ObjectManagementReducers>();
+    const { extensionRpc } = useVscodeWebview<
+        ObjectManagementWebviewState<BackupDatabaseFormState>,
+        BackupDatabaseReducers<BackupDatabaseFormState>
+    >();
 
     return (
         <BackupDatabaseContext.Provider
             value={{
-                extensionRpc: webviewState!.extensionRpc,
-                state: webviewState?.state as any,
-                themeKind: webviewState?.themeKind,
-                keyBindings: webviewState?.keyBindings,
-                ...getCoreRPCs(webviewState),
+                extensionRpc: extensionRpc,
+                ...getCoreRPCs(extensionRpc),
                 formAction(event) {
-                    webviewState?.extensionRpc.action("formAction", { event });
+                    extensionRpc.action("formAction", { event });
                 },
                 backupDatabase: function (): void {
-                    webviewState?.extensionRpc.action("backupDatabase", {});
+                    extensionRpc.action("backupDatabase", {});
                 },
                 openBackupScript: function (): void {
-                    webviewState?.extensionRpc.action("openBackupScript", {});
+                    extensionRpc.action("openBackupScript", {});
                 },
-                setSaveLocation: function (saveToUrl: boolean): void {
-                    webviewState?.extensionRpc.action("setSaveLocation", {
-                        saveToUrl,
+                setType: function (type: DisasterRecoveryType): void {
+                    extensionRpc.action("setType", {
+                        type,
                     });
                 },
                 removeBackupFile: function (filePath: string): void {
-                    webviewState?.extensionRpc.action("removeBackupFile", {
+                    extensionRpc.action("removeBackupFile", {
                         filePath,
                     });
                 },
@@ -60,7 +64,7 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                     changeFilter: boolean,
                     showFoldersOnly: boolean,
                 ): void {
-                    webviewState?.extensionRpc.action("openFileBrowser", {
+                    extensionRpc.action("openFileBrowser", {
                         ownerUri,
                         expandPath,
                         fileFilters,
@@ -69,36 +73,36 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                     });
                 },
                 expandNode(ownerUri: string, nodePath: string): void {
-                    webviewState?.extensionRpc.action("expandNode", {
+                    extensionRpc.action("expandNode", {
                         ownerUri,
                         nodePath,
                     });
                 },
                 submitFilePath(selectedPath: string): void {
-                    webviewState?.extensionRpc.action("submitFilePath", {
+                    extensionRpc.action("submitFilePath", {
                         selectedPath,
                     });
                 },
                 closeFileBrowser(ownerUri: string): void {
-                    webviewState?.extensionRpc.action("closeFileBrowser", {
+                    extensionRpc.action("closeFileBrowser", {
                         ownerUri,
                     });
                 },
                 toggleFileBrowserDialog(foldersOnly: boolean, shouldOpen: boolean): void {
-                    webviewState?.extensionRpc.action("toggleFileBrowserDialog", {
+                    extensionRpc.action("toggleFileBrowserDialog", {
                         foldersOnly,
                         shouldOpen,
                     });
                 },
                 handleFileChange(index: number, newValue: string, isFolderChange: boolean): void {
-                    webviewState?.extensionRpc.action("handleFileChange", {
+                    extensionRpc.action("handleFileChange", {
                         index,
                         newValue,
                         isFolderChange,
                     });
                 },
                 loadAzureComponent(componentName: string): void {
-                    webviewState?.extensionRpc.action("loadAzureComponent", {
+                    extensionRpc.action("loadAzureComponent", {
                         componentName,
                     });
                 },

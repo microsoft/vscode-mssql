@@ -46,15 +46,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++0317f21e82566433416231ac72a287956e7e1c3514b5c2f8f25f89a9c4651a96" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Docker logs: '{0}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Docker 記錄檔: '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed]]></Val>
@@ -163,15 +154,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{0} password doesn't match the confirmation password]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} 密碼與確認密碼不相符]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++0b89f5d086e6f231b9f58dd7c03e6c7f3a5d40ded1244a41c0d587b0b9987334" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[    >>> {0}   … exited with signal: {1}]]></Val>
@@ -235,15 +217,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++11b0ae8e2634e65c2bb62781cfdb9a384c55e85a0f5ed17a56cf1af11d340cc4" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Resource group]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[資源群組]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++12dcf1f81c7fae94fb5082a598bf61252d998db5ec50c81de9691eb7f796cfa3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error downloading {0}. Error: {1}]]></Val>
@@ -298,15 +271,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++155ddbd1014dadf2c353483d9c755a34b23609f962edfcf96fd55a7807861a77" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to open a connection to the deployed database']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法開啟與已部署資料庫的連線]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Location]]></Val>
@@ -339,15 +303,6 @@
           <Val><![CDATA[Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[資料表]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++1746d72f0bc218df5b7bd33b119c93c6b3302fc6d68bb66e7286b93c42c09b20" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Base {0} Docker image]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[基底 {0} Docker 映像]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -469,15 +424,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++1da7383926fa600607913cc37ec9e7f2776ae615f7a41ab9b07d7308336b0832" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Docker created id: '{0}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Docker 建立的識別碼: '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++1e892f50635fd6443e2118bc1de59d5deeede54e7f6e93f2275b353879e41385" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A folder with the name '{0}' already exists on disk at this location. Please choose another location.]]></Val>
@@ -532,15 +478,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++22127281dfef4fc4fe2b99c5332e45a9fdf79971ffb2ada09eb8fd89f5847d95" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{0} admin password]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} 系統管理員密碼]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++227f0c79fe0b61bb5172198e35d4a242e62ce3c4a99875fe9d08a9f83a672c4e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update Location]]></Val>
@@ -568,15 +505,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++23ef46cfbca7e1590d725a457d5ce359d987837872f4848b53e0da4fc434ee67" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter connection string template]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入連接字串範本]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++248d6fc3eeeea8a859f0b50d51cff03616d0d0a52c7ab563d7a2046e33849837" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Package Reference]]></Val>
@@ -586,29 +514,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++25f9d8164617e51020aabb66edbaae8083a19e80799c598ddc09191c079d8d01" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Operation '{0}' failed. Re-trying... Error: '{1}' ]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[作業 '{0}' 失敗。正在重新嘗試...錯誤: '{1}' ]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Schema/Object Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[結構描述/物件類型]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++2737effe0f7def0b2a7ffb02ba716b1f1abfc35fc71c5fba4c09e2b0d93625f1" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publishing project in a container...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在發佈容器中的專案...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -649,38 +559,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++2c2c07c87e14eba28c8bad35f750ec480ef306481fa641471dd22ad775643aa9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Waiting for {0} seconds before another attempt for operation '{1}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在另一次嘗試作業 '{0}' 之前等候 {1} 秒]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++2df59def744cb81ab8c20092ec3a6bffea96378e0ce318d81b8db83b7753374f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to publish to container. {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法發佈至容器。{0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++300a6fea7e27e277c0c31a7efb59b467a32f2dc0e1620bcac852e655727936bb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Specified GUID is invalid: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[指定的 GUID 無效: {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++3100bcac939af097acdf17a9c0bed8277980a700f17e8375cae98f1156148c2c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to publish to new Azure SQL server. {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法發佈到新的 Azure SQL 伺服器。{0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -793,15 +676,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++3956a838e80d6589ffb2515779206fd46cbde3db1bc77306fd155273fe9836cc" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Choose action]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[選擇動作]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[file]]></Val>
@@ -825,15 +699,6 @@
           <Val><![CDATA[Generating project via AutoRest failed.  Check output pane for more details. Error: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[透過 AutoRest 產生專案失敗。如需詳細資料，請查看輸出窗格。錯誤: {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++3c9b9af732450f209b50a9fa060fc6054e66ecf81ca03d6e771c2e61b18f9bf8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to complete task '{0}'. Error: {1}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法完成工作 '{0}'。錯誤: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -892,15 +757,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++43ef5bb1b921e9d7373f8ee73d6691747356ac92e63ac2286ec62fc39df2f954" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Would you like to update Azure Function local.settings.json with the new connection string?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[是否要以新的連接字串更新 Azure Function local.settings.json?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++43f78154e1d78fbb2fc864851db88cba828e5febe89d3f910aa3e10587cc377d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error: {0}]]></Val>
@@ -937,20 +793,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error updating existing tasks.json: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[更新現有 tasks.json 時發生錯誤: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++46484d457b91deaf27cb5ad7300699fcf6f68109f4218424a6411bea346a7ac0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[File or directory '{0}' doesn't exist]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[檔案或目錄 '{0}' 不存在]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++46716000ac0f29f9cf999c93ddfe42050a83c4cf46acbe61a9f8ca908d54e34f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cleaning existing deployments...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在清除現有的部署...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1045,15 +901,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++4d2b0ac7a6b60f3256c7c5cbcbcf838904e389985d6604c94816517457a468c8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Operation '{0}' completed successfully. Result: {1}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[作業 '{0}' 已成功完成。結果: {1}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++4d90dcbc6710593588577b43588965db3e8def4432c67f5bbd8f7766d7c7dfc8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[    stderr: ]]></Val>
@@ -1140,6 +987,15 @@
           <Val><![CDATA[Dacpac reference]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dacpac 参考]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++55b4a6e44ed8c1cdf729b8f240b9a2241674bcb579bf4c327e6b3da947a08ca0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Builds the {0} SQL project]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[建置 {0} SQL 專案]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1234,15 +1090,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++5ebcc3e4d3b5886d9ef6d81e6884d8fab0c7df8e9a141f2dd71f4e5b100a29eb" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Connecting to SQL Server]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[連接到 SQL Server]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++5ec3b586d6b276b427e0476177366f85a5f0f7c8e58e7e8a6d6b44f64a8c0867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Database selection is required to create a project from a database]]></Val>
@@ -1275,24 +1122,6 @@
           <Val><![CDATA[Excluding folders is not yet supported]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[尚不支援排除資料夾]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++5fa51340fc2658f4ed21548c3033ff642b7ac041f7ffbba9114bf072f3c4e614" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Connection failed error: '{0}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[連線失敗。錯誤: '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++5ff81b1f819c737cbc85a30773a298b92a7f4dd7fc7defa6047aa16a27139ede" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish to an existing {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈到現有的 {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1333,11 +1162,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++64103f0c79d44c0b348d11c0b8a1274959e0e9e761bdff5f519f7e34e37041c2" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";bundle.++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Server created]]></Val>
+          <Val><![CDATA[A SQL Projects build task has been added to the existing tasks.json file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[伺服器已建立]]></Val>
+            <Val><![CDATA[SQL 專案建置工作已新增至現有的 tasks.json 檔案中。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1378,15 +1207,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[您的工作區中已存在 tasks.json 檔案。正在將 SQL 專案建置工作新增到現有檔案中。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++6cb3dca39ad52025ee137c36426bc3f1924c5899b7182ba173a8a9b8b5b881fd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter new default value for variable '{0}']]></Val>
@@ -1401,15 +1221,6 @@
           <Val><![CDATA[A database name is required. The database variable is optional.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[需要資料庫名稱。資料庫變數為選擇性項目。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++6d0b0bb8956065a330d34de70938bb1e61d236532f7f5e3b3ea15be42249433a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[I accept the {0}.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[我接受 {0}。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1473,15 +1284,6 @@
           <Val><![CDATA[The Schema Compare extension must be installed to a update a project from a database.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[結構描述比較延伸模組必須安裝至資料庫中的更新專案。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++73273ddcb07844adcaafbd3667d9a58d85e049dda5f505f67c47149cfaa73d31" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter environment variable for SQL connection string]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入 SQL 連接字串的環境變數]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1576,15 +1378,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++811599ca6b99044df79bb12bb6442b01044bcbee3958779a25f9d6c16ae683e3" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Would you like to save the settings in a profile (.publish.xml)?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[是否將設定儲存在設定檔 (.publish.xml) 中?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++81524c3e53e66232a0a66edd288e36f4d200d32f8512973e382855a3d6dff724" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQLCMD variable name '{0}' cannot contain any of the following characters: {1}]]></Val>
@@ -1599,24 +1392,6 @@
           <Val><![CDATA[Update project from database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[從資料庫更新專案]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8240cad2a39d48b9715b3495af3ea690041ba120c08641a43f72a5d2a5c5c5d1" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Containers already exist for this project. Do you want to delete them before deploying a new one?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[此專案的容器已存在。您要先刪除這些檔案再部署新的嗎?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8260a92239ac78e7e8b34921f34231f2a42c33e2d155a83a006cd631dd959849" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Port must a be number]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[連接埠必須是數字]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1693,15 +1468,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++86e2ab1470a17cd4f665115490260eddf6eed9ba11c177a0b06e673e80cb8090" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Operation '{0}' failed. Re-trying... Current Result: {1}. Error: '{2}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[作業 '{0}' 失敗。正在重新嘗試... 目前的結果: {1}。錯誤: '{2}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++86e5686d8209e4271ae22b1c2545b88f4681d12cc9e6c6839c1f1a4344c10166" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cannot access parent of provided tree item]]></Val>
@@ -1729,15 +1495,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++8c23287a220a47e0d74d3f537afb7355e6a8edcc864780a67a946d98e667949d" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter connection string environment variable name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入連接字串環境變數名稱]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++8c4b242e69817acabbd4c7f375e27946e25ca808d9c53291284555f940653d74" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[External Stream]]></Val>
@@ -1756,15 +1513,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++8d66c11ffe9d849ccb39c04ce5d102192c452fc9c89d376887dd576170ac2793" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select where to publish the project to]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[選取要將專案發佈的位置]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Learn More]]></Val>
@@ -1779,33 +1527,6 @@
           <Val><![CDATA[Value]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[值]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8ec6d97365fad3a2cf4d9bc75d4ada86a223b51f3519142126ad2235851cfa29" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Default - image defined as default in the container registry]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[預設 - 在容器登錄中定義為預設的映射]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8ee240bfa30c4113a8c8bb5b527a90f1408c949edd788c8254ca675c9977564a" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Updating app setting: '{0}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在更新應用程式設定: '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8f73adcb45d0984043f93f35be4a8f03a943e8fc30e430b8b47ed6e6004424eb" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Value cannot be empty]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[值不得空白]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1837,20 +1558,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++92c2f61fcafa6511d86972b9ea0af93ff2fa53d679839988770c0ab60f9bd285" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a template for SQL connection string]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入 SQL 連接字串的範本]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++92dd4b160c0e1d2312170c4f922f7719a0bf2abe3302c3f4f985c84dacf4b69d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to delete the SQLCMD Variable '{0}'?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[確定要刪除 SQLCMD 變數 '{0}' 嗎?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++930304a5516931a4bdbd2e5b2b4b255765a068c8a01653f2736f7e81a66129ac" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[tasks.json 格式無效: 'tasks' 應為陣列。請修正 tasks.json 檔案，然後再試一次。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1927,15 +1648,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++99d66b1bf580a4072a61a13952fca8cd3c9bcff5dad4a5e25c148f46d053cfde" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter {0} port number or press enter to use the default value]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入 {0} 連接埠號碼或按 Enter 以使用預設值]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Updating {0} from {1}...]]></Val>
@@ -1977,24 +1689,6 @@
           <Val><![CDATA[Autorest tool not found in system path, but found Node.js.  Prompting user for how to proceed.  Execute 'npm install autorest -g' to install permanently and avoid this message.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[在系統路徑中找不到 Autorest 工具，但找到 Node.js。提示使用者如何繼續。執行 'npm install autorest -g' 以永久安裝並避免出現此訊息。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++9f3b0510fe642a9d1f9fe5430ffa3582842b55277b3c53f1df12088e42b02ac7" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select the image tag or press enter to use the default value]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[選取影像標籤，或按 Enter 以使用預設值]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++9f5949834fcca4b4870ac2de5cecfbfd3c085b28d1e82dae8a216dc127f7f19c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure accounts]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure 帳戶]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2089,15 +1783,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++ab1191cc9aaf61f200528e66e69548d04d5baf1076772851089dc2bb8964d57c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{0} port number]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} 連接埠號碼]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.]]></Val>
@@ -2148,15 +1833,6 @@
           <Val><![CDATA[Server]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[伺服器]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++af1d4c772bc7ab9eafd9b3ab38efe0eb6b4f0234bf05c0ab9c3f648bc8c5c55a" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter {0} admin user name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入 {0} 系統管理員使用者名稱]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2233,15 +1909,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++b2dcd924c33423699a1475d6eaa32289c60ba9f8f8431bbd7bbfc29f9a1d9c9e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running operation '{2}' Attempt {0} of {1}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[執行作業 '{2}' 嘗試 {0} / {1}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++b387433c2578a3f7370d165966a0e7f9c00b58cbdce9b504fd8e42626c934937" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[DatabaseProject]]></Val>
@@ -2283,15 +1950,6 @@
           <Val><![CDATA[None Elements]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[沒有任何元素]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++b5f6ad576c4f8a4c338e4c53c0ecbc8e7d4c4391c39e3244c42bbdabb69cf711" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure subscription]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure 訂用帳戶]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2449,15 +2107,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++c17d6896f3b05d4d38ca3f0ee27584b76b1f4af6c4fb8ad8c32c7b82378226bd" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[License Agreement:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[授權合約:]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update]]></Val>
@@ -2512,15 +2161,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Image tag]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[映像標籤]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++c4a94738ed855d32205cf5b98d8a302c2f3a82b35b8d0ff2003c2595bde8c557" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tasks.json]]></Val>
@@ -2545,15 +2185,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++c77ce3d4777080be04581a95398a960a5c415789a41ba16d6b37316a797b659f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating Azure SQL Server '{0}' ...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在建立 Azure SQL 伺服器 '{0}'...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++c7a8b036403ce2f163af46818ab619f6fdb6da9e16e6eb28bc547ecebcd7ad0b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Circular reference from project {0} to project {1}]]></Val>
@@ -2572,24 +2203,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++c8bf44bbc1748c3142ded9857fe30bc11ab49aefd7ae8afa66bb872c0a054704" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating deployment settings ...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在建立部署設定...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++c9185ede7216d22cdc2130c68006298a107070b8f5b3a10ec7bc2e3d8bca4a42" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter {0} admin password]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[輸入 {0} 系統管理員密碼]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++c9df623e3c064d4e8d9a2233567158801a01366b17b33096e85bcfcc714ea0c6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unexpected number of {0} files: {1}]]></Val>
@@ -2604,15 +2217,6 @@
           <Val><![CDATA[Could not build project. Error retrieving files needed to build.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[無法建置專案。擷取建置所需檔案時發生錯誤。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++ca140652980c2c4b0970c25c36b751fd6d4b88d8199faa6a138434c0c29ae5eb" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish to new {0} local development container]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈到新的 {0} 本機開發容器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2662,29 +2266,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++ce2922954d0ba334ed4971b9aeb711c1bedfdeaceeffb63dedd349034b29d746" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish to new {0} local development container (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈到新的 {0} 本機開發容器 (預覽)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++ce3b50d9c5e5441b3acdf8741944081d3d78f2436fbe961f6b9a83f133654bb1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid database reference in .sqlproj file]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[.sqlproj 檔中的資料庫參考無效]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++d036997932f3e33b68797157342457def5f5d6cafbce707e9c494dd59695fa89" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Docker Image:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Docker 映像:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2703,15 +2289,6 @@
           <Val><![CDATA[System database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[系統資料庫]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++d2f14bd4fa8209db1b9fdd84a46b16251fbc1a2469d6d39a8f0bcc429fb5ac6b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish to new Azure SQL logical server (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈到新的 Azure SQL 邏輯伺服器 (預覽)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2739,15 +2316,6 @@
           <Val><![CDATA[Invalid DSP in .sqlproj file]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[.sqlproj 檔中的 DSP 無效]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish Target]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈目標]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2802,15 +2370,6 @@
           <Val><![CDATA[Update action]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[更新動作]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++da788bf7dff5f609a543a7b6247726273b1f48b9f4dafc9ed08bd4a55d96a6ea" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Docker container is not running]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Docker 容器未執行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2887,15 +2446,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++dd67465d5f08a1151583a1469fdd6af82d51267a1d949758a963f9bb5a48ba07" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{0} password doesn't meet the password complexity requirement. For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} 密碼不符合密碼複雜度要求。如需詳細資訊，請參閱 https://docs.microsoft.com/sql/relational-databases/security/password-policy]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++de22640fe46bae870e0f45d7b5a0c675144dad64d07b04cda6c123b5b1fe7fc2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Develop and publish schemas for SQL databases with Microsoft.Build.Sql, starting from an empty SDK-style project.]]></Val>
@@ -2959,15 +2509,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++e0dd33d2e306b3a2e3d273d07d40614368bcd8d15f64bc7b9156720b6a04f8d9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure SQL Server '{0}' created]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SQL 伺服器 '{0}' 已建立]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data Source]]></Val>
@@ -2995,15 +2536,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++e3bc3e651842509c44a10d1d692d2f85e29ecd74980ee1b78a7f438813085b53" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to run the docker container]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法執行 Docker 容器]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++e509726379509070e45ef82e21ca793ccbf057370bfda716fc16727246a30094" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Version must not be empty]]></Val>
@@ -3027,15 +2559,6 @@
           <Val><![CDATA[Error: {0} is not currently supported in SQL Database Projects for VS Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[錯誤: VS Code 的 SQL Database 專案目前不支援 {0}。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate Script]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[產生指令碼]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3121,15 +2644,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Microsoft SQL Server License Agreement]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Microsoft SQL Server 授權合約]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++ef02d22081eab5e1d6b0e0d90ecdb8cf59eeba072d5b2d001be0a493554d4bfa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Different database, same server]]></Val>
@@ -3139,38 +2653,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++f0401861224dd2795c8d944358a94b0a54a800c0f2f0b4b7a594b7e2254583ea" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish to new SQL Server local development container]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈至新的 SQL Server 本機開發容器]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++f27702398b91414fe27129f2fea7af0d7edb6e658d58c70a0c786633390aacf7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unhandled node type for move]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[用於移動的未處理節點類型]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++f2781c675078b12472e0a7013cde3e49a2c0883f66a617839f0f71298c8434d5" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running the docker container ...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在執行 Docker 容器...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++f290a87fc5ed38e7479f99d7505a44f49832251ef20d58aaa90ffd8de6f1dc0e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select the base {0} docker image]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[選取基底 {0} docker 映像]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3229,15 +2716,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++f6f044b1a6df4b4fdf3da1b993ba6ba4a96568143a66fc51ea60f5a1774f7bcd" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to verify docker. Please make sure docker is installed and running. Error: '{0}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法驗證 docker。請確定 docker 已安裝且正在執行。錯誤: '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++f6f402dfa684908bb15f9967353ca74506f2b99f28d73567e03f280f0332f355" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Project reference name element]]></Val>
@@ -3274,15 +2752,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++f8b2553d1b34526d5b153aeb237abecb375fc6f98a33fc19acbdd329b14151f9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Database project published successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已成功發佈資料庫專案]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++f98d8beeeedee01c720a55b91742e6560515ae435c07a7fbfb8151f445e428ec" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start with the core pieces to develop and publish schemas for Azure SQL Edge Database]]></Val>
@@ -3292,29 +2761,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++fa5a1deac70dfdea417444e00c1e5144f466c1bad015697c3c83d6298276d92f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to update app setting '{0}']]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無法更新應用程式設定 '{0}']]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[資料庫]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++fb1155dfad92d5187cd64da5c3155ca4c6126d5377ff03d1334c93a6618d379b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deploying SQL Db Project Locally]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在本機部署 SQL 資料庫專案]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3333,15 +2784,6 @@
           <Val><![CDATA[Select folder structure]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[選取資料夾結構]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++fd4ff34ed3d53481b84140f6780419aed8c407fcbcecb7067666e6f6aa359d10" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure SQL server name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SQL 伺服器名稱]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3369,15 +2811,6 @@
           <Val><![CDATA[Publish project]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[發佈專案]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++fdddb3fc9c10aaa4b8141c97822d7d311f66b3d4403bc0980314eb3d9430c0ad" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Confirm {0} admin password]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[確認 {0} 系統管理員密碼]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3477,6 +2910,15 @@
           <Val><![CDATA[Whether project nodes start collapsed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[專案節點是否開始摺疊]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.sqlDatabaseProjects.configureCodeAnalysisSettings" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Code Analysis 設定 (預覽)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3757,18 +3199,6 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[發佈]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.sqlDatabaseProjects.publishDialog" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[發佈 (預覽)]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Publish]]></Val>
-          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

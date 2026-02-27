@@ -3,15 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./stubs/moduleShims";
-
 import * as path from "path";
 import * as glob from "fast-glob";
 import * as Mocha from "mocha";
 
 let NYC: any;
 try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     NYC = require("nyc");
 } catch {
     // NYC is optional for local runs; coverage will be skipped if unavailable

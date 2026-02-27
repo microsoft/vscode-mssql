@@ -48,7 +48,7 @@ suite("MssqlProtocolHandler Tests", () => {
             appendLine: () => sinon.stub(),
         }) as unknown as vscode.OutputChannel;
 
-        sinon.stub(mockVscodeWrapper, "outputChannel").get(() => {
+        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => {
             return outputChannel;
         });
 

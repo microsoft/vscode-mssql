@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as azdataType from "azdata";
 import * as vscodeMssql from "vscode-mssql";
 import { DataSource } from "./dataSources";
 import { DataSourceJson } from "./dataSourceJson";
@@ -104,28 +103,6 @@ export class SqlConnectionDataSource extends DataSource {
             json.name,
             (json.data as unknown as SqlConnectionDataSourceJson).connectionString,
         );
-    }
-
-    public getConnectionProfile(): azdataType.IConnectionProfile {
-        const connProfile: azdataType.IConnectionProfile = {
-            serverName: this.server,
-            databaseName: this.database,
-            connectionName: this.name,
-            userName: this.username,
-            password: this.password,
-            authenticationType: this.authType,
-            savePassword: false,
-            providerName: "MSSQL",
-            saveProfile: true,
-            id: this.name + "-dataSource",
-            options: {
-                encrypt: this.encrypt,
-                trustServerCertificate: this.trustServerCertificate,
-                hostnameInCertificate: this.hostnameInCertificate,
-            },
-        };
-
-        return connProfile;
     }
 }
 

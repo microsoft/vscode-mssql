@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 // /// <reference path='../../../../src/vscode-dts/vscode.d.ts'/>
-/// <reference path='../../../../typings/azdata.d.ts'/>
-/// <reference path='../../../../typings/azdata.proposed.d.ts'/>
 /// <reference path='../../../../typings/dataworkspace.d.ts'/>
 /// <reference path='../../../../typings/mssql.d.ts'/>
 /// TODO: switch to this direct reference:

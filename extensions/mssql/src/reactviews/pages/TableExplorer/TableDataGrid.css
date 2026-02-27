@@ -12,16 +12,60 @@
     flex-direction: column;
 }
 
-/* Grid base styles */
+/* Grid base styles - map SlickGrid CSS custom properties to VS Code theme variables.
+ * Setting these on the #id selector (specificity 1-0-0) overrides
+ * .slick-dark-mode defaults (specificity 0-1-0) automatically. */
 #tableExplorerGrid {
+    /* Header colors */
+    --slick-header-background-color: var(--vscode-editor-background);
+    --slick-grid-header-background: var(--vscode-editor-background);
+    --slick-header-text-color: var(--vscode-foreground);
+    --slick-hover-header-color: var(--vscode-foreground);
+    --slick-sorting-header-color: var(--vscode-foreground);
+    --slick-header-column-height: 26px;
+    --slick-header-font-size: 12px;
+    --slick-header-font-weight: 600;
+    --slick-header-row-background-color: var(--vscode-editor-background);
+    --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
+    --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground);
+    --slick-header-border-bottom: 1px solid var(--vscode-panel-border);
+
+    /* Cell & row colors */
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-canvas-bg-color: var(--vscode-editor-background);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-row-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
+
+    /* Border colors */
     --slick-border-color: var(--vscode-editorWidget-border);
+    --slick-grid-border-color: var(--vscode-editorWidget-border);
     --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-left: 0;
     --slick-cell-box-shadow: none;
-    --slick-grid-border-color: var(--vscode-editorWidget-border);
-    --slick-header-column-height: 26px;
+    --slick-container-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-pane-top-border-top: none;
+
+    /* Scrollbar */
+    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background)
+        var(--vscode-editor-background);
+
+    /* Menu / column picker colors */
+    --slick-menu-bg-color: var(--vscode-menu-background);
+    --slick-menu-color: var(--vscode-menu-foreground);
+    --slick-menu-border: 1px solid var(--vscode-menu-border);
+    --slick-menu-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-column-picker-background-color: var(--vscode-menu-background);
+    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-column-picker-border: 1px solid var(--vscode-menu-border);
+
+    /* Font */
+    --slick-font-size-base: 12px;
     flex: 1;
     min-height: 0;
 }
@@ -41,41 +85,24 @@
     height: 26px; /* Explicit row height to match the rowHeight option */
 }
 
-/* Force theme colors on SlickGrid elements */
+/* Header layout adjustments */
 #tableExplorerGrid .slick-header,
 #tableExplorerGrid .slick-footerrow,
 #tableExplorerGrid .slick-top-panel {
-    background-color: var(--vscode-editor-background) !important;
-    color: var(--vscode-foreground) !important;
-    border-bottom: 1px solid var(--vscode-panel-border) !important;
     height: 26px !important; /* Match data row height for uniform appearance */
 }
 
-#tableExplorerGrid .slick-headerrow {
-    background-color: var(--vscode-editor-background) !important;
-    color: var(--vscode-foreground) !important;
-    border-bottom: 1px solid var(--vscode-panel-border) !important;
-    /* Height controlled by grid's headerRowHeight option */
-}
-
 #tableExplorerGrid .slick-header-column {
-    background-color: var(--vscode-editor-background) !important;
-    color: var(--vscode-foreground) !important;
-    border-right: 1px solid var(--vscode-panel-border) !important;
-    border-bottom: 1px solid var(--vscode-panel-border) !important;
     text-align: center !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    padding: 4px 8px !important; /* Adjusted padding for 26px height */
+    padding: 4px 8px !important;
     line-height: 1.2 !important;
-    height: 26px !important; /* Explicit height to match data rows */
-    box-sizing: border-box !important; /* Ensure padding is included in height */
+    box-sizing: border-box !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    overflow: hidden !important; /* Hide overflow */
-    text-overflow: ellipsis !important; /* Show ellipsis for long text */
-    white-space: nowrap !important; /* Prevent text wrapping */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 #tableExplorerGrid .slick-header-column:last-child {
@@ -95,35 +122,8 @@
     white-space: nowrap !important; /* Prevent text wrapping */
 }
 
-#tableExplorerGrid .slick-cell,
-#tableExplorerGrid .slick-row {
-    background-color: var(--vscode-editor-background) !important;
-    color: var(--vscode-foreground) !important;
-}
-
-#tableExplorerGrid .slick-row.odd {
-    background-color: var(--vscode-editor-background) !important;
-}
-
-#tableExplorerGrid .slick-row.even {
-    background-color: var(--vscode-editor-background) !important;
-}
-
-#tableExplorerGrid .slick-row:hover {
-    background-color: var(--vscode-list-hoverBackground) !important;
-}
-
 #tableExplorerGrid .slick-row.selected {
-    background-color: var(--vscode-list-activeSelectionBackground) !important;
     color: var(--vscode-list-activeSelectionForeground) !important;
-}
-
-/* Fix viewport canvas background */
-#tableExplorerGrid
-    > div.slick-pane.slick-pane-top.slick-pane-left
-    > div.slick-viewport.slick-viewport-top.slick-viewport-left
-    > div {
-    background-color: var(--vscode-editor-background) !important;
 }
 
 /* VS Code-style context menu */
@@ -418,11 +418,13 @@
 }
 
 #tableExplorerGrid .slick-sort-indicator-asc {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 0L0 6h8z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 0L0 6h8z'/%3E%3C/svg%3E")
+        no-repeat center;
 }
 
 #tableExplorerGrid .slick-sort-indicator-desc {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 8L0 2h8z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 8L0 2h8z'/%3E%3C/svg%3E")
+        no-repeat center;
 }
 
 /* Header menu button */

@@ -43,7 +43,8 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ProjectController } from "../controllers/projectController";
 import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../nps/userSurvey";
-import * as dockerUtils from "../deployment/dockerUtils";
+import * as dockerUtils from "../docker/dockerUtils";
+import * as sqlServerContainer from "../deployment/sqlServerContainer";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
 import { getConnectionDisplayName } from "../models/connectionInfo";
@@ -367,7 +368,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         success: boolean;
         error?: string;
     }> {
-        const dockerSteps = dockerUtils.initializeDockerSteps();
+        const dockerSteps = sqlServerContainer.initializeDockerSteps();
         const dummyProfile = {} as DockerConnectionProfile;
 
         // Run prerequisite steps up to and including checkDockerEngine
@@ -442,7 +443,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             acceptEula: state.formState.acceptContainerLicense || false,
         } as unknown as DockerConnectionProfile;
 
-        const dockerSteps = dockerUtils.initializeDockerSteps();
+        const dockerSteps = sqlServerContainer.initializeDockerSteps();
 
         // Execute container creation steps: from pullImage to checkContainer
         // Dynamic iteration ensures we don't miss any steps added in the future

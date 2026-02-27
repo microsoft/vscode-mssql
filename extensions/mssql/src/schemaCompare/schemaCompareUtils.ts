@@ -29,7 +29,7 @@ export const sqlDatabaseProjectsPublishChanges =
 /**
  * Generates a unique operation ID.
  *
- * @returns {string} A new GUID representing the operation ID.
+ * @returns A new GUID representing the operation ID.
  */
 export function generateOperationId(): string {
     return crypto.randomUUID();

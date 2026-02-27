@@ -47,7 +47,7 @@
     "mssql.renameDatabase": "Rename Database (Preview)",
     "mssql.objectExplorerChatWithDatabase": "Open in Copilot Ask mode",
     "mssql.objectExplorerChatWithDatabaseInAgentMode": "Open in Copilot Agent mode",
-    "mssql.profiler.launchFromObjectExplorer": "Launch Profiler",
+    "mssql.profiler.launchFromObjectExplorer": "Launch Query Profiler (Preview)",
     "mssql.copilot.editorSubmenu": "MSSQL Copilot",
     "mssql.copilot.explainQuery": "Explain Query",
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance",
@@ -55,6 +55,7 @@
     "mssql.copilot.newQueryWithConnection": "Open New Query and Connect",
     "mssql.schemaCompare": "Schema Compare",
     "mssql.tableExplorer": "Edit Data (Preview)",
+    "mssql.searchDatabase": "Search Database Objects",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.copyConnectionString": "Copy as Connection String",
@@ -64,6 +65,7 @@
     "mssql.showEstimatedPlan": "Estimated Plan",
     "mssql.enableActualPlan": "Enable Actual Plan",
     "mssql.disableActualPlan": "Disable Actual Plan",
+    "mssql.toggleActualPlan": "Toggle Actual Plan",
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",
     "mssql.logDebugInfo": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
     "mssql.maxRecentConnections": "The maximum number of recently used connections to store in the connection list.",
@@ -273,5 +275,12 @@
     "mssql.openChangelog": "Open Changelog",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
-    "mssql.backupDatabase": "Backup Database (Preview)"
+    "mssql.profiler.openXelFile": "Open Query Profiler (Preview) XEL File",
+    "mssql.profiler.xelEditorDisplayName": "SQL Server Extended Events Log",
+    "mssql.backupDatabase": "Backup Database (Preview)",
+    "mssql.restoreDatabase": "Restore Database (Preview)",
+    "mssql.flatFileImport": "Import Flat File (Preview)",
+    "mssql.notebooks.createNotebook": "Create SQL Notebook",
+    "mssql.notebooks.changeDatabase": "Change Notebook Database",
+    "mssql.notebooks.changeConnection": "Change Notebook Connection"
 }

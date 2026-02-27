@@ -11,9 +11,7 @@ import {
     ObjectManagementCancelNotification,
     ObjectManagementDialogType,
     ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
     ObjectManagementHelpNotification,
-    ObjectManagementReducers,
     ObjectManagementScriptRequest,
     ObjectManagementSubmitRequest,
     ObjectManagementWebviewState,
@@ -23,13 +21,16 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import { getErrorMessage } from "../utils/utils";
 import * as LocConstants from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
-import { FormItemSpec } from "../sharedInterfaces/form";
+import { FormItemSpec, FormReducers } from "../sharedInterfaces/form";
 
-export abstract class ObjectManagementWebviewController extends FormWebviewController<
-    ObjectManagementFormState,
-    ObjectManagementWebviewState,
-    ObjectManagementFormItemSpec,
-    ObjectManagementReducers,
+export abstract class ObjectManagementWebviewController<
+    TFormState = unknown,
+    TReducers extends FormReducers<TFormState> = FormReducers<TFormState>,
+> extends FormWebviewController<
+    TFormState,
+    ObjectManagementWebviewState<TFormState>,
+    ObjectManagementFormItemSpec<TFormState>,
+    TReducers,
     string
 > {
     protected readonly contextId = crypto.randomUUID();
@@ -83,7 +84,7 @@ export abstract class ObjectManagementWebviewController extends FormWebviewContr
                 dialogTitle,
 
                 // Initial empty form state
-                formState: {} as ObjectManagementFormState,
+                formState: {} as TFormState,
                 formComponents: {},
                 formErrors: [],
 
@@ -130,7 +131,7 @@ export abstract class ObjectManagementWebviewController extends FormWebviewContr
         void this.initializeDialog();
     }
 
-    protected updateWebviewState(partial: Partial<ObjectManagementWebviewState>): void {
+    protected updateWebviewState(partial: Partial<ObjectManagementWebviewState<TFormState>>): void {
         this.state = {
             ...this.state,
             ...partial,
@@ -206,18 +207,18 @@ export abstract class ObjectManagementWebviewController extends FormWebviewContr
     async updateItemVisibility() {}
 
     protected getActiveFormComponents(
-        state: ObjectManagementWebviewState,
-    ): (keyof ObjectManagementFormState)[] {
-        return Object.keys(state.formComponents) as (keyof ObjectManagementFormState)[];
+        state: ObjectManagementWebviewState<TFormState>,
+    ): (keyof TFormState)[] {
+        return Object.keys(state.formComponents) as (keyof TFormState)[];
     }
 
     // This can be overridden by subclasses to provide form components
     protected setFormComponents(): Record<
         string,
         FormItemSpec<
-            ObjectManagementFormState,
-            ObjectManagementWebviewState,
-            ObjectManagementFormItemSpec
+            TFormState,
+            ObjectManagementWebviewState<TFormState>,
+            ObjectManagementFormItemSpec<TFormState>
         >
     > {
         return {};

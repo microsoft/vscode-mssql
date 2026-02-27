@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
-// eslint-disable-next-line custom-eslint-rules/banned-imports
+
 import { SelectionSummaryStats, ISlickRange } from "../../src/sharedInterfaces/queryResult";
 import { selectionSummaryHelper } from "../../src/queryResult/utils";
 

@@ -9,7 +9,7 @@ import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { QueryResultsTextView } from "./queryResultsTextView";
 import { QueryResultsGridView } from "./queryResultsGridView";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 
@@ -18,7 +18,7 @@ export const QueryResultsTab = () => {
     if (!context) {
         return;
     }
-    const { keyBindings } = useVscodeWebview2();
+    const { keyBindings } = useVscodeWebview();
     const viewMode =
         useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
         qr.QueryResultViewMode.Grid;

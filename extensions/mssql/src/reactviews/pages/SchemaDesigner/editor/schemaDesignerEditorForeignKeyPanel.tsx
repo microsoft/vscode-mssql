@@ -31,7 +31,7 @@ import {
 } from "@fluentui/react-components";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { foreignKeyUtils, namingUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -91,6 +91,21 @@ const ColumnMappingTable = ({
     updateForeignKey: (index: number, updatedForeignKey: SchemaDesigner.ForeignKey) => void;
 }) => {
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
+    const context = useContext(SchemaDesignerEditorContext);
+    const tableById = useMemo(() => {
+        const map = new Map<string, SchemaDesigner.Table>();
+        context.schema?.tables.forEach((table) => {
+            map.set(table.id, table);
+        });
+        return map;
+    }, [context.schema]);
+    const selectedColumnById = useMemo(() => {
+        const map = new Map<string, SchemaDesigner.Column>();
+        selectedTable.columns.forEach((column) => {
+            map.set(column.id, column);
+        });
+        return map;
+    }, [selectedTable.columns]);
 
     // Define columns for the mapping table
     const columnDefinitions: TableColumnDefinition<{
@@ -129,9 +144,23 @@ const ColumnMappingTable = ({
         },
     });
 
-    const tableItems = foreignKey.columns.map((columnName, index) => ({
-        columnName,
-        foreignKeyColumnName: foreignKey.referencedColumns[index],
+    // Get the target table based on the foreign key reference
+    const targetTable = useMemo(() => {
+        return tableById.get(foreignKey.referencedTableId) ?? { columns: [] };
+    }, [tableById, foreignKey.referencedTableId]);
+    const targetColumnById = useMemo(() => {
+        const map = new Map<string, SchemaDesigner.Column>();
+        targetTable.columns.forEach((column) => {
+            map.set(column.id, column);
+        });
+        return map;
+    }, [targetTable.columns]);
+
+    const tableItems = foreignKey.columnsIds.map((columnId, index) => ({
+        columnName: selectedColumnById.get(columnId)?.name ?? columnId,
+        foreignKeyColumnName:
+            targetColumnById.get(foreignKey.referencedColumnsIds[index])?.name ??
+            foreignKey.referencedColumnsIds[index],
     }));
 
     const [tableColumns] = useState<
@@ -155,16 +184,6 @@ const ColumnMappingTable = ({
         ],
     );
 
-    // Get the target table based on the foreign key reference
-    const context = useContext(SchemaDesignerEditorContext);
-    const targetTable = useMemo(() => {
-        if (!context.schema) return { columns: [] };
-        return tableUtils.getTableFromDisplayName(
-            context.schema,
-            `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
-        );
-    }, [context.schema, foreignKey.referencedSchemaName, foreignKey.referencedTableName]);
-
     // Handle rendering of different cell types
     const renderCell = (columnId: TableColumnId, mappingIndex: number) => {
         switch (columnId) {
@@ -174,19 +193,21 @@ const ColumnMappingTable = ({
                         placeholder="Search Schema"
                         options={selectedTable.columns.map((column) => ({
                             displayName: column.name,
-                            value: column.name,
+                            value: column.id,
                         }))}
                         selectedOption={{
-                            text: foreignKey.columns[mappingIndex],
-                            value: foreignKey.columns[mappingIndex],
+                            text:
+                                selectedColumnById.get(foreignKey.columnsIds[mappingIndex])?.name ??
+                                foreignKey.columnsIds[mappingIndex],
+                            value: foreignKey.columnsIds[mappingIndex],
                         }}
                         onSelect={(selected) => {
-                            const updatedColumns = [...foreignKey.columns];
+                            const updatedColumns = [...foreignKey.columnsIds];
                             updatedColumns[mappingIndex] = selected.value;
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
-                                columns: updatedColumns,
+                                columnsIds: updatedColumns,
                             });
                         }}
                         style={{
@@ -204,19 +225,21 @@ const ColumnMappingTable = ({
                         placeholder="Search Schema"
                         options={targetTable.columns.map((column) => ({
                             displayName: column.name,
-                            value: column.name,
+                            value: column.id,
                         }))}
                         selectedOption={{
-                            text: foreignKey.referencedColumns[mappingIndex],
-                            value: foreignKey.referencedColumns[mappingIndex],
+                            text:
+                                targetColumnById.get(foreignKey.referencedColumnsIds[mappingIndex])
+                                    ?.name ?? foreignKey.referencedColumnsIds[mappingIndex],
+                            value: foreignKey.referencedColumnsIds[mappingIndex],
                         }}
                         onSelect={(selected) => {
-                            const updatedReferencedColumns = [...foreignKey.referencedColumns];
+                            const updatedReferencedColumns = [...foreignKey.referencedColumnsIds];
                             updatedReferencedColumns[mappingIndex] = selected.value;
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
-                                referencedColumns: updatedReferencedColumns,
+                                referencedColumnsIds: updatedReferencedColumns,
                             });
                         }}
                         style={{
@@ -234,23 +257,23 @@ const ColumnMappingTable = ({
                         appearance="subtle"
                         icon={<DeleteRegular />}
                         onClick={() => {
-                            const updatedColumns = [...foreignKey.columns];
-                            const updatedReferencedColumns = [...foreignKey.referencedColumns];
+                            const updatedColumns = [...foreignKey.columnsIds];
+                            const updatedReferencedColumns = [...foreignKey.referencedColumnsIds];
 
                             updatedColumns.splice(mappingIndex, 1);
                             updatedReferencedColumns.splice(mappingIndex, 1);
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
-                                columns: updatedColumns,
-                                referencedColumns: updatedReferencedColumns,
+                                columnsIds: updatedColumns,
+                                referencedColumnsIds: updatedReferencedColumns,
                             });
                         }}
                     />
                 );
 
             default:
-                return null;
+                return undefined;
         }
     };
 
@@ -307,9 +330,16 @@ const ForeignKeyCard = ({
 }) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerEditorContext);
-    const inputRef = useRef<HTMLInputElement | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>();
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [warningMessage, setWarningMessage] = useState<string>("");
+    const allTablesById = useMemo(() => {
+        const map = new Map<string, SchemaDesigner.Table>();
+        allTables.forEach((table) => {
+            map.set(table.id, table);
+        });
+        return map;
+    }, [allTables]);
 
     useEffect(() => {
         if (index === lastAddedForeignKeyIndex) {
@@ -324,17 +354,16 @@ const ForeignKeyCard = ({
         const updatedForeignKey = { ...foreignKey };
 
         // Get default source and target columns
-        const sourceColumn = context.table.columns[0]?.name || "";
+        const sourceColumnId = context.table.columns[0]?.id || "";
 
-        const targetTable = tableUtils.getTableFromDisplayName(
-            context.schema,
-            `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
-        );
-        const targetColumn = targetTable.columns[0]?.name || "";
+        const targetTable =
+            allTablesById.get(foreignKey.referencedTableId) ??
+            ({ columns: [] } as { columns: SchemaDesigner.Column[] });
+        const targetColumnId = targetTable.columns[0]?.id || "";
 
         // Add the new mapping
-        updatedForeignKey.columns.push(sourceColumn);
-        updatedForeignKey.referencedColumns.push(targetColumn);
+        updatedForeignKey.columnsIds.push(sourceColumnId);
+        updatedForeignKey.referencedColumnsIds.push(targetColumnId);
 
         onUpdate(index, updatedForeignKey);
     };
@@ -380,7 +409,9 @@ const ForeignKeyCard = ({
                     <Input
                         size="small"
                         value={foreignKey.name}
-                        ref={inputRef}
+                        ref={(element) => {
+                            inputRef.current = element;
+                        }}
                         onChange={(_e, data) => {
                             onUpdate(index, {
                                 ...foreignKey,
@@ -406,26 +437,31 @@ const ForeignKeyCard = ({
                             })
                             .map((table) => ({
                                 displayName: `${table.schema}.${table.name}`,
-                                value: `${table.schema}.${table.name}`,
+                                value: table.id,
                             }))}
-                        selectedOption={{
-                            text: `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
-                            value: `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
-                        }}
+                        selectedOption={(() => {
+                            const referencedTable = allTablesById.get(foreignKey.referencedTableId);
+                            const displayName = referencedTable
+                                ? `${referencedTable.schema}.${referencedTable.name}`
+                                : foreignKey.referencedTableId;
+                            return {
+                                text: displayName,
+                                value: foreignKey.referencedTableId,
+                            };
+                        })()}
                         onSelect={(selected) => {
                             if (!selected.value || !context.schema) return;
-                            const targetTable = tableUtils.getTableFromDisplayName(
-                                context.schema,
-                                selected.value,
-                            );
+                            const targetTable = allTablesById.get(selected.value);
+                            if (!targetTable) {
+                                return;
+                            }
                             // When target table changes, update reference info and reset column mappings
-                            const defaultTargetColumn = targetTable.columns[0]?.name || "";
+                            const defaultTargetColumn = targetTable.columns[0]?.id || "";
                             onUpdate(index, {
                                 ...foreignKey,
-                                referencedTableName: targetTable.name,
-                                referencedSchemaName: targetTable.schema,
-                                referencedColumns: [defaultTargetColumn],
-                                columns: [context.table.columns[0]?.name || ""],
+                                referencedTableId: targetTable.id,
+                                referencedColumnsIds: [defaultTargetColumn],
+                                columnsIds: [context.table.columns[0]?.id || ""],
                             });
                         }}
                         style={{ minWidth: "auto" }}
@@ -555,10 +591,9 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
                 context.table.foreignKeys,
                 context.schema.tables,
             ),
-            columns: [context.table.columns[0]?.name || ""],
-            referencedSchemaName: firstTable.schema,
-            referencedTableName: firstTable.name,
-            referencedColumns: [firstTable.columns[0]?.name || ""],
+            columnsIds: [context.table.columns[0]?.id || ""],
+            referencedTableId: firstTable.id,
+            referencedColumnsIds: [firstTable.columns[0]?.id || ""],
             onDeleteAction: SchemaDesigner.OnAction.CASCADE,
             onUpdateAction: SchemaDesigner.OnAction.CASCADE,
         };

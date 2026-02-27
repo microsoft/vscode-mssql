@@ -178,4 +178,9 @@ suite("DAB LM tool manifest schema", () => {
         expect(hasStringMinLengthAndNull(customRestPathOneOf)).to.equal(true);
         expect(hasStringMinLengthAndNull(customGraphQLTypeOneOf)).to.equal(true);
     });
+
+    test("mssql_dab is gated behind the DAB feature flag", () => {
+        const tool = getTool();
+        expect(tool.when).to.equal("config.mssql.enableDAB");
+    });
 });

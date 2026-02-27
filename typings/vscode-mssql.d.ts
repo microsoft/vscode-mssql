@@ -439,6 +439,7 @@ declare module 'vscode-mssql' {
 		generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+		parseTSqlScript(filePath: string, databaseSchemaProvider: string): Thenable<ParseTSqlScriptResult>;
 		savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<ResultStatus>;
 		getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
 	}
@@ -1081,6 +1082,10 @@ declare module 'vscode-mssql' {
 	}
 
 	export interface ValidateStreamingJobResult extends ResultStatus { }
+
+	export interface ParseTSqlScriptResult {
+		containsCreateTableStatement: boolean;
+	}
 
 	/**
 	 * Specifies the scenario for which to retrieve default deployment options
