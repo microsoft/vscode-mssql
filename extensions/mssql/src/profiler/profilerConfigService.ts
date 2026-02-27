@@ -197,10 +197,10 @@ export class ProfilerConfigService {
     /**
      * Convert an EventRow to a typed Record for filtering.
      * Values are coerced to their proper runtime types based on the column's
-     * declared type (ColumnDataType) or inferred from filterType:
-     *   - ColumnDataType.Number  → number
+     * declared type (ColumnDataType) as defined on the view column:
+     *   - ColumnDataType.Number   → number
      *   - ColumnDataType.DateTime → Date
-     *   - ColumnDataType.String  → string (default)
+     *   - ColumnDataType.String   → string (default)
      *
      * This avoids repeated type parsing during filter evaluation — the
      * FilteredBuffer can compare values directly using typeof / instanceof.
