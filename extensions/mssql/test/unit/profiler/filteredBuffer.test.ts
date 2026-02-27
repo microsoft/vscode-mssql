@@ -5,7 +5,6 @@
 
 import { expect } from "chai";
 import { v4 as uuidv4 } from "uuid";
-import { RingBuffer } from "../../../src/profiler/ringBuffer";
 import { FilteredBuffer } from "../../../src/profiler/filteredBuffer";
 import { IndexedRow, FilterOperator, FilterTypeHint } from "../../../src/profiler/profilerTypes";
 
@@ -48,18 +47,17 @@ function resetEventNumber(): void {
 }
 
 suite("FilteredBuffer Tests", () => {
-    let buffer: RingBuffer<TestRow>;
     let filteredBuffer: FilteredBuffer<TestRow>;
 
     setup(() => {
         resetEventNumber();
-        buffer = new RingBuffer<TestRow>(100);
-        filteredBuffer = new FilteredBuffer<TestRow>(buffer);
+        filteredBuffer = new FilteredBuffer<TestRow>(100);
     });
 
     suite("constructor", () => {
-        test("should create a filtered buffer wrapping a RingBuffer", () => {
-            expect(filteredBuffer.buffer).to.equal(buffer);
+        test("should create a FilteredBuffer with correct initial state", () => {
+            expect(filteredBuffer.capacity).to.equal(100);
+            expect(filteredBuffer.size).to.equal(0);
             expect(filteredBuffer.isFilterActive).to.be.false;
             expect(filteredBuffer.clauses).to.have.length(0);
         });
@@ -91,24 +89,24 @@ suite("FilteredBuffer Tests", () => {
 
     suite("totalCount and filteredCount", () => {
         test("totalCount returns underlying buffer size", () => {
-            buffer.add(createTestRow("test1", 1));
-            buffer.add(createTestRow("test2", 2));
-            buffer.add(createTestRow("test3", 3));
+            filteredBuffer.add(createTestRow("test1", 1));
+            filteredBuffer.add(createTestRow("test2", 2));
+            filteredBuffer.add(createTestRow("test3", 3));
 
             expect(filteredBuffer.totalCount).to.equal(3);
         });
 
         test("filteredCount equals totalCount when no filter is active", () => {
-            buffer.add(createTestRow("test1", 1));
-            buffer.add(createTestRow("test2", 2));
+            filteredBuffer.add(createTestRow("test1", 1));
+            filteredBuffer.add(createTestRow("test2", 2));
 
             expect(filteredBuffer.filteredCount).to.equal(2);
         });
 
         test("filteredCount returns matching rows count when filter is active", () => {
-            buffer.add(createTestRow("apple", 1));
-            buffer.add(createTestRow("banana", 2));
-            buffer.add(createTestRow("apple pie", 3));
+            filteredBuffer.add(createTestRow("apple", 1));
+            filteredBuffer.add(createTestRow("banana", 2));
+            filteredBuffer.add(createTestRow("apple pie", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
@@ -121,18 +119,18 @@ suite("FilteredBuffer Tests", () => {
 
     suite("getFilteredRows", () => {
         test("returns all rows when no filter is active", () => {
-            buffer.add(createTestRow("test1", 1));
-            buffer.add(createTestRow("test2", 2));
-            buffer.add(createTestRow("test3", 3));
+            filteredBuffer.add(createTestRow("test1", 1));
+            filteredBuffer.add(createTestRow("test2", 2));
+            filteredBuffer.add(createTestRow("test3", 3));
 
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(3);
         });
 
         test("returns only matching rows when filter is active", () => {
-            buffer.add(createTestRow("apple", 1));
-            buffer.add(createTestRow("banana", 2));
-            buffer.add(createTestRow("cherry", 3));
+            filteredBuffer.add(createTestRow("apple", 1));
+            filteredBuffer.add(createTestRow("banana", 2));
+            filteredBuffer.add(createTestRow("cherry", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "a" },
@@ -146,8 +144,8 @@ suite("FilteredBuffer Tests", () => {
 
         test("returns ALL rows after clearing filter (including those that arrived while filtering)", () => {
             // Add initial rows
-            buffer.add(createTestRow("apple", 1));
-            buffer.add(createTestRow("banana", 2));
+            filteredBuffer.add(createTestRow("apple", 1));
+            filteredBuffer.add(createTestRow("banana", 2));
 
             // Apply filter
             filteredBuffer.setColumnFilters([
@@ -155,8 +153,8 @@ suite("FilteredBuffer Tests", () => {
             ]);
 
             // Add more rows while filter is active (simulating live events)
-            buffer.add(createTestRow("cherry", 3));
-            buffer.add(createTestRow("apple crisp", 4));
+            filteredBuffer.add(createTestRow("cherry", 3));
+            filteredBuffer.add(createTestRow("apple crisp", 4));
 
             // Verify only matching rows show
             expect(filteredBuffer.getFilteredRows()).to.have.length(2);
@@ -172,7 +170,7 @@ suite("FilteredBuffer Tests", () => {
     suite("getFilteredRange", () => {
         test("returns correct range of filtered rows", () => {
             for (let i = 1; i <= 10; i++) {
-                buffer.add(createTestRow(`row${i}`, i));
+                filteredBuffer.add(createTestRow(`row${i}`, i));
             }
 
             const rows = filteredBuffer.getFilteredRange(2, 3);
@@ -182,16 +180,16 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns empty array for invalid startIndex", () => {
-            buffer.add(createTestRow("test", 1));
+            filteredBuffer.add(createTestRow("test", 1));
 
             expect(filteredBuffer.getFilteredRange(-1, 5)).to.have.length(0);
             expect(filteredBuffer.getFilteredRange(100, 5)).to.have.length(0);
         });
 
         test("truncates count to available rows", () => {
-            buffer.add(createTestRow("test1", 1));
-            buffer.add(createTestRow("test2", 2));
-            buffer.add(createTestRow("test3", 3));
+            filteredBuffer.add(createTestRow("test1", 1));
+            filteredBuffer.add(createTestRow("test2", 2));
+            filteredBuffer.add(createTestRow("test3", 3));
 
             const rows = filteredBuffer.getFilteredRange(1, 100);
             expect(rows).to.have.length(2);
@@ -223,10 +221,10 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.Equals", () => {
         test("matches exact string (case-insensitive)", () => {
-            buffer.add(createTestRow("Apple", 1));
-            buffer.add(createTestRow("apple", 2));
-            buffer.add(createTestRow("APPLE", 3));
-            buffer.add(createTestRow("banana", 4));
+            filteredBuffer.add(createTestRow("Apple", 1));
+            filteredBuffer.add(createTestRow("apple", 2));
+            filteredBuffer.add(createTestRow("APPLE", 3));
+            filteredBuffer.add(createTestRow("banana", 4));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Equals, value: "apple" },
@@ -237,9 +235,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("matches exact number", () => {
-            buffer.add(createTestRow("test1", 100));
-            buffer.add(createTestRow("test2", 200));
-            buffer.add(createTestRow("test3", 100));
+            filteredBuffer.add(createTestRow("test1", 100));
+            filteredBuffer.add(createTestRow("test2", 200));
+            filteredBuffer.add(createTestRow("test3", 100));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -255,8 +253,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("handles null comparison for equals", () => {
-            buffer.add(createTestRow("test1", 1, 0, "cat1"));
-            buffer.add(createTestRow("test2", 2, 0, undefined));
+            filteredBuffer.add(createTestRow("test1", 1, 0, "cat1"));
+            filteredBuffer.add(createTestRow("test2", 2, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.Equals, value: undefined },
@@ -271,9 +269,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.NotEquals", () => {
         test("excludes matching values", () => {
-            buffer.add(createTestRow("apple", 1));
-            buffer.add(createTestRow("banana", 2));
-            buffer.add(createTestRow("cherry", 3));
+            filteredBuffer.add(createTestRow("apple", 1));
+            filteredBuffer.add(createTestRow("banana", 2));
+            filteredBuffer.add(createTestRow("cherry", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotEquals, value: "banana" },
@@ -287,9 +285,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.LessThan", () => {
         test("filters numbers less than value", () => {
-            buffer.add(createTestRow("test1", 10));
-            buffer.add(createTestRow("test2", 20));
-            buffer.add(createTestRow("test3", 30));
+            filteredBuffer.add(createTestRow("test1", 10));
+            filteredBuffer.add(createTestRow("test2", 20));
+            filteredBuffer.add(createTestRow("test3", 30));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -306,7 +304,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns no match when numeric parsing fails", () => {
-            buffer.add(createTestRow("test1", 10));
+            filteredBuffer.add(createTestRow("test1", 10));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -325,9 +323,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.LessThanOrEqual", () => {
         test("filters numbers less than or equal to value", () => {
-            buffer.add(createTestRow("test1", 10));
-            buffer.add(createTestRow("test2", 20));
-            buffer.add(createTestRow("test3", 30));
+            filteredBuffer.add(createTestRow("test1", 10));
+            filteredBuffer.add(createTestRow("test2", 20));
+            filteredBuffer.add(createTestRow("test3", 30));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -345,9 +343,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.GreaterThan", () => {
         test("filters numbers greater than value", () => {
-            buffer.add(createTestRow("test1", 10));
-            buffer.add(createTestRow("test2", 20));
-            buffer.add(createTestRow("test3", 30));
+            filteredBuffer.add(createTestRow("test1", 10));
+            filteredBuffer.add(createTestRow("test2", 20));
+            filteredBuffer.add(createTestRow("test3", 30));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -365,9 +363,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.GreaterThanOrEqual", () => {
         test("filters numbers greater than or equal to value", () => {
-            buffer.add(createTestRow("test1", 10));
-            buffer.add(createTestRow("test2", 20));
-            buffer.add(createTestRow("test3", 30));
+            filteredBuffer.add(createTestRow("test1", 10));
+            filteredBuffer.add(createTestRow("test2", 20));
+            filteredBuffer.add(createTestRow("test3", 30));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -385,9 +383,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.IsNull", () => {
         test("matches null values", () => {
-            buffer.add(createTestRow("test1", 1, 0, "category"));
-            buffer.add(createTestRow("test2", 2, 0, undefined));
-            buffer.add(createTestRow("test3", 3, 0, undefined));
+            filteredBuffer.add(createTestRow("test1", 1, 0, "category"));
+            filteredBuffer.add(createTestRow("test2", 2, 0, undefined));
+            filteredBuffer.add(createTestRow("test3", 3, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.IsNull },
@@ -398,7 +396,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("matches missing fields", () => {
-            buffer.add(createTestRow("test1", 1));
+            filteredBuffer.add(createTestRow("test1", 1));
 
             filteredBuffer.setColumnFilters([
                 { field: "nonExistentField", operator: FilterOperator.IsNull },
@@ -411,8 +409,8 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.IsNotNull", () => {
         test("matches non-null values", () => {
-            buffer.add(createTestRow("test1", 1, 0, "category"));
-            buffer.add(createTestRow("test2", 2, 0, undefined));
+            filteredBuffer.add(createTestRow("test1", 1, 0, "category"));
+            filteredBuffer.add(createTestRow("test2", 2, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.IsNotNull },
@@ -426,9 +424,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.Contains", () => {
         test("matches substring (case-insensitive)", () => {
-            buffer.add(createTestRow("Hello World", 1));
-            buffer.add(createTestRow("hello there", 2));
-            buffer.add(createTestRow("goodbye", 3));
+            filteredBuffer.add(createTestRow("Hello World", 1));
+            filteredBuffer.add(createTestRow("hello there", 2));
+            filteredBuffer.add(createTestRow("goodbye", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "HELLO" },
@@ -439,7 +437,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns false for null field value", () => {
-            buffer.add(createTestRow("test", 1, 0, undefined));
+            filteredBuffer.add(createTestRow("test", 1, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.Contains, value: "any" },
@@ -452,9 +450,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.NotContains", () => {
         test("excludes rows containing substring", () => {
-            buffer.add(createTestRow("Hello World", 1));
-            buffer.add(createTestRow("hello there", 2));
-            buffer.add(createTestRow("goodbye", 3));
+            filteredBuffer.add(createTestRow("Hello World", 1));
+            filteredBuffer.add(createTestRow("hello there", 2));
+            filteredBuffer.add(createTestRow("goodbye", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotContains, value: "hello" },
@@ -466,8 +464,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns true for null/missing field (does not contain)", () => {
-            buffer.add(createTestRow("test1", 1, 0, "hasCategory"));
-            buffer.add(createTestRow("test2", 2, 0, undefined));
+            filteredBuffer.add(createTestRow("test1", 1, 0, "hasCategory"));
+            filteredBuffer.add(createTestRow("test2", 2, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.NotContains, value: "xyz" },
@@ -481,9 +479,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.StartsWith", () => {
         test("matches string prefix (case-insensitive)", () => {
-            buffer.add(createTestRow("Hello World", 1));
-            buffer.add(createTestRow("HELLO there", 2));
-            buffer.add(createTestRow("goodbye", 3));
+            filteredBuffer.add(createTestRow("Hello World", 1));
+            filteredBuffer.add(createTestRow("HELLO there", 2));
+            filteredBuffer.add(createTestRow("goodbye", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.StartsWith, value: "hello" },
@@ -494,7 +492,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns false for null field value", () => {
-            buffer.add(createTestRow("test", 1, 0, undefined));
+            filteredBuffer.add(createTestRow("test", 1, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.StartsWith, value: "any" },
@@ -507,9 +505,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("FilterOperator.NotStartsWith", () => {
         test("excludes rows starting with prefix", () => {
-            buffer.add(createTestRow("Hello World", 1));
-            buffer.add(createTestRow("hello there", 2));
-            buffer.add(createTestRow("goodbye", 3));
+            filteredBuffer.add(createTestRow("Hello World", 1));
+            filteredBuffer.add(createTestRow("hello there", 2));
+            filteredBuffer.add(createTestRow("goodbye", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotStartsWith, value: "hello" },
@@ -521,8 +519,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns true for null/missing field (does not start with)", () => {
-            buffer.add(createTestRow("test1", 1, 0, "category"));
-            buffer.add(createTestRow("test2", 2, 0, undefined));
+            filteredBuffer.add(createTestRow("test1", 1, 0, "category"));
+            filteredBuffer.add(createTestRow("test2", 2, 0, undefined));
 
             filteredBuffer.setColumnFilters([
                 { field: "category", operator: FilterOperator.NotStartsWith, value: "x" },
@@ -536,10 +534,10 @@ suite("FilteredBuffer Tests", () => {
 
     suite("AND combination of multiple clauses", () => {
         test("all clauses must match for row to be included", () => {
-            buffer.add(createTestRow("apple", 100, 0, "fruit"));
-            buffer.add(createTestRow("banana", 200, 0, "fruit"));
-            buffer.add(createTestRow("carrot", 50, 0, "vegetable"));
-            buffer.add(createTestRow("apple pie", 150, 0, "dessert"));
+            filteredBuffer.add(createTestRow("apple", 100, 0, "fruit"));
+            filteredBuffer.add(createTestRow("banana", 200, 0, "fruit"));
+            filteredBuffer.add(createTestRow("carrot", 50, 0, "vegetable"));
+            filteredBuffer.add(createTestRow("apple pie", 150, 0, "dessert"));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
@@ -557,8 +555,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("returns empty when no rows match all clauses", () => {
-            buffer.add(createTestRow("apple", 100));
-            buffer.add(createTestRow("banana", 200));
+            filteredBuffer.add(createTestRow("apple", 100));
+            filteredBuffer.add(createTestRow("banana", 200));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
@@ -577,9 +575,15 @@ suite("FilteredBuffer Tests", () => {
 
     suite("additionalData field access", () => {
         test("can filter on fields in additionalData", () => {
-            buffer.add(createTestRow("test1", 1, 0, undefined, { query: "SELECT * FROM users" }));
-            buffer.add(createTestRow("test2", 2, 0, undefined, { query: "INSERT INTO logs" }));
-            buffer.add(createTestRow("test3", 3, 0, undefined, { query: "SELECT id FROM orders" }));
+            filteredBuffer.add(
+                createTestRow("test1", 1, 0, undefined, { query: "SELECT * FROM users" }),
+            );
+            filteredBuffer.add(
+                createTestRow("test2", 2, 0, undefined, { query: "INSERT INTO logs" }),
+            );
+            filteredBuffer.add(
+                createTestRow("test3", 3, 0, undefined, { query: "SELECT id FROM orders" }),
+            );
 
             filteredBuffer.setColumnFilters([
                 { field: "query", operator: FilterOperator.Contains, value: "SELECT" },
@@ -593,9 +597,9 @@ suite("FilteredBuffer Tests", () => {
     suite("date comparison", () => {
         test("filters dates correctly", () => {
             const now = Date.now();
-            buffer.add(createTestRow("past", 1, -10000)); // 10 seconds ago
-            buffer.add(createTestRow("recent", 2, -1000)); // 1 second ago
-            buffer.add(createTestRow("future", 3, 10000)); // 10 seconds in future
+            filteredBuffer.add(createTestRow("past", 1, -10000)); // 10 seconds ago
+            filteredBuffer.add(createTestRow("recent", 2, -1000)); // 1 second ago
+            filteredBuffer.add(createTestRow("future", 3, 10000)); // 10 seconds in future
 
             filteredBuffer.setColumnFilters([
                 {
@@ -619,12 +623,11 @@ suite("FilteredBuffer Tests", () => {
                 active: boolean;
             }
 
-            const boolBuffer = new RingBuffer<BoolRow>(10);
-            const boolFiltered = new FilteredBuffer<BoolRow>(boolBuffer);
+            const boolFiltered = new FilteredBuffer<BoolRow>(10);
 
-            boolBuffer.add({ id: uuidv4(), eventNumber: 1, name: "test1", active: true });
-            boolBuffer.add({ id: uuidv4(), eventNumber: 2, name: "test2", active: false });
-            boolBuffer.add({ id: uuidv4(), eventNumber: 3, name: "test3", active: true });
+            boolFiltered.add({ id: uuidv4(), eventNumber: 1, name: "test1", active: true });
+            boolFiltered.add({ id: uuidv4(), eventNumber: 2, name: "test2", active: false });
+            boolFiltered.add({ id: uuidv4(), eventNumber: 3, name: "test3", active: true });
 
             boolFiltered.setColumnFilters([
                 {
@@ -642,7 +645,7 @@ suite("FilteredBuffer Tests", () => {
 
     suite("unknown operator handling", () => {
         test("unknown operator returns no match", () => {
-            buffer.add(createTestRow("test", 1));
+            filteredBuffer.add(createTestRow("test", 1));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: "unknownOp" as FilterOperator, value: "test" },
@@ -655,8 +658,8 @@ suite("FilteredBuffer Tests", () => {
 
     suite("empty string and whitespace handling", () => {
         test("empty string filter value", () => {
-            buffer.add(createTestRow("", 1));
-            buffer.add(createTestRow("test", 2));
+            filteredBuffer.add(createTestRow("", 1));
+            filteredBuffer.add(createTestRow("test", 2));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.Equals, value: "" },
@@ -668,8 +671,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("numeric string parsing with whitespace", () => {
-            buffer.add(createTestRow("test1", 100));
-            buffer.add(createTestRow("test2", 200));
+            filteredBuffer.add(createTestRow("test1", 100));
+            filteredBuffer.add(createTestRow("test2", 200));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -715,7 +718,6 @@ suite("FilteredBuffer Tests", () => {
             additionalData: Record<string, string>;
         }
 
-        let eventBuffer: RingBuffer<EventRow>;
         let eventFilteredBuffer: FilteredBuffer<EventRow>;
 
         function createEventRow(overrides: Partial<EventRow> = {}): EventRow {
@@ -738,14 +740,13 @@ suite("FilteredBuffer Tests", () => {
 
         setup(() => {
             resetEventNumber();
-            eventBuffer = new RingBuffer<EventRow>(100);
-            eventFilteredBuffer = new FilteredBuffer<EventRow>(eventBuffer);
+            eventFilteredBuffer = new FilteredBuffer<EventRow>(100);
         });
 
         test("filters by eventClass (string field)", () => {
-            eventBuffer.add(createEventRow({ eventClass: "SQL:BatchCompleted" }));
-            eventBuffer.add(createEventRow({ eventClass: "RPC:Completed" }));
-            eventBuffer.add(createEventRow({ eventClass: "SQL:BatchStarting" }));
+            eventFilteredBuffer.add(createEventRow({ eventClass: "SQL:BatchCompleted" }));
+            eventFilteredBuffer.add(createEventRow({ eventClass: "RPC:Completed" }));
+            eventFilteredBuffer.add(createEventRow({ eventClass: "SQL:BatchStarting" }));
 
             eventFilteredBuffer.setColumnFilters([
                 { field: "eventClass", operator: FilterOperator.Contains, value: "SQL" },
@@ -756,9 +757,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by textData with StartsWith", () => {
-            eventBuffer.add(createEventRow({ textData: "SELECT * FROM Users" }));
-            eventBuffer.add(createEventRow({ textData: "INSERT INTO Logs VALUES" }));
-            eventBuffer.add(createEventRow({ textData: "SELECT COUNT(*) FROM Orders" }));
+            eventFilteredBuffer.add(createEventRow({ textData: "SELECT * FROM Users" }));
+            eventFilteredBuffer.add(createEventRow({ textData: "INSERT INTO Logs VALUES" }));
+            eventFilteredBuffer.add(createEventRow({ textData: "SELECT COUNT(*) FROM Orders" }));
 
             eventFilteredBuffer.setColumnFilters([
                 { field: "textData", operator: FilterOperator.StartsWith, value: "SELECT" },
@@ -769,9 +770,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by databaseName with Equals", () => {
-            eventBuffer.add(createEventRow({ databaseName: "ProductionDB" }));
-            eventBuffer.add(createEventRow({ databaseName: "TestDB" }));
-            eventBuffer.add(createEventRow({ databaseName: "productiondb" })); // case insensitive
+            eventFilteredBuffer.add(createEventRow({ databaseName: "ProductionDB" }));
+            eventFilteredBuffer.add(createEventRow({ databaseName: "TestDB" }));
+            eventFilteredBuffer.add(createEventRow({ databaseName: "productiondb" })); // case insensitive
 
             eventFilteredBuffer.setColumnFilters([
                 { field: "databaseName", operator: FilterOperator.Equals, value: "ProductionDB" },
@@ -782,9 +783,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by spid (number | undefined field) with Equals", () => {
-            eventBuffer.add(createEventRow({ spid: 55 }));
-            eventBuffer.add(createEventRow({ spid: 60 }));
-            eventBuffer.add(createEventRow({ spid: undefined }));
+            eventFilteredBuffer.add(createEventRow({ spid: 55 }));
+            eventFilteredBuffer.add(createEventRow({ spid: 60 }));
+            eventFilteredBuffer.add(createEventRow({ spid: undefined }));
 
             eventFilteredBuffer.setColumnFilters([
                 {
@@ -801,9 +802,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by spid with IsNull to find undefined values", () => {
-            eventBuffer.add(createEventRow({ spid: 55 }));
-            eventBuffer.add(createEventRow({ spid: undefined }));
-            eventBuffer.add(createEventRow({ spid: undefined }));
+            eventFilteredBuffer.add(createEventRow({ spid: 55 }));
+            eventFilteredBuffer.add(createEventRow({ spid: undefined }));
+            eventFilteredBuffer.add(createEventRow({ spid: undefined }));
 
             eventFilteredBuffer.setColumnFilters([
                 { field: "spid", operator: FilterOperator.IsNull },
@@ -814,10 +815,10 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by duration with GreaterThan", () => {
-            eventBuffer.add(createEventRow({ duration: 500 }));
-            eventBuffer.add(createEventRow({ duration: 1500 }));
-            eventBuffer.add(createEventRow({ duration: 3000 }));
-            eventBuffer.add(createEventRow({ duration: undefined }));
+            eventFilteredBuffer.add(createEventRow({ duration: 500 }));
+            eventFilteredBuffer.add(createEventRow({ duration: 1500 }));
+            eventFilteredBuffer.add(createEventRow({ duration: 3000 }));
+            eventFilteredBuffer.add(createEventRow({ duration: undefined }));
 
             eventFilteredBuffer.setColumnFilters([
                 {
@@ -834,9 +835,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by cpu with LessThanOrEqual", () => {
-            eventBuffer.add(createEventRow({ cpu: 50 }));
-            eventBuffer.add(createEventRow({ cpu: 100 }));
-            eventBuffer.add(createEventRow({ cpu: 200 }));
+            eventFilteredBuffer.add(createEventRow({ cpu: 50 }));
+            eventFilteredBuffer.add(createEventRow({ cpu: 100 }));
+            eventFilteredBuffer.add(createEventRow({ cpu: 200 }));
 
             eventFilteredBuffer.setColumnFilters([
                 {
@@ -852,9 +853,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by reads with NotEquals", () => {
-            eventBuffer.add(createEventRow({ reads: 0 }));
-            eventBuffer.add(createEventRow({ reads: 100 }));
-            eventBuffer.add(createEventRow({ reads: 0 }));
+            eventFilteredBuffer.add(createEventRow({ reads: 0 }));
+            eventFilteredBuffer.add(createEventRow({ reads: 100 }));
+            eventFilteredBuffer.add(createEventRow({ reads: 0 }));
 
             eventFilteredBuffer.setColumnFilters([
                 {
@@ -871,15 +872,15 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("filters by additionalData nested field", () => {
-            eventBuffer.add(
+            eventFilteredBuffer.add(
                 createEventRow({
                     additionalData: { client_app_name: "SQL Server Management Studio" },
                 }),
             );
-            eventBuffer.add(
+            eventFilteredBuffer.add(
                 createEventRow({ additionalData: { client_app_name: "Azure Data Studio" } }),
             );
-            eventBuffer.add(
+            eventFilteredBuffer.add(
                 createEventRow({ additionalData: { client_app_name: "VS Code mssql" } }),
             );
 
@@ -907,7 +908,6 @@ suite("FilteredBuffer Tests", () => {
             name: string;
         }
 
-        let dateBuffer: RingBuffer<DateTestRow>;
         let dateFilteredBuffer: FilteredBuffer<DateTestRow>;
 
         // Fixed dates for predictable testing
@@ -918,28 +918,27 @@ suite("FilteredBuffer Tests", () => {
 
         setup(() => {
             resetEventNumber();
-            dateBuffer = new RingBuffer<DateTestRow>(100);
-            dateFilteredBuffer = new FilteredBuffer<DateTestRow>(dateBuffer);
+            dateFilteredBuffer = new FilteredBuffer<DateTestRow>(100);
 
-            dateBuffer.add({
+            dateFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Jan15,
                 name: "January event",
             });
-            dateBuffer.add({
+            dateFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Mar20,
                 name: "March event",
             });
-            dateBuffer.add({
+            dateFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Jun01,
                 name: "June event",
             });
-            dateBuffer.add({
+            dateFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Dec31,
@@ -1068,34 +1067,32 @@ suite("FilteredBuffer Tests", () => {
             name: string;
         }
 
-        let profilerBuffer: RingBuffer<ProfilerDateRow>;
         let profilerFilteredBuffer: FilteredBuffer<ProfilerDateRow>;
 
         setup(() => {
             resetEventNumber();
-            profilerBuffer = new RingBuffer<ProfilerDateRow>(100);
-            profilerFilteredBuffer = new FilteredBuffer<ProfilerDateRow>(profilerBuffer);
+            profilerFilteredBuffer = new FilteredBuffer<ProfilerDateRow>(100);
 
             // Add events with profiler-format timestamp strings (as they appear in grid)
-            profilerBuffer.add({
+            profilerFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:00:00.000",
                 name: "Early event",
             });
-            profilerBuffer.add({
+            profilerFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:29:10.000",
                 name: "Middle event",
             });
-            profilerBuffer.add({
+            profilerFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:32:00.000",
                 name: "Late event",
             });
-            profilerBuffer.add({
+            profilerFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 21:00:00.000",
@@ -1222,16 +1219,14 @@ suite("FilteredBuffer Tests", () => {
             spid: number;
         }
 
-        let complexBuffer: RingBuffer<ComplexRow>;
         let complexFilteredBuffer: FilteredBuffer<ComplexRow>;
 
         setup(() => {
             resetEventNumber();
-            complexBuffer = new RingBuffer<ComplexRow>(100);
-            complexFilteredBuffer = new FilteredBuffer<ComplexRow>(complexBuffer);
+            complexFilteredBuffer = new FilteredBuffer<ComplexRow>(100);
 
             // Add diverse test data
-            complexBuffer.add({
+            complexFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
@@ -1240,7 +1235,7 @@ suite("FilteredBuffer Tests", () => {
                 duration: 500,
                 spid: 55,
             });
-            complexBuffer.add({
+            complexFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
@@ -1249,7 +1244,7 @@ suite("FilteredBuffer Tests", () => {
                 duration: 2000,
                 spid: 60,
             });
-            complexBuffer.add({
+            complexFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 eventClass: "RPC:Completed",
@@ -1258,7 +1253,7 @@ suite("FilteredBuffer Tests", () => {
                 duration: 100,
                 spid: 55,
             });
-            complexBuffer.add({
+            complexFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
@@ -1267,7 +1262,7 @@ suite("FilteredBuffer Tests", () => {
                 duration: 50,
                 spid: 70,
             });
-            complexBuffer.add({
+            complexFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
@@ -1377,7 +1372,7 @@ suite("FilteredBuffer Tests", () => {
 
         test("clauses with mixed null checks", () => {
             // Add a row with undefined duration
-            complexBuffer.add({
+            complexFilteredBuffer.add({
                 id: uuidv4(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
@@ -1406,8 +1401,8 @@ suite("FilteredBuffer Tests", () => {
 
     suite("Edge cases for numeric fields with undefined", () => {
         test("GreaterThan excludes undefined values", () => {
-            buffer.add(createTestRow("test1", 100));
-            buffer.add(createTestRow("test2", 200));
+            filteredBuffer.add(createTestRow("test1", 100));
+            filteredBuffer.add(createTestRow("test2", 200));
 
             // Add row with value field but using category to simulate optional number
             interface OptionalNumRow extends IndexedRow {
@@ -1416,17 +1411,16 @@ suite("FilteredBuffer Tests", () => {
                 optionalNum?: number;
             }
 
-            const optBuffer = new RingBuffer<OptionalNumRow>(10);
-            const optFiltered = new FilteredBuffer<OptionalNumRow>(optBuffer);
+            const optFiltered = new FilteredBuffer<OptionalNumRow>(10);
 
-            optBuffer.add({ id: uuidv4(), eventNumber: 1, name: "has value", optionalNum: 150 });
-            optBuffer.add({
+            optFiltered.add({ id: uuidv4(), eventNumber: 1, name: "has value", optionalNum: 150 });
+            optFiltered.add({
                 id: uuidv4(),
                 eventNumber: 2,
                 name: "no value",
                 optionalNum: undefined,
             });
-            optBuffer.add({ id: uuidv4(), eventNumber: 3, name: "high value", optionalNum: 300 });
+            optFiltered.add({ id: uuidv4(), eventNumber: 3, name: "high value", optionalNum: 300 });
 
             optFiltered.setColumnFilters([
                 {
@@ -1450,12 +1444,11 @@ suite("FilteredBuffer Tests", () => {
                 duration?: number;
             }
 
-            const optBuffer = new RingBuffer<OptionalNumRow>(10);
-            const optFiltered = new FilteredBuffer<OptionalNumRow>(optBuffer);
+            const optFiltered = new FilteredBuffer<OptionalNumRow>(10);
 
-            optBuffer.add({ id: uuidv4(), eventNumber: 1, name: "fast", duration: 50 });
-            optBuffer.add({ id: uuidv4(), eventNumber: 2, name: "slow", duration: 5000 });
-            optBuffer.add({ id: uuidv4(), eventNumber: 3, name: "unknown", duration: undefined });
+            optFiltered.add({ id: uuidv4(), eventNumber: 1, name: "fast", duration: 50 });
+            optFiltered.add({ id: uuidv4(), eventNumber: 2, name: "slow", duration: 5000 });
+            optFiltered.add({ id: uuidv4(), eventNumber: 3, name: "unknown", duration: undefined });
 
             // Find slow queries (duration > 1000) but only where duration is known
             optFiltered.setColumnFilters([
@@ -1476,9 +1469,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("EndsWith operator", () => {
         test("should match values that end with the specified string", () => {
-            buffer.add(createTestRow("SELECT * FROM users", 1));
-            buffer.add(createTestRow("INSERT INTO orders", 2));
-            buffer.add(createTestRow("DELETE FROM users", 3));
+            filteredBuffer.add(createTestRow("SELECT * FROM users", 1));
+            filteredBuffer.add(createTestRow("INSERT INTO orders", 2));
+            filteredBuffer.add(createTestRow("DELETE FROM users", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.EndsWith, value: "users" },
@@ -1491,8 +1484,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should be case-insensitive", () => {
-            buffer.add(createTestRow("query.SQL", 1));
-            buffer.add(createTestRow("query.txt", 2));
+            filteredBuffer.add(createTestRow("query.SQL", 1));
+            filteredBuffer.add(createTestRow("query.txt", 2));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.EndsWith, value: ".sql" },
@@ -1504,8 +1497,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should return no results when nothing matches", () => {
-            buffer.add(createTestRow("hello", 1));
-            buffer.add(createTestRow("world", 2));
+            filteredBuffer.add(createTestRow("hello", 1));
+            filteredBuffer.add(createTestRow("world", 2));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.EndsWith, value: "xyz" },
@@ -1517,9 +1510,9 @@ suite("FilteredBuffer Tests", () => {
 
     suite("NotEndsWith operator", () => {
         test("should match values that do not end with the specified string", () => {
-            buffer.add(createTestRow("SELECT * FROM users", 1));
-            buffer.add(createTestRow("INSERT INTO orders", 2));
-            buffer.add(createTestRow("DELETE FROM users", 3));
+            filteredBuffer.add(createTestRow("SELECT * FROM users", 1));
+            filteredBuffer.add(createTestRow("INSERT INTO orders", 2));
+            filteredBuffer.add(createTestRow("DELETE FROM users", 3));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotEndsWith, value: "users" },
@@ -1531,8 +1524,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should be case-insensitive", () => {
-            buffer.add(createTestRow("query.SQL", 1));
-            buffer.add(createTestRow("query.txt", 2));
+            filteredBuffer.add(createTestRow("query.SQL", 1));
+            filteredBuffer.add(createTestRow("query.txt", 2));
 
             filteredBuffer.setColumnFilters([
                 { field: "name", operator: FilterOperator.NotEndsWith, value: ".sql" },
@@ -1546,10 +1539,10 @@ suite("FilteredBuffer Tests", () => {
 
     suite("In operator", () => {
         test("should match values in the specified set", () => {
-            buffer.add(createTestRow("Alpha", 1, 0, "catA"));
-            buffer.add(createTestRow("Beta", 2, 0, "catB"));
-            buffer.add(createTestRow("Gamma", 3, 0, "catC"));
-            buffer.add(createTestRow("Delta", 4, 0, "catA"));
+            filteredBuffer.add(createTestRow("Alpha", 1, 0, "catA"));
+            filteredBuffer.add(createTestRow("Beta", 2, 0, "catB"));
+            filteredBuffer.add(createTestRow("Gamma", 3, 0, "catC"));
+            filteredBuffer.add(createTestRow("Delta", 4, 0, "catA"));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -1565,9 +1558,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should be case-insensitive", () => {
-            buffer.add(createTestRow("A", 1, 0, "CatA"));
-            buffer.add(createTestRow("B", 2, 0, "CATB"));
-            buffer.add(createTestRow("C", 3, 0, "catc"));
+            filteredBuffer.add(createTestRow("A", 1, 0, "CatA"));
+            filteredBuffer.add(createTestRow("B", 2, 0, "CATB"));
+            filteredBuffer.add(createTestRow("C", 3, 0, "catc"));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -1583,8 +1576,8 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should return no results when values array is empty", () => {
-            buffer.add(createTestRow("A", 1, 0, "catA"));
-            buffer.add(createTestRow("B", 2, 0, "catB"));
+            filteredBuffer.add(createTestRow("A", 1, 0, "catA"));
+            filteredBuffer.add(createTestRow("B", 2, 0, "catB"));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -1598,7 +1591,7 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should return no results when values is undefined", () => {
-            buffer.add(createTestRow("A", 1, 0, "catA"));
+            filteredBuffer.add(createTestRow("A", 1, 0, "catA"));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -1612,9 +1605,9 @@ suite("FilteredBuffer Tests", () => {
         });
 
         test("should handle numeric field values converted to strings", () => {
-            buffer.add(createTestRow("A", 100));
-            buffer.add(createTestRow("B", 200));
-            buffer.add(createTestRow("C", 300));
+            filteredBuffer.add(createTestRow("A", 100));
+            filteredBuffer.add(createTestRow("B", 200));
+            filteredBuffer.add(createTestRow("C", 300));
 
             filteredBuffer.setColumnFilters([
                 {
@@ -1627,6 +1620,359 @@ suite("FilteredBuffer Tests", () => {
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(2);
             expect(rows.map((r) => r.name)).to.deep.equal(["A", "C"]);
+        });
+    });
+    suite("applyFilter and resetFilter", () => {
+        test("applyFilter sets clauses and builds cache", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+            filteredBuffer.add(createTestRow("alpha-2", 3));
+
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+
+            expect(filteredBuffer.isFilterActive).to.be.true;
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+            expect(filteredBuffer.getFilteredRows().map((r) => r.name)).to.deep.equal([
+                "alpha",
+                "alpha-2",
+            ]);
+        });
+
+        test("applyFilter with quickFilter only", () => {
+            filteredBuffer.add(createTestRow("hello", 1));
+            filteredBuffer.add(createTestRow("world", 2));
+            filteredBuffer.add(createTestRow("hello world", 3));
+
+            filteredBuffer.applyFilter({ quickFilter: "hello" });
+
+            expect(filteredBuffer.isFilterActive).to.be.true;
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+        });
+
+        test("applyFilter with both clauses and quickFilter", () => {
+            filteredBuffer.add(createTestRow("alpha", 10));
+            filteredBuffer.add(createTestRow("alpha", 20));
+            filteredBuffer.add(createTestRow("beta", 10));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.GreaterThan,
+                        value: 5,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+                quickFilter: "alpha",
+            });
+
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+            expect(filteredBuffer.getFilteredRows().map((r) => r.value)).to.deep.equal([10, 20]);
+        });
+
+        test("resetFilter clears all filters and cache", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Equals, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            filteredBuffer.resetFilter();
+            expect(filteredBuffer.isFilterActive).to.be.false;
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+            expect(filteredBuffer.getFilteredRows()).to.have.length(2);
+        });
+
+        test("applyFilter with empty clauses clears clause filter but keeps quickFilter", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+
+            filteredBuffer.applyFilter({
+                clauses: [],
+                quickFilter: "alpha",
+            });
+
+            expect(filteredBuffer.isFilterActive).to.be.true;
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+        });
+    });
+
+    suite("cache incremental maintenance via add()", () => {
+        test("add() appends matching row to cache", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            // Add another matching row — should be appended to cache
+            filteredBuffer.add(createTestRow("alpha-new", 2));
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+        });
+
+        test("add() does not append non-matching row to cache", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            filteredBuffer.add(createTestRow("beta", 2));
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+        });
+
+        test("add() handles eviction of matching row from cache front", () => {
+            const smallBuffer = new FilteredBuffer<TestRow>(3);
+
+            smallBuffer.add(createTestRow("alpha-1", 1));
+            smallBuffer.add(createTestRow("alpha-2", 2));
+            smallBuffer.add(createTestRow("beta", 3));
+
+            smallBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(smallBuffer.getFilteredCount()).to.equal(2);
+
+            // Adding a 4th row evicts "alpha-1" (oldest)
+            smallBuffer.add(createTestRow("alpha-3", 4));
+            expect(smallBuffer.getFilteredCount()).to.equal(2); // alpha-2 + alpha-3
+            expect(smallBuffer.getFilteredRows().map((r) => r.name)).to.deep.equal([
+                "alpha-2",
+                "alpha-3",
+            ]);
+        });
+
+        test("add() handles eviction of non-matching row (cache unchanged)", () => {
+            const smallBuffer = new FilteredBuffer<TestRow>(3);
+
+            smallBuffer.add(createTestRow("beta", 1)); // will be evicted
+            smallBuffer.add(createTestRow("alpha-1", 2));
+            smallBuffer.add(createTestRow("alpha-2", 3));
+
+            smallBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(smallBuffer.getFilteredCount()).to.equal(2);
+
+            // Adding a 4th row evicts "beta" which is NOT in cache
+            smallBuffer.add(createTestRow("alpha-3", 4));
+            expect(smallBuffer.getFilteredCount()).to.equal(3); // alpha-1, alpha-2, alpha-3
+        });
+
+        test("add() with no active cache (no filter) does nothing extra", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            // No filter applied — add should not build cache
+            filteredBuffer.add(createTestRow("beta", 2));
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+            expect(filteredBuffer.isFilterActive).to.be.false;
+        });
+
+        test("multiple consecutive evictions maintain cache correctly", () => {
+            const smallBuffer = new FilteredBuffer<TestRow>(3);
+
+            smallBuffer.add(createTestRow("alpha-1", 1));
+            smallBuffer.add(createTestRow("beta-1", 2));
+            smallBuffer.add(createTestRow("alpha-2", 3));
+
+            smallBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(smallBuffer.getFilteredCount()).to.equal(2);
+
+            // Evict alpha-1 (matching, in cache)
+            smallBuffer.add(createTestRow("alpha-3", 4));
+            expect(smallBuffer.getFilteredCount()).to.equal(2); // alpha-2, alpha-3
+
+            // Evict beta-1 (non-matching, not in cache)
+            smallBuffer.add(createTestRow("beta-2", 5));
+            expect(smallBuffer.getFilteredCount()).to.equal(2); // alpha-2, alpha-3
+
+            // Evict alpha-2 (matching, in cache)
+            smallBuffer.add(createTestRow("alpha-4", 6));
+            expect(smallBuffer.getFilteredCount()).to.equal(2); // alpha-3, alpha-4
+            expect(smallBuffer.getFilteredRows().map((r) => r.name)).to.deep.equal([
+                "alpha-3",
+                "alpha-4",
+            ]);
+        });
+
+        test("eviction when cache is empty (all rows filtered out)", () => {
+            const smallBuffer = new FilteredBuffer<TestRow>(3);
+
+            smallBuffer.add(createTestRow("beta-1", 1));
+            smallBuffer.add(createTestRow("beta-2", 2));
+            smallBuffer.add(createTestRow("beta-3", 3));
+
+            // Filter matches nothing — cache is empty
+            smallBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(smallBuffer.getFilteredCount()).to.equal(0);
+
+            // Evict beta-1 (not in cache), add non-matching row
+            smallBuffer.add(createTestRow("beta-4", 4));
+            expect(smallBuffer.getFilteredCount()).to.equal(0);
+
+            // Evict beta-2, add matching row — cache goes from empty to 1
+            smallBuffer.add(createTestRow("alpha-1", 5));
+            expect(smallBuffer.getFilteredCount()).to.equal(1);
+            expect(smallBuffer.getFilteredRows().map((r) => r.name)).to.deep.equal(["alpha-1"]);
+        });
+
+        test("eviction with quick filter active", () => {
+            const smallBuffer = new FilteredBuffer<TestRow>(3);
+
+            smallBuffer.add(createTestRow("hello world", 1));
+            smallBuffer.add(createTestRow("hello there", 2));
+            smallBuffer.add(createTestRow("goodbye", 3));
+
+            smallBuffer.applyFilter({ quickFilter: "hello" });
+            expect(smallBuffer.getFilteredCount()).to.equal(2);
+
+            // Evict "hello world" (matching, in cache), add non-matching
+            smallBuffer.add(createTestRow("farewell", 4));
+            expect(smallBuffer.getFilteredCount()).to.equal(1); // hello there
+
+            // Evict "hello there" (matching, in cache), add matching
+            smallBuffer.add(createTestRow("hello again", 5));
+            expect(smallBuffer.getFilteredCount()).to.equal(1); // hello again
+            expect(smallBuffer.getFilteredRows().map((r) => r.name)).to.deep.equal(["hello again"]);
+        });
+    });
+
+    suite("cache invalidation", () => {
+        test("setColumnFilters invalidates cache (lazy rebuild on next read)", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+            filteredBuffer.add(createTestRow("gamma", 3));
+
+            // Build cache via applyFilter
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            // Use legacy setter — should invalidate cache but still work
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.Contains, value: "a" },
+            ]);
+            // Lazy rebuild on read
+            expect(filteredBuffer.getFilteredCount()).to.equal(3); // alpha, beta (no 'a'), gamma
+        });
+
+        test("setQuickFilter invalidates cache (lazy rebuild on next read)", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            // Legacy setQuickFilter — changes filter and invalidates cache
+            filteredBuffer.setQuickFilter("beta");
+            // Now both clause (alpha) and quick (beta) are active — nothing matches both
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+        });
+
+        test("clear() clears the cache", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            filteredBuffer.clear();
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+            expect(filteredBuffer.size).to.equal(0);
+        });
+
+        test("clearRange() invalidates cache", () => {
+            filteredBuffer.add(createTestRow("alpha-1", 1));
+            filteredBuffer.add(createTestRow("alpha-2", 2));
+            filteredBuffer.add(createTestRow("beta", 3));
+
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+
+            // Remove oldest row
+            filteredBuffer.clearRange(1);
+            // Cache was invalidated — lazy rebuild
+            expect(filteredBuffer.getFilteredCount()).to.equal(1); // only alpha-2 remains
+        });
+
+        test("setRowConverter invalidates cache", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    { field: "displayName", operator: FilterOperator.Contains, value: "alpha" },
+                ],
+            });
+            // Without converter, "displayName" doesn't exist — nothing matches
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+
+            // Set a converter that maps name → displayName
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                displayName: row.name,
+            }));
+            // Cache was invalidated — lazy rebuild now uses converter
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+        });
+    });
+
+    suite("getFilteredRange with cache", () => {
+        test("returns correct page from cached results", () => {
+            for (let i = 0; i < 10; i++) {
+                filteredBuffer.add(createTestRow(`item-${i}`, i));
+            }
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.GreaterThanOrEqual,
+                        value: 3,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+            });
+
+            // Filtered: items 3-9 = 7 rows
+            expect(filteredBuffer.getFilteredCount()).to.equal(7);
+
+            // Get page 2 (rows 2-4 of filtered)
+            const page = filteredBuffer.getFilteredRange(2, 3);
+            expect(page).to.have.length(3);
+            expect(page.map((r) => r.value)).to.deep.equal([5, 6, 7]);
+        });
+    });
+
+    suite("filteredCount getter with cache", () => {
+        test("returns total count when no filter active", () => {
+            filteredBuffer.add(createTestRow("a", 1));
+            filteredBuffer.add(createTestRow("b", 2));
+            expect(filteredBuffer.filteredCount).to.equal(2);
+        });
+
+        test("returns cached filtered count when filter is active", () => {
+            filteredBuffer.add(createTestRow("alpha", 1));
+            filteredBuffer.add(createTestRow("beta", 2));
+            filteredBuffer.add(createTestRow("alpha-2", 3));
+
+            filteredBuffer.applyFilter({
+                clauses: [{ field: "name", operator: FilterOperator.Contains, value: "alpha" }],
+            });
+
+            expect(filteredBuffer.filteredCount).to.equal(2);
         });
     });
 });
