@@ -13,6 +13,8 @@ import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schema
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
+import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
+import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
@@ -164,6 +166,22 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(ctrl.schemaDesignerDetails).to.be.undefined;
         });
 
+        test("should initialize copilot chat discovery state from globalState", () => {
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"), false)
+                .returns(true);
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("dab"), false)
+                .returns(false);
+
+            const ctrl = createController();
+
+            expect(ctrl.state.copilotChatDiscoveryDismissed).to.deep.equal({
+                schemaDesigner: true,
+                dab: false,
+            });
+        });
+
         test("should set copilot availability to true when Copilot Chat extension is installed", () => {
             sandbox
                 .stub(vscode.extensions, "getExtension")
@@ -215,6 +233,38 @@ suite("SchemaDesignerWebviewController tests", () => {
                     SchemaDesigner.CloseSchemaDesignerNotification.type.method,
                 ),
             ).to.be.true;
+        });
+    });
+
+    suite("Copilot chat discovery reducer", () => {
+        test("dismissCopilotChatDiscovery persists the scenario and updates state", async () => {
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"), false)
+                .returns(true);
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("dab"), false)
+                .returns(false);
+            (mockContext.globalState.update as sinon.SinonStub).resolves();
+            const ctrl = createController();
+            const reducerHandler = requestHandlers.get(
+                ReducerRequest.type<SchemaDesigner.SchemaDesignerReducers>().method,
+            );
+
+            expect(reducerHandler).to.not.be.undefined;
+
+            await reducerHandler!({
+                type: "dismissCopilotChatDiscovery",
+                payload: { scenario: "dab" },
+            });
+
+            expect(mockContext.globalState.update).to.have.been.calledOnceWith(
+                CopilotChat.getDiscoveryDismissedStateKey("dab"),
+                true,
+            );
+            expect(ctrl.state.copilotChatDiscoveryDismissed).to.deep.equal({
+                schemaDesigner: true,
+                dab: true,
+            });
         });
     });
 
