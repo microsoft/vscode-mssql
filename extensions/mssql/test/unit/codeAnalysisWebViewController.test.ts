@@ -580,5 +580,15 @@ suite("CodeAnalysisWebViewController Tests", () => {
             CodeAnalysisRuleSeverity.Warning,
         );
         expect(sr0003?.enabled, "SR0003 should be enabled at default Warning severity").to.be.true;
+
+        // Verify that the user sees a non-blocking warning with the service error text.
+        expect(
+            controller.state.message?.intent,
+            "message intent should be warning on properties failure",
+        ).to.equal("warning");
+        expect(
+            controller.state.message?.message,
+            "message should contain the properties error text",
+        ).to.contain("Failed to get project properties");
     });
 });

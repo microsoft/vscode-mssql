@@ -201,7 +201,23 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                         enabled: overrideSeverity !== CodeAnalysisRuleSeverity.Disabled,
                     };
                 });
+            } else if (projectProps?.success === false) {
+                // Retrieval failed — fall back to DacFx defaults and surface a warning
+                // so the user understands why their saved overrides weren't applied.
+                this.state.rules = dacfxStaticRules;
+                const detail = projectProps.errorMessage;
+                this.state.message = {
+                    message: detail
+                        ? `${Loc.failedToLoadOverrides}: ${detail}`
+                        : Loc.failedToLoadOverrides,
+                    intent: "warning",
+                } as DialogMessageSpec;
+                this.sendError(
+                    TelemetryActions.CodeAnalysisRulesLoadError,
+                    new Error(detail ?? Loc.failedToLoadOverrides),
+                );
             } else {
+                // success: true but no sqlCodeAnalysisRules — no overrides saved, use DacFx defaults.
                 this.state.rules = dacfxStaticRules;
             }
         } catch (propsError) {
