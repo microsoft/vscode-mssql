@@ -39,7 +39,10 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         _token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         // Defer to notebook-specific code lens provider for notebook cells
-        if (document.uri.scheme === "vscode-notebook-cell" || uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(document.uri)) {
+        if (
+            document.uri.scheme === "vscode-notebook-cell" ||
+            uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(document.uri)
+        ) {
             return [];
         }
 
