@@ -3,14 +3,6 @@ description: Builds the SQL Database Projects VS Code extension.
 runs:
   using: "composite"
   steps:
-    - name: SqlProj - Install tools
-      shell: bash
-      run: |
-        echo "Installing Yarn"
-        npm install --global yarn@1.22.19
-        echo "Installing VSCE"
-        npm install --global vsce@2.9.2
-
     - name: SqlProj - Install extension dependencies
       shell: bash
       run: |
