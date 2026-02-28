@@ -6,7 +6,10 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as path from "path";
-import { readProjectProperties } from "../../src/publishProject/projectUtils";
+import {
+    parseSqlprojRuleOverrides,
+    readProjectProperties,
+} from "../../src/publishProject/projectUtils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { GetProjectPropertiesResult } from "vscode-mssql";
 import { stubPathAsPlatform } from "./utils";
@@ -144,5 +147,36 @@ suite("projectUtils Tests", () => {
 
         const expectedPath = path.join("/home/user/project", "bin/Debug", "TestProject.dacpac");
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
+    });
+
+    test("parseSqlprojRuleOverrides parses fully-qualified rule IDs with all prefix variants", () => {
+        const result = parseSqlprojRuleOverrides(
+            "+!Microsoft.Rules.Data.SR0001;-Microsoft.Rules.Data.SR0008;-!Microsoft.Rules.Data.SR0009",
+        );
+        expect(result.size).to.equal(3);
+        expect(result.get("SR0001")).to.equal("Error");
+        expect(result.get("SR0008")).to.equal("Disabled");
+        expect(result.get("SR0009")).to.equal("Disabled");
+    });
+
+    test("parseSqlprojRuleOverrides handles edge cases", () => {
+        // Empty / blank input → empty map
+        expect(parseSqlprojRuleOverrides("").size).to.equal(0);
+        expect(parseSqlprojRuleOverrides(";;;").size).to.equal(0);
+        expect(parseSqlprojRuleOverrides("   ").size).to.equal(0);
+
+        // Prefix-only tokens with no rule ID are skipped
+        // DacFx does not allow adding these values, but the user can edit the sqlproj and add them
+        expect(parseSqlprojRuleOverrides("+!;-;-!").size).to.equal(0);
+
+        // Short IDs, mixed short+fully-qualified, whitespace around tokens
+        const result = parseSqlprojRuleOverrides(
+            "  SR0001  ; +!Microsoft.Rules.Data.SR0002 ; -SR0003 ; -!SR0004 ; +! ; - ; -!",
+        );
+        expect(result.size).to.equal(4);
+        expect(result.get("SR0001")).to.equal("Warning");
+        expect(result.get("SR0002")).to.equal("Error");
+        expect(result.get("SR0003")).to.equal("Disabled");
+        expect(result.get("SR0004")).to.equal("Disabled");
     });
 });

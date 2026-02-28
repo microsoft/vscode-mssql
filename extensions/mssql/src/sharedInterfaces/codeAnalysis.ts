@@ -40,10 +40,10 @@ export interface CodeAnalysisState {
     projectName: string;
     /** Loading indicator */
     isLoading: boolean;
-    /** All available code analysis rules */
+    /** All available code analysis rules (current saved state) */
     rules: SqlCodeAnalysisRule[];
-    /** Whether there are unsaved changes */
-    hasChanges: boolean;
+    /** DacFx factory defaults — set once on load, never overwritten; used for Reset */
+    dacfxStaticRules: SqlCodeAnalysisRule[];
     /** Message to display to the user (errors, warnings, etc.) */
     message?: DialogMessageSpec;
 }
@@ -56,6 +56,8 @@ export interface CodeAnalysisReducers {
     close: {};
     /** Clear the message bar */
     closeMessage: {};
+    /** Save rule overrides to the .sqlproj file */
+    saveRules: { rules: SqlCodeAnalysisRule[]; closeAfterSave: boolean };
 }
 
 /**
@@ -64,4 +66,5 @@ export interface CodeAnalysisReducers {
 export interface CodeAnalysisProvider {
     close: () => void;
     closeMessage: () => void;
+    saveRules: (rules: SqlCodeAnalysisRule[], closeAfterSave: boolean) => void;
 }

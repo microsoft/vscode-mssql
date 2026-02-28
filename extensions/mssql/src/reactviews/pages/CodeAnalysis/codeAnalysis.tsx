@@ -30,6 +30,7 @@ import {
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
+import { ConfirmationDialog } from "../../common/confirmationDialog";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
@@ -154,14 +155,47 @@ export const CodeAnalysisDialog = () => {
     const projectName = useCodeAnalysisSelector((s) => s.projectName);
     const isLoading = useCodeAnalysisSelector((s) => s.isLoading);
     const rules = useCodeAnalysisSelector((s) => s.rules);
+    const dacfxStaticRules = useCodeAnalysisSelector((s) => s.dacfxStaticRules);
     const message = useCodeAnalysisSelector((s) => s.message);
 
     const [localRules, setLocalRules] = useState<SqlCodeAnalysisRule[]>(rules);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+    const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+    const [showResetConfirmDialog, setShowResetConfirmDialog] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    // Remembers per-category severities before a category is fully disabled,
+    // so they can be restored when the category is re-enabled.
+    const [categoryPreviousSeverities, setCategoryPreviousSeverities] = useState<
+        Map<string, Map<string, string>>
+    >(new Map());
 
     useEffect(() => {
+        // Sync localRules only when the authoritative rules change (initial load or
+        // successful save). On a failed save the reducer leaves rules unchanged, so
+        // this effect does not fire and the user's unsaved edits are preserved.
         setLocalRules(rules);
     }, [rules]);
+
+    // Reset isSaving when the save completes: the reducer updates `rules` on
+    // success and `message` on error — either signals the round-trip is done.
+    useEffect(() => {
+        setIsSaving(false);
+    }, [rules, message]);
+
+    // True when localRules diverges from the saved rules (different severity or enabled state),
+    // used to enable/disable the Apply, OK, and unsaved-changes prompt.
+    const isDirty = useMemo(() => {
+        if (localRules.length !== rules.length) return true;
+        const rulesMap = new Map(rules.map((rule) => [rule.ruleId, rule]));
+        return localRules.some((local) => {
+            const original = rulesMap.get(local.ruleId);
+            return (
+                !original ||
+                original.severity !== local.severity ||
+                original.enabled !== local.enabled
+            );
+        });
+    }, [localRules, rules]);
 
     // --- Grouping ---
     const groupedRuleEntries = useMemo(() => {
@@ -175,26 +209,60 @@ export const CodeAnalysisDialog = () => {
     }, [localRules]);
 
     // --- Handlers ---
+    /**
+     * Determines the visual/interactive state of the category checkbox:
+     *  - true    → all rules in the category have a non-Disabled severity  (checkbox: checked, enabled)
+     *  - false   → all rules in the category have Disabled severity         (checkbox: unchecked, enabled)
+     *  - "mixed" → at least one Disabled AND at least one non-Disabled      (checkbox: indeterminate solid, DISABLED)
+     */
     const getCategoryCheckedState = (
         categoryRules: SqlCodeAnalysisRule[],
     ): true | false | "mixed" => {
-        const toggleableRules = categoryRules.filter(
-            (r) => r.severity !== CodeAnalysisRuleSeverity.Disabled,
-        );
-        if (toggleableRules.length === 0) return false;
-        if (toggleableRules.every((r) => r.enabled)) return true;
-        if (toggleableRules.some((r) => r.enabled)) return "mixed";
-        return false;
+        const disabledCount = categoryRules.filter(
+            (rule) => rule.severity === CodeAnalysisRuleSeverity.Disabled,
+        ).length;
+        if (disabledCount === 0) return true;
+        if (disabledCount === categoryRules.length) return false;
+        return "mixed";
     };
 
-    const toggleCategoryRules = (category: string, enabled: boolean) => {
-        setLocalRules((prev) =>
-            prev.map((r) =>
-                r.category === category && r.severity !== CodeAnalysisRuleSeverity.Disabled
-                    ? { ...r, enabled }
-                    : r,
-            ),
-        );
+    /**
+     * Handles a category checkbox click.
+     *  - currentState === true  → user is unchecking: save severities, set all to Disabled.
+     *  - currentState === false → user is checking: restore saved severities (or default to Warning).
+     *  - currentState === "mixed" → no-op; the checkbox is disabled in this state.
+     */
+    const toggleCategoryRules = (category: string, currentState: true | false | "mixed") => {
+        if (currentState === "mixed") return;
+
+        if (currentState === true) {
+            // Save current (non-Disabled) severities before disabling the whole category.
+            const snapshot = new Map<string, string>();
+            localRules
+                .filter((rule) => rule.category === category)
+                .forEach((rule) => snapshot.set(rule.ruleId, rule.severity));
+            setCategoryPreviousSeverities((prev) => new Map(prev).set(category, snapshot));
+
+            setLocalRules((prev) =>
+                prev.map((rule) =>
+                    rule.category === category
+                        ? { ...rule, severity: CodeAnalysisRuleSeverity.Disabled, enabled: false }
+                        : rule,
+                ),
+            );
+        } else {
+            // Restore previously saved severities, falling back to Warning if none recorded.
+            const snapshot = categoryPreviousSeverities.get(category);
+            setLocalRules((prev) =>
+                prev.map((rule) => {
+                    if (rule.category !== category) return rule;
+                    // snapshot only contains non-Disabled values (category was fully enabled
+                    // when the snapshot was taken; "mixed" state blocks this code path).
+                    const severity = snapshot?.get(rule.ruleId) ?? CodeAnalysisRuleSeverity.Warning;
+                    return { ...rule, severity, enabled: true };
+                }),
+            );
+        }
     };
 
     const toggleCategoryCollapsed = (category: string) => {
@@ -205,12 +273,16 @@ export const CodeAnalysisDialog = () => {
         });
     };
 
+    const resetToDefaults = () => {
+        setLocalRules(dacfxStaticRules);
+    };
+
     const changeSeverity = (ruleId: string, severity: string) => {
         setLocalRules((prev) =>
-            prev.map((r) =>
-                r.ruleId === ruleId
-                    ? { ...r, severity, enabled: severity !== CodeAnalysisRuleSeverity.Disabled }
-                    : r,
+            prev.map((rule) =>
+                rule.ruleId === ruleId
+                    ? { ...rule, severity, enabled: severity !== CodeAnalysisRuleSeverity.Disabled }
+                    : rule,
             ),
         );
     };
@@ -268,93 +340,103 @@ export const CodeAnalysisDialog = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {groupedRuleEntries.map(([category, categoryRules]) => (
-                                <Fragment key={category}>
-                                    {/* Category row */}
-                                    <TableRow>
-                                        <TableCell
-                                            className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
-                                            onDoubleClick={() => toggleCategoryCollapsed(category)}>
-                                            <div className={styles.categoryHeaderContent}>
-                                                <Button
-                                                    appearance="subtle"
-                                                    aria-label={
-                                                        collapsedCategories.has(category)
-                                                            ? loc.expandCategory(category)
-                                                            : loc.collapseCategory(category)
-                                                    }
-                                                    className={styles.categoryToggleButton}
-                                                    icon={
-                                                        collapsedCategories.has(category) ? (
-                                                            <ChevronRight20Regular />
-                                                        ) : (
-                                                            <ChevronDown20Regular />
-                                                        )
-                                                    }
-                                                    onDoubleClick={(e) => e.stopPropagation()}
-                                                    onClick={() =>
-                                                        toggleCategoryCollapsed(category)
-                                                    }
-                                                />
-                                                <Checkbox
-                                                    aria-label={loc.enableCategory(category)}
-                                                    checked={getCategoryCheckedState(categoryRules)}
-                                                    onDoubleClick={(e) => e.stopPropagation()}
-                                                    onChange={(_e, data) =>
-                                                        toggleCategoryRules(
-                                                            category,
-                                                            !!data.checked,
-                                                        )
-                                                    }
-                                                />
-                                                <Text weight="semibold">{category}</Text>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className={styles.groupHeaderCell} />
-                                    </TableRow>
-
-                                    {/* Rule rows */}
-                                    {!collapsedCategories.has(category) &&
-                                        categoryRules.map((rule) => (
-                                            <TableRow key={rule.ruleId}>
-                                                <TableCell className={styles.tableCell}>
-                                                    <div className={styles.childRuleContent}>
-                                                        <Checkbox
-                                                            aria-hidden={true}
-                                                            checked={rule.enabled}
-                                                            disabled={!rule.enabled}
-                                                            style={{ pointerEvents: "none" }}
-                                                            tabIndex={-1}
-                                                        />
-                                                        <Text>
-                                                            {rule.shortRuleId}: {rule.displayName}
-                                                        </Text>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className={styles.tableCell}>
-                                                    <Dropdown
-                                                        aria-label={loc.severityForRule(
-                                                            rule.shortRuleId,
-                                                        )}
-                                                        value={rule.severity}
-                                                        selectedOptions={[rule.severity]}
-                                                        onOptionSelect={(_e, data) =>
-                                                            changeSeverity(
-                                                                rule.ruleId,
-                                                                data.optionValue ?? rule.severity,
+                            {groupedRuleEntries.map(([category, categoryRules]) => {
+                                const categoryCheckedState = getCategoryCheckedState(categoryRules);
+                                return (
+                                    <Fragment key={category}>
+                                        {/* Category row */}
+                                        <TableRow>
+                                            <TableCell
+                                                className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
+                                                onDoubleClick={() =>
+                                                    toggleCategoryCollapsed(category)
+                                                }>
+                                                <div className={styles.categoryHeaderContent}>
+                                                    <Button
+                                                        appearance="subtle"
+                                                        aria-label={
+                                                            collapsedCategories.has(category)
+                                                                ? loc.expandCategory(category)
+                                                                : loc.collapseCategory(category)
+                                                        }
+                                                        className={styles.categoryToggleButton}
+                                                        icon={
+                                                            collapsedCategories.has(category) ? (
+                                                                <ChevronRight20Regular />
+                                                            ) : (
+                                                                <ChevronDown20Regular />
                                                             )
-                                                        }>
-                                                        {SEVERITY_OPTIONS.map((severity) => (
-                                                            <Option key={severity} value={severity}>
-                                                                {severity}
-                                                            </Option>
-                                                        ))}
-                                                    </Dropdown>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                </Fragment>
-                            ))}
+                                                        }
+                                                        onDoubleClick={(e) => e.stopPropagation()}
+                                                        onClick={() =>
+                                                            toggleCategoryCollapsed(category)
+                                                        }
+                                                    />
+                                                    <Checkbox
+                                                        aria-label={loc.enableCategory(category)}
+                                                        checked={categoryCheckedState}
+                                                        disabled={categoryCheckedState === "mixed"}
+                                                        onDoubleClick={(e) => e.stopPropagation()}
+                                                        onChange={() =>
+                                                            toggleCategoryRules(
+                                                                category,
+                                                                categoryCheckedState,
+                                                            )
+                                                        }
+                                                    />
+                                                    <Text weight="semibold">{category}</Text>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className={styles.groupHeaderCell} />
+                                        </TableRow>
+
+                                        {/* Rule rows */}
+                                        {!collapsedCategories.has(category) &&
+                                            categoryRules.map((rule) => (
+                                                <TableRow key={rule.ruleId}>
+                                                    <TableCell className={styles.tableCell}>
+                                                        <div className={styles.childRuleContent}>
+                                                            <Checkbox
+                                                                aria-hidden={true}
+                                                                checked={rule.enabled}
+                                                                disabled={!rule.enabled}
+                                                                style={{ pointerEvents: "none" }}
+                                                                tabIndex={-1}
+                                                            />
+                                                            <Text>
+                                                                {rule.shortRuleId}:{" "}
+                                                                {rule.displayName}
+                                                            </Text>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className={styles.tableCell}>
+                                                        <Dropdown
+                                                            aria-label={loc.severityForRule(
+                                                                rule.shortRuleId,
+                                                            )}
+                                                            value={rule.severity}
+                                                            selectedOptions={[rule.severity]}
+                                                            onOptionSelect={(_e, data) =>
+                                                                changeSeverity(
+                                                                    rule.ruleId,
+                                                                    data.optionValue ??
+                                                                        rule.severity,
+                                                                )
+                                                            }>
+                                                            {SEVERITY_OPTIONS.map((severity) => (
+                                                                <Option
+                                                                    key={severity}
+                                                                    value={severity}>
+                                                                    {severity}
+                                                                </Option>
+                                                            ))}
+                                                        </Dropdown>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                    </Fragment>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 )}
@@ -364,20 +446,82 @@ export const CodeAnalysisDialog = () => {
             <div className={styles.footer}>
                 <Text className={styles.statusText}>{loc.rulesCount(localRules?.length ?? 0)}</Text>
                 <div className={styles.footerButtons}>
-                    <Button appearance="subtle" disabled onClick={() => undefined}>
+                    {/* Reset button */}
+                    <Button
+                        appearance="subtle"
+                        disabled={isLoading || isSaving}
+                        onClick={() => setShowResetConfirmDialog(true)}>
                         {loc.reset}
                     </Button>
-                    <Button appearance="secondary" onClick={() => context.close()}>
+                    <Button
+                        appearance="secondary"
+                        disabled={isSaving}
+                        onClick={() =>
+                            isDirty ? setShowUnsavedChangesDialog(true) : context.close()
+                        }>
                         {commonLoc.cancel}
                     </Button>
-                    <Button appearance="secondary" disabled onClick={() => undefined}>
+                    <Button
+                        appearance="secondary"
+                        disabled={!isDirty || isLoading || isSaving}
+                        onClick={() => {
+                            setIsSaving(true);
+                            context.saveRules(localRules, false);
+                        }}>
                         {commonLoc.apply}
                     </Button>
-                    <Button appearance="primary" disabled onClick={() => undefined}>
+                    <Button
+                        appearance="primary"
+                        disabled={!isDirty || isLoading || isSaving}
+                        onClick={() => {
+                            setIsSaving(true);
+                            context.saveRules(localRules, true);
+                        }}>
                         {commonLoc.ok}
                     </Button>
                 </div>
             </div>
+
+            {/* Confirmation dialog: Reset to defaults */}
+            <ConfirmationDialog
+                open={showResetConfirmDialog}
+                onClose={() => setShowResetConfirmDialog(false)}
+                title={loc.resetConfirmTitle}
+                message={loc.resetConfirmMessage}
+                actions={[
+                    {
+                        label: loc.reset,
+                        appearance: "primary",
+                        onClick: resetToDefaults,
+                    },
+                ]}
+                cancelLabel={commonLoc.cancel}
+            />
+            {/* Confirmation dialog: Unsaved changes on close */}
+            <ConfirmationDialog
+                open={showUnsavedChangesDialog}
+                onClose={() => setShowUnsavedChangesDialog(false)}
+                title={loc.unsavedChangesTitle}
+                message={loc.unsavedChangesMessage}
+                actions={[
+                    {
+                        label: commonLoc.save,
+                        appearance: "primary",
+                        disabled: isSaving || isLoading,
+                        onClick: () => {
+                            setIsSaving(true);
+                            setShowUnsavedChangesDialog(false);
+                            context.saveRules(localRules, true);
+                        },
+                    },
+                    {
+                        label: loc.dontSave,
+                        appearance: "secondary",
+                        onClick: () => context.close(),
+                    },
+                ]}
+                cancelLabel={commonLoc.cancel}
+            />
         </div>
     );
 };

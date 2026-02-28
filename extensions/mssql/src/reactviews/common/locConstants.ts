@@ -245,6 +245,15 @@ export class LocConstants {
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
             reset: l10n.t("Reset"),
+            resetConfirmTitle: l10n.t("Reset to Defaults?"),
+            resetConfirmMessage: l10n.t(
+                "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?",
+            ),
+            unsavedChangesTitle: l10n.t("Unsaved Changes"),
+            unsavedChangesMessage: l10n.t(
+                "You have unsaved changes. Do you want to save before closing?",
+            ),
+            dontSave: l10n.t("Don't Save"),
         };
     }
 

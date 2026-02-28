@@ -230,6 +230,11 @@
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
     },
     "Reset": "Reset",
+    "Reset to Defaults?": "Reset to Defaults?",
+    "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity. This cannot be undone. Would you like to continue?",
+    "Unsaved Changes": "Unsaved Changes",
+    "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
+    "Don't Save": "Don't Save",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -2430,6 +2435,9 @@
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Code Analysis": "Code Analysis",
     "Failed to load code analysis rules": "Failed to load code analysis rules",
+    "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
+    "Failed to save code analysis rules": "Failed to save code analysis rules",
+    "Code analysis rules saved successfully": "Code analysis rules saved successfully",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

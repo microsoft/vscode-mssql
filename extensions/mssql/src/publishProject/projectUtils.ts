@@ -15,6 +15,7 @@ import { getSqlServerContainerVersions } from "../deployment/sqlServerContainer"
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
+import { CodeAnalysisRuleSeverity } from "../enums";
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
@@ -412,4 +413,46 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
     }
 
     return Object.values(sqlCmdVariables).every((v) => v !== "" && v !== undefined);
+}
+
+/**
+ * Parses the SqlCodeAnalysisRules property value from the .sqlproj into a map of
+ * shortRuleId -> severity override.
+ *
+ * IDs may be short ("SR0001") or fully qualified ("Microsoft.Rules.Data.SR0001").
+ *   "+!<id>"  = Error
+ *   "-<id>"   = Disabled  (also handles "-!<id>")
+ *   "<id>"    = Warning   (explicit Warning override, regardless of the rule's DacFx default)
+ * */
+export function parseSqlprojRuleOverrides(rulesString: string): Map<string, string> {
+    const overrides = new Map<string, string>();
+    if (!rulesString) {
+        return overrides;
+    }
+    for (const token of rulesString.split(";")) {
+        const t = token.trim();
+        if (!t) {
+            continue;
+        }
+        let severity: string;
+        let rawId: string;
+        if (t.startsWith("+!")) {
+            severity = CodeAnalysisRuleSeverity.Error;
+            rawId = t.substring(2);
+        } else if (t.startsWith("-")) {
+            severity = CodeAnalysisRuleSeverity.Disabled;
+            rawId = t.startsWith("-!") ? t.substring(2) : t.substring(1);
+        } else {
+            severity = CodeAnalysisRuleSeverity.Warning;
+            rawId = t;
+        }
+        // Strip namespace prefix so fully-qualified IDs ("Microsoft.Rules.Data.SR0001")
+        // match the shortRuleId used by the controller ("SR0001").
+        const dotIdx = rawId.lastIndexOf(".");
+        const shortId = dotIdx >= 0 ? rawId.substring(dotIdx + 1) : rawId;
+        if (shortId) {
+            overrides.set(shortId, severity);
+        }
+    }
+    return overrides;
 }

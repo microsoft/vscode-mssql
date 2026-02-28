@@ -18,8 +18,11 @@ import { CodeAnalysis as Loc } from "../constants/locConstants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { DacFxService } from "../services/dacFxService";
+import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
+import { parseSqlprojRuleOverrides } from "../publishProject/projectUtils";
 
 /**
  * Controller for the Code Analysis dialog webview
@@ -28,11 +31,14 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     CodeAnalysisState,
     CodeAnalysisReducers
 > {
+    private readonly _operationId: string;
+
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
         private dacFxService: DacFxService,
+        private sqlProjectsService: SqlProjectsService,
     ) {
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
 
@@ -46,7 +52,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 projectName,
                 isLoading: true,
                 rules: [],
-                hasChanges: false,
+                dacfxStaticRules: [],
             } as CodeAnalysisState,
             {
                 title: Loc.Title,
@@ -66,15 +72,26 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        this._operationId = generateOperationId();
+
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisDialogOpened, {
-            projectName,
+            operationId: this._operationId,
         });
 
         this.registerRpcHandlers();
 
         // Load rules on initialization
         void this.loadRules();
+    }
+
+    /**
+     * Sends a telemetry error event scoped to this dialog's operationId.
+     */
+    private sendError(action: TelemetryActions, error: Error): void {
+        sendErrorEvent(TelemetryViews.SqlProjects, action, error, false, undefined, undefined, {
+            operationId: this._operationId,
+        });
     }
 
     private normalizeSeverity(severity: string | undefined): string {
@@ -94,14 +111,134 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     private registerRpcHandlers(): void {
         // Close dialog
         this.registerReducer("close", async (state) => {
-            // TODO: Add unsaved-changes confirmation before disposing panel.
             this.panel.dispose();
             return state;
         });
         // Clear message bar
         this.registerReducer("closeMessage", async (state) => {
-            return { ...state, message: undefined };
+            state.message = undefined;
+            return state;
         });
+        // Save rule overrides to the .sqlproj
+        this.registerReducer("saveRules", async (state, payload) => {
+            try {
+                const overrides = payload.rules.map((r) => ({
+                    ruleId: r.ruleId,
+                    severity: r.severity,
+                }));
+                const result = await this.sqlProjectsService.updateCodeAnalysisRules({
+                    projectUri: state.projectFilePath,
+                    rules: overrides,
+                });
+                if (!result.success) {
+                    const errorMsg = result.errorMessage || Loc.failedToSaveRules;
+                    this.logger.error(`Failed to save code analysis rules: ${errorMsg}`);
+                    this.sendError(
+                        TelemetryActions.CodeAnalysisRulesSaveError,
+                        new Error(errorMsg),
+                    );
+                    state.message = { message: errorMsg, intent: "error" } as DialogMessageSpec;
+                    return state;
+                }
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.CodeAnalysisRulesSaved,
+                    {
+                        operationId: this._operationId,
+                        ruleCount: overrides.length.toString(),
+                    },
+                );
+                if (payload.closeAfterSave) {
+                    this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
+                    this.vscodeWrapper.outputChannel.show();
+                    this.panel.dispose();
+                }
+                // Update the baseline rules so the component's useEffect resets isDirty
+                state.rules = payload.rules;
+                state.message = payload.closeAfterSave
+                    ? undefined
+                    : ({ message: Loc.rulesSaved, intent: "success" } as DialogMessageSpec);
+                return state;
+            } catch (error) {
+                this.logger.error(`Failed to save code analysis rules: ${getErrorMessage(error)}`);
+                this.sendError(
+                    TelemetryActions.CodeAnalysisRulesSaveError,
+                    error instanceof Error ? error : new Error(getErrorMessage(error)),
+                );
+                state.message = {
+                    message: getErrorMessage(error),
+                    intent: "error",
+                } as DialogMessageSpec;
+                return state;
+            }
+        });
+    }
+
+    /**
+     * Reads saved overrides from the .sqlproj and merges them into the provided DacFx rules.
+     * Returns the resolved rules and an optional warning message.
+     * Never throws — on failure falls back to dacfxStaticRules so the dialog remains usable.
+     */
+    private async applyProjectOverrides(dacfxStaticRules: SqlCodeAnalysisRule[]): Promise<{
+        rules: SqlCodeAnalysisRule[];
+        message?: DialogMessageSpec;
+    }> {
+        try {
+            const projectProps = await this.sqlProjectsService.getProjectProperties(
+                this.state.projectFilePath,
+            );
+
+            if (projectProps?.success && projectProps.sqlCodeAnalysisRules) {
+                const overrides = parseSqlprojRuleOverrides(projectProps.sqlCodeAnalysisRules);
+                return {
+                    rules: dacfxStaticRules.map((rule) => {
+                        const overrideSeverity = overrides.get(rule.shortRuleId);
+                        if (overrideSeverity === undefined) {
+                            return rule;
+                        }
+                        return {
+                            ...rule,
+                            severity: overrideSeverity,
+                            enabled: overrideSeverity !== CodeAnalysisRuleSeverity.Disabled,
+                        };
+                    }),
+                };
+            } else if (projectProps?.success === false) {
+                // Retrieval failed — fall back to DacFx defaults and surface a warning
+                // so the user understands why their saved overrides weren't applied.
+                const detail = projectProps.errorMessage;
+                this.sendError(
+                    TelemetryActions.CodeAnalysisRulesLoadError,
+                    new Error(detail ?? Loc.failedToLoadOverrides),
+                );
+                return {
+                    rules: dacfxStaticRules,
+                    message: {
+                        message: detail
+                            ? `${Loc.failedToLoadOverrides}: ${detail}`
+                            : Loc.failedToLoadOverrides,
+                        intent: "warning",
+                    } as DialogMessageSpec,
+                };
+            } else {
+                // success: true but no sqlCodeAnalysisRules — no overrides saved, use DacFx defaults.
+                return { rules: dacfxStaticRules };
+            }
+        } catch (propsError) {
+            // Fall back to DacFx defaults and show a non-blocking warning so the
+            // dialog is still usable even if the .sqlproj can't be read.
+            this.sendError(
+                TelemetryActions.CodeAnalysisRulesLoadError,
+                propsError instanceof Error ? propsError : new Error(getErrorMessage(propsError)),
+            );
+            return {
+                rules: dacfxStaticRules,
+                message: {
+                    message: `${Loc.failedToLoadOverrides}: ${getErrorMessage(propsError)}`,
+                    intent: "warning",
+                } as DialogMessageSpec,
+            };
+        }
     }
 
     /**
@@ -140,31 +277,36 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             this.updateState();
 
             // Get the static code analysis rules from dacfx
-            const rules = await this.fetchRulesFromDacFx();
+            const dacfxStaticRules = await this.fetchRulesFromDacFx();
 
-            this.state.rules = rules;
+            // Load saved overrides from the .sqlproj and apply them.
+            // Isolated in its own method so a failure here doesn't discard the DacFx rules.
+            const overrideResult = await this.applyProjectOverrides(dacfxStaticRules);
+            this.state.rules = overrideResult.rules;
+            this.state.dacfxStaticRules = dacfxStaticRules;
+            this.state.message = overrideResult.message;
             this.state.isLoading = false;
             this.updateState();
 
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisRulesLoaded, {
-                ruleCount: rules.length.toString(),
+                operationId: this._operationId,
+                ruleCount: dacfxStaticRules.length.toString(),
                 categoryCount: new Set(
-                    rules.filter((rule) => rule.category).map((rule) => rule.category),
+                    dacfxStaticRules.filter((rule) => rule.category).map((rule) => rule.category),
                 ).size.toString(),
             });
         } catch (error) {
             this.state.isLoading = false;
+            this.logger.error(`Failed to load code analysis rules: ${getErrorMessage(error)}`);
             this.state.message = {
                 message: getErrorMessage(error),
                 intent: "error",
             } as DialogMessageSpec;
             this.updateState();
 
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
+            this.sendError(
                 TelemetryActions.CodeAnalysisRulesLoadError,
                 error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
             );
         }
     }
