@@ -5,13 +5,6 @@ steps:
       version: 22.x
 
   - pwsh: |
-      Write-Host "Installing Yarn"
-      npm install --global yarn@1.22.19
-      Write-Host "Installing VSCE"
-      npm install --global vsce@2.9.2
-    displayName: Install toolchain
-
-  - pwsh: |
       yarn --frozen-lockfile
     displayName: SqlProj - Install extension depedencies
     workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
