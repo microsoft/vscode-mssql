@@ -112,28 +112,23 @@ export class BuildHelper {
         nugetFolderWithExpectedfiles: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<boolean> {
-        let missingNuget = false;
-
         const fullNugetName = `${nugetName}.${nugetVersion}`;
         const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
 
-        // check if the correct nuget version has been previously downloaded before checking if the files exist.
-        // TODO: handle when multiple nugets are in the BuildDirectory and a user wants to switch back to an older one - probably should
-        // remove other versions of this nuget when a new one is downloaded
-        if (await utils.exists(fullNugetPath)) {
-            // if it does exist, make sure all the necessary files are also in the BuildDirectory
-            for (const fileName of expectedFiles) {
-                if (!(await utils.exists(path.join(this.extensionBuildDir, fileName)))) {
-                    missingNuget = true;
-                    break;
-                }
+        // Check whether all required files are already present in the BuildDirectory.
+        // This covers both pre-bundled DLLs (shipped in the VSIX) and previously downloaded/extracted files.
+        // We do not require the .nupkg sentinel to be present — the DLLs themselves are the source of truth.
+        // TODO: handle when multiple versions of this nuget are in the BuildDirectory and a user wants to
+        // switch back to an older one - probably should remove other versions when a new one is downloaded.
+        let missingFiles = false;
+        for (const fileName of expectedFiles) {
+            if (!(await utils.exists(path.join(this.extensionBuildDir, fileName)))) {
+                missingFiles = true;
+                break;
             }
-        } else {
-            // if the nuget isn't there, it needs to be downloaded and the build dlls extracted
-            missingNuget = true;
         }
 
-        if (!missingNuget) {
+        if (!missingFiles) {
             return true;
         }
 
@@ -150,7 +145,9 @@ export class BuildHelper {
                 outputChannel,
             );
         } catch (e) {
-            void vscode.window.showErrorMessage(e);
+            const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
+            outputChannel.appendLine(`${utils.getErrorMessage(e)}\n${helpMessage}`);
+            void vscode.window.showErrorMessage(helpMessage);
             return false;
         }
 

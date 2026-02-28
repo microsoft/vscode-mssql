@@ -884,6 +884,13 @@ export const downloading = l10n.t("Downloading");
 //#endregion
 
 //#region buildHelper
+export function nugetDownloadFailedHelp(buildDirPath: string): string {
+    return l10n.t(
+        "Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}",
+        buildDirPath,
+    );
+}
+
 export function downloadingNuget(nuget: string) {
     return l10n.t("Downloading {0} nuget to get build DLLs ", nuget);
 }
