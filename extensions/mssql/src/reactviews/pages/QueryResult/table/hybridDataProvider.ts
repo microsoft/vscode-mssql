@@ -108,36 +108,39 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
         this._asyncDataProvider.length = value;
     }
 
-    public async filter(columns: FilterableColumn<T>[]) {
+    public async filter(columns: FilterableColumn<T>[]): Promise<boolean> {
         if (this.thresholdReached) {
             await this.queryResultContext.extensionRpc.sendRequest(
                 ShowFilterDisabledMessageRequest.type,
             );
-            return;
+            return false;
         }
         await this.initializeCacheIfNeeded();
-        void this.provider.filter(columns);
+        await this.provider.filter(columns);
+        return true;
     }
 
-    public async sort(options: Slick.OnSortEventArgs<T>) {
+    public async sort(options: Slick.OnSortEventArgs<T>): Promise<boolean> {
         if (this.thresholdReached) {
             await this.queryResultContext.extensionRpc.sendRequest(
                 ShowFilterDisabledMessageRequest.type,
             );
-            return;
+            return false;
         }
         await this.initializeCacheIfNeeded();
-        void this.provider.sort(options);
+        await this.provider.sort(options);
+        return true;
     }
 
-    public async resetSort() {
+    public async resetSort(): Promise<boolean> {
         if (this.thresholdReached) {
             await this.queryResultContext.extensionRpc.sendRequest(
                 ShowFilterDisabledMessageRequest.type,
             );
-            return;
+            return false;
         }
-        void this.provider.resetSort();
+        await this.provider.resetSort();
+        return true;
     }
 
     private get thresholdReached(): boolean {

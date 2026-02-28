@@ -152,7 +152,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         return this._filterEnabled;
     }
 
-    public async filter(columns?: Slick.Column<T>[]) {
+    public async filter(columns?: Slick.Column<T>[]): Promise<boolean> {
         if (!this.filterEnabled) {
             this._allData = new Array(...this._data);
             this._filterEnabled = true;
@@ -167,6 +167,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         } else {
             // this._onFilterStateChange.fire();
         }
+        return true;
     }
 
     public async clearFilter() {
@@ -192,7 +193,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         }
     }
 
-    async sort(args: Slick.OnSortEventArgs<T>): Promise<void> {
+    async sort(args: Slick.OnSortEventArgs<T>): Promise<boolean> {
         if (this._resetSortData.length === 0) {
             this._resetSortData.push(...this._data);
         }
@@ -203,13 +204,14 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
             sortDirection: args.sortAsc ? SortProperties.ASC : SortProperties.DESC,
         };
         // this._onSortComplete.fire(args);
+        return true;
     }
 
     // Need to consider multiple scenarios:
     // 1. filter is enabled then sort & unsort,
     // 2. filter is not enabled, sort, then enable filter & unsort
     // 3. filter is enabled then sort, and then disabled
-    async resetSort(): Promise<void> {
+    async resetSort(): Promise<boolean> {
         // Check if the current data set is larger than the original data set.
         // If it is, we need to use the full data set and re-apply the current filters.
         if (this._data.length > this._resetSortData.length) {
@@ -224,6 +226,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         this._currentColumnSort = undefined;
         this._resetSortData = [];
         // this._resetDataUnfiltered = [];
+        return true;
     }
 
     getLength(): number {

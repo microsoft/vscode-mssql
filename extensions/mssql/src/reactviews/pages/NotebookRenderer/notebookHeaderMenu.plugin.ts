@@ -204,6 +204,32 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
             nextSort = SortProperties.NONE;
         }
 
+        // Apply sort via data provider; bail out if the operation was rejected (e.g., threshold exceeded)
+        const dataView = this._grid.getData();
+        if (instanceOfIDisposableDataProvider<T>(dataView)) {
+            if (nextSort === SortProperties.ASC || nextSort === SortProperties.DESC) {
+                const sortApplied = await dataView.sort({
+                    grid: this._grid,
+                    multiColumnSort: false,
+                    sortCol: column,
+                    sortAsc: nextSort === SortProperties.ASC,
+                });
+                if (!sortApplied) {
+                    return;
+                }
+                this._grid.setSortColumn(columnId, nextSort === SortProperties.ASC);
+            } else {
+                const resetApplied = await dataView.resetSort();
+                if (!resetApplied) {
+                    return;
+                }
+                this._grid.setSortColumn("", false);
+            }
+            this._grid.invalidateAllRows();
+            this._grid.updateRowCount();
+            this._grid.render();
+        }
+
         // Clear previous sort column's state
         if (this._currentSortColumn && this._currentSortColumn !== columnId) {
             this._columnSortStateMapping.set(this._currentSortColumn, SortProperties.NONE);
@@ -212,26 +238,6 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
 
         this._columnSortStateMapping.set(columnId, nextSort);
         this._currentSortColumn = nextSort === SortProperties.NONE ? "" : columnId;
-
-        // Apply sort via data provider
-        const dataView = this._grid.getData();
-        if (instanceOfIDisposableDataProvider<T>(dataView)) {
-            if (nextSort === SortProperties.ASC || nextSort === SortProperties.DESC) {
-                await dataView.sort({
-                    grid: this._grid,
-                    multiColumnSort: false,
-                    sortCol: column,
-                    sortAsc: nextSort === SortProperties.ASC,
-                });
-                this._grid.setSortColumn(columnId, nextSort === SortProperties.ASC);
-            } else {
-                dataView.resetSort();
-                this._grid.setSortColumn("", false);
-            }
-            this._grid.invalidateAllRows();
-            this._grid.updateRowCount();
-            this._grid.render();
-        }
 
         this.updateSortIcon(columnId, nextSort);
         this.onSortChanged.notify(nextSort);
@@ -532,10 +538,16 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
     }
 
     private async applyFilter(column: FilterableColumn<T>, selected: string[]): Promise<void> {
+        const previousFilterValues = column.filterValues;
         column.filterValues = selected;
         const dataView = this._grid.getData();
         if (instanceOfIDisposableDataProvider<T>(dataView)) {
-            await dataView.filter(this._grid.getColumns());
+            const filterApplied = await dataView.filter(this._grid.getColumns());
+            if (!filterApplied) {
+                // Restore previous filter values since the operation was rejected
+                column.filterValues = previousFilterValues;
+                return;
+            }
             this._grid.invalidateAllRows();
             this._grid.updateRowCount();
             this._grid.render();
