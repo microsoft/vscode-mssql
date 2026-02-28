@@ -350,27 +350,22 @@ export interface FilterStateChangedParams {
 }
 
 /**
- * Comparator for sorting profiler grid rows by a specific field.
+ * Comparator for sorting two values with a given sort direction.
  * Handles string, number, and undefined comparisons.
  *
  * Undefined/empty values are always pushed to the end
  * regardless of sort direction.
  *
- * @param a - First row
- * @param b - Second row
- * @param sortField - The field name to sort by
+ * @param valA - First value to compare
+ * @param valB - Second value to compare
  * @param sortDir - The sort direction (ASC or DESC)
  * @returns Negative if a < b, positive if a > b, 0 if equal
  */
 export function profilerSortComparator(
-    a: Record<string, unknown>,
-    b: Record<string, unknown>,
-    sortField: string,
+    valA: unknown,
+    valB: unknown,
     sortDir: SortDirection,
 ): number {
-    const valA = a[sortField];
-    const valB = b[sortField];
-
     // Handle undefined/empty — push them to the end regardless of direction
     const aIsEmpty = valA === undefined || valA === "";
     const bIsEmpty = valB === undefined || valB === "";
@@ -418,7 +413,7 @@ export function createDataViewSortFn(
         };
     }
 
-    return (a, b) => profilerSortComparator(a, b, sort.field, sort.direction);
+    return (a, b) => profilerSortComparator(a[sort.field], b[sort.field], sort.direction);
 }
 
 /**

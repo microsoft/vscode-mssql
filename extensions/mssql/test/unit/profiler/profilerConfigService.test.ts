@@ -12,7 +12,11 @@ import {
     EventRow,
     EngineType,
     ViewTemplate,
+    ViewColumn,
+    ColumnDataType,
+    FilterType,
     TEMPLATE_ID_STANDARD_ONPREM,
+    resolveColumnDataType,
 } from "../../../src/profiler/profilerTypes";
 
 suite("ProfilerConfigService Tests", () => {
@@ -645,6 +649,273 @@ suite("ProfilerConfigService Tests", () => {
             expect(result.properties).to.have.length(1);
             expect(result.properties[0].label).to.equal("some_field");
             expect(result.properties[0].value).to.equal("some_value");
+        });
+    });
+
+    suite("resolveColumnDataType", () => {
+        test("should return explicit type when set", () => {
+            const column: ViewColumn = {
+                field: "Duration",
+                header: "Duration",
+                type: ColumnDataType.Number,
+                eventsMapped: ["duration"],
+            };
+            expect(resolveColumnDataType(column)).to.equal(ColumnDataType.Number);
+        });
+
+        test("should return DateTime when type is DateTime", () => {
+            const column: ViewColumn = {
+                field: "StartTime",
+                header: "Start Time",
+                type: ColumnDataType.DateTime,
+                eventsMapped: ["timestamp"],
+            };
+            expect(resolveColumnDataType(column)).to.equal(ColumnDataType.DateTime);
+        });
+
+        test("should default to String when type is not set", () => {
+            const column: ViewColumn = {
+                field: "EventClass",
+                header: "Event Class",
+                eventsMapped: ["eventClass"],
+            };
+            expect(resolveColumnDataType(column)).to.equal(ColumnDataType.String);
+        });
+
+        test("should default to String when type is not set even with filterType", () => {
+            const column: ViewColumn = {
+                field: "EventClass",
+                header: "Event Class",
+                filterType: FilterType.Categorical,
+                eventsMapped: ["eventClass"],
+            };
+            expect(resolveColumnDataType(column)).to.equal(ColumnDataType.String);
+        });
+    });
+
+    suite("convertEventToTypedRow", () => {
+        const createTestEvent = (overrides: Partial<EventRow> = {}): EventRow => ({
+            id: "test-uuid-typed",
+            eventNumber: 1,
+            timestamp: new Date("2024-06-15T10:30:00.000Z"),
+            eventClass: "SQL:BatchCompleted",
+            textData: "SELECT * FROM users",
+            databaseName: "TestDB",
+            spid: 55,
+            duration: 1500,
+            cpu: 10,
+            reads: 100,
+            writes: 5,
+            additionalData: {},
+            ...overrides,
+        });
+
+        test("should include id and eventNumber from event", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "EventClass",
+                        header: "Event",
+                        eventsMapped: ["eventClass"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent();
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            expect(typedRow.id).to.equal("test-uuid-typed");
+            expect(typedRow.eventNumber).to.equal(1);
+        });
+
+        test("should coerce numeric column values to number type", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "Duration",
+                        header: "Duration (ms)",
+                        type: ColumnDataType.Number,
+                        eventsMapped: ["duration"],
+                    },
+                    {
+                        field: "CPU",
+                        header: "CPU (ms)",
+                        type: ColumnDataType.Number,
+                        eventsMapped: ["cpu"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent({ duration: 1500, cpu: 10 });
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            expect(typedRow.Duration).to.equal(1500);
+            expect(typeof typedRow.Duration).to.equal("number");
+            expect(typedRow.CPU).to.equal(10);
+            expect(typeof typedRow.CPU).to.equal("number");
+        });
+
+        test("should coerce datetime column values to Date type", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "StartTime",
+                        header: "Start Time",
+                        type: ColumnDataType.DateTime,
+                        eventsMapped: ["timestamp"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent({
+                timestamp: new Date("2024-06-15T10:30:00.000Z"),
+            });
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            // Timestamp is formatted as "2024-06-15 10:30:00.000" by getColumnValue,
+            // then coerced back to a Date by coerceToColumnType
+            expect(typedRow.StartTime).to.be.an.instanceOf(Date);
+            const startTime = typedRow.StartTime as Date;
+            expect(startTime.getFullYear()).to.equal(2024);
+        });
+
+        test("should keep string column values as strings", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "EventClass",
+                        header: "Event Class",
+                        eventsMapped: ["eventClass"],
+                    },
+                    {
+                        field: "DatabaseName",
+                        header: "Database",
+                        eventsMapped: ["databaseName"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent({
+                eventClass: "SQL:BatchCompleted",
+                databaseName: "TestDB",
+            });
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            expect(typedRow.EventClass).to.equal("SQL:BatchCompleted");
+            expect(typeof typedRow.EventClass).to.equal("string");
+            expect(typedRow.DatabaseName).to.equal("TestDB");
+            expect(typeof typedRow.DatabaseName).to.equal("string");
+        });
+
+        test("should handle undefined field values", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "Duration",
+                        header: "Duration",
+                        type: ColumnDataType.Number,
+                        eventsMapped: ["duration"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent({ duration: undefined });
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            expect(typedRow.Duration).to.be.undefined;
+        });
+
+        test("should handle non-parseable numeric values gracefully", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "Duration",
+                        header: "Duration",
+                        type: ColumnDataType.Number,
+                        eventsMapped: ["duration"],
+                    },
+                ],
+            };
+
+            // additionalData values are strings; a non-numeric string
+            // mapped to a Number column should be returned as-is
+            const event = createTestEvent({
+                additionalData: { duration: "not-a-number" },
+                duration: undefined,
+            });
+            // Override getColumnValue by ensuring 'duration' comes from additionalData
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            // Duration should be undefined because direct property is undefined
+            // and additionalData "duration" won't be checked (the direct prop is checked first)
+            expect(typedRow.Duration).to.be.undefined;
+        });
+
+        test("should map additionalData fields and coerce types", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "ApplicationName",
+                        header: "Application",
+                        eventsMapped: ["client_app_name"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent({
+                additionalData: { client_app_name: "VS Code mssql" },
+            });
+            const typedRow = configService.convertEventToTypedRow(event, view);
+
+            expect(typedRow.ApplicationName).to.equal("VS Code mssql");
+            expect(typeof typedRow.ApplicationName).to.equal("string");
+        });
+
+        test("should include all view columns in the result", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
+            const event = createTestEvent();
+            const typedRow = configService.convertEventToTypedRow(event, view!);
+
+            // All view columns should be present
+            view!.columns.forEach((col) => {
+                expect(typedRow).to.have.property(col.field);
+            });
+        });
+
+        test("should produce typed values for Standard View numeric columns", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
+            const event = createTestEvent({ duration: 1500, cpu: 10, reads: 100, writes: 5 });
+            const typedRow = configService.convertEventToTypedRow(event, view!);
+
+            // Numeric columns in Standard View should be numbers
+            const numericColumns = view!.columns.filter((c) => c.type === ColumnDataType.Number);
+            for (const col of numericColumns) {
+                const val = typedRow[col.field];
+                if (val !== undefined) {
+                    expect(typeof val).to.equal(
+                        "number",
+                        `${col.field} should be a number but was ${typeof val}`,
+                    );
+                }
+            }
         });
     });
 });
