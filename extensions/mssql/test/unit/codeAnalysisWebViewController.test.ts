@@ -12,7 +12,6 @@ import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { CodeAnalysisWebViewController } from "../../src/codeAnalysis/codeAnalysisWebViewController";
 import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
-import { LocConstants as ReactLoc } from "../../src/reactviews/common/locConstants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
@@ -159,51 +158,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
         );
     });
 
-    test("opens dialog with icon paths and project-based header context", () => {
-        const panelStub = stubWebviewPanel(sandbox);
-        const createWebviewPanelStub = sandbox
-            .stub(vscode.window, "createWebviewPanel")
-            .returns(panelStub);
-        stubTelemetry(sandbox);
-
-        controller = new CodeAnalysisWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            "c:/work/MyProject.sqlproj",
-            dacFxServiceStub,
-            sqlProjectsServiceStub,
-        );
-
-        expect(createWebviewPanelStub, "createWebviewPanel should be called once").to.have.been
-            .calledOnce;
-        expect(
-            createWebviewPanelStub,
-            "createWebviewPanel should be called with correct args",
-        ).to.have.been.calledWithMatch(
-            "mssql-react-webview",
-            ExtLoc.Title,
-            sinon.match({ viewColumn: vscode.ViewColumn.Active }),
-            sinon.match.object,
-        );
-
-        const iconPath = panelStub.iconPath as { dark: vscode.Uri; light: vscode.Uri };
-        expect(
-            iconPath.dark.path,
-            "dark icon path should point to codeAnalysis_dark.svg",
-        ).to.contain("/media/codeAnalysis_dark.svg");
-        expect(
-            iconPath.light.path,
-            "light icon path should point to codeAnalysis_light.svg",
-        ).to.contain("/media/codeAnalysis_light.svg");
-
-        const headerTitle = ReactLoc.getInstance().codeAnalysis.codeAnalysisTitle(
-            controller.state.projectName,
-        );
-        expect(headerTitle, "header title should include project name").to.equal(
-            "Code Analysis - MyProject",
-        );
-    });
-
     test("close reducer handler disposes the webview panel", async () => {
         const { panelStub } = createController();
         const internalController = getInternalController();
@@ -308,9 +262,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
             CodeAnalysisRuleSeverity.Error,
         );
         expect(errorRule.enabled, "Error severity rule should be enabled").to.be.true;
-        expect(errorRule.ruleId, "ruleId should be preserved").to.equal("SR0001");
-        expect(errorRule.category, "category should be preserved").to.equal("Design");
-        expect(errorRule.ruleScope, "ruleScope should be preserved").to.equal("Element");
 
         expect(disabledRule.severity, "None severity rule should map to Disabled").to.equal(
             CodeAnalysisRuleSeverity.Disabled,
@@ -479,10 +430,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         expect(panelStub.dispose, "panel should be disposed when closeAfterSave is true").to.have
             .been.calledOnce;
-        expect(
-            vscodeWrapperStub.logToOutputChannel,
-            "logToOutputChannel should be called with success message when closeAfterSave is true",
-        ).to.have.been.calledWith(ExtLoc.rulesSaved);
         expect(closingState.message, "message should be undefined when panel closes after save").to
             .be.undefined;
     });

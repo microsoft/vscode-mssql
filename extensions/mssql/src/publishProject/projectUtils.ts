@@ -441,7 +441,7 @@ export function parseSqlprojRuleOverrides(rulesString: string): Map<string, stri
             rawId = t.substring(2);
         } else if (t.startsWith("-")) {
             severity = CodeAnalysisRuleSeverity.Disabled;
-            rawId = t.replace(/^-!?/, "");
+            rawId = t.startsWith("-!") ? t.substring(2) : t.substring(1);
         } else {
             severity = CodeAnalysisRuleSeverity.Warning;
             rawId = t;

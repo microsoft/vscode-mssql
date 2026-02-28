@@ -161,6 +161,7 @@ export const CodeAnalysisDialog = () => {
     const [localRules, setLocalRules] = useState<SqlCodeAnalysisRule[]>(rules);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
     const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+    const [showResetConfirmDialog, setShowResetConfirmDialog] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     // Remembers per-category severities before a category is fully disabled,
     // so they can be restored when the category is re-enabled.
@@ -445,24 +446,13 @@ export const CodeAnalysisDialog = () => {
             <div className={styles.footer}>
                 <Text className={styles.statusText}>{loc.rulesCount(localRules?.length ?? 0)}</Text>
                 <div className={styles.footerButtons}>
-                    {/* Reset button with co-located confirm dialog */}
-                    <ConfirmationDialog
-                        trigger={
-                            <Button appearance="subtle" disabled={isLoading || isSaving}>
-                                {loc.reset}
-                            </Button>
-                        }
-                        title={loc.resetConfirmTitle}
-                        message={loc.resetConfirmMessage}
-                        actions={[
-                            {
-                                label: loc.reset,
-                                appearance: "primary",
-                                onClick: resetToDefaults,
-                            },
-                        ]}
-                        cancelLabel={commonLoc.cancel}
-                    />
+                    {/* Reset button */}
+                    <Button
+                        appearance="subtle"
+                        disabled={isLoading || isSaving}
+                        onClick={() => setShowResetConfirmDialog(true)}>
+                        {loc.reset}
+                    </Button>
                     <Button
                         appearance="secondary"
                         disabled={isSaving}
@@ -492,7 +482,22 @@ export const CodeAnalysisDialog = () => {
                 </div>
             </div>
 
-            {/* Unsaved changes confirmation dialog (controlled — triggered conditionally on isDirty) */}
+            {/* Confirmation dialog: Reset to defaults */}
+            <ConfirmationDialog
+                open={showResetConfirmDialog}
+                onClose={() => setShowResetConfirmDialog(false)}
+                title={loc.resetConfirmTitle}
+                message={loc.resetConfirmMessage}
+                actions={[
+                    {
+                        label: loc.reset,
+                        appearance: "primary",
+                        onClick: resetToDefaults,
+                    },
+                ]}
+                cancelLabel={commonLoc.cancel}
+            />
+            {/* Confirmation dialog: Unsaved changes on close */}
             <ConfirmationDialog
                 open={showUnsavedChangesDialog}
                 onClose={() => setShowUnsavedChangesDialog(false)}

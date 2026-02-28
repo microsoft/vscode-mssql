@@ -38,25 +38,15 @@ export interface ConfirmationDialogProps {
     onCancel?: () => void;
     /** Width of the dialog surface, e.g. "600px". Defaults to Fluent UI's built-in size. */
     width?: string;
-    /**
-     * Controlled mode: the caller owns the open state.
-     * When omitted the dialog uses uncontrolled mode via `trigger`.
-     */
-    open?: boolean;
+    /** Whether the dialog is open. */
+    open: boolean;
+    /** Called when the dialog requests to be closed (Escape, backdrop, action buttons). */
     onClose?: () => void;
-    /**
-     * Uncontrolled mode: the element that opens the dialog.
-     * Rendered as a `DialogTrigger` so no external state is needed.
-     */
-    trigger?: React.ReactElement;
 }
 
 /**
- * A generic confirmation dialog that supports both:
- *  - **Uncontrolled** (pass `trigger`): the trigger button and dialog are co-located;
- *    no `open`/`onClose` state needed in the parent.
- *  - **Controlled** (pass `open` + `onClose`): the caller drives visibility,
- *    e.g. when the dialog should only appear under certain conditions.
+ * A generic confirmation dialog. The caller owns the open state — pass `open`
+ * and toggle it from the outside to show/hide the dialog.
  *
  * Every action button (including the optional cancel) automatically closes
  * the dialog via `DialogTrigger action="close"`.
@@ -71,7 +61,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     width,
     open,
     onClose,
-    trigger,
 }) => {
     const surface = (
         <DialogSurface style={width ? { width, maxWidth: width } : undefined}>
@@ -103,23 +92,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </DialogSurface>
     );
 
-    // Uncontrolled: trigger and dialog are co-located; no external state needed.
-    if (open === undefined && React.isValidElement(trigger)) {
-        return (
-            <Dialog
-                inertTrapFocus
-                onOpenChange={(_e: unknown, data: { open: boolean }) => {
-                    if (!data.open) {
-                        onClose?.();
-                    }
-                }}>
-                <DialogTrigger disableButtonEnhancement>{trigger}</DialogTrigger>
-                {surface}
-            </Dialog>
-        );
-    }
-
-    // Controlled: caller drives open/close via props.
     return (
         <Dialog
             inertTrapFocus
