@@ -50,25 +50,46 @@ export function convertDisplayedSelectionToActual(
         return selections;
     }
 
-    for (const selection of selections) {
-        const actualRows = new Set<number>();
+    // Normalize to top-left display order so copy output follows visual grid order,
+    // regardless of the order ranges were added to the selection model.
+    const orderedSelections = [...selections].sort((a, b) => {
+        if (a.fromRow !== b.fromRow) {
+            return a.fromRow - b.fromRow;
+        }
+        if (a.fromCell !== b.fromCell) {
+            return a.fromCell - b.fromCell;
+        }
+        if (a.toRow !== b.toRow) {
+            return a.toRow - b.toRow;
+        }
+        return a.toCell - b.toCell;
+    });
+
+    for (const selection of orderedSelections) {
+        // Build an ordered list of actual row indices, preserving display order.
+        // We must NOT sort these, because the display order (which reflects any
+        // user-applied sort/filter) is the order the backend should produce output in.
+        const actualRowsInDisplayOrder: number[] = [];
 
         for (let displayRow = selection.fromRow; displayRow <= selection.toRow; displayRow++) {
             const actualRow = getActualRowIndex(grid, displayRow);
-            actualRows.add(actualRow ?? displayRow);
+            actualRowsInDisplayOrder.push(actualRow ?? displayRow);
         }
 
-        const orderedRows = Array.from(actualRows.values()).sort((a, b) => a - b);
-        if (orderedRows.length === 0) {
+        if (actualRowsInDisplayOrder.length === 0) {
             continue;
         }
 
-        let rangeStart = orderedRows[0];
-        let previous = orderedRows[0];
+        let rangeStart = actualRowsInDisplayOrder[0];
+        let previous = actualRowsInDisplayOrder[0];
 
-        for (let i = 1; i < orderedRows.length; i++) {
-            const current = orderedRows[i];
-            if (current <= previous + 1) {
+        for (let i = 1; i < actualRowsInDisplayOrder.length; i++) {
+            const current = actualRowsInDisplayOrder[i];
+            // Only extend the current range when the next actual row is
+            // exactly one more than the previous (consecutive ascending).
+            // This preserves display order by NOT merging rows that are
+            // only adjacent in the underlying data but not in display order.
+            if (current === previous + 1) {
                 previous = current;
                 continue;
             }
