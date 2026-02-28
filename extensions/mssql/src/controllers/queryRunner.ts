@@ -92,6 +92,7 @@ export const editorEol =
  * and handles getting more rows from the service layer and disposing when the content is closed.
  */
 export default class QueryRunner {
+    private static readonly _subsetRowsPageSize = 500;
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
@@ -636,12 +637,6 @@ export default class QueryRunner {
         batchIndex: number,
         resultSetIndex: number,
     ): Promise<QueryExecuteSubsetResult> {
-        let queryDetails = new QueryExecuteSubsetParams();
-        queryDetails.ownerUri = this.uri;
-        queryDetails.resultSetIndex = resultSetIndex;
-        queryDetails.rowsCount = numberOfRows;
-        queryDetails.rowsStartIndex = rowStart;
-        queryDetails.batchIndex = batchIndex;
         const rowsFetchActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.GetResultRowsSubset,
@@ -653,21 +648,48 @@ export default class QueryRunner {
             true, // Include call stack
         );
         try {
-            const queryExecuteSubsetResult = await this._client.sendRequest(
-                QueryExecuteSubsetRequest.type,
-                queryDetails,
-            );
-            if (queryExecuteSubsetResult) {
-                rowsFetchActivity?.end(ActivityStatus.Succeeded);
-                return queryExecuteSubsetResult;
+            const rows: QueryExecuteSubsetResult["resultSubset"]["rows"] = [];
+            const requestedRowEndExclusive = rowStart + numberOfRows;
+            let currentRowStart = rowStart;
+
+            while (currentRowStart < requestedRowEndExclusive) {
+                const rowsRemaining = requestedRowEndExclusive - currentRowStart;
+                const rowsToFetch = Math.min(QueryRunner._subsetRowsPageSize, rowsRemaining);
+                const queryDetails = new QueryExecuteSubsetParams();
+                queryDetails.ownerUri = this.uri;
+                queryDetails.resultSetIndex = resultSetIndex;
+                queryDetails.rowsCount = rowsToFetch;
+                queryDetails.rowsStartIndex = currentRowStart;
+                queryDetails.batchIndex = batchIndex;
+
+                const pageResult = await this._client.sendRequest(
+                    QueryExecuteSubsetRequest.type,
+                    queryDetails,
+                );
+                const pageRows = pageResult?.resultSubset?.rows ?? [];
+                rows.push(...pageRows);
+
+                // Guard against unexpected empty pages to avoid infinite loops.
+                if (pageRows.length === 0) {
+                    break;
+                }
+                currentRowStart += pageRows.length;
             }
+
+            rowsFetchActivity?.end(ActivityStatus.Succeeded);
+            return {
+                resultSubset: {
+                    rows,
+                    rowCount: rows.length,
+                },
+            };
         } catch (error) {
             // TODO: Localize
             this._vscodeWrapper.showErrorMessage(
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
-            void Promise.reject(error);
             rowsFetchActivity?.endFailed(error, false);
+            throw error;
         }
     }
 
