@@ -470,7 +470,7 @@ suite("Query Runner tests", () => {
         queryRunner.uri = testuri;
 
         const result = await queryRunner.getRows(0, 5, 0, 0);
-        expect(result).to.equal(testresult);
+        expect(result).to.deep.equal(testresult);
     });
 
     test("Correctly handles error from subset request", async () => {
@@ -484,8 +484,14 @@ suite("Query Runner tests", () => {
 
         let queryRunner = createQueryRunner(testuri, testuri);
         queryRunner.uri = testuri;
-        await queryRunner.getRows(0, 5, 0, 0);
+        const result = await queryRunner.getRows(0, 5, 0, 0);
         expect(testVscodeWrapper.showErrorMessage as sinon.SinonStub).to.have.been.calledOnce;
+        expect(result).to.deep.equal({
+            resultSubset: {
+                rows: [],
+                rowCount: 0,
+            },
+        });
     });
 
     test("Toggle SQLCMD Mode sends request", async () => {
