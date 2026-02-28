@@ -107,7 +107,7 @@
         "@vscode/l10n-dev": "^0.0.35",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
-        "@vscode/vsce": "^3.1.1",
+        "@vscode/vsce": "^3.7.1",
         "@xyflow/react": "^12.4.4",
         "assert": "^1.4.1",
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
@@ -1450,7 +1450,7 @@
                 "command": "mssql.runQuery",
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
             },
             {
                 "command": "mssql.connect",
