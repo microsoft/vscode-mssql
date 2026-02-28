@@ -689,7 +689,12 @@ export default class QueryRunner {
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             rowsFetchActivity?.endFailed(error, false);
-            throw error;
+            return {
+                resultSubset: {
+                    rows: [],
+                    rowCount: 0,
+                },
+            };
         }
     }
 
