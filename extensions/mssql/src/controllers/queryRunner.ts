@@ -52,7 +52,7 @@ import {
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
@@ -1014,7 +1014,7 @@ export default class QueryRunner {
         };
 
         // create a new request and cancel any in-flight run
-        this._requestID = Utils.generateGuid();
+        this._requestID = uuid();
         const requestId = this._requestID;
         this._cancelConfirmation?.resolve();
         this._cancelConfirmation = undefined;

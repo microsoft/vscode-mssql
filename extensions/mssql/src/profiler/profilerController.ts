@@ -9,7 +9,6 @@ import { Writable } from "stream";
 import * as vscode from "vscode";
 import * as path from "path";
 import ConnectionManager from "../controllers/connectionManager";
-import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { SessionType, SessionState, EngineType, XelFileInfo } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
@@ -23,7 +22,7 @@ import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
@@ -99,7 +98,7 @@ export class ProfilerController {
             }
 
             // Generate a unique URI for this profiler connection
-            const profilerUri = `profiler://${Utils.generateGuid()}`;
+            const profilerUri = `profiler://${uuid()}`;
             this._logger.verbose(`Connecting to ${profileToUse.server} with URI: ${profilerUri}`);
 
             // Connect using the connection manager with the provided profile
@@ -176,7 +175,7 @@ export class ProfilerController {
         );
 
         // Need to connect temporarily to get the list of databases
-        const tempUri = `profiler-temp://${Utils.generateGuid()}`;
+        const tempUri = `profiler-temp://${uuid()}`;
         try {
             const connected = await this._connectionManager.connect(tempUri, connectionProfile);
             if (!connected) {
@@ -271,7 +270,7 @@ export class ProfilerController {
         webviewController: ProfilerWebviewController,
     ): Promise<void> {
         this._logger.verbose(`Starting profiler session: ${sessionName}`);
-        const sessionId = Utils.generateGuid();
+        const sessionId = uuid();
         try {
             if (!this._profilerUri) {
                 this._logger.verbose("No profiler connection available");
@@ -616,7 +615,7 @@ export class ProfilerController {
         );
 
         // Track this webview controller along with its profiler URI for cleanup
-        const webviewId = Utils.generateGuid();
+        const webviewId = uuid();
         const webviewProfilerUri = profilerUri; // Capture for cleanup
         this._webviewControllers.set(webviewId, webviewController);
 
@@ -1007,11 +1006,11 @@ export class ProfilerController {
         this._logger.verbose(`Loading XEL file events for: ${fileInfo.filePath}`);
 
         // Generate a unique URI for this file-based session (not a real connection)
-        const fileSessionUri = `profiler://xelfile/${Utils.generateGuid()}`;
+        const fileSessionUri = `profiler://xelfile/${uuid()}`;
         this._logger.verbose(`Created file session URI: ${fileSessionUri}`);
 
         // Create a ProfilerSession for the file
-        const sessionId = Utils.generateGuid();
+        const sessionId = uuid();
         const session = this._sessionManager.createSession({
             id: sessionId,
             ownerUri: fileSessionUri,

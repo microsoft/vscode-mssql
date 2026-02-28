@@ -18,8 +18,8 @@ import AdsTelemetryReporter, {
 } from "@microsoft/ads-extension-telemetry";
 
 import { IConnectionProfile } from "../models/interfaces";
-import { v4 as uuidv4 } from "uuid";
 import { extensionId } from "../constants/constants";
+import { uuid } from "../utils/utils";
 
 const packageJson = vscode.extensions.getExtension(extensionId).packageJSON;
 
@@ -192,7 +192,7 @@ export function startActivity(
 ): ActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
-        correlationId = uuidv4();
+        correlationId = uuid();
     }
 
     // Capture call stack if requested

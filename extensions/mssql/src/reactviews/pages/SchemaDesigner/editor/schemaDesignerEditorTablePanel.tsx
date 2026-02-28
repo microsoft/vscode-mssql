@@ -32,9 +32,9 @@ import {
     useTableFeatures,
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
-import { v4 as uuidv4 } from "uuid";
 import { columnUtils, namingUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -637,7 +637,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     const addColumn = () => {
         const newColumns = [...context.table.columns];
         newColumns.push({
-            id: uuidv4(),
+            id: uuid(),
             name: namingUtils.getNextColumnName(newColumns),
             dataType: "int",
             isPrimaryKey: newColumns.length === 0, // First column is primary key by default

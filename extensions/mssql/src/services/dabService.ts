@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as crypto from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -28,7 +27,7 @@ import {
 } from "../dab/dabContainer";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 
 /**
  * Localhost addresses that need to be transformed for Docker container access
@@ -276,7 +275,7 @@ export class DabService implements Dab.IDabService {
      */
     private async writeDabConfigToTempFile(configContent: string): Promise<string> {
         // Create a unique temp directory to hold the config file
-        const uniqueTempDir = path.join(os.tmpdir(), `dab-${crypto.randomUUID()}`);
+        const uniqueTempDir = path.join(os.tmpdir(), `dab-${uuid()}`);
         await fs.promises.mkdir(uniqueTempDir, { recursive: true });
 
         // Name the file dab-config.json so it can be copied into the container as-is

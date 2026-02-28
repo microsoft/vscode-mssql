@@ -37,9 +37,8 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
-import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
+import { hasAnyMissingRequiredValues, getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
-import * as Utils from "../models/utils";
 import { ProjectController } from "../controllers/projectController";
 import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../nps/userSurvey";
@@ -1455,7 +1454,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         state: PublishDialogState,
         connectionString: string,
     ): Promise<string | undefined> {
-        const fileUri = `mssql://publish-profile-${Utils.generateGuid()}`;
+        const fileUri = `mssql://publish-profile-${uuid()}`;
 
         // Show loading indicator
         state.loadConnectionStatus = ApiStatus.Loading;

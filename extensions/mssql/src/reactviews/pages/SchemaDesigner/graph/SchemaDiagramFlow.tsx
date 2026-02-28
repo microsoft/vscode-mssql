@@ -68,8 +68,8 @@ import {
     useToastController,
 } from "@fluentui/react-components";
 import eventBus from "../schemaDesignerEvents";
-import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
+import { uuid } from "../../../common/utils";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 import { CopilotReviewToolbar } from "./copilotReviewToolbar";
@@ -381,7 +381,7 @@ export const SchemaDesignerFlow = () => {
             targetNode,
             sourceColumn.id,
             targetColumn.id,
-            uuidv4(),
+            uuid(),
             namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
         );
 

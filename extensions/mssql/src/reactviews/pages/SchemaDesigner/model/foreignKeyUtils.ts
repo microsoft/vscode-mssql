@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Connection, Edge, Node } from "@xyflow/react";
-import { v4 as uuidv4 } from "uuid";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { buildSchemaFromFlowState } from "./schemaFromFlowState";
 import { columnUtils } from "./columnUtils";
 
@@ -234,7 +234,7 @@ export const foreignKeyUtils = {
         existingFkName?: string,
     ): SchemaDesigner.ForeignKey => {
         return {
-            id: existingFkId || uuidv4(),
+            id: existingFkId || uuid(),
             name: existingFkName || `FK_${sourceNode.data.name}_${targetNode.data.name}`,
             columnsIds: [sourceColumnId],
             referencedTableId: targetNode.data.id,

@@ -9,7 +9,6 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { PassThrough } from "stream";
 import * as vscode from "vscode";
-import { v4 as uuidv4 } from "uuid";
 import { ProfilerWebviewController } from "../../../src/profiler/profilerWebviewController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import {
@@ -20,6 +19,7 @@ import {
 } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
 import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
+import { uuid } from "../../../src/utils/utils";
 
 chai.use(sinonChai);
 
@@ -78,7 +78,7 @@ suite("ProfilerWebviewController Tests", () => {
     let nextEventNumber = 1;
     function createTestEvent(overrides: Partial<EventRow> = {}): EventRow {
         return {
-            id: uuidv4(),
+            id: uuid(),
             eventNumber: nextEventNumber++,
             timestamp: new Date(),
             eventClass: "SQL:BatchCompleted",

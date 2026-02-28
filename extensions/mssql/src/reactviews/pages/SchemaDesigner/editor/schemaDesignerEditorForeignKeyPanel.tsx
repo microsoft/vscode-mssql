@@ -30,11 +30,11 @@ import {
     useTableFeatures,
 } from "@fluentui/react-components";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
-import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { foreignKeyUtils, namingUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import * as FluentIcons from "@fluentui/react-icons";
 import {
@@ -587,7 +587,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
 
         const firstTable = availableTables[0];
         const newForeignKey: SchemaDesigner.ForeignKey = {
-            id: uuidv4(),
+            id: uuid(),
             name: namingUtils.getNextForeignKeyName(
                 context.table.foreignKeys,
                 context.schema.tables,
