@@ -8068,9 +8068,9 @@ Consulta: {2}</target>
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">Não é possível abrir o Gerenciador de Tabelas: nenhum nó de destino fornecido.</target>
       </trans-unit>
-      <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
-        <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
-        <target state="translated">Não é possível ler as opções do agente proxy para obter locatários.</target>
+      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
+        <source xml:lang="en">Unable to read proxy agent options.</source>
+        <target state="new">Unable to read proxy agent options.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
