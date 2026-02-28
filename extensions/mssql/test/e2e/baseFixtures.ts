@@ -8,12 +8,11 @@
 import * as fs from "fs";
 import * as path from "path";
 import { test as baseTest, BrowserContext } from "@playwright/test";
-import { uuid } from "../../src/utils/utils";
 
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
-export function generateUUID(): string {
-    return uuid();
+export function uuid(): string {
+    return crypto.randomUUID();
 }
 
 export const test = baseTest.extend<{
@@ -31,7 +30,7 @@ export const test = baseTest.extend<{
         await context.exposeFunction("collectIstanbulCoverage", (coverageJSON: string) => {
             if (coverageJSON) {
                 fs.writeFileSync(
-                    path.join(istanbulCLIOutput, `playwright_coverage_${generateUUID()}.json`),
+                    path.join(istanbulCLIOutput, `playwright_coverage_${uuid()}.json`),
                     coverageJSON,
                 );
             }
