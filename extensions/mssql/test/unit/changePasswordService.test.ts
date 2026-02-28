@@ -17,7 +17,7 @@ import { ChangePasswordRequest } from "../../src/models/contracts/changePassword
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import * as changePasswordWebviewControllerModule from "../../src/controllers/changePasswordWebviewController";
-import * as crypto from "crypto";
+import * as utils from "../../src/utils/utils";
 import { ChangePasswordResult } from "../../src/sharedInterfaces/changePassword";
 
 chai.use(sinonChai);
@@ -83,7 +83,7 @@ suite("ChangePasswordService", () => {
         } as unknown as ReturnType<typeof ConnectionCredentials.createConnectionDetails>;
 
         sandbox.stub(ConnectionCredentials, "createConnectionDetails").returns(connectionDetails);
-        sandbox.stub(crypto, "randomUUID").returns("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+        sandbox.stub(utils, "uuid").returns("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
 
         const expectedResult: ChangePasswordResult = { result: true };
         clientStub.sendRequest.resolves(expectedResult);
