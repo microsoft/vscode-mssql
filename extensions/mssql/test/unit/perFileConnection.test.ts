@@ -535,7 +535,7 @@ suite("Per File Connection Tests", () => {
 function createTestConnectionResult(
     ownerUri?: string,
 ): ConnectionContracts.ConnectionCompleteParams {
-    let result = new ConnectionContracts.ConnectionCompleteParams();
+    const result = new ConnectionContracts.ConnectionCompleteParams();
 
     result.connectionId = uuid();
     result.messages = "";
