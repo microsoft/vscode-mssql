@@ -195,23 +195,15 @@ export class HttpClient {
             throw new Error(`Unable to parse proxy agent options from proxy URL: ${proxy}`);
         }
 
-        let tunnelOptions: tunnel.HttpsOverHttpsOptions;
-        if (typeof agentOptions.auth === "string" && agentOptions.auth) {
-            tunnelOptions = {
-                proxy: {
-                    proxyAuth: agentOptions.auth,
-                    host: agentOptions.host,
-                    port: Number(agentOptions.port),
-                },
-            };
-        } else {
-            tunnelOptions = {
-                proxy: {
-                    host: agentOptions.host,
-                    port: Number(agentOptions.port),
-                },
-            };
-        }
+        const tunnelOptions: tunnel.HttpsOverHttpsOptions = {
+            proxy: {
+                host: agentOptions.host,
+                port: Number(agentOptions.port),
+                ...(agentOptions.auth ? { proxyAuth: agentOptions.auth } : {}),
+                rejectUnauthorized: agentOptions.rejectUnauthorized,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any,
+        };
 
         const isHttpsRequest = requestUrl.startsWith("https");
         const isHttpsProxy = proxy.startsWith("https");
@@ -264,11 +256,20 @@ export class HttpClient {
                 ? `${proxyEndpoint.username}:${proxyEndpoint.password}`
                 : undefined;
 
+        const port =
+            proxyEndpoint.port !== ""
+                ? Number(proxyEndpoint.port)
+                : proxyEndpoint.protocol === "https:"
+                  ? 443
+                  : 80;
+
+        const rejectUnauthorized = typeof strictSSL === "undefined" ? true : strictSSL;
+
         return {
             host: proxyEndpoint.hostname,
-            port: Number(proxyEndpoint.port),
+            port,
             auth,
-            rejectUnauthorized: typeof strictSSL === "boolean",
+            rejectUnauthorized,
         };
     }
 }

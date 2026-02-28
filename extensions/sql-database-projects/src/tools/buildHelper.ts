@@ -146,7 +146,7 @@ export class BuildHelper {
             );
         } catch (e) {
             const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
-            outputChannel.appendLine(helpMessage);
+            outputChannel.appendLine(`${utils.getErrorMessage(e)}\n${helpMessage}`);
             void vscode.window.showErrorMessage(helpMessage);
             return false;
         }
