@@ -70,15 +70,6 @@ export namespace SetDatabaseSchemaProviderRequest {
     >("sqlProjects/setDatabaseSchemaProvider");
 }
 
-export namespace UpdateCodeAnalysisRulesRequest {
-    export const type = new RequestType<
-        mssql.UpdateCodeAnalysisRulesParams,
-        mssql.UpdateCodeAnalysisRulesResult,
-        void,
-        void
-    >("sqlProjects/updateCodeAnalysisRules");
-}
-
 //#endregion
 
 //#region File/folder functions

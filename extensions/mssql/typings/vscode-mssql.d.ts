@@ -803,14 +803,6 @@ declare module "vscode-mssql" {
         ): Promise<ResultStatus>;
 
         /**
-         * Update SQL code analysis settings for a SQL project.
-         * @param params Includes project file path, rule overrides, and optional RunSqlCodeAnalysis setting.
-         */
-        updateCodeAnalysisRules(
-            params: UpdateCodeAnalysisRulesParams,
-        ): Promise<UpdateCodeAnalysisRulesResult>;
-
-        /**
          * Get the cross-platform compatibility status for a project
          * @param projectUri Absolute path of the project, including .sqlproj
          */
@@ -1416,18 +1408,6 @@ declare module "vscode-mssql" {
         rules: CodeAnalysisRuleInfo[];
     }
 
-    export interface CodeAnalysisRuleOverride {
-        ruleId: string;
-        severity: string;
-    }
-
-    export interface UpdateCodeAnalysisRulesParams extends SqlProjectParams {
-        rules: CodeAnalysisRuleOverride[];
-        runSqlCodeAnalysis?: boolean;
-    }
-
-    export interface UpdateCodeAnalysisRulesResult extends ResultStatus {}
-
     export interface ExportParams {
         databaseName: string;
         packageFilePath: string;
@@ -1843,14 +1823,6 @@ declare module "vscode-mssql" {
          * Database Schema Provider, in the format "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
          */
         databaseSchemaProvider: string;
-        /**
-         * Whether SQL code analysis is enabled for the project
-         */
-        runSqlCodeAnalysis: boolean;
-        /**
-         * Serialized code analysis rule overrides (e.g. "+!SR0001;-SR0003"), or null if not set
-         */
-        sqlCodeAnalysisRules?: string;
     }
 
     export interface GetDatabaseReferencesResult extends ResultStatus {
