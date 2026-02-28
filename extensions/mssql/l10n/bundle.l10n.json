@@ -546,10 +546,10 @@
     },
     "Chat": "Chat",
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
-    "New: Chat about your schema": "New: Chat about your schema",
-    "Ask questions about your schema or propose changes.": "Ask questions about your schema or propose changes.",
-    "New: Chat about your API config": "New: Chat about your API config",
-    "Review or update your Data API Builder configuration.": "Review or update your Data API Builder configuration.",
+    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
+    "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
+    "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
+    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -1717,7 +1717,6 @@
         "message": "Provider '{0}' does not have a Microsoft resource endpoint defined.",
         "comment": ["{0} is the provider"]
     },
-    "Unable to read proxy agent options to get tenants.": "Unable to read proxy agent options to get tenants.",
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.": "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
     "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.": "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.",
     "Authentication failed due to a state mismatch, please close ADS and try again.": "Authentication failed due to a state mismatch, please close ADS and try again.",
@@ -3127,6 +3126,7 @@
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
+    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

@@ -788,13 +788,13 @@ export class LocConstants {
             publishChanges: l10n.t("Publish Changes"),
             openCopilotForSchemaDesigner: l10n.t("Chat"),
             openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t("New: Chat about your schema"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
-                "Ask questions about your schema or propose changes.",
+                "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
-            dabCopilotDiscoveryTitle: l10n.t("New: Chat about your API config"),
+            dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
             dabCopilotDiscoveryBody: l10n.t(
-                "Review or update your Data API Builder configuration.",
+                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
             ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
