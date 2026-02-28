@@ -16,12 +16,12 @@ import { isJson } from "../../common/jsonUtils";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
-import { LogCallback } from "../../../sharedInterfaces/webview";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
+import { isXmlCell } from "../../common/xmlUtils";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -347,6 +347,11 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
     if (columnInfo.isXml || columnInfo.isJson) {
         return hyperLinkFormatter;
     }
+
+    // Avoid expensive XML/JSON parsing on every cell render for plain-text columns.
+    let detectionAttempts = 0;
+    const maxDetectionAttempts = 20;
+
     return (
         row: number | undefined,
         cell: any | undefined,
@@ -354,7 +359,24 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
         columnDef: any | undefined,
         dataContext: any | undefined,
     ): string | { text: string; addClasses: string } => {
-        if (isXmlCell(value) && columnInfo) {
+        if (columnInfo.isXml || columnInfo.isJson) {
+            return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
+        }
+
+        const displayValue = value?.displayValue;
+        if (!displayValue || value?.isNull || detectionAttempts >= maxDetectionAttempts) {
+            return textFormatter(
+                row,
+                cell,
+                value,
+                columnDef,
+                dataContext,
+                DBCellValue.isDBCellValue(value) && value.isNull ? NULL_CELL_CSS_CLASS : undefined,
+            );
+        }
+
+        detectionAttempts++;
+        if (isXmlCell(value?.displayValue) && columnInfo) {
             columnInfo.isXml = true;
             return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
         } else if (isJson(value?.displayValue) && columnInfo) {
@@ -372,24 +394,6 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
             );
         }
     };
-}
-
-function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
-    let isXML = false;
-    try {
-        if (value && !value.isNull && value.displayValue.trim() !== "") {
-            var parser = new DOMParser();
-            // Script elements if any are not evaluated during parsing
-            var doc = parser.parseFromString(value.displayValue, "text/xml");
-            // For non-xmls, parsererror element is present in body element.
-            var parserErrors = doc.body?.getElementsByTagName("parsererror") ?? [];
-            isXML = parserErrors?.length === 0;
-        }
-    } catch (e) {
-        // Ignore errors when parsing cell content, log and continue
-        log && log(`An error occurred when parsing data as XML: ${e}`); // only call if callback is defined
-    }
-    return isXML;
 }
 
 // The css class for null cell
