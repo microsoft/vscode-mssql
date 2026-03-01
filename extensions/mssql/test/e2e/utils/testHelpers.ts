@@ -73,15 +73,7 @@ export async function disconnect(vsCodePage: Page): Promise<void> {
 }
 
 export async function executeQuery(vsCodePage: Page): Promise<void> {
-    const cancelConnectionButton = vsCodePage.locator('[aria-label^="Cancel Connection"]').first();
-    if (await cancelConnectionButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await expect(cancelConnectionButton).toBeHidden({ timeout: 30 * 1000 });
-    }
-
-    const executeQueryButton = vsCodePage.locator('[aria-label^="Execute Query"]').first();
-    await expect(executeQueryButton).toBeVisible({ timeout: 30 * 1000 });
-    await executeQueryButton.click();
-    return;
+    await vsCodePage.click('a[aria-label^="Execute Query"]');
 }
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
