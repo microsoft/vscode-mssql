@@ -116,8 +116,7 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
             return false;
         }
         await this.initializeCacheIfNeeded();
-        await this.provider.filter(columns);
-        return true;
+        return await this.provider.filter(columns);
     }
 
     public async sort(options: Slick.OnSortEventArgs<T>): Promise<boolean> {
@@ -128,8 +127,7 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
             return false;
         }
         await this.initializeCacheIfNeeded();
-        await this.provider.sort(options);
-        return true;
+        return await this.provider.sort(options);
     }
 
     public async resetSort(): Promise<boolean> {
@@ -139,8 +137,7 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
             );
             return false;
         }
-        await this.provider.resetSort();
-        return true;
+        return await this.provider.resetSort();
     }
 
     private get thresholdReached(): boolean {
