@@ -3,9 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, Page } from "@playwright/test";
-import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshot, screenshotOnFailure } from "./utils/screenshotUtils";
+import { screenshot } from "./utils/screenshotUtils";
 import {
     addDatabaseConnection,
     enterTextIntoQueryEditor,
@@ -22,47 +20,49 @@ import {
     getUserName,
 } from "./utils/envConfigReader";
 import { test, expect } from "./baseFixtures";
+import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 
 test.describe("MSSQL Extension - Query Execution", async () => {
-    let vsCodeApp: ElectronApplication;
-    let vsCodePage: Page;
-    let serverName: string;
-    let databaseName: string;
-    let authType: string;
-    let userName: string;
-    let password: string;
-    let savePassword: string;
-    let profileName: string;
+    const getContext = useSharedVsCodeLifecycle({
+        afterLaunch: async ({ page: vsCodePage }) => {
+            const serverName = getServerName();
+            const databaseName = getDatabaseName();
+            const authType = getAuthenticationType();
+            const userName = getUserName();
+            const password = getPassword();
+            const savePassword = getSavePassword();
+            const profileName = getProfileName();
+            await addDatabaseConnection(
+                vsCodePage,
+                serverName,
+                databaseName,
+                authType,
+                userName,
+                password,
+                savePassword,
+                profileName,
+            );
+        },
+        beforeClose: async ({ page: vsCodePage }) => {
+            await openNewQueryEditor(vsCodePage);
+            const dropTestDatabaseScript = `
+USE master
+ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+DROP DATABASE TestDB;`;
+            await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
+            await executeQuery(vsCodePage);
 
-    test.beforeAll(async () => {
-        // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
-        vsCodeApp = electronApp;
-        vsCodePage = page;
-
-        serverName = getServerName();
-        databaseName = getDatabaseName();
-        authType = getAuthenticationType();
-        userName = getUserName();
-        password = getPassword();
-        savePassword = getSavePassword();
-        profileName = getProfileName();
-        await addDatabaseConnection(
-            vsCodePage,
-            serverName,
-            databaseName,
-            authType,
-            userName,
-            password,
-            savePassword,
-            profileName,
-        );
+            await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
+        },
     });
+
     test.beforeEach(async ({}, testInfo) => {
+        const { page: vsCodePage } = getContext();
         await screenshot(vsCodePage, testInfo, "BeforeEach");
     });
 
     test("Create table, insert data, and execute query", async ({}, testInfo) => {
+        const { page: vsCodePage } = getContext();
         await openNewQueryEditor(vsCodePage);
         await screenshot(vsCodePage, testInfo, "NewEditorOpened");
 
@@ -88,23 +88,5 @@ SELECT Name FROM TestTable;`;
 
         const nameQueryResult = await vsCodePage.getByText("Doe");
         await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
-    });
-
-    test.afterEach(async ({}, testInfo) => {
-        await screenshotOnFailure(vsCodePage, testInfo);
-    });
-
-    test.afterAll(async () => {
-        await openNewQueryEditor(vsCodePage);
-        const dropTestDatabaseScript = `
-USE master
-ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
-DROP DATABASE TestDB;`;
-        await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
-        await executeQuery(vsCodePage);
-
-        await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
-
-        await vsCodeApp.close();
     });
 });
