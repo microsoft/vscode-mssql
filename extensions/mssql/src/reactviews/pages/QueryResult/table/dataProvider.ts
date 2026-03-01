@@ -23,19 +23,22 @@ export interface IDisposableDataProvider<T extends Slick.SlickData> extends Slic
     /**
      * Filters the data
      * @param columns columns to be filtered, the
+     * @returns true if the filter was applied, false if the operation was rejected (e.g., threshold exceeded)
      */
-    filter(columns?: Slick.Column<T>[]): Promise<void>;
+    filter(columns?: Slick.Column<T>[]): Promise<boolean>;
 
     /**
      * Sorts the data
      * @param args sort arguments
+     * @returns true if the sort was applied, false if the sort was rejected (e.g., threshold exceeded)
      */
-    sort(args: Slick.OnSortEventArgs<T>): Promise<void>;
+    sort(args: Slick.OnSortEventArgs<T>): Promise<boolean>;
 
     /**
      * Resets the sort
+     * @returns true if the sort was reset, false if the operation was rejected (e.g., threshold exceeded)
      */
-    resetSort(): void;
+    resetSort(): Promise<boolean>;
 
     /**
      * Event fired when the filters changed
