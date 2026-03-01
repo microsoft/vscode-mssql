@@ -363,6 +363,14 @@ jobs:
           path: ./extensions/mssql/test-results/**/
           retention-days: 7
 
+      - name: Upload Smoke Test Videos
+        uses: actions/upload-artifact@v6
+        with:
+          name: smoke-test-failure-videos
+          path: ./extensions/mssql/test-reports/videos/**
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Smoke Test Report
         uses: dorny/test-reporter@v2
         if: success() || failure()

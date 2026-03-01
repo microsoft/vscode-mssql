@@ -3,52 +3,60 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
+import { FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect } from "./baseFixtures";
-import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotUtils";
+import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 import { getWebviewByTitle, waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
 
 test.describe("MSSQL Extension - Query Plan", async () => {
-    let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
     let iframe: FrameLocator;
     let queryPlanMXGraph: Locator;
     let currentZoom = 100;
 
-    test.beforeAll("Setting up for Query Plan Tests", async () => {
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
-        vsCodeApp = electronApp;
-        vsCodePage = page;
+    const getContext = useSharedVsCodeLifecycle({
+        afterLaunch: async ({ page }) => {
+            vsCodePage = page;
+            // Query plan entry point
+            await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+            await vsCodePage.keyboard.press("Control+P");
+            await waitForCommandPaletteToBeVisible(vsCodePage);
+            await vsCodePage.keyboard.type(
+                path.join(process.cwd(), "out", "test", "resources", "plan.sqlplan"),
+            );
+            await waitForCommandPaletteToBeVisible(vsCodePage);
+            // Press Enter in the VS Code page
+            await vsCodePage.keyboard.press("Enter");
 
-        // Query plan entry point
-        await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
-        await vsCodePage.keyboard.press("Control+P");
-        await waitForCommandPaletteToBeVisible(vsCodePage);
-        await vsCodePage.keyboard.type(
-            path.join(process.cwd(), "out", "test", "resources", "plan.sqlplan"),
-        );
-        await waitForCommandPaletteToBeVisible(vsCodePage);
-        // Press Enter in the VS Code page
-        await vsCodePage.keyboard.press("Enter");
+            iframe = await getWebviewByTitle(vsCodePage, "plan.sqlplan");
 
-        iframe = await getWebviewByTitle(vsCodePage, "plan.sqlplan");
+            // Wait for plan to load
+            const queryCostElementLocator = iframe.getByText(
+                "Query 1: Query cost (relative to the script): 100.00%",
+            );
+            await queryCostElementLocator.waitFor({
+                state: "visible",
+                timeout: 30 * 1000,
+            });
+            queryPlanMXGraph = iframe.locator("#queryPlanParent1");
+            await expect(queryPlanMXGraph).toBeVisible();
+        },
+        afterEach: async ({ page: vsCodePage }) => {
+            await refocusQueryPlanTab(vsCodePage);
+        },
+        beforeClose: async ({ page: vsCodePage }) => {
+            await refocusQueryPlanTab(vsCodePage);
+            await writeCoverage(iframe, "executionPlan");
 
-        // Wait for plan to load
-        const queryCostElementLocator = iframe.getByText(
-            "Query 1: Query cost (relative to the script): 100.00%",
-        );
-        await queryCostElementLocator.waitFor({
-            state: "visible",
-            timeout: 30 * 1000,
-        });
-        queryPlanMXGraph = iframe.locator("#queryPlanParent1");
-        await expect(queryPlanMXGraph).toBeVisible();
+            // Close query plan webview
+            await vsCodePage.keyboard.press("Control+F4");
+        },
     });
 
     test.beforeEach("Set up before each test", async () => {
+        getContext();
         // Click zoom to fit button
         await iframe
             .locator('[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]')
@@ -310,20 +318,6 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await highlightOpsCloseButton.click();
 
         await expect(highlightOpsInputBox).toBeHidden();
-    });
-
-    test.afterEach(async ({}, testInfo) => {
-        await screenshotOnFailure(vsCodePage, testInfo);
-        await refocusQueryPlanTab(vsCodePage);
-    });
-
-    test.afterAll(async () => {
-        await refocusQueryPlanTab(vsCodePage);
-        await writeCoverage(iframe, "executionPlan");
-
-        // Close query plan webview
-        await vsCodePage.keyboard.press("Control+F4");
-        await vsCodeApp.close();
     });
 });
 
