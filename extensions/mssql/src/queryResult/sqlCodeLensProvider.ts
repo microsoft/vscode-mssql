@@ -55,7 +55,7 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
             return [
                 new vscode.CodeLens(connectionCodeLensRange, {
                     title: `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`,
-                    command: Constants.cmdConnect,
+                    command: Constants.cmdDisconnect,
                 }),
             ];
         } else if (connection.connectionId) {
