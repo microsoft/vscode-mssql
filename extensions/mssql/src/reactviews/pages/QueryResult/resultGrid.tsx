@@ -349,8 +349,10 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
     }
 
     // Avoid expensive XML/JSON parsing on every cell render for plain-text columns.
-    let detectionAttempts = 0;
-    const maxDetectionAttempts = 20;
+    // Track which rows we've already sampled so SlickGrid re-renders don't
+    // exhaust the budget.
+    const sampledRows = new Set<number>();
+    const maxDistinctRows = 20;
 
     return (
         row: number | undefined,
@@ -364,7 +366,15 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
         }
 
         const displayValue = value?.displayValue;
-        if (!displayValue || value?.isNull || detectionAttempts >= maxDetectionAttempts) {
+
+        // Skip detection for null/empty values or when we've already sampled this row
+        if (
+            !displayValue ||
+            value?.isNull ||
+            row === undefined ||
+            sampledRows.has(row) ||
+            sampledRows.size >= maxDistinctRows
+        ) {
             return textFormatter(
                 row,
                 cell,
@@ -375,11 +385,12 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
             );
         }
 
-        detectionAttempts++;
-        if (isXmlCell(value?.displayValue) && columnInfo) {
+        sampledRows.add(row);
+
+        if (isXmlCell(displayValue) && columnInfo) {
             columnInfo.isXml = true;
             return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
-        } else if (isJson(value?.displayValue) && columnInfo) {
+        } else if (isJson(displayValue) && columnInfo) {
             //TODO use showJsonAsLink config
             columnInfo.isJson = true;
             return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
