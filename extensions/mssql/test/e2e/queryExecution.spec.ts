@@ -86,7 +86,7 @@ SELECT Name FROM TestTable;`;
         await executeQuery(vsCodePage);
         await screenshot(vsCodePage, testInfo, "CreateTableExecuted");
 
-        const nameQueryResult = await vsCodePage.getByText("Doe");
+        const nameQueryResult = await vsCodePage.getByText("DoeWrong");
         await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
     });
 });
