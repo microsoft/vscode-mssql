@@ -62,15 +62,6 @@ export class PackageError extends Error {
     }
 }
 
-export interface IHttpClient {
-    downloadFile(
-        urlString: string,
-        pkg: IPackage,
-        logger: ILogger,
-        statusView: IStatusView,
-    ): Promise<void>;
-}
-
 export interface IDecompressProvider {
     decompress(pkg: IPackage, logger: ILogger): Promise<void>;
 }

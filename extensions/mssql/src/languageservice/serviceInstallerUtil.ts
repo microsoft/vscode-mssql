@@ -7,7 +7,7 @@ import { Runtime, PlatformInformation } from "../models/platform";
 import ConfigUtils from "../configurations/configUtils";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
-import HttpClient from "./httpClient";
+import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
 import { DownloadType, IStatusView } from "./interfaces";
 import { ILogger } from "../models/interfaces";
@@ -38,6 +38,27 @@ export class StubLogger implements ILogger {
         this._log(message);
     }
 
+    verbose(msg: any, ..._vals: any[]): void {
+        this._log(msg);
+    }
+
+    warn(msg: any, ..._vals: any[]): void {
+        this._log(msg);
+    }
+
+    error(msg: any, ..._vals: any[]): void {
+        this._log(msg);
+    }
+
+    piiSanitized(
+        _msg: any,
+        _objsToSanitize: { name: string; objOrArray: any | any[] }[],
+        _stringsToShorten: { name: string; value: string }[],
+        ..._vals: any[]
+    ): void {
+        // no-op
+    }
+
     increaseIndent(): void {
         // no-op
     }
@@ -57,13 +78,13 @@ export class StubLogger implements ILogger {
 const config = new ConfigUtils();
 const logger = new StubLogger(console.log);
 const statusView = new StubStatusView(console.log);
-const httpClient = new HttpClient();
+const downloadHelper = new DownloadHelper();
 const decompressProvider = new DecompressProvider();
 let downloadProvider = new ServiceDownloadProvider(
     config,
     logger,
     statusView,
-    httpClient,
+    downloadHelper,
     decompressProvider,
     DownloadType.SqlToolsService,
 );

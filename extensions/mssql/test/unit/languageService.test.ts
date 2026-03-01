@@ -7,7 +7,7 @@ import { expect } from "chai";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
 import { IPackage, IStatusView } from "../../src/languageservice/interfaces";
 import { ILogger } from "../../src/models/interfaces";
-import HttpClient, { IDownloadProgress } from "../../src/languageservice/httpClient";
+import DownloadHelper, { IDownloadProgress } from "../../src/languageservice/downloadHelper";
 
 suite("Language Service Tests", () => {
     suite("Decompress Provider Tests", () => {
@@ -21,6 +21,10 @@ suite("Language Service Tests", () => {
             };
             let testLogger: ILogger = {
                 logDebug: undefined,
+                verbose: undefined,
+                warn: undefined,
+                error: undefined,
+                piiSanitized: undefined,
                 increaseIndent: undefined,
                 decreaseIndent: undefined,
                 append: undefined,
@@ -34,8 +38,8 @@ suite("Language Service Tests", () => {
         });
     });
 
-    suite("HttpClient Tests", () => {
-        let httpClient = new HttpClient();
+    suite("DownloadHelper Tests", () => {
+        let downloadHelper = new DownloadHelper();
 
         test("handleDataReceivedEvent test", () => {
             let mockProgress: IDownloadProgress = {
@@ -46,6 +50,10 @@ suite("Language Service Tests", () => {
             };
             let testLogger: ILogger = {
                 logDebug: () => undefined,
+                verbose: () => undefined,
+                warn: () => undefined,
+                error: () => undefined,
+                piiSanitized: () => undefined,
                 increaseIndent: () => undefined,
                 decreaseIndent: () => undefined,
                 append: () => undefined,
@@ -57,9 +65,9 @@ suite("Language Service Tests", () => {
                 serviceInstallationFailed: () => undefined,
                 updateServiceDownloadingProgress: (downloadPercentage: number) => undefined,
             };
-            httpClient.handleDataReceivedEvent(
+            downloadHelper.handleDataReceivedEvent(
                 mockProgress,
-                [1, 2, 3, 4, 5],
+                Buffer.from([1, 2, 3, 4, 5]),
                 testLogger,
                 mockStatusView,
             );
