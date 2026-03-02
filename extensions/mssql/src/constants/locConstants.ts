@@ -198,9 +198,6 @@ export function azureNoMicrosoftResource(provider: string) {
         comment: ["{0} is the provider"],
     });
 }
-export let unableToGetProxyAgentOptionsToGetTenants = l10n.t(
-    "Unable to read proxy agent options to get tenants.",
-);
 export let azureServerCouldNotStart = l10n.t(
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
 );
@@ -3060,6 +3057,8 @@ export class Profiler {
 }
 
 export class Proxy {
+    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
+
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
             message:

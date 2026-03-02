@@ -386,7 +386,7 @@
     "@vscode/vsce-sign-win32-arm64" "2.0.6"
     "@vscode/vsce-sign-win32-x64" "2.0.6"
 
-"@vscode/vsce@^3.1.1":
+"@vscode/vsce@^3.7.1":
   version "3.7.1"
   resolved "https://registry.yarnpkg.com/@vscode/vsce/-/vsce-3.7.1.tgz#55a88ae40e9618fea251e373bc6b23c128915654"
   integrity sha512-OTm2XdMt2YkpSn2Nx7z2EJtSuhRHsTPYsSK59hr3v8jRArK+2UEoju4Jumn1CmpgoBLGI6ReHLJ/czYltNUW3g==

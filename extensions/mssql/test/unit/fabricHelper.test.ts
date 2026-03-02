@@ -10,7 +10,7 @@ import * as vscode from "vscode";
 import sinonChai from "sinon-chai";
 import { AxiosResponse } from "axios";
 import { FabricHelper } from "../../src/fabric/fabricHelper";
-import { HttpHelper } from "../../src/http/httpHelper";
+import { HttpClient } from "../../src/http/httpClient";
 import {
     ICapacity,
     IFabricError,
@@ -25,7 +25,7 @@ chai.use(sinonChai);
 
 suite("FabricHelper", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockHttpHelper: sinon.SinonStubbedInstance<HttpHelper>;
+    let mockHttpHelper: sinon.SinonStubbedInstance<HttpClient>;
 
     const mockTenantId = "test-tenant-id";
 
@@ -58,10 +58,10 @@ suite("FabricHelper", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockHttpHelper = sandbox.createStubInstance(HttpHelper);
+        mockHttpHelper = sandbox.createStubInstance(HttpClient);
 
         sandbox
-            .stub(HttpHelper.prototype, "makeGetRequest")
+            .stub(HttpClient.prototype, "makeGetRequest")
             .callsFake(mockHttpHelper.makeGetRequest);
 
         sandbox.stub(vscode.authentication, "getSession").resolves(mockAuthSession);

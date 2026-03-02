@@ -1331,6 +1331,7 @@ export default class ConnectionManager {
         connectionInfo.connecting = false;
 
         this._connections[fileUri] = connectionInfo;
+        this.updateConnectionsContext();
 
         if (Utils.isNotEmpty(result.connectionId)) {
             /**

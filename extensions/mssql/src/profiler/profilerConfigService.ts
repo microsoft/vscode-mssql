@@ -11,9 +11,11 @@ import {
     EventRow,
     EngineType,
     ViewColumn,
+    ColumnDataType,
     FIELD_TIMESTAMP,
     FIELD_ADDITIONAL_DATA,
     TYPE_NUMBER,
+    resolveColumnDataType,
 } from "./profilerTypes";
 import { defaultProfilerConfig } from "./profilerDefaultConfig";
 import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../sharedInterfaces/profiler";
@@ -190,6 +192,64 @@ export class ProfilerConfigService {
      */
     public convertEventsToViewRows(events: EventRow[], view: ViewTemplate): ViewRow[] {
         return events.map((event) => this.convertEventToViewRow(event, view));
+    }
+
+    /**
+     * Convert an EventRow to a typed Record for filtering.
+     * Values are coerced to their proper runtime types based on the column's
+     * declared type (ColumnDataType) as defined on the view column:
+     *   - ColumnDataType.Number   → number
+     *   - ColumnDataType.DateTime → Date
+     *   - ColumnDataType.String   → string (default)
+     *
+     * This avoids repeated type parsing during filter evaluation — the
+     * FilteredBuffer can compare values directly using typeof / instanceof.
+     *
+     * @param event The raw event row
+     * @param view  The view template whose columns carry the type metadata
+     * @returns A Record with view-level field names and properly-typed values
+     */
+    public convertEventToTypedRow(event: EventRow, view: ViewTemplate): Record<string, unknown> {
+        const typedRow: Record<string, unknown> = {
+            id: event.id,
+            eventNumber: event.eventNumber,
+        };
+
+        for (const column of view.columns) {
+            const rawValue = this.getColumnValue(event, column);
+            typedRow[column.field] = this.coerceToColumnType(rawValue, column);
+        }
+
+        return typedRow;
+    }
+
+    /**
+     * Coerce a raw field value to the column's declared data type.
+     * Returns the value unchanged when it is already the correct type,
+     * or falls back to the original value when parsing fails.
+     */
+    private coerceToColumnType(value: string | number | undefined, column: ViewColumn): unknown {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        const dataType = resolveColumnDataType(column);
+
+        switch (dataType) {
+            case ColumnDataType.Number: {
+                if (typeof value === "number") {
+                    return value;
+                }
+                const num = Number(value);
+                return isNaN(num) ? value : num;
+            }
+            case ColumnDataType.DateTime: {
+                const date = new Date(value);
+                return isNaN(date.getTime()) ? value : date;
+            }
+            default:
+                return typeof value === "string" ? value : String(value);
+        }
     }
 
     /**

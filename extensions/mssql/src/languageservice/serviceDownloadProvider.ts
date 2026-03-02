@@ -11,13 +11,13 @@ import {
     IStatusView,
     IPackage,
     PackageError,
-    IHttpClient,
     IDecompressProvider,
     DownloadType,
 } from "./interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 import { ILogger } from "../models/interfaces";
+import DownloadHelper from "./downloadHelper";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools or Flat File service.
@@ -27,7 +27,7 @@ export default class ServiceDownloadProvider {
         private _config: IConfigUtils,
         private _logger: ILogger,
         private _statusView: IStatusView,
-        private _httpClient: IHttpClient,
+        private _downloadHelper: DownloadHelper,
         private _decompressProvider: IDecompressProvider,
         private _downloadType: DownloadType,
     ) {
@@ -163,7 +163,7 @@ export default class ServiceDownloadProvider {
         pkg.tmpFile = tmpResult;
 
         try {
-            await this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView);
+            await this._downloadHelper.downloadFile(pkg.url, pkg, this._logger, this._statusView);
             this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
             this._logger.appendLine(" Done!");
             await this.install(pkg);
