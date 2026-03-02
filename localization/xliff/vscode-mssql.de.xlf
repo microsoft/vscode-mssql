@@ -982,7 +982,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
         <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">Erfassen und analysieren Sie Live-Sitzungen von SQL Server Extended Events, um die Datenbankleistung zu überwachen und zu analysieren.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1273,7 +1273,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
         <source xml:lang="en">Click to change database</source>
-        <target state="new">Click to change database</target>
+        <target state="translated">Klicken, um die Datenbank zu wechseln.</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -1530,7 +1530,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
         <source xml:lang="en">Connect to SQL Server</source>
-        <target state="new">Connect to SQL Server</target>
+        <target state="translated">Verbindung mit SQL Server herstellen</target>
       </trans-unit>
       <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
         <source xml:lang="en">Connect to Server</source>
@@ -2389,7 +2389,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95">
         <source xml:lang="en">Design API</source>
-        <target state="new">Design API</target>
+        <target state="translated">API entwerfen</target>
       </trans-unit>
       <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
         <source xml:lang="en">Design Schemas with GitHub Copilot</source>
@@ -8050,7 +8050,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
         <source xml:lang="en">URL copied to clipboard</source>
-        <target state="new">URL copied to clipboard</target>
+        <target state="translated">URL in Zwischenablage kopiert</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
