@@ -14,6 +14,7 @@ import { ConnectionStore } from "../models/connectionStore";
 import { IConnectionProfile } from "../models/interfaces";
 import { getUriKey } from "../utils/utils";
 import { ConnectionInfo } from "../controllers/connectionManager";
+import { uriOwnershipCoordinator } from "../extension";
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -55,6 +56,35 @@ export default class StatusView implements vscode.Disposable {
         this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) =>
             this.onDidCloseTextDocument(params),
         );
+
+        // Listen for ownership changes from coordinating extensions
+        if (uriOwnershipCoordinator) {
+            uriOwnershipCoordinator.onCoordinatingOwnershipChanged(() => {
+                const activeEditor = vscode.window.activeTextEditor;
+                const activeUri = activeEditor?.document?.uri;
+                if (!activeUri) {
+                    return;
+                }
+
+                if (uriOwnershipCoordinator.isOwnedByCoordinatingExtension(activeUri)) {
+                    // Hide status bar if the active file is now owned by another extension
+                    this.hideLastShownStatusBar();
+                } else {
+                    // Show status bar if the active file is no longer owned by another extension
+                    const fileUri = activeUri.toString(true);
+                    const bar = this._statusBars[fileUri];
+                    if (bar) {
+                        this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
+                        this.showStatusBarItem(fileUri, bar.statusConnection);
+                        this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
+                        this.showStatusBarItem(fileUri, bar.statusLanguageService);
+                        this.showStatusBarItem(fileUri, bar.sqlCmdMode);
+                        this.showStatusBarItem(fileUri, bar.rowCount);
+                        this.showStatusBarItem(fileUri, bar.executionTime);
+                    }
+                }
+            });
+        }
     }
 
     dispose(): void {
@@ -495,6 +525,13 @@ export default class StatusView implements vscode.Disposable {
 
     private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {
         let currentOpenFile = Utils.getActiveTextEditorUri();
+
+        // Don't show status bar if URI is owned by a coordinating extension (e.g., PostgreSQL)
+        const activeUri = vscode.window.activeTextEditor?.document?.uri;
+        if (activeUri && uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(activeUri)) {
+            statusBarItem.hide();
+            return;
+        }
 
         // Only show the status bar if it matches the currently open file and is not empty
         if (fileUri === currentOpenFile && !Utils.isEmpty(statusBarItem.text)) {
