@@ -27,9 +27,9 @@ export function isXmlCell(value: string): boolean {
     }
     try {
         // Script elements if any are not evaluated during parsing
-        var doc = xmlParser.parseFromString(value, "text/xml");
+        const doc = xmlParser.parseFromString(value, "text/xml");
         // For non-XMLs, parsererror element is present in the parsed document.
-        var parserErrors = doc.getElementsByTagName("parsererror");
+        const parserErrors = doc.getElementsByTagName("parsererror");
         return parserErrors?.length === 0;
     } catch (e) {
         return false;
