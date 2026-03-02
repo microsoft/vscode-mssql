@@ -15,6 +15,8 @@ import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 import * as os from "os";
 
+export type VsCodeAppHandle = ElectronApplication;
+
 export type mssqlExtensionLaunchConfig = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialConfig?: any;
@@ -28,10 +30,11 @@ export const DEFAULT_USER_CONFIG = {
 export async function launchVsCodeWithMssqlExtension(
     options: mssqlExtensionLaunchConfig = {},
 ): Promise<{
-    electronApp: ElectronApplication;
+    electronApp: VsCodeAppHandle;
     page: Page;
     userDataDir: string;
     extensionsDir: string;
+    videoDir: string;
     nodePathDir?: string;
 }> {
     const config: mssqlExtensionLaunchConfig = {
@@ -42,15 +45,22 @@ export async function launchVsCodeWithMssqlExtension(
 
     const vsCodeVersion = getVsCodeVersionName();
     const vscodePath = await downloadAndUnzipVSCode(vsCodeVersion);
-    const [cliPath, extensionDir] = resolveCliArgsFromVSCodeExecutablePath(vscodePath);
+    const [cliPath] = resolveCliArgsFromVSCodeExecutablePath(vscodePath);
     const devExtensionPath = path.resolve(__dirname, "../../../");
 
     const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
     const userDataDir = path.join(tmpRoot, "user-data");
     const extensionsDir = path.join(tmpRoot, "extensions");
+    const videoDir = path.join(
+        process.cwd(),
+        "test-reports",
+        "videos",
+        `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    );
 
     fs.mkdirSync(userDataDir, { recursive: true });
     fs.mkdirSync(extensionsDir, { recursive: true });
+    fs.mkdirSync(videoDir, { recursive: true });
 
     // Create initial settings.json
     const settingsPath = path.join(userDataDir, "User", "settings.json");
@@ -98,21 +108,22 @@ export async function launchVsCodeWithMssqlExtension(
             throw result.error || new Error(`VSIX install failed with status ${result.status}`);
         }
     } else {
-        launchArgs.push(
-            "--temp-profile",
-            "--disable-extensions",
-            `--extensionDevelopmentPath=${devExtensionPath}`,
-            extensionDir,
-        );
+        launchArgs.push("--temp-profile", "--disable-extensions");
     }
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
+    console.log("Recording Playwright videos to:", videoDir);
 
     const electronApp = await electron.launch({
         executablePath: vscodePath,
-        args: launchArgs,
+        args: config.useVsix
+            ? launchArgs
+            : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
+        recordVideo: {
+            dir: videoDir,
+            size: { width: 1920, height: 1080 },
+        },
     });
-
     const page = await electronApp.firstWindow({ timeout: 10_000 });
 
     await page.setViewportSize({ width: 1920, height: 1080 });
@@ -136,15 +147,16 @@ export async function launchVsCodeWithMssqlExtension(
         timeout: 30_000,
     });
 
-    return { electronApp, page, userDataDir, extensionsDir };
+    return { electronApp, page, userDataDir, extensionsDir, videoDir };
 }
 
-export async function cleanupDirectories(userDir: string, extDir: string, nodePathDir: string) {
+export async function cleanupDirectories(...directories: Array<string | undefined>) {
     try {
-        console.log("Cleaning up directories:", userDir, extDir, nodePathDir);
-        fs.rmSync(userDir, { recursive: true, force: true });
-        fs.rmSync(extDir, { recursive: true, force: true });
-        fs.rmSync(nodePathDir, { recursive: true, force: true });
+        const dirsToClean = directories.filter((directory): directory is string => !!directory);
+        console.log("Cleaning up directories:", dirsToClean);
+        for (const directory of dirsToClean) {
+            fs.rmSync(directory, { recursive: true, force: true });
+        }
     } catch (error) {
         console.error("Error cleaning up directories:", error);
     }
