@@ -14,10 +14,15 @@ import { CodeAnalysisWebViewController } from "../../src/codeAnalysis/codeAnalys
 import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
-import { CodeAnalysisRuleInfo, GetCodeAnalysisRulesResult } from "vscode-mssql";
+import {
+    CodeAnalysisRuleInfo,
+    GetCodeAnalysisRulesResult,
+    GetProjectPropertiesResult,
+} from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
 import { SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
 import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
+import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 
 chai.use(sinonChai);
 
