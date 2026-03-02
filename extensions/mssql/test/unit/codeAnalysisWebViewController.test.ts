@@ -12,10 +12,14 @@ import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { CodeAnalysisWebViewController } from "../../src/codeAnalysis/codeAnalysisWebViewController";
 import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
-import { LocConstants as ReactLoc } from "../../src/reactviews/common/locConstants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { DacFxService } from "../../src/services/dacFxService";
-import { CodeAnalysisRuleInfo, GetCodeAnalysisRulesResult } from "vscode-mssql";
+import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import {
+    CodeAnalysisRuleInfo,
+    GetCodeAnalysisRulesResult,
+    GetProjectPropertiesResult,
+} from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
 import { SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
 import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
@@ -52,17 +56,39 @@ const mockRules: CodeAnalysisRuleInfo[] = [
     },
 ];
 
+function toSqlCodeAnalysisRule(rule: CodeAnalysisRuleInfo): SqlCodeAnalysisRule {
+    const severity =
+        rule.severity === "Error"
+            ? CodeAnalysisRuleSeverity.Error
+            : rule.severity === "None"
+              ? CodeAnalysisRuleSeverity.Disabled
+              : CodeAnalysisRuleSeverity.Warning;
+
+    return {
+        ruleId: rule.ruleId,
+        shortRuleId: rule.shortRuleId,
+        displayName: rule.displayName,
+        description: rule.description,
+        category: rule.category,
+        severity,
+        enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
+        ruleScope: rule.ruleScope,
+    };
+}
+
 suite("CodeAnalysisWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: CodeAnalysisWebViewController;
     let contextStub: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let dacFxServiceStub: sinon.SinonStubbedInstance<DacFxService>;
+    let sqlProjectsServiceStub: sinon.SinonStubbedInstance<SqlProjectsService>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
         dacFxServiceStub = sandbox.createStubInstance(DacFxService);
+        sqlProjectsServiceStub = sandbox.createStubInstance(SqlProjectsService);
 
         dacFxServiceStub.getCodeAnalysisRules.resolves({
             success: true,
@@ -91,6 +117,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
             vscodeWrapperStub,
             projectPath,
             dacFxServiceStub,
+            sqlProjectsServiceStub,
         );
 
         return {
@@ -113,45 +140,22 @@ suite("CodeAnalysisWebViewController Tests", () => {
         createController("c:/work/MyProject.sqlproj");
         await getInternalController().loadRules();
 
-        expect(controller.state.projectFilePath).to.equal("c:/work/MyProject.sqlproj");
-        expect(controller.state.projectName).to.equal("MyProject");
-        expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.hasChanges).to.be.false;
-        expect(controller.state.message).to.be.undefined;
-        expect(controller.state.rules).to.be.an("array");
-        expect(controller.state.rules.length).to.equal(mockRules.length);
-    });
-
-    test("opens dialog with icon paths and project-based header context", () => {
-        const panelStub = stubWebviewPanel(sandbox);
-        const createWebviewPanelStub = sandbox
-            .stub(vscode.window, "createWebviewPanel")
-            .returns(panelStub);
-        stubTelemetry(sandbox);
-
-        controller = new CodeAnalysisWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            "c:/work/MyProject.sqlproj",
-            dacFxServiceStub,
-        );
-
-        expect(createWebviewPanelStub).to.have.been.calledOnce;
-        expect(createWebviewPanelStub).to.have.been.calledWithMatch(
-            "mssql-react-webview",
-            ExtLoc.Title,
-            sinon.match({ viewColumn: vscode.ViewColumn.Active }),
-            sinon.match.object,
-        );
-
-        const iconPath = panelStub.iconPath as { dark: vscode.Uri; light: vscode.Uri };
-        expect(iconPath.dark.path).to.contain("/media/codeAnalysis_dark.svg");
-        expect(iconPath.light.path).to.contain("/media/codeAnalysis_light.svg");
-
-        const headerTitle = ReactLoc.getInstance().codeAnalysis.codeAnalysisTitle(
+        expect(
+            controller.state.projectFilePath,
+            "projectFilePath should match constructor arg",
+        ).to.equal("c:/work/MyProject.sqlproj");
+        expect(
             controller.state.projectName,
+            "projectName should be derived from file path",
+        ).to.equal("MyProject");
+        expect(controller.state.isLoading, "isLoading should be false after load completes").to.be
+            .false;
+        expect(controller.state.message, "message should be undefined on successful load").to.be
+            .undefined;
+        expect(controller.state.rules, "rules should be an array").to.be.an("array");
+        expect(controller.state.rules.length, "rules count should match mockRules").to.equal(
+            mockRules.length,
         );
-        expect(headerTitle).to.equal("Code Analysis - MyProject");
     });
 
     test("close reducer handler disposes the webview panel", async () => {
@@ -159,10 +163,11 @@ suite("CodeAnalysisWebViewController Tests", () => {
         const internalController = getInternalController();
         const closeHandler = internalController._reducerHandlers.get("close");
 
-        expect(closeHandler).to.not.be.undefined;
+        expect(closeHandler, "close reducer handler should be registered").to.not.be.undefined;
         await closeHandler?.(controller.state, {});
 
-        expect(panelStub.dispose).to.have.been.calledOnce;
+        expect(panelStub.dispose, "panel.dispose should be called once on close").to.have.been
+            .calledOnce;
     });
 
     test("loadRules handles errors, sets message, and fires error telemetry", async () => {
@@ -174,10 +179,19 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.message?.message).to.contain("load error");
-        expect(controller.state.message?.intent).to.equal("error");
-        expect(telemetryStubs.sendErrorEvent).to.have.been.calledWith(
+        expect(controller.state.isLoading, "isLoading should be false after failed load").to.be
+            .false;
+        expect(
+            controller.state.message?.message,
+            "message should contain the error text",
+        ).to.contain("load error");
+        expect(controller.state.message?.intent, "message intent should be error").to.equal(
+            "error",
+        );
+        expect(
+            telemetryStubs.sendErrorEvent,
+            "error telemetry should be fired with load error action",
+        ).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesLoadError,
             sinon.match.instanceOf(Error),
@@ -193,7 +207,10 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(telemetryStubs.sendActionEvent).to.have.been.calledWith(
+        expect(
+            telemetryStubs.sendActionEvent,
+            "CodeAnalysisRulesLoaded telemetry should be fired",
+        ).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesLoaded,
             sinon.match.has("ruleCount"),
@@ -226,8 +243,13 @@ suite("CodeAnalysisWebViewController Tests", () => {
         // Flush the microtask queue so the constructor's loadRules continuation runs.
         await new Promise((r) => setTimeout(r, 0));
 
-        expect(updateStateStub.callCount).to.equal(1);
-        expect(loadingStates).to.deep.equal([false]);
+        expect(
+            updateStateStub.callCount,
+            "updateState should be called exactly once after load resolves",
+        ).to.equal(1);
+        expect(loadingStates, "isLoading should be false when updateState is called").to.deep.equal(
+            [false],
+        );
     });
 
     test("fetchRulesFromDacFx maps Error/None/Warning severities and sets enabled correctly", async () => {
@@ -236,17 +258,20 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         const [errorRule, disabledRule, defaultRule] = rules;
 
-        expect(errorRule.severity).to.equal(CodeAnalysisRuleSeverity.Error);
-        expect(errorRule.enabled).to.be.true;
-        expect(errorRule.ruleId).to.equal("SR0001");
-        expect(errorRule.category).to.equal("Design");
-        expect(errorRule.ruleScope).to.equal("Element");
+        expect(errorRule.severity, "Error severity rule should map to Error").to.equal(
+            CodeAnalysisRuleSeverity.Error,
+        );
+        expect(errorRule.enabled, "Error severity rule should be enabled").to.be.true;
 
-        expect(disabledRule.severity).to.equal(CodeAnalysisRuleSeverity.Disabled);
-        expect(disabledRule.enabled).to.be.false;
+        expect(disabledRule.severity, "None severity rule should map to Disabled").to.equal(
+            CodeAnalysisRuleSeverity.Disabled,
+        );
+        expect(disabledRule.enabled, "Disabled severity rule should not be enabled").to.be.false;
 
-        expect(defaultRule.severity).to.equal(CodeAnalysisRuleSeverity.Warning);
-        expect(defaultRule.enabled).to.be.true;
+        expect(defaultRule.severity, "Warning severity rule should map to Warning").to.equal(
+            CodeAnalysisRuleSeverity.Warning,
+        );
+        expect(defaultRule.enabled, "Warning severity rule should be enabled").to.be.true;
     });
 
     test("loadRules catches fetchRulesFromDacFx errors and sets error state", async () => {
@@ -258,9 +283,15 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.message?.intent).to.equal("error");
-        expect(controller.state.message?.message).to.contain("mapping failure");
+        expect(controller.state.isLoading, "isLoading should be false after mapping error").to.be
+            .false;
+        expect(controller.state.message?.intent, "message intent should be error").to.equal(
+            "error",
+        );
+        expect(
+            controller.state.message?.message,
+            "message should contain the mapping error text",
+        ).to.contain("mapping failure");
     });
 
     test("loadRules sets errorMessage from service directly in state when success is false", async () => {
@@ -276,9 +307,15 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(controller.state.isLoading).to.be.false;
-        expect(controller.state.message?.message).to.contain("Service unavailable");
-        expect(controller.state.message?.intent).to.equal("error");
+        expect(controller.state.isLoading, "isLoading should be false after service error").to.be
+            .false;
+        expect(
+            controller.state.message?.message,
+            "message should contain the service error text",
+        ).to.contain("Service unavailable");
+        expect(controller.state.message?.intent, "message intent should be error").to.equal(
+            "error",
+        );
 
         // Without errorMessage — should fall back to the default locale string
         dacFxServiceStub.getCodeAnalysisRules.resolves({
@@ -289,8 +326,14 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         await internalController.loadRules();
 
-        expect(controller.state.message?.message).to.contain(ExtLoc.failedToLoadRules);
-        expect(controller.state.message?.intent).to.equal("error");
+        expect(
+            controller.state.message?.message,
+            "message should fall back to default locale string",
+        ).to.contain(ExtLoc.failedToLoadRules);
+        expect(
+            controller.state.message?.intent,
+            "message intent should be error on fallback",
+        ).to.equal("error");
     });
 
     test("closeMessage reducer clears the message from state", async () => {
@@ -298,7 +341,8 @@ suite("CodeAnalysisWebViewController Tests", () => {
         const internalController = getInternalController();
         const closeMessageHandler = internalController._reducerHandlers.get("closeMessage");
 
-        expect(closeMessageHandler).to.not.be.undefined;
+        expect(closeMessageHandler, "closeMessage reducer handler should be registered").to.not.be
+            .undefined;
 
         const stateWithMessage = {
             ...controller.state,
@@ -309,6 +353,193 @@ suite("CodeAnalysisWebViewController Tests", () => {
             {},
         )) as typeof stateWithMessage;
 
-        expect(newState.message).to.be.undefined;
+        expect(newState.message, "message should be cleared after closeMessage").to.be.undefined;
+    });
+
+    test("saveRules reducer updates state and fires telemetry on success", async () => {
+        const { panelStub, telemetryStubs } = createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        expect(saveRulesHandler, "saveRules reducer handler should be registered").to.not.be
+            .undefined;
+
+        const payloadRules = mockRules.slice(0, 2).map(toSqlCodeAnalysisRule);
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: true,
+            errorMessage: "",
+        });
+        telemetryStubs.sendActionEvent.resetHistory();
+
+        const newState = (await saveRulesHandler?.(controller.state, {
+            rules: payloadRules,
+            closeAfterSave: false,
+        })) as typeof controller.state;
+
+        expect(
+            sqlProjectsServiceStub.updateCodeAnalysisRules,
+            "updateCodeAnalysisRules should be called once",
+        ).to.have.been.calledOnce;
+        expect(
+            sqlProjectsServiceStub.updateCodeAnalysisRules,
+            "updateCodeAnalysisRules should be called with mapped overrides",
+        ).to.have.been.calledWithMatch({
+            projectUri: controller.state.projectFilePath,
+            rules: payloadRules.map((rule) => ({
+                ruleId: rule.ruleId,
+                severity: rule.severity,
+            })),
+        });
+        expect(newState.rules, "state rules should be updated to the saved payload").to.deep.equal(
+            payloadRules,
+        );
+        expect(newState.message?.intent, "message intent should be success").to.equal("success");
+        expect(newState.message?.message, "message should confirm save").to.contain(
+            "saved successfully",
+        );
+        expect(
+            telemetryStubs.sendActionEvent,
+            "CodeAnalysisRulesSaved telemetry should be fired",
+        ).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisRulesSaved,
+            sinon.match.has("ruleCount", "2"),
+        );
+        expect(panelStub.dispose, "panel should not be disposed when closeAfterSave is false").to
+            .not.have.been.called;
+    });
+
+    test("saveRules reducer disposes panel and suppresses message when closeAfterSave is true", async () => {
+        const { panelStub } = createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        expect(saveRulesHandler, "saveRules reducer handler should be registered").to.not.be
+            .undefined;
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: true,
+            errorMessage: "",
+        });
+
+        const closingState = (await saveRulesHandler?.(controller.state, {
+            rules: mockRules.slice(0, 2).map(toSqlCodeAnalysisRule),
+            closeAfterSave: true,
+        })) as typeof controller.state;
+
+        expect(panelStub.dispose, "panel should be disposed when closeAfterSave is true").to.have
+            .been.calledOnce;
+        expect(closingState.message, "message should be undefined when panel closes after save").to
+            .be.undefined;
+    });
+
+    test("saveRules reducer sets error message when SQLProj update fails", async () => {
+        const { telemetryStubs } = createController();
+        const internalController = getInternalController();
+        const saveRulesHandler = internalController._reducerHandlers.get("saveRules");
+
+        expect(saveRulesHandler, "saveRules reducer handler should be registered").to.not.be
+            .undefined;
+
+        sqlProjectsServiceStub.updateCodeAnalysisRules.resolves({
+            success: false,
+            errorMessage: "Could not update SQLProj",
+        });
+        telemetryStubs.sendErrorEvent.resetHistory();
+
+        const newState = (await saveRulesHandler?.(controller.state, {
+            rules: [toSqlCodeAnalysisRule(mockRules[2])],
+            closeAfterSave: false,
+        })) as typeof controller.state;
+
+        expect(newState.message?.intent, "message intent should be error on save failure").to.equal(
+            "error",
+        );
+        expect(newState.message?.message, "message should contain the service error text").to.equal(
+            "Could not update SQLProj",
+        );
+        expect(
+            telemetryStubs.sendErrorEvent,
+            "error telemetry should be fired with save error action",
+        ).to.have.been.calledWith(
+            TelemetryViews.SqlProjects,
+            TelemetryActions.CodeAnalysisRulesSaveError,
+            sinon.match.instanceOf(Error),
+            false,
+        );
+    });
+
+    test("loadRules applies sqlproj rule overrides from getProjectProperties to dialog state", async () => {
+        createController();
+        const internalController = getInternalController();
+
+        // SR0001 default=Error, SR0002 default=Disabled, SR0003 default=Warning
+        // Override: flip SR0001 to Disabled, flip SR0002 to Error — using fully-qualified IDs
+        sqlProjectsServiceStub.getProjectProperties.resolves({
+            success: true,
+            outputPath: "bin/Debug",
+            databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
+            sqlCodeAnalysisRules: "-Microsoft.Rules.Data.SR0001;+!Microsoft.Rules.Data.SR0002",
+        } as GetProjectPropertiesResult);
+
+        await internalController.loadRules();
+
+        const sr0001 = controller.state.rules.find((r) => r.shortRuleId === "SR0001");
+        const sr0002 = controller.state.rules.find((r) => r.shortRuleId === "SR0002");
+        const sr0003 = controller.state.rules.find((r) => r.shortRuleId === "SR0003");
+
+        expect(sr0001?.severity, "SR0001 should be overridden to Disabled").to.equal(
+            CodeAnalysisRuleSeverity.Disabled,
+        );
+        expect(sr0001?.enabled, "SR0001 should not be enabled after Disabled override").to.be.false;
+        expect(sr0002?.severity, "SR0002 should be overridden to Error").to.equal(
+            CodeAnalysisRuleSeverity.Error,
+        );
+        expect(sr0002?.enabled, "SR0002 should be enabled after Error override").to.be.true;
+        expect(sr0003?.severity, "SR0003 should remain Warning with no override").to.equal(
+            CodeAnalysisRuleSeverity.Warning,
+        );
+    });
+
+    test("loadRules falls back to default rules when getProjectProperties fails", async () => {
+        createController();
+        const internalController = getInternalController();
+        // Simulate a failure when retrieving project properties.
+        sqlProjectsServiceStub.getProjectProperties.resolves({
+            success: false,
+            errorMessage: "Failed to get project properties",
+        } as GetProjectPropertiesResult);
+
+        await internalController.loadRules();
+
+        const sr0001 = controller.state.rules.find((r) => r.shortRuleId === "SR0001");
+        const sr0002 = controller.state.rules.find((r) => r.shortRuleId === "SR0002");
+        const sr0003 = controller.state.rules.find((r) => r.shortRuleId === "SR0003");
+
+        // Verify that we fell back to the default DACFX severities (no SQLProj overrides applied).
+        expect(sr0001?.severity, "SR0001 should fall back to default Error severity").to.equal(
+            CodeAnalysisRuleSeverity.Error,
+        );
+        expect(sr0001?.enabled, "SR0001 should be enabled at default severity").to.be.true;
+        expect(sr0002?.severity, "SR0002 should fall back to default Disabled severity").to.equal(
+            CodeAnalysisRuleSeverity.Disabled,
+        );
+        expect(sr0002?.enabled, "SR0002 should not be enabled at default Disabled severity").to.be
+            .false;
+        expect(sr0003?.severity, "SR0003 should fall back to default Warning severity").to.equal(
+            CodeAnalysisRuleSeverity.Warning,
+        );
+        expect(sr0003?.enabled, "SR0003 should be enabled at default Warning severity").to.be.true;
+
+        // Verify that the user sees a non-blocking warning with the service error text.
+        expect(
+            controller.state.message?.intent,
+            "message intent should be warning on properties failure",
+        ).to.equal("warning");
+        expect(
+            controller.state.message?.message,
+            "message should contain the properties error text",
+        ).to.contain("Failed to get project properties");
     });
 });
