@@ -81,7 +81,6 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
     const executeQueryButton = vsCodePage.locator('[aria-label^="Execute Query"]').first();
     await expect(executeQueryButton).toBeVisible({ timeout: 30 * 1000 });
     await executeQueryButton.click();
-    return;
 }
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
