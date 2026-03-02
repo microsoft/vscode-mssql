@@ -535,7 +535,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
-        <target state="new">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</target>
+        <target state="translated">Faça perguntas ou proponha alterações de esquema no chat, e o GitHub Copilot atualizará o esquema instantaneamente no diagrama.</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -855,7 +855,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
-        <target state="new">Build APIs with GitHub Copilot</target>
+        <target state="translated">Criar APIs com o GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -2393,7 +2393,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
         <source xml:lang="en">Design Schemas with GitHub Copilot</source>
-        <target state="new">Design Schemas with GitHub Copilot</target>
+        <target state="translated">Projetar esquemas com o GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -5572,7 +5572,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
-        <target state="new">Open in GitHub Copilot Chat</target>
+        <target state="translated">Abrir no GitHub Copilot Chat</target>
       </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
@@ -5753,11 +5753,11 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785">
         <source xml:lang="en">Please choose a backup file to load restore plan</source>
-        <target state="new">Please choose a backup file to load restore plan</target>
+        <target state="translated">Escolha um arquivo de backup para carregar o plano de restauração</target>
       </trans-unit>
       <trans-unit id="++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5">
         <source xml:lang="en">Please choose a blob to load restore plan</source>
-        <target state="new">Please choose a blob to load restore plan</target>
+        <target state="translated">Escolha um blob para carregar o plano de restauração</target>
       </trans-unit>
       <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
         <source xml:lang="en">Please choose a file</source>
@@ -6455,7 +6455,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
         <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
-        <target state="new">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</target>
+        <target state="translated">Examine ou proponha alterações de configuração de API no chat e o GitHub Copilot atualizará a sua configuração instantaneamente no Construtor de API de Dados.</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -8070,7 +8070,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
         <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="new">Unable to read proxy agent options.</target>
+        <target state="translated">Não é possível ler as opções do agente de proxy.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -8897,7 +8897,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
-        <target state="new">Automatically display query results in a new tab instead of the query pane.</target>
+        <target state="translated">Exibir automaticamente os resultados da consulta em uma nova aba em vez do painel de consulta.</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
