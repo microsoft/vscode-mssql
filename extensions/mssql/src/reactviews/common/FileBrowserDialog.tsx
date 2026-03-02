@@ -21,6 +21,7 @@ import {
     TreeItem,
     TreeItemLayout,
     Label,
+    Field,
 } from "@fluentui/react-components";
 import { locConstants as Loc } from "./locConstants";
 import { KeyCode } from "./keys";
@@ -77,38 +78,48 @@ const useStyles = makeStyles({
     },
 });
 
+type FileSelectionInfo = {
+    fullPath: string;
+    isFile: boolean;
+};
+
 export const FileBrowserDialog = ({
     ownerUri,
-    defaultFilePath,
+    defaultFileBrowserExpandPath,
     fileTree,
     provider,
     fileTypeOptions,
     closeDialog,
     showFoldersOnly,
     propertyName,
+    defaultSelectedPath,
 }: {
     ownerUri: string;
-    defaultFilePath: string;
+    defaultFileBrowserExpandPath: string;
     fileTree: FileTree;
     provider: FileBrowserProvider;
     fileTypeOptions: FileTypeOption[];
     closeDialog: () => void;
     showFoldersOnly: boolean;
     propertyName?: string;
+    defaultSelectedPath?: string;
 }) => {
     const classes = useStyles();
 
-    const [selectedPath, setSelectedPath] = useState<string>(defaultFilePath);
+    const [selectedFileInfo, setSelectedFileInfo] = useState<FileSelectionInfo>({
+        fullPath: defaultSelectedPath || "",
+        isFile: !showFoldersOnly, // if we're showing folders only, default selection is not a file
+    });
 
-    // get default expanded nodes for Tree component by spltting defaultFilePath
+    // get default expanded nodes for Tree component by splitting defaultFilePath
     const getDefaultExpandedNodes = (): string[] => {
-        if (!defaultFilePath) return [];
+        if (!defaultFileBrowserExpandPath) return [];
 
         const expandedNodes: string[] = ["/"];
 
-        const parts = defaultFilePath.split("/").filter(Boolean);
+        const parts = defaultFileBrowserExpandPath.split("/").filter(Boolean);
 
-        let currentPath = defaultFilePath.startsWith("/") ? "/" : "";
+        let currentPath = defaultFileBrowserExpandPath.startsWith("/") ? "/" : "";
 
         for (const part of parts) {
             currentPath = currentPath === "/" ? `/${part}` : `${currentPath}/${part}`;
@@ -126,7 +137,15 @@ export const FileBrowserDialog = ({
     };
 
     const handleNodeClick = (node: FileTreeNode) => {
-        setSelectedPath(node.fullPath);
+        setSelectedFileInfo({
+            fullPath: node.fullPath,
+            isFile: node.isFile,
+        });
+    };
+
+    const handleNodeDoubleClick = async (node: FileTreeNode) => {
+        handleNodeClick(node);
+        await handleSubmit(node);
     };
 
     const handleFilterChange = (selectedFilter: string) => {
@@ -137,7 +156,7 @@ export const FileBrowserDialog = ({
 
         provider.openFileBrowser(
             ownerUri,
-            defaultFilePath,
+            defaultFileBrowserExpandPath,
             filterOption.value,
             true,
             showFoldersOnly,
@@ -145,17 +164,39 @@ export const FileBrowserDialog = ({
 
         // reset expanded nodes to default in tree
         setOpenItems(defaultExpandedNodes);
-        setSelectedPath(defaultFilePath);
+        setSelectedFileInfo({
+            fullPath: "",
+            isFile: !showFoldersOnly,
+        });
     };
 
-    const handleSubmit = async () => {
-        await provider.submitFilePath(selectedPath, propertyName);
+    const handleSubmit = async (node?: FileTreeNode) => {
+        if (selectedNodeValidationMessage() !== "") {
+            // if the user tries to submit an invalid selection, do nothing
+            return;
+        }
+        const path = node ? node.fullPath : selectedFileInfo.fullPath;
+        await provider.submitFilePath(path, propertyName);
         await handleDialogClose();
     };
 
     const handleDialogClose = async () => {
         await provider.closeFileBrowser(ownerUri);
         closeDialog();
+    };
+
+    const selectedNodeValidationMessage = (): string => {
+        if (!selectedFileInfo.fullPath) {
+            if (showFoldersOnly) {
+                return Loc.fileBrowser.folderRequired;
+            }
+            return Loc.fileBrowser.fileRequired;
+        }
+        // if we need a file input, validate the selected node is a file
+        if (!showFoldersOnly && !selectedFileInfo.isFile) {
+            return Loc.fileBrowser.pleaseSelectAFile;
+        }
+        return "";
     };
 
     return (
@@ -189,16 +230,31 @@ export const FileBrowserDialog = ({
                                 fileTree.rootNode.children[0],
                                 handleExpandNode,
                                 handleNodeClick,
+                                handleNodeDoubleClick,
                             )}
                         </Tree>
                         <div className={classes.formRow}>
                             <Label>{Loc.fileBrowser.selectedPath}</Label>
-                            <Input
-                                value={selectedPath}
-                                onChange={(_event, data) => {
-                                    setSelectedPath(data.value);
-                                }}
-                            />
+                            <Field
+                                validationState={
+                                    selectedNodeValidationMessage() ? "error" : undefined
+                                }
+                                validationMessage={selectedNodeValidationMessage()}>
+                                <Input
+                                    placeholder={
+                                        showFoldersOnly
+                                            ? Loc.fileBrowser.folderPath
+                                            : Loc.fileBrowser.filePath
+                                    }
+                                    value={selectedFileInfo.fullPath}
+                                    onChange={(_event, data) => {
+                                        setSelectedFileInfo({
+                                            fullPath: data.value,
+                                            isFile: !showFoldersOnly,
+                                        });
+                                    }}
+                                />
+                            </Field>
                         </div>
                         {!showFoldersOnly && ( // only show file filter if showing files instead of just folders
                             <div className={classes.formRow}>
@@ -222,7 +278,8 @@ export const FileBrowserDialog = ({
                             appearance="primary"
                             onClick={async () => {
                                 await handleSubmit();
-                            }}>
+                            }}
+                            disabled={selectedNodeValidationMessage() !== ""}>
                             {Loc.common.select}
                         </Button>
                         <Button
@@ -243,6 +300,7 @@ function renderTreeItem(
     node: FileTreeNode,
     onNodeExpand: (node: FileTreeNode) => void,
     onNodeClick: (node: FileTreeNode) => void,
+    onNodeDoubleClick: (node: FileTreeNode) => void,
 ): JSX.Element {
     const isBranch = !node.isFile; // folders are branches
     const hasChildren = node.children && node.children.length > 0;
@@ -261,6 +319,10 @@ function renderTreeItem(
             }}
             onClick={() => {
                 onNodeClick(node);
+            }}
+            onDoubleClick={(e: React.MouseEvent) => {
+                e.stopPropagation(); // prevent parent TreeItems from also triggering
+                onNodeDoubleClick(node);
             }}>
             <TreeItemLayout>{node.name}</TreeItemLayout>
 
@@ -268,7 +330,7 @@ function renderTreeItem(
                 <Tree>
                     {hasChildren ? (
                         node.children.map((child) =>
-                            renderTreeItem(child, onNodeExpand, onNodeClick),
+                            renderTreeItem(child, onNodeExpand, onNodeClick, onNodeDoubleClick),
                         )
                     ) : !node.isExpanded ? (
                         // show loading only while expanding

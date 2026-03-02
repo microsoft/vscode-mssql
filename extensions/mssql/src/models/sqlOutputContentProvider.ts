@@ -21,7 +21,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import * as qr from "../sharedInterfaces/queryResult";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
+import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
@@ -678,6 +678,9 @@ export class SqlOutputContentProvider {
         }
         const timer = setTimeout(() => {
             try {
+                if (!this._queryResultWebviewController.hasQueryResultState(uri)) {
+                    return;
+                }
                 const state = this._queryResultWebviewController.getQueryResultState(uri);
                 this.updateWebviewState(uri, state);
             } finally {
@@ -688,49 +691,31 @@ export class SqlOutputContentProvider {
     }
 
     /**
-     * Executed from the MainController when an untitled text document was saved to the disk. If
-     * any queries were executed from the untitled document, the queryrunner will be remapped to
-     * a new resuls uri based on the uri of the newly saved file.
-     * @param untitledUri   The URI of the untitled file
-     * @param savedUri  The URI of the file after it was saved
+     * We throttle updates to the webview state to avoid overwhelming the RPC channel and leading to stuck webview. https://github.com/microsoft/vscode-mssql/issues/18246
+     * We need to migrate any pending throttled updates to the new URI when a query runner URI is updated (ex: after a save as) to ensure the webview state stays in sync and updates are not lost.
      */
-    public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
-        // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = decodeURIComponent(untitledUri);
-        if (!this._queryResultsMap.has(untitledResultsUri)) {
+    private migrateThrottledUpdateUri(oldUri: string, newUri: string): void {
+        const timer = this._stateUpdateTimers.get(oldUri);
+        if (!timer || oldUri === newUri) {
             return;
         }
 
-        // NOTE: We don't need to remap the query in the service because the queryrunner still has
-        // the old uri. As long as we make requests to the service against that uri, we'll be good.
-
-        // Remap the query runner in the map
-        let savedResultUri = decodeURIComponent(savedUri);
-        this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
-        this._queryResultsMap.delete(untitledResultsUri);
+        clearTimeout(timer);
+        this._stateUpdateTimers.delete(oldUri);
+        this.scheduleThrottledUpdate(newUri);
     }
 
     public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
-        let queryRunner = this.getQueryRunner(oldUri);
-        if (queryRunner) {
-            queryRunner.updateQueryRunnerUri(oldUri, newUri);
+        this.migrateThrottledUpdateUri(oldUri, newUri);
+
+        const queryRunnerState = this._queryResultsMap.get(oldUri);
+        if (queryRunnerState) {
+            queryRunnerState.queryRunner.updateQueryRunnerUri(oldUri, newUri);
+            this._queryResultsMap.set(newUri, queryRunnerState);
+            this._queryResultsMap.delete(oldUri);
         }
 
-        let state = this._queryResultWebviewController.getQueryResultState(oldUri);
-        if (state) {
-            state.uri = newUri;
-            /**
-             * TODO: aaskhan
-             * Remove adhoc state updates.
-             */
-            await this._queryResultWebviewController.sendNotification(
-                StateChangeNotification.type<qr.QueryResultWebviewState>(),
-                state,
-            );
-            //Update the URI in the query result webview state
-            this._queryResultWebviewController.setQueryResultState(newUri, state);
-            this._queryResultWebviewController.deleteQueryResultState(oldUri);
-        }
+        this._queryResultWebviewController.updateUri(oldUri, newUri);
     }
 
     /**

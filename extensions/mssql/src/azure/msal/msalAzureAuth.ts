@@ -30,7 +30,7 @@ import { Logger } from "../../models/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
-import { HttpHelper } from "../../http/httpHelper";
+import { HttpClient } from "../../http/httpClient";
 import { getErrorMessage } from "../../utils/utils";
 
 export type GetTenantsResponseData = {
@@ -45,7 +45,7 @@ export abstract class MsalAzureAuth {
     protected readonly scopesString: string;
     protected readonly clientId: string;
     protected readonly resources: Resource[];
-    private readonly _httpHelper: HttpHelper;
+    private readonly _httpHelper: HttpClient;
 
     constructor(
         protected readonly providerSettings: IProviderSettings,
@@ -62,7 +62,7 @@ export abstract class MsalAzureAuth {
         this.scopes = [...this.providerSettings.scopes];
         this.scopesString = this.scopes.join(" ");
 
-        this._httpHelper = new HttpHelper(logger);
+        this._httpHelper = new HttpClient(logger);
     }
 
     public async startLogin(): Promise<LoginResult> {

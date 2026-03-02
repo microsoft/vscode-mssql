@@ -12,7 +12,6 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import { removeUndefinedProperties, getUriKey } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
-import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
@@ -20,6 +19,24 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
+
+/**
+ * Time to wait after opening a document to check if it's the
+ * result of a save or rename operation. This is needed to avoid auto-connecting
+ * a document that was just transferred an active connection.
+ */
+const waitTimeMsOnOpenAfterSaveOrRename = 500;
+
+/**
+ * Gets document signature based on language, line count and text content. This
+ * is used to identify untitled documents that have been saved to disk.
+ */
+function getDocumentSignature(document: vscode.TextDocument): string {
+    const maxLinesToCheck = 100; // Limit content length to avoid performance issues with very large documents
+    return `${document.languageId} - ${document.lineCount} lines - ${document.getText(
+        new vscode.Range(0, 0, Math.min(document.lineCount, maxLinesToCheck), 0),
+    )}`;
+}
 
 /**
  * Service for creating untitled documents for SQL query
@@ -30,11 +47,8 @@ export default class SqlDocumentService implements vscode.Disposable {
     // WeakSet ensures entries are garbage collected with the documents.
     private _ownedDocuments: WeakSet<vscode.TextDocument> = new WeakSet();
     private _ongoingCreates: Map<string, Promise<vscode.TextEditor>> = new Map();
-
-    private _lastSavedUri: string | undefined;
-    private _lastSavedTimer: Utils.Timer | undefined;
-    private _lastOpenedUri: string | undefined;
-    private _lastOpenedTimer: Utils.Timer | undefined;
+    private _uriBeingRenamedOrSaved: Set<string> = new Set();
+    private _newUriFromRenameOrSave: Set<string> = new Set();
 
     private _lastActiveConnectionInfo: vscodeMssql.IConnectionInfo | undefined;
 
@@ -58,6 +72,10 @@ export default class SqlDocumentService implements vscode.Disposable {
         return this._mainController?.objectExplorerTree;
     }
 
+    public isUriBeingRenamedOrSaved(uri: string): boolean {
+        return this._uriBeingRenamedOrSaved.has(uri);
+    }
+
     private setupListeners(): void {
         this._disposables.push(
             vscode.workspace.onDidCloseTextDocument(async (doc) => {
@@ -78,8 +96,14 @@ export default class SqlDocumentService implements vscode.Disposable {
         );
 
         this._disposables.push(
-            vscode.workspace.onDidSaveTextDocument((doc) => {
-                this.onDidSaveTextDocument(doc);
+            vscode.workspace.onWillSaveTextDocument((event) => {
+                event.waitUntil(this.onWillSaveTextDocument(event));
+            }),
+        );
+
+        this._disposables.push(
+            vscode.workspace.onWillRenameFiles((event) => {
+                event.waitUntil(this.onWillRenameFiles(event));
             }),
         );
 
@@ -148,9 +172,12 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         const connectionResult = this._connectionMgr.getConnectionInfo(newEditorUri);
 
-        await this._connectionMgr.connectionStore.removeRecentlyUsed(
-            connectionCreds as IConnectionProfile,
-        );
+        // Only remove from MRU when we reused an explicit profile from OE context.
+        if (connectionCreds) {
+            await this._connectionMgr.connectionStore.removeRecentlyUsed(
+                connectionCreds as IConnectionProfile,
+            );
+        }
 
         sendActionEvent(
             TelemetryViews.CommandPalette,
@@ -170,57 +197,88 @@ export default class SqlDocumentService implements vscode.Disposable {
     }
 
     /**
-     * Called by VS Code when a text document closes. This will dispatch calls to other
-     * controllers as needed. Determines if this was a normal closed file, a untitled closed file,
-     * or a renamed file
+     * Called by vscode when a text document is about to be saved.
+     * We use this event to detect when the currently active untitled SQL editor is being saved,
+     * so that we can transfer connection and query runner state to the saved document URI.
+     *
+     * Detection is based on matching document signatures between the active untitled document and
+     * the document in the save event. This intentionally scopes transfers to the active untitled editor.
+     *
+     * Limitation: this does not support connection transfer for saves initiated via vscode extension's API
+     * when the active editor is not the untitled file being saved.
+     * @param event The event representing the document that is about to be saved
+     */
+    public async onWillSaveTextDocument(event: vscode.TextDocumentWillSaveEvent): Promise<any> {
+        /**
+         * Connection transfer on save only supports the active untitled SQL editor.
+         */
+        const activeUntitledDocument = vscode.window.activeTextEditor?.document;
+        const newDocument = event.document;
+
+        // We need to only deal with SQL untitled documents.
+        if (
+            event.document.languageId !== Constants.languageId ||
+            !activeUntitledDocument ||
+            activeUntitledDocument?.uri?.scheme !== "untitled"
+        ) {
+            return;
+        }
+
+        // While not strictly necessary, we check the document signature to avoid false positives in case of multiple SQL documents.
+        if (getDocumentSignature(activeUntitledDocument) === getDocumentSignature(newDocument)) {
+            this._uriBeingRenamedOrSaved.add(getUriKey(activeUntitledDocument?.uri));
+            this._newUriFromRenameOrSave.add(getUriKey(event.document.uri));
+            await this.updateUri(
+                getUriKey(activeUntitledDocument?.uri),
+                getUriKey(event.document.uri),
+            );
+        }
+    }
+
+    /**
+     * Called by vscode when files are about to be renamed. We use this event to transfer connection
+     * and query runner state to the new URI of the document after it's renamed.
+     */
+    public async onWillRenameFiles(event: vscode.FileWillRenameEvent): Promise<any> {
+        for (const file of event.files) {
+            const oldUri = getUriKey(file.oldUri);
+            const newUri = getUriKey(file.newUri);
+            // Skip if the renamed file doesn't have an active connection.
+            if (!this._connectionMgr?.isConnected(oldUri)) {
+                continue;
+            }
+            this._uriBeingRenamedOrSaved.add(oldUri);
+            this._newUriFromRenameOrSave.add(newUri);
+            await this.updateUri(oldUri, newUri);
+        }
+    }
+
+    /**
+     * Called by vscode when a text document is closed.
+     * Handles cleaning up any state related to the closed document.
+     * For renames and saves, the onWillRenameFiles and onWillSaveTextDocument listeners are fired first,
+     * we ignore those uris in onDidCloseTextDocument to avoid cleaning up state for documents that are being renamed or saved.
      * @param doc The document that was closed
      */
     public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
+        if (this._uriBeingRenamedOrSaved.has(getUriKey(doc.uri))) {
+            /**
+             * This document is being renamed or saved, so we ignore the close event
+             * to avoid cleaning up state that will be needed after the rename/save
+             */
+            this._uriBeingRenamedOrSaved.delete(getUriKey(doc.uri));
+            return;
+        }
+
         if (this._connectionMgr === undefined || doc === undefined || doc.uri === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
         let closedDocumentUri: string = getUriKey(doc.uri);
-        let closedDocumentUriScheme: string = doc.uri.scheme;
 
-        // Stop timers if they have been started
-        if (this._lastSavedTimer) {
-            this._lastSavedTimer.end();
-        }
-
-        if (this._lastOpenedTimer) {
-            this._lastOpenedTimer.end();
-        }
-
-        // Determine which event caused this close event
-
-        // If there was a saveTextDoc event just before this closeTextDoc event and it
-        // was untitled then we know it was an untitled save
-        if (
-            this._lastSavedUri &&
-            closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
-            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
-        ) {
-            // Untitled file was saved and connection will be transfered
-            await this.updateUri(closedDocumentUri, this._lastSavedUri);
-
-            // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
-        } else if (
-            this._lastOpenedUri &&
-            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
-        ) {
-            await this.updateUri(closedDocumentUri, this._lastOpenedUri);
-        } else {
-            // Pass along the close event to the other handlers for a normal closed file
-            await this._outputContentProvider?.onDidCloseTextDocument(doc);
-            await this._connectionMgr.onDidCloseTextDocument(doc);
-        }
-
-        // Reset special case timers and events
-        this._lastSavedUri = undefined;
-        this._lastSavedTimer = undefined;
-        this._lastOpenedTimer = undefined;
-        this._lastOpenedUri = undefined;
+        // Pass along the close event to the other handlers.
+        await this._outputContentProvider?.onDidCloseTextDocument(doc);
+        await this._connectionMgr.onDidCloseTextDocument(doc);
 
         // Remove diagnostics for the related file
         let diagnostics = SqlToolsServerClient.instance.diagnosticCollection;
@@ -233,7 +291,7 @@ export default class SqlDocumentService implements vscode.Disposable {
     }
 
     /**
-     * Called by VS Code when a text document is opened. Checks if a SQL file was opened
+     * Called by vscode when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
     public async onDidOpenTextDocument(doc: vscode.TextDocument): Promise<void> {
@@ -242,39 +300,69 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
+        const docUri = getUriKey(doc.uri);
+
+        // Only SQL documents should run the rename/save open delay and auto-connect logic.
+        if (doc.languageId !== Constants.languageId) {
+            this._newUriFromRenameOrSave.delete(docUri);
+            return;
+        }
+
+        // set encoding to false
+        this._statusview?.languageFlavorChanged(docUri, Constants.mssqlProviderName);
+
+        /**
+         * Since there is no reliable way to detect if this open is a result of
+         * untitled document being saved to disk or being renamed, we wait for
+         * some time for those events to finish and check if open document is
+         * the new saved/renamed document. If it is, we skip auto-connecting because the
+         * save/rename handlers covers those cases.
+         */
+        await new Promise((resolve) => setTimeout(resolve, waitTimeMsOnOpenAfterSaveOrRename));
+        if (this._newUriFromRenameOrSave.has(docUri)) {
+            this._newUriFromRenameOrSave.delete(docUri);
+            return;
+        }
 
         await this.waitForOngoingCreates();
 
+        // This becomes a no-op if there is no last active connection.
+        if (!this._lastActiveConnectionInfo) {
+            return;
+        }
+
+        /**
+         * If the document is connected now, because the user didn't waitForOngoingCreates
+         * or other checks to complete we don't want to overwrite that connection by
+         * auto-connecting. So we skip it.
+         */
         if (
-            this._lastActiveConnectionInfo &&
-            doc.languageId === Constants.languageId &&
-            !this._ownedDocuments.has(doc)
+            !this._ownedDocuments.has(doc) &&
+            !this._connectionMgr.isConnected(docUri) &&
+            !this._connectionMgr.isConnecting(docUri)
         ) {
             await this._connectionMgr.connect(
-                getUriKey(doc.uri),
+                docUri,
                 Utils.deepClone(this._lastActiveConnectionInfo),
             );
         }
-
-        if (doc && doc.languageId === Constants.languageId) {
-            // set encoding to false
-            this._statusview?.languageFlavorChanged(
-                getUriKey(doc.uri),
-                Constants.mssqlProviderName,
-            );
-        }
-
-        // Setup properties incase of rename
-        this._lastOpenedTimer = new Utils.Timer();
-        this._lastOpenedTimer.start();
-
-        if (doc && doc.uri) {
-            this._lastOpenedUri = getUriKey(doc.uri);
-        }
     }
 
+    /**
+     * Updates the last active connection info when the active editor changes,
+     * We use this info to determine connection info for new query editors to auto-connect to.
+     * @param editor The new active text editor.
+     */
     public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): Promise<void> {
-        this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+        try {
+            this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+
+            this._outputContentProvider?.queryResultWebviewController?.updateResultsOnActiveEditorChange(
+                editor,
+            );
+        } catch {
+            // No op is needed here since we don't want to block rest of the code.
+        }
 
         if (!editor?.document) {
             return;
@@ -292,26 +380,6 @@ export default class SqlDocumentService implements vscode.Disposable {
             this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
         }
         this._statusview?.updateStatusBarForEditor(editor, connectionInfo);
-    }
-
-    /**
-     * Called by VS Code when a text document is saved. Will trigger a timer to
-     * help determine if the file was a file saved from an untitled file.
-     * @param doc The document that was saved
-     */
-    public onDidSaveTextDocument(doc: vscode.TextDocument): void {
-        if (this._connectionMgr === undefined) {
-            // Avoid processing events before initialization is complete
-            return;
-        }
-
-        // Set encoding to false by giving true as argument
-        let savedDocumentUri: string = getUriKey(doc.uri);
-
-        // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
-        this._lastSavedTimer = new Utils.Timer();
-        this._lastSavedTimer.start();
-        this._lastSavedUri = savedDocumentUri;
     }
 
     private async onSuccessfulConnection(params: ConnectionSuccessfulEvent): Promise<void> {
@@ -503,15 +571,18 @@ export default class SqlDocumentService implements vscode.Disposable {
         return editor;
     }
 
+    /**
+     * Handles updating the URI of a document when it is renamed or saved.
+     * This includes transferring connection and query runner state to the new URI.
+     * @param oldUri old URI of the document
+     * @param newUri new URI of the document
+     */
     private async updateUri(oldUri: string, newUri: string) {
         // Transfer the connection to the new URI
         await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
 
-        // Call STS  & Query Runner to update URI
+        // Update the URI in the output content provider, which will transfer query runner and webview state to the new URI
         await this._outputContentProvider?.updateQueryRunnerUri(oldUri, newUri);
-
-        // Update the URI in the output content provider query result map
-        this._outputContentProvider?.onUntitledFileSaved(oldUri, newUri);
     }
 }
 

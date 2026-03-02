@@ -13,6 +13,7 @@ import {
     Open16Regular,
     VideoClip16Filled,
 } from "@fluentui/react-icons";
+import { GithubCopilot16Regular } from "./fluentIcons";
 import { Icons } from "../../../sharedInterfaces/icons";
 
 /**
@@ -24,6 +25,7 @@ const actionIcons: Icons = {
     Bug16Regular: Bug16Regular,
     Chat16Regular: Chat16Regular,
     ClipboardBulletList16Regular: ClipboardBulletList16Regular,
+    GithubCopilot16Regular: GithubCopilot16Regular,
     Lightbulb16Regular: Lightbulb16Regular,
     VideoClip16Filled: VideoClip16Filled,
 };
