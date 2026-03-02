@@ -431,17 +431,24 @@ export class SqlOutputContentProvider {
                     resultSetSummaries: {},
                     executionPlanState: {},
                     messages: [],
+                    tabStates: {
+                        resultPaneTab: QueryResultPaneTabs.Messages,
+                    },
                     fontSettings: { fontSize: 0, fontFamily: "" },
                 });
             });
 
             const startListener = queryRunner.onStart(async (_panelUri) => {
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
+                let resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
-                resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                resultWebviewState.isExecutionPlan = false;
-                resultWebviewState.initializationError = undefined;
+                resultWebviewState = {
+                    ...resultWebviewState,
+                    tabStates: {
+                        ...resultWebviewState?.tabStates,
+                        resultPaneTab: QueryResultPaneTabs.Messages,
+                    },
+                };
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -461,6 +468,7 @@ export class SqlOutputContentProvider {
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
                     // Switch to results tab for the first result set
                     if (countResultSets(resultWebviewState.resultSetSummaries) === 1) {
+                        this.ensureResultTabState(resultWebviewState);
                         resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
                     }
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
@@ -567,6 +575,7 @@ export class SqlOutputContentProvider {
                         }
                     }
                 }
+                this.ensureResultTabState(resultWebviewState);
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
@@ -943,6 +952,12 @@ export class SqlOutputContentProvider {
 
     set setResultsMap(setMap: Map<string, QueryRunnerState>) {
         this._queryResultsMap = setMap;
+    }
+
+    private ensureResultTabState(state: qr.QueryResultWebviewState): void {
+        state.tabStates ??= {
+            resultPaneTab: QueryResultPaneTabs.Messages,
+        };
     }
 
     private updateWebviewState(uri: string, state: qr.QueryResultWebviewState): void {
