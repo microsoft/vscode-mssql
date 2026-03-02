@@ -18,7 +18,7 @@ import { CodeAnalysis as Loc } from "../constants/locConstants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
-import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
+import { generateGuid } from "../models/utils";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
@@ -53,6 +53,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 isLoading: true,
                 rules: [],
                 dacfxStaticRules: [],
+                enableCodeAnalysisOnBuild: false,
             } as CodeAnalysisState,
             {
                 title: Loc.Title,
@@ -72,7 +73,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        this._operationId = generateOperationId();
+        this._operationId = generateGuid();
 
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisDialogOpened, {
@@ -129,6 +130,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 const result = await this.sqlProjectsService.updateCodeAnalysisRules({
                     projectUri: state.projectFilePath,
                     rules: overrides,
+                    runSqlCodeAnalysis: payload.enableCodeAnalysisOnBuild,
                 });
                 if (!result.success) {
                     const errorMsg = result.errorMessage || Loc.failedToSaveRules;
@@ -148,6 +150,15 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                         ruleCount: overrides.length.toString(),
                     },
                 );
+                if (payload.enableCodeAnalysisOnBuild !== state.enableCodeAnalysisOnBuild) {
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        payload.enableCodeAnalysisOnBuild
+                            ? TelemetryActions.CodeAnalysisEnabledOnBuild
+                            : TelemetryActions.CodeAnalysisDisabledOnBuild,
+                        { operationId: this._operationId },
+                    );
+                }
                 if (payload.closeAfterSave) {
                     this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
                     this.vscodeWrapper.outputChannel.show();
@@ -155,6 +166,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty
                 state.rules = payload.rules;
+                state.enableCodeAnalysisOnBuild = payload.enableCodeAnalysisOnBuild;
                 state.message = payload.closeAfterSave
                     ? undefined
                     : ({ message: Loc.rulesSaved, intent: "success" } as DialogMessageSpec);
@@ -182,6 +194,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
     private async applyProjectOverrides(dacfxStaticRules: SqlCodeAnalysisRule[]): Promise<{
         rules: SqlCodeAnalysisRule[];
         message?: DialogMessageSpec;
+        enableCodeAnalysisOnBuild: boolean;
     }> {
         try {
             const projectProps = await this.sqlProjectsService.getProjectProperties(
@@ -202,6 +215,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                             enabled: overrideSeverity !== CodeAnalysisRuleSeverity.Disabled,
                         };
                     }),
+                    enableCodeAnalysisOnBuild: projectProps.runSqlCodeAnalysis ?? false,
                 };
             } else if (projectProps?.success === false) {
                 // Retrieval failed — fall back to DacFx defaults and surface a warning
@@ -213,6 +227,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 );
                 return {
                     rules: dacfxStaticRules,
+                    enableCodeAnalysisOnBuild: false,
                     message: {
                         message: detail
                             ? `${Loc.failedToLoadOverrides}: ${detail}`
@@ -222,7 +237,10 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 };
             } else {
                 // success: true but no sqlCodeAnalysisRules — no overrides saved, use DacFx defaults.
-                return { rules: dacfxStaticRules };
+                return {
+                    rules: dacfxStaticRules,
+                    enableCodeAnalysisOnBuild: projectProps?.runSqlCodeAnalysis ?? false,
+                };
             }
         } catch (propsError) {
             // Fall back to DacFx defaults and show a non-blocking warning so the
@@ -233,6 +251,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             );
             return {
                 rules: dacfxStaticRules,
+                enableCodeAnalysisOnBuild: false,
                 message: {
                     message: `${Loc.failedToLoadOverrides}: ${getErrorMessage(propsError)}`,
                     intent: "warning",
@@ -284,6 +303,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             const overrideResult = await this.applyProjectOverrides(dacfxStaticRules);
             this.state.rules = overrideResult.rules;
             this.state.dacfxStaticRules = dacfxStaticRules;
+            this.state.enableCodeAnalysisOnBuild = overrideResult.enableCodeAnalysisOnBuild;
             this.state.message = overrideResult.message;
             this.state.isLoading = false;
             this.updateState();

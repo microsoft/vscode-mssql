@@ -122,6 +122,13 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
 
+    // --- Enable on build ---
+    enableOnBuildRow: {
+        display: "flex",
+        alignItems: "center",
+        flexShrink: 0,
+    },
+
     // --- Footer ---
     footer: {
         display: "flex",
@@ -157,8 +164,11 @@ export const CodeAnalysisDialog = () => {
     const rules = useCodeAnalysisSelector((s) => s.rules);
     const dacfxStaticRules = useCodeAnalysisSelector((s) => s.dacfxStaticRules);
     const message = useCodeAnalysisSelector((s) => s.message);
+    const enableCodeAnalysisOnBuild = useCodeAnalysisSelector((s) => s.enableCodeAnalysisOnBuild);
 
     const [localRules, setLocalRules] = useState<SqlCodeAnalysisRule[]>(rules);
+    const [localEnableCodeAnalysisOnBuild, setLocalEnableCodeAnalysisOnBuild] =
+        useState(enableCodeAnalysisOnBuild);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
     const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
     const [showResetConfirmDialog, setShowResetConfirmDialog] = useState(false);
@@ -176,6 +186,10 @@ export const CodeAnalysisDialog = () => {
         setLocalRules(rules);
     }, [rules]);
 
+    useEffect(() => {
+        setLocalEnableCodeAnalysisOnBuild(enableCodeAnalysisOnBuild);
+    }, [enableCodeAnalysisOnBuild]);
+
     // Reset isSaving when the save completes: the reducer updates `rules` on
     // success and `message` on error — either signals the round-trip is done.
     useEffect(() => {
@@ -185,6 +199,7 @@ export const CodeAnalysisDialog = () => {
     // True when localRules diverges from the saved rules (different severity or enabled state),
     // used to enable/disable the Apply, OK, and unsaved-changes prompt.
     const isDirty = useMemo(() => {
+        if (localEnableCodeAnalysisOnBuild !== enableCodeAnalysisOnBuild) return true;
         if (localRules.length !== rules.length) return true;
         const rulesMap = new Map(rules.map((rule) => [rule.ruleId, rule]));
         return localRules.some((local) => {
@@ -195,7 +210,7 @@ export const CodeAnalysisDialog = () => {
                 original.enabled !== local.enabled
             );
         });
-    }, [localRules, rules]);
+    }, [localRules, rules, localEnableCodeAnalysisOnBuild, enableCodeAnalysisOnBuild]);
 
     // --- Grouping ---
     const groupedRuleEntries = useMemo(() => {
@@ -275,6 +290,7 @@ export const CodeAnalysisDialog = () => {
 
     const resetToDefaults = () => {
         setLocalRules(dacfxStaticRules);
+        setLocalEnableCodeAnalysisOnBuild(false);
     };
 
     const changeSeverity = (ruleId: string, severity: string) => {
@@ -315,6 +331,17 @@ export const CodeAnalysisDialog = () => {
                     onCloseMessage={() => context.closeMessage()}
                 />
             )}
+
+            {/* Enable Code Analysis on Build */}
+            <div className={styles.enableOnBuildRow}>
+                <Checkbox
+                    checked={localEnableCodeAnalysisOnBuild}
+                    label={loc.enableCodeAnalysisOnBuild}
+                    onChange={(_e, data) =>
+                        setLocalEnableCodeAnalysisOnBuild(data.checked === true)
+                    }
+                />
+            </div>
 
             {/* Rules table */}
             <div className={styles.rulesContainer}>
@@ -466,7 +493,7 @@ export const CodeAnalysisDialog = () => {
                         disabled={!isDirty || isLoading || isSaving}
                         onClick={() => {
                             setIsSaving(true);
-                            context.saveRules(localRules, false);
+                            context.saveRules(localRules, false, localEnableCodeAnalysisOnBuild);
                         }}>
                         {commonLoc.apply}
                     </Button>
@@ -475,7 +502,7 @@ export const CodeAnalysisDialog = () => {
                         disabled={!isDirty || isLoading || isSaving}
                         onClick={() => {
                             setIsSaving(true);
-                            context.saveRules(localRules, true);
+                            context.saveRules(localRules, true, localEnableCodeAnalysisOnBuild);
                         }}>
                         {commonLoc.ok}
                     </Button>
@@ -511,7 +538,7 @@ export const CodeAnalysisDialog = () => {
                         onClick: () => {
                             setIsSaving(true);
                             setShowUnsavedChangesDialog(false);
-                            context.saveRules(localRules, true);
+                            context.saveRules(localRules, true, localEnableCodeAnalysisOnBuild);
                         },
                     },
                     {
