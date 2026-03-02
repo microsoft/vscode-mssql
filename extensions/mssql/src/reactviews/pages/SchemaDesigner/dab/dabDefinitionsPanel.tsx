@@ -15,7 +15,6 @@ import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
 
 export interface DabDefinitionsPanelRef {
-    togglePanel: () => void;
     openPanel: () => void;
 }
 
@@ -30,9 +29,6 @@ export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, re
     useImperativeHandle(
         ref,
         () => ({
-            togglePanel: () => {
-                definitionPaneRef.current?.togglePanel();
-            },
             openPanel: () => {
                 definitionPaneRef.current?.openPanel();
             },
