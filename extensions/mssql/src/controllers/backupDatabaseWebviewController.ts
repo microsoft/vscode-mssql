@@ -291,9 +291,9 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 const locBackupType = this.state.formComponents["backupType"].options.find(
                     (option) => option.value === updatedState.formState.backupType,
                 )?.displayName;
-                const splitBackupName = updatedState.formState.backupName.split("_");
+                const splitBackupName = updatedState.formState.backupName.split("-");
                 splitBackupName[1] = locBackupType;
-                updatedState.formState.backupName = splitBackupName.join("_");
+                updatedState.formState.backupName = splitBackupName.join("-");
             }
             return updatedState;
         });
