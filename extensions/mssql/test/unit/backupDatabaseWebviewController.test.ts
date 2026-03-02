@@ -663,6 +663,9 @@ suite("BackupDatabaseWebviewController", () => {
                 ...mockInitialState.viewModel,
                 model: { ...mockInitialState.viewModel.model, backupFiles: [] },
             },
+            fileBrowserState: {
+                showFoldersOnly: false,
+            },
         } as ObjectManagementWebviewState<BackupDatabaseFormState>;
         let result = await controller["_reducerHandlers"].get("submitFilePath")(state, {
             selectedPath: "newPath/newFile.bak",
@@ -696,6 +699,7 @@ suite("BackupDatabaseWebviewController", () => {
             backupFiles: [],
         } as BackupDatabaseViewModel;
 
+        state.fileBrowserState.showFoldersOnly = true;
         result = await controller["_reducerHandlers"].get("submitFilePath")(state, {
             selectedPath: "newPath",
         });

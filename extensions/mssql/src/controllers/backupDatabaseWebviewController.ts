@@ -369,7 +369,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.registerReducer("submitFilePath", async (state, payload) => {
             const backupViewModel = this.backupViewModel(state);
             // Check if an existing file was selected
-            const isExisting = payload.selectedPath.includes(".");
+            const isExisting = !state.fileBrowserState.showFoldersOnly;
 
             // Folder selected, generate default backup name
             if (!isExisting) {
