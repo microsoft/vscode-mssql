@@ -1336,6 +1336,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the name of the database project</note>
         <target state="translated">Code Analysis - {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
+        <source xml:lang="en">Code analysis rules saved successfully</source>
+        <target state="new">Code analysis rules saved successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
         <target state="translated">摺疊</target>
@@ -2521,6 +2525,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
         <target state="translated">Docker 需要根權限才能執行。請使用 sudo 執行 Docker，或使用 sudo usermod -aG docker $USER 將您的使用者新增至 docker 群組。然後，重新啟動您的電腦並重試。</target>
       </trans-unit>
+      <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
+        <source xml:lang="en">Don't Save</source>
+        <target state="new">Don't Save</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">不要再顯示</target>
@@ -3431,6 +3439,10 @@ Error:
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
         <target state="translated">無法提取 SQL Server 映像。請檢查網路連線，然後再試一次。</target>
       </trans-unit>
+      <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
+        <source xml:lang="en">Failed to read saved rule overrides from project</source>
+        <target state="new">Failed to read saved rule overrides from project</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -3463,6 +3475,10 @@ Error:
         <source xml:lang="en">Failed to save changes: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">無法儲存變更: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
+        <source xml:lang="en">Failed to save code analysis rules</source>
+        <target state="new">Failed to save code analysis rules</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3588,6 +3604,10 @@ Error:
       <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
         <source xml:lang="en">File not found</source>
         <target state="translated">找不到檔案</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
+        <source xml:lang="en">File path</source>
+        <target state="new">File path</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -3764,6 +3784,10 @@ Error:
       <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
         <source xml:lang="en">Folder is required</source>
         <target state="translated">需要資料夾</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
+        <source xml:lang="en">Folder path</source>
+        <target state="new">Folder path</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -5759,14 +5783,6 @@ Error:
         <source xml:lang="en">Please choose a blob to load restore plan</source>
         <target state="translated">請選擇一個 Blob 以載入還原計畫</target>
       </trans-unit>
-      <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
-        <source xml:lang="en">Please choose a file</source>
-        <target state="translated">請選擇檔案</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ea887fcdc3b25d5c543a6c7f3fb1e675e63420d492f1064f29d9d81be8efcca5">
-        <source xml:lang="en">Please choose a folder</source>
-        <target state="translated">請選擇資料夾</target>
-      </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
         <target state="translated">請選擇唯一的備份檔案名稱</target>
@@ -5810,6 +5826,10 @@ Error:
       <trans-unit id="++CODE++42990e221cd66206bd59e10ce7ba785f6e8a88282b99827f844bbe43089294d5">
         <source xml:lang="en">Please select a database node in Object Explorer to rename.</source>
         <target state="translated">請在物件總管中選取一個資料庫節點以重新命名。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
+        <source xml:lang="en">Please select a file, not a folder.</source>
+        <target state="new">Please select a file, not a folder.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6325,6 +6345,10 @@ Error:
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">重設</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
+        <source xml:lang="en">Reset to Defaults?</source>
+        <target state="new">Reset to Defaults?</target>
       </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
@@ -7958,6 +7982,10 @@ Query: {2}</source>
         <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
         <target state="translated">這將使用 Docker 在本機部署資料 API 建立器容器。容器會根據您的設定提供 REST 與 GraphQL API。</target>
       </trans-unit>
+      <trans-unit id="++CODE++51338842c0b95f02deebfcbe26d1e5a4052518617a3a72d7a8c56a886e720287">
+        <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</source>
+        <target state="new">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">時間戳記</target>
@@ -8142,6 +8170,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
         <source xml:lang="en">Unnamed Profile</source>
         <target state="translated">未命名的設定檔</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
+        <source xml:lang="en">Unsaved Changes</source>
+        <target state="new">Unsaved Changes</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -8410,6 +8442,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
         <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
         <target state="translated">您有尚未匯出的已擷取 Profiler 活動。如果您現在關閉，將遺失所有已擷取的活動。您要將它們匯出至 CSV 檔案嗎?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
+        <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
