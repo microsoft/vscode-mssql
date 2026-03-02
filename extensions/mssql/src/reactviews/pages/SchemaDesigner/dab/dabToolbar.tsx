@@ -78,9 +78,10 @@ const useStyles = makeStyles({
 
 interface DabToolbarProps {
     onNavigateToSchema?: () => void;
+    onViewConfig?: () => void;
 }
 
-export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
+export function DabToolbar({ onNavigateToSchema, onViewConfig }: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
     const {
@@ -88,7 +89,6 @@ export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
         updateDabApiTypes,
         dabTextFilter,
         setDabTextFilter,
-        generateDabConfig,
         openDabDeploymentDialog,
     } = context;
 
@@ -127,11 +127,11 @@ export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
                 <div className={classes.actionsSection}>
                     <Button
                         appearance="subtle"
-                        icon={<FluentIcons.DocumentCopy16Regular />}
+                        icon={<FluentIcons.Eye16Regular />}
                         size="small"
-                        title={locConstants.schemaDesigner.generateConfig}
-                        onClick={() => void generateDabConfig()}>
-                        {locConstants.schemaDesigner.generateConfig}
+                        title={locConstants.schemaDesigner.viewConfig}
+                        onClick={onViewConfig}>
+                        {locConstants.schemaDesigner.viewConfig}
                     </Button>
                     <Button
                         appearance="primary"

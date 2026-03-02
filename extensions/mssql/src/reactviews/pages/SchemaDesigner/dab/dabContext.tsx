@@ -21,9 +21,7 @@ interface DabContextProps {
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
-    dabConfigContent: string;
-    dabConfigRequestId: number;
-    generateDabConfig: () => Promise<void>;
+    dabConfigTextFileContent: string;
     openDabConfigInEditor: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
@@ -52,8 +50,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
-    const [dabConfigContent, setDabConfigContent] = useState<string>("");
-    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+    const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
         Dab.createDefaultDeploymentState(),
     );
@@ -177,17 +174,18 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [],
     );
 
-    const generateDabConfig = useCallback(async () => {
+    // Auto-generate text config whenever dabConfig changes
+    useEffect(() => {
         if (!dabConfig) {
             return;
         }
-        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
-            config: dabConfig,
-        });
-        if (response.success) {
-            setDabConfigContent(response.configContent);
-            setDabConfigRequestId((id) => id + 1);
-        }
+        void extensionRpc
+            .sendRequest(Dab.GenerateConfigRequest.type, { config: dabConfig })
+            .then((response) => {
+                if (response.success) {
+                    setDabConfigTextFileContent(response.configContent);
+                }
+            });
     }, [dabConfig, extensionRpc]);
 
     const copyToClipboard = useCallback(
@@ -374,9 +372,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 updateDabEntitySettings,
                 dabTextFilter,
                 setDabTextFilter,
-                dabConfigContent,
-                dabConfigRequestId,
-                generateDabConfig,
+                dabConfigTextFileContent,
                 openDabConfigInEditor,
                 dabDeploymentState,
                 openDabDeploymentDialog,
