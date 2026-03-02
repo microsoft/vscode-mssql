@@ -3,7 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
+import {
+    QueryRunnerState,
+    SqlOutputContentProvider,
+} from "../../src/models/sqlOutputContentProvider";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as stubs from "./stubs";
@@ -98,12 +101,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockContentProvider.runQuery.callsFake(async (_status, uri) => {
             const entry = ensureRunnerState(uri);
             entry.queryRunner.isExecutingQuery = true;
-        });
-
-        mockContentProvider.onUntitledFileSaved.callsFake(async (oldUri, newUri) => {
-            const entry = ensureRunnerState(oldUri);
-            mockMap.delete(oldUri);
-            mockMap.set(newUri, { ...entry, queryRunner: { isExecutingQuery: true } });
         });
 
         mockContentProvider.onDidCloseTextDocument.callsFake(async (doc: vscode.TextDocument) => {
@@ -201,30 +198,89 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap.clear();
     });
 
-    test("onUntitledFileSaved should delete the untitled file and create a new titled file", async () => {
-        let title = "Test_Title";
-        let uri = testUri;
-        let newUri = "Test_URI_New";
-        let querySelection: ISelectionData = {
-            endColumn: 0,
-            endLine: 0,
-            startColumn: 0,
-            startLine: 0,
+    test("updateQueryRunnerUri should rekey query runner map entries", async () => {
+        const oldUri = "untitled:Untitled-99";
+        const newUri = "file:///renamed.sql";
+        const queryRunner = {
+            updateQueryRunnerUri: sandbox.stub(),
+        } as unknown as QueryRunner;
+        const queryRunnerState = new QueryRunnerState(queryRunner);
+        const queryResultsMap = new Map<string, QueryRunnerState>([[oldUri, queryRunnerState]]);
+        contentProvider.setResultsMap = queryResultsMap;
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(queryRunner.updateQueryRunnerUri).to.have.been.calledOnceWith(oldUri, newUri);
+        expect(contentProvider.getResultsMap.has(oldUri)).to.be.false;
+        expect(contentProvider.getResultsMap.has(newUri)).to.be.true;
+        expect(contentProvider.getResultsMap.get(newUri)).to.equal(queryRunnerState);
+    });
+
+    test("updateQueryRunnerUri should not throw when query result state does not exist", async () => {
+        const oldUri = "untitled:Untitled-1";
+        const newUri = "file:///test.sql";
+        const sendNotificationStub = sandbox
+            .stub(contentProvider.queryResultWebviewController, "sendNotification")
+            .resolves();
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(sendNotificationStub).to.not.have.been.called;
+    });
+
+    test("updateQueryRunnerUri should transfer state when query result state exists", async () => {
+        const oldUri = "untitled:Untitled-2";
+        const newUri = "file:///transferred.sql";
+        const mockState = { uri: oldUri, messages: [] };
+
+        // Add state for the old URI
+        contentProvider.queryResultWebviewController.addQueryResultState(oldUri, mockState as any);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        // The old URI state should be deleted
+        expect(contentProvider.queryResultWebviewController.hasQueryResultState(oldUri)).to.be
+            .false;
+        // The new URI state should exist with updated uri
+        expect(contentProvider.queryResultWebviewController.hasQueryResultState(newUri)).to.be.true;
+        expect(
+            contentProvider.queryResultWebviewController.getQueryResultState(newUri).uri,
+        ).to.equal(newUri);
+    });
+
+    test("updateQueryRunnerUri should migrate panel mapping to new URI", async () => {
+        const oldUri = "file:///old-panel.sql";
+        const newUri = "file:///new-panel.sql";
+        const panelController = {
+            updateUri: sandbox.stub(),
         };
 
-        // Setup the function to call base and run it
-        await mockContentProvider.runQuery(statusViewInstance, uri, querySelection, title);
+        contentProvider.queryResultWebviewController["_queryResultWebviewPanelControllerMap"].set(
+            oldUri,
+            panelController as any,
+        );
 
-        // Ensure all side effects occured as intended
-        expect(mockMap.has(testUri)).to.be.true;
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
-        await mockContentProvider.onUntitledFileSaved(uri, newUri);
+        expect(contentProvider.queryResultWebviewController.hasPanel(oldUri)).to.be.false;
+        expect(contentProvider.queryResultWebviewController.hasPanel(newUri)).to.be.true;
+        expect(panelController.updateUri).to.have.been.calledOnceWith(newUri);
+    });
 
-        // Check that the first one was replaced by the new one and that there is only one in the map
-        expect(mockMap.has(uri)).to.be.false;
-        expect(mockMap.get(newUri)?.queryRunner.isExecutingQuery).to.be.true;
-        expect(mockMap.size).to.equal(1);
-        mockMap.clear();
+    test("updateQueryRunnerUri should migrate throttled timers to new URI", async () => {
+        const oldUri = "file:///old-timer.sql";
+        const newUri = "file:///new-timer.sql";
+
+        const oldTimer = setTimeout(() => {}, 1000);
+        contentProvider["_stateUpdateTimers"].set(oldUri, oldTimer as any);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(contentProvider["_stateUpdateTimers"].has(oldUri)).to.be.false;
+        expect(contentProvider["_stateUpdateTimers"].has(newUri)).to.be.true;
+
+        clearTimeout(contentProvider["_stateUpdateTimers"].get(newUri));
+        contentProvider["_stateUpdateTimers"].delete(newUri);
     });
 
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
@@ -426,7 +482,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox
             .stub(contentProvider as any, "initializeRunnerAndWebviewState")
             .resolves(mockQueryRunner);
-        (contentProvider as any)._actualPlanStatuses = [uri];
+        contentProvider["_actualPlanStatuses"] = [uri];
 
         await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
 
@@ -454,7 +510,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox
             .stub(contentProvider as any, "initializeRunnerAndWebviewState")
             .resolves(mockQueryRunner);
-        (contentProvider as any)._actualPlanStatuses = [];
+        contentProvider["_actualPlanStatuses"] = [];
 
         await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
 
@@ -488,7 +544,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
 
         // Stub _queryResultWebviewController methods to avoid errors
-        const webviewController = (contentProvider as any)._queryResultWebviewController;
+        const webviewController = contentProvider["_queryResultWebviewController"];
         sandbox.stub(webviewController, "addQueryResultState");
         sandbox.stub(webviewController, "createPanelController").resolves();
 

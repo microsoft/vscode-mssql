@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { CopilotChat } from "./copilotChat";
 
 export namespace SchemaDesigner {
-    export const openCopilotAgentCommand = "mssql.schemaDesigner.openCopilotAgent";
-
     /**
      * Represents a schema model
      * This is the schema model that is used to create the schema designer
@@ -335,6 +334,7 @@ export namespace SchemaDesigner {
         enableExpandCollapseButtons?: boolean;
         enableDAB?: boolean;
         isCopilotChatInstalled?: boolean;
+        copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;
     }
 
@@ -367,6 +367,7 @@ export namespace SchemaDesigner {
         getReport: GetReportOptions;
         copyToClipboard: CopyToClipboardOptions;
         openInEditor: OpenInEditorOptions;
+        dismissCopilotChatDiscovery: CopilotChat.DismissDiscoveryPayload;
     }
 
     export interface SchemaDesignerCacheItem {

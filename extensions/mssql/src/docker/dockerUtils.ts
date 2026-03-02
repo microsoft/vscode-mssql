@@ -511,11 +511,14 @@ export async function getDockerPath(executable: string): Promise<string> {
 export async function pullContainerImage(
     imageName: string,
     errorMessage: string,
+    platform?: string,
 ): Promise<DockerCommandParams> {
     try {
         dockerLogger.appendLine(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
-        const pullStream = await dockerClient.pull(imageName);
+        const pullStream = platform
+            ? await dockerClient.pull(imageName, { platform })
+            : await dockerClient.pull(imageName);
         await new Promise<void>((resolve, reject) => {
             dockerClient.modem.followProgress(pullStream, (error) =>
                 error ? reject(error) : resolve(),
