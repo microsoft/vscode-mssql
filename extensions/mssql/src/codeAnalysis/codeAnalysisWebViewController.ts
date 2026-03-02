@@ -18,6 +18,7 @@ import { CodeAnalysis as Loc } from "../constants/locConstants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { generateGuid } from "../models/utils";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
@@ -72,7 +73,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        this._operationId = generateOperationId();
+        this._operationId = generateGuid();
 
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisDialogOpened, {
