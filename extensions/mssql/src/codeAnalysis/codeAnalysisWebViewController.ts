@@ -33,15 +33,6 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
 > {
     private readonly _operationId: string;
 
-    /**
-     * Sends a telemetry error event scoped to this dialog's operationId.
-     */
-    private sendError(action: TelemetryActions, error: Error): void {
-        sendErrorEvent(TelemetryViews.SqlProjects, action, error, false, undefined, undefined, {
-            operationId: this._operationId,
-        });
-    }
-
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -95,6 +86,15 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
         void this.loadRules();
     }
 
+    /**
+     * Sends a telemetry error event scoped to this dialog's operationId.
+     */
+    private sendError(action: TelemetryActions, error: Error): void {
+        sendErrorEvent(TelemetryViews.SqlProjects, action, error, false, undefined, undefined, {
+            operationId: this._operationId,
+        });
+    }
+
     private normalizeSeverity(severity: string | undefined): string {
         switch (severity?.toLowerCase()) {
             case "error":
@@ -117,7 +117,8 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
         });
         // Clear message bar
         this.registerReducer("closeMessage", async (state) => {
-            return { ...state, message: undefined };
+            state.message = undefined;
+            return state;
         });
         // Save rule overrides to the .sqlproj
         this.registerReducer("saveRules", async (state, payload) => {
@@ -138,13 +139,8 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                         TelemetryActions.CodeAnalysisRulesSaveError,
                         new Error(errorMsg),
                     );
-                    return {
-                        ...state,
-                        message: {
-                            message: errorMsg,
-                            intent: "error",
-                        } as DialogMessageSpec,
-                    };
+                    state.message = { message: errorMsg, intent: "error" } as DialogMessageSpec;
+                    return state;
                 }
                 sendActionEvent(
                     TelemetryViews.SqlProjects,
@@ -169,27 +165,23 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     this.panel.dispose();
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty
-                return {
-                    ...state,
-                    rules: payload.rules,
-                    enableCodeAnalysisOnBuild: payload.enableCodeAnalysisOnBuild,
-                    message: payload.closeAfterSave
-                        ? undefined
-                        : ({ message: Loc.rulesSaved, intent: "success" } as DialogMessageSpec),
-                };
+                state.rules = payload.rules;
+                state.enableCodeAnalysisOnBuild = payload.enableCodeAnalysisOnBuild;
+                state.message = payload.closeAfterSave
+                    ? undefined
+                    : ({ message: Loc.rulesSaved, intent: "success" } as DialogMessageSpec);
+                return state;
             } catch (error) {
                 this.logger.error(`Failed to save code analysis rules: ${getErrorMessage(error)}`);
                 this.sendError(
                     TelemetryActions.CodeAnalysisRulesSaveError,
                     error instanceof Error ? error : new Error(getErrorMessage(error)),
                 );
-                return {
-                    ...state,
-                    message: {
-                        message: getErrorMessage(error),
-                        intent: "error",
-                    } as DialogMessageSpec,
-                };
+                state.message = {
+                    message: getErrorMessage(error),
+                    intent: "error",
+                } as DialogMessageSpec;
+                return state;
             }
         });
     }
