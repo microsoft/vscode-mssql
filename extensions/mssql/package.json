@@ -573,6 +573,11 @@
                     "group": "1a_MSSQL_profiler@1"
                 },
                 {
+                    "command": "mssql.profiler.launchFromDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1a_MSSQL_profiler@1"
+                },
+                {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
@@ -1412,6 +1417,11 @@
             },
             {
                 "command": "mssql.profiler.launchFromObjectExplorer",
+                "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.profiler.launchFromDatabase",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
             },

@@ -21,6 +21,7 @@ import { Logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
@@ -60,9 +61,11 @@ export class ProfilerController {
      * Launches the profiler UI with a provided connection profile (from Object Explorer).
      * This is the main entry point - profiler can only be launched via right-click context menu.
      * @param connectionProfile - The connection profile to use for profiling
+     * @param databaseScopeFilter - If provided, pre-populates a DatabaseName filter in the profiler UI
      */
     public async launchProfilerWithConnection(
         connectionProfile: IConnectionProfile,
+        databaseScopeFilter?: string,
     ): Promise<void> {
         this._logger.verbose(
             `Launching profiler with connection to ${connectionProfile.server}...`,
@@ -117,7 +120,7 @@ export class ProfilerController {
             this._profilerEngineTypes.set(profilerUri, this._currentEngineType);
 
             // Use the common setup method - pass engine type to avoid race condition
-            await this.setupProfilerUI(profilerUri, this._currentEngineType);
+            await this.setupProfilerUI(profilerUri, this._currentEngineType, databaseScopeFilter);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(getErrorMessage(e)));
@@ -234,6 +237,31 @@ export class ProfilerController {
                     try {
                         const connectionProfile = treeNodeInfo.connectionProfile;
                         await this.launchProfilerWithConnection(connectionProfile);
+                    } catch (e) {
+                        this._logger.error(`Command error: ${e}`);
+                        vscode.window.showErrorMessage(
+                            LocProfiler.failedToLaunchProfiler(getErrorMessage(e)),
+                        );
+                    }
+                },
+            ),
+        );
+
+        // Launch Profiler from a Database node in Object Explorer (pre-filters by database)
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.profiler.launchFromDatabase",
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    try {
+                        const connectionProfile = treeNodeInfo.connectionProfile;
+                        // Use ObjectExplorerUtils.getDatabaseName to reliably get the database name.
+                        // connectionProfile.database is often empty for Database nodes because they
+                        // inherit the parent Server node's connection profile unchanged.
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                        this._logger.verbose(
+                            `Launching profiler from database node: ${databaseName}`,
+                        );
+                        await this.launchProfilerWithConnection(connectionProfile, databaseName);
                     } catch (e) {
                         this._logger.error(`Command error: ${e}`);
                         vscode.window.showErrorMessage(
@@ -523,8 +551,13 @@ export class ProfilerController {
      * and auto-starts profiling.
      * @param profilerUri - The URI of the established profiler connection
      * @param engineType - The engine type for filtering templates
+     * @param databaseScopeFilter - If provided, pre-populates a DatabaseName filter in the profiler UI
      */
-    private async setupProfilerUI(profilerUri: string, engineType: EngineType): Promise<void> {
+    private async setupProfilerUI(
+        profilerUri: string,
+        engineType: EngineType,
+        databaseScopeFilter?: string,
+    ): Promise<void> {
         this._profilerUri = profilerUri;
 
         // Step 1: Show template selection quick pick (filtered by engine type)
@@ -614,6 +647,11 @@ export class ProfilerController {
             sessionName, // Set the initial session name
             selectedTemplate.template.id,
         );
+
+        // If launched from a database node, set the initial database filter
+        if (databaseScopeFilter) {
+            webviewController.setInitialDatabaseFilter(databaseScopeFilter);
+        }
 
         // Track this webview controller along with its profiler URI for cleanup
         const webviewId = Utils.generateGuid();

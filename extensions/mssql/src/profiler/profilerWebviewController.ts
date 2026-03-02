@@ -32,6 +32,7 @@ import {
     SessionState,
     TEMPLATE_ID_STANDARD_ONPREM,
     FilterState,
+    FilterOperator,
     ColumnDataType,
     XelFileInfo,
 } from "./profilerTypes";
@@ -72,6 +73,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _statusBarItem: vscode.StatusBarItem;
     /** Persisted filter state per session (keyed by session ID) */
     private _sessionFilterState = new Map<string, FilterState>();
+    /** Database name to auto-apply as initial filter (set when launching from a database node) */
+    private _initialDatabaseFilter: string | undefined;
     private _isReadOnly: boolean;
     private _xelFileInfo: XelFileInfo | undefined;
 
@@ -817,6 +820,32 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Sets the initial database name filter to auto-apply when a session starts.
+     * Used when launching the profiler from a Database node in Object Explorer.
+     * @param databaseName - The database name to filter on
+     */
+    public setInitialDatabaseFilter(databaseName: string): void {
+        this._initialDatabaseFilter = databaseName;
+
+        // Also update the initial state so the UI shows filter is active from the start.
+        // Use FilterOperator.In (not Equals) because the DatabaseName column is Categorical,
+        // and the column filter popover only recognizes the In operator for Categorical columns.
+        this.state = {
+            ...this.state,
+            filterState: {
+                enabled: true,
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.In,
+                        values: [databaseName],
+                    },
+                ],
+            },
+        };
+    }
+
+    /**
      * Set event handlers for webview actions
      */
     public setEventHandlers(handlers: ProfilerWebviewEvents): void {
@@ -879,7 +908,23 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             this.updateFilteredBufferConverter();
 
             // Restore persisted filter state for this session, if any
-            const savedFilterState = this._sessionFilterState.get(session.id);
+            let savedFilterState = this._sessionFilterState.get(session.id);
+
+            // If no saved filter and an initial database filter is set, apply it.
+            // Use FilterOperator.In (not Equals) because the DatabaseName column is Categorical,
+            // and the column filter popover only recognizes the In operator for Categorical columns.
+            if (!savedFilterState && this._initialDatabaseFilter) {
+                savedFilterState = {
+                    enabled: true,
+                    clauses: [
+                        {
+                            field: "DatabaseName",
+                            operator: FilterOperator.In,
+                            values: [this._initialDatabaseFilter],
+                        },
+                    ],
+                };
+            }
 
             const sessionState = this.getSessionStateFromSession(session);
 

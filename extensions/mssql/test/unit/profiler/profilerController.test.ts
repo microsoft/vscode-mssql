@@ -194,6 +194,13 @@ suite("ProfilerController Tests", () => {
             expect(registeredCommands.has("mssql.profiler.launchFromObjectExplorer")).to.be.true;
         });
 
+        test("should register profiler launchFromDatabase command", () => {
+            createController();
+
+            expect(registerCommandStub).to.have.been.called;
+            expect(registeredCommands.has("mssql.profiler.launchFromDatabase")).to.be.true;
+        });
+
         test("should not register mssql.profiler.launch command", () => {
             createController();
 
@@ -344,6 +351,69 @@ suite("ProfilerController Tests", () => {
             // The webview should NOT be created since user cancelled
             expect(createWebviewPanelStub).to.not.have.been.called;
             expect(mockConnectionManager.disconnect).to.have.been.called;
+        });
+    });
+
+    suite("mssql.profiler.launchFromDatabase command", () => {
+        const mockDatabaseTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+                database: "",
+            },
+            nodeType: "Database",
+            metadata: {
+                metadataTypeName: "Database",
+                name: "AdventureWorks",
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        test("should create webview panel with database filter when launched from database node", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
+            createController();
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromDatabase");
+
+            await launchCommand!(mockDatabaseTreeNodeInfo);
+
+            expect(createWebviewPanelStub).to.have.been.calledOnce;
+        });
+
+        test("should handle connection failure from database node", async () => {
+            (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
+
+            createController();
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromDatabase");
+
+            await launchCommand!(mockDatabaseTreeNodeInfo);
+
+            expect(showErrorMessageStub).to.have.been.called;
+            expect(createWebviewPanelStub).to.not.have.been.called;
         });
     });
 

@@ -2031,6 +2031,86 @@ suite("FilteredBuffer Tests", () => {
         });
     });
 
+    suite("database name filter with row converter", () => {
+        test("Equals filter on converted field filters rows added after applyFilter", () => {
+            // Simulate the profiler scenario: filter on DatabaseName via a row converter
+            // that maps the raw "name" field to "DatabaseName"
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                DatabaseName: row.name,
+            }));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.Equals,
+                        value: "AdventureWorks",
+                    },
+                ],
+            });
+
+            // Cache should exist and be empty since no rows yet
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+
+            // Add rows after filter is set (simulating live events arriving)
+            filteredBuffer.add(createTestRow("AdventureWorks", 1));
+            filteredBuffer.add(createTestRow("master", 2));
+            filteredBuffer.add(createTestRow("AdventureWorks", 3));
+            filteredBuffer.add(createTestRow("tempdb", 4));
+
+            // Only AdventureWorks rows should pass
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+            expect(filteredBuffer.size).to.equal(4); // total is still 4
+        });
+
+        test("Equals filter is case-insensitive for string values", () => {
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                DatabaseName: row.name,
+            }));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.Equals,
+                        value: "adventureworks",
+                    },
+                ],
+            });
+
+            filteredBuffer.add(createTestRow("AdventureWorks", 1));
+            filteredBuffer.add(createTestRow("ADVENTUREWORKS", 2));
+            filteredBuffer.add(createTestRow("master", 3));
+
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+        });
+
+        test("Equals filter excludes rows with undefined/null field", () => {
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                DatabaseName: row.category, // category can be undefined
+            }));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.Equals,
+                        value: "MyDB",
+                    },
+                ],
+            });
+
+            filteredBuffer.add(createTestRow("event1", 1, 0, "MyDB"));
+            filteredBuffer.add(createTestRow("event2", 2, 0, undefined)); // no db
+            filteredBuffer.add(createTestRow("event3", 3, 0, "OtherDB"));
+
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+        });
+    });
+
     suite("Pre-converted clause values", () => {
         /**
          * These tests verify that clause values are pre-converted to their
