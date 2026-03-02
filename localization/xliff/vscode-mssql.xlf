@@ -7062,6 +7062,9 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Flat File (Preview)</source>
     </trans-unit>
+    <trans-unit id="mssql.profiler.launchFromDatabase">
+      <source xml:lang="en">Launch Query Profiler (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler (Preview)</source>
     </trans-unit>

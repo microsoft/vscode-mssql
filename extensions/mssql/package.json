@@ -1416,7 +1416,7 @@
             },
             {
                 "command": "mssql.profiler.launchFromDatabase",
-                "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "title": "%mssql.profiler.launchFromDatabase%",
                 "category": "MS SQL"
             },
             {

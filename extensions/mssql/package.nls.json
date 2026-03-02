@@ -48,6 +48,7 @@
     "mssql.objectExplorerChatWithDatabase": "Open in Copilot Ask mode",
     "mssql.objectExplorerChatWithDatabaseInAgentMode": "Open in Copilot Agent mode",
     "mssql.profiler.launchFromObjectExplorer": "Launch Query Profiler (Preview)",
+    "mssql.profiler.launchFromDatabase": "Launch Query Profiler (Preview)",
     "mssql.copilot.editorSubmenu": "MSSQL Copilot",
     "mssql.copilot.explainQuery": "Explain Query",
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance",
