@@ -499,6 +499,7 @@
       <Item ItemId=";bundle.++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Design Schemas with GitHub Copilot]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3943,6 +3944,7 @@
       <Item ItemId=";bundle.++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7477,6 +7479,7 @@
       <Item ItemId=";bundle.++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Build APIs with GitHub Copilot]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8896,6 +8899,7 @@
       <Item ItemId=";bundle.++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10783,6 +10787,7 @@
       <Item ItemId=";bundle.++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open in GitHub Copilot Chat]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11167,6 +11172,7 @@
       <Item ItemId=";bundle.++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to read proxy agent options.]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12091,6 +12097,7 @@
       <Item ItemId=";bundle.++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a blob to load restore plan]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16489,6 +16496,7 @@
       <Item ItemId=";bundle.++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a backup file to load restore plan]]></Val>
+
         </Str>
         <Disp Icon="Str" />
       </Item>
