@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
-import { HttpHelper } from "../http/httpHelper";
+import { HttpClient } from "../http/httpClient";
 
 const configAzureAD = "azureActiveDirectory";
 
@@ -129,7 +129,7 @@ export function getAppDataPath(): string {
 export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
     const graphBaseUri = vscode.Uri.parse("https://graph.microsoft.com/v1.0/");
     const uri = vscode.Uri.joinPath(graphBaseUri, `users/${userId}/memberOf`);
-    const httpHelper = new HttpHelper();
+    const httpHelper = new HttpClient();
 
     const session = await vscode.authentication.getSession("microsoft", [], {
         createIfNone: true,

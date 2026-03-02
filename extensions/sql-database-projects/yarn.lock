@@ -1019,10 +1019,10 @@
     "@vscode/vsce-sign-win32-arm64" "2.0.6"
     "@vscode/vsce-sign-win32-x64" "2.0.6"
 
-"@vscode/vsce@^3.1.1":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@vscode/vsce/-/vsce-3.7.0.tgz#a2a8c0bb414227867c6b246b6fcd84614e5dca7c"
-  integrity sha512-LY9r2T4joszRjz4d92ZPl6LTBUPS4IWH9gG/3JUv+1QyBJrveZlcVISuiaq0EOpmcgFh0GgVgKD4rD/21Tu8sA==
+"@vscode/vsce@^3.7.1":
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/@vscode/vsce/-/vsce-3.7.1.tgz#55a88ae40e9618fea251e373bc6b23c128915654"
+  integrity sha512-OTm2XdMt2YkpSn2Nx7z2EJtSuhRHsTPYsSK59hr3v8jRArK+2UEoju4Jumn1CmpgoBLGI6ReHLJ/czYltNUW3g==
   dependencies:
     "@azure/identity" "^4.1.0"
     "@secretlint/node" "^10.1.2"

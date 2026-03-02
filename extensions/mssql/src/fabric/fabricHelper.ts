@@ -15,7 +15,7 @@ import {
     ISqlEndpointArtifact,
     IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
-import { HttpHelper } from "../http/httpHelper";
+import { HttpClient } from "../http/httpClient";
 import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
@@ -306,7 +306,7 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new HttpHelper(fabricLogger);
+        const httpHelper = new HttpClient(fabricLogger);
 
         const session = await this.createScopedFabricSession(tenantId, reason);
         let token = session?.accessToken;
@@ -332,7 +332,7 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new HttpHelper(fabricLogger);
+        const httpHelper = new HttpClient(fabricLogger);
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
@@ -370,7 +370,7 @@ export class FabricHelper {
     private static async handleLongRunningOperation<TResponse>(
         retryAfter: string,
         location: string,
-        httpHelper: HttpHelper,
+        httpHelper: HttpClient,
         fabricLogger: Logger,
         token?: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

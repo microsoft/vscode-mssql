@@ -253,6 +253,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0303e182467081801f8b614862519a3b174c0ae84ff08b70e7d126080c3f4b95" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not connected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결되지 않음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed]]></Val>
@@ -874,6 +883,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b231621413a53ac597977d0754cfc55a3063d534bb85a873370e98a9b8856dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to load code analysis rules]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[코드 분석 규칙을 로드하지 못함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to open scmp file: '{0}']]></Val>
@@ -915,6 +933,15 @@
           <Val><![CDATA[Automatic tuning features like automatic index creation enabled by default.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[자동 인덱스 생성과 같은 자동 튜닝 기능이 기본적으로 활성화되어 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0ba171e467536aa07cf200f98a6910142cd4bc9c82715767474325f0631f3bbc" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unknown magic command: %%{0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[알 수 없는 매직 명령: %%{0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1234,6 +1261,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0fedcf43eba06c5379c3c9a1d2242e2c7a929c3067e3a2e9cfa8fbd85d7d9c6c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot delete column because it is used by a foreign key.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[외래 키에서 사용되고 있어 열을 삭제할 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Actual Elapsed CPU Time]]></Val>
@@ -1302,6 +1338,15 @@
           <Val><![CDATA[Importing data...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[데이터를 가져오는 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[(current)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(현재)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1464,6 +1509,24 @@
           <Val><![CDATA[Import connection configuration settings from Azure Data Studio]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Data Studio에서 연결 구성 설정을 가져오세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL: Not connected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL: 연결되지 않음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[(Command completed successfully)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(명령이 완료됨)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1972,6 +2035,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Notebook connected to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}에 연결된 SQL Notebook]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The behavior when a user tries to update a row with data that is involved in a foreign key relationship.]]></Val>
@@ -2431,6 +2503,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++218a10d5a69c30b5a238c1ef9158c0427b0a183bc40cb11117e8eb7563807c9a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your APIs are available at the following endpoints:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[API는 다음 엔드포인트에서 사용할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a port to host the SQL Server Docker Container]]></Val>
@@ -2629,6 +2710,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++23950c524f395d8a86f042de7ea4cbba348146e9c1c79acb3d7fbb89d4198080" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 확장]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++23a86f5a2daebf62665f27e6c911523cf8c7fa74b48dd330ca058d0285defb0c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Validation failed]]></Val>
@@ -2661,6 +2751,15 @@
           <Val><![CDATA[Failed to generate SqlPackage command: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SqlPackage 명령을 생성하지 못했습니다. {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2427093f6a4ccd3d9c91b3682f7bf06dcbb6b77b636d3edc311b9ca3f2a3721a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[활성 연결이 없습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3151,6 +3250,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Design API]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[API 디자인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2abe6ce3689dddb31a75faaafb1a7293649d60f93bff0e48a87e7d5ddd7f2530" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not Equals]]></Val>
@@ -3367,6 +3475,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[({0} row(s) affected)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(행 {0}개가 영향을 받음)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2dcc68490694632d6cbfafe090666d170ed7a4e66bc160ca4c4feef1cf974c8b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-scroll disabled]]></Val>
@@ -3475,11 +3592,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Click to change database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스를 변경하려면 클릭하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Row created.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[행이 생성되었습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[URL copied to clipboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[클립보드에 복사된 URL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3534,6 +3669,15 @@
           <Val><![CDATA[Total rows to fetch:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[가져올 총 행:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3044963803237002cd39b23ffdbf08d431d1667985a812f1793c48f8fae7b3a4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy {0} URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} URL 복사]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4528,6 +4672,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3f6908b78d6f2f27272b632f69f324d590acb726493fe644e79cf8d0b01e9f43" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[모두 선택 {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3f91e357af9abc12f947a78cc2b4b0aa8cdd513fb4bec19a10cbee4d133445af" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to update cell: {0}]]></Val>
@@ -4542,6 +4695,15 @@
           <Val><![CDATA[Loading workspaces...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[작업 영역 로드 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 활성화]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5100,6 +5262,15 @@
           <Val><![CDATA[Error loading database objects]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[데이터베이스 개체를 로드하는 동안 오류 발생]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++46d92f6624a397f87a752409b0d15b0777438ad6fcbebfb6573a2720b065b094" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[(0 rows)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(행 0개)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5842,6 +6013,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add to VS Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[VS Code에 추가]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Encrypt]]></Val>
@@ -6553,6 +6733,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++596c52f1eb65c1c3c65404e5f75974937fee4fc77d0970abeddf580e7123ce0c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결 실패]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show table relationships]]></Val>
@@ -6805,6 +6994,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 연결이 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deselect All]]></Val>
@@ -6814,20 +7012,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++5cd7d9b82898a57ddfadeba5a0a196070acd904c2372909567591d700963fdf9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Capture and analyze live SQL Server XElite Events sessions to monitor and analyze database performance.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[실시간 SQL Server XElite 이벤트 세션을 캡처하고 분석해 데이터베이스 성능을 모니터링하고 분석하세요.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[VS Code용 MSSQL 확장에 대한 간단한 피드백 설문 조사에 참여하시겠습니까?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5d50fcab6afa8bf3d21623505a4148c817c4cff4ec9873bf8f9693e9e8f39415" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP server is already configured in {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MCP 서버가 {0}에 이미 구성되어 있습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7125,15 +7323,6 @@
           <Val><![CDATA[Refresh Credentials]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[자격 증명 새로 고침]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++62845f31a2fe00be3ebaaeb93f5b27af82ab81dfcbaa1871c76f596cd98cf3c9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Rule]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[규칙]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7701,6 +7890,15 @@
           <Val><![CDATA[Authenticated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인증됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Notebooks: click to connect]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Notebook: 연결하려면 클릭]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8632,6 +8830,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No workspace folder is open. Open a folder to add the MCP server configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작업 영역 폴더가 열려 있지 않습니다. 폴더를 열어 MCP 서버 구성을 추가하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++75605e8fd5394c88086006f3ed265d8f5f725fdfb8827963a1be8f8348d31bee" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deploy, extract, import, or export data-tier applications on the selected database]]></Val>
@@ -8835,6 +9042,15 @@
           <Val><![CDATA[Table Name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[표 이름]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++782e08de4b6ec5793be8ace39d20ee91bd05ddc327a36e3d736299c6267f75d4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Toggle all entities in {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}의 모든 엔터티 토글]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9244,6 +9460,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Config copied to clipboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[구성이 클립보드에 복사됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Either profileId or serverName must be provided.]]></Val>
@@ -9276,6 +9501,15 @@
           <Val><![CDATA[Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[계정]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7e4bf1f743585db3be8afd457365a3b7f162846f32d1ef1bfd620c5958c72281" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot delete column because it is referenced by a foreign key.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[외래 키에서 참조되고 있어 열을 삭제할 수 없습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9375,6 +9609,15 @@
           <Val><![CDATA[Failed to refresh connection ${0} with uri {1}, invalid connection result.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{1} URI와의 ${0} 연결을 새로 고치지 못했습니다. 잘못된 연결이 발생했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7fcdbd4a0ca24d27e5a77bd0c4e6de424a4be6a97f3749e5dca265ddf0614298" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결이 끊겼습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9838,6 +10081,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++87b761377cb8a3bdfa0eac508b5e6ac720c61d1410a1e7fef3f93165df3ddd2e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} action for {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{1}의 {0} 작업]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++87bb59ba2f92f2a5a9f13e021fd58dd14ae5c065b1046146875e6e68d5ebc8b7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Workspace]]></Val>
@@ -10081,6 +10333,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect to SQL Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server에 연결]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a server]]></Val>
@@ -10194,6 +10455,15 @@
           <Val><![CDATA[Schema Compare failed: '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[스키마 비교 실패: ‘{0}‘]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8c077bff66494e2aeee6280e4f591761cba31b94a22b87e617c3a5d80656ac84" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스 선택]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10900,6 +11170,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP server added to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MCP 서버가 {0}에 추가됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Options have changed. Recompare to see the comparison?]]></Val>
@@ -10914,6 +11193,24 @@
           <Val><![CDATA[Target]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[대상]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Execute SQL against SQL Server / Azure SQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server/Azure SQL에 대해 SQL 실행]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++979ea4dd600dbdf9f324b9fcc58626178a88362bea00d193ca63b85c5496599f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No database selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택된 데이타베이스가 없습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11310,6 +11607,15 @@
           <Val><![CDATA[Preview Database Updates]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[데이터베이스 업데이트 미리 보기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[실시간 SQL Server Extended 이벤트 세션을 캡처하고 분석해 데이터베이스 성능을 모니터링하고 분석하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12754,6 +13060,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Settings for {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 설정]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b2306b8a2c95daafdb1651bc3790ef251195b8eab916f792150b784f41aa81b9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Highlight Changes]]></Val>
@@ -13402,6 +13717,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bb58744a335d26ffe911eb87fea07fb73d8d4e3569295bbb62c143a5fe561b15" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot delete column because it is part of foreign key relationships.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[외래 키 관계에 포함되어 있어 열을 삭제할 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bb5b6644dc612a69a27fc4eb9b11f3e54901055b75fe7fb9bb754f28693a574f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You must be signed into Fabric in order to browse SQL databases.]]></Val>
@@ -13659,6 +13983,15 @@
           <Val><![CDATA[Circular reference detected: '{0}' → '{1}' creates a cycle]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[순환 참조가 발견되었습니다: '{0}' → '{1}'이(가) 순환을 생성합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[오류: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14194,6 +14527,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable all rules in {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}의 모든 규칙 활성화]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to server {0}?]]></Val>
@@ -14289,6 +14631,15 @@
           <Val><![CDATA[Profile removed successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[프로필을 제거함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c7bd40bc64cc1051c5198092da16048ef651147d7b291becd00c0467d63408e0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose a database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스 선택]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14721,6 +15072,15 @@
           <Val><![CDATA[Delete saved connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[저장된 연결 삭제]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ce767f8068bba3846263c85f968cda6378384e175ff05bbf8efc38cab8476223" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 축소]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15202,6 +15562,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d58adeac69d8e840d82fe6c12086fda72d491949f9800d1fb049324b37c2f3cb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query execution failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[쿼리를 실행하지 못함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto Arrange]]></Val>
@@ -15391,6 +15760,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d7dc6d22bafdce672e9ed0f4266f83ead05837f27d30656b5e480b1893188d5e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[({0} rows)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(행 {0}개)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Watch demo]]></Val>
@@ -15522,6 +15900,15 @@
           <Val><![CDATA[Backup Files (*.bak, *.log, *.trn)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[백업 파일(*.bak, *.log, *.trn)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d977ea679b0fb21f4bc301903e62002a433ffbcd7048c1f06828c8b02b9a77ae" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connected to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}에 연결됨]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16048,6 +16435,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add MCP server to workspace configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작업 영역 구성에 MCP 서버 추가]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide Confirm Password]]></Val>
@@ -16143,6 +16539,15 @@
           <Val><![CDATA[Show All]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[모두 표시]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active notebook.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[활성 전자 필기장이 없습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16444,6 +16849,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e4da59cc908db66f1c176e3b1ca74b35f3e1f863a6a07156a2f5516f3991a051" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[({0} row)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(행 {0}개)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unnamed Profile]]></Val>
@@ -16683,6 +17097,15 @@
           <Val><![CDATA[Creating Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[컨테이너 만드는 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query execution was cancelled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[쿼리 실행이 취소되었습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17065,6 +17488,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ed15b242aa1a7a4a806b10b44d2a0010fdcd7582ee1d23ff253e9d376230e87b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switched to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}(으)로 전환함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Specifies whether the column may have a NULL value.]]></Val>
@@ -17245,11 +17677,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f03ec545964ab62cf49cf19c60ffd1c9609dab0fbd2239d5bc643da5427b4270" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter entities...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[엔터티 필터링...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[계속하시겠어요?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Notebooks: click to change database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Notebook: 데이터베이스를 변경하려면 클릭]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18285,6 +18735,15 @@
           <Val><![CDATA[The expression defining the check constraint.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[CHECK 제약 조건을 정의하는 식입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ff9264103992fdc97a96b2f801ba367f6b82a97c0cfe7884ccb80233b599aac3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error: Failed to parse query result data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[오류: 쿼리 결과 데이터를 구문 분석하지 못했습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19632,6 +20091,33 @@
           <Val><![CDATA[New Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[새 테이블]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.notebooks.changeConnection" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change Notebook Connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Notebook 연결 변경]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.notebooks.changeDatabase" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change Notebook Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Notebook 데이터베이스 변경]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create SQL Notebook]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Notebook 만들기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

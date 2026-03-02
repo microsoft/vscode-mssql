@@ -9,7 +9,7 @@ This extension provides MSSQL database management-oriented default keybindings f
 | Run query                 | `F5`                     | `F5`                    |
 | Run current statement     | `Ctrl` + `F5`            | `⌘` + `F5`              |
 | Open new SQL query editor | `Ctrl` + `N`             | `⌘` + `N`               |
-| Show query results pane   | `Win` + `Shift` + `R`    | `⌘` + `Shift` + `R`     |
+| Show query results pane   | `Ctrl` + `Shift` + `R`   | `Ctrl` + `Shift` + `R`  |
 | Show connection list      | `Ctrl` + `Shift` + `D`   | `⌘` + `Shift` + `D`     |
 | Show estimated plan       | `Ctrl` + `L`             | `⌘` + `L`               |
 | Toggle actual plan        | `Ctrl` + `M`             | `⌘` + `M`               |

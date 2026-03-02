@@ -49,6 +49,8 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
     const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
         useDabContext();
+    const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
+    const canShowDiscovery = isDabTabActive && isInitialized && dabConfig != null;
     const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(null);
 
     // Initialize DAB config when schema is first initialized
@@ -60,8 +62,6 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
 
     // Sync DAB config with schema when switching to DAB tab
     useEffect(() => {
-        const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
-
         if (isInitialized && isDabTabActive && dabConfig) {
             // Incremental sync: add new tables, remove deleted ones, keep existing settings
             syncDabConfigWithSchema();
@@ -99,6 +99,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                 <Panel defaultSize={100}>
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                         <DabToolbar
+                            showDiscovery={canShowDiscovery}
                             onNavigateToSchema={onNavigateToSchema}
                             onViewConfig={() => definitionsPanelRef.current?.openPanel()}
                         />
