@@ -715,7 +715,7 @@ suite("BackupDatabaseWebviewController", () => {
         const backupName = controller["getDefaultBackupFileName"](
             mockInitialState.viewModel.model as BackupDatabaseViewModel,
         );
-        expect(backupName).to.include("testDatabase_");
+        expect(backupName).to.include("testDatabase-");
 
         mockInitialState.viewModel.model = {
             ...mockInitialState.viewModel.model,
@@ -724,7 +724,8 @@ suite("BackupDatabaseWebviewController", () => {
         const backupName2 = controller["getDefaultBackupFileName"](
             mockInitialState.viewModel.model as BackupDatabaseViewModel,
         );
-        expect(backupName2).to.include("testDatabase_Full_1");
+        expect(backupName2).to.include("testDatabase-Full-1");
+        expect(backupName2).to.not.include(":");
     });
 
     test("setMediaOptionsIfExistingFiles updates media options based on existing backup files", () => {
