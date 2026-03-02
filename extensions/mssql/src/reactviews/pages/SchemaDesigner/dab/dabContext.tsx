@@ -184,7 +184,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             .then((response) => {
                 if (response.success) {
                     setDabConfigTextFileContent(response.configContent);
+                } else {
+                    console.error("Failed to generate DAB config:", response.error);
                 }
+            })
+            .catch((error) => {
+                console.error("Failed to generate DAB config:", error);
             });
     }, [dabConfig, extensionRpc]);
 
