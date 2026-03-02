@@ -1656,8 +1656,9 @@ export default class ConnectionManager {
                     LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
                 );
             } else {
-                if (message) {
-                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
+                const displayMsg = errorMessage || message;
+                if (displayMsg) {
+                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(displayMsg));
                 }
             }
             return {

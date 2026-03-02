@@ -533,9 +533,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">確定嗎?</target>
       </trans-unit>
-      <trans-unit id="++CODE++7c1a76939e1607bc8aae228f7ab75c475c8d3a11aa1eaab81167d441cac24a82">
-        <source xml:lang="en">Ask questions about your schema or propose changes.</source>
-        <target state="new">Ask questions about your schema or propose changes.</target>
+      <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
+        <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
+        <target state="translated">在聊天中提問或提出結構描述變更建議，GitHub Copilot 會立即在圖表中更新結構描述。</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -853,6 +853,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Browse...</source>
         <target state="translated">瀏覽...</target>
       </trans-unit>
+      <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
+        <source xml:lang="en">Build APIs with GitHub Copilot</source>
+        <target state="translated">使用 GitHub Copilot 組建 API</target>
+      </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
         <target state="translated">建置失敗，結束代碼為 {0}。</target>
@@ -978,7 +982,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
         <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">擷取並分析即時 SQL Server 擴充事件工作階段，以監控並分析資料庫效能。</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1269,7 +1273,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
         <source xml:lang="en">Click to change database</source>
-        <target state="new">Click to change database</target>
+        <target state="translated">按一下以變更資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -1526,7 +1530,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
         <source xml:lang="en">Connect to SQL Server</source>
-        <target state="new">Connect to SQL Server</target>
+        <target state="translated">連接到 SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
         <source xml:lang="en">Connect to Server</source>
@@ -2385,7 +2389,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95">
         <source xml:lang="en">Design API</source>
-        <target state="new">Design API</target>
+        <target state="translated">設計 API</target>
+      </trans-unit>
+      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
+        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+        <target state="translated">使用 GitHub Copilot 設計結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -2604,10 +2612,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">啟用 [信任伺服器憑證]</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
-        <source xml:lang="en">Enable Experiences &amp; Reload</source>
-        <target state="translated">啟用體驗並重新載入</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -5075,14 +5079,6 @@ Error:
         <source xml:lang="en">New to the MSSQL extension? Check out our quick-start guide.</source>
         <target state="translated">初次使用 MSSQL 延伸模組嗎?請查看我們的快速入門指南。</target>
       </trans-unit>
-      <trans-unit id="++CODE++f5bac958d29f11e2feea075366598bc7976638f6c709c370e07e32d6e92373dd">
-        <source xml:lang="en">New: Chat about your API config</source>
-        <target state="new">New: Chat about your API config</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fde20f1667d66fb46e0292b83bff63ad17d90e114109447de26d475bba410d2f">
-        <source xml:lang="en">New: Chat about your schema</source>
-        <target state="new">New: Chat about your schema</target>
-      </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
         <target state="translated">下一步</target>
@@ -5576,7 +5572,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
-        <target state="new">Open in GitHub Copilot Chat</target>
+        <target state="translated">在 GitHub Copilot Chat 中開啟</target>
       </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
@@ -5757,11 +5753,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785">
         <source xml:lang="en">Please choose a backup file to load restore plan</source>
-        <target state="new">Please choose a backup file to load restore plan</target>
+        <target state="translated">請選擇備份檔案以載入還原計畫</target>
       </trans-unit>
       <trans-unit id="++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5">
         <source xml:lang="en">Please choose a blob to load restore plan</source>
-        <target state="new">Please choose a blob to load restore plan</target>
+        <target state="translated">請選擇一個 Blob 以載入還原計畫</target>
       </trans-unit>
       <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
         <source xml:lang="en">Please choose a file</source>
@@ -6457,9 +6453,9 @@ Error:
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">將值還原為專案預設值</target>
       </trans-unit>
-      <trans-unit id="++CODE++3a3c4e62013fa901761c8d36adc12ca3f24f9b382b1ac9a26ace61329e3ab5c3">
-        <source xml:lang="en">Review or update your Data API Builder configuration.</source>
-        <target state="new">Review or update your Data API Builder configuration.</target>
+      <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
+        <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
+        <target state="translated">在聊天中檢閲或提出 API 設定變更，GitHub Copilot 會立即在資料 API 建立器中更新您的設定。</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -7805,11 +7801,6 @@ Query: {2}</source>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">文字索引標籤 - 顯示 SQL 文字資料</target>
       </trans-unit>
-      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
-        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
-        <note>{0} is a url to learn more about the new features</note>
-        <target state="translated">適用於 VS Code 的 MSSQL 延伸模組新增了新式資料開發功能!要啟用這些功能嗎? [深入了解]({0})</target>
-      </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
         <target state="translated">找不到 XEL 檔案。</target>
@@ -8059,7 +8050,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
         <source xml:lang="en">URL copied to clipboard</source>
-        <target state="new">URL copied to clipboard</target>
+        <target state="translated">URL 已複製到剪貼簿</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -8077,9 +8068,9 @@ Query: {2}</source>
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">無法開啟資料表總管: 未提供目標節點。</target>
       </trans-unit>
-      <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
-        <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
-        <target state="translated">無法讀取 Proxy 代理程式選項以取得租使用者。</target>
+      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
+        <source xml:lang="en">Unable to read proxy agent options.</source>
+        <target state="translated">無法讀取 Proxy 代理程式選項。</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -8905,8 +8896,8 @@ Query: {2}</source>
         <target state="translated">應用程式意圖</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
-        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">在新索引標籤中自動顯示查詢結果，而不是在查詢窗格中。只有在啟用 'mssql.enableRichExperiences' 時，此選項才會生效。</target>
+        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
+        <target state="translated">在新索引標籤中自動顯示查詢結果，而不是在查詢窗格中。</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
@@ -9098,10 +9089,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
         <target state="translated">不要顯示在新索引標籤中顯示查詢結果的提示。</target>
       </trans-unit>
-      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-        <source xml:lang="en">Do not show prompts to enable UI-based features</source>
-        <target state="translated">不要顯示提示來啟用以 UI 為基礎的功能</target>
-      </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">刪除資料庫 (預覽)</target>
@@ -9129,14 +9116,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">依架構啟用群組</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">啟用現代化功能</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">啟用現代化功能</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -9226,23 +9205,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">當資料表有超過 10 個欄位時，在結構描述設計供具的資料表節點中啟用展開/折疊按鈕</target>
       </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
-        <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="translated">在 MSSQL 中啟用現代功能</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
-        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="translated">啟用一組全新的資料開發功能，為您在 VS Code 中使用 SQL 資料庫提供現代化的工作方式。
-[啟用新體驗](command:mssql.enableRichExperiences)</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">已啟用</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences.description">
-        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">在 MSSQL 延伸模組中啟用以 UI 為基礎的功能，以提供更豐富且更強大的功能。變更此設定後重新啟動 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
