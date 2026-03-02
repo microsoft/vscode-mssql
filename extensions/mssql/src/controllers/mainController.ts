@@ -250,6 +250,10 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdDisconnect, () => {
                 void this.runAndLogErrors(this.onDisconnect());
             });
+            this.registerCommand(Constants.cmdCancelConnect);
+            this._event.on(Constants.cmdCancelConnect, () => {
+                void this.runAndLogErrors(this.onCancelConnect());
+            });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
                 void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
@@ -2361,6 +2365,17 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.executeCommand("setContext", "mssql.editorConnected", false);
             }
             return success;
+        }
+        return false;
+    }
+
+    /**
+     * Cancel an in-progress connection, if any
+     */
+    private async onCancelConnect(): Promise<boolean> {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
+            await this._connectionMgr.onCancelConnect(false);
+            return true;
         }
         return false;
     }
