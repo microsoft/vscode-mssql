@@ -415,11 +415,11 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
      */
     private getDefaultBackupFileName(state: BackupDatabaseViewModel): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = `${state.databaseName}_${BackupType.Full}`;
+        let name = `${state.databaseName}-${BackupType.Full}`;
         if (newFiles.length > 0) {
-            name += `_${newFiles.length}`;
+            name += `-${newFiles.length}`;
         }
-        return name + `_${new Date().toISOString().slice(0, 19)}.bak`;
+        return name + `-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.bak`;
     }
 
     /**
