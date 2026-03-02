@@ -30,7 +30,6 @@ import {
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
-import { ConfirmationDialog } from "../../common/confirmationDialog";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
