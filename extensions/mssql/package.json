@@ -382,7 +382,7 @@
             "editor/title": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && resource not in mssql.connecting",
                     "group": "navigation@1"
                 },
                 {
@@ -397,7 +397,12 @@
                 },
                 {
                     "command": "mssql.connect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && resource not in mssql.connecting",
+                    "group": "navigation@3"
+                },
+                {
+                    "command": "mssql.cancelConnect",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connecting && resourcePath not in mssql.runningQueries",
                     "group": "navigation@3"
                 },
                 {
@@ -978,6 +983,12 @@
                 "title": "%mssql.disconnect%",
                 "category": "MS SQL",
                 "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "mssql.cancelConnect",
+                "title": "%mssql.cancelConnect%",
+                "category": "MS SQL",
+                "icon": "$(stop-circle)"
             },
             {
                 "command": "mssql.filterNode",
