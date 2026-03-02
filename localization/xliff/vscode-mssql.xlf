@@ -6304,6 +6304,9 @@
     <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
       <source xml:lang="en">View</source>
     </trans-unit>
+    <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
+      <source xml:lang="en">View Config</source>
+    </trans-unit>
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>
     </trans-unit>
