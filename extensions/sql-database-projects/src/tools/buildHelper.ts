@@ -10,7 +10,7 @@ import * as utils from "../common/utils";
 import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
-import { HttpClient } from "../common/httpClient";
+import { HttpClient } from "../http/httpClient";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";

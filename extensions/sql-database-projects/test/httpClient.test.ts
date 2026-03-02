@@ -3,297 +3,531 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// NOTE: This file should always be kept in sync with the equivalent in the MSSQL extension:
+// extensions/mssql/test/unit/httpClient.test.ts
+
+import * as chai from "chai";
 import { expect } from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import * as http from "http";
-import * as tunnel from "tunnel";
-import axios from "axios";
-import * as os from "os";
-import * as path from "path";
-import { HttpClient } from "../src/common/httpClient";
+import * as fs from "fs";
+import { PassThrough } from "stream";
+import axios, { AxiosResponse } from "axios";
+import { HttpClient, HttpDownloadError } from "../src/http/httpClient";
+import { Logger } from "../src/http/logger";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+chai.use(sinonChai);
 
-function makeFakeAgent(): http.Agent {
-    return { fake: true } as unknown as http.Agent;
-}
-
-/** Stubs axios.get to capture the AxiosRequestConfig and throw immediately. */
-function stubAxiosGetCapture(sandbox: sinon.SinonSandbox): {
-    capturedConfig: { value: Parameters<typeof axios.get>[1] };
-} {
-    const capturedConfig: { value: Parameters<typeof axios.get>[1] } = { value: undefined };
-    sandbox.stub(axios, "get").callsFake(async (_url, cfg) => {
-        capturedConfig.value = cfg;
-        throw new Error("axios stubbed");
-    });
-    return { capturedConfig };
-}
-
-/** Stubs vscode http config to return the given proxy string (proxyStrictSSL defaults to true). */
-function stubVscodeProxy(sandbox: sinon.SinonSandbox, proxy: string | undefined): void {
-    stubVscodeProxyWithOptions(sandbox, proxy, true);
-}
-
-/** Stubs vscode http config with full control over proxy and proxyStrictSSL. */
-function stubVscodeProxyWithOptions(
-    sandbox: sinon.SinonSandbox,
-    proxy: string | undefined,
-    proxyStrictSSL: boolean,
-): void {
-    sandbox
-        .stub(vscode.workspace, "getConfiguration")
-        .callsFake((section?: string): vscode.WorkspaceConfiguration => {
-            const map: Record<string, unknown> =
-                section === "http" ? { proxy, proxyStrictSSL } : {};
-            return {
-                get: (key: string) => map[key],
-                has: () => false,
-                inspect: () => undefined,
-                update: async () => {},
-            } as unknown as vscode.WorkspaceConfiguration;
-        });
-}
-
-// ---------------------------------------------------------------------------
-// Suite: HttpClient – proxy agent selection
-// ---------------------------------------------------------------------------
-
-suite("HttpClient: proxy agent selection", function (): void {
+suite("HttpClient tests", () => {
     let sandbox: sinon.SinonSandbox;
+    let httpClient: HttpClient;
+    let logger: sinon.SinonStubbedInstance<Logger>;
 
-    setup(function () {
+    setup(() => {
         sandbox = sinon.createSandbox();
-        delete process.env["HTTP_PROXY"];
-        delete process.env["http_proxy"];
-        delete process.env["HTTPS_PROXY"];
-        delete process.env["https_proxy"];
+
+        logger = sandbox.createStubInstance(Logger);
+        httpClient = new HttpClient(logger);
     });
 
-    teardown(function () {
+    teardown(() => {
         sandbox.restore();
-        delete process.env["HTTP_PROXY"];
-        delete process.env["http_proxy"];
-        delete process.env["HTTPS_PROXY"];
-        delete process.env["https_proxy"];
     });
 
-    // -----------------------------------------------------------------------
-    // No proxy – no agent attached
-    // -----------------------------------------------------------------------
+    suite("makeGetRequest tests", () => {
+        test("should make a successful GET request", async () => {
+            const requestUrl = "https://api.example.com/data";
+            const token = "test-token";
+            const responseData = { value: [{ id: 1, name: "test" }] };
 
-    test("No proxy: axios config has no agent or proxy override", async function (): Promise<void> {
-        stubVscodeProxy(sandbox, undefined);
-        const { capturedConfig } = stubAxiosGetCapture(sandbox);
+            const mockResponse: AxiosResponse = {
+                data: responseData,
+                status: 200,
+                statusText: "OK",
+                headers: {},
+                config: {} as AxiosResponse["config"],
+            };
 
-        await new HttpClient()
-            .download("https://example.com/file.zip", path.join(os.tmpdir(), "file.zip"))
-            .catch(() => {});
-
-        const cfg = capturedConfig.value as Record<string, unknown>;
-        expect(cfg["proxy"]).to.be.undefined;
-        expect(cfg["httpsAgent"]).to.be.undefined;
-        expect(cfg["httpAgent"]).to.be.undefined;
-    });
-
-    // -----------------------------------------------------------------------
-    // Tunnel variant selection (parameterised)
-    // -----------------------------------------------------------------------
-
-    const tunnelCases: {
-        desc: string;
-        proxyUrl: string;
-        downloadUrl: string;
-        tunnelFn: keyof typeof tunnel;
-        agentProp: "httpsAgent" | "httpAgent";
-    }[] = [
-        {
-            desc: "http proxy + https URL",
-            proxyUrl: "http://proxy.example.com:8080",
-            downloadUrl: "https://nuget.org/pkg",
-            tunnelFn: "httpsOverHttp",
-            agentProp: "httpsAgent",
-        },
-        {
-            desc: "http proxy + http URL",
-            proxyUrl: "http://proxy.example.com:8080",
-            downloadUrl: "http://nuget.org/pkg",
-            tunnelFn: "httpOverHttp",
-            agentProp: "httpAgent",
-        },
-        {
-            desc: "https proxy + https URL",
-            proxyUrl: "https://proxy.example.com:8443",
-            downloadUrl: "https://nuget.org/pkg",
-            tunnelFn: "httpsOverHttps",
-            agentProp: "httpsAgent",
-        },
-        {
-            desc: "https proxy + http URL",
-            proxyUrl: "https://proxy.example.com:8443",
-            downloadUrl: "http://nuget.org/pkg",
-            tunnelFn: "httpOverHttps",
-            agentProp: "httpAgent",
-        },
-    ];
-
-    for (const { desc, proxyUrl, downloadUrl, tunnelFn, agentProp } of tunnelCases) {
-        test(`Selects correct tunnel variant: ${desc}`, async function (): Promise<void> {
-            stubVscodeProxy(sandbox, proxyUrl);
-            const fakeAgent = makeFakeAgent();
+            const axiosGetStub = sandbox.stub(axios, "get").resolves(mockResponse);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const tunnelStub = sandbox.stub(tunnel, tunnelFn).returns(fakeAgent as any);
-            const { capturedConfig } = stubAxiosGetCapture(sandbox);
-
-            await new HttpClient()
-                .download(downloadUrl, path.join(os.tmpdir(), "pkg"))
-                .catch(() => {});
-
-            expect(tunnelStub.calledOnce, `${tunnelFn} should be called once`).to.be.true;
-            const cfg = capturedConfig.value as Record<string, unknown>;
-            expect(cfg["proxy"]).to.equal(false, "Axios built-in proxy should be disabled");
-            expect(cfg[agentProp]).to.equal(fakeAgent, `${agentProp} should be the tunnel agent`);
-        });
-    }
-
-    // -----------------------------------------------------------------------
-    // Tunnel options: host/port and credentials
-    // -----------------------------------------------------------------------
-
-    test("Tunnel receives correct host and port from proxy URL", async function (): Promise<void> {
-        stubVscodeProxy(sandbox, "http://proxy.example.com:3128");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tunnelStub = sandbox.stub(tunnel, "httpsOverHttp").returns(makeFakeAgent() as any);
-        stubAxiosGetCapture(sandbox);
-
-        await new HttpClient()
-            .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-            .catch(() => {});
-
-        const opts = tunnelStub.firstCall.args[0] as tunnel.HttpsOverHttpOptions;
-        expect(opts.proxy?.host).to.equal("proxy.example.com");
-        expect(opts.proxy?.port).to.equal(3128);
-    });
-
-    test("Tunnel receives proxyAuth when proxy URL contains credentials", async function (): Promise<void> {
-        stubVscodeProxy(sandbox, "http://user:secret@proxy.example.com:8080");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tunnelStub = sandbox.stub(tunnel, "httpsOverHttp").returns(makeFakeAgent() as any);
-        stubAxiosGetCapture(sandbox);
-
-        await new HttpClient()
-            .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-            .catch(() => {});
-
-        const opts = tunnelStub.firstCall.args[0] as tunnel.HttpsOverHttpOptions;
-        expect(opts.proxy?.proxyAuth).to.equal("user:secret");
-    });
-
-    // -----------------------------------------------------------------------
-    // Proxy source priority: VS Code > HTTP_PROXY > http_proxy > HTTPS_PROXY
-    // -----------------------------------------------------------------------
-
-    test("Proxy source priority: VS Code setting wins over env vars", async function (): Promise<void> {
-        stubVscodeProxy(sandbox, "http://vscode-proxy.example.com:1111");
-        process.env["HTTP_PROXY"] = "http://http-proxy.example.com:2222";
-        process.env["HTTPS_PROXY"] = "http://https-proxy.example.com:3333";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tunnelStub = sandbox.stub(tunnel, "httpsOverHttp").returns(makeFakeAgent() as any);
-        stubAxiosGetCapture(sandbox);
-
-        await new HttpClient()
-            .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-            .catch(() => {});
-
-        const opts = tunnelStub.firstCall.args[0] as tunnel.HttpsOverHttpOptions;
-        expect(opts.proxy?.host).to.equal("vscode-proxy.example.com");
-    });
-
-    test("Proxy source priority: HTTP_PROXY wins over HTTPS_PROXY", async function (): Promise<void> {
-        stubVscodeProxy(sandbox, undefined);
-        // Note: on Windows env vars are case-insensitive so we only test distinct names.
-        process.env["HTTP_PROXY"] = "http://http-proxy.example.com:2222";
-        process.env["HTTPS_PROXY"] = "http://https-proxy.example.com:4444";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tunnelStub = sandbox.stub(tunnel, "httpsOverHttp").returns(makeFakeAgent() as any);
-        stubAxiosGetCapture(sandbox);
-
-        await new HttpClient()
-            .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-            .catch(() => {});
-
-        const opts = tunnelStub.firstCall.args[0] as tunnel.HttpsOverHttpOptions;
-        expect(opts.proxy?.host).to.equal("http-proxy.example.com");
-    });
-
-    test("Proxy source priority: HTTPS_PROXY used when no other proxy source is set", async function (): Promise<void> {
-        stubVscodeProxy(sandbox, undefined);
-        process.env["HTTPS_PROXY"] = "http://https-proxy.example.com:4444";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tunnelStub = sandbox.stub(tunnel, "httpsOverHttp").returns(makeFakeAgent() as any);
-        stubAxiosGetCapture(sandbox);
-
-        await new HttpClient()
-            .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-            .catch(() => {});
-
-        const opts = tunnelStub.firstCall.args[0] as tunnel.HttpsOverHttpOptions;
-        expect(opts.proxy?.host).to.equal("https-proxy.example.com");
-    });
-
-    // -----------------------------------------------------------------------
-    // Port defaulting and rejectUnauthorized wiring
-    // -----------------------------------------------------------------------
-
-    for (const { proxyUrl, tunnelFn, expectedPort } of [
-        {
-            proxyUrl: "http://proxy.example.com",
-            tunnelFn: "httpsOverHttp" as const,
-            expectedPort: 80,
-        },
-        {
-            proxyUrl: "https://proxy.example.com",
-            tunnelFn: "httpsOverHttps" as const,
-            expectedPort: 443,
-        },
-    ]) {
-        test(`Port defaults to ${expectedPort} when ${proxyUrl.split(":")[0]} proxy URL omits an explicit port`, async function (): Promise<void> {
-            stubVscodeProxy(sandbox, proxyUrl);
+            sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({
+                headers: { Authorization: `Bearer ${token}` },
+                validateStatus: () => true,
+            });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const tunnelStub = sandbox.stub(tunnel, tunnelFn).returns(makeFakeAgent() as any);
-            stubAxiosGetCapture(sandbox);
+            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
 
-            await new HttpClient()
-                .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-                .catch(() => {});
+            const result = await httpClient.makeGetRequest(requestUrl, token);
 
-            const opts = tunnelStub.firstCall.args[0] as tunnel.HttpsOverHttpOptions;
-            expect(opts.proxy?.port).to.equal(expectedPort);
+            expect(result).to.deep.equal(mockResponse);
+            expect(axiosGetStub).to.have.been.calledOnce;
         });
-    }
 
-    for (const { strictSSL, expected } of [
-        { strictSSL: false, expected: false },
-        { strictSSL: true, expected: true },
-    ]) {
-        test(`rejectUnauthorized is ${expected} in tunnel options when proxyStrictSSL is ${strictSSL}`, async function (): Promise<void> {
-            stubVscodeProxyWithOptions(sandbox, "http://proxy.example.com:3128", strictSSL);
+        test("should log GET request response", async () => {
+            const requestUrl = "https://api.example.com/data";
+            const token = "test-token";
+            const responseData = { value: [{ id: 1 }] };
 
-            const tunnelStub = sandbox
-                .stub(tunnel, "httpsOverHttp")
-                .returns(makeFakeAgent() as any);
-            stubAxiosGetCapture(sandbox);
+            const mockResponse: AxiosResponse = {
+                data: responseData,
+                status: 200,
+                statusText: "OK",
+                headers: {},
+                config: {} as AxiosResponse["config"],
+            };
 
-            await new HttpClient()
-                .download("https://nuget.org/pkg", path.join(os.tmpdir(), "pkg"))
-                .catch(() => {});
+            sandbox.stub(axios, "get").resolves(mockResponse);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({});
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
+
+            await httpClient.makeGetRequest(requestUrl, token);
+
+            expect(logger.piiSanitized).to.have.been.calledWith(
+                "GET request ",
+                sinon.match.array,
+                [],
+                requestUrl,
+            );
+        });
+    });
+
+    suite("makePostRequest tests", () => {
+        test("should make a successful POST request", async () => {
+            const requestUrl = "https://api.example.com/data";
+            const token = "test-token";
+            const payload = { name: "new item" };
+            const responseData = { id: 2, name: "new item" };
+
+            const mockResponse: AxiosResponse = {
+                data: responseData,
+                status: 201,
+                statusText: "Created",
+                headers: {},
+                config: {} as AxiosResponse["config"],
+            };
+
+            const axiosPostStub = sandbox.stub(axios, "post").resolves(mockResponse);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({
+                headers: { Authorization: `Bearer ${token}` },
+                validateStatus: () => true,
+            });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
+
+            const result = await httpClient.makePostRequest(requestUrl, token, payload);
+
+            expect(result).to.deep.equal(mockResponse);
+            expect(axiosPostStub).to.have.been.calledWith(requestUrl, payload, sinon.match.any);
+        });
+
+        test("should log POST request response", async () => {
+            const requestUrl = "https://api.example.com/data";
+            const token = "test-token";
+            const payload = { name: "test" };
+            const responseData = { id: 1 };
+
+            const mockResponse: AxiosResponse = {
+                data: responseData,
+                status: 201,
+                statusText: "Created",
+                headers: {},
+                config: {} as AxiosResponse["config"],
+            };
+
+            sandbox.stub(axios, "post").resolves(mockResponse);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({});
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
+
+            await httpClient.makePostRequest(requestUrl, token, payload);
+
+            expect(logger.piiSanitized).to.have.been.calledWith(
+                "POST request ",
+                sinon.match.array,
+                [],
+                requestUrl,
+            );
+        });
+    });
+
+    suite("downloadFile tests", () => {
+        test("should download successfully and invoke callbacks", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const normalizedUrl = "https://download.example.com:443/file";
+            const headers = { "content-length": "5" };
+
+            const responseStream = new PassThrough();
+            const tmpFileStream = new PassThrough();
+
+            sandbox
+                .stub(httpClient, "setupRequest")
+                .returns({ requestUrl: normalizedUrl, config: {} });
+
+            sandbox
+                .stub(fs, "createWriteStream")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .returns(tmpFileStream as any);
+
+            const mockResponse: AxiosResponse = {
+                data: responseStream,
+                status: 200,
+                statusText: "OK",
+                headers,
+                config: {} as AxiosResponse["config"],
+            };
+            sandbox.stub(axios, "get").resolves(mockResponse);
+
+            const onHeaders = sandbox.spy();
+            const onData = sandbox.spy();
+
+            const downloadPromise = httpClient.downloadFile(requestUrl, 123, {
+                onHeaders,
+                onData,
+            });
+
+            responseStream.write(Buffer.from([1, 2, 3]));
+            responseStream.end(Buffer.from([4, 5]));
+
+            const result = await downloadPromise;
+
+            expect(result.status).to.equal(200);
+            expect(result.headers).to.equal(headers);
+            expect(onHeaders).to.have.been.calledOnceWithExactly(headers);
+            expect(onData).to.have.callCount(2);
+            expect((onData.firstCall.args[0] as Buffer).length).to.equal(3);
+            expect((onData.secondCall.args[0] as Buffer).length).to.equal(2);
+            expect(axios.get).to.have.been.calledWith(
+                normalizedUrl,
+                sinon.match({ responseType: "stream" }),
+            );
+        });
+
+        test("should return error code and destroy stream upon HTTP error", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const normalizedUrl = "https://download.example.com:443/file";
+            const headers = { "content-length": "0" };
+
+            const responseStream = new PassThrough();
+            const destroySpy = sandbox.spy(responseStream, "destroy");
+
+            sandbox
+                .stub(httpClient, "setupRequest")
+                .returns({ requestUrl: normalizedUrl, config: {} });
+
+            const mockResponse: AxiosResponse = {
+                data: responseStream,
+                status: 404,
+                statusText: "Not Found",
+                headers,
+                config: {} as AxiosResponse["config"],
+            };
+            sandbox.stub(axios, "get").resolves(mockResponse);
+
+            const onHeaders = sandbox.spy();
+            const result = await httpClient.downloadFile(requestUrl, 123, { onHeaders });
+
+            expect(result.status).to.equal(404);
+            expect(result.headers).to.equal(headers);
+            expect(onHeaders).to.have.been.calledOnceWithExactly(headers);
+            expect(destroySpy).to.have.been.calledOnce;
+        });
+
+        test("should wrap request errors in HttpDownloadError", async () => {
+            const requestUrl = "https://download.example.com/file";
+
+            sandbox.stub(httpClient, "setupRequest").returns({ requestUrl, config: {} });
+
+            const requestError = new Error("network error") as NodeJS.ErrnoException;
+            requestError.code = "ECONNRESET";
+            sandbox.stub(axios, "get").rejects(requestError);
+
+            try {
+                await httpClient.downloadFile(requestUrl, 123);
+                expect.fail("Expected downloadFile to throw");
+            } catch (error) {
+                expect(error).to.be.instanceOf(HttpDownloadError);
+                expect((error as HttpDownloadError).phase).to.equal("request");
+                expect((error as HttpDownloadError).innerError).to.equal(requestError);
+            }
+        });
+
+        test("should wrap response stream errors in HttpDownloadError", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const responseStream = new PassThrough();
+            const tmpFileStream = new PassThrough();
+
+            sandbox.stub(httpClient, "setupRequest").returns({ requestUrl, config: {} });
+            sandbox
+                .stub(fs, "createWriteStream")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .returns(tmpFileStream as any);
+
+            const mockResponse: AxiosResponse = {
+                data: responseStream,
+                status: 200,
+                statusText: "OK",
+                headers: {},
+                config: {} as AxiosResponse["config"],
+            };
+            sandbox.stub(axios, "get").resolves(mockResponse);
+
+            const responseError = new Error("stream failed") as NodeJS.ErrnoException;
+            responseError.code = "EPIPE";
+
+            const downloadPromise = httpClient.downloadFile(requestUrl, 123);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            responseStream.emit("error", responseError);
+
+            try {
+                await downloadPromise;
+                expect.fail("Expected downloadFile to throw");
+            } catch (error) {
+                expect(error).to.be.instanceOf(HttpDownloadError);
+                expect((error as HttpDownloadError).phase).to.equal("response");
+                expect((error as HttpDownloadError).innerError).to.equal(responseError);
+            }
+        });
+    });
+
+    suite("Proxy validation tests", () => {
+        const envProxy = "env-proxy";
+        const configProxy = "config-proxy";
+
+        test("warns when proxy lacks protocol", () => {
+            const invalidProxyValue = "localhost:1234";
+
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
+
+            // Use URL constructor path: new URL("localhost:1234").protocol returns "localhost:"
+            // which is truthy, so it won't hit the missingProtocol branch unless we stub parseUriScheme.
+            // Stub the private parseUriScheme dependency to return undefined (simulating no scheme).
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (httpClient as any).dependencies = {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(httpClient as any).dependencies,
+                parseUriScheme: (_proxy: string) => undefined,
+            };
+
+            const warningMessageStub = sandbox
+                .stub(vscode.window, "showWarningMessage")
+                .resolves(undefined);
+
+            httpClient.warnOnInvalidProxySettings();
+
+            // Our HttpClient does not wire up dependencies.messages by default, so
+            // showWarningMessage is NOT called — but logger.warn IS called.
+            expect(warningMessageStub).to.not.have.been.called;
+            expect(logger.warn).to.have.been.calledOnce;
+        });
+
+        test("warns when proxy parsing throws", () => {
+            const invalidProxyValue = "env-proxy.example";
+
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
+
+            // Force warnOnInvalidProxySettings to take the catch path by making URL constructor throw
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (httpClient as any).dependencies = {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(httpClient as any).dependencies,
+                parseUriScheme: (_proxy: string) => {
+                    throw new Error("invalid uri format");
+                },
+            };
+
+            const warningMessageStub = sandbox
+                .stub(vscode.window, "showWarningMessage")
+                .resolves(undefined);
+
+            httpClient.warnOnInvalidProxySettings();
+
+            // Our HttpClient does not wire up dependencies.messages by default, so
+            // showWarningMessage is NOT called — but logger.warn IS called.
+            expect(warningMessageStub).to.not.have.been.called;
+            expect(logger.warn).to.have.been.calledOnce;
+        });
+
+        test("Does not warn when proxy is valid", () => {
+            const validProxyValues = [
+                "http://valid-proxy.test:8080",
+                "https://valid-proxy.example",
+                "socks5://valid-proxy.subdomain.domain.com:1080",
+            ];
+
+            const proxyConfigStub = sandbox.stub();
+            const warningMessageSpy = sandbox.stub(vscode.window, "showWarningMessage");
+
+            for (const validProxyValue of validProxyValues) {
+                proxyConfigStub.reset();
+                httpClient["loadProxyConfig"] = proxyConfigStub.returns(validProxyValue);
+
+                httpClient.warnOnInvalidProxySettings();
+
+                expect(warningMessageSpy, `Should not warn for valid proxy: ${validProxyValue}`).to
+                    .not.have.been.called;
+            }
+        });
+
+        test("Does not warn when proxy is undefined", () => {
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(undefined);
+
+            const warningMessageSpy = sandbox.stub(vscode.window, "showWarningMessage");
+
+            httpClient.warnOnInvalidProxySettings();
+
+            expect(warningMessageSpy).to.not.have.been.called;
+        });
+
+        test("loadProxyConfig prefers VS Code configuration over environment variables", () => {
+            sandbox
+                .stub(vscode.workspace, "getConfiguration")
+                .withArgs("http")
+                .returns({ proxy: configProxy } as unknown as vscode.WorkspaceConfiguration);
+
+            sandbox.stub(process, "env").value({
+                HTTP_PROXY: envProxy,
+                https_proxy: envProxy,
+            });
+
+            const proxy = httpClient["loadProxyConfig"]();
+
+            expect(proxy).to.equal(configProxy);
+        });
+
+        test("loadProxyConfig falls back to environment variables when config missing", () => {
+            sandbox
+                .stub(vscode.workspace, "getConfiguration")
+                .withArgs("http")
+                .returns({ proxy: undefined } as unknown as vscode.WorkspaceConfiguration);
+
+            sandbox.stub(process, "env").value({
+                HTTP_PROXY: envProxy,
+            });
+
+            const proxy = httpClient["loadProxyConfig"]();
+
+            expect(proxy).to.equal(envProxy);
+        });
+
+        test("setupConfigAndProxyForRequest", () => {
+            const fakeToken = "fake-token";
+            const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
+
+            const loadProxyConfigStub = sandbox.stub();
+            httpClient["loadProxyConfig"] = loadProxyConfigStub.returns(fakeProxyUrl.toString());
+
+            const result = httpClient["setupConfigAndProxyForRequest"](
+                "http://fakeUrl.ms/",
+                fakeToken,
+            );
+
+            expect(result.headers.Authorization).to.contain(fakeToken);
+            expect(result.proxy, "Automatic proxy detection should be disabled").to.be.false;
+            expect(result.httpAgent.proxyOptions).to.deep.equal({
+                host: fakeProxyUrl.hostname,
+                port: parseInt(fakeProxyUrl.port),
+            });
+            expect(result.httpsAgent).to.be.undefined;
+        });
+    });
+
+    suite("setupConfigAndProxyForRequest tests", () => {
+        test("should setup config without proxy", () => {
+            const requestUrl = "https://api.example.com";
+            const token = "test-token";
+
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(undefined);
+
+            const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
+
+            expect(result.headers).to.deep.equal({
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            });
+            expect(result.validateStatus!(200)).to.be.true;
+            expect(result.proxy).to.be.undefined;
+            expect(result.httpAgent).to.be.undefined;
+            expect(result.httpsAgent).to.be.undefined;
+        });
+
+        test("should setup config with HTTPS proxy for HTTPS request", () => {
+            const requestUrl = "https://api.example.com";
+            const token = "test-token";
+            const proxy = "https://proxy.example.com:8080";
+
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
+            sandbox
+                .stub(vscode.workspace, "getConfiguration")
+                .withArgs("http")
+                .returns({ proxyStrictSSL: true } as unknown as vscode.WorkspaceConfiguration);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const opts = tunnelStub.firstCall.args[0] as any;
-            expect(opts.proxy?.rejectUnauthorized).to.equal(expected);
+            sandbox.stub(httpClient as any, "createProxyAgent").returns({
+                isHttps: true,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                agent: {} as any,
+            });
+
+            const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
+
+            expect(result.proxy).to.be.false;
+            expect(result.httpsAgent).to.exist;
+            expect(result.httpAgent).to.be.undefined;
         });
-    }
+
+        test("should setup config with HTTP proxy for HTTPS request", () => {
+            const requestUrl = "https://api.example.com";
+            const token = "test-token";
+            const proxy = "http://proxy.example.com:8080";
+
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
+            sandbox
+                .stub(vscode.workspace, "getConfiguration")
+                .withArgs("http")
+                .returns({ proxyStrictSSL: false } as unknown as vscode.WorkspaceConfiguration);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "createProxyAgent").returns({
+                isHttps: false,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                agent: {} as any,
+            });
+
+            const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
+
+            expect(result.proxy).to.be.false;
+            expect(result.httpAgent).to.exist;
+            expect(result.httpsAgent).to.be.undefined;
+        });
+
+        test("should log when proxy is found", () => {
+            const requestUrl = "https://api.example.com";
+            const token = "test-token";
+            const proxy = "http://proxy.example.com:8080";
+
+            httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
+            sandbox
+                .stub(vscode.workspace, "getConfiguration")
+                .withArgs("http")
+                .returns({ proxyStrictSSL: false } as unknown as vscode.WorkspaceConfiguration);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            sandbox.stub(httpClient as any, "createProxyAgent").returns({
+                isHttps: false,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                agent: {} as any,
+            });
+
+            httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
+
+            expect(logger.verbose).to.have.been.calledWith(
+                "Proxy endpoint found in environment variables or workspace configuration.",
+            );
+        });
+    });
 });

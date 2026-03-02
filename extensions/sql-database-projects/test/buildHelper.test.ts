@@ -10,7 +10,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as path from "path";
 import { BuildHelper } from "../src/tools/buildHelper";
-import { HttpClient } from "../src/common/httpClient";
+import { HttpClient } from "../src/http/httpClient";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
 import * as sqldbproj from "sqldbproj";
