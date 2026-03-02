@@ -8,6 +8,13 @@ pool:
 
 steps:
   - pwsh: |
+      Write-Host "Installing Yarn"
+      npm install --global yarn@1.22.19
+      Write-Host "Installing VSCE"
+      npm install --global @vscode/vsce@3.7.1
+    displayName: Install toolchain
+
+  - pwsh: |
       yarn install --frozen-lockfile
     displayName: Install root dependencies
     workingDirectory: "$(Build.SourcesDirectory)"

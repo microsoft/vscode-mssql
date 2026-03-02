@@ -198,9 +198,6 @@ export function azureNoMicrosoftResource(provider: string) {
         comment: ["{0} is the provider"],
     });
 }
-export let unableToGetProxyAgentOptionsToGetTenants = l10n.t(
-    "Unable to read proxy agent options to get tenants.",
-);
 export let azureServerCouldNotStart = l10n.t(
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
 );
@@ -639,15 +636,6 @@ export let inMemoryDataProcessingThresholdExceeded = l10n.t(
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
 );
 
-export function enableRichExperiencesPrompt(learnMoreUrl: string) {
-    return l10n.t({
-        message:
-            "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
-        args: [learnMoreUrl],
-        comment: ["{0} is a url to learn more about the new features"],
-    });
-}
-export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
@@ -3069,6 +3057,8 @@ export class Profiler {
 }
 
 export class Proxy {
+    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
+
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
             message:
