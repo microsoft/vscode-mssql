@@ -8947,6 +8947,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Backup Database (Preview)</source>
         <target state="translated">Banco de Dados de Backup (Visualização)</target>
       </trans-unit>
+      <trans-unit id="mssql.cancelConnect">
+        <source xml:lang="en">Cancel Connection</source>
+        <target state="new">Cancel Connection</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">Cancelar Consulta</target>

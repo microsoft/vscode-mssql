@@ -8947,6 +8947,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Backup Database (Preview)</source>
         <target state="translated">Backup-Datenbank (Vorschau)</target>
       </trans-unit>
+      <trans-unit id="mssql.cancelConnect">
+        <source xml:lang="en">Cancel Connection</source>
+        <target state="new">Cancel Connection</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">Abfrage abbrechen</target>

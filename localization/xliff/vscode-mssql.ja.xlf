@@ -8947,6 +8947,10 @@ Query: {2}</source>
         <source xml:lang="en">Backup Database (Preview)</source>
         <target state="translated">バックアップ データベース (プレビュー)</target>
       </trans-unit>
+      <trans-unit id="mssql.cancelConnect">
+        <source xml:lang="en">Cancel Connection</source>
+        <target state="new">Cancel Connection</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">クエリのキャンセル</target>
