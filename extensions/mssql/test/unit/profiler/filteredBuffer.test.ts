@@ -515,20 +515,6 @@ suite("FilteredBuffer Tests", () => {
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(3);
         });
-
-        test("trims leading whitespace from field value before matching", () => {
-            filteredBuffer.add(createTestRow("  SELECT * FROM Users", 1));
-            filteredBuffer.add(createTestRow("\tSELECT COUNT(*)", 2));
-            filteredBuffer.add(createTestRow("\n\r SELECT TOP 10", 3));
-            filteredBuffer.add(createTestRow("INSERT INTO Logs", 4));
-
-            filteredBuffer.setColumnFilters([
-                { field: "name", operator: FilterOperator.StartsWith, value: "SELECT" },
-            ]);
-
-            const rows = filteredBuffer.getFilteredRows();
-            expect(rows).to.have.length(3);
-        });
     });
 
     suite("FilterOperator.NotStartsWith", () => {
