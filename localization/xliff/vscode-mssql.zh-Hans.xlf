@@ -2621,6 +2621,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">启用“信任服务器证书”</target>
       </trans-unit>
+      <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
+        <source xml:lang="en">Enable Code Analysis on Build</source>
+        <target state="new">Enable Code Analysis on Build</target>
+      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">启用“信任服务器证书”</target>
@@ -7982,9 +7986,9 @@ Query: {2}</source>
         <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
         <target state="translated">这将使用 Docker 在本地部署数据 API 生成器容器。该容器将根据你的配置公开 REST 和 GraphQL API。</target>
       </trans-unit>
-      <trans-unit id="++CODE++51338842c0b95f02deebfcbe26d1e5a4052518617a3a72d7a8c56a886e720287">
-        <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</source>
-        <target state="new">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</target>
+      <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
+        <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
+        <target state="new">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
