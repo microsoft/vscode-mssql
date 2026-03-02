@@ -15,6 +15,7 @@ export const mssqlChatParticipantName = "mssql"; // must be the same as the one 
 export const noneProviderName = "None";
 export const objectExplorerId = "objectExplorer";
 export const queryHistory = "queryHistory";
+export const queryHistorySecretStorageKey = "mssql.queryHistoryTree";
 export const connectionApplicationName = "vscode-mssql";
 export const outputChannelName = "MSSQL";
 export const connectionConfigFilename = "settings.json";

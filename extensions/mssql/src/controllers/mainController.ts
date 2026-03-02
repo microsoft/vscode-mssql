@@ -2184,6 +2184,7 @@ export default class MainController implements vscode.Disposable {
                 this._sqlDocumentService,
                 this._statusview,
                 this._prompter,
+                this._context,
             );
 
             this._context.subscriptions.push(
