@@ -15,6 +15,15 @@ import { NotebookConnectionManager } from "./notebookConnectionManager";
  * The MSSQL extension provides its own code lens via SqlCodeLensProvider
  * registered with { language: "sql" }. That provider auto-connects cells to
  * _lastActiveConnectionInfo (which may be stale/wrong for notebooks).
+ *
+ * Why "last connection" doesn't work for notebooks: SqlDocumentService updates
+ * _lastActiveConnectionInfo in onDidChangeActiveTextEditor, which fires from
+ * vscode.window.activeTextEditor. When a notebook is focused, activeTextEditor
+ * is undefined (VS Code uses activeNotebookEditor instead), so the "last
+ * connection" never reflects the notebook's connection. When a notebook cell
+ * document opens, SqlDocumentService auto-connects it to whatever the last
+ * *text editor* connection was — which is unrelated to the notebook.
+ *
  * SqlCodeLensProvider defers to this provider for notebook cells by checking
  * the document URI scheme.
  */
