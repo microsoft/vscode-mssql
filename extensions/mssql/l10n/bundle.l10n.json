@@ -230,6 +230,12 @@
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
     },
     "Reset": "Reset",
+    "Reset to Defaults?": "Reset to Defaults?",
+    "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
+    "Unsaved Changes": "Unsaved Changes",
+    "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
+    "Don't Save": "Don't Save",
+    "Enable Code Analysis on Build": "Enable Code Analysis on Build",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -850,7 +856,7 @@
     "Read": "Read",
     "Update": "Update",
     "Entity name used in API routes": "Entity name used in API routes",
-    "Generate Config": "Generate Config",
+    "View Config": "View Config",
     "Deploy": "Deploy",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
@@ -1407,10 +1413,11 @@
     "Select a folder": "Select a folder",
     "Folder is required": "Folder is required",
     "File is required": "File is required",
+    "Please select a file, not a folder.": "Please select a file, not a folder.",
     "Selected Path": "Selected Path",
     "Files of Type": "Files of Type",
-    "Please choose a file": "Please choose a file",
-    "Please choose a folder": "Please choose a folder",
+    "File path": "File path",
+    "Folder path": "Folder path",
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1717,7 +1724,6 @@
         "message": "Provider '{0}' does not have a Microsoft resource endpoint defined.",
         "comment": ["{0} is the provider"]
     },
-    "Unable to read proxy agent options to get tenants.": "Unable to read proxy agent options to get tenants.",
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.": "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
     "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.": "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.",
     "Authentication failed due to a state mismatch, please close ADS and try again.": "Authentication failed due to a state mismatch, please close ADS and try again.",
@@ -2431,6 +2437,9 @@
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Code Analysis": "Code Analysis",
     "Failed to load code analysis rules": "Failed to load code analysis rules",
+    "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
+    "Failed to save code analysis rules": "Failed to save code analysis rules",
+    "Code analysis rules saved successfully": "Code analysis rules saved successfully",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -3127,6 +3136,7 @@
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
+    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

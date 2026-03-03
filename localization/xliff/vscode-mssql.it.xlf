@@ -533,9 +533,9 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">Procedere?</target>
       </trans-unit>
-      <trans-unit id="++CODE++7c1a76939e1607bc8aae228f7ab75c475c8d3a11aa1eaab81167d441cac24a82">
-        <source xml:lang="en">Ask questions about your schema or propose changes.</source>
-        <target state="new">Ask questions about your schema or propose changes.</target>
+      <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
+        <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
+        <target state="translated">Porre domande o proporre modifiche dello schema nella chat e GitHub Copilot aggiornerà immediatamente lo schema nel diagramma.</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -853,6 +853,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Browse...</source>
         <target state="translated">Sfoglia...</target>
       </trans-unit>
+      <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
+        <source xml:lang="en">Build APIs with GitHub Copilot</source>
+        <target state="translated">Crea API con GitHub Copilot</target>
+      </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
         <target state="translated">Compilazione non riuscita con codice di uscita {0}</target>
@@ -978,7 +982,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
         <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">Acquisire e analizzare in tempo reale le sessioni di eventi estesi di SQL Server per monitorare e analizzare le prestazioni del database.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1269,7 +1273,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
         <source xml:lang="en">Click to change database</source>
-        <target state="new">Click to change database</target>
+        <target state="translated">Fare clic per cambiare il database</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -1331,6 +1335,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Code Analysis - {0}</source>
         <note>{0} is the name of the database project</note>
         <target state="translated">Code Analysis - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
+        <source xml:lang="en">Code analysis rules saved successfully</source>
+        <target state="new">Code analysis rules saved successfully</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -1526,7 +1534,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
         <source xml:lang="en">Connect to SQL Server</source>
-        <target state="new">Connect to SQL Server</target>
+        <target state="translated">Connetti a SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
         <source xml:lang="en">Connect to Server</source>
@@ -2385,7 +2393,11 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95">
         <source xml:lang="en">Design API</source>
-        <target state="new">Design API</target>
+        <target state="translated">API di progettazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
+        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+        <target state="translated">Progettare schemi con GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -2513,6 +2525,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
         <target state="translated">Docker richiede autorizzazioni radice per l'esecuzione. Eseguire Docker con sudo o aggiungere l'utente al gruppo Docker usando sudo usermod -aG docker $USER. Riavviare quindi il computer e riprovare.</target>
       </trans-unit>
+      <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
+        <source xml:lang="en">Don't Save</source>
+        <target state="new">Don't Save</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">Non visualizzare più</target>
@@ -2604,10 +2620,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">Abilitare “Certificato del server attendibile”</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
-        <source xml:lang="en">Enable Experiences &amp; Reload</source>
-        <target state="translated">Abilita esperienze e ricarica</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -3427,6 +3439,10 @@ Errore:
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
         <target state="translated">Pull dell'immagine di SQL Server non riuscito. Controllare la connessione di rete e riprovare.</target>
       </trans-unit>
+      <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
+        <source xml:lang="en">Failed to read saved rule overrides from project</source>
+        <target state="new">Failed to read saved rule overrides from project</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -3459,6 +3475,10 @@ Errore:
         <source xml:lang="en">Failed to save changes: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Non è stato possibile salvare le modifiche: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
+        <source xml:lang="en">Failed to save code analysis rules</source>
+        <target state="new">Failed to save code analysis rules</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3584,6 +3604,10 @@ Errore:
       <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
         <source xml:lang="en">File not found</source>
         <target state="translated">File non trovato</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
+        <source xml:lang="en">File path</source>
+        <target state="new">File path</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -3760,6 +3784,10 @@ Errore:
       <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
         <source xml:lang="en">Folder is required</source>
         <target state="translated">La cartella è obbligatoria</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
+        <source xml:lang="en">Folder path</source>
+        <target state="new">Folder path</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -5075,14 +5103,6 @@ Errore:
         <source xml:lang="en">New to the MSSQL extension? Check out our quick-start guide.</source>
         <target state="translated">Nuovo utente dell'estensione MSSQL? Consulta la nostra guida rapida.</target>
       </trans-unit>
-      <trans-unit id="++CODE++f5bac958d29f11e2feea075366598bc7976638f6c709c370e07e32d6e92373dd">
-        <source xml:lang="en">New: Chat about your API config</source>
-        <target state="new">New: Chat about your API config</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fde20f1667d66fb46e0292b83bff63ad17d90e114109447de26d475bba410d2f">
-        <source xml:lang="en">New: Chat about your schema</source>
-        <target state="new">New: Chat about your schema</target>
-      </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
         <target state="translated">Avanti</target>
@@ -5576,7 +5596,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
-        <target state="new">Open in GitHub Copilot Chat</target>
+        <target state="translated">Apri in GitHub Copilot Chat</target>
       </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
@@ -5757,19 +5777,11 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785">
         <source xml:lang="en">Please choose a backup file to load restore plan</source>
-        <target state="new">Please choose a backup file to load restore plan</target>
+        <target state="translated">Scegliere un file di backup per caricare il piano di ripristino</target>
       </trans-unit>
       <trans-unit id="++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5">
         <source xml:lang="en">Please choose a blob to load restore plan</source>
-        <target state="new">Please choose a blob to load restore plan</target>
-      </trans-unit>
-      <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
-        <source xml:lang="en">Please choose a file</source>
-        <target state="translated">Scegliere un file</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ea887fcdc3b25d5c543a6c7f3fb1e675e63420d492f1064f29d9d81be8efcca5">
-        <source xml:lang="en">Please choose a folder</source>
-        <target state="translated">Scegliere una cartella</target>
+        <target state="translated">Scegliere un BLOB per caricare il piano di ripristino</target>
       </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
@@ -5814,6 +5826,10 @@ Errore:
       <trans-unit id="++CODE++42990e221cd66206bd59e10ce7ba785f6e8a88282b99827f844bbe43089294d5">
         <source xml:lang="en">Please select a database node in Object Explorer to rename.</source>
         <target state="translated">Selezionare un nodo di database in Esplora oggetti da rinominare.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
+        <source xml:lang="en">Please select a file, not a folder.</source>
+        <target state="new">Please select a file, not a folder.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6330,6 +6346,10 @@ Errore:
         <source xml:lang="en">Reset</source>
         <target state="translated">Reimposta</target>
       </trans-unit>
+      <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
+        <source xml:lang="en">Reset to Defaults?</source>
+        <target state="new">Reset to Defaults?</target>
+      </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
         <target state="translated">Ridimensiona</target>
@@ -6457,9 +6477,9 @@ Errore:
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">Ripristina valori predefiniti del progetto</target>
       </trans-unit>
-      <trans-unit id="++CODE++3a3c4e62013fa901761c8d36adc12ca3f24f9b382b1ac9a26ace61329e3ab5c3">
-        <source xml:lang="en">Review or update your Data API Builder configuration.</source>
-        <target state="new">Review or update your Data API Builder configuration.</target>
+      <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
+        <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
+        <target state="translated">Rivedere o proporre modifiche alla configurazione dell'API nella chat e GitHub Copilot aggiornerà immediatamente la configurazione in Data API Builder.</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -7805,11 +7825,6 @@ Query: {2}</target>
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Scheda Testo - visualizza i dati di testo SQL</target>
       </trans-unit>
-      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
-        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
-        <note>{0} is a url to learn more about the new features</note>
-        <target state="translated">L'estensione MSSQL per VS Code introduce nuove funzionalità moderne per lo sviluppo di dati. Vuoi abilitarle? [Altre informazioni]({0})</target>
-      </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
         <target state="translated">Il file XEL non è stato trovato.</target>
@@ -7967,6 +7982,10 @@ Query: {2}</target>
         <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
         <target state="translated">Verrà distribuito localmente un contenitore del generatore di API dati tramite Docker. Il contenitore esporrà API REST e GraphQL in base alla configurazione.</target>
       </trans-unit>
+      <trans-unit id="++CODE++51338842c0b95f02deebfcbe26d1e5a4052518617a3a72d7a8c56a886e720287">
+        <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</source>
+        <target state="new">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Timestamp</target>
@@ -8059,7 +8078,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
         <source xml:lang="en">URL copied to clipboard</source>
-        <target state="new">URL copied to clipboard</target>
+        <target state="translated">URL copiato negli Appunti</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -8077,9 +8096,9 @@ Query: {2}</target>
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">Non è possibile aprire Esplora tabelle: nessun nodo di destinazione specificato.</target>
       </trans-unit>
-      <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
-        <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
-        <target state="translated">Non è possibile leggere le opzioni dell'agente proxy per ottenere i tenant.</target>
+      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
+        <source xml:lang="en">Unable to read proxy agent options.</source>
+        <target state="translated">Non è possibile leggere le opzioni dell'agente proxy.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -8151,6 +8170,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
         <source xml:lang="en">Unnamed Profile</source>
         <target state="translated">Profilo senza nome</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
+        <source xml:lang="en">Unsaved Changes</source>
+        <target state="new">Unsaved Changes</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -8419,6 +8442,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
         <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
         <target state="translated">Si hanno acquisito eventi di Profiler che non sono stati esportati. Se si chiude ora, si perderanno tutti gli eventi acquisiti. Esportarli in un file CSV?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
+        <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -8905,8 +8932,8 @@ Query: {2}</target>
         <target state="translated">Finalità applicazione</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
-        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">Visualizzare automaticamente i risultati della query in una nuova scheda anziché nel riquadro query. Questa opzione ha effetto solo se `mssql.enableRichExperiences` è abilitato.</target>
+        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
+        <target state="translated">Visualizzare automaticamente i risultati della query in una nuova scheda anziché nel riquadro query.</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
@@ -9098,10 +9125,6 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
         <target state="translated">Non mostrare le richieste per visualizzare i risultati della query in una nuova scheda.</target>
       </trans-unit>
-      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-        <source xml:lang="en">Do not show prompts to enable UI-based features</source>
-        <target state="translated">Non mostrare le richieste per abilitare le funzionalità basate sull'interfaccia utente.</target>
-      </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">Rimuovi database (anteprima)</target>
@@ -9129,14 +9152,6 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">Abilita raggruppa per schema</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">Abilita funzionalità moderne</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">Abilita funzionalità moderne</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -9226,23 +9241,9 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">Abilitare i pulsanti espandi/comprimi nei nodi della tabella di Finestra di progettazione schema quando le tabelle contengono più di 10 colonne</target>
       </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
-        <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="translated">Abilita funzionalità moderne in MSSQL</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
-        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="translated">Abilita il nuovo set di funzionalità di sviluppo dati che offre un modo moderno per lavorare con il database SQL in VS Code.
-[Abilita nuove esperienze](command:mssql.enableRichExperiences)</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">Abilitato</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences.description">
-        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">Abilita le funzionalità basate sull'interfaccia utente nell'estensione MSSQL per offrire funzionalità più avanzate e potenti. Riavviare Visual Studio Code dopo aver modificato questa impostazione.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>

@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="++CODE++46d92f6624a397f87a752409b0d15b0777438ad6fcbebfb6573a2720b065b094">
         <source xml:lang="en">(0 rows)</source>
-        <target state="new">(0 rows)</target>
+        <target state="translated">(0 ligne)</target>
       </trans-unit>
       <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
         <source xml:lang="en">(1 row affected)</source>
@@ -57,11 +57,11 @@
       </trans-unit>
       <trans-unit id="++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f">
         <source xml:lang="en">(Command completed successfully)</source>
-        <target state="new">(Command completed successfully)</target>
+        <target state="translated">(La commande a bien été exécutée)</target>
       </trans-unit>
       <trans-unit id="++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9">
         <source xml:lang="en">(current)</source>
-        <target state="new">(current)</target>
+        <target state="translated">(actuel)</target>
       </trans-unit>
       <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
         <source xml:lang="en">(empty)</source>
@@ -70,12 +70,12 @@
       <trans-unit id="++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340">
         <source xml:lang="en">({0} row(s) affected)</source>
         <note>{0} is the number of rows affected</note>
-        <target state="new">({0} row(s) affected)</target>
+        <target state="translated">({0} ligne(s) concernée(s))</target>
       </trans-unit>
       <trans-unit id="++CODE++e4da59cc908db66f1c176e3b1ca74b35f3e1f863a6a07156a2f5516f3991a051">
         <source xml:lang="en">({0} row)</source>
         <note>{0} is the number of rows (singular)</note>
-        <target state="new">({0} row)</target>
+        <target state="translated">({0} ligne)</target>
       </trans-unit>
       <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
         <source xml:lang="en">({0} rows affected)</source>
@@ -85,7 +85,7 @@
       <trans-unit id="++CODE++d7dc6d22bafdce672e9ed0f4266f83ead05837f27d30656b5e480b1893188d5e">
         <source xml:lang="en">({0} rows)</source>
         <note>{0} is the number of rows (plural)</note>
-        <target state="new">({0} rows)</target>
+        <target state="translated">({0} lignes)</target>
       </trans-unit>
       <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
         <source xml:lang="en">+ Add Azure Account</source>
@@ -232,7 +232,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e">
         <source xml:lang="en">Add MCP server to workspace configuration</source>
-        <target state="new">Add MCP server to workspace configuration</target>
+        <target state="translated">Ajouter un serveur MCP à la configuration de l’espace de travail</target>
       </trans-unit>
       <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
         <source xml:lang="en">Add Row</source>
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4eeee164cd7b783f58eca583f898bdb923ed56ab94ae7d3604dc11738090fe7f">
         <source xml:lang="en">Add to VS Code</source>
-        <target state="new">Add to VS Code</target>
+        <target state="translated">Ajouter à VS Code</target>
       </trans-unit>
       <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
         <source xml:lang="en">Added</source>
@@ -533,9 +533,9 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">Êtes-vous sûr(e) ?</target>
       </trans-unit>
-      <trans-unit id="++CODE++7c1a76939e1607bc8aae228f7ab75c475c8d3a11aa1eaab81167d441cac24a82">
-        <source xml:lang="en">Ask questions about your schema or propose changes.</source>
-        <target state="new">Ask questions about your schema or propose changes.</target>
+      <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
+        <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
+        <target state="new">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -853,6 +853,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Browse...</source>
         <target state="translated">Parcourir...</target>
       </trans-unit>
+      <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
+        <source xml:lang="en">Build APIs with GitHub Copilot</source>
+        <target state="new">Build APIs with GitHub Copilot</target>
+      </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
         <target state="translated">Échec de la build avec le code de sortie {0}</target>
@@ -978,7 +982,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
         <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
-        <target state="new">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</target>
+        <target state="translated">Capturez et analysez les sessions SQL Server Extended Events en direct pour surveiller et analyser les performances de la base de données.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1151,7 +1155,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7bd40bc64cc1051c5198092da16048ef651147d7b291becd00c0467d63408e0">
         <source xml:lang="en">Choose a database</source>
-        <target state="new">Choose a database</target>
+        <target state="translated">Choisir une base de données</target>
       </trans-unit>
       <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
         <source xml:lang="en">Choose a database from the list below</source>
@@ -1269,7 +1273,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
         <source xml:lang="en">Click to change database</source>
-        <target state="new">Click to change database</target>
+        <target state="translated">Cliquer pour modifier la base de données</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -1331,6 +1335,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Code Analysis - {0}</source>
         <note>{0} is the name of the database project</note>
         <target state="translated">Code Analysis : {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
+        <source xml:lang="en">Code analysis rules saved successfully</source>
+        <target state="new">Code analysis rules saved successfully</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -1474,7 +1482,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
         <source xml:lang="en">Config copied to clipboard</source>
-        <target state="new">Config copied to clipboard</target>
+        <target state="translated">Configuration copiée dans le presse-papiers</target>
       </trans-unit>
       <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
         <source xml:lang="en">Configuration to Import</source>
@@ -1526,7 +1534,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
         <source xml:lang="en">Connect to SQL Server</source>
-        <target state="new">Connect to SQL Server</target>
+        <target state="translated">Connexion à SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
         <source xml:lang="en">Connect to Server</source>
@@ -1571,7 +1579,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++d977ea679b0fb21f4bc301903e62002a433ffbcd7048c1f06828c8b02b9a77ae">
         <source xml:lang="en">Connected to {0}</source>
         <note>{0} is the connection label</note>
-        <target state="new">Connected to {0}</target>
+        <target state="translated">Connecté à {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++00aaa2ec4a2146b807cc64a6f59880630adc5d451cd1a68a80e2d2ccf2d21bbc">
         <source xml:lang="en">Connected to:</source>
@@ -1688,7 +1696,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++596c52f1eb65c1c3c65404e5f75974937fee4fc77d0970abeddf580e7123ce0c">
         <source xml:lang="en">Connection failed</source>
-        <target state="new">Connection failed</target>
+        <target state="translated">Échec de la connexion</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
         <source xml:lang="en">Connection failed: {0}</source>
@@ -1901,7 +1909,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++3044963803237002cd39b23ffdbf08d431d1667985a812f1793c48f8fae7b3a4">
         <source xml:lang="en">Copy {0} URL</source>
         <note>{0} is the API type name, e.g. REST API or GraphQL</note>
-        <target state="new">Copy {0} URL</target>
+        <target state="translated">Copier l’URL {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
         <source xml:lang="en">Copy-only Backup</source>
@@ -2385,7 +2393,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95">
         <source xml:lang="en">Design API</source>
-        <target state="new">Design API</target>
+        <target state="translated">API de conception</target>
+      </trans-unit>
+      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
+        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+        <target state="new">Design Schemas with GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -2452,7 +2464,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++7fcdbd4a0ca24d27e5a77bd0c4e6de424a4be6a97f3749e5dca265ddf0614298">
         <source xml:lang="en">Disconnected.</source>
-        <target state="new">Disconnected.</target>
+        <target state="translated">Déconnecté.</target>
       </trans-unit>
       <trans-unit id="++CODE++b9d150a1c239a564e634666c8cebbaad8712f8f67c6fdf37c97d17643b3af579">
         <source xml:lang="en">Disconnecting from connection '{0}' (ID: {1})</source>
@@ -2512,6 +2524,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
         <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
         <target state="translated">Docker nécessite des autorisations root pour s’exécuter. Exécutez Docker avec sudo ou ajoutez votre utilisateur au groupe docker en utilisant sudo usermod -aG docker $USER. Ensuite, redémarrez votre machine et réessayez.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
+        <source xml:lang="en">Don't Save</source>
+        <target state="new">Don't Save</target>
       </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
@@ -2604,10 +2620,6 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">Activer « Approuver le certificat de serveur »</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
-        <source xml:lang="en">Enable Experiences &amp; Reload</source>
-        <target state="translated">Activer les expériences et recharger</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -2940,7 +2952,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++ff9264103992fdc97a96b2f801ba367f6b82a97c0cfe7884ccb80233b599aac3">
         <source xml:lang="en">Error: Failed to parse query result data.</source>
-        <target state="new">Error: Failed to parse query result data.</target>
+        <target state="translated">Erreur : nous n’avons pas pu analyser les données du résultat de la requête.</target>
       </trans-unit>
       <trans-unit id="++CODE++6c1ebcf47761be137441b5293902752b802776fa5edd4ebf0193950f1adff0e8">
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
@@ -2953,7 +2965,7 @@ Erreur :
       <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
         <source xml:lang="en">Error: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error: {0}</target>
+        <target state="translated">Erreur : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
         <source xml:lang="en">Event details for {0}</source>
@@ -2993,7 +3005,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d">
         <source xml:lang="en">Execute SQL against SQL Server / Azure SQL</source>
-        <target state="new">Execute SQL against SQL Server / Azure SQL</target>
+        <target state="translated">Exécuter SQL sur SQL Server / Azure SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
         <source xml:lang="en">Executing '{0}' operation on Data API Builder</source>
@@ -3427,6 +3439,10 @@ Erreur :
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
         <target state="translated">Échec de l'extraction de l'image SQL Server. Veuillez vérifier votre connexion réseau et réessayer.</target>
       </trans-unit>
+      <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
+        <source xml:lang="en">Failed to read saved rule overrides from project</source>
+        <target state="new">Failed to read saved rule overrides from project</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -3459,6 +3475,10 @@ Erreur :
         <source xml:lang="en">Failed to save changes: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Échec de l’enregistrement des changements : {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
+        <source xml:lang="en">Failed to save code analysis rules</source>
+        <target state="new">Failed to save code analysis rules</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3584,6 +3604,10 @@ Erreur :
       <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
         <source xml:lang="en">File not found</source>
         <target state="translated">Fichier introuvable</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
+        <source xml:lang="en">File path</source>
+        <target state="new">File path</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -3760,6 +3784,10 @@ Erreur :
       <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
         <source xml:lang="en">Folder is required</source>
         <target state="translated">Le dossier est obligatoire</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
+        <source xml:lang="en">Folder path</source>
+        <target state="new">Folder path</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -4705,12 +4733,12 @@ Erreur :
       <trans-unit id="++CODE++97364ab178f409c2e935af89200f5a56952315efb422c76bf58f40e20451b8d1">
         <source xml:lang="en">MCP server added to {0}</source>
         <note>{0} is the file path where the MCP server was added</note>
-        <target state="new">MCP server added to {0}</target>
+        <target state="translated">Serveur MCP ajouté à {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5d50fcab6afa8bf3d21623505a4148c817c4cff4ec9873bf8f9693e9e8f39415">
         <source xml:lang="en">MCP server is already configured in {0}</source>
         <note>{0} is the file path where the MCP server configuration exists</note>
-        <target state="new">MCP server is already configured in {0}</target>
+        <target state="translated">Le serveur MCP est déjà configuré dans {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -5075,14 +5103,6 @@ Erreur :
         <source xml:lang="en">New to the MSSQL extension? Check out our quick-start guide.</source>
         <target state="translated">Vous débutez avec l’extension MSSQL ? Consultez notre guide de démarrage rapide.</target>
       </trans-unit>
-      <trans-unit id="++CODE++f5bac958d29f11e2feea075366598bc7976638f6c709c370e07e32d6e92373dd">
-        <source xml:lang="en">New: Chat about your API config</source>
-        <target state="new">New: Chat about your API config</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fde20f1667d66fb46e0292b83bff63ad17d90e114109447de26d475bba410d2f">
-        <source xml:lang="en">New: Chat about your schema</source>
-        <target state="new">New: Chat about your schema</target>
-      </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
         <target state="translated">Suivant</target>
@@ -5125,7 +5145,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++2427093f6a4ccd3d9c91b3682f7bf06dcbb6b77b636d3edc311b9ca3f2a3721a">
         <source xml:lang="en">No active connection.</source>
-        <target state="new">No active connection.</target>
+        <target state="translated">Aucune connexion active.</target>
       </trans-unit>
       <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
         <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
@@ -5133,7 +5153,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19">
         <source xml:lang="en">No active notebook.</source>
-        <target state="new">No active notebook.</target>
+        <target state="translated">Aucun bloc-notes actif.</target>
       </trans-unit>
       <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
         <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
@@ -5198,7 +5218,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
         <source xml:lang="en">No connection selected.</source>
-        <target state="new">No connection selected.</target>
+        <target state="translated">Aucune connexion n’est sélectionnée.</target>
       </trans-unit>
       <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
@@ -5234,7 +5254,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++979ea4dd600dbdf9f324b9fcc58626178a88362bea00d193ca63b85c5496599f">
         <source xml:lang="en">No database selected.</source>
-        <target state="new">No database selected.</target>
+        <target state="translated">Aucune base de données n’est sélectionnée.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
@@ -5393,7 +5413,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
-        <target state="new">No workspace folder is open. Open a folder to add the MCP server configuration.</target>
+        <target state="translated">Aucun dossier d’espace de travail n’est ouvert. Ouvrez un dossier pour ajouter la configuration du serveur MCP.</target>
       </trans-unit>
       <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
         <source xml:lang="en">No workspaces found</source>
@@ -5441,7 +5461,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++0303e182467081801f8b614862519a3b174c0ae84ff08b70e7d126080c3f4b95">
         <source xml:lang="en">Not connected</source>
-        <target state="new">Not connected</target>
+        <target state="translated">Non connecté</target>
       </trans-unit>
       <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
         <source xml:lang="en">Not contains</source>
@@ -5763,14 +5783,6 @@ Erreur :
         <source xml:lang="en">Please choose a blob to load restore plan</source>
         <target state="new">Please choose a blob to load restore plan</target>
       </trans-unit>
-      <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
-        <source xml:lang="en">Please choose a file</source>
-        <target state="translated">Veuillez choisir un fichier</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ea887fcdc3b25d5c543a6c7f3fb1e675e63420d492f1064f29d9d81be8efcca5">
-        <source xml:lang="en">Please choose a folder</source>
-        <target state="translated">Veuillez choisir un fichier</target>
-      </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
         <target state="translated">Choisissez un nom de fichier de sauvegarde unique</target>
@@ -5814,6 +5826,10 @@ Erreur :
       <trans-unit id="++CODE++42990e221cd66206bd59e10ce7ba785f6e8a88282b99827f844bbe43089294d5">
         <source xml:lang="en">Please select a database node in Object Explorer to rename.</source>
         <target state="translated">Sélectionnez un nœud de base de données dans l’Explorateur d’objets à renommer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
+        <source xml:lang="en">Please select a file, not a folder.</source>
+        <target state="new">Please select a file, not a folder.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6105,11 +6121,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++d58adeac69d8e840d82fe6c12086fda72d491949f9800d1fb049324b37c2f3cb">
         <source xml:lang="en">Query execution failed</source>
-        <target state="new">Query execution failed</target>
+        <target state="translated">Nous n’avons pas pu exécuter la requête</target>
       </trans-unit>
       <trans-unit id="++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974">
         <source xml:lang="en">Query execution was cancelled.</source>
-        <target state="new">Query execution was cancelled.</target>
+        <target state="translated">Nous avons annulé l’exécution de la requête.</target>
       </trans-unit>
       <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
         <source xml:lang="en">Query failed</source>
@@ -6330,6 +6346,10 @@ Erreur :
         <source xml:lang="en">Reset</source>
         <target state="translated">Réinitialiser</target>
       </trans-unit>
+      <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
+        <source xml:lang="en">Reset to Defaults?</source>
+        <target state="new">Reset to Defaults?</target>
+      </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
         <target state="translated">Redimensionner</target>
@@ -6457,9 +6477,9 @@ Erreur :
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">Rétablir les valeurs par défaut du projet</target>
       </trans-unit>
-      <trans-unit id="++CODE++3a3c4e62013fa901761c8d36adc12ca3f24f9b382b1ac9a26ace61329e3ab5c3">
-        <source xml:lang="en">Review or update your Data API Builder configuration.</source>
-        <target state="new">Review or update your Data API Builder configuration.</target>
+      <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
+        <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
+        <target state="new">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -6557,15 +6577,15 @@ Requête : {2}</target>
       <trans-unit id="++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9">
         <source xml:lang="en">SQL Notebook connected to {0}</source>
         <note>{0} is the connection label</note>
-        <target state="new">SQL Notebook connected to {0}</target>
+        <target state="translated">Bloc-notes SQL connecté à {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7">
         <source xml:lang="en">SQL Notebooks: click to change database</source>
-        <target state="new">SQL Notebooks: click to change database</target>
+        <target state="translated">Bloc-notes SQL : cliquer pour changer de base de données</target>
       </trans-unit>
       <trans-unit id="++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58">
         <source xml:lang="en">SQL Notebooks: click to connect</source>
-        <target state="new">SQL Notebooks: click to connect</target>
+        <target state="translated">Bloc-notes SQL : cliquer pour vous connecter</target>
       </trans-unit>
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
@@ -6598,7 +6618,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94">
         <source xml:lang="en">SQL: Not connected</source>
-        <target state="new">SQL: Not connected</target>
+        <target state="translated">SQL : non connecté</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
@@ -6908,7 +6928,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8c077bff66494e2aeee6280e4f591761cba31b94a22b87e617c3a5d80656ac84">
         <source xml:lang="en">Select Database</source>
-        <target state="new">Select Database</target>
+        <target state="translated">Sélectionner la base de données</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
@@ -7660,7 +7680,7 @@ Requête : {2}</target>
       <trans-unit id="++CODE++ed15b242aa1a7a4a806b10b44d2a0010fdcd7582ee1d23ff253e9d376230e87b">
         <source xml:lang="en">Switched to {0}</source>
         <note>{0} is the connection label</note>
-        <target state="new">Switched to {0}</target>
+        <target state="translated">Basculée vers {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -7804,11 +7824,6 @@ Requête : {2}</target>
       <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Onglet de texte : affiche les données de texte SQL</target>
-      </trans-unit>
-      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
-        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
-        <note>{0} is a url to learn more about the new features</note>
-        <target state="translated">L’extension MSSQL pour VS Code introduit de nouvelles fonctionnalités de développement de données modernes ! Voulez-vous les activer ? [Learn more]({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
@@ -7967,6 +7982,10 @@ Requête : {2}</target>
         <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
         <target state="translated">Cette opération déploie localement un conteneur de générateur d’API de données à l’aide de Docker. Le conteneur expose des API REST et GraphQL selon votre configuration.</target>
       </trans-unit>
+      <trans-unit id="++CODE++51338842c0b95f02deebfcbe26d1e5a4052518617a3a72d7a8c56a886e720287">
+        <source xml:lang="en">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</source>
+        <target state="new">This will reset all rules to their default severity. This cannot be undone. Would you like to continue?</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Horodateur</target>
@@ -8059,7 +8078,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
         <source xml:lang="en">URL copied to clipboard</source>
-        <target state="new">URL copied to clipboard</target>
+        <target state="translated">URL copié dans le presse-papiers</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -8077,9 +8096,9 @@ Requête : {2}</target>
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">Impossible d’ouvrir l’Explorateur de tables : aucun nœud cible fourni.</target>
       </trans-unit>
-      <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
-        <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
-        <target state="translated">Impossible de lire les options de l’agent proxy pour obtenir les locataires.</target>
+      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
+        <source xml:lang="en">Unable to read proxy agent options.</source>
+        <target state="new">Unable to read proxy agent options.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -8133,7 +8152,7 @@ Requête : {2}</target>
       <trans-unit id="++CODE++0ba171e467536aa07cf200f98a6910142cd4bc9c82715767474325f0631f3bbc">
         <source xml:lang="en">Unknown magic command: %%{0}</source>
         <note>{0} is the magic command name</note>
-        <target state="new">Unknown magic command: %%{0}</target>
+        <target state="translated">Commande magique inconnue : %%{0}</target>
       </trans-unit>
       <trans-unit id="++CODE++47910f2afddaf1712b164656a035d7fd1f09b784038c43c65b190ea778c68f58">
         <source xml:lang="en">Unknown object management dialog.</source>
@@ -8151,6 +8170,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
         <source xml:lang="en">Unnamed Profile</source>
         <target state="translated">Profil sans nom</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
+        <source xml:lang="en">Unsaved Changes</source>
+        <target state="new">Unsaved Changes</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -8420,6 +8443,10 @@ Requête : {2}</target>
         <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
         <target state="translated">Vous avez capturé des événements Profiler qui n’ont pas été exportés. Si vous fermez maintenant, vous perdrez tous les événements capturés. Voulez-vous les exporter vers un fichier CSV ?</target>
       </trans-unit>
+      <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
+        <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
+      </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
         <target state="translated">Vous devez accepter la licence</target>
@@ -8442,7 +8469,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++218a10d5a69c30b5a238c1ef9158c0427b0a183bc40cb11117e8eb7563807c9a">
         <source xml:lang="en">Your APIs are available at the following endpoints:</source>
-        <target state="new">Your APIs are available at the following endpoints:</target>
+        <target state="translated">Vos API sont disponibles sur les points de terminaison suivants :</target>
       </trans-unit>
       <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
         <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
@@ -8905,8 +8932,8 @@ Requête : {2}</target>
         <target state="translated">Intention de l’application</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
-        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">Afficher automatiquement les résultats de la requête dans un nouvel onglet au lieu du volet de requête. Cette option prend effet uniquement si « mssql.enableRichExperiences » est activé.</target>
+        <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
+        <target state="translated">Afficher automatiquement les résultats de la requête dans un nouvel onglet au lieu du volet de requête.</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
@@ -8934,11 +8961,11 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.changeConnection">
         <source xml:lang="en">Change Notebook Connection</source>
-        <target state="new">Change Notebook Connection</target>
+        <target state="translated">Modifier la connexion du bloc-notes</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.changeDatabase">
         <source xml:lang="en">Change Notebook Database</source>
-        <target state="new">Change Notebook Database</target>
+        <target state="translated">Modifier la base de données des blocs-notes</target>
       </trans-unit>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
@@ -9030,7 +9057,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">Create SQL Notebook</source>
-        <target state="new">Create SQL Notebook</target>
+        <target state="translated">Créer un bloc-notes SQL</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
@@ -9098,10 +9125,6 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
         <target state="translated">Ne pas afficher les invites pour afficher les résultats de la requête dans un nouvel onglet.</target>
       </trans-unit>
-      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-        <source xml:lang="en">Do not show prompts to enable UI-based features</source>
-        <target state="translated">Ne pas afficher les invites pour activer les fonctionnalités basées sur l’interface utilisateur</target>
-      </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">Supprimer la base de données (préversion)</target>
@@ -9129,14 +9152,6 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">Activer Grouper par schéma</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">Activer les fonctionnalités modernes</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences">
-        <source xml:lang="en">Enable Modern Features</source>
-        <target state="translated">Activer les fonctionnalités modernes</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -9226,23 +9241,9 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">Activez les boutons d'expansion/réduction dans les nœuds de table du Schéma Designer lorsque les tables comportent plus de 10 colonnes</target>
       </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
-        <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="translated">Activer les fonctionnalités modernes dans MSSQL</target>
-      </trans-unit>
-      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
-        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="translated">Activez le nouvel ensemble de fonctionnalités de développement de données qui proposent un moyen moderne pour travailler avec votre base de données SQL dans VS Code.
-[Activer les nouvelles expériences](command:mssql.enableRichExperiences)</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">Activé</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableRichExperiences.description">
-        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">Permet d’activer les fonctionnalités basées sur l’interface utilisateur dans l’extension MSSQL pour des fonctionnalités enrichies et plus puissantes. Redémarrez Visual Studio Code après avoir modifié ce paramètre.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
