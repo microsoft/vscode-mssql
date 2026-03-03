@@ -1223,6 +1223,9 @@ export class QueryResult {
             args: [error],
             comment: ["{0} is the error message"],
         });
+    public static queryResultPanelFailedToLoad = l10n.t(
+        "The query results panel failed to load. Please try running the query again.",
+    );
 }
 
 export class LocalContainers {
@@ -1476,6 +1479,15 @@ export class Webview {
             comment: ["{0} is the webview name"],
         });
     public static Restore = l10n.t("Restore");
+    public static webviewNotReadyTimeout = (webviewName: string, timeoutMs: number) =>
+        l10n.t({
+            message: "Webview '{0}' did not become ready within {1}ms",
+            args: [webviewName, timeoutMs],
+            comment: ["{0} is the webview name", "{1} is the timeout in milliseconds"],
+        });
+    public static webviewDisposedBeforeReady = l10n.t(
+        "Webview was disposed before it became ready",
+    );
 }
 
 export class TableDesigner {

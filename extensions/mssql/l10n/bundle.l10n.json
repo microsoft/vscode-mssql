@@ -2269,6 +2269,7 @@
         "message": "An error occurred while retrieving rows: {0}",
         "comment": ["{0} is the error message"]
     },
+    "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
     "{0} stopped successfully./{0} stopped successfully.": {
         "message": "{0} stopped successfully.",
         "comment": ["{0} stopped successfully."]
@@ -2403,6 +2404,11 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
+    "Webview '{0}' did not become ready within {1}ms/{0} is the webview name{1} is the timeout in milliseconds": {
+        "message": "Webview '{0}' did not become ready within {1}ms",
+        "comment": ["{0} is the webview name", "{1} is the timeout in milliseconds"]
+    },
+    "Webview was disposed before it became ready": "Webview was disposed before it became ready",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
