@@ -23,6 +23,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import throttle from "lodash/throttle";
 import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
@@ -46,8 +47,8 @@ export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _actualPlanStatuses: string[] = [];
-    // Throttle timers for state updates per result URI (messages, results, etc.)
-    private _stateUpdateTimers: Map<string, NodeJS.Timeout> = new Map();
+    // Throttled state update functions per result URI (messages, results, etc.)
+    private _stateUpdateThrottles: Map<string, ReturnType<typeof throttle>> = new Map();
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -673,21 +674,24 @@ export class SqlOutputContentProvider {
      * Coalesces rapid updates (messages/results) into a single update.
      */
     private scheduleThrottledUpdate(uri: string, delayMs: number = 100): void {
-        if (this._stateUpdateTimers.has(uri)) {
-            return; // already scheduled
+        let throttledUpdate = this._stateUpdateThrottles.get(uri);
+        if (!throttledUpdate) {
+            throttledUpdate = throttle(
+                () => {
+                    if (!this._queryResultWebviewController.hasQueryResultState(uri)) {
+                        return;
+                    }
+                    const state = this._queryResultWebviewController.getQueryResultState(uri);
+                    this.updateWebviewState(uri, state);
+                },
+                delayMs,
+                { leading: false, trailing: true },
+            );
+
+            this._stateUpdateThrottles.set(uri, throttledUpdate);
         }
-        const timer = setTimeout(() => {
-            try {
-                if (!this._queryResultWebviewController.hasQueryResultState(uri)) {
-                    return;
-                }
-                const state = this._queryResultWebviewController.getQueryResultState(uri);
-                this.updateWebviewState(uri, state);
-            } finally {
-                this._stateUpdateTimers.delete(uri);
-            }
-        }, delayMs);
-        this._stateUpdateTimers.set(uri, timer);
+
+        throttledUpdate();
     }
 
     /**
@@ -695,13 +699,13 @@ export class SqlOutputContentProvider {
      * We need to migrate any pending throttled updates to the new URI when a query runner URI is updated (ex: after a save as) to ensure the webview state stays in sync and updates are not lost.
      */
     private migrateThrottledUpdateUri(oldUri: string, newUri: string): void {
-        const timer = this._stateUpdateTimers.get(oldUri);
-        if (!timer || oldUri === newUri) {
+        const throttledUpdate = this._stateUpdateThrottles.get(oldUri);
+        if (!throttledUpdate || oldUri === newUri) {
             return;
         }
 
-        clearTimeout(timer);
-        this._stateUpdateTimers.delete(oldUri);
+        throttledUpdate.cancel();
+        this._stateUpdateThrottles.delete(oldUri);
         this.scheduleThrottledUpdate(newUri);
     }
 
@@ -767,10 +771,10 @@ export class SqlOutputContentProvider {
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
             // Clear any pending throttled state update for this URI
-            const timer = this._stateUpdateTimers.get(uri);
-            if (timer) {
-                clearTimeout(timer);
-                this._stateUpdateTimers.delete(uri);
+            const throttledUpdate = this._stateUpdateThrottles.get(uri);
+            if (throttledUpdate) {
+                throttledUpdate.cancel();
+                this._stateUpdateThrottles.delete(uri);
             }
             if (queryRunnerState.queryRunner.isExecutingQuery) {
                 // We need to cancel it, which will dispose it
