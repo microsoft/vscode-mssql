@@ -167,6 +167,9 @@ export class NotebookConnectionManager implements vscode.Disposable {
             if (
                 database &&
                 actualDb.toLowerCase() !== database.toLowerCase() &&
+                // getActualDatabase() returns "(unknown)" when STS hasn't populated the
+                // connection info yet. In that case we can't confirm a mismatch, so skip
+                // the reconnect and use the database the caller requested.
                 actualDb !== "(unknown)"
             ) {
                 // Wrong database — disconnect and reconnect with correct DB
@@ -184,8 +187,11 @@ export class NotebookConnectionManager implements vscode.Disposable {
             }
 
             this.connectionUri = uri;
-            this.connectionInfo = { ...connectionInfo, database: actualDb };
-            this.connectionLabel = formatConnectionLabel(server, actualDb);
+            // If STS hasn't populated the database yet, fall back to the caller's
+            // requested database rather than storing "(unknown)".
+            const resolvedDb = actualDb !== "(unknown)" ? actualDb : (database ?? actualDb);
+            this.connectionInfo = { ...connectionInfo, database: resolvedDb };
+            this.connectionLabel = formatConnectionLabel(server, resolvedDb);
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
