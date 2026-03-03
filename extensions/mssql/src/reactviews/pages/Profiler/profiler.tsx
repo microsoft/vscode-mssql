@@ -33,6 +33,7 @@ import {
     RowsRemovedParams,
     FilterClause,
     FilterType,
+    ColumnDataType,
     ProfilerColumnDef,
     SortDirection,
     SortState,
@@ -65,24 +66,25 @@ const optionalNumberFormatter: Formatter = (_row, _cell, value) => {
 };
 
 /**
- * Fields that should use the locale-aware timestamp formatter
- */
-const TIMESTAMP_FIELDS = ["timestamp"];
-
-/**
  * Locale-aware timestamp formatter that displays dates using the user's locale conventions.
- * Parses the ISO-like string from the backend ("YYYY-MM-DD HH:mm:ss.SSS") and formats
- * it using Intl.DateTimeFormat with the user's default locale.
+ * Handles both Date objects (pre-coerced by the backend) and raw ISO-like strings
+ * ("YYYY-MM-DD HH:mm:ss.SSS"), formatting them with Intl.DateTimeFormat.
  */
 const localeTimestampFormatter: Formatter = (_row, _cell, value) => {
     if (value === undefined || value === null || value === "") {
         return "";
     }
     try {
-        // The backend sends "YYYY-MM-DD HH:mm:ss.SSS" (local time, no timezone)
-        // Add "T" so Date() parses it correctly as local time
-        const dateStr = typeof value === "string" ? value.replace(" ", "T") : value;
-        const date = new Date(dateStr);
+        // The value may already be a Date (coerced by convertEventToTypedRow)
+        // or a raw string from the backend ("YYYY-MM-DD HH:mm:ss.SSS").
+        let date: Date;
+        if (value instanceof Date) {
+            date = value;
+        } else {
+            // Add "T" so Date() parses it correctly as local time
+            const dateStr = typeof value === "string" ? value.replace(" ", "T") : String(value);
+            date = new Date(dateStr);
+        }
         if (isNaN(date.getTime())) {
             return String(value);
         }
@@ -104,18 +106,20 @@ const OPTIONAL_NUMBER_FIELDS = ["spid", "duration", "cpu", "reads", "writes"];
 const EMPTY_FILTER_STATE = Object.freeze({ enabled: false, clauses: [] });
 
 /**
- * Gets the appropriate formatter configuration for a field
- * Returns an object with formatter and optional params
+ * Gets the appropriate formatter configuration for a column.
+ * Uses the column's declared type to determine the formatter,
+ * falling back to field-name matching for number fields.
  */
 function getFormatterConfig(
-    field: string,
+    col: ProfilerColumnDef,
 ): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
-    if (TIMESTAMP_FIELDS.includes(field)) {
+    // Use the column's declared type for datetime formatting
+    if (col.type === ColumnDataType.DateTime) {
         return {
             formatter: localeTimestampFormatter,
         };
     }
-    if (OPTIONAL_NUMBER_FIELDS.includes(field)) {
+    if (OPTIONAL_NUMBER_FIELDS.includes(col.field.toLowerCase())) {
         return { formatter: optionalNumberFormatter };
     }
     return undefined;
@@ -759,7 +763,7 @@ export const Profiler: React.FC = () => {
 
         return [
             ...viewConfig.columns.map((col) => {
-                const formatterConfig = getFormatterConfig(col.field);
+                const formatterConfig = getFormatterConfig(col);
                 return {
                     id: col.field,
                     name: col.header,

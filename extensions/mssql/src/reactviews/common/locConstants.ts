@@ -2354,7 +2354,12 @@ export class LocConstants {
                     comment: ["{0} is selected count", "{1} is total count"],
                 }),
             enterDateFormat: l10n.t("YYYY-MM-DD HH:mm:ss"),
-            dateFormatError: l10n.t("Use format: YYYY-MM-DD HH:mm:ss[.SSS]"),
+            dateFormatError: (example: string) =>
+                l10n.t({
+                    message: "Use format: {0}",
+                    args: [example],
+                    comment: ["{0} is an example date in the user's locale format"],
+                }),
             filterValue: l10n.t("Filter value"),
             filterOperator: l10n.t("Filter operator"),
 
