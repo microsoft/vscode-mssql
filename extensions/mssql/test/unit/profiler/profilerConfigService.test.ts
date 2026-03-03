@@ -305,9 +305,19 @@ suite("ProfilerConfigService Tests", () => {
             const event = createTestEvent({ timestamp: testTimestamp });
             const viewRow = configService.convertEventToViewRow(event, view);
 
-            // Should be formatted as ISO string without T and Z
-            expect(viewRow.StartTime).to.include("2024-01-15");
-            expect(viewRow.StartTime).to.include("10:30:00");
+            // Should be formatted as local-time ISO-like string "YYYY-MM-DD HH:mm:ss.SSS"
+            // Use local time components for assertion since formatTimestamp uses local time
+            const expectedYear = String(testTimestamp.getFullYear());
+            const expectedMonth = String(testTimestamp.getMonth() + 1).padStart(2, "0");
+            const expectedDay = String(testTimestamp.getDate()).padStart(2, "0");
+            const expectedHours = String(testTimestamp.getHours()).padStart(2, "0");
+            const expectedMinutes = String(testTimestamp.getMinutes()).padStart(2, "0");
+            const expectedSeconds = String(testTimestamp.getSeconds()).padStart(2, "0");
+
+            expect(viewRow.StartTime).to.include(`${expectedYear}-${expectedMonth}-${expectedDay}`);
+            expect(viewRow.StartTime).to.include(
+                `${expectedHours}:${expectedMinutes}:${expectedSeconds}`,
+            );
         });
     });
 
@@ -778,11 +788,12 @@ suite("ProfilerConfigService Tests", () => {
             });
             const typedRow = configService.convertEventToTypedRow(event, view);
 
-            // Timestamp is formatted as "2024-06-15 10:30:00.000" by getColumnValue,
+            // Timestamp is formatted as local-time string by getColumnValue,
             // then coerced back to a Date by coerceToColumnType
             expect(typedRow.StartTime).to.be.an.instanceOf(Date);
             const startTime = typedRow.StartTime as Date;
-            expect(startTime.getFullYear()).to.equal(2024);
+            // Verify the round-trip preserves the original timestamp
+            expect(startTime.getTime()).to.equal(new Date("2024-06-15T10:30:00.000Z").getTime());
         });
 
         test("should keep string column values as strings", () => {

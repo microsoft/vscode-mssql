@@ -9,7 +9,6 @@ import {
     SlickgridReactInstance,
     Column,
     GridOption,
-    Formatters,
     Formatter,
 } from "slickgrid-react";
 import { makeStyles, shorthands } from "@fluentui/react-components";
@@ -65,15 +64,58 @@ const optionalNumberFormatter: Formatter = (_row, _cell, value) => {
 };
 
 /**
- * Fields that should use the timestamp formatter (using built-in Formatters.date with custom format)
+ * Fields that should use the locale-aware timestamp formatter
  */
 const TIMESTAMP_FIELDS = ["timestamp"];
 
 /**
- * Date format for timestamp columns - includes milliseconds using Tempo format tokens
- * Format: YYYY-MM-DD HH:mm:ss.SSS
+ * Locale-aware timestamp formatter that displays dates using the user's locale conventions.
+ * Parses the ISO-like string from the backend ("YYYY-MM-DD HH:mm:ss.SSS") and formats
+ * it using Intl.DateTimeFormat with the user's default locale.
  */
-const TIMESTAMP_DATE_FORMAT = "YYYY-MM-DD HH:mm:ss.SSS";
+const localeTimestampFormatter: Formatter = (_row, _cell, value) => {
+    if (value === undefined || value === null || value === "") {
+        return "";
+    }
+    try {
+        // The backend sends "YYYY-MM-DD HH:mm:ss.SSS" (local time, no timezone)
+        // Add "T" so Date() parses it correctly as local time
+        const dateStr = typeof value === "string" ? value.replace(" ", "T") : value;
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
+            return String(value);
+        }
+        return formatDateLocale(date);
+    } catch {
+        return String(value);
+    }
+};
+
+/**
+ * Formats a Date using the user's locale with date, time, and fractional seconds.
+ * Uses Intl.DateTimeFormat for locale-aware formatting.
+ * Example (en-US): "1/29/2026, 2:30:45.123 PM"
+ * Example (ru-RU): "29.01.2026, 14:30:45.123"
+ */
+export function formatDateLocale(date: Date): string {
+    // Use the user's locale (undefined = browser default)
+    const formatted = new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: undefined, // Let locale decide 12h vs 24h
+    }).format(date);
+
+    // Append milliseconds since Intl.DateTimeFormat doesn't support fractional seconds in all environments
+    const ms = date.getMilliseconds();
+    if (ms > 0) {
+        return `${formatted}.${String(ms).padStart(3, "0")}`;
+    }
+    return formatted;
+}
 
 /**
  * Fields that should use the optional number formatter (may be undefined)
@@ -95,8 +137,7 @@ function getFormatterConfig(
 ): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
     if (TIMESTAMP_FIELDS.includes(field)) {
         return {
-            formatter: Formatters.date,
-            params: { dateFormat: TIMESTAMP_DATE_FORMAT },
+            formatter: localeTimestampFormatter,
         };
     }
     if (OPTIONAL_NUMBER_FIELDS.includes(field)) {

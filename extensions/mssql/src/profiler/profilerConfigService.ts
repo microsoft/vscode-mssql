@@ -244,7 +244,10 @@ export class ProfilerConfigService {
                 return isNaN(num) ? value : num;
             }
             case ColumnDataType.DateTime: {
-                const date = new Date(value);
+                // Ensure "YYYY-MM-DD HH:mm:ss.SSS" is parsed as local time
+                // by adding "T" separator (without "Z" = local timezone)
+                const dateStr = typeof value === "string" ? value.replace(" ", "T") : String(value);
+                const date = new Date(dateStr);
                 return isNaN(date.getTime()) ? value : date;
             }
             default:
@@ -281,14 +284,27 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Format a timestamp for display.
-     * Converts timestamp to ISO 8601 format: "YYYY-MM-DD HH:mm:ss.sss"
+     * Format a timestamp for the view row.
+     * Produces a local-time ISO-like string: "YYYY-MM-DD HH:mm:ss.sss"
+     * This format is used as the canonical internal representation and is
+     * parsed by the webview grid formatter for locale-aware display.
+     * Uses local time (not UTC) so the displayed time matches the user's timezone.
      * Example output: "2026-01-29 14:30:45.123"
      */
     private formatTimestamp(timestamp: number): string {
         try {
             const date = new Date(timestamp);
-            return date.toISOString().replace("T", " ").replace("Z", "");
+            if (isNaN(date.getTime())) {
+                return String(timestamp);
+            }
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            const ms = String(date.getMilliseconds()).padStart(3, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}`;
         } catch {
             return String(timestamp);
         }

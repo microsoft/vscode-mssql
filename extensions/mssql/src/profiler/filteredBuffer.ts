@@ -801,6 +801,8 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
 
     /**
      * Parses a value as a Date, returning undefined if parsing fails.
+     * Strings in "YYYY-MM-DD HH:mm:ss[.SSS]" format are normalized to use "T"
+     * separator so they are consistently parsed as local time across JS engines.
      * @param value - The value to parse
      * @returns The parsed Date or undefined if parsing fails
      */
@@ -813,7 +815,9 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
             return isNaN(date.getTime()) ? undefined : date;
         }
         if (typeof value === "string") {
-            const date = new Date(value);
+            // Normalize "YYYY-MM-DD HH:mm:ss" → "YYYY-MM-DDTHH:mm:ss" (local time)
+            const normalized = value.replace(" ", "T");
+            const date = new Date(normalized);
             return isNaN(date.getTime()) ? undefined : date;
         }
         return undefined;

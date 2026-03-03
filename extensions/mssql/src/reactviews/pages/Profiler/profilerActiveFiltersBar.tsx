@@ -9,9 +9,11 @@ import { Dismiss12Regular } from "@fluentui/react-icons";
 import {
     FilterClause,
     FilterOperator,
+    FilterTypeHint,
     ProfilerColumnDef,
 } from "../../../sharedInterfaces/profiler";
 import { locConstants } from "../../common/locConstants";
+import { formatDateLocale } from "./profiler";
 
 export interface ActiveFiltersBarProps {
     /** Current filter clauses */
@@ -24,6 +26,7 @@ export interface ActiveFiltersBarProps {
 
 /**
  * Returns a short human-readable description of the filter clause.
+ * For DateTime filters, the value is formatted using the user's locale.
  */
 function describeClause(clause: FilterClause): string {
     const loc = locConstants.profiler;
@@ -32,7 +35,23 @@ function describeClause(clause: FilterClause): string {
         return count === 0 ? loc.filterNoneSelected : loc.filterCountSelected(count);
     }
     const opLabel = getShortOperatorLabel(clause.operator);
-    const val = clause.value !== undefined ? String(clause.value) : "";
+    let val = clause.value !== undefined ? String(clause.value) : "";
+
+    // Format date values with user locale for display
+    if (
+        val &&
+        (clause.typeHint === FilterTypeHint.DateTime || clause.typeHint === FilterTypeHint.Date)
+    ) {
+        try {
+            const date = new Date(val.replace(" ", "T"));
+            if (!isNaN(date.getTime())) {
+                val = formatDateLocale(date);
+            }
+        } catch {
+            // Keep original value if parsing fails
+        }
+    }
+
     return `${opLabel} "${val}"`;
 }
 
