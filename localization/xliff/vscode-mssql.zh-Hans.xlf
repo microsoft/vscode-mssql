@@ -345,6 +345,10 @@
         <source xml:lang="en">All selected</source>
         <target state="translated">全部选中</target>
       </trans-unit>
+      <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
+        <source xml:lang="en">All severities</source>
+        <target state="new">All severities</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">允许为 NULL</target>
@@ -3679,6 +3683,10 @@ Error:
         <source xml:lang="en">Filter by schema</source>
         <target state="translated">按架构筛选</target>
       </trans-unit>
+      <trans-unit id="++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd">
+        <source xml:lang="en">Filter by severity</source>
+        <target state="new">Filter by severity</target>
+      </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
         <target state="translated">按类型筛选</target>
@@ -5351,6 +5359,10 @@ Error:
         <source xml:lang="en">No results to display</source>
         <target state="translated">没有可显示的结果</target>
       </trans-unit>
+      <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
+        <source xml:lang="en">No rules match the current filter.</source>
+        <target state="new">No rules match the current filter.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
         <source xml:lang="en">No saved connection profiles found.</source>
         <target state="translated">未找到任何已保存的连接配置文件。</target>
@@ -6881,6 +6893,10 @@ Query: {2}</source>
         <source xml:lang="en">Search options...</source>
         <target state="translated">搜索选项...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
+        <source xml:lang="en">Search rules...</source>
+        <target state="new">Search rules...</target>
+      </trans-unit>
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
         <target state="translated">搜索设置...</target>
@@ -7928,6 +7944,10 @@ Query: {2}</source>
         <source xml:lang="en">The name of the index.</source>
         <target state="translated">索引的名称。</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
+        <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
+        <target state="new">The query results panel failed to load. Please try running the query again.</target>
+      </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">已清除最近连接列表，但删除某些关联凭据时出错。查看 MSSQL 输出通道中的错误。</target>
@@ -8390,6 +8410,16 @@ Query: {2}</source>
         <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
         <target state="translated">无法使用当前连接信息进行连接。是否要重试连接或编辑连接配置文件?</target>
       </trans-unit>
+      <trans-unit id="++CODE++54d8eabdb1e806a10a7f7185c095b13404226eb5ffa574a62914d06a8e2beee0">
+        <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
+        <note>{0} is the webview name
+{1} is the timeout in milliseconds</note>
+        <target state="new">Webview '{0}' did not become ready within {1}ms</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
+        <source xml:lang="en">Webview was disposed before it became ready</source>
+        <target state="new">Webview was disposed before it became ready</target>
+      </trans-unit>
       <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
         <source xml:lang="en">What I can do for you:</source>
         <target state="translated">我可以为你执行的操作:</target>
@@ -8754,6 +8784,11 @@ Query: {2}</source>
         <note>{0} is the number of enabled entities
 {1} is the total number of entities</note>
         <target state="translated">已启用 {0} 个(共 {1} 个)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
+        <source xml:lang="en">{0} of {1} rules</source>
+        <note>{0} is the filtered count, {1} is the total count</note>
+        <target state="new">{0} of {1} rules</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
