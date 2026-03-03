@@ -28,6 +28,11 @@ export class SqlNotebookController implements vscode.Disposable {
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
+        private readonly _connectionManagerFactory?: (
+            connectionMgr: ConnectionManager,
+            connectionSharingService: ConnectionSharingService,
+            log: vscode.LogOutputChannel,
+        ) => NotebookConnectionManager,
     ) {
         this.log = vscode.window.createOutputChannel("MSSQL Notebooks", { log: true });
 
@@ -231,11 +236,17 @@ export class SqlNotebookController implements vscode.Disposable {
         const key = notebook.uri.toString();
         let mgr = this.connections.get(key);
         if (!mgr) {
-            mgr = new NotebookConnectionManager(
-                this.connectionMgr,
-                this.connectionSharingService,
-                this.log,
-            );
+            mgr = this._connectionManagerFactory
+                ? this._connectionManagerFactory(
+                      this.connectionMgr,
+                      this.connectionSharingService,
+                      this.log,
+                  )
+                : new NotebookConnectionManager(
+                      this.connectionMgr,
+                      this.connectionSharingService,
+                      this.log,
+                  );
             this.connections.set(key, mgr);
         }
         return mgr;

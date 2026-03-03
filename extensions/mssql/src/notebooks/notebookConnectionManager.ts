@@ -55,15 +55,13 @@ export class NotebookConnectionManager implements vscode.Disposable {
     }
 
     /**
-     * Query the actual database name from the server via SELECT DB_NAME().
-     * Used to verify we're connected to the expected database.
+     * Get the actual database name from the connection manager.
+     * After connect() succeeds, STS populates the credentials with the real
+     * database name from the server's ConnectionCompleteParams.connectionSummary.
      */
-    private async queryActualDatabase(uri: string): Promise<string> {
-        const result = await this.connectionSharingService.executeSimpleQuery(
-            uri,
-            "SELECT DB_NAME() AS [current_database]",
-        );
-        return result.rows?.[0]?.[0]?.displayValue ?? "(unknown)";
+    private getActualDatabase(uri: string): string {
+        const info = this.connectionMgr.getConnectionInfoFromUri(uri);
+        return info?.database || "(unknown)";
     }
 
     /**
@@ -126,17 +124,9 @@ export class NotebookConnectionManager implements vscode.Disposable {
             const uri = await this.connectInternal(connectionInfo);
             this.log.info(`[promptAndConnect] connect() → URI=${uri}`);
 
-            // Verify the actual database
-            try {
-                const actualDb = await this.queryActualDatabase(uri);
-                this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
-                this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
-            } catch {
-                this.connectionLabel = formatConnectionLabel(
-                    connectionInfo.server,
-                    connectionInfo.database,
-                );
-            }
+            const actualDb = this.getActualDatabase(uri);
+            this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
+            this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
 
             this.connectionUri = uri;
             this.connectionInfo = connectionInfo;
@@ -150,8 +140,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     /**
      * Connect with a specific connection profile (from Object Explorer context menu).
-     * After connecting, verifies the database via SELECT DB_NAME() and switches
-     * with USE [database] if needed.
+     * After connecting, verifies the database from the STS connection info and
+     * reconnects with the correct database if there's a mismatch.
      */
     async connectWith(connectionInfo: IConnectionInfo): Promise<string> {
         const activity = startActivity(
@@ -168,44 +158,33 @@ export class NotebookConnectionManager implements vscode.Disposable {
             const uri = await this.connectInternal(connectionInfo);
             this.log.info(`[connectWith] connect() → URI=${uri}`);
 
-            // Verify we're on the correct database.
-            let actualDb = "(unknown)";
-            try {
-                actualDb = await this.queryActualDatabase(uri);
-                this.log.info(
-                    `[connectWith] Actual DB: ${actualDb}, Expected: ${database || "(none)"}`,
-                );
+            // Check the actual database from the connection info that STS populated.
+            let actualDb = this.getActualDatabase(uri);
+            this.log.info(
+                `[connectWith] Actual DB: ${actualDb}, Expected: ${database || "(none)"}`,
+            );
 
-                if (
-                    database &&
-                    actualDb.toLowerCase() !== database.toLowerCase() &&
-                    actualDb !== "(unknown)"
-                ) {
-                    // Wrong database — disconnect and reconnect with correct DB
-                    this.log.info(
-                        `[connectWith] Database mismatch! Reconnecting with [${database}]`,
-                    );
-                    this.connectionSharingService.disconnect(uri);
-                    const fixedInfo = { ...connectionInfo, database };
-                    const newUri = await this.connectInternal(fixedInfo);
-                    actualDb = await this.queryActualDatabase(newUri);
-                    this.log.info(`[connectWith] After reconnect: ${actualDb}, URI=${newUri}`);
-                    this.connectionUri = newUri;
-                    this.connectionInfo = { ...connectionInfo, database: actualDb };
-                    this.connectionLabel = formatConnectionLabel(server, actualDb);
-                    activity.end(ActivityStatus.Succeeded);
-                    return newUri;
-                }
-            } catch (err: any) {
-                this.log.info(`[connectWith] DB verification failed: ${err.message}`);
-                if (database) {
-                    actualDb = database;
-                }
+            if (
+                database &&
+                actualDb.toLowerCase() !== database.toLowerCase() &&
+                actualDb !== "(unknown)"
+            ) {
+                // Wrong database — disconnect and reconnect with correct DB
+                this.log.info(`[connectWith] Database mismatch! Reconnecting with [${database}]`);
+                this.connectionSharingService.disconnect(uri);
+                const fixedInfo = { ...connectionInfo, database };
+                const newUri = await this.connectInternal(fixedInfo);
+                actualDb = this.getActualDatabase(newUri);
+                this.log.info(`[connectWith] After reconnect: ${actualDb}, URI=${newUri}`);
+                this.connectionUri = newUri;
+                this.connectionInfo = { ...connectionInfo, database: actualDb };
+                this.connectionLabel = formatConnectionLabel(server, actualDb);
+                activity.end(ActivityStatus.Succeeded);
+                return newUri;
             }
 
             this.connectionUri = uri;
             this.connectionInfo = { ...connectionInfo, database: actualDb };
-            // Use the VERIFIED database name, not the possibly-stale profile value
             this.connectionLabel = formatConnectionLabel(server, actualDb);
             activity.end(ActivityStatus.Succeeded);
             return uri;
@@ -248,8 +227,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const uri = await this.connectInternal(newInfo);
         this.log.info(`[changeDatabase] Reconnected → URI=${uri}`);
 
-        // Verify
-        const actualDb = await this.queryActualDatabase(uri);
+        // Get the actual database name from the connection info that STS populated
+        const actualDb = this.getActualDatabase(uri);
         this.log.info(`[changeDatabase] Verified: ${actualDb}`);
 
         this.connectionUri = uri;

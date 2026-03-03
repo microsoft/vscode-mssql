@@ -4,8 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as vscode from "vscode";
+
+chai.use(sinonChai);
 import { NotebookQueryExecutor } from "../../src/notebooks/notebookQueryExecutor";
 import {
     QueryNotificationHandler,

@@ -4,8 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { expect } from "chai";
-import type { IConnectionInfo, SimpleExecuteResult } from "vscode-mssql";
+import type { IConnectionInfo } from "vscode-mssql";
+
+chai.use(sinonChai);
 import { NotebookConnectionManager } from "../../src/notebooks/notebookConnectionManager";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../src/connectionSharing/connectionSharingService";
@@ -33,16 +37,6 @@ function makeConnectionInfo(overrides?: Partial<IConnectionInfo>): IConnectionIn
     } as IConnectionInfo;
 }
 
-function makeSimpleResult(overrides?: Partial<SimpleExecuteResult>): SimpleExecuteResult {
-    return {
-        rowCount: 0,
-        columnInfo: [],
-        rows: [],
-        messages: [],
-        ...overrides,
-    } as SimpleExecuteResult;
-}
-
 suite("NotebookConnectionManager", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionMgr: any;
@@ -60,6 +54,9 @@ suite("NotebookConnectionManager", () => {
             listDatabases: sandbox.stub().resolves(["master", "TestDB"]),
             createConnectionDetails: sandbox.stub().returns({ serverName: "test-server" }),
             sendRequest: sandbox.stub().resolves(true),
+            getConnectionInfoFromUri: sandbox
+                .stub()
+                .returns(makeConnectionInfo({ database: "TestDB" })),
             connectionStore: {
                 getPickListItems: sandbox.stub().resolves([]),
             },
@@ -71,11 +68,6 @@ suite("NotebookConnectionManager", () => {
         sharingService = {
             isConnected: sandbox.stub().returns(false),
             disconnect: sandbox.stub(),
-            executeSimpleQuery: sandbox.stub().resolves(
-                makeSimpleResult({
-                    rows: [[{ displayValue: "TestDB", isNull: false }]],
-                }),
-            ),
             cancelQuery: sandbox.stub().resolves(),
         };
 
@@ -173,20 +165,12 @@ suite("NotebookConnectionManager", () => {
         });
 
         test("reconnects when database mismatch detected", async () => {
-            // First query returns wrong DB, second returns correct
-            sharingService.executeSimpleQuery
+            // First connection returns wrong DB, second returns correct
+            connectionMgr.getConnectionInfoFromUri
                 .onFirstCall()
-                .resolves(
-                    makeSimpleResult({
-                        rows: [[{ displayValue: "master", isNull: false }]],
-                    }),
-                )
+                .returns(makeConnectionInfo({ database: "master" }))
                 .onSecondCall()
-                .resolves(
-                    makeSimpleResult({
-                        rows: [[{ displayValue: "TestDB", isNull: false }]],
-                    }),
-                );
+                .returns(makeConnectionInfo({ database: "TestDB" }));
 
             const info = makeConnectionInfo({ database: "TestDB" });
             await mgr.connectWith(info);
@@ -194,13 +178,6 @@ suite("NotebookConnectionManager", () => {
             // Should have connected twice (initial + reconnect)
             expect(connectionMgr.connect).to.have.been.calledTwice;
             expect(sharingService.disconnect).to.have.been.calledOnce;
-        });
-
-        test("uses profile database when DB verification fails", async () => {
-            sharingService.executeSimpleQuery.rejects(new Error("query failed"));
-            const info = makeConnectionInfo({ database: "MyDB" });
-            await mgr.connectWith(info);
-            expect(mgr.getConnectionLabel()).to.include("MyDB");
         });
     });
 
