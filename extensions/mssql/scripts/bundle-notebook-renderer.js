@@ -3,6 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// This is a separate build script from bundle-reactviews.js because the notebook
+// renderer has fundamentally incompatible esbuild requirements:
+//
+// 1. CSS inlining: Notebook renderers run in an isolated iframe that only loads the
+//    JS entrypoint — extracted CSS files are never loaded. We use a custom plugin to
+//    inline CSS as <style> elements, whereas webview panels use esbuild's native .css
+//    loader with separate files loaded via <link> tags in HTML templates.
+//
+// 2. No code splitting: The renderer must be a single self-contained file
+//    (splitting: false + outfile), whereas webviews use splitting: true + outdir
+//    to share chunks. These options are mutually exclusive in esbuild.
+
 const fs = require("fs");
 const logger = require("../../../scripts/terminal-logger");
 const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
