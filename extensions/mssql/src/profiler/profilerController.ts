@@ -89,16 +89,28 @@ export class ProfilerController {
                 return;
             }
 
-            // For Azure SQL, we need to ensure a user database is selected
+            // For Azure SQL, we need to ensure a user database is selected.
+            // Azure event sessions use ON DATABASE, so they are inherently
+            // scoped to the connected database — no client-side filter needed.
             let profileToUse = connectionProfile;
             if (serverTypes.includes(ServerType.Azure)) {
-                const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
+                // When launched from a Database node, pre-fill the database so
+                // the user is not prompted to select one again.
+                if (databaseScopeFilter) {
+                    profileToUse = { ...connectionProfile, database: databaseScopeFilter };
+                }
+
+                const updatedProfile = await this.ensureAzureDatabaseSelected(profileToUse);
                 if (!updatedProfile) {
                     // User cancelled database selection
                     this._logger.verbose("User cancelled database selection");
                     return;
                 }
                 profileToUse = updatedProfile;
+
+                // Azure sessions are already database-scoped via ON DATABASE,
+                // so skip the client-side DatabaseName filter entirely.
+                databaseScopeFilter = undefined;
             }
 
             // Generate a unique URI for this profiler connection

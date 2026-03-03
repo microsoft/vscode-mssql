@@ -1012,4 +1012,109 @@ suite("ProfilerController Server Type Tests", () => {
         // Disconnect should be called during webview disposal
         expect((mockConnectionManager.disconnect as sinon.SinonStub).called).to.be.true;
     });
+
+    test("should not prompt for database when Azure SQL launched from database node", async () => {
+        // When launching from a Database node on Azure, the databaseScopeFilter
+        // pre-fills connectionProfile.database so ensureAzureDatabaseSelected
+        // sees a user database and skips the prompt entirely.
+        const mockDatabaseTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver.database.windows.net",
+                authenticationType: "AzureMFA",
+                database: "", // Database node connections typically have empty database
+            },
+            nodeType: "Database",
+            metadata: {
+                metadataTypeName: "Database",
+                name: "MyAzureDB",
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard Azure profiler template",
+            detail: "Engine: AzureSQLDB",
+            template: {
+                id: "Standard_Azure",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        showQuickPickStub.resolves(mockTemplateItem);
+        (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+        // Set up session created handler to resolve immediately
+        (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            (_ownerUri: string, handler: (params: unknown) => void) => {
+                setTimeout(() => {
+                    handler({ sessionName: "TestSession", templateName: "Standard" });
+                }, 10);
+                return { dispose: sandbox.stub() };
+            },
+        );
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromDatabase");
+
+        await launchCommand!(mockDatabaseTreeNodeInfo);
+
+        // listDatabases should NOT have been called — database was pre-filled
+        expect((mockConnectionManager.listDatabases as sinon.SinonStub).called).to.be.false;
+    });
+
+    test("should connect with pre-filled database for Azure launched from database node", async () => {
+        // Verify the connection is made with the database from the OE node,
+        // not the empty database from the original connection profile.
+        const mockDatabaseTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver.database.windows.net",
+                authenticationType: "AzureMFA",
+                database: "", // Empty — typical for Database nodes
+            },
+            nodeType: "Database",
+            metadata: {
+                metadataTypeName: "Database",
+                name: "SalesDB",
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard Azure profiler template",
+            detail: "Engine: AzureSQLDB",
+            template: {
+                id: "Standard_Azure",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        showQuickPickStub.resolves(mockTemplateItem);
+        (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+        (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            (_ownerUri: string, handler: (params: unknown) => void) => {
+                setTimeout(() => {
+                    handler({ sessionName: "TestSession", templateName: "Standard" });
+                }, 10);
+                return { dispose: sandbox.stub() };
+            },
+        );
+
+        const connectStub = mockConnectionManager.connect as sinon.SinonStub;
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromDatabase");
+
+        await launchCommand!(mockDatabaseTreeNodeInfo);
+
+        // The connect call should use the pre-filled database name "SalesDB"
+        expect(connectStub).to.have.been.called;
+        const connectArgs = connectStub.getCall(0).args;
+        const usedProfile = connectArgs[1];
+        expect(usedProfile.database).to.equal("SalesDB");
+    });
 });
