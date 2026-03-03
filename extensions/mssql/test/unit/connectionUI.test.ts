@@ -267,7 +267,7 @@ suite("Connection UI tests", () => {
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(vscodeWrapperStub.executeCommand).to.have.been.calledWithExactly(
             "mssql.editConnection",
-            { connectionProfile: selectedProfileItem.connectionCreds },
+            selectedProfileItem.connectionCreds,
         );
     });
 
