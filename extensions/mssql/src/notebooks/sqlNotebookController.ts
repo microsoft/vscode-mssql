@@ -346,7 +346,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     outputs.push(
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(
-                                LocalizedConstants.Notebooks.executionCancelled,
+                                LocalizedConstants.Notebooks.executionCanceled,
                                 "text/plain",
                             ),
                         ]),
@@ -420,7 +420,7 @@ export class SqlNotebookController implements vscode.Disposable {
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
-                            LocalizedConstants.Notebooks.executionCancelled,
+                            LocalizedConstants.Notebooks.executionCanceled,
                             "text/plain",
                         ),
                     ]),

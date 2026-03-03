@@ -2028,7 +2028,7 @@
         "message": "Error: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Query execution was cancelled.": "Query execution was cancelled.",
+    "Query execution was canceled.": "Query execution was canceled.",
     "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
     "Not connected": "Not connected",
     "Error loading; refresh to try again": "Error loading; refresh to try again",

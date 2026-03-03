@@ -727,7 +727,7 @@ export class Notebooks {
     }
 
     // Cancellation
-    public static executionCancelled = l10n.t("Query execution was cancelled.");
+    public static executionCanceled = l10n.t("Query execution was canceled.");
 
     // Controller
     public static controllerDescription = l10n.t("Execute SQL against SQL Server / Azure SQL");
