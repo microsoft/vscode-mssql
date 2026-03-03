@@ -640,11 +640,9 @@ export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
     // Status bar
-    public static statusBarNotConnected = l10n.t("SQL: Not connected");
-    public static statusBarClickToChangeDatabase = l10n.t(
-        "SQL Notebooks: click to change database",
-    );
-    public static statusBarClickToConnect = l10n.t("SQL Notebooks: click to connect");
+    public static statusBarNotConnected = l10n.t("MSSQL: Not connected");
+    public static statusBarClickToChangeDatabase = l10n.t("MSSQL: click to change database");
+    public static statusBarClickToConnect = l10n.t("MSSQL: click to connect");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
@@ -715,7 +713,7 @@ export class Notebooks {
     // Info
     public static notebookConnectedTo(label: string) {
         return l10n.t({
-            message: "SQL Notebook connected to {0}",
+            message: "MSSQL Notebook connected to {0}",
             args: [label],
             comment: ["{0} is the connection label"],
         });

@@ -29,7 +29,7 @@ export class SqlNotebookController implements vscode.Disposable {
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
     ) {
-        this.log = vscode.window.createOutputChannel("SQL Notebooks", { log: true });
+        this.log = vscode.window.createOutputChannel("MSSQL Notebooks", { log: true });
 
         this.controller = vscode.notebooks.createNotebookController(
             "ms-mssql.sql-notebook-controller",
@@ -42,9 +42,9 @@ export class SqlNotebookController implements vscode.Disposable {
         this.controller.description = LocalizedConstants.Notebooks.controllerDescription;
         this.controller.executeHandler = this.executeCells.bind(this);
 
-        // Status bar item shows the SQL Notebooks connection (authoritative source)
+        // Status bar item shows the MSSQL Notebooks connection (authoritative source)
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
-        this.statusBarItem.name = "SQL Notebook Connection";
+        this.statusBarItem.name = "MSSQL Notebook Connection";
         this.updateStatusBar(undefined);
 
         // Code lens provider for notebook cells — shows correct connection
