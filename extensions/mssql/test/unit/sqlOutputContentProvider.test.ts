@@ -480,6 +480,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         const mockQueryRunner = {
             runStatement: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
         };
 
         sandbox
@@ -508,6 +509,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         const mockQueryRunner = {
             runStatement: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
         };
 
         sandbox
@@ -542,6 +544,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             onResultSetUpdated: sandbox.stub(),
             onExecutionPlan: sandbox.stub(),
             onSummaryChanged: sandbox.stub(),
+            onComplete: new vscode.EventEmitter<void>().event,
         } as unknown as QueryRunner;
 
         sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
