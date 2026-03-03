@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
     Toolbar,
     ToolbarButton,
@@ -28,6 +28,7 @@ import {
     ProfilerViewConfig,
     ProfilerTemplateConfig,
 } from "../../../sharedInterfaces/profiler";
+import debounce from "lodash/debounce";
 import { locConstants } from "../../common/locConstants";
 
 export interface ProfilerToolbarProps {
@@ -116,29 +117,37 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
 
     // Quick filter with debounce
     const [localQuickFilter, setLocalQuickFilter] = useState(quickFilterTerm);
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const debouncedQuickFilterChange = useMemo(
+        () =>
+            debounce((term: string) => {
+                onQuickFilterChange(term);
+            }, 200),
+        [onQuickFilterChange],
+    );
 
     const handleQuickFilterInput = useCallback(
         (value: string) => {
             // Enforce max length
             const trimmed = value.slice(0, 1000);
             setLocalQuickFilter(trimmed);
-            if (debounceRef.current) {
-                clearTimeout(debounceRef.current);
-            }
-            debounceRef.current = setTimeout(() => {
-                onQuickFilterChange(trimmed);
-            }, 200);
+            debouncedQuickFilterChange(trimmed);
         },
-        [onQuickFilterChange],
+        [debouncedQuickFilterChange],
     );
 
     // Sync local quick filter when external state clears it
     React.useEffect(() => {
         if (quickFilterTerm === "") {
             setLocalQuickFilter("");
+            debouncedQuickFilterChange.cancel();
         }
-    }, [quickFilterTerm]);
+    }, [quickFilterTerm, debouncedQuickFilterChange]);
+
+    useEffect(() => {
+        return () => {
+            debouncedQuickFilterChange.cancel();
+        };
+    }, [debouncedQuickFilterChange]);
 
     // Determine pause/resume button state - use Next icon (line before play) for Resume
     const pauseResumeIcon = isRunning ? <Pause24Regular /> : <Next24Regular />;

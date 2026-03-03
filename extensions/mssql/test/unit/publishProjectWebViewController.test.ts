@@ -30,7 +30,7 @@ import { SqlPackageService } from "../../src/services/sqlPackageService";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import * as sqlServerContainer from "../../src/deployment/sqlServerContainer";
 import * as projectUtils from "../../src/publishProject/projectUtils";
-import { generateUUID } from "../e2e/baseFixtures";
+import { uuid } from "../e2e/baseFixtures";
 import { ConnectionDetails } from "vscode-mssql";
 import * as constants from "../../src/constants/constants";
 
@@ -1158,7 +1158,7 @@ suite("PublishProjectWebViewController Tests", () => {
         controller.state.formState.publishTarget = PublishTarget.LocalContainer;
         controller.state.formState.databaseName = "TestDB";
         controller.state.formState.containerPort = "1433";
-        controller.state.formState.containerAdminPassword = generateUUID();
+        controller.state.formState.containerAdminPassword = uuid();
         controller.state.formState.containerImageTag = "2022-latest";
         controller.state.formState.acceptContainerLicense = true;
 

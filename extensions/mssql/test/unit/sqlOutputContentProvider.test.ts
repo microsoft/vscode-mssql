@@ -271,16 +271,19 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const oldUri = "file:///old-timer.sql";
         const newUri = "file:///new-timer.sql";
 
-        const oldTimer = setTimeout(() => {}, 1000);
-        contentProvider["_stateUpdateTimers"].set(oldUri, oldTimer as any);
+        const oldThrottledUpdate = Object.assign(() => {}, {
+            cancel: sandbox.stub(),
+        });
+        contentProvider["_stateUpdateThrottles"].set(oldUri, oldThrottledUpdate as any);
 
         await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
-        expect(contentProvider["_stateUpdateTimers"].has(oldUri)).to.be.false;
-        expect(contentProvider["_stateUpdateTimers"].has(newUri)).to.be.true;
+        expect(oldThrottledUpdate.cancel).to.have.been.calledOnce;
+        expect(contentProvider["_stateUpdateThrottles"].has(oldUri)).to.be.false;
+        expect(contentProvider["_stateUpdateThrottles"].has(newUri)).to.be.true;
 
-        clearTimeout(contentProvider["_stateUpdateTimers"].get(newUri));
-        contentProvider["_stateUpdateTimers"].delete(newUri);
+        contentProvider["_stateUpdateThrottles"].get(newUri)?.cancel();
+        contentProvider["_stateUpdateThrottles"].delete(newUri);
     });
 
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
