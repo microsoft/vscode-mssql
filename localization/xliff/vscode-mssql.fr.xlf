@@ -3890,10 +3890,6 @@ Erreur :
         <source xml:lang="en">General Options</source>
         <target state="translated">Options générales</target>
       </trans-unit>
-      <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
-        <source xml:lang="en">Generate Config</source>
-        <target state="translated">Générer la configuration</target>
-      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">Générer le script</target>
@@ -8333,6 +8329,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
         <source xml:lang="en">View</source>
         <target state="translated">Afficher</target>
+      </trans-unit>
+      <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
+        <source xml:lang="en">View Config</source>
+        <target state="new">View Config</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
