@@ -255,6 +255,16 @@ export class LocConstants {
             ),
             dontSave: l10n.t("Don't Save"),
             enableCodeAnalysisOnBuild: l10n.t("Enable Code Analysis on Build"),
+            searchRules: l10n.t("Search rules..."),
+            filterBySeverity: l10n.t("Filter by severity"),
+            allSeverities: l10n.t("All severities"),
+            noRulesMatchFilter: l10n.t("No rules match the current filter."),
+            filteredRulesCount: (filtered: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} rules",
+                    args: [filtered, total],
+                    comment: ["{0} is the filtered count, {1} is the total count"],
+                }),
         };
     }
 
