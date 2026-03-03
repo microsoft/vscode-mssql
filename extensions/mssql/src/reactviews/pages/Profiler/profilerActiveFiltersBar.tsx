@@ -13,7 +13,7 @@ import {
     ProfilerColumnDef,
 } from "../../../sharedInterfaces/profiler";
 import { locConstants } from "../../common/locConstants";
-import { formatDateLocale } from "./profiler";
+import { formatDateLocale } from "./profilerDateUtils";
 
 export interface ActiveFiltersBarProps {
     /** Current filter clauses */
