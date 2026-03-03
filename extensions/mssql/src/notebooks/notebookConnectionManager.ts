@@ -4,14 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import type { IConnectionInfo, ConnectionDetails, SimpleExecuteResult } from "vscode-mssql";
+import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
 import { ConnectionRequest, ConnectParams } from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
+import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
 
 /**
  * Manages the active database connection for a notebook.
@@ -35,13 +38,20 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private connectionInfo: IConnectionInfo | undefined;
     private connectionLabel: string = "";
     private log: vscode.LogOutputChannel;
+    private readonly queryExecutor: NotebookQueryExecutor;
 
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
         log: vscode.LogOutputChannel,
+        client?: SqlToolsServiceClient,
+        notificationHandler?: QueryNotificationHandler,
     ) {
         this.log = log;
+        this.queryExecutor = new NotebookQueryExecutor(
+            client ?? SqlToolsServiceClient.instance,
+            notificationHandler ?? QueryNotificationHandler.instance,
+        );
     }
 
     /**
@@ -255,11 +265,14 @@ export class NotebookConnectionManager implements vscode.Disposable {
         return parts.length > 1 ? parts[1] : "";
     }
 
-    async executeQuery(sql: string): Promise<SimpleExecuteResult> {
+    async executeQueryString(
+        sql: string,
+        cancellationToken?: vscode.CancellationToken,
+    ): Promise<NotebookQueryResult> {
         if (!this.connectionUri) {
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
-        return this.connectionSharingService.executeSimpleQuery(this.connectionUri, sql);
+        return this.queryExecutor.execute(this.connectionUri, sql, cancellationToken);
     }
 
     isConnected(): boolean {
@@ -290,20 +303,6 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     getConnectionUri(): string | undefined {
         return this.connectionUri;
-    }
-
-    /**
-     * Best-effort cancellation: sends QueryCancelRequest to STS.
-     * SimpleExecuteRequest may not support cancellation, so this is best-effort.
-     */
-    async cancelExecution(): Promise<void> {
-        if (this.connectionUri) {
-            try {
-                await this.connectionSharingService.cancelQuery(this.connectionUri);
-            } catch (err: any) {
-                this.log.warn(`[cancelExecution] Cancel request failed: ${err.message}`);
-            }
-        }
     }
 
     /**

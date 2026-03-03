@@ -131,6 +131,17 @@ export class QueryExecuteStatementParams {
     executionPlanOptions?: ExecutionPlanOptions;
 }
 
+export namespace QueryExecuteStringRequest {
+    export const type = new RequestType<QueryExecuteStringParams, QueryExecuteResult, void, void>(
+        "query/executeString",
+    );
+}
+
+export class QueryExecuteStringParams {
+    ownerUri: string;
+    query: string;
+}
+
 export class QueryExecuteResult {}
 
 export class ExecutionPlanOptions {

@@ -11,7 +11,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
-import { parseBatches } from "./batchParser";
+import { NotebookBatchResult } from "./notebookQueryExecutor";
 import * as formatter from "./resultFormatter";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
@@ -321,102 +321,19 @@ export class SqlNotebookController implements vscode.Disposable {
             return;
         }
 
-        // Parse batches and execute
-        const batches = parseBatches(code);
-        const outputs: vscode.NotebookCellOutput[] = [];
-
-        // Cancellation support
-        let cancelled = false;
-        const cancelListener = execution.token.onCancellationRequested(() => {
-            cancelled = true;
-            sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.CancelCellExecution);
-            void connMgr.cancelExecution();
-        });
-
         const activity = startActivity(
             TelemetryViews.SqlNotebooks,
             TelemetryActions.ExecuteCell,
             undefined,
-            { batchCount: String(batches.length), isMagicCommand: "false" },
+            { isMagicCommand: "false" },
         );
 
         try {
-            for (const batch of batches) {
-                if (cancelled) {
-                    outputs.push(
-                        new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text(
-                                LocalizedConstants.Notebooks.executionCanceled,
-                                "text/plain",
-                            ),
-                        ]),
-                    );
-                    break;
-                }
+            const result = await connMgr.executeQueryString(code, execution.token);
+            const outputs = this.buildBatchOutputs(result.batches);
 
-                const result = await connMgr.executeQuery(batch);
-                const messages = (result.messages ?? [])
-                    .filter((m) => !m.isError)
-                    .map((m) => m.message);
-
-                if (result.columnInfo && result.columnInfo.length > 0) {
-                    // SELECT or similar — has result set
-                    // If there are also messages (e.g. PRINT), show them first
-                    if (messages.length > 0) {
-                        outputs.push(
-                            new vscode.NotebookCellOutput([
-                                vscode.NotebookCellOutputItem.text(
-                                    messages.join("\n"),
-                                    "text/plain",
-                                ),
-                            ]),
-                        );
-                    }
-                    const plain = formatter.toPlain(result.columnInfo, result.rows);
-                    outputs.push(
-                        new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.json(
-                                {
-                                    columnInfo: result.columnInfo,
-                                    rows: result.rows,
-                                    rowCount: result.rowCount,
-                                },
-                                "application/vnd.mssql.query-result",
-                            ),
-                            vscode.NotebookCellOutputItem.text(plain, "text/plain"),
-                        ]),
-                    );
-                } else if (messages.length > 0) {
-                    // PRINT-only output (no result set)
-                    outputs.push(
-                        new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text(messages.join("\n"), "text/plain"),
-                        ]),
-                    );
-                } else {
-                    // INSERT, UPDATE, DELETE, DDL — no messages, no result set
-                    const msg =
-                        result.rowCount >= 0
-                            ? LocalizedConstants.Notebooks.rowsAffected(result.rowCount)
-                            : LocalizedConstants.Notebooks.commandCompletedSuccessfully;
-                    outputs.push(
-                        new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text(msg, "text/plain"),
-                        ]),
-                    );
-                }
-            }
-
-            execution.replaceOutput(outputs);
-            if (cancelled) {
-                execution.end(false, Date.now());
-                activity.end(ActivityStatus.Canceled);
-            } else {
-                execution.end(true, Date.now());
-                activity.end(ActivityStatus.Succeeded);
-            }
-        } catch (err: any) {
-            if (cancelled) {
+            if (result.canceled) {
+                sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.CancelCellExecution);
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
@@ -425,25 +342,94 @@ export class SqlNotebookController implements vscode.Disposable {
                         ),
                     ]),
                 );
+                execution.replaceOutput(outputs);
+                execution.end(false, Date.now());
+                activity.end(ActivityStatus.Canceled);
             } else {
-                // Show SQL errors as plain text — no JS stack trace
+                execution.replaceOutput(outputs);
+                execution.end(true, Date.now());
+                activity.end(ActivityStatus.Succeeded);
+            }
+        } catch (err: any) {
+            execution.replaceOutput([
+                new vscode.NotebookCellOutput([
+                    vscode.NotebookCellOutputItem.text(
+                        LocalizedConstants.Notebooks.errorPrefix(
+                            err.message || LocalizedConstants.Notebooks.queryExecutionFailed,
+                        ),
+                        "text/plain",
+                    ),
+                ]),
+            ]);
+            execution.end(false, Date.now());
+            activity.endFailed(new Error("Cell execution failed"));
+        }
+    }
+
+    private buildBatchOutputs(batches: NotebookBatchResult[]): vscode.NotebookCellOutput[] {
+        const outputs: vscode.NotebookCellOutput[] = [];
+
+        for (const batch of batches) {
+            const messages = (batch.messages ?? []).filter((m) => !m.isError).map((m) => m.message);
+            const errorMessages = (batch.messages ?? [])
+                .filter((m) => m.isError)
+                .map((m) => m.message);
+
+            if (batch.hasError && errorMessages.length > 0) {
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
-                            LocalizedConstants.Notebooks.errorPrefix(
-                                err.message || LocalizedConstants.Notebooks.queryExecutionFailed,
-                            ),
+                            LocalizedConstants.Notebooks.errorPrefix(errorMessages.join("\n")),
                             "text/plain",
                         ),
                     ]),
                 );
             }
-            execution.replaceOutput(outputs);
-            execution.end(false, Date.now());
-            activity.endFailed(new Error("Cell execution failed"));
-        } finally {
-            cancelListener.dispose();
+
+            // Show non-error messages (PRINT, info, row counts) once before result sets
+            if (messages.length > 0) {
+                outputs.push(
+                    new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.text(messages.join("\n"), "text/plain"),
+                    ]),
+                );
+            }
+
+            for (const rs of batch.resultSets) {
+                if (rs.columnInfo.length === 0) {
+                    continue;
+                }
+
+                const plain = formatter.toPlain(rs.columnInfo, rs.rows);
+                outputs.push(
+                    new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.json(
+                            {
+                                columnInfo: rs.columnInfo,
+                                rows: rs.rows,
+                                rowCount: rs.rowCount,
+                            },
+                            "application/vnd.mssql.query-result",
+                        ),
+                        vscode.NotebookCellOutputItem.text(plain, "text/plain"),
+                    ]),
+                );
+            }
+
+            // If no result sets and no messages and no errors, show a generic success message
+            if (batch.resultSets.length === 0 && messages.length === 0 && !batch.hasError) {
+                outputs.push(
+                    new vscode.NotebookCellOutput([
+                        vscode.NotebookCellOutputItem.text(
+                            LocalizedConstants.Notebooks.commandCompletedSuccessfully,
+                            "text/plain",
+                        ),
+                    ]),
+                );
+            }
         }
+
+        return outputs;
     }
 
     private async handleMagic(

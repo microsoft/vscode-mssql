@@ -9,6 +9,8 @@ import type { IConnectionInfo, SimpleExecuteResult } from "vscode-mssql";
 import { NotebookConnectionManager } from "../../src/notebooks/notebookConnectionManager";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../src/connectionSharing/connectionSharingService";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 
 function makeLog(): any {
     return {
@@ -45,6 +47,8 @@ suite("NotebookConnectionManager", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionMgr: any;
     let sharingService: any;
+    let mockClient: any;
+    let mockNotificationHandler: any;
     let log: any;
     let mgr: NotebookConnectionManager;
 
@@ -75,12 +79,23 @@ suite("NotebookConnectionManager", () => {
             cancelQuery: sandbox.stub().resolves(),
         };
 
+        mockClient = {
+            sendRequest: sandbox.stub().resolves({}),
+        };
+
+        mockNotificationHandler = {
+            registerRunner: sandbox.stub(),
+            unregisterRunner: sandbox.stub(),
+        };
+
         log = makeLog();
 
         mgr = new NotebookConnectionManager(
             connectionMgr as unknown as ConnectionManager,
             sharingService as unknown as ConnectionSharingService,
             log,
+            mockClient as unknown as SqlToolsServiceClient,
+            mockNotificationHandler as unknown as QueryNotificationHandler,
         );
     });
 
@@ -226,23 +241,62 @@ suite("NotebookConnectionManager", () => {
         });
     });
 
-    suite("executeQuery", () => {
-        test("delegates to connection sharing service", async () => {
-            await mgr.connectWith(makeConnectionInfo());
-            const expected = makeSimpleResult({ rowCount: 5 });
-            sharingService.executeSimpleQuery.resolves(expected);
-
-            const result = await mgr.executeQuery("SELECT 1");
-            expect(result).to.equal(expected);
-        });
-
+    suite("executeQueryString", () => {
         test("throws when not connected", async () => {
             try {
-                await mgr.executeQuery("SELECT 1");
+                await mgr.executeQueryString("SELECT 1");
                 expect.fail("should have thrown");
             } catch (err: any) {
                 expect(err.message).to.include("No active connection");
             }
+        });
+
+        test("delegates to query executor when connected", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+
+            // The executor registers a handler, sends executeString, then waits.
+            // For this test, simulate immediate query/complete by capturing the handler
+            // and calling handleQueryComplete on it.
+            mockClient.sendRequest.callsFake((_type: any, _params: any) => {
+                // When executeString is sent, simulate completion
+                const handler = mockNotificationHandler.registerRunner.lastCall?.args[0];
+                if (handler?.handleQueryComplete) {
+                    // Simulate batch lifecycle
+                    handler.handleBatchStart({
+                        batchSummary: {
+                            id: 0,
+                            hasError: false,
+                            selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+                            resultSetSummaries: [],
+                            executionElapsed: "00:00:00",
+                            executionEnd: "",
+                            executionStart: "",
+                        },
+                        ownerUri: "test",
+                    });
+                    handler.handleBatchComplete({
+                        batchSummary: {
+                            id: 0,
+                            hasError: false,
+                            selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+                            resultSetSummaries: [],
+                            executionElapsed: "00:00:00",
+                            executionEnd: "",
+                            executionStart: "",
+                        },
+                        ownerUri: "test",
+                    });
+                    handler.handleQueryComplete({
+                        ownerUri: "test",
+                        batchSummaries: [],
+                    });
+                }
+                return Promise.resolve({});
+            });
+
+            const result = await mgr.executeQueryString("SELECT 1");
+            expect(result).to.have.property("batches");
+            expect(result).to.have.property("canceled", false);
         });
     });
 
@@ -260,25 +314,6 @@ suite("NotebookConnectionManager", () => {
             } catch (err: any) {
                 expect(err.message).to.include("No active connection");
             }
-        });
-    });
-
-    suite("cancelExecution", () => {
-        test("sends cancel request when connected", async () => {
-            await mgr.connectWith(makeConnectionInfo());
-            await mgr.cancelExecution();
-            expect(sharingService.cancelQuery).to.have.been.calledOnce;
-        });
-
-        test("does nothing when not connected", async () => {
-            await mgr.cancelExecution();
-            expect(sharingService.cancelQuery).to.not.have.been.called;
-        });
-
-        test("swallows errors from cancel request", async () => {
-            await mgr.connectWith(makeConnectionInfo());
-            sharingService.cancelQuery.rejects(new Error("cancel failed"));
-            await mgr.cancelExecution(); // should not throw
         });
     });
 
