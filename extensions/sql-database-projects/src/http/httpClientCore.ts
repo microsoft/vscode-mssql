@@ -131,7 +131,10 @@ export class HttpClientCore {
         }
 
         await new Promise<void>((resolve, reject) => {
-            const tmpFile = fs.createWriteStream("", { fd: destinationFd });
+            // autoClose: false keeps fd ownership with the caller (who calls fs.closeSync in finally).
+            // Without it, pipe's automatic end() would trigger auto-close of the fd,
+            // causing the caller's fs.closeSync to throw EBADF.
+            const tmpFile = fs.createWriteStream("", { fd: destinationFd, autoClose: false });
 
             const cleanup = (err: NodeJS.ErrnoException) => {
                 // Destroy both streams to avoid file-descriptor leaks and stalled pipes
@@ -148,9 +151,8 @@ export class HttpClientCore {
             tmpFile.on("error", cleanup);
 
             // Resolve only after the WriteStream has fully flushed to disk.
-            // Using pipe without { end: false } so that the WriteStream is
-            // automatically ended when the response stream finishes, which
-            // triggers the 'finish' event once all bytes have been written.
+            // pipe automatically calls tmpFile.end() when the response stream finishes,
+            // which triggers the 'finish' event once all bytes have been written.
             tmpFile.on("finish", resolve);
 
             response.data.pipe(tmpFile);

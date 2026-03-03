@@ -468,7 +468,6 @@ suite("HttpClient tests", () => {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "createProxyAgent").returns({
-                isHttps: true,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 agent: {} as any,
             });
@@ -493,7 +492,6 @@ suite("HttpClient tests", () => {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "createProxyAgent").returns({
-                isHttps: false,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 agent: {} as any,
             });
@@ -501,8 +499,9 @@ suite("HttpClient tests", () => {
             const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
 
             expect(result.proxy).to.be.false;
-            expect(result.httpAgent).to.exist;
-            expect(result.httpsAgent).to.be.undefined;
+            // HTTPS request URL → httpsAgent, regardless of proxy scheme
+            expect(result.httpsAgent).to.exist;
+            expect(result.httpAgent).to.be.undefined;
         });
 
         test("should log when proxy is found", () => {
@@ -518,7 +517,6 @@ suite("HttpClient tests", () => {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "createProxyAgent").returns({
-                isHttps: false,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 agent: {} as any,
             });
