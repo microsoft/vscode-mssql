@@ -608,10 +608,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
      */
     public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
-        if (timeoutMs === undefined) {
-            return this._webviewReady.promise;
-        }
-
         return Promise.race([
             this._webviewReady.promise,
             new Promise<never>((_, reject) => {

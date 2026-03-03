@@ -294,6 +294,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             void this.vscodeWrapper.showErrorMessage(
                 LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
             );
+            throw e;
         }
     }
 
