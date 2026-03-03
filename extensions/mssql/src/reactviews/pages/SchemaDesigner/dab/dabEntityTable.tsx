@@ -85,16 +85,29 @@ const useStyles = makeStyles({
     entityCellDisabled: {
         opacity: 0.6,
     },
+    entityNameCell: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        minWidth: 0,
+        overflow: "hidden",
+    },
     entityName: {
         fontWeight: 600,
         fontSize: "13px",
+        minWidth: 0,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
     },
+    sourceCell: {
+        minWidth: 0,
+        overflow: "hidden",
+    },
     sourceText: {
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
+        minWidth: 0,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -351,9 +364,7 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div
-                            className={disabledClass}
-                            style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div className={`${classes.entityNameCell} ${disabledClass}`}>
                             <Table16Regular />
                             <Text className={classes.entityName}>
                                 {item.entity.advancedSettings.entityName}
@@ -371,7 +382,7 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={`${classes.sourceCell} ${disabledClass}`}>
                             <Text className={classes.sourceText}>
                                 {item.entity.schemaName}.{item.entity.tableName}
                             </Text>
