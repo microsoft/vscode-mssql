@@ -883,6 +883,23 @@ export const downloading = l10n.t("Downloading");
 
 //#endregion
 
+//#region proxy
+export const Proxy = {
+    missingProtocolWarning: (proxy: string) =>
+        l10n.t(
+            "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the SQL Database Projects extension.",
+            proxy,
+        ),
+    unparseableWarning: (proxy: string, errorMessage: string) =>
+        l10n.t(
+            "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}",
+            proxy,
+            errorMessage,
+        ),
+    unableToGetProxyAgentOptions: l10n.t("Unable to read proxy agent options."),
+};
+//#endregion
+
 //#region buildHelper
 export function nugetDownloadFailedHelp(buildDirPath: string): string {
     return l10n.t(

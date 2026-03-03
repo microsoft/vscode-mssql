@@ -8,7 +8,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import * as utils from "../common/utils";
 import * as sqldbproj from "sqldbproj";
-import * as extractZip from "extract-zip";
+import extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
@@ -16,6 +16,26 @@ import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
 const buildDirectory = "BuildDirectory";
+
+/**
+ * Thrown when the nuget package download step fails (e.g. network / proxy issues).
+ */
+export class NugetDownloadError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "NugetDownloadError";
+    }
+}
+
+/**
+ * Thrown when the nuget package extraction (or post-download filesystem) step fails.
+ */
+export class NugetExtractionError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "NugetExtractionError";
+    }
+}
 
 export class BuildHelper {
     private extensionDir: string;
@@ -145,9 +165,17 @@ export class BuildHelper {
                 outputChannel,
             );
         } catch (e) {
-            const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
-            outputChannel.appendLine(`${utils.getErrorMessage(e)}\n${helpMessage}`);
-            void vscode.window.showErrorMessage(helpMessage);
+            const errorMessage = utils.getErrorMessage(e);
+            if (e instanceof NugetDownloadError) {
+                // Network / connectivity failure — show the proxy/offline help text so users
+                const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
+                outputChannel.appendLine(`${errorMessage}\n${helpMessage}`);
+                void vscode.window.showErrorMessage(helpMessage);
+            } else {
+                // Extraction or filesystem failure — the error itself is actionable;
+                outputChannel.appendLine(errorMessage);
+                void vscode.window.showErrorMessage(errorMessage);
+            }
             return false;
         }
 
@@ -187,13 +215,17 @@ export class BuildHelper {
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
             await httpClient.download(downloadUrl, nugetPath, outputChannel);
         } catch (e) {
-            throw constants.errorDownloading(extractFolderPath, utils.getErrorMessage(e));
+            throw new NugetDownloadError(
+                constants.errorDownloading(downloadUrl, utils.getErrorMessage(e)),
+            );
         }
 
         try {
             await extractZip(nugetPath, { dir: extractFolderPath });
         } catch (e) {
-            throw constants.errorExtracting(nugetPath, utils.getErrorMessage(e));
+            throw new NugetExtractionError(
+                constants.errorExtracting(nugetPath, utils.getErrorMessage(e)),
+            );
         }
     }
 

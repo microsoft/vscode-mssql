@@ -27,6 +27,14 @@ export class HttpClient extends HttpClientCore {
             showWarningMessage: (message: string) => {
                 void vscode.window.showWarningMessage(message);
             },
+            // Provide a messages implementation so that HttpClientCore can surface
+            // proxy warnings via showWarningMessage. Without this, warnOnInvalidProxySettings
+            // would silently skip the showWarningMessage call even though it is wired up above.
+            messages: {
+                missingProtocolWarning: constants.Proxy.missingProtocolWarning,
+                unparseableWarning: constants.Proxy.unparseableWarning,
+                unableToGetProxyAgentOptions: constants.Proxy.unableToGetProxyAgentOptions,
+            },
         };
         super(logger, dependencies);
     }

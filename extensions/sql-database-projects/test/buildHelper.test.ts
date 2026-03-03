@@ -9,7 +9,7 @@ import * as fs from "fs";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as path from "path";
-import { BuildHelper } from "../src/tools/buildHelper";
+import { BuildHelper, NugetExtractionError } from "../src/tools/buildHelper";
 import { HttpClient } from "../src/http/httpClient";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
@@ -210,6 +210,57 @@ suite("BuildHelper: Build Helper tests", function (): void {
         expect(shownMessage).to.equal(
             constants.nugetDownloadFailedHelp(buildDir),
             "Error message should match nugetDownloadFailedHelp constant exactly",
+        );
+    });
+
+    test("Shows extraction error (not proxy/nuget help) when extraction fails", async function (): Promise<void> {
+        // Treat all files as missing so the download path is triggered.
+        sandbox.stub(utils, "exists").resolves(false);
+
+        // Simulate an extraction failure (e.g. corrupt zip, disk error) by stubbing
+        // downloadAndExtractNuget to throw a NugetExtractionError directly. This
+        // tests the catch-block behaviour in ensureNugetAndFilesPresence without
+        // relying on the internals of extract-zip.
+        const extractionErrorMsg = "Error extracting files from /tmp/pkg.nupkg. Error: bad zip";
+        sandbox
+            .stub(BuildHelper.prototype, "downloadAndExtractNuget")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .rejects(new NugetExtractionError(extractionErrorMsg) as any);
+
+        let shownMessage: string | undefined;
+        sandbox
+            .stub(vscode.window, "showErrorMessage")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .callsFake((msg: string): any => {
+                shownMessage = msg;
+                return Promise.resolve(undefined);
+            });
+
+        const outputChannel = {
+            appendLine: () => {},
+        } as unknown as vscode.OutputChannel;
+
+        const buildHelper = new BuildHelper();
+        const buildDir = buildHelper.extensionBuildDirPath;
+
+        const result = await buildHelper.ensureNugetAndFilesPresence(
+            "Microsoft.Build.Sql",
+            "0.1.0",
+            ["Microsoft.Build.Sql.dll"],
+            "tools/net8.0",
+            outputChannel,
+        );
+
+        expect(result, "ensureNugetAndFilesPresence should return false on extraction failure").to
+            .be.false;
+        expect(shownMessage, "showErrorMessage should have been called").to.be.a("string");
+        expect(shownMessage).to.equal(
+            extractionErrorMsg,
+            "Extraction error should be shown directly so the user sees the real cause",
+        );
+        expect(shownMessage).to.not.equal(
+            constants.nugetDownloadFailedHelp(buildDir),
+            "nugetDownloadFailedHelp (proxy/offline advice) must NOT be shown for extraction failures",
         );
     });
 

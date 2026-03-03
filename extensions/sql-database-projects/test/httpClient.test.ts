@@ -319,9 +319,9 @@ suite("HttpClient tests", () => {
 
             httpClient.warnOnInvalidProxySettings();
 
-            // Our HttpClient does not wire up dependencies.messages by default, so
-            // showWarningMessage is NOT called — but logger.warn IS called.
-            expect(warningMessageStub).to.not.have.been.called;
+            // messages is now wired up, so showWarningMessage IS called.
+            expect(warningMessageStub).to.have.been.calledOnce;
+            expect(warningMessageStub.firstCall.args[0]).to.include(invalidProxyValue);
             expect(logger.warn).to.have.been.calledOnce;
         });
 
@@ -346,9 +346,9 @@ suite("HttpClient tests", () => {
 
             httpClient.warnOnInvalidProxySettings();
 
-            // Our HttpClient does not wire up dependencies.messages by default, so
-            // showWarningMessage is NOT called — but logger.warn IS called.
-            expect(warningMessageStub).to.not.have.been.called;
+            // messages is now wired up, so showWarningMessage IS called.
+            expect(warningMessageStub).to.have.been.calledOnce;
+            expect(warningMessageStub.firstCall.args[0]).to.include(invalidProxyValue);
             expect(logger.warn).to.have.been.calledOnce;
         });
 
