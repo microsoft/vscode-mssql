@@ -13,6 +13,7 @@ export const flatFileConfig = {
             Windows_64: "win-x64.zip",
             Windows_86: "win-x86.zip",
             OSX: "osx-x64.tar.gz",
+            OSX_ARM64: "osx-arm64.tar.gz",
             Linux: "linux-x64.tar.gz",
         },
         installDir: "flatfileservice/{#platform#}/{#version#}",
