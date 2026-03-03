@@ -368,16 +368,16 @@ export class ConnectionUI {
                 value: ManageProfileTask.Create,
             },
             {
-                name: LocalizedConstants.ClearRecentlyUsedLabel,
-                value: ManageProfileTask.ClearRecentlyUsed,
-            },
-            {
                 name: LocalizedConstants.EditProfilesLabel,
                 value: ManageProfileTask.Edit,
             },
             {
                 name: LocalizedConstants.RemoveProfileLabel,
                 value: ManageProfileTask.Remove,
+            },
+            {
+                name: LocalizedConstants.ClearRecentlyUsedLabel,
+                value: ManageProfileTask.ClearRecentlyUsed,
             },
         ];
 
@@ -537,10 +537,7 @@ export class ConnectionUI {
             return false;
         }
 
-        await this._vscodeWrapper.executeCommand(constants.cmdEditConnection, {
-            connectionProfile: profile,
-        });
-
+        await this._vscodeWrapper.executeCommand(constants.cmdEditConnection, profile);
         return true;
     }
 

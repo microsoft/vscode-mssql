@@ -146,10 +146,10 @@ export let msgOpenSqlFile = l10n.t(
 );
 export let recentConnectionsPlaceholder = l10n.t("Choose a connection profile from the list below");
 export let CreateProfileFromConnectionsListLabel = l10n.t("Create Connection Profile");
-export let CreateProfileLabel = l10n.t("Create");
+export let CreateProfileLabel = l10n.t("Create a new connection profile");
 export let ClearRecentlyUsedLabel = l10n.t("Clear Recent Connections List");
-export let EditProfilesLabel = l10n.t("Edit");
-export let RemoveProfileLabel = l10n.t("Remove");
+export let EditProfilesLabel = l10n.t("Edit an existing connection profile");
+export let RemoveProfileLabel = l10n.t("Remove a connection profile");
 export let ManageProfilesPrompt = l10n.t("Manage Connection Profiles");
 export let SampleServerName = l10n.t("{{put-server-name-here}}");
 export let serverPrompt = l10n.t("Server name or ADO.NET connection string");
