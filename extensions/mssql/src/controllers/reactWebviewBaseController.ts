@@ -121,6 +121,8 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * A one-time promise that resolves when the webview is ready to receive messages.
      */
     private _webviewReady: Deferred<void> = new Deferred<void>();
+    private _isWebviewReady: boolean = false;
+    private _webviewReadyTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
     private _state: State;
     private _isFirstLoad: boolean = true;
@@ -305,6 +307,11 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                  * This notification is sent from the webview when it has finished loading. We use
                  * this to track when the webview is ready to receive messages.
                  */
+                this._isWebviewReady = true;
+                if (this._webviewReadyTimeoutHandle !== undefined) {
+                    clearTimeout(this._webviewReadyTimeoutHandle);
+                    this._webviewReadyTimeoutHandle = undefined;
+                }
                 this._webviewReady.resolve();
 
                 console.log(
@@ -599,6 +606,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
+        if (this._webviewReadyTimeoutHandle !== undefined) {
+            clearTimeout(this._webviewReadyTimeoutHandle);
+            this._webviewReadyTimeoutHandle = undefined;
+        }
         this._webviewReady.reject(new Error(LocalizedConstants.Webview.webviewDisposedBeforeReady));
     }
 
@@ -608,23 +619,25 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
      */
     public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
-        return Promise.race([
-            this._webviewReady.promise,
-            new Promise<never>((_, reject) => {
-                setTimeout(
-                    () =>
-                        reject(
-                            new Error(
-                                LocalizedConstants.Webview.webviewNotReadyTimeout(
-                                    this._sourceFile,
-                                    timeoutMs,
-                                ),
-                            ),
+        if (this._isWebviewReady) {
+            return Promise.resolve();
+        }
+
+        if (this._webviewReadyTimeoutHandle === undefined) {
+            this._webviewReadyTimeoutHandle = setTimeout(() => {
+                this._webviewReadyTimeoutHandle = undefined;
+                this._webviewReady.reject(
+                    new Error(
+                        LocalizedConstants.Webview.webviewNotReadyTimeout(
+                            this._sourceFile,
+                            timeoutMs,
                         ),
-                    timeoutMs,
+                    ),
                 );
-            }),
-        ]);
+            }, timeoutMs);
+        }
+
+        return this._webviewReady.promise;
     }
 
     private readKeyBindingsConfig(): Record<string, string> {
