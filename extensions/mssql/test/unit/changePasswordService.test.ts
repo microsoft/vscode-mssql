@@ -107,7 +107,7 @@ suite("ChangePasswordService", () => {
         >;
 
         sandbox.stub(ConnectionCredentials, "createConnectionDetails").returns(connectionDetails);
-        sandbox.stub(crypto, "randomUUID").returns("a1b2c3d4-e5f6-7890-abcd-ef1234567891");
+        sandbox.stub(utils, "uuid").returns("a1b2c3d4-e5f6-7890-abcd-ef1234567891");
 
         clientStub.sendRequest.rejects(new Error("service failure"));
 
