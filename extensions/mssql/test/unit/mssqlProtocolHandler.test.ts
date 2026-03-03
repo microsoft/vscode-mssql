@@ -14,7 +14,7 @@ import { Uri } from "vscode";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
-import { generateUUID } from "../e2e/baseFixtures";
+import { uuid } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -91,7 +91,7 @@ suite("MssqlProtocolHandler Tests", () => {
         });
 
         test("Should find matching profile when connection string is provided", async () => {
-            const connString = `Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=${generateUUID()};`;
+            const connString = `Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=${uuid()};`;
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
 
             sandbox.stub(mockMainController, "connectionManager").get(() => {

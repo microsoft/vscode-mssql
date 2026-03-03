@@ -167,7 +167,6 @@
         "tar": "^7.5.8",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
-        "uuid": "^11.0.5",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
