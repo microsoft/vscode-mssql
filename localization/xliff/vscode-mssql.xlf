@@ -4681,8 +4681,8 @@
     <trans-unit id="++CODE++d58adeac69d8e840d82fe6c12086fda72d491949f9800d1fb049324b37c2f3cb">
       <source xml:lang="en">Query execution failed</source>
     </trans-unit>
-    <trans-unit id="++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974">
-      <source xml:lang="en">Query execution was cancelled.</source>
+    <trans-unit id="++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753">
+      <source xml:lang="en">Query execution was canceled.</source>
     </trans-unit>
     <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
       <source xml:lang="en">Query failed</source>
