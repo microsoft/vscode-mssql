@@ -144,6 +144,7 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 }
                 const additionalProps: Record<string, string> = {
                     operationId: this._operationId,
+                    ruleCount: overrides.length.toString(),
                 };
                 // Only include rule IDs when code analysis is enabled on build —
                 // Sent as a semicolon-separated string and query the enabled rules
