@@ -230,6 +230,20 @@
         "comment": ["{0} is the rule identifier, e.g. SR0001"]
     },
     "Reset": "Reset",
+    "Reset to Defaults?": "Reset to Defaults?",
+    "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
+    "Unsaved Changes": "Unsaved Changes",
+    "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
+    "Don't Save": "Don't Save",
+    "Enable Code Analysis on Build": "Enable Code Analysis on Build",
+    "Search rules...": "Search rules...",
+    "Filter by severity": "Filter by severity",
+    "All severities": "All severities",
+    "No rules match the current filter.": "No rules match the current filter.",
+    "{0} of {1} rules/{0} is the filtered count, {1} is the total count": {
+        "message": "{0} of {1} rules",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
+    },
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -850,7 +864,7 @@
     "Read": "Read",
     "Update": "Update",
     "Entity name used in API routes": "Entity name used in API routes",
-    "Generate Config": "Generate Config",
+    "View Config": "View Config",
     "Deploy": "Deploy",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
@@ -2431,6 +2445,9 @@
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Code Analysis": "Code Analysis",
     "Failed to load code analysis rules": "Failed to load code analysis rules",
+    "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
+    "Failed to save code analysis rules": "Failed to save code analysis rules",
+    "Code analysis rules saved successfully": "Code analysis rules saved successfully",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

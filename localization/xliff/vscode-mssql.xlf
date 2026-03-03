@@ -261,6 +261,9 @@
     <trans-unit id="++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce">
       <source xml:lang="en">All selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
+      <source xml:lang="en">All severities</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
       <source xml:lang="en">Allow Null</source>
     </trans-unit>
@@ -1014,6 +1017,9 @@
     <trans-unit id="++CODE++d09445114806a6fe8a7faaeca21eb7f879a1b94fa056c9c06abde171f5c36f5f">
       <source xml:lang="en">Code Analysis - {0}</source>
       <note>{0} is the name of the database project</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
+      <source xml:lang="en">Code analysis rules saved successfully</source>
     </trans-unit>
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
@@ -1920,6 +1926,9 @@
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
     </trans-unit>
+    <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
+      <source xml:lang="en">Don&apos;t Save</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
     </trans-unit>
@@ -1989,6 +1998,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
+      <source xml:lang="en">Enable Code Analysis on Build</source>
     </trans-unit>
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -2618,6 +2630,9 @@
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
+      <source xml:lang="en">Failed to read saved rule overrides from project</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
       <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
       <note>{0} is the connection id
@@ -2644,6 +2659,9 @@
     <trans-unit id="++CODE++07e849b745794c4b9068165d834b1819e8cc4663ec8a733b07337a06d1375fcb">
       <source xml:lang="en">Failed to save changes: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
+      <source xml:lang="en">Failed to save code analysis rules</source>
     </trans-unit>
     <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
       <source xml:lang="en">Failed to save publish profile</source>
@@ -2793,6 +2811,9 @@
     </trans-unit>
     <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
       <source xml:lang="en">Filter by schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd">
+      <source xml:lang="en">Filter by severity</source>
     </trans-unit>
     <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
       <source xml:lang="en">Filter by type</source>
@@ -2953,9 +2974,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
       <source xml:lang="en">General Options</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
-      <source xml:lang="en">Generate Config</source>
     </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
@@ -4070,6 +4088,9 @@
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
+      <source xml:lang="en">No rules match the current filter.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
     </trans-unit>
@@ -4825,6 +4846,9 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
+    <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
+      <source xml:lang="en">Reset to Defaults?</source>
+    </trans-unit>
     <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
       <source xml:lang="en">Resize</source>
     </trans-unit>
@@ -5225,6 +5249,9 @@
     </trans-unit>
     <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
       <source xml:lang="en">Search options...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
+      <source xml:lang="en">Search rules...</source>
     </trans-unit>
     <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
       <source xml:lang="en">Search settings...</source>
@@ -6059,6 +6086,9 @@
     <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
       <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
+      <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
+    </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
     </trans-unit>
@@ -6200,6 +6230,9 @@
     <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
       <source xml:lang="en">Unnamed Profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
+      <source xml:lang="en">Unsaved Changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
       <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
       <note>{0} is the architecture name of the machine</note>
@@ -6318,6 +6351,9 @@
     <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
       <source xml:lang="en">View</source>
     </trans-unit>
+    <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
+      <source xml:lang="en">View Config</source>
+    </trans-unit>
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>
     </trans-unit>
@@ -6402,6 +6438,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
       <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
+      <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
@@ -6641,6 +6680,10 @@
       <note>{0} is the number of enabled entities
 {1} is the total number of entities</note>
     </trans-unit>
+    <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
+      <source xml:lang="en">{0} of {1} rules</source>
+      <note>{0} is the filtered count, {1} is the total count</note>
+    </trans-unit>
     <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
       <source xml:lang="en">{0} of {1} tenants</source>
       <note>{0} is the number of tenants with active sessions
@@ -6794,6 +6837,9 @@
     </trans-unit>
     <trans-unit id="mssql.backupDatabase">
       <source xml:lang="en">Backup Database (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.cancelConnect">
+      <source xml:lang="en">Cancel Connection</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>

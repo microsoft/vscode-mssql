@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { v4 as uuidv4 } from "uuid";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
+import { uuid } from "../../../common/utils";
 import { namingUtils } from "./namingUtils";
 
 export const tableUtils = {
@@ -60,7 +60,7 @@ export const tableUtils = {
                     scale: 0,
                     isNullable: false,
                     isPrimaryKey: true,
-                    id: uuidv4(),
+                    id: uuid(),
                     isIdentity: true,
                     identitySeed: 1,
                     identityIncrement: 1,
@@ -71,7 +71,7 @@ export const tableUtils = {
                 },
             ],
             foreignKeys: [],
-            id: uuidv4(),
+            id: uuid(),
         };
     },
 };

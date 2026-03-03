@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     Dropdown,
     Option,
@@ -12,6 +12,7 @@ import {
     DropdownProps,
     InputProps,
 } from "@fluentui/react-components";
+import debounce from "lodash/debounce";
 
 export interface FilterOperator {
     operator: string;
@@ -103,7 +104,13 @@ export const FluentCompoundFilterComponent = React.forwardRef<
         const styles = useStyles();
         const [selectedOperator, setSelectedOperator] = useState<string>(initialOperator);
         const [searchValue, setSearchValue] = useState<string>(initialValue);
-        const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+        const debouncedOnChange = useMemo(
+            () =>
+                debounce((operator: string, value: string) => {
+                    onChange(operator, value);
+                }, 300),
+            [onChange],
+        );
 
         // Expose methods via ref
         React.useImperativeHandle(ref, () => ({
@@ -122,34 +129,22 @@ export const FluentCompoundFilterComponent = React.forwardRef<
         }));
 
         // Debounced onChange callback
-        const triggerChange = useCallback(
-            (operator: string, value: string) => {
-                if (debounceTimerRef.current) {
-                    clearTimeout(debounceTimerRef.current);
-                }
-                debounceTimerRef.current = setTimeout(() => {
-                    onChange(operator, value);
-                }, 300);
-            },
-            [onChange],
-        );
+        const triggerChange = (operator: string, value: string) => {
+            debouncedOnChange(operator, value);
+        };
 
         // Cleanup debounce timer on unmount
         useEffect(() => {
             return () => {
-                if (debounceTimerRef.current) {
-                    clearTimeout(debounceTimerRef.current);
-                }
+                debouncedOnChange.cancel();
             };
-        }, []);
+        }, [debouncedOnChange]);
 
         const handleOperatorChange: DropdownProps["onOptionSelect"] = (_event, data) => {
             const newOperator = data.optionValue ?? "";
             setSelectedOperator(newOperator);
             // Trigger immediately for operator changes
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
+            debouncedOnChange.cancel();
             onChange(newOperator, searchValue);
         };
 
@@ -162,9 +157,7 @@ export const FluentCompoundFilterComponent = React.forwardRef<
         const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "Enter") {
                 // Trigger immediately on Enter
-                if (debounceTimerRef.current) {
-                    clearTimeout(debounceTimerRef.current);
-                }
+                debouncedOnChange.cancel();
                 onChange(selectedOperator, searchValue);
             }
         };

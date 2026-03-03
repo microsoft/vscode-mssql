@@ -1336,6 +1336,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the name of the database project</note>
         <target state="translated">Code Analysis — {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
+        <source xml:lang="en">Code analysis rules saved successfully</source>
+        <target state="new">Code analysis rules saved successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
         <target state="translated">Свернуть</target>
@@ -2521,6 +2525,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
         <target state="translated">Для запуска Docker требуются права администратора. Запустите Docker с помощью команды sudo или добавьте пользователя в группу docker с помощью команды sudo usermod -aG docker $USER. Затем перезагрузите компьютер и повторите попытку.</target>
       </trans-unit>
+      <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
+        <source xml:lang="en">Don't Save</source>
+        <target state="new">Don't Save</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">Больше не показывать</target>
@@ -2612,6 +2620,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">Включить параметр "Доверять сертификату сервера"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
+        <source xml:lang="en">Enable Code Analysis on Build</source>
+        <target state="new">Enable Code Analysis on Build</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -3431,6 +3443,10 @@ Error:
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
         <target state="translated">Не удалось получить образ SQL Server. Проверьте подключение к сети и повторите попытку.</target>
       </trans-unit>
+      <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
+        <source xml:lang="en">Failed to read saved rule overrides from project</source>
+        <target state="new">Failed to read saved rule overrides from project</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -3463,6 +3479,10 @@ Error:
         <source xml:lang="en">Failed to save changes: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Не удалось сохранить изменения: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
+        <source xml:lang="en">Failed to save code analysis rules</source>
+        <target state="new">Failed to save code analysis rules</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3588,6 +3608,10 @@ Error:
       <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
         <source xml:lang="en">File not found</source>
         <target state="translated">Файл не найден</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
+        <source xml:lang="en">File path</source>
+        <target state="new">File path</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -3765,6 +3789,10 @@ Error:
         <source xml:lang="en">Folder is required</source>
         <target state="translated">Папка обязательна</target>
       </trans-unit>
+      <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
+        <source xml:lang="en">Folder path</source>
+        <target state="new">Folder path</target>
+      </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
         <target state="translated">Требуется путь к папке</target>
@@ -3861,10 +3889,6 @@ Error:
       <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
         <source xml:lang="en">General Options</source>
         <target state="translated">Общие варианты</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
-        <source xml:lang="en">Generate Config</source>
-        <target state="translated">Сгенерировать конфигурацию</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -5759,14 +5783,6 @@ Error:
         <source xml:lang="en">Please choose a blob to load restore plan</source>
         <target state="translated">Выберите BLOB-объект для загрузки плана восстановления</target>
       </trans-unit>
-      <trans-unit id="++CODE++709d82394b71fbd41c81573ed92990a4f0222ae2ad79fca0c0b14a2bc557658a">
-        <source xml:lang="en">Please choose a file</source>
-        <target state="translated">Выберите файл</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ea887fcdc3b25d5c543a6c7f3fb1e675e63420d492f1064f29d9d81be8efcca5">
-        <source xml:lang="en">Please choose a folder</source>
-        <target state="translated">Выберите папку</target>
-      </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
         <target state="translated">Выберите уникальное имя файла резервной копии</target>
@@ -5810,6 +5826,10 @@ Error:
       <trans-unit id="++CODE++42990e221cd66206bd59e10ce7ba785f6e8a88282b99827f844bbe43089294d5">
         <source xml:lang="en">Please select a database node in Object Explorer to rename.</source>
         <target state="translated">Выберите узел базы данных в обозревателе объектов для переименования.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
+        <source xml:lang="en">Please select a file, not a folder.</source>
+        <target state="new">Please select a file, not a folder.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6325,6 +6345,10 @@ Error:
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">Сбросить</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
+        <source xml:lang="en">Reset to Defaults?</source>
+        <target state="new">Reset to Defaults?</target>
       </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
@@ -7958,6 +7982,10 @@ Query: {2}</source>
         <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
         <target state="translated">Это развернет контейнер построителя API данных локально с помощью Docker. Контейнер предоставит REST и GraphQL API на основе вашей конфигурации.</target>
       </trans-unit>
+      <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
+        <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
+        <target state="new">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Метка времени</target>
@@ -8143,6 +8171,10 @@ Query: {2}</source>
         <source xml:lang="en">Unnamed Profile</source>
         <target state="translated">Безымянный профиль</target>
       </trans-unit>
+      <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
+        <source xml:lang="en">Unsaved Changes</source>
+        <target state="new">Unsaved Changes</target>
+      </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
@@ -8298,6 +8330,10 @@ Query: {2}</source>
         <source xml:lang="en">View</source>
         <target state="translated">Просмотреть</target>
       </trans-unit>
+      <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
+        <source xml:lang="en">View Config</source>
+        <target state="new">View Config</target>
+      </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
         <target state="translated">Показать больше</target>
@@ -8410,6 +8446,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
         <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
         <target state="translated">У вас есть зафиксированные события Профилировщика, которые не были экспортированы. Если закрыть сейчас, все зафиксированные события будут потеряны. Хотите экспортировать их в CSV-файл?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
+        <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -8910,6 +8950,10 @@ Query: {2}</source>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database (Preview)</source>
         <target state="translated">Резервная копия базы данных (предварительная версия)</target>
+      </trans-unit>
+      <trans-unit id="mssql.cancelConnect">
+        <source xml:lang="en">Cancel Connection</source>
+        <target state="new">Cancel Connection</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>

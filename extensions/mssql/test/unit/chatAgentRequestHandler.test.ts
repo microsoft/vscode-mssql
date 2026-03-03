@@ -14,7 +14,6 @@ import {
 } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import * as Utils from "../../src/models/utils";
 import * as telemetry from "../../src/telemetry/telemetry";
 import {
     GetNextMessageResponse,
@@ -26,6 +25,7 @@ import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { connectedLabelPrefix, disconnectedLabelPrefix } from "../../src/copilot/chatConstants";
 import { IConnectionInfo } from "vscode-mssql";
+import * as utils from "../../src/utils/utils";
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -80,8 +80,7 @@ suite("Chat Agent Request Handler Tests", () => {
         // Stub telemetry functions
         startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivityObject);
         sandbox.stub(telemetry, "sendActionEvent");
-        // Stub the generateGuid function using sinon
-        sandbox.stub(Utils, "generateGuid").returns(sampleCorrelationId);
+        sandbox.stub(utils, "uuid").returns(sampleCorrelationId);
 
         // Mock CopilotService
         mockCopilotService = sandbox.createStubInstance(CopilotService);

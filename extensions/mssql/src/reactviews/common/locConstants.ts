@@ -245,6 +245,26 @@ export class LocConstants {
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
             reset: l10n.t("Reset"),
+            resetConfirmTitle: l10n.t("Reset to Defaults?"),
+            resetConfirmMessage: l10n.t(
+                "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
+            ),
+            unsavedChangesTitle: l10n.t("Unsaved Changes"),
+            unsavedChangesMessage: l10n.t(
+                "You have unsaved changes. Do you want to save before closing?",
+            ),
+            dontSave: l10n.t("Don't Save"),
+            enableCodeAnalysisOnBuild: l10n.t("Enable Code Analysis on Build"),
+            searchRules: l10n.t("Search rules..."),
+            filterBySeverity: l10n.t("Filter by severity"),
+            allSeverities: l10n.t("All severities"),
+            noRulesMatchFilter: l10n.t("No rules match the current filter."),
+            filteredRulesCount: (filtered: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} rules",
+                    args: [filtered, total],
+                    comment: ["{0} is the filtered count, {1} is the total count"],
+                }),
         };
     }
 
@@ -1271,7 +1291,7 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            generateConfig: l10n.t("Generate Config"),
+            viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),

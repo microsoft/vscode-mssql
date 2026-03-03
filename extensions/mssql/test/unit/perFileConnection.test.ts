@@ -22,9 +22,9 @@ import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
 import { AuthenticationTypes } from "../../src/models/interfaces";
-import * as Utils from "../../src/models/utils";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
+import { uuid } from "../../src/utils/utils";
 import { stubExtensionContext, stubPrompter, stubVscodeWrapper } from "./utils";
 
 const expect = chai.expect;
@@ -390,7 +390,7 @@ suite("Per File Connection Tests", () => {
         if (!dbName) {
             dbName = connectionCreds.database;
         }
-        myResult.connectionId = Utils.generateGuid();
+        myResult.connectionId = uuid();
         myResult.messages = "";
         myResult.connectionSummary = {
             serverName: connectionCreds.server,
@@ -537,7 +537,7 @@ function createTestConnectionResult(
 ): ConnectionContracts.ConnectionCompleteParams {
     const result = new ConnectionContracts.ConnectionCompleteParams();
 
-    result.connectionId = Utils.generateGuid();
+    result.connectionId = uuid();
     result.messages = "";
     result.ownerUri = ownerUri;
     result.serverInfo = {} as IServerInfo;

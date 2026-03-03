@@ -242,6 +242,10 @@ export enum TelemetryActions {
     CodeAnalysisDialogOpened = "CodeAnalysisDialogOpened",
     CodeAnalysisRulesLoaded = "CodeAnalysisRulesLoaded",
     CodeAnalysisRulesLoadError = "CodeAnalysisRulesLoadError",
+    CodeAnalysisRulesSaved = "CodeAnalysisRulesSaved",
+    CodeAnalysisRulesSaveError = "CodeAnalysisRulesSaveError",
+    CodeAnalysisEnabledOnBuild = "CodeAnalysisEnabledOnBuild",
+    CodeAnalysisDisabledOnBuild = "CodeAnalysisDisabledOnBuild",
     // SQL Notebooks
     CreateNotebook = "CreateNotebook",
     ExecuteCell = "ExecuteCell",

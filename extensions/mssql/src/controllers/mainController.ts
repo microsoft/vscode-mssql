@@ -250,6 +250,10 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdDisconnect, () => {
                 void this.runAndLogErrors(this.onDisconnect());
             });
+            this.registerCommand(Constants.cmdCancelConnect);
+            this._event.on(Constants.cmdCancelConnect, () => {
+                void this.runAndLogErrors(this.onCancelConnect());
+            });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
                 void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
@@ -2366,6 +2370,17 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Cancel an in-progress connection, if any
+     */
+    private async onCancelConnect(): Promise<boolean> {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
+            await this._connectionMgr.onCancelConnect(false);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Manage connection profiles (create, edit, remove).
      * Public for testing purposes
      */
@@ -2899,6 +2914,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
             projectFilePath,
             this.dacFxService,
+            this.sqlProjectsService,
         );
 
         codeAnalysisWebView.revealToForeground();
