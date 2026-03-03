@@ -10,6 +10,7 @@ import { allSeverities } from "../../common/constants";
  * Filters a list of SQL code analysis rules by free-text search and/or severity.
  *
  * Text search is case-insensitive and matches against:
+ *  - ruleId        (e.g. "Microsoft.Rules.Data.SR0001")
  *  - shortRuleId   (e.g. "SR0001")
  *  - displayName   (e.g. "Avoid using SELECT * in stored procedures")
  *  - description   (optional full rule description)
@@ -31,6 +32,7 @@ export function filterRules(
             return true;
         }
         return (
+            rule.ruleId.toLowerCase().includes(search) ||
             rule.shortRuleId.toLowerCase().includes(search) ||
             rule.displayName.toLowerCase().includes(search) ||
             (rule.description?.toLowerCase().includes(search) ?? false) ||

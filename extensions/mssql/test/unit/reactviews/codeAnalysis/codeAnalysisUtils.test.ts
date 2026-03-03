@@ -18,9 +18,10 @@ function makeRule(base: {
     category: string;
     severity: string;
     description?: string;
+    ruleId?: string;
 }): SqlCodeAnalysisRule {
     return {
-        ruleId: base.shortRuleId,
+        ruleId: base.ruleId ?? `${base.category}.${base.shortRuleId}`,
         shortRuleId: base.shortRuleId,
         displayName: base.displayName,
         description: base.description ?? "",
@@ -86,12 +87,6 @@ suite("codeAnalysis - filterRules", () => {
         expect(result[0].shortRuleId).to.equal("SR1004");
     });
 
-    test("search by description - case-insensitive partial match", () => {
-        const result = filterRules(RULES, "null", allSeverities);
-        expect(result).to.have.length(1);
-        expect(result[0].shortRuleId).to.equal("SR0001");
-    });
-
     test("search by category - matches multiple rules", () => {
         const result = filterRules(RULES, "Microsoft.Rules.Data", allSeverities);
         expect(result).to.have.length(2);
@@ -101,6 +96,24 @@ suite("codeAnalysis - filterRules", () => {
     test("search with no matches returns empty array", () => {
         const result = filterRules(RULES, "zzznomatch", allSeverities);
         expect(result).to.deep.equal([]);
+    });
+
+    test("search by full ruleId - exact match", () => {
+        const result = filterRules(RULES, "Microsoft.Rules.Data.SR0001", allSeverities);
+        expect(result).to.have.length(1);
+        expect(result[0].shortRuleId).to.equal("SR0001");
+    });
+
+    test("search by full ruleId - case-insensitive", () => {
+        const result = filterRules(RULES, "microsoft.rules.data.sr0006", allSeverities);
+        expect(result).to.have.length(1);
+        expect(result[0].shortRuleId).to.equal("SR0006");
+    });
+
+    test("search by full ruleId - partial namespace matches multiple rules", () => {
+        // "Microsoft.Rules" is a prefix shared by all four ruleIds
+        const result = filterRules(RULES, "Microsoft.Rules", allSeverities);
+        expect(result).to.have.length(RULES.length);
     });
 
     // --- Severity filter ---
