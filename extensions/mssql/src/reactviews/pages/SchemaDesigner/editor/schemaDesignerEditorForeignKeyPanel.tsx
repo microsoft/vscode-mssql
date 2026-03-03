@@ -193,7 +193,7 @@ const ColumnMappingTable = ({
                     <SearchableDropdown
                         placeholder="Search Schema"
                         options={selectedTable.columns.map((column) => ({
-                            displayName: column.name,
+                            text: column.name,
                             value: column.id,
                         }))}
                         selectedOption={{
@@ -225,7 +225,7 @@ const ColumnMappingTable = ({
                     <SearchableDropdown
                         placeholder="Search Schema"
                         options={targetTable.columns.map((column) => ({
-                            displayName: column.name,
+                            text: column.name,
                             value: column.id,
                         }))}
                         selectedOption={{
@@ -437,7 +437,7 @@ const ForeignKeyCard = ({
                                     .localeCompare(displayNameB.toLowerCase());
                             })
                             .map((table) => ({
-                                displayName: `${table.schema}.${table.name}`,
+                                text: `${table.schema}.${table.name}`,
                                 value: table.id,
                             }))}
                         selectedOption={(() => {
