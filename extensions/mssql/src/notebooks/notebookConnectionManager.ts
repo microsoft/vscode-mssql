@@ -18,7 +18,7 @@ import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecu
 
 /**
  * Manages the active database connection for a notebook.
- * One connection per notebook — matches ADS behavior.
+ * One connection per notebook — each notebook maintains its own isolated session.
  *
  * NOTE: The MSSQL extension's connectionSharing.getActiveEditorConnectionId()
  * uses vscode.window.activeTextEditor, which is undefined for notebook editors.
