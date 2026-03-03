@@ -23,7 +23,9 @@ import {
     ChevronDown16Regular,
     ChevronRight16Regular,
     Settings16Regular,
+    Table16Regular,
 } from "@fluentui/react-icons";
+import { Schema16Regular } from "../../../common/icons/fluentIcons";
 import { useCallback, useMemo, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
@@ -301,6 +303,7 @@ export const DabEntityTable = () => {
                                         }
                                     }}
                                 />
+                                <Schema16Regular />
                                 <Text className={classes.schemaLabel}>{schemaName}</Text>
                                 <Text className={classes.schemaCount}>
                                     {enabledCount}/{entities.length}
@@ -348,7 +351,10 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div className={disabledClass}>
+                        <div
+                            className={disabledClass}
+                            style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <Table16Regular />
                             <Text className={classes.entityName}>
                                 {item.entity.advancedSettings.entityName}
                             </Text>
