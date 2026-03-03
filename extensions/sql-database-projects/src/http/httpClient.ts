@@ -82,15 +82,17 @@ export class HttpClient extends HttpClientCore {
         try {
             result = await this.downloadFile(downloadUrl, fd, options);
         } catch (e) {
-            outputChannel?.appendLine(constants.downloadError);
+            const message = e instanceof Error ? e.message : String(e);
+            outputChannel?.appendLine(`${constants.downloadError}: ${message}`);
             throw e;
         } finally {
             fs.closeSync(fd);
         }
 
         if (result.status !== 200) {
-            outputChannel?.appendLine(constants.downloadError);
-            throw new Error(`HTTP ${result.status}`);
+            const message = `HTTP ${result.status}`;
+            outputChannel?.appendLine(`${constants.downloadError}: ${message}`);
+            throw new Error(message);
         }
     }
 }

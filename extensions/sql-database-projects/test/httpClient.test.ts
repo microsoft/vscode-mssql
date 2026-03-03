@@ -15,7 +15,7 @@ import * as fs from "fs";
 import { PassThrough } from "stream";
 import axios, { AxiosResponse } from "axios";
 import { HttpClient, HttpDownloadError } from "../src/http/httpClient";
-import { Logger } from "../src/http/logger";
+import { Logger } from "../src/common/logger";
 
 chai.use(sinonChai);
 

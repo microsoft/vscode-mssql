@@ -3,9 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// NOTE: This file should always be kept in sync with the equivalent in the MSSQL extension:
+// extensions/mssql/src/models/logger.ts
+
 import * as os from "os";
 import { OutputChannel } from "vscode";
-import { ILogger } from "./httpClientCore";
+
+// Inlined from extensions/mssql/src/models/interfaces.ts - keep in sync.
+export interface ILogger {
+    logDebug(message: string): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    verbose(msg: any, ...vals: any[]): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    warn(msg: any, ...vals: any[]): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error(msg: any, ...vals: any[]): void;
+    piiSanitized(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        msg: any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        objsToSanitize: { name: string; objOrArray: any | any[] }[],
+        stringsToShorten: { name: string; value: string }[],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...vals: any[]
+    ): void;
+    increaseIndent(): void;
+    decreaseIndent(): void;
+    append(message?: string): void;
+    appendLine(message?: string): void;
+}
 
 /**
  * Logger levels, ordered from most critical to most verbose.
