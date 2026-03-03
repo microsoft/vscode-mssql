@@ -334,6 +334,10 @@ export class SqlOutputContentProvider {
                 promise,
             );
         } catch (error) {
+            this.releaseExecutionSlot(uri);
+            if (promise) {
+                promise.reject(false);
+            }
             console.log(`Error running query for ${uri}: ${getErrorMessage(error)}`);
         }
     }
@@ -356,24 +360,29 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        const runner = await this.initializeRunnerAndWebviewState(
-            statusView ? statusView : this._statusView,
-            uri,
-            title,
-        );
+        try {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+            );
 
-        if (!runner) {
+            if (!runner) {
+                this.releaseExecutionSlot(uri);
+                return;
+            }
+
+            this.releaseExecutionSlotOnComplete(runner);
+
+            const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+            await runner.runStatement(selection.startLine, selection.startColumn, {
+                includeActualExecutionPlanXml: includeExecutionPlanXml,
+            });
+        } catch (_error) {
             this.releaseExecutionSlot(uri);
-            return;
+            throw _error;
         }
-
-        this.releaseExecutionSlotOnComplete(runner);
-
-        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
-
-        await runner.runStatement(selection.startLine, selection.startColumn, {
-            includeActualExecutionPlanXml: includeExecutionPlanXml,
-        });
     }
 
     private tryAcquireExecutionSlot(uri: string): boolean {

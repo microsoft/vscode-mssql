@@ -618,4 +618,68 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         onCompleteEmitter.dispose();
     });
+
+    test("runQuery should release execution slot when initialization throws", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const onCompleteEmitter = new vscode.EventEmitter<void>();
+        const mockRunner = {
+            uri: uri,
+            runQuery: sandbox.stub().resolves(),
+            onComplete: onCompleteEmitter.event,
+        } as unknown as QueryRunner;
+
+        const initializeStub = sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .onFirstCall()
+            .rejects(new Error("init failed"))
+            .onSecondCall()
+            .resolves(mockRunner);
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+
+        expect(initializeStub).to.have.been.calledTwice;
+        expect(vscodeWrapper.showInformationMessage).to.not.have.been.called;
+        expect((mockRunner.runQuery as sinon.SinonStub).calledOnce).to.be.true;
+
+        onCompleteEmitter.dispose();
+    });
+
+    test("runCurrentStatement should release execution slot when initialization throws", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const selection: ISelectionData = {
+            startLine: 1,
+            startColumn: 1,
+            endLine: 1,
+            endColumn: 1,
+        };
+        const mockRunner = {
+            uri: uri,
+            runStatement: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+
+        const initializeStub = sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .onFirstCall()
+            .rejects(new Error("init failed"))
+            .onSecondCall()
+            .resolves(mockRunner);
+
+        let thrown = false;
+        try {
+            await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
+        } catch {
+            thrown = true;
+        }
+
+        await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
+
+        expect(thrown).to.be.true;
+        expect(initializeStub).to.have.been.calledTwice;
+        expect(vscodeWrapper.showInformationMessage).to.not.have.been.called;
+        expect((mockRunner.runStatement as sinon.SinonStub).calledOnce).to.be.true;
+    });
 });
