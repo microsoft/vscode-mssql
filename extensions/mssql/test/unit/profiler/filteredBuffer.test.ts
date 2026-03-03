@@ -2089,9 +2089,9 @@ suite("FilteredBuffer Tests", () => {
             }
 
             const boolBuffer = new FilteredBuffer<BoolRow>(10);
-            boolBuffer.add({ id: uuidv4(), eventNumber: 1, name: "a", active: true });
-            boolBuffer.add({ id: uuidv4(), eventNumber: 2, name: "b", active: false });
-            boolBuffer.add({ id: uuidv4(), eventNumber: 3, name: "c", active: true });
+            boolBuffer.add({ id: uuid(), eventNumber: 1, name: "a", active: true });
+            boolBuffer.add({ id: uuid(), eventNumber: 2, name: "b", active: false });
+            boolBuffer.add({ id: uuid(), eventNumber: 3, name: "c", active: true });
 
             // String "true" with Boolean typeHint should be pre-converted
             boolBuffer.setColumnFilters([
@@ -2307,9 +2307,9 @@ suite("FilteredBuffer Tests", () => {
             }
 
             const flagBuffer = new FilteredBuffer<FlagRow>(10);
-            flagBuffer.add({ id: uuidv4(), eventNumber: 1, name: "on1", isActive: true });
-            flagBuffer.add({ id: uuidv4(), eventNumber: 2, name: "off1", isActive: false });
-            flagBuffer.add({ id: uuidv4(), eventNumber: 3, name: "on2", isActive: true });
+            flagBuffer.add({ id: uuid(), eventNumber: 1, name: "on1", isActive: true });
+            flagBuffer.add({ id: uuid(), eventNumber: 2, name: "off1", isActive: false });
+            flagBuffer.add({ id: uuid(), eventNumber: 3, name: "on2", isActive: true });
 
             // String "false" with Boolean typeHint
             flagBuffer.setColumnFilters([
