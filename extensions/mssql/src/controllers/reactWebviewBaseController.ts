@@ -51,7 +51,10 @@ import {
 import { MessageReader } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
+
+export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -596,21 +599,36 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
+        this._webviewReady.reject(new Error(LocalizedConstants.Webview.webviewDisposedBeforeReady));
     }
 
     /**
-     * Returns a promise that resolves when the webview has finished its initial load
-     * and is ready to receive JSON-RPC requests/notifications. Use this before sending
-     * any messages that require the webview script side to be active.
-     * Typical usage:
-     * ```typescript
-     * await controller.whenWebviewReady();
-     * await controller.sendRequest(...); // safe to send requests now
-     * ```
-     * @returns
+     * Waits for the webview to become ready. This is useful for ensuring that the webview is ready to receive messages before sending any.
+     * @param timeoutMs Optional timeout in milliseconds to wait for the webview to become ready. Defaults to 5 seconds.
+     * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
      */
-    public whenWebviewReady(): Promise<void> {
-        return this._webviewReady.promise;
+    public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
+        if (timeoutMs === undefined) {
+            return this._webviewReady.promise;
+        }
+
+        return Promise.race([
+            this._webviewReady.promise,
+            new Promise<never>((_, reject) => {
+                setTimeout(
+                    () =>
+                        reject(
+                            new Error(
+                                LocalizedConstants.Webview.webviewNotReadyTimeout(
+                                    this._sourceFile,
+                                    timeoutMs,
+                                ),
+                            ),
+                        ),
+                    timeoutMs,
+                );
+            }),
+        ]);
     }
 
     private readKeyBindingsConfig(): Record<string, string> {

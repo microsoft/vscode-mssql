@@ -295,44 +295,47 @@ export class SqlOutputContentProvider {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
-        await this.runWithExecutionSlot(
-            uri,
-            async () => {
-                const runner = await this.initializeRunnerAndWebviewState(
-                    statusView ? statusView : this._statusView,
-                    uri,
-                    title,
-                    executionPlanOptions,
-                );
+        if (!this.tryAcquireExecutionSlot(uri)) {
+            if (promise) {
+                promise.reject(false);
+            }
+            return;
+        }
+        try {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+                executionPlanOptions,
+            );
 
-                if (!runner) {
-                    if (promise) {
-                        promise.reject(false);
-                    }
-                    return;
-                }
-
-                const includeExecutionPlanXml =
-                    executionPlanOptions?.includeActualExecutionPlanXml ??
-                    this._actualPlanStatuses.includes(uri);
-                const includeEstimatedExecutionPlanXml =
-                    executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
-
-                await runner.runQuery(
-                    selection,
-                    {
-                        includeActualExecutionPlanXml: includeExecutionPlanXml,
-                        includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
-                    },
-                    promise,
-                );
-            },
-            () => {
+            if (!runner) {
+                this.releaseExecutionSlot(uri);
                 if (promise) {
                     promise.reject(false);
                 }
-            },
-        );
+                return;
+            }
+
+            this.releaseExecutionSlotOnComplete(runner);
+
+            const includeExecutionPlanXml =
+                executionPlanOptions?.includeActualExecutionPlanXml ??
+                this._actualPlanStatuses.includes(uri);
+            const includeEstimatedExecutionPlanXml =
+                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+
+            await runner.runQuery(
+                selection,
+                {
+                    includeActualExecutionPlanXml: includeExecutionPlanXml,
+                    includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
+                },
+                promise,
+            );
+        } catch (error) {
+            console.log(`Error running query for ${uri}: ${getErrorMessage(error)}`);
+        }
     }
 
     /**
@@ -349,40 +352,28 @@ export class SqlOutputContentProvider {
         selection: ISelectionData,
         title: string,
     ): Promise<void> {
-        await this.runWithExecutionSlot(uri, async () => {
-            const runner = await this.initializeRunnerAndWebviewState(
-                statusView ? statusView : this._statusView,
-                uri,
-                title,
-            );
-
-            if (!runner) {
-                return;
-            }
-
-            const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
-
-            await runner.runStatement(selection.startLine, selection.startColumn, {
-                includeActualExecutionPlanXml: includeExecutionPlanXml,
-            });
-        });
-    }
-
-    private async runWithExecutionSlot(
-        uri: string,
-        action: () => Promise<void>,
-        onBlocked?: () => void,
-    ): Promise<void> {
         if (!this.tryAcquireExecutionSlot(uri)) {
-            onBlocked?.();
             return;
         }
 
-        try {
-            await action();
-        } finally {
+        const runner = await this.initializeRunnerAndWebviewState(
+            statusView ? statusView : this._statusView,
+            uri,
+            title,
+        );
+
+        if (!runner) {
             this.releaseExecutionSlot(uri);
+            return;
         }
+
+        this.releaseExecutionSlotOnComplete(runner);
+
+        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+        await runner.runStatement(selection.startLine, selection.startColumn, {
+            includeActualExecutionPlanXml: includeExecutionPlanXml,
+        });
     }
 
     private tryAcquireExecutionSlot(uri: string): boolean {
@@ -397,6 +388,17 @@ export class SqlOutputContentProvider {
 
     private releaseExecutionSlot(uri: string): void {
         this._queryExecutionInFlightUris.delete(uri);
+    }
+
+    /**
+     * Subscribes to the runner's onComplete event to release the execution slot
+     * when the query finishes (whether successfully or with an error).
+     */
+    private releaseExecutionSlotOnComplete(runner: QueryRunner): void {
+        const listener = runner.onComplete(() => {
+            listener.dispose();
+            this.releaseExecutionSlot(runner.uri);
+        });
     }
 
     private async initializeRunnerAndWebviewState(

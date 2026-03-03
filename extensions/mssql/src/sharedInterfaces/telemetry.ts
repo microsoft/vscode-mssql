@@ -164,6 +164,7 @@ export enum TelemetryActions {
     StartConversation = "StartConversation",
     AzureSignIn = "AzureSignIn",
     GetQueryResultState = "GetQueryResultState",
+    CreatePanelController = "CreatePanelController",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
     SchemaDesignerTool = "SchemaDesignerTool",

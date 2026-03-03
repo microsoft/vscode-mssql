@@ -568,8 +568,11 @@ suite("SqlOutputProvider Tests using mocks", () => {
             resolveRunner = resolve;
         });
 
+        const onCompleteEmitter = new vscode.EventEmitter<void>();
         const mockRunner = {
+            uri: uri,
             runQuery: sandbox.stub().resolves(),
+            onComplete: onCompleteEmitter.event,
         } as unknown as QueryRunner;
 
         const initializeStub = sandbox
@@ -592,5 +595,27 @@ suite("SqlOutputProvider Tests using mocks", () => {
         await Promise.all([firstRunPromise, secondRunPromise]);
 
         expect((mockRunner.runQuery as sinon.SinonStub).calledOnce).to.be.true;
+
+        // Slot should still be held until query completes
+        const thirdRunPromise = contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        await thirdRunPromise;
+        expect(initializeStub).to.have.been.calledOnce; // Still only once
+        expect(vscodeWrapper.showInformationMessage).to.have.been.calledTwice;
+
+        // Simulate query completion - should release the slot
+        onCompleteEmitter.fire(undefined as any);
+
+        // Now a new query should be allowed
+        const resolvedRunner2 = {
+            uri: uri,
+            runQuery: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+        initializeStub.resolves(resolvedRunner2);
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        expect(initializeStub).to.have.been.calledTwice;
+
+        onCompleteEmitter.dispose();
     });
 });

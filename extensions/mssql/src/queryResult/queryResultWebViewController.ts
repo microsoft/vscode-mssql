@@ -278,7 +278,23 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
-        await controller.whenWebviewReady();
+        try {
+            await controller.whenWebviewReady();
+        } catch (e) {
+            // If the webview was disposed or timed out before it became ready, clean up the
+            // panel controller entry so callers are not blocked indefinitely.
+            sendErrorEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CreatePanelController,
+                e instanceof Error ? e : new Error(String(e)),
+                true, // includeErrorMessage
+            );
+            this._queryResultWebviewPanelControllerMap.delete(uri);
+            controller.panel.dispose();
+            void this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
+            );
+        }
     }
 
     public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
