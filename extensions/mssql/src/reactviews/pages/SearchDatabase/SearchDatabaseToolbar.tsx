@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { makeStyles, shorthands, SearchBox, Button } from "@fluentui/react-components";
 import { ArrowSyncRegular } from "@fluentui/react-icons";
+import debounce from "lodash/debounce";
 import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
 import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
 import { locConstants as loc } from "../../common/locConstants";
@@ -32,7 +33,6 @@ export const SearchDatabaseToolbar: React.FC = () => {
 
     // Keep search input state local to this component to avoid parent re-renders
     const [localSearchValue, setLocalSearchValue] = useState("");
-    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Store context.search in a ref so we don't need it in useEffect dependencies
     const searchFnRef = useRef(context.search);
@@ -51,22 +51,22 @@ export const SearchDatabaseToolbar: React.FC = () => {
         }
     }, [globalSearchTerm]);
 
+    const debouncedSearchRef = useRef(
+        debounce((value: string) => {
+            searchFnRef.current(value);
+        }, 300),
+    );
+
     // Debounce search - trigger backend search after 300ms of no typing
     useEffect(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-
-        debounceTimerRef.current = setTimeout(() => {
-            searchFnRef.current(localSearchValue);
-        }, 300);
-
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
+        debouncedSearchRef.current(localSearchValue);
     }, [localSearchValue]);
+
+    useEffect(() => {
+        return () => {
+            debouncedSearchRef.current.cancel();
+        };
+    }, []);
 
     const handleSearchChange = useCallback((_event: unknown, data: { value: string }) => {
         setLocalSearchValue(data.value);
