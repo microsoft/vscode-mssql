@@ -558,4 +558,39 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         expect(deleteUriStateSpy).to.have.been.calledWith(uri);
     });
+
+    test("runQuery should prevent concurrent execution dispatch for same URI", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+
+        let resolveRunner: (value: QueryRunner) => void;
+        const runnerPromise = new Promise<QueryRunner>((resolve) => {
+            resolveRunner = resolve;
+        });
+
+        const mockRunner = {
+            runQuery: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+
+        const initializeStub = sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .returns(runnerPromise);
+
+        const firstRunPromise = contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        const secondRunPromise = contentProvider.runQuery(
+            statusViewInstance,
+            uri,
+            undefined,
+            title,
+        );
+
+        expect(initializeStub).to.have.been.calledOnce;
+        expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+
+        resolveRunner!(mockRunner);
+
+        await Promise.all([firstRunPromise, secondRunPromise]);
+
+        expect((mockRunner.runQuery as sinon.SinonStub).calledOnce).to.be.true;
+    });
 });

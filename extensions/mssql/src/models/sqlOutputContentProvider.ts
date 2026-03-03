@@ -48,6 +48,7 @@ export class SqlOutputContentProvider {
     private _actualPlanStatuses: string[] = [];
     // Throttle timers for state updates per result URI (messages, results, etc.)
     private _stateUpdateTimers: Map<string, NodeJS.Timeout> = new Map();
+    private _queryExecutionInFlightUris: Set<string> = new Set();
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -294,33 +295,43 @@ export class SqlOutputContentProvider {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
-        const runner = await this.initializeRunnerAndWebviewState(
-            statusView ? statusView : this._statusView,
+        await this.runWithExecutionSlot(
             uri,
-            title,
-            executionPlanOptions,
-        );
+            async () => {
+                const runner = await this.initializeRunnerAndWebviewState(
+                    statusView ? statusView : this._statusView,
+                    uri,
+                    title,
+                    executionPlanOptions,
+                );
 
-        if (!runner) {
-            if (promise) {
-                promise.reject(false);
-            }
-            return;
-        }
+                if (!runner) {
+                    if (promise) {
+                        promise.reject(false);
+                    }
+                    return;
+                }
 
-        const includeExecutionPlanXml =
-            executionPlanOptions?.includeActualExecutionPlanXml ??
-            this._actualPlanStatuses.includes(uri);
-        const includeEstimatedExecutionPlanXml =
-            executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+                const includeExecutionPlanXml =
+                    executionPlanOptions?.includeActualExecutionPlanXml ??
+                    this._actualPlanStatuses.includes(uri);
+                const includeEstimatedExecutionPlanXml =
+                    executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
 
-        await runner.runQuery(
-            selection,
-            {
-                includeActualExecutionPlanXml: includeExecutionPlanXml,
-                includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
+                await runner.runQuery(
+                    selection,
+                    {
+                        includeActualExecutionPlanXml: includeExecutionPlanXml,
+                        includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
+                    },
+                    promise,
+                );
             },
-            promise,
+            () => {
+                if (promise) {
+                    promise.reject(false);
+                }
+            },
         );
     }
 
@@ -338,21 +349,54 @@ export class SqlOutputContentProvider {
         selection: ISelectionData,
         title: string,
     ): Promise<void> {
-        const runner = await this.initializeRunnerAndWebviewState(
-            statusView ? statusView : this._statusView,
-            uri,
-            title,
-        );
+        await this.runWithExecutionSlot(uri, async () => {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+            );
 
-        if (!runner) {
+            if (!runner) {
+                return;
+            }
+
+            const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+            await runner.runStatement(selection.startLine, selection.startColumn, {
+                includeActualExecutionPlanXml: includeExecutionPlanXml,
+            });
+        });
+    }
+
+    private async runWithExecutionSlot(
+        uri: string,
+        action: () => Promise<void>,
+        onBlocked?: () => void,
+    ): Promise<void> {
+        if (!this.tryAcquireExecutionSlot(uri)) {
+            onBlocked?.();
             return;
         }
 
-        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+        try {
+            await action();
+        } finally {
+            this.releaseExecutionSlot(uri);
+        }
+    }
 
-        await runner.runStatement(selection.startLine, selection.startColumn, {
-            includeActualExecutionPlanXml: includeExecutionPlanXml,
-        });
+    private tryAcquireExecutionSlot(uri: string): boolean {
+        if (this._queryExecutionInFlightUris.has(uri)) {
+            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
+            return false;
+        }
+
+        this._queryExecutionInFlightUris.add(uri);
+        return true;
+    }
+
+    private releaseExecutionSlot(uri: string): void {
+        this._queryExecutionInFlightUris.delete(uri);
     }
 
     private async initializeRunnerAndWebviewState(
