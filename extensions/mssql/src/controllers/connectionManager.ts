@@ -2123,6 +2123,12 @@ export default class ConnectionManager {
         return accountItems;
     }
 
+    /*
+     * Shows a quick pick to select an account. Returns the selected account, null if "Sign in to Azure" was selected,
+     * or undefined if the quick pick was dismissed.
+     * @params items The quick pick items to show
+     * @returns The selected account, null if "Sign in to Azure" was selected, or undefined if the quick pick was dismissed
+     */
     private async showAccountQuickPick(
         items: AccountQuickPickItem[],
     ): Promise<IAccount | null | undefined> {
