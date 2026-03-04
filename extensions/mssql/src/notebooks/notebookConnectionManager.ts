@@ -59,9 +59,9 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * After connect() succeeds, STS populates the credentials with the real
      * database name from the server's ConnectionCompleteParams.connectionSummary.
      */
-    private getActualDatabase(uri: string): string {
+    private getActualDatabase(uri: string): string | undefined {
         const info = this.connectionMgr.getConnectionInfoFromUri(uri);
-        return info?.database || "(unknown)";
+        return info?.database;
     }
 
     /**
