@@ -8,11 +8,11 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as vscode from "vscode";
-import * as Constants from "../../src/constants/constants";
+import * as Constants from "../../../src/constants/constants";
 
 chai.use(sinonChai);
-import { NotebookCodeLensProvider } from "../../src/notebooks/notebookCodeLensProvider";
-import { NotebookConnectionManager } from "../../src/notebooks/notebookConnectionManager";
+import { NotebookCodeLensProvider } from "../../../src/notebooks/notebookCodeLensProvider";
+import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 
 suite("NotebookCodeLensProvider", () => {
     let sandbox: sinon.SinonSandbox;

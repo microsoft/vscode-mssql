@@ -11,11 +11,13 @@ import * as vscode from "vscode";
 
 chai.use(sinonChai);
 import type { IConnectionInfo } from "vscode-mssql";
-import { SqlNotebookController } from "../../src/notebooks/sqlNotebookController";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import { ConnectionSharingService } from "../../src/connectionSharing/connectionSharingService";
-import type { NotebookQueryResult } from "../../src/notebooks/notebookQueryExecutor";
-import type { NotebookConnectionManager } from "../../src/notebooks/notebookConnectionManager";
+import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
+import ConnectionManager from "../../../src/controllers/connectionManager";
+import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
+import type { NotebookQueryResult } from "../../../src/notebooks/notebookQueryExecutor";
+import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
+import { IDbColumn } from "../../../src/models/interfaces";
+import { BatchSummary } from "../../../src/models/contracts/queryExecute";
 
 function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQueryResult {
     return {
@@ -25,23 +27,90 @@ function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQuer
     };
 }
 
+function makeColumn(columnName: string, dataTypeName: string): IDbColumn {
+    return {
+        columnName,
+        dataTypeName,
+        dataType: dataTypeName,
+        baseCatalogName: "",
+        baseColumnName: columnName,
+        baseSchemaName: "",
+        baseServerName: "",
+        baseTableName: "",
+        udtAssemblyQualifiedName: "",
+    };
+}
+
+function makeBatchSummary(overrides?: Partial<BatchSummary>): BatchSummary {
+    return {
+        id: 0,
+        hasError: false,
+        selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+        resultSetSummaries: [],
+        executionElapsed: "00:00:00.000",
+        executionEnd: "",
+        executionStart: "",
+        ...overrides,
+    };
+}
+
 suite("SqlNotebookController", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: SqlNotebookController;
-    let connectionMgr: any;
-    let mockNotebookConnMgr: any;
+    let connectionMgr: {
+        connect: sinon.SinonStub;
+        listDatabases: sinon.SinonStub;
+        createConnectionDetails: sinon.SinonStub;
+        sendRequest: sinon.SinonStub;
+        getConnectionInfoFromUri: sinon.SinonStub;
+        connectionStore: { getPickListItems: sinon.SinonStub };
+        connectionUI: { promptForConnection: sinon.SinonStub };
+    };
+    let mockNotebookConnMgr: sinon.SinonStubbedInstance<NotebookConnectionManager>;
 
     // Mock vscode objects
-    let mockController: any;
-    let mockStatusBarItem: any;
-    let mockExecution: any;
+    let mockController: {
+        id: string;
+        notebookType: string;
+        label: string;
+        supportedLanguages: string[] | undefined;
+        supportsExecutionOrder: boolean | undefined;
+        description: string | undefined;
+        executeHandler:
+            | ((
+                  cells: vscode.NotebookCell[],
+                  notebook: vscode.NotebookDocument,
+                  controller: vscode.NotebookController,
+              ) => void | Thenable<void>)
+            | undefined;
+        updateNotebookAffinity: sinon.SinonStub;
+        createNotebookCellExecution: sinon.SinonStub;
+        onDidChangeSelectedNotebooks: sinon.SinonStub;
+        dispose: sinon.SinonStub;
+    };
+    let mockStatusBarItem: {
+        text: string;
+        tooltip: string;
+        command: string;
+        name: string;
+        show: sinon.SinonStub;
+        hide: sinon.SinonStub;
+        dispose: sinon.SinonStub;
+    };
+    let mockExecution: {
+        executionOrder: number;
+        start: sinon.SinonStub;
+        end: sinon.SinonStub;
+        replaceOutput: sinon.SinonStub;
+        token: vscode.CancellationToken;
+    };
     let mockCancelToken: vscode.EventEmitter<void>;
 
     const notebookUri = vscode.Uri.parse("vscode-notebook://test-notebook");
 
     function makeNotebook(
         cells?: Array<{ text: string; languageId?: string; kind?: vscode.NotebookCellKind }>,
-        metadata?: any,
+        metadata?: Record<string, unknown>,
     ): vscode.NotebookDocument {
         const cellObjs = (cells ?? []).map((c, i) => ({
             index: i,
@@ -61,8 +130,12 @@ suite("SqlNotebookController", () => {
     }
 
     function setupVscodeMocks(sb: sinon.SinonSandbox): void {
-        sb.stub(vscode.notebooks, "createNotebookController").returns(mockController);
-        sb.stub(vscode.window, "createStatusBarItem").returns(mockStatusBarItem);
+        sb.stub(vscode.notebooks, "createNotebookController").returns(
+            mockController as unknown as vscode.NotebookController,
+        );
+        sb.stub(vscode.window, "createStatusBarItem").returns(
+            mockStatusBarItem as unknown as vscode.StatusBarItem,
+        );
         sb.stub(vscode.window, "createOutputChannel").returns({
             info: sb.stub(),
             warn: sb.stub(),
@@ -72,7 +145,7 @@ suite("SqlNotebookController", () => {
             dispose: sb.stub(),
             append: sb.stub(),
             appendLine: sb.stub(),
-        } as any);
+        } as unknown as vscode.LogOutputChannel);
         sb.stub(vscode.window, "onDidChangeActiveNotebookEditor").returns({
             dispose: sb.stub(),
         });
@@ -108,6 +181,9 @@ suite("SqlNotebookController", () => {
 
         // Mock NotebookController
         mockController = {
+            id: "ms-mssql.sql-notebook-controller",
+            notebookType: "jupyter-notebook",
+            label: "MSSQL",
             supportedLanguages: undefined,
             supportsExecutionOrder: undefined,
             description: undefined,
@@ -156,30 +232,27 @@ suite("SqlNotebookController", () => {
 
         // Mock NotebookConnectionManager — injected via the factory to bypass
         // the real STS/SqlToolsServiceClient query stack entirely.
-        mockNotebookConnMgr = {
-            ensureConnection: sandbox.stub().resolves("mssql://test-uri"),
-            executeQueryString: sandbox.stub().resolves(makeQueryResult()),
-            promptAndConnect: sandbox.stub().resolves("mssql://test-uri"),
-            connectWith: sandbox.stub().resolves("mssql://test-uri"),
-            disconnect: sandbox.stub(),
-            getConnectionLabel: sandbox.stub().returns("test-server / TestDB"),
-            getConnectionInfo: sandbox.stub().returns({
-                server: "test-server",
-                database: "TestDB",
-                authenticationType: "SqlLogin",
-            } as IConnectionInfo),
-            isConnected: sandbox.stub().returns(true),
-            listDatabases: sandbox.stub().resolves(["master", "TestDB"]),
-            changeDatabase: sandbox.stub().resolves(),
-            getCurrentDatabase: sandbox.stub().returns("TestDB"),
-            connectCellForIntellisense: sandbox.stub().resolves(),
-            dispose: sandbox.stub(),
-        } as unknown as NotebookConnectionManager;
+        mockNotebookConnMgr = sandbox.createStubInstance(NotebookConnectionManager);
+        mockNotebookConnMgr.ensureConnection.resolves("mssql://test-uri");
+        mockNotebookConnMgr.executeQueryString.resolves(makeQueryResult());
+        mockNotebookConnMgr.promptAndConnect.resolves("mssql://test-uri");
+        mockNotebookConnMgr.connectWith.resolves("mssql://test-uri");
+        mockNotebookConnMgr.getConnectionLabel.returns("test-server / TestDB");
+        mockNotebookConnMgr.getConnectionInfo.returns({
+            server: "test-server",
+            database: "TestDB",
+            authenticationType: "SqlLogin",
+        } as IConnectionInfo);
+        mockNotebookConnMgr.isConnected.returns(true);
+        mockNotebookConnMgr.listDatabases.resolves(["master", "TestDB"]);
+        mockNotebookConnMgr.changeDatabase.resolves();
+        mockNotebookConnMgr.getCurrentDatabase.returns("TestDB");
+        mockNotebookConnMgr.connectCellForIntellisense.resolves();
 
         controller = new SqlNotebookController(
             connectionMgr as unknown as ConnectionManager,
             {} as unknown as ConnectionSharingService,
-            () => mockNotebookConnMgr,
+            () => mockNotebookConnMgr as unknown as NotebookConnectionManager,
         );
     });
 
@@ -195,11 +268,11 @@ suite("SqlNotebookController", () => {
                 makeQueryResult({
                     batches: [
                         {
-                            batchSummary: {} as any,
+                            batchSummary: makeBatchSummary(),
                             messages: [],
                             resultSets: [
                                 {
-                                    columnInfo: [{ columnName: "id" } as any],
+                                    columnInfo: [makeColumn("id", "int")],
                                     rows: [[{ displayValue: "1", isNull: false }]],
                                     rowCount: 1,
                                 },
@@ -248,7 +321,7 @@ suite("SqlNotebookController", () => {
                 makeQueryResult({
                     batches: [
                         {
-                            batchSummary: {} as any,
+                            batchSummary: makeBatchSummary(),
                             messages: [],
                             resultSets: [],
                             hasError: false,
@@ -341,6 +414,9 @@ suite("SqlNotebookController", () => {
 
             // Re-stub everything
             mockController = {
+                id: "ms-mssql.sql-notebook-controller",
+                notebookType: "jupyter-notebook",
+                label: "MSSQL",
                 supportedLanguages: undefined,
                 supportsExecutionOrder: undefined,
                 description: undefined,
@@ -350,8 +426,12 @@ suite("SqlNotebookController", () => {
                 onDidChangeSelectedNotebooks: sandbox.stub().returns({ dispose: sandbox.stub() }),
                 dispose: sandbox.stub(),
             };
-            sandbox.stub(vscode.notebooks, "createNotebookController").returns(mockController);
-            sandbox.stub(vscode.window, "createStatusBarItem").returns(mockStatusBarItem);
+            sandbox
+                .stub(vscode.notebooks, "createNotebookController")
+                .returns(mockController as unknown as vscode.NotebookController);
+            sandbox
+                .stub(vscode.window, "createStatusBarItem")
+                .returns(mockStatusBarItem as unknown as vscode.StatusBarItem);
             sandbox.stub(vscode.window, "createOutputChannel").returns({
                 info: sandbox.stub(),
                 warn: sandbox.stub(),
@@ -359,7 +439,7 @@ suite("SqlNotebookController", () => {
                 debug: sandbox.stub(),
                 trace: sandbox.stub(),
                 dispose: sandbox.stub(),
-            } as any);
+            } as unknown as vscode.LogOutputChannel);
             sandbox.stub(vscode.window, "onDidChangeActiveNotebookEditor").returns({
                 dispose: sandbox.stub(),
             });
@@ -392,7 +472,9 @@ suite("SqlNotebookController", () => {
         test("creates notebook without connection", async () => {
             const mockNotebook = makeNotebook();
             sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
-            sandbox.stub(vscode.window, "showNotebookDocument").resolves({} as any);
+            sandbox
+                .stub(vscode.window, "showNotebookDocument")
+                .resolves({} as unknown as vscode.NotebookEditor);
 
             await controller.createNotebookWithConnection();
 
@@ -406,7 +488,9 @@ suite("SqlNotebookController", () => {
         test("creates notebook and connects with provided connection", async () => {
             const mockNotebook = makeNotebook();
             sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
-            sandbox.stub(vscode.window, "showNotebookDocument").resolves({} as any);
+            sandbox
+                .stub(vscode.window, "showNotebookDocument")
+                .resolves({} as unknown as vscode.NotebookEditor);
             sandbox.stub(vscode.window, "showInformationMessage").resolves();
 
             const connInfo = {

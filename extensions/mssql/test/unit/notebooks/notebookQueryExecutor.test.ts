@@ -10,12 +10,28 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 
 chai.use(sinonChai);
-import { NotebookQueryExecutor } from "../../src/notebooks/notebookQueryExecutor";
+import { NotebookQueryExecutor } from "../../../src/notebooks/notebookQueryExecutor";
 import {
     QueryNotificationHandler,
     type IQueryEventHandler,
-} from "../../src/controllers/queryNotificationHandler";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+} from "../../../src/controllers/queryNotificationHandler";
+import SqlToolsServiceClient from "../../../src/languageservice/serviceclient";
+import { IDbColumn } from "../../../src/models/interfaces";
+
+/** Creates a minimal but fully-typed IDbColumn for test data. */
+function makeColumn(columnName: string, dataTypeName: string): IDbColumn {
+    return {
+        columnName,
+        dataTypeName,
+        dataType: dataTypeName,
+        baseCatalogName: "",
+        baseColumnName: columnName,
+        baseSchemaName: "",
+        baseServerName: "",
+        baseTableName: "",
+        udtAssemblyQualifiedName: "",
+    };
+}
 
 suite("NotebookQueryExecutor", () => {
     let sandbox: sinon.SinonSandbox;
@@ -104,7 +120,7 @@ suite("NotebookQueryExecutor", () => {
                 id: 0,
                 batchId: 0,
                 rowCount: 1,
-                columnInfo: [{ columnName: "col1", dataTypeName: "int" } as any],
+                columnInfo: [makeColumn("col1", "int")],
             },
             ownerUri: "test-uri",
         });
@@ -113,7 +129,7 @@ suite("NotebookQueryExecutor", () => {
                 id: 0,
                 batchId: 0,
                 rowCount: 1,
-                columnInfo: [{ columnName: "col1", dataTypeName: "int" } as any],
+                columnInfo: [makeColumn("col1", "int")],
             },
             ownerUri: "test-uri",
         });
@@ -127,7 +143,7 @@ suite("NotebookQueryExecutor", () => {
                         id: 0,
                         batchId: 0,
                         rowCount: 1,
-                        columnInfo: [{ columnName: "col1", dataTypeName: "int" } as any],
+                        columnInfo: [makeColumn("col1", "int")],
                     },
                 ],
                 executionElapsed: "00:00:00.001",
@@ -148,7 +164,7 @@ suite("NotebookQueryExecutor", () => {
                             id: 0,
                             batchId: 0,
                             rowCount: 1,
-                            columnInfo: [{ columnName: "col1", dataTypeName: "int" } as any],
+                            columnInfo: [makeColumn("col1", "int")],
                         },
                     ],
                     executionElapsed: "00:00:00.001",
@@ -190,24 +206,26 @@ suite("NotebookQueryExecutor", () => {
     test("fetches row data for result sets", async () => {
         // First call is executeString, subsequent calls are subset + dispose
         let callCount = 0;
-        mockClient.sendRequest.callsFake((_type: any, params: any) => {
-            callCount++;
-            if (callCount === 1) {
-                // executeString
-                simulateSelectExecution();
+        mockClient.sendRequest.callsFake(
+            (_type: unknown, params: Record<string, unknown> | undefined) => {
+                callCount++;
+                if (callCount === 1) {
+                    // executeString
+                    simulateSelectExecution();
+                    return Promise.resolve({});
+                } else if (params?.rowsStartIndex !== undefined) {
+                    // subset request
+                    return Promise.resolve({
+                        resultSubset: {
+                            rows: [[{ displayValue: "42", isNull: false }]],
+                            rowCount: 1,
+                        },
+                    });
+                }
+                // dispose
                 return Promise.resolve({});
-            } else if (params?.rowsStartIndex !== undefined) {
-                // subset request
-                return Promise.resolve({
-                    resultSubset: {
-                        rows: [[{ displayValue: "42", isNull: false }]],
-                        rowCount: 1,
-                    },
-                });
-            }
-            // dispose
-            return Promise.resolve({});
-        });
+            },
+        );
 
         const result = await executor.execute("test-uri", "SELECT 1 AS col1");
 
@@ -355,20 +373,22 @@ suite("NotebookQueryExecutor", () => {
     test("sends cancel request on cancellation", async () => {
         const tokenSource = new vscode.CancellationTokenSource();
 
-        mockClient.sendRequest.callsFake((_type: any, params: any) => {
-            if (params?.query !== undefined) {
-                // executeString — delay to allow cancellation
-                tokenSource.cancel();
-                // After cancel, simulate completion
-                capturedHandler.handleQueryComplete({
-                    ownerUri: "test-uri",
-                    batchSummaries: [],
-                });
+        mockClient.sendRequest.callsFake(
+            (_type: unknown, params: Record<string, unknown> | undefined) => {
+                if (params?.query !== undefined) {
+                    // executeString — delay to allow cancellation
+                    tokenSource.cancel();
+                    // After cancel, simulate completion
+                    capturedHandler.handleQueryComplete({
+                        ownerUri: "test-uri",
+                        batchSummaries: [],
+                    });
+                    return Promise.resolve({});
+                }
+                // cancel or dispose request
                 return Promise.resolve({});
-            }
-            // cancel or dispose request
-            return Promise.resolve({});
-        });
+            },
+        );
 
         const result = await executor.execute(
             "test-uri",

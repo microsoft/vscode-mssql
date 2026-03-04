@@ -12,13 +12,13 @@ import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 
 chai.use(sinonChai);
 
-import { NotebookConnectionManager } from "../../src/notebooks/notebookConnectionManager";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import { ConnectionSharingService } from "../../src/connectionSharing/connectionSharingService";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { ConnectionUI } from "../../src/views/connectionUI";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
+import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
+import ConnectionManager from "../../../src/controllers/connectionManager";
+import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
+import { ConnectionStore } from "../../../src/models/connectionStore";
+import { ConnectionUI } from "../../../src/views/connectionUI";
+import SqlToolsServiceClient from "../../../src/languageservice/serviceclient";
+import { QueryNotificationHandler } from "../../../src/controllers/queryNotificationHandler";
 
 /**
  * Build a fully-populated IConnectionInfo with sensible defaults.
