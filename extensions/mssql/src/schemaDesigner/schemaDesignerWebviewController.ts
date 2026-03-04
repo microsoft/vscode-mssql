@@ -97,12 +97,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "designSchema_light.svg",
+                        "applicationQuickStart_light.svg",
                     ),
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "designSchema_dark.svg",
+                        "applicationQuickStart_dark.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false,

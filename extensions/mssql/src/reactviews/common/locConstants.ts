@@ -189,7 +189,7 @@ export class LocConstants {
 
     public get publishDialog() {
         return {
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             publish: l10n.t("Publish"),
             openPublishScript: l10n.t("Open Publish Script"),
             confirmationText: l10n.t("I have read the summary and understand the potential risks."),
@@ -805,7 +805,7 @@ export class LocConstants {
             },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             openCopilotForSchemaDesigner: l10n.t("Chat"),
             openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
             schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
@@ -1024,7 +1024,7 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
-            definition: l10n.t("Definition"),
+            definition: l10n.t("Show Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
