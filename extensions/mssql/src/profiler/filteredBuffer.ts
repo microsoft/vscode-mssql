@@ -815,9 +815,21 @@ export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
             return isNaN(date.getTime()) ? undefined : date;
         }
         if (typeof value === "string") {
-            // Normalize "YYYY-MM-DD HH:mm:ss" → "YYYY-MM-DDTHH:mm:ss" (local time)
-            const normalized = value.replace(" ", "T");
-            const date = new Date(normalized);
+            const trimmed = value.trim();
+            if (trimmed === "") {
+                return undefined;
+            }
+            // Only normalize strings that look like "YYYY-MM-DD HH:mm:ss[.SSS]"
+            const isoLikePattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
+            let date: Date;
+            if (isoLikePattern.test(trimmed)) {
+                // Normalize "YYYY-MM-DD HH:mm:ss" → "YYYY-MM-DDTHH:mm:ss" (local time)
+                const normalized = trimmed.replace(" ", "T");
+                date = new Date(normalized);
+            } else {
+                // Fall back to default Date parsing for other string formats
+                date = new Date(trimmed);
+            }
             return isNaN(date.getTime()) ? undefined : date;
         }
         return undefined;
