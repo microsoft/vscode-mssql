@@ -48,17 +48,17 @@ export interface NotebookQueryResult {
 
 const SUBSET_PAGE_SIZE = 500;
 
+// Why not reuse QueryRunner? QueryRunner is tightly coupled to the query
+// editor: it requires StatusView/VscodeWrapper, fires TelemetryViews.QueryEditor
+// events, manages a static runningQueries context for editor toolbar buttons,
+// adjusts batch selections by editor line offsets, and exposes results via
+// EventEmitters. Notebooks need none of that — just a promise that returns
+// batches. Wrapping QueryRunner would mean passing fake dependencies and
+// ignoring most of its behavior, for roughly the same amount of code.
+
 /**
- * Lightweight executor that implements IQueryEventHandler and wraps
- * the STS notification flow into a simple promise-based API for notebooks.
- *
- * Why not reuse QueryRunner? QueryRunner is tightly coupled to the query
- * editor: it requires StatusView/VscodeWrapper, fires TelemetryViews.QueryEditor
- * events, manages a static runningQueries context for editor toolbar buttons,
- * adjusts batch selections by editor line offsets, and exposes results via
- * EventEmitters. Notebooks need none of that — just a promise that returns
- * batches. Wrapping QueryRunner would mean passing fake dependencies and
- * ignoring most of its behavior, for roughly the same amount of code.
+ * Lightweight executor that wraps the STS notification flow into a simple
+ * promise-based API for notebooks.
  *
  * Usage:
  *   const executor = new NotebookQueryExecutor(client, notificationHandler);
