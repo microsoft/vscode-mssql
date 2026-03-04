@@ -19,31 +19,25 @@ import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 
 suite("NotebookQueryExecutor", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockClient: any;
-    let mockNotificationHandler: any;
+    let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let mockNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let executor: NotebookQueryExecutor;
     let capturedHandler: IQueryEventHandler;
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        mockClient = {
-            sendRequest: sandbox.stub().resolves({}),
-        };
+        mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+        mockClient.sendRequest.resolves({});
 
-        mockNotificationHandler = {
-            registerRunner: sandbox
-                .stub()
-                .callsFake((handler: IQueryEventHandler, _uri: string) => {
-                    capturedHandler = handler;
-                }),
-            unregisterRunner: sandbox.stub(),
-        };
-
-        executor = new NotebookQueryExecutor(
-            mockClient as unknown as SqlToolsServiceClient,
-            mockNotificationHandler as unknown as QueryNotificationHandler,
+        mockNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
+        mockNotificationHandler.registerRunner.callsFake(
+            (handler: IQueryEventHandler, _uri: string) => {
+                capturedHandler = handler;
+            },
         );
+
+        executor = new NotebookQueryExecutor(mockClient, mockNotificationHandler);
     });
 
     teardown(() => {
