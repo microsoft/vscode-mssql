@@ -39,7 +39,7 @@ export class SqlNotebookController implements vscode.Disposable {
         this.controller = vscode.notebooks.createNotebookController(
             "ms-mssql.sql-notebook-controller",
             "jupyter-notebook",
-            "SQL",
+            "MSSQL",
         );
 
         this.controller.supportedLanguages = ["sql"];
