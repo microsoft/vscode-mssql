@@ -1,5 +1,7 @@
-# Enforce LF line endings for all text files by default
+# Enforce CRLF line endings for all text files by default
 * text=auto eol=crlf
+# Keep extension package manifest LF to avoid line-ending-only churn in merges/PRs
+extensions/mssql/package.json text eol=lf
 # Ensure shell scripts use LF line endings
 .husky/** text eol=lf
 *.sh text eol=lf
