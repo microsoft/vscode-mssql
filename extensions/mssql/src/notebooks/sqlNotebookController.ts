@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import type { IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
@@ -392,7 +393,7 @@ export class SqlNotebookController implements vscode.Disposable {
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
-                            LocalizedConstants.Notebooks.errorPrefix(errorMessages.join("\n")),
+                            LocalizedConstants.Notebooks.errorPrefix(errorMessages.join(os.EOL)),
                             "text/plain",
                         ),
                     ]),
@@ -403,7 +404,7 @@ export class SqlNotebookController implements vscode.Disposable {
             if (messages.length > 0) {
                 outputs.push(
                     new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.text(messages.join("\n"), "text/plain"),
+                        vscode.NotebookCellOutputItem.text(messages.join(os.EOL), "text/plain"),
                     ]),
                 );
             }
