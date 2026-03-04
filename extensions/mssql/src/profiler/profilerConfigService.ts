@@ -281,14 +281,21 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Format a timestamp for display.
-     * Converts timestamp to ISO 8601 format: "YYYY-MM-DD HH:mm:ss.sss"
+     * Format a timestamp for display in the local machine timezone.
+     * Format: "YYYY-MM-DD HH:mm:ss.SSS" (matching SSMS display)
      * Example output: "2026-01-29 14:30:45.123"
      */
     private formatTimestamp(timestamp: number): string {
         try {
             const date = new Date(timestamp);
-            return date.toISOString().replace("T", " ").replace("Z", "");
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            const ms = String(date.getMilliseconds()).padStart(3, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}`;
         } catch {
             return String(timestamp);
         }

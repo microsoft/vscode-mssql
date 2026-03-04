@@ -305,9 +305,11 @@ suite("ProfilerConfigService Tests", () => {
             const event = createTestEvent({ timestamp: testTimestamp });
             const viewRow = configService.convertEventToViewRow(event, view);
 
-            // Should be formatted as ISO string without T and Z
+            // Should be formatted in local timezone as "YYYY-MM-DD HH:mm:ss.SSS"
+            const localHours = String(testTimestamp.getHours()).padStart(2, "0");
+            const localMinutes = String(testTimestamp.getMinutes()).padStart(2, "0");
             expect(viewRow.StartTime).to.include("2024-01-15");
-            expect(viewRow.StartTime).to.include("10:30:00");
+            expect(viewRow.StartTime).to.include(`${localHours}:${localMinutes}:00`);
         });
     });
 
@@ -778,7 +780,7 @@ suite("ProfilerConfigService Tests", () => {
             });
             const typedRow = configService.convertEventToTypedRow(event, view);
 
-            // Timestamp is formatted as "2024-06-15 10:30:00.000" by getColumnValue,
+            // Timestamp is formatted in local timezone by getColumnValue,
             // then coerced back to a Date by coerceToColumnType
             expect(typedRow.StartTime).to.be.an.instanceOf(Date);
             const startTime = typedRow.StartTime as Date;
