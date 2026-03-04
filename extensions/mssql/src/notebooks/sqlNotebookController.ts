@@ -347,7 +347,6 @@ export class SqlNotebookController implements vscode.Disposable {
             const outputs = this.buildBatchOutputs(result.batches);
 
             if (result.canceled) {
-                sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.CancelCellExecution);
                 outputs.push(
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
