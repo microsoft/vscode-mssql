@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
-import { NotebookCellSelectionModel } from "./notebookCellSelectionModel.plugin";
+import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
 import { NotebookContextMenu } from "./notebookContextMenu.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
 import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
@@ -209,7 +209,7 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
         grid.registerPlugin(headerMenu);
 
         // Register cell selection model for multi-cell selection
-        const selectionModel = new NotebookCellSelectionModel({
+        const selectionModel = new CellSelectionModel({
             hasRowSelector: true,
         });
         grid.setSelectionModel(selectionModel);

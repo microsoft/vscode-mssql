@@ -55,11 +55,11 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     constructor(
         private options: ICellSelectionModelOptions = defaults,
-        private context: QueryResultReactProvider,
-        private uri: string,
-        private resultSetSummary: ResultSetSummary,
-        public keyBindings: WebviewKeyBindings,
-        private gridId: string,
+        private context?: QueryResultReactProvider,
+        private uri?: string,
+        private resultSetSummary?: ResultSetSummary,
+        public keyBindings?: WebviewKeyBindings,
+        private gridId?: string,
         private headerFilter?: HeaderMenu<T>,
     ) {
         this.options = mixin(this.options, defaults, false);
@@ -152,7 +152,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
     public setSelectedRanges(ranges: Array<Slick.Range>): void {
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
-        void this.updateSummaryText(this.ranges);
+        if (this.context) {
+            void this.updateSummaryText(this.ranges);
+        }
     }
 
     public getSelectedRanges(): Slick.Range[] {
@@ -610,127 +612,148 @@ export class CellSelectionModel<T extends Slick.SlickData>
         let isHandled = false;
         const keyBindings = this.keyBindings;
 
-        if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridExpandSelectionLeft].keyCombination,
-            )
-        ) {
-            this.expandSelection(KeyCode.ArrowLeft);
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridExpandSelectionRight].keyCombination,
-            )
-        ) {
-            this.expandSelection(KeyCode.ArrowRight);
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridExpandSelectionUp].keyCombination,
-            )
-        ) {
-            this.expandSelection(KeyCode.ArrowUp);
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridExpandSelectionDown].keyCombination,
-            )
-        ) {
-            this.expandSelection(KeyCode.ArrowDown);
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridOpenColumnMenu].keyCombination,
-            )
-        ) {
-            await this.headerFilter?.openHeaderContextMenuForActiveColumn();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridOpenFilterMenu].keyCombination,
-            )
-        ) {
-            await this.headerFilter?.openMenuForActiveColumn();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(e, keyBindings[WebviewAction.ResultGridSelectAll].keyCombination)
-        ) {
-            await this.handleSelectAll();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridMoveToRowStart].keyCombination,
-            )
-        ) {
-            this.moveToFirstCellInRow();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridMoveToRowEnd].keyCombination,
-            )
-        ) {
-            this.moveToLastCellInRow();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridSelectColumn].keyCombination,
-            )
-        ) {
-            this.selectActiveCellColumn();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(e, keyBindings[WebviewAction.ResultGridSelectRow].keyCombination)
-        ) {
-            this.selectActiveCellRow();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(e, keyBindings[WebviewAction.ResultGridToggleSort].keyCombination)
-        ) {
-            await this.toggleSortForActiveCell();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            eventMatchesShortcut(
-                e,
-                keyBindings[WebviewAction.ResultGridChangeColumnWidth].keyCombination,
-            )
-        ) {
-            await this.resizeColumnForActiveCell();
-            isHandled = true;
-        } else if (
-            !isHandled &&
-            ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu)
-        ) {
-            return;
-        } else if (!isHandled && e.shiftKey && keyCode === KeyCode.Tab) {
-            e.stopImmediatePropagation();
-            await this.moveFocusToOutsideGrid(false);
-            isHandled = true;
-        } else if (!isHandled && !e.shiftKey && keyCode === KeyCode.Tab) {
-            e.stopImmediatePropagation();
-            await this.moveFocusToOutsideGrid(true);
-            isHandled = true;
+        if (keyBindings) {
+            // Full keybinding support (query editor with configurable shortcuts)
+            if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridExpandSelectionLeft].keyCombination,
+                )
+            ) {
+                this.expandSelection(KeyCode.ArrowLeft);
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridExpandSelectionRight].keyCombination,
+                )
+            ) {
+                this.expandSelection(KeyCode.ArrowRight);
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridExpandSelectionUp].keyCombination,
+                )
+            ) {
+                this.expandSelection(KeyCode.ArrowUp);
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridExpandSelectionDown].keyCombination,
+                )
+            ) {
+                this.expandSelection(KeyCode.ArrowDown);
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridOpenColumnMenu].keyCombination,
+                )
+            ) {
+                await this.headerFilter?.openHeaderContextMenuForActiveColumn();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridOpenFilterMenu].keyCombination,
+                )
+            ) {
+                await this.headerFilter?.openMenuForActiveColumn();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridSelectAll].keyCombination,
+                )
+            ) {
+                await this.handleSelectAll();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridMoveToRowStart].keyCombination,
+                )
+            ) {
+                this.moveToFirstCellInRow();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridMoveToRowEnd].keyCombination,
+                )
+            ) {
+                this.moveToLastCellInRow();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridSelectColumn].keyCombination,
+                )
+            ) {
+                this.selectActiveCellColumn();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridSelectRow].keyCombination,
+                )
+            ) {
+                this.selectActiveCellRow();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridToggleSort].keyCombination,
+                )
+            ) {
+                await this.toggleSortForActiveCell();
+                isHandled = true;
+            } else if (
+                eventMatchesShortcut(
+                    e,
+                    keyBindings[WebviewAction.ResultGridChangeColumnWidth].keyCombination,
+                )
+            ) {
+                await this.resizeColumnForActiveCell();
+                isHandled = true;
+            } else if ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu) {
+                return;
+            } else if (e.shiftKey && keyCode === KeyCode.Tab) {
+                e.stopImmediatePropagation();
+                await this.moveFocusToOutsideGrid(false);
+                isHandled = true;
+            } else if (!e.shiftKey && keyCode === KeyCode.Tab) {
+                e.stopImmediatePropagation();
+                await this.moveFocusToOutsideGrid(true);
+                isHandled = true;
+            }
+        } else {
+            // Basic keyboard support (e.g. notebook renderer without custom keybindings)
+            if (isMetaOrCtrlKeyPressed(e) && keyCode === KeyCode.KeyA) {
+                await this.handleSelectAll();
+                isHandled = true;
+            } else if (e.shiftKey && !isMetaOrCtrlKeyPressed(e)) {
+                switch (keyCode) {
+                    case KeyCode.ArrowLeft:
+                        this.expandSelection(KeyCode.ArrowLeft);
+                        isHandled = true;
+                        break;
+                    case KeyCode.ArrowRight:
+                        this.expandSelection(KeyCode.ArrowRight);
+                        isHandled = true;
+                        break;
+                    case KeyCode.ArrowUp:
+                        this.expandSelection(KeyCode.ArrowUp);
+                        isHandled = true;
+                        break;
+                    case KeyCode.ArrowDown:
+                        this.expandSelection(KeyCode.ArrowDown);
+                        isHandled = true;
+                        break;
+                }
+            }
         }
 
         if (isHandled) {
@@ -877,7 +900,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async resizeColumnForActiveCell(): Promise<void> {
         const active = this.grid.getActiveCell();
-        if (!active) {
+        if (!active || !this.context || !this.gridId) {
             return;
         }
 
@@ -903,6 +926,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
+        if (!this.context || !this.uri || !this.resultSetSummary) {
+            return;
+        }
         if (!ranges) {
             ranges = this.getSelectedRanges();
         }
