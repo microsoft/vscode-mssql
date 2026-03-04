@@ -129,6 +129,7 @@ export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.schemaDesigner";
+export const cmdBuildDataApi = "mssql.buildDataApi";
 export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";

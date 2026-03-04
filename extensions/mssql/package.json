@@ -584,6 +584,11 @@
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
+                    "command": "mssql.buildDataApi",
+                    "when": "config.mssql.enableDAB && view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@1"
+                },
+                {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@2"
@@ -896,6 +901,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.buildDataApi",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.searchDatabase",
                     "when": "false"
                 },
@@ -1197,6 +1206,11 @@
                     "dark": "media/designSchema_dark.svg",
                     "light": "media/designSchema_light.svg"
                 }
+            },
+            {
+                "command": "mssql.buildDataApi",
+                "title": "%mssql.buildDataApi%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.editTable",

@@ -1798,6 +1798,26 @@ export default class MainController implements vscode.Disposable {
         );
 
         this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdBuildDataApi,
+                async (node: TreeNodeInfo) => {
+                    const schemaDesigner =
+                        await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                            this._context,
+                            this._vscodeWrapper,
+                            this,
+                            this.schemaDesignerService,
+                            node.metadata.name,
+                            node,
+                        );
+
+                    schemaDesigner.showDabView();
+                    schemaDesigner.revealToForeground();
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdNewTable, async (node: TreeNodeInfo) => {
                 const reactPanel = new TableDesignerWebviewController(
                     this._context,
