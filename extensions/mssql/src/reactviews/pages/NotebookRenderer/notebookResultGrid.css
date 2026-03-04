@@ -83,53 +83,15 @@
     flex: 1 1 auto;
 }
 
-/* Sort button */
-.nb-sort-button {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    flex: 0 0 auto;
-    margin-left: 2px;
-    margin-right: 2px;
-    color: var(--vscode-foreground, inherit);
+/* Notebook-specific overrides for shared sort/filter buttons (base styles in table.css) */
+.notebook-result-grid-container .slick-header-sortbutton,
+.notebook-result-grid-container .slick-header-filterbutton {
     opacity: 0.6;
 }
 
-.nb-sort-button:hover {
+.notebook-result-grid-container .slick-header-sortbutton:hover,
+.notebook-result-grid-container .slick-header-filterbutton:hover {
     opacity: 1;
-}
-
-/* Filter button */
-.nb-filter-button {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    flex: 0 0 auto;
-    margin-left: 4px;
-    color: var(--vscode-foreground, inherit);
-    opacity: 0.6;
-}
-
-.nb-filter-button:hover {
-    opacity: 1;
-}
-
-.nb-sort-button svg,
-.nb-filter-button svg {
-    width: 14px;
-    height: 14px;
 }
 
 /* ── Filter popup ───────────────────────────────────────────────────── */

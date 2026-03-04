@@ -16,6 +16,7 @@
 //    to share chunks. These options are mutually exclusive in esbuild.
 
 const fs = require("fs");
+const path = require("path");
 const logger = require("../../../scripts/terminal-logger");
 const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
 
@@ -26,12 +27,35 @@ const isWatch = args.includes("--watch") || args.includes("-w");
 
 // Plugin to inline CSS into the JS bundle as <style> elements.
 // Notebook renderers run in an isolated iframe that only loads the JS entrypoint,
-// so extracted CSS files would never be loaded.
+// so extracted CSS files would never be loaded. Asset url() references (e.g. SVG
+// icons) are resolved to data URIs so they work inside the iframe.
 const inlineCssPlugin = {
     name: "inline-css",
     setup(build) {
         build.onLoad({ filter: /\.css$/ }, async (args) => {
-            const css = await fs.promises.readFile(args.path, "utf-8");
+            let css = await fs.promises.readFile(args.path, "utf-8");
+            const cssDir = path.dirname(args.path);
+
+            // Resolve url() references to local assets as inline data URIs.
+            const urlPattern = /url\(["']?([^"')]+\.(svg|png|gif))["']?\)/g;
+            const replacements = [];
+            let match;
+            while ((match = urlPattern.exec(css)) !== null) {
+                const assetPath = path.resolve(cssDir, match[1]);
+                try {
+                    const content = await fs.promises.readFile(assetPath);
+                    const ext = match[2];
+                    const mime = ext === "svg" ? "image/svg+xml" : `image/${ext}`;
+                    const dataUrl = `data:${mime};base64,${content.toString("base64")}`;
+                    replacements.push({ original: match[0], replacement: `url("${dataUrl}")` });
+                } catch {
+                    // Asset not found — leave the url() as-is
+                }
+            }
+            for (const { original, replacement } of replacements) {
+                css = css.split(original).join(replacement);
+            }
+
             return {
                 contents: `
                     (function() {

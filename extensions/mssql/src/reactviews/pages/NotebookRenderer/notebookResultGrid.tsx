@@ -14,6 +14,7 @@ import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/inter
 import type { IDbColumn, DbCellValue } from "../../../sharedInterfaces/queryResult";
 import "./notebookResultGrid.css";
 import "../../media/slickgrid.css";
+import "../../media/table.css";
 
 export interface NotebookResultGridProps {
     columnInfo: IDbColumn[];
