@@ -213,12 +213,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionLabel = formatConnectionLabel(newInfo.server, actualDb);
     }
 
-    /**
-     * Get the current database name from the connection label.
-     */
     getCurrentDatabase(): string {
-        const parts = this.connectionLabel.split(" / ");
-        return parts.length > 1 ? parts[1] : "";
+        return this.connectionInfo?.database || "";
     }
 
     async executeQueryString(
