@@ -641,8 +641,8 @@ export let newDeployment = l10n.t("New Deployment");
 export class Notebooks {
     // Status bar
     public static statusBarNotConnected = l10n.t("MSSQL: Not connected");
-    public static statusBarClickToChangeDatabase = l10n.t("MSSQL: click to change database");
-    public static statusBarClickToConnect = l10n.t("MSSQL: click to connect");
+    public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+    public static statusBarClickToConnect = l10n.t("MSSQL: Click to connect");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
