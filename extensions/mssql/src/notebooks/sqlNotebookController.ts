@@ -34,7 +34,7 @@ export class SqlNotebookController implements vscode.Disposable {
             log: vscode.LogOutputChannel,
         ) => NotebookConnectionManager,
     ) {
-        this.log = vscode.window.createOutputChannel("MSSQL Notebooks", { log: true });
+        this.log = vscode.window.createOutputChannel("MSSQL - Notebooks", { log: true });
 
         this.controller = vscode.notebooks.createNotebookController(
             "ms-mssql.sql-notebook-controller",
