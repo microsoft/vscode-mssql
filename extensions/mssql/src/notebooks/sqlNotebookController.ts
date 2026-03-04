@@ -17,6 +17,8 @@ import * as formatter from "./resultFormatter";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 
+const MIME_TEXT_PLAIN = "text/plain";
+
 export class SqlNotebookController implements vscode.Disposable {
     private readonly controller: vscode.NotebookController;
     readonly connections = new Map<string, NotebookConnectionManager>();
@@ -328,7 +330,7 @@ export class SqlNotebookController implements vscode.Disposable {
                         LocalizedConstants.Notebooks.errorPrefix(
                             err.message || LocalizedConstants.Notebooks.connectionFailed,
                         ),
-                        "text/plain",
+                        MIME_TEXT_PLAIN,
                     ),
                 ]),
             ]);
@@ -352,7 +354,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
                             LocalizedConstants.Notebooks.executionCanceled,
-                            "text/plain",
+                            MIME_TEXT_PLAIN,
                         ),
                     ]),
                 );
@@ -371,7 +373,7 @@ export class SqlNotebookController implements vscode.Disposable {
                         LocalizedConstants.Notebooks.errorPrefix(
                             err.message || LocalizedConstants.Notebooks.queryExecutionFailed,
                         ),
-                        "text/plain",
+                        MIME_TEXT_PLAIN,
                     ),
                 ]),
             ]);
@@ -394,7 +396,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
                             LocalizedConstants.Notebooks.errorPrefix(errorMessages.join(os.EOL)),
-                            "text/plain",
+                            MIME_TEXT_PLAIN,
                         ),
                     ]),
                 );
@@ -404,7 +406,7 @@ export class SqlNotebookController implements vscode.Disposable {
             if (messages.length > 0) {
                 outputs.push(
                     new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.text(messages.join(os.EOL), "text/plain"),
+                        vscode.NotebookCellOutputItem.text(messages.join(os.EOL), MIME_TEXT_PLAIN),
                     ]),
                 );
             }
@@ -425,7 +427,7 @@ export class SqlNotebookController implements vscode.Disposable {
                             },
                             "application/vnd.mssql.query-result",
                         ),
-                        vscode.NotebookCellOutputItem.text(plain, "text/plain"),
+                        vscode.NotebookCellOutputItem.text(plain, MIME_TEXT_PLAIN),
                     ]),
                 );
             }
@@ -436,7 +438,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     new vscode.NotebookCellOutput([
                         vscode.NotebookCellOutputItem.text(
                             LocalizedConstants.Notebooks.commandCompletedSuccessfully,
-                            "text/plain",
+                            MIME_TEXT_PLAIN,
                         ),
                     ]),
                 );
@@ -467,7 +469,7 @@ export class SqlNotebookController implements vscode.Disposable {
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(
                                 LocalizedConstants.Notebooks.disconnected,
-                                "text/plain",
+                                MIME_TEXT_PLAIN,
                             ),
                         ]),
                     ]);
@@ -479,7 +481,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     const label = connMgr.getConnectionLabel();
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
-                            vscode.NotebookCellOutputItem.text(label, "text/plain"),
+                            vscode.NotebookCellOutputItem.text(label, MIME_TEXT_PLAIN),
                         ]),
                     ]);
                     execution.end(true, Date.now());
@@ -496,7 +498,7 @@ export class SqlNotebookController implements vscode.Disposable {
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(
                                 LocalizedConstants.Notebooks.connectedTo(info),
-                                "text/plain",
+                                MIME_TEXT_PLAIN,
                             ),
                         ]),
                     ]);
@@ -531,7 +533,7 @@ export class SqlNotebookController implements vscode.Disposable {
                                 new vscode.NotebookCellOutput([
                                     vscode.NotebookCellOutputItem.text(
                                         LocalizedConstants.Notebooks.noDatabaseSelected,
-                                        "text/plain",
+                                        MIME_TEXT_PLAIN,
                                     ),
                                 ]),
                             ]);
@@ -549,7 +551,7 @@ export class SqlNotebookController implements vscode.Disposable {
                                 LocalizedConstants.Notebooks.switchedTo(
                                     connMgr.getConnectionLabel(),
                                 ),
-                                "text/plain",
+                                MIME_TEXT_PLAIN,
                             ),
                         ]),
                     ]);
