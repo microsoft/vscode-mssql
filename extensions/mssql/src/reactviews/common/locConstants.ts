@@ -265,6 +265,8 @@ export class LocConstants {
                     args: [filtered, total],
                     comment: ["{0} is the filtered count, {1} is the total count"],
                 }),
+            ruleEnabled: l10n.t("Rule enabled"),
+            ruleDisabled: l10n.t("Rule disabled"),
         };
     }
 
