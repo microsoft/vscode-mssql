@@ -47,7 +47,10 @@ export class SqlNotebookController implements vscode.Disposable {
         this.controller.description = LocalizedConstants.Notebooks.controllerDescription;
         this.controller.executeHandler = this.executeCells.bind(this);
 
-        // Status bar item shows the MSSQL Notebooks connection (authoritative source)
+        // Dedicated status bar item for notebooks — we intentionally do not reuse
+        // StatusView because it is keyed by text-editor URI and tightly coupled to
+        // the global ConnectionManager, whereas notebooks have per-notebook connections
+        // managed by NotebookConnectionManager with notebook-specific commands.
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
         this.statusBarItem.name = "MSSQL Notebook Connection";
         this.updateStatusBar(undefined);
