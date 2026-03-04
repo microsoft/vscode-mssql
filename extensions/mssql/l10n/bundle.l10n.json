@@ -2450,7 +2450,7 @@
     "Failed to get connection string: {0}": "Failed to get connection string: {0}",
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
-    "Code Analysis (Preview)": "Code Analysis (Preview)",
+    "Code Analysis": "Code Analysis",
     "Failed to load code analysis rules": "Failed to load code analysis rules",
     "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
     "Failed to save code analysis rules": "Failed to save code analysis rules",
