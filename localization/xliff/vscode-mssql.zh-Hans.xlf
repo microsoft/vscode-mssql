@@ -2272,10 +2272,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">定义谁可以访问此终结点</target>
       </trans-unit>
-      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
-        <source xml:lang="en">Definition</source>
-        <target state="translated">定义</target>
-      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -6047,10 +6043,6 @@ Error:
         <source xml:lang="en">Publish</source>
         <target state="translated">发布</target>
       </trans-unit>
-      <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
-        <source xml:lang="en">Publish Changes</source>
-        <target state="translated">发布更改</target>
-      </trans-unit>
       <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
         <source xml:lang="en">Publish DACPAC</source>
         <target state="translated">发布 DACPAC</target>
@@ -7278,6 +7270,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
         <source xml:lang="en">Show Confirm Password</source>
         <target state="translated">显示确认密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
+        <source xml:lang="en">Show Definition</source>
+        <target state="new">Show Definition</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
