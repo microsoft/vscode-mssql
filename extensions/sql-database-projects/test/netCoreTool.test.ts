@@ -13,6 +13,7 @@ import {
     NetCoreTool,
     DBProjectConfigurationKey,
     DotnetInstallLocationKey,
+    getMicrosoftBuildSqlVersion,
 } from "../src/tools/netcoreTool";
 import { getQuotedPath } from "../src/common/utils";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
@@ -101,5 +102,45 @@ suite("NetCoreTool: Net core tests", function (): void {
                 console.warn(`Failed to clean up ${dummyFile}`);
             }
         }
+    });
+
+    suite("getMicrosoftBuildSqlVersion tests", function (): void {
+        const testKey = "microsoftBuildSqlVersion";
+
+        teardown(async function (): Promise<void> {
+            // Clean up configuration after each test
+            await vscode.workspace
+                .getConfiguration(DBProjectConfigurationKey)
+                .update(testKey, undefined, vscode.ConfigurationTarget.Global);
+        });
+
+        test("Should return valid configured value when set", async function (): Promise<void> {
+            // Arrange: Set a valid semver version
+            await vscode.workspace
+                .getConfiguration(DBProjectConfigurationKey)
+                .update(testKey, "3.0.0", vscode.ConfigurationTarget.Global);
+
+            // Act
+            const result = getMicrosoftBuildSqlVersion(testKey);
+
+            // Assert
+            expect(result).to.equal("3.0.0");
+        });
+
+        test("Should fall back to package.json default when configured value is invalid or empty", async function (): Promise<void> {
+            // Test with invalid semver
+            await vscode.workspace
+                .getConfiguration(DBProjectConfigurationKey)
+                .update(testKey, "not-a-valid-version", vscode.ConfigurationTarget.Global);
+            let result = getMicrosoftBuildSqlVersion(testKey);
+            expect(result).to.equal("2.1.0");
+
+            // Test with empty config
+            await vscode.workspace
+                .getConfiguration(DBProjectConfigurationKey)
+                .update(testKey, undefined, vscode.ConfigurationTarget.Global);
+            result = getMicrosoftBuildSqlVersion(testKey);
+            expect(result).to.equal("2.1.0");
+        });
     });
 });
