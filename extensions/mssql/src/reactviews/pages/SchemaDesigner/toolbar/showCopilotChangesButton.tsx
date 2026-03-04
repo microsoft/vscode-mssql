@@ -11,6 +11,7 @@ import {
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
 import { useCopilotChangesContext } from "../definition/copilot/copilotChangesContext";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 const useStyles = makeStyles({
     container: {
@@ -33,6 +34,7 @@ export function ShowCopilotChangesButton() {
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
     const { trackedChanges } = useCopilotChangesContext();
     const classes = useStyles();
+    const isCompact = useIsToolbarCompact();
     const changeCount = trackedChanges.length;
 
     return (
@@ -47,7 +49,7 @@ export function ShowCopilotChangesButton() {
                     onClick={() => {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.CopilotChanges);
                     }}>
-                    {locConstants.schemaDesigner.showCopilotChangesButtonLabel}
+                    {!isCompact && locConstants.schemaDesigner.showCopilotChangesButtonLabel}
                 </Button>
                 {changeCount > 0 && (
                     <Badge size="small" className={classes.badge}>

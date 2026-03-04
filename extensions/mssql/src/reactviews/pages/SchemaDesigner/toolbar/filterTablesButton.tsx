@@ -24,9 +24,10 @@ import { Edge, Node, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { DismissRegular } from "@fluentui/react-icons";
 import {
-    FilterFunnelIcon2048Filled,
-    FilterFunnelIcon2048Regular,
-} from "../../../common/icons/fluentIcons";
+    FilterFunnelIcon16Filled,
+    FilterFunnelIcon16Regular,
+} from "../../../common/icons/filterFunnel";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 const useStyles = makeStyles({
     container: {
@@ -49,6 +50,7 @@ export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
     const reactFlow = useReactFlow();
+    const isCompact = useIsToolbarCompact();
     if (!context) {
         return undefined;
     }
@@ -274,20 +276,16 @@ export function FilterTablesButton() {
                             size="small"
                             icon={
                                 selectedTables.length > 0 ? (
-                                    <FilterFunnelIcon2048Filled
-                                        style={{ width: "16px", height: "16px" }}
-                                    />
+                                    <FilterFunnelIcon16Filled />
                                 ) : (
-                                    <FilterFunnelIcon2048Regular
-                                        style={{ width: "16px", height: "16px" }}
-                                    />
+                                    <FilterFunnelIcon16Regular />
                                 )
                             }
                             onClick={() => {
                                 loadTables();
                                 setIsFilterMenuOpen(!isFilterMenuOpen);
                             }}>
-                            {locConstants.schemaDesigner.filter(0)}
+                            {!isCompact && locConstants.schemaDesigner.filter(0)}
                         </Button>
                         {selectedTables.length > 0 && (
                             <Badge size="small" className={classes.badge}>
