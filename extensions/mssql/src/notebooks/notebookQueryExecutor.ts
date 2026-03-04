@@ -26,6 +26,7 @@ import {
 import { QueryDisposeRequest, QueryDisposeParams } from "../models/contracts/queryDispose";
 import { QueryCancelRequest, QueryCancelParams } from "../models/contracts/queryCancel";
 import { IDbColumn, IResultMessage } from "../models/interfaces";
+import { Deferred } from "../protocol";
 
 export interface NotebookResultSetData {
     columnInfo: IDbColumn[];
@@ -78,12 +79,11 @@ export class NotebookQueryExecutor {
         let canceled = false;
 
         // Promise that resolves when query/complete arrives
-        const { promise: completionPromise, resolve: resolveCompletion } =
-            createDeferred<QueryExecuteCompleteNotificationResult>();
+        const completion = new Deferred<QueryExecuteCompleteNotificationResult>();
 
         const handler: IQueryEventHandler = {
             handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-                resolveCompletion(result);
+                completion.resolve(result);
             },
             handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
                 const batch = result.batchSummary;
@@ -158,7 +158,7 @@ export class NotebookQueryExecutor {
             await this.client.sendRequest(QueryExecuteStringRequest.type, params);
 
             // Wait for query/complete notification
-            await completionPromise;
+            await completion.promise;
 
             // Fetch row data for each result set
             if (!canceled) {
@@ -232,18 +232,4 @@ export class NotebookQueryExecutor {
 
         return allRows;
     }
-}
-
-function createDeferred<T>(): {
-    promise: Promise<T>;
-    resolve: (value: T) => void;
-    reject: (reason?: any) => void;
-} {
-    let resolve!: (value: T) => void;
-    let reject!: (reason?: any) => void;
-    const promise = new Promise<T>((res, rej) => {
-        resolve = res;
-        reject = rej;
-    });
-    return { promise, resolve, reject };
 }
