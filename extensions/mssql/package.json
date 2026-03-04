@@ -1508,7 +1508,7 @@
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
                     "scope": "application"
                 },
-                "mssql.defaulQueryResultsViewMode": {
+                "mssql.defaultQueryResultsViewMode": {
                     "type": "string",
                     "default": "Grid",
                     "enum": [
