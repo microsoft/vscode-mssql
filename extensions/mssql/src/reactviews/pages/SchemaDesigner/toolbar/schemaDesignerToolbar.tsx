@@ -56,17 +56,19 @@ export function SchemaDesignerToolbar({
             <Toolbar size="small" className={classes.toolbar}>
                 <PublishChangesDialogButton />
                 <ViewDefinitionsButton />
+                {context.isDabEnabled() && <ShowChangesButton />}
                 <ExportDiagramButton />
+                <ToolbarDivider />
+                <UndoRedoButtons />
                 <ToolbarDivider />
                 <AddTableButton />
                 <DeleteNodesButton />
-                <ToolbarDivider />
-                <UndoRedoButtons />
                 <ToolbarDivider />
                 <AutoArrangeButton />
                 <FilterTablesButton />
                 {context.isDabEnabled() && (
                     <>
+                        <ToolbarDivider />
                         <SchemaDesignerWebviewCopilotChatEntry
                             scenario="schemaDesigner"
                             entryPoint="schemaDesignerToolbar"
@@ -78,8 +80,6 @@ export function SchemaDesignerToolbar({
                             }
                             showDiscovery={showDiscovery}
                         />
-                        <ToolbarDivider />
-                        <ShowChangesButton />
                         <ShowCopilotChangesButton />
                         <ToolbarDivider />
                         <DesignApiButton onNavigateToDab={onNavigateToDab} />

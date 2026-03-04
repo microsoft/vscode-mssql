@@ -12,11 +12,11 @@ import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useState } from "react";
 import { makeStyles, Toolbar, ToolbarButton, tokens } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { TableSettingsRegular } from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
-import { locConstants } from "../../common/locConstants";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { DabProvider } from "./dab/dabContext";
+import { Schema16Regular } from "../../common/icons/fluentIcons";
 
 const useStyles = makeStyles({
     root: {
@@ -46,8 +46,8 @@ const MainLayout = () => {
         getActiveViewFromState(stateActiveView),
     );
     const classes = useStyles();
-    const schemaDesignerLabel = locConstants.schemaDesigner.schemaDesignerNavLabel;
-    const dabLabel = locConstants.schemaDesigner.dabNavLabel;
+    const schemaDesignerTooltip = "Visualize and Design Schema";
+    const dabTooltip = "Build Data API";
 
     useEffect(() => {
         setActiveView(getActiveViewFromState(stateActiveView));
@@ -65,14 +65,14 @@ const MainLayout = () => {
                                     ? "primary"
                                     : "subtle"
                             }
-                            icon={<FluentIcons.TableRegular />}
+                            icon={<Schema16Regular />}
                             onClick={() =>
                                 setActiveView(
                                     SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
                                 )
                             }
-                            title={schemaDesignerLabel}
-                            aria-label={schemaDesignerLabel}
+                            title={schemaDesignerTooltip}
+                            aria-label={schemaDesignerTooltip}
                         />
                         <ToolbarButton
                             appearance={
@@ -80,12 +80,12 @@ const MainLayout = () => {
                                     ? "primary"
                                     : "subtle"
                             }
-                            icon={<FluentIcons.DatabaseSearch24Regular />}
+                            icon={<TableSettingsRegular />}
                             onClick={() =>
                                 setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
                             }
-                            title={dabLabel}
-                            aria-label={dabLabel}
+                            title={dabTooltip}
+                            aria-label={dabTooltip}
                         />
                     </Toolbar>
                 </div>

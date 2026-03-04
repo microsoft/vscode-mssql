@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Badge,
     Menu,
     MenuTrigger,
     MenuPopover,
@@ -14,16 +15,39 @@ import {
     List,
     Switch,
     Tooltip,
+    makeStyles,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { DismissRegular } from "@fluentui/react-icons";
+import {
+    FilterFunnelIcon2048Filled,
+    FilterFunnelIcon2048Regular,
+} from "../../../common/icons/fluentIcons";
+
+const useStyles = makeStyles({
+    container: {
+        position: "relative",
+        display: "inline-flex",
+    },
+    badge: {
+        position: "absolute",
+        right: "-5px",
+        top: "0px",
+        padding: "0 3px",
+        borderRadius: "7px",
+        border: "1px solid var(--vscode-panel-background)",
+        boxSizing: "border-box",
+        pointerEvents: "none",
+    },
+});
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
+    const classes = useStyles();
     const reactFlow = useReactFlow();
     if (!context) {
         return undefined;
@@ -244,16 +268,33 @@ export function FilterTablesButton() {
                 <Tooltip
                     content={locConstants.schemaDesigner.filter(selectedTables.length)}
                     relationship="label">
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<FluentIcons.Filter16Regular />}
-                        onClick={() => {
-                            loadTables();
-                            setIsFilterMenuOpen(!isFilterMenuOpen);
-                        }}>
-                        {locConstants.schemaDesigner.filter(selectedTables.length)}
-                    </Button>
+                    <span className={classes.container}>
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            icon={
+                                selectedTables.length > 0 ? (
+                                    <FilterFunnelIcon2048Filled
+                                        style={{ width: "16px", height: "16px" }}
+                                    />
+                                ) : (
+                                    <FilterFunnelIcon2048Regular
+                                        style={{ width: "16px", height: "16px" }}
+                                    />
+                                )
+                            }
+                            onClick={() => {
+                                loadTables();
+                                setIsFilterMenuOpen(!isFilterMenuOpen);
+                            }}>
+                            {locConstants.schemaDesigner.filter(0)}
+                        </Button>
+                        {selectedTables.length > 0 && (
+                            <Badge size="small" className={classes.badge}>
+                                {selectedTables.length}
+                            </Badge>
+                        )}
+                    </span>
                 </Tooltip>
             </MenuTrigger>
 
@@ -318,7 +359,7 @@ export function FilterTablesButton() {
                             }
                         }}
                         appearance="subtle"
-                        icon={<FluentIcons.DismissRegular />}>
+                        icon={<DismissRegular />}>
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
                 </div>

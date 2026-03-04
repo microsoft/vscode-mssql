@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, Button, Tooltip, makeStyles } from "@fluentui/react-components";
-import { Sparkle20Regular } from "@fluentui/react-icons";
+import { Sparkle16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import {
     SchemaDesignerDefinitionPanelTab,
@@ -43,7 +43,7 @@ export function ShowCopilotChangesButton() {
                 <Button
                     appearance="subtle"
                     size="small"
-                    icon={<Sparkle20Regular />}
+                    icon={<Sparkle16Regular />}
                     onClick={() => {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.CopilotChanges);
                     }}>

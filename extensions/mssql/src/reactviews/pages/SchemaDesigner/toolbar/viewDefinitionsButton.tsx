@@ -19,7 +19,7 @@ export function ViewDefinitionsButton() {
             <Button
                 appearance="subtle"
                 size="small"
-                icon={<FluentIcons.Code16Filled />}
+                icon={<FluentIcons.Code16Regular />}
                 onClick={() => {
                     toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Script);
                 }}>

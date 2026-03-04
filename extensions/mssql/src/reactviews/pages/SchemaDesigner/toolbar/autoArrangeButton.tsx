@@ -14,7 +14,7 @@ import {
     DialogTrigger,
     Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { Grid16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -43,10 +43,7 @@ export function AutoArrangeButton() {
         <Dialog>
             <DialogTrigger>
                 <Tooltip content={locConstants.schemaDesigner.autoArrange} relationship="label">
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<FluentIcons.Flowchart16Regular />}>
+                    <Button appearance="subtle" size="small" icon={<Grid16Regular />}>
                         {locConstants.schemaDesigner.autoArrange}
                     </Button>
                 </Tooltip>

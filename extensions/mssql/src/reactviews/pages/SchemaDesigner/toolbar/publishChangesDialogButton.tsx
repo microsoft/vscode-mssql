@@ -90,9 +90,11 @@ export function PublishChangesDialogButton() {
         return (
             <Tooltip content={locConstants.schemaDesigner.publishChanges} relationship="label">
                 <Button
-                    appearance="primary"
+                    appearance="subtle"
                     size="small"
-                    icon={<FluentIcons.Save16Regular />}
+                    aria-label={locConstants.schemaDesigner.publishChanges}
+                    title={locConstants.schemaDesigner.publishChanges}
+                    icon={<FluentIcons.DatabaseArrowUp16Regular />}
                     disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
                         setState({

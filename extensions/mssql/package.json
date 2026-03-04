@@ -1194,8 +1194,8 @@
                 "title": "%mssql.schemaDesigner%",
                 "category": "MS SQL",
                 "icon": {
-                    "dark": "media/designSchema_dark.svg",
-                    "light": "media/designSchema_light.svg"
+                    "dark": "media/applicationQuickStart_dark.svg",
+                    "light": "media/applicationQuickStart_light.svg"
                 }
             },
             {
