@@ -40,6 +40,11 @@ export const enum netCoreInstallState {
 
 const dotnet = os.platform() === "win32" ? "dotnet.exe" : "dotnet";
 
+// Default version for Microsoft.Build.Sql SDK
+// IMPORTANT: Keep this in sync with the "default" value in package.json under
+// contributes.configuration.properties["sqlDatabaseProjects.microsoftBuildSqlVersion"].default
+const microsoftBuildSqlDefaultVersion = "2.1.0";
+
 /**
  * Returns the configured Microsoft.Build.Sql version, falling back to the extension's
  * registered default (from package.json) when the setting is blank or not a valid semver.
@@ -51,8 +56,10 @@ export function getMicrosoftBuildSqlVersion(microsoftBuildSqlVersionKey: string)
         return configured;
     }
     // Fall back to the default registered in package.json
-    const defaultValue = config.inspect<string>(microsoftBuildSqlVersionKey)?.defaultValue ?? "";
-    return defaultValue;
+    const defaultValue = config.inspect<string>(microsoftBuildSqlVersionKey)?.defaultValue;
+    // If config.inspect() doesn't return a default (can happen in packaged VSIX),
+    // use the hardcoded constant which must be kept in sync with package.json
+    return defaultValue || microsoftBuildSqlDefaultVersion;
 }
 
 export class NetCoreTool extends ShellExecutionHelper {
