@@ -1524,7 +1524,7 @@
                 },
                 "mssql.transferActiveEditorConnections": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "%mssql.transferActiveEditorConnections.description%",
                     "scope": "application"
                 },
