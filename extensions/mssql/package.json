@@ -1522,6 +1522,12 @@
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
                     "scope": "application"
                 },
+                "mssql.transferActiveEditorConnections": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.transferActiveEditorConnections.description%",
+                    "scope": "application"
+                },
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",

@@ -331,12 +331,18 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
+        // Check if the transfer active editor connections setting is enabled
+        const transferConnectionToOpenedDoc = vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configTransferActiveEditorConnections);
+
         /**
          * If the document is connected now, because the user didn't waitForOngoingCreates
          * or other checks to complete we don't want to overwrite that connection by
          * auto-connecting. So we skip it.
          */
         if (
+            transferConnectionToOpenedDoc &&
             !this._ownedDocuments.has(doc) &&
             !this._connectionMgr.isConnected(docUri) &&
             !this._connectionMgr.isConnecting(docUri)
@@ -538,7 +544,12 @@ export default class SqlDocumentService implements vscode.Disposable {
                  * show a new query editor without a connection. The user can then manually
                  * connect if they want to.
                  */
-                return this._lastActiveConnectionInfo
+
+                const transferConnectionToOpenedDoc = vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>(Constants.configTransferActiveEditorConnections);
+
+                return this._lastActiveConnectionInfo && transferConnectionToOpenedDoc
                     ? {
                           shouldConnect: true,
                           connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
