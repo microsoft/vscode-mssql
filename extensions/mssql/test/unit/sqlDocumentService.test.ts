@@ -25,22 +25,18 @@ chai.use(sinonChai);
 suite("SqlDocumentService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let document: vscode.TextDocument;
-    let newDocument: vscode.TextDocument;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let sqlDocumentService: SqlDocumentService;
     let docUri: string;
-    let newDocUri: string;
     let docUriCallback: string;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
         // Setup a standard document and a new document
         docUri = "docURI.sql";
-        newDocUri = "newDocURI.sql";
 
         document = mockTextDocument(docUri);
-        newDocument = mockTextDocument(newDocUri);
 
         // Resetting call back variables
         docUriCallback = "";
@@ -81,11 +77,12 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService["_connectionManager"] = connectionManager;
 
         // Stub SqlOutputContentProvider methods used during tests to avoid side effects
-        mainController["_outputContentProvider"] = {
+        const mockOutputContentProvider = {
             onDidCloseTextDocument: sandbox.stub().resolves(),
             updateQueryRunnerUri: sandbox.stub().resolves(),
-            onUntitledFileSaved: sandbox.stub(),
         } as any;
+        mainController["_outputContentProvider"] = mockOutputContentProvider;
+        sqlDocumentService["_outputContentProvider"] = mockOutputContentProvider;
 
         // Mock SqlToolsServerClient instance
         const mockDiagnosticCollection = {
@@ -166,6 +163,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.handleNewQueryCommand(undefined, "SELECT 1");
 
         expect(newQueryStub).to.have.been.calledOnce;
+        expect(connectionManager.connectionStore.removeRecentlyUsed).to.not.have.been.called;
         newQueryStub.restore();
     });
 
@@ -269,103 +267,206 @@ suite("SqlDocumentService Tests", () => {
 
         await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
         expect(newQueryStub).to.have.been.calledOnce;
+        expect(connectionManager.connectionStore.removeRecentlyUsed).to.not.have.been.called;
         newQueryStub.restore();
     });
 
     // Standard closed document event test
-    test("onDidCloseTextDocument should propagate onDidCloseTextDocument to connectionManager", async () => {
-        // Reset internal timers to ensure clean test state - this ensures we hit the normal close path
-        sqlDocumentService["_lastSavedUri"] = undefined;
-        sqlDocumentService["_lastSavedTimer"] = undefined;
-        sqlDocumentService["_lastOpenedTimer"] = undefined;
-        sqlDocumentService["_lastOpenedUri"] = undefined;
-
+    test("onDidCloseTextDocument should propagate close to output provider and connectionManager", async () => {
         await sqlDocumentService.onDidCloseTextDocument(document);
 
         expect(connectionManager.onDidCloseTextDocument).to.have.been.calledOnceWithExactly(
             document,
         );
+        expect(
+            mainController["_outputContentProvider"].onDidCloseTextDocument,
+        ).to.have.been.calledOnceWithExactly(document);
         expect(docUriCallback).to.equal(document.uri.toString());
         docUriCallback = "";
     });
 
-    // Saved Untitled file event test
-    test("onDidCloseTextDocument should call untitledDoc function when an untitled file is saved", async () => {
+    test("onDidCloseTextDocument should not transfer URI for untitled documents", async () => {
         // Scheme of older doc must be untitled
         let document2 = {
             uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
             languageId: "sql",
         } as vscode.TextDocument;
 
-        // Mock the updateUri method which is called for untitled saves
         const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri");
         mockUpdateUri.resolves();
 
-        // A save untitled doc constitutes a saveDoc event directly followed by a closeDoc event
-        sqlDocumentService.onDidSaveTextDocument(newDocument);
         await sqlDocumentService.onDidCloseTextDocument(document2);
 
-        // Check that updateUri was called (which is the path for untitled saves)
-        expect(mockUpdateUri).to.have.been.calledOnce;
+        expect(mockUpdateUri).to.not.have.been.called;
+        expect(connectionManager.onDidCloseTextDocument).to.have.been.calledOnceWithExactly(
+            document2,
+        );
 
         mockUpdateUri.restore();
     });
 
-    // Renamed file event test
-    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", async () => {
-        // Mock the updateUri method which is called for renames
-        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri");
-        mockUpdateUri.resolves();
+    test("onDidCloseTextDocument should skip processing when document is being renamed or saved", async () => {
+        const doc = mockTextDocument("file:///old.sql");
+        const docKey = doc.uri.toString();
 
-        // Set up a timer that looks like it was just started (simulating a rename scenario)
-        const mockTimer = {
-            getDuration: sandbox.stub().returns(Constants.renamedOpenTimeThreshold - 5), // Less than threshold
-            end: sandbox.stub(),
-        };
+        // Simulate a rename/save in progress by adding the URI to the set
+        sqlDocumentService["_uriBeingRenamedOrSaved"].add(docKey);
 
-        // Simulate the rename sequence: open document, then close old document quickly
-        sqlDocumentService.onDidSaveTextDocument(newDocument); // This sets _lastSavedTimer
-        sqlDocumentService["_lastSavedTimer"] = mockTimer as any;
-        sqlDocumentService["_lastOpenedUri"] = newDocument.uri.toString();
+        await sqlDocumentService.onDidCloseTextDocument(doc);
 
-        await sqlDocumentService.onDidCloseTextDocument(document);
+        // Should have skipped processing - no calls to connectionManager or outputContentProvider
+        expect(connectionManager.onDidCloseTextDocument).to.not.have.been.called;
+        expect(mainController["_outputContentProvider"].onDidCloseTextDocument).to.not.have.been
+            .called;
 
-        // Check that updateUri was called (which is the path for renames)
+        // The URI should be removed from the set after processing
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(docKey)).to.be.false;
+    });
+
+    test("isUriBeingRenamedOrSaved should reflect tracked URI state", async () => {
+        const uri = "file:///tracked.sql";
+        expect(sqlDocumentService.isUriBeingRenamedOrSaved(uri)).to.be.false;
+
+        sqlDocumentService["_uriBeingRenamedOrSaved"].add(uri);
+        expect(sqlDocumentService.isUriBeingRenamedOrSaved(uri)).to.be.true;
+    });
+
+    test("onWillSaveTextDocument should transfer state when saving an untitled document", async () => {
+        const untitledDoc = {
+            uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:Untitled-1`),
+            languageId: Constants.languageId,
+            lineCount: 1,
+            getText: () => "SELECT 1",
+        } as vscode.TextDocument;
+
+        const savedDoc = {
+            uri: vscode.Uri.parse("file:///saved.sql"),
+            languageId: Constants.languageId,
+            lineCount: 1,
+            getText: () => "SELECT 1",
+        } as vscode.TextDocument;
+
+        // Save-transfer logic now keys off the active untitled editor
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            document: untitledDoc,
+        } as vscode.TextEditor);
+
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+
+        const event = {
+            document: savedDoc,
+            reason: vscode.TextDocumentSaveReason.Manual,
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.TextDocumentWillSaveEvent;
+
+        await sqlDocumentService.onWillSaveTextDocument(event);
+
+        // updateUri should have been called to transfer state
         expect(mockUpdateUri).to.have.been.calledOnce;
+        // The untitled URI should be in the set to skip close event
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(untitledDoc.uri.toString())).to.be
+            .true;
+        // The new URI should be tracked to skip auto-connect on open
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(savedDoc.uri.toString())).to.be
+            .true;
 
         mockUpdateUri.restore();
     });
 
-    // Closed document event called to test rename and untitled save file event timeouts
-    test("onDidCloseTextDocument should propagate to the connectionManager even if a special event occurred before it", (done) => {
-        // Set up expired timers that would have been reset
-        const expiredTimer = {
-            getDuration: sandbox.stub().returns(Constants.untitledSaveTimeThreshold + 10), // Expired
-            end: sandbox.stub(),
-        };
+    test("onWillSaveTextDocument should not transfer state when no matching untitled document exists", async () => {
+        const savedDoc = {
+            uri: vscode.Uri.parse("file:///existing.sql"),
+            languageId: Constants.languageId,
+            lineCount: 5,
+            getText: () => "SELECT * FROM table1",
+        } as vscode.TextDocument;
 
-        // Set up conditions that would normally trigger special behavior but are now expired
-        sqlDocumentService["_lastSavedUri"] = newDocument.uri.toString();
-        sqlDocumentService["_lastSavedTimer"] = expiredTimer as any;
-        sqlDocumentService["_lastOpenedUri"] = newDocument.uri.toString();
-        sqlDocumentService["_lastOpenedTimer"] = expiredTimer as any;
+        // No untitled documents in workspace
+        sandbox.stub(vscode.workspace, "textDocuments").value([]);
 
-        // This should now follow the normal close path since timers are expired
-        sqlDocumentService
-            .onDidCloseTextDocument(document)
-            .then(() => {
-                try {
-                    // Should have called the normal close path
-                    expect(
-                        connectionManager.onDidCloseTextDocument,
-                    ).to.have.been.calledOnceWithExactly(document);
-                    expect(docUriCallback).to.equal(document.uri.toString());
-                    done();
-                } catch (err) {
-                    done(new Error(err));
-                }
-            })
-            .catch(done);
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+
+        const event = {
+            document: savedDoc,
+            reason: vscode.TextDocumentSaveReason.Manual,
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.TextDocumentWillSaveEvent;
+
+        await sqlDocumentService.onWillSaveTextDocument(event);
+
+        expect(mockUpdateUri).to.not.have.been.called;
+
+        mockUpdateUri.restore();
+    });
+
+    test("onWillRenameFiles should transfer state for each renamed file", async () => {
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+        connectionManager.isConnected.returns(true);
+
+        const oldUri = vscode.Uri.parse("file:///old-name.sql");
+        const newUri = vscode.Uri.parse("file:///new-name.sql");
+
+        const event = {
+            files: [{ oldUri, newUri }],
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.FileWillRenameEvent;
+
+        await sqlDocumentService.onWillRenameFiles(event);
+
+        expect(mockUpdateUri).to.have.been.calledOnceWith(oldUri.toString(), newUri.toString());
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(oldUri.toString())).to.be.true;
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(newUri.toString())).to.be.true;
+
+        mockUpdateUri.restore();
+    });
+
+    test("onWillRenameFiles should skip transfer when renamed file is not connected", async () => {
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+        connectionManager.isConnected.returns(false);
+
+        const oldUri = vscode.Uri.parse("file:///disconnected-old.sql");
+        const newUri = vscode.Uri.parse("file:///disconnected-new.sql");
+
+        const event = {
+            files: [{ oldUri, newUri }],
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.FileWillRenameEvent;
+
+        await sqlDocumentService.onWillRenameFiles(event);
+
+        expect(connectionManager.isConnected).to.have.been.calledOnceWith(oldUri.toString());
+        expect(mockUpdateUri).to.not.have.been.called;
+        expect(sqlDocumentService["_uriBeingRenamedOrSaved"].has(oldUri.toString())).to.be.false;
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(newUri.toString())).to.be.false;
+
+        mockUpdateUri.restore();
+    });
+
+    test("onWillRenameFiles should handle multiple file renames", async () => {
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri").resolves();
+        connectionManager.isConnected.returns(true);
+
+        const files = [
+            {
+                oldUri: vscode.Uri.parse("file:///a.sql"),
+                newUri: vscode.Uri.parse("file:///a-renamed.sql"),
+            },
+            {
+                oldUri: vscode.Uri.parse("file:///b.sql"),
+                newUri: vscode.Uri.parse("file:///b-renamed.sql"),
+            },
+        ];
+
+        const event = {
+            files,
+            waitUntil: sandbox.stub(),
+        } as unknown as vscode.FileWillRenameEvent;
+
+        await sqlDocumentService.onWillRenameFiles(event);
+
+        expect(mockUpdateUri).to.have.been.calledTwice;
+
+        mockUpdateUri.restore();
     });
 
     // Open document event test
@@ -377,20 +478,6 @@ suite("SqlDocumentService Tests", () => {
             document,
         );
         expect(docUriCallback).to.equal(document.uri.toString());
-    });
-
-    // Save document event test
-    test("onDidSaveTextDocument should propagate the function to the connectionManager", () => {
-        // Call onDidSaveTextDocument to test its side effects
-        sqlDocumentService.onDidSaveTextDocument(newDocument);
-
-        // Ensure no extraneous function is called (save doesn't directly call connection manager)
-        expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
-        expect(connectionManager.transferConnectionToFile).to.not.have.been.called;
-
-        // Check that internal state was set correctly (uses getUriKey internally)
-        expect(sqlDocumentService["_lastSavedUri"]).to.equal(newDocument.uri.toString());
-        expect(sqlDocumentService["_lastSavedTimer"]).to.be.ok;
     });
 
     test("newQuery should call the new query method", async () => {
@@ -532,28 +619,85 @@ suite("SqlDocumentService Tests", () => {
         expect(connectStub).to.not.have.been.called;
     });
 
+    test("onDidOpenTextDocument should wait for ongoing creates for file SQL documents", async () => {
+        const fileDoc = mockTextDocument("file:///test.sql");
+        const waitStub = sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
+
+        await sqlDocumentService.onDidOpenTextDocument(fileDoc);
+
+        expect(waitStub).to.have.been.calledOnce;
+        waitStub.restore();
+    });
+
+    test("onDidOpenTextDocument should wait for ongoing creates for untitled SQL documents", async () => {
+        const untitledDoc = {
+            uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:Untitled-1`),
+            languageId: Constants.languageId,
+        } as vscode.TextDocument;
+        const waitStub = sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
+
+        await sqlDocumentService.onDidOpenTextDocument(untitledDoc);
+
+        expect(waitStub).to.have.been.calledOnce;
+        waitStub.restore();
+    });
+
+    test("onDidOpenTextDocument should skip auto-connect for recently renamed or saved documents", async () => {
+        const doc = mockTextDocument("file:///just-saved.sql");
+        const docKey = doc.uri.toString();
+
+        // Simulate that this document was just renamed/saved
+        sqlDocumentService["_newUriFromRenameOrSave"].add(docKey);
+        sqlDocumentService["_lastActiveConnectionInfo"] = {
+            server: "localhost",
+        } as any;
+
+        await sqlDocumentService.onDidOpenTextDocument(doc);
+
+        // Should not have tried to connect since this is a recently renamed/saved file
+        expect(connectionManager.connect).to.not.have.been.called;
+        // The URI should be removed from the set after processing
+        expect(sqlDocumentService["_newUriFromRenameOrSave"].has(docKey)).to.be.false;
+    }).timeout(5000);
+
     test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {
         const hideStatusBarStub = sandbox.stub();
         const updateStatusBarStub = sandbox.stub();
+        const updateSelectionSummaryStub = sandbox.stub();
+        const updateResultsOnActiveEditorChangeStub = sandbox.stub();
         sqlDocumentService["_statusview"] = {
             hideLastShownStatusBar: hideStatusBarStub,
             updateStatusBarForEditor: updateStatusBarStub,
+        } as any;
+        sqlDocumentService["_outputContentProvider"] = {
+            queryResultWebviewController: {
+                updateSelectionSummary: updateSelectionSummaryStub,
+                updateResultsOnActiveEditorChange: updateResultsOnActiveEditorChangeStub,
+            },
         } as any;
 
         // Test case 1: editor is undefined
         await sqlDocumentService.onDidChangeActiveTextEditor(undefined);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(undefined);
+        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
+        updateSelectionSummaryStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 2: editor.document is undefined
         const editorWithoutDoc = {} as vscode.TextEditor;
         await sqlDocumentService.onDidChangeActiveTextEditor(editorWithoutDoc);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.not.have.been.called;
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithoutDoc);
+        expect(updateSelectionSummaryStub).to.not.have.been.called;
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
+        updateSelectionSummaryStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 3: connection manager returns undefined (no connection)
         const editorWithDoc = { document: mockTextDocument("test.sql") } as vscode.TextEditor;
@@ -561,9 +705,11 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.have.been.calledOnceWith(editorWithDoc, undefined);
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
         updateStatusBarStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 4: connection info exists but has no connectionId
         const connectionInfoWithoutId = { credentials: { server: "localhost" } };
@@ -574,9 +720,11 @@ suite("SqlDocumentService Tests", () => {
             editorWithDoc,
             connectionInfoWithoutId,
         );
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
         updateStatusBarStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 4: connection info exists but has no connectionId
         const connectionInfoConnecting = {
@@ -591,9 +739,11 @@ suite("SqlDocumentService Tests", () => {
             editorWithDoc,
             connectionInfoConnecting,
         );
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
         hideStatusBarStub.resetHistory();
         updateStatusBarStub.resetHistory();
+        updateResultsOnActiveEditorChangeStub.resetHistory();
 
         // Test case 5: connection manager is undefined
         const originalConnectionMgr = sqlDocumentService["_connectionMgr"];
@@ -601,6 +751,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
         expect(hideStatusBarStub).to.have.been.calledOnce;
         expect(updateStatusBarStub).to.have.been.calledOnceWith(editorWithDoc, undefined);
+        expect(updateResultsOnActiveEditorChangeStub).to.have.been.calledOnceWith(editorWithDoc);
         expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
 
         // Restore the connection manager

@@ -110,7 +110,6 @@ export enum TelemetryActions {
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
     CopyHeaders = "CopyHeaders",
-    EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
     Restore = "Restore",
@@ -243,6 +242,10 @@ export enum TelemetryActions {
     CodeAnalysisDialogOpened = "CodeAnalysisDialogOpened",
     CodeAnalysisRulesLoaded = "CodeAnalysisRulesLoaded",
     CodeAnalysisRulesLoadError = "CodeAnalysisRulesLoadError",
+    CodeAnalysisRulesSaved = "CodeAnalysisRulesSaved",
+    CodeAnalysisRulesSaveError = "CodeAnalysisRulesSaveError",
+    CodeAnalysisEnabledOnBuild = "CodeAnalysisEnabledOnBuild",
+    CodeAnalysisDisabledOnBuild = "CodeAnalysisDisabledOnBuild",
     // SQL Notebooks
     CreateNotebook = "CreateNotebook",
     ExecuteCell = "ExecuteCell",

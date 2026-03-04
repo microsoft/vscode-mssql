@@ -107,7 +107,7 @@
         "@vscode/l10n-dev": "^0.0.35",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
-        "@vscode/vsce": "^3.1.1",
+        "@vscode/vsce": "^3.7.1",
         "@xyflow/react": "^12.4.4",
         "assert": "^1.4.1",
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
@@ -167,7 +167,6 @@
         "tar": "^7.5.8",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
-        "uuid": "^11.0.5",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
@@ -211,12 +210,14 @@
             "objectExplorer": [
                 {
                     "id": "objectExplorer",
-                    "name": "%extension.connections%"
+                    "name": "%extension.connections%",
+                    "icon": "media/objectTypes/Database.svg"
                 },
                 {
                     "id": "queryHistory",
                     "name": "%extension.queryHistory%",
-                    "when": "config.mssql.enableQueryHistoryFeature"
+                    "when": "config.mssql.enableQueryHistoryFeature",
+                    "icon": "media/objectTypes/StoredProcedure.svg"
                 }
             ]
         },
@@ -380,7 +381,7 @@
             "editor/title": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && resource not in mssql.connecting",
                     "group": "navigation@1"
                 },
                 {
@@ -395,7 +396,12 @@
                 },
                 {
                     "command": "mssql.connect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && resource not in mssql.connecting",
+                    "group": "navigation@3"
+                },
+                {
+                    "command": "mssql.cancelConnect",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connecting && resourcePath not in mssql.runningQueries",
                     "group": "navigation@3"
                 },
                 {
@@ -520,7 +526,7 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "config.mssql.enableRichExperiences && view == objectExplorer",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
@@ -574,7 +580,7 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/ && config.mssql.enableRichExperiences",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
@@ -978,6 +984,12 @@
                 "icon": "$(debug-disconnect)"
             },
             {
+                "command": "mssql.cancelConnect",
+                "title": "%mssql.cancelConnect%",
+                "category": "MS SQL",
+                "icon": "$(stop-circle)"
+            },
+            {
                 "command": "mssql.filterNode",
                 "title": "%mssql.filterNode%",
                 "icon": "$(filter)"
@@ -1326,11 +1338,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.enableRichExperiences",
-                "title": "%mssql.enableRichExperiences%",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
                 "category": "MS SQL"
@@ -1390,19 +1397,16 @@
             {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.deleteContainer",
                 "title": "%mssql.deleteContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.startContainer",
                 "title": "%mssql.startContainer%",
-                "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
             },
             {
@@ -1456,7 +1460,7 @@
                 "command": "mssql.runQuery",
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
             },
             {
                 "command": "mssql.connect",
@@ -1492,18 +1496,6 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
-                "mssql.enableRichExperiences": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.enableRichExperiences.description%",
-                    "scope": "application"
-                },
-                "mssql.enableRichExperiencesDoNotShowPrompt": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
-                    "scope": "application"
-                },
                 "mssql.openQueryResultsInTabByDefault": {
                     "type": "boolean",
                     "default": false,
@@ -1516,13 +1508,7 @@
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
                     "scope": "application"
                 },
-                "mssql.transferActiveEditorConnections": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.transferActiveEditorConnections.description%",
-                    "scope": "application"
-                },
-                "mssql.defaultQueryResultsViewMode": {
+                "mssql.defaulQueryResultsViewMode": {
                     "type": "string",
                     "default": "Grid",
                     "enum": [
@@ -1534,6 +1520,12 @@
                         "%mssql.defaultQueryResultsViewMode.text.description%"
                     ],
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
+                    "scope": "application"
+                },
+                "mssql.transferActiveEditorConnections": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.transferActiveEditorConnections.description%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {

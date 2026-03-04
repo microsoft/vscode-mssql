@@ -285,3 +285,7 @@ export function getPreviousFocusableElementOutside(container: HTMLElement): HTML
     }
     return null; // no previous element outside the container
 }
+
+export function uuid(): string {
+    return crypto.randomUUID();
+}

@@ -7,18 +7,18 @@ import { RingBuffer } from "./ringBuffer";
 import { IndexedRow, FilterClause, FilterOperator, FilterTypeHint } from "./profilerTypes";
 
 /**
- * A filtered view over a RingBuffer that applies filter clauses client-side.
- * Separates filtering concerns from the ring buffer storage.
+ * A RingBuffer subclass that adds client-side filtering capabilities.
+ * Extends RingBuffer with filter clauses and quick filter support.
  *
  * Key behaviors:
- * - When filter is active, only matching rows are returned
+ * - When filter is active, only matching rows are returned via getFilteredRows()
  * - When filter is cleared, ALL events (including those hidden while filtering) are visible
  * - Filtering is client-side only; does not affect the underlying buffer storage
+ * - All RingBuffer methods (add, clear, getAllRows, etc.) remain available directly
  *
  * @template T - Row type that extends IndexedRow
  */
-export class FilteredBuffer<T extends IndexedRow> {
-    private _buffer: RingBuffer<T>;
+export class FilteredBuffer<T extends IndexedRow> extends RingBuffer<T> {
     private _clauses: FilterClause[] = [];
     private _enabled: boolean = false;
     private _quickFilter: string | undefined;
@@ -30,18 +30,28 @@ export class FilteredBuffer<T extends IndexedRow> {
     private _rowConverter: ((row: T) => Record<string, unknown>) | undefined;
 
     /**
-     * Creates a new FilteredBuffer wrapping the given RingBuffer.
-     * @param buffer - The underlying RingBuffer to filter
+     * Pre-converted filter clause values keyed by clause index.
+     * Built once when clauses are set so that filter-value parsing is
+     * never repeated during per-row evaluation.
      */
-    constructor(buffer: RingBuffer<T>) {
-        this._buffer = buffer;
-    }
+    private _typedClauseValues: unknown[] = [];
 
     /**
-     * Gets the underlying RingBuffer.
+     * Cached array of references to rows matching the current filter.
+     * Stores references (pointers) to the same objects in the RingBuffer — no memory duplication.
+     * - undefined when no filter is active or cache has been invalidated.
+     * - Maintained incrementally by add() override when filter is active.
+     * - Rebuilt lazily on first read after invalidation.
      */
-    get buffer(): RingBuffer<T> {
-        return this._buffer;
+    private _filteredCache: T[] | undefined;
+
+    /**
+     * Creates a new FilteredBuffer with the specified capacity.
+     * @param capacity - Maximum number of rows to store
+     * @param indexedFields - Fields to index for fast lookup (passed to RingBuffer)
+     */
+    constructor(capacity: number, indexedFields: string[] = []) {
+        super(capacity, indexedFields);
     }
 
     /**
@@ -76,21 +86,144 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Gets the total number of items in the underlying buffer (unfiltered count).
+     * Gets the total number of items in the buffer (unfiltered count).
      */
     get totalCount(): number {
-        return this._buffer.size;
+        return this.size;
     }
 
     /**
      * Gets the number of items that match the current filter (column + quick).
      * Returns total count if no filter is active.
+     * Uses cached value when available.
      */
     get filteredCount(): number {
         if (!this.isFilterActive) {
-            return this._buffer.size;
+            return this.size;
         }
-        return this.getFilteredRows().length;
+        return this.getFilteredCount();
+    }
+
+    /**
+     * Sets filter state and immediately builds the filtered-row cache.
+     *
+     * Call this instead of the lower-level setColumnFilters / setQuickFilter
+     * when you want the cache to be ready for subsequent getFilteredRows /
+     * getFilteredCount calls.
+     *
+     * @param options.clauses  Column filter clauses (AND logic). Pass [] to clear.
+     * @param options.quickFilter  Cross-column search term. Pass undefined to clear.
+     */
+    applyFilter(options: { clauses?: FilterClause[]; quickFilter?: string }): void {
+        if (options.clauses !== undefined) {
+            this._clauses = [...options.clauses];
+            this._enabled = options.clauses.length > 0;
+            this.preConvertClauseValues();
+        }
+        if (options.quickFilter !== undefined) {
+            this._quickFilter = options.quickFilter.trim() !== "" ? options.quickFilter : undefined;
+        }
+        this.rebuildCache();
+    }
+
+    /**
+     * Clears all filter state (column filters + quick filter) and the cache.
+     * After this call, getFilteredRows() returns all rows.
+     */
+    resetFilter(): void {
+        this._clauses = [];
+        this._typedClauseValues = [];
+        this._enabled = false;
+        this._quickFilter = undefined;
+        this._filteredCache = undefined;
+    }
+
+    /**
+     * Adds a row and incrementally maintains the filter cache.
+     *
+     * When the cache exists:
+     *  - Evicted row (if any): removed from front of cache if it matches — O(1).
+     *  - New row: evaluated against current filter — O(C) per clause.
+     *    Appended to cache if it matches.
+     */
+    override add(row: T): { added: T; removed?: T } | undefined {
+        const result = super.add(row);
+        if (!result || this._filteredCache === undefined) {
+            return result;
+        }
+
+        // Handle eviction: evicted row is always the oldest, so if it's in
+        // the cache it must be at index 0 (cache is chronological).
+        if (
+            result.removed &&
+            this._filteredCache.length > 0 &&
+            this._filteredCache[0] === result.removed
+        ) {
+            this._filteredCache.shift();
+        }
+
+        // Evaluate the newly added row against the current filter
+        if (this.rowMatchesFilter(row)) {
+            this._filteredCache.push(row);
+        }
+
+        return result;
+    }
+
+    /**
+     * Clears the buffer and the filter cache.
+     */
+    override clear(): void {
+        super.clear();
+        this._filteredCache = undefined;
+    }
+
+    /**
+     * Clears the oldest N rows and invalidates the cache.
+     * (clearRange is rare; a lazy rebuild on next read is acceptable.)
+     */
+    override clearRange(count: number): void {
+        super.clearRange(count);
+        this.invalidateCache();
+    }
+
+    /**
+     * Rebuilds the cache from scratch by scanning all rows — O(n·C).
+     */
+    private rebuildCache(): void {
+        if (!this.isFilterActive) {
+            this._filteredCache = undefined;
+            return;
+        }
+
+        this._filteredCache = this.getAllRows().filter((row) => this.rowMatchesFilter(row));
+    }
+
+    /**
+     * Invalidates the cache so it will be rebuilt lazily on the next read.
+     */
+    private invalidateCache(): void {
+        this._filteredCache = undefined;
+    }
+
+    /**
+     * Tests whether a single row matches the current filter (clauses + quick filter).
+     * Used by the add() override for incremental cache maintenance.
+     */
+    private rowMatchesFilter(row: T): boolean {
+        const targetRow = this._rowConverter ? (this._rowConverter(row) as T) : row;
+
+        if (this._enabled && this._clauses.length > 0 && !this.evaluateRow(targetRow)) {
+            return false;
+        }
+        if (
+            this._quickFilter !== undefined &&
+            this._quickFilter.trim() !== "" &&
+            !this.matchesQuickFilter(targetRow, this._quickFilter)
+        ) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -110,6 +243,8 @@ export class FilteredBuffer<T extends IndexedRow> {
     setColumnFilters(clauses: FilterClause[]): void {
         this._clauses = [...clauses];
         this._enabled = clauses.length > 0;
+        this.preConvertClauseValues();
+        this.invalidateCache();
     }
 
     /**
@@ -119,7 +254,9 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     clearColumnFilters(): void {
         this._clauses = [];
+        this._typedClauseValues = [];
         this._enabled = false;
+        this.invalidateCache();
     }
 
     /**
@@ -128,6 +265,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     setQuickFilter(term: string | undefined): void {
         this._quickFilter = term && term.trim() !== "" ? term : undefined;
+        this.invalidateCache();
     }
 
     /**
@@ -135,14 +273,18 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     clearQuickFilter(): void {
         this._quickFilter = undefined;
+        this.invalidateCache();
     }
 
     /**
      * Clears both column filters and the quick filter.
      */
     clearAllFilters(): void {
-        this.clearColumnFilters();
-        this.clearQuickFilter();
+        this._clauses = [];
+        this._typedClauseValues = [];
+        this._enabled = false;
+        this._quickFilter = undefined;
+        this._filteredCache = undefined;
     }
 
     /**
@@ -152,45 +294,41 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     setRowConverter(converter: ((row: T) => Record<string, unknown>) | undefined): void {
         this._rowConverter = converter;
+        this.invalidateCache();
     }
 
     /**
      * Gets all rows that match the current filter.
      * Returns all rows if no filter is active.
-     * When a row converter is set, filters operate on converted rows.
+     * Uses cached results when available — O(1) return vs O(n·C) scan.
+     * If the cache was invalidated (e.g. by a legacy setter), it is rebuilt lazily.
      */
     getFilteredRows(): T[] {
-        const allRows = this._buffer.getAllRows();
         if (!this.isFilterActive) {
-            return allRows;
+            return this.getAllRows();
         }
 
-        const hasClauseFilter = this._enabled && this._clauses.length > 0;
-        const hasQuickFilter = this._quickFilter !== undefined && this._quickFilter.trim() !== "";
+        if (this._filteredCache === undefined) {
+            this.rebuildCache();
+        }
 
-        return allRows.filter((row) => {
-            const targetRow = this._rowConverter ? (this._rowConverter(row) as T) : row;
-
-            if (hasClauseFilter && !this.evaluateRow(targetRow)) {
-                return false;
-            }
-            if (hasQuickFilter && !this.matchesQuickFilter(targetRow, this._quickFilter!)) {
-                return false;
-            }
-            return true;
-        });
+        return this._filteredCache!;
     }
 
     /**
      * Gets the count of rows that match the current filter (column + quick).
-     * When a row converter is set, filters operate on converted rows.
-     * More efficient than getFilteredRows().length when you only need the count.
+     * O(1) when cache is available.
      */
     getFilteredCount(): number {
         if (!this.isFilterActive) {
-            return this._buffer.size;
+            return this.size;
         }
-        return this.getFilteredRows().length;
+
+        if (this._filteredCache === undefined) {
+            this.rebuildCache();
+        }
+
+        return this._filteredCache!.length;
     }
 
     /**
@@ -201,7 +339,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      * @returns Sorted array of unique non-empty string values
      */
     getDistinctValuesForField(field: string): string[] {
-        const allRows = this._buffer.getAllRows();
+        const allRows = this.getAllRows();
         const seen = new Set<string>();
         for (const row of allRows) {
             const target = this._rowConverter
@@ -217,6 +355,7 @@ export class FilteredBuffer<T extends IndexedRow> {
 
     /**
      * Gets a range of filtered rows for pagination.
+     * O(k) slice from cached array when cache is available.
      * @param startIndex - The starting index in the filtered result set
      * @param count - Maximum number of rows to return
      * @returns Array of matching rows
@@ -272,8 +411,8 @@ export class FilteredBuffer<T extends IndexedRow> {
      * All clauses must match for the row to pass.
      */
     private evaluateRow(row: T): boolean {
-        for (const clause of this._clauses) {
-            if (!this.evaluateClause(row, clause)) {
+        for (let i = 0; i < this._clauses.length; i++) {
+            if (!this.evaluateClause(row, this._clauses[i], this._typedClauseValues[i])) {
                 return false;
             }
         }
@@ -281,10 +420,57 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Evaluates a single filter clause against a row.
+     * Pre-converts clause values to their proper runtime types based on
+     * typeHint.  Called once when clauses are set so that per-row evaluation
+     * can compare values directly without repeated parsing.
      */
-    private evaluateClause(row: T, clause: FilterClause): boolean {
+    private preConvertClauseValues(): void {
+        this._typedClauseValues = this._clauses.map((clause) =>
+            this.convertClauseValue(clause.value, clause.typeHint),
+        );
+    }
+
+    /**
+     * Converts a single clause value to its runtime type based on typeHint.
+     */
+    private convertClauseValue(
+        value: string | number | boolean | undefined,
+        typeHint?: FilterTypeHint,
+    ): unknown {
+        if (this.isNullOrUndefined(value)) {
+            return value;
+        }
+
+        switch (typeHint) {
+            case FilterTypeHint.Number: {
+                if (typeof value === "number") {
+                    return value;
+                }
+                const num = this.parseNumber(value);
+                return num !== undefined ? num : value;
+            }
+            case FilterTypeHint.Date:
+            case FilterTypeHint.DateTime: {
+                const date = this.parseDate(value);
+                return date !== undefined ? date : value;
+            }
+            case FilterTypeHint.Boolean:
+                return this.parseBoolean(value);
+            default:
+                return value;
+        }
+    }
+
+    /**
+     * Evaluates a single filter clause against a row.
+     * @param row - The row to evaluate
+     * @param clause - The filter clause definition
+     * @param typedValue - Pre-converted clause value (from _typedClauseValues)
+     */
+    private evaluateClause(row: T, clause: FilterClause, typedValue?: unknown): boolean {
         const fieldValue = this.getFieldValue(row, clause.field);
+        // Use the pre-converted value when available, falling back to the raw clause value
+        const filterValue = typedValue !== undefined ? typedValue : clause.value;
 
         switch (clause.operator) {
             case FilterOperator.IsNull:
@@ -294,52 +480,52 @@ export class FilteredBuffer<T extends IndexedRow> {
                 return !this.isNullOrUndefined(fieldValue);
 
             case FilterOperator.Equals:
-                return this.evaluateEquals(fieldValue, clause.value, clause.typeHint);
+                return this.evaluateEquals(fieldValue, filterValue, clause.typeHint);
 
             case FilterOperator.NotEquals:
-                return !this.evaluateEquals(fieldValue, clause.value, clause.typeHint);
+                return !this.evaluateEquals(fieldValue, filterValue, clause.typeHint);
 
             case FilterOperator.LessThan:
-                return this.evaluateComparison(fieldValue, clause.value, clause.typeHint) < 0;
+                return this.evaluateComparison(fieldValue, filterValue, clause.typeHint) < 0;
 
             case FilterOperator.LessThanOrEqual:
-                return this.evaluateComparison(fieldValue, clause.value, clause.typeHint) <= 0;
+                return this.evaluateComparison(fieldValue, filterValue, clause.typeHint) <= 0;
 
             case FilterOperator.GreaterThan:
-                return this.evaluateComparison(fieldValue, clause.value, clause.typeHint) > 0;
+                return this.evaluateComparison(fieldValue, filterValue, clause.typeHint) > 0;
 
             case FilterOperator.GreaterThanOrEqual:
-                return this.evaluateComparison(fieldValue, clause.value, clause.typeHint) >= 0;
+                return this.evaluateComparison(fieldValue, filterValue, clause.typeHint) >= 0;
 
             case FilterOperator.Contains:
-                return this.evaluateContains(fieldValue, clause.value);
+                return this.evaluateContains(fieldValue, filterValue);
 
             case FilterOperator.NotContains:
                 // If field is null/missing, treat as "does not contain" => returns true
                 if (this.isNullOrUndefined(fieldValue)) {
                     return true;
                 }
-                return !this.evaluateContains(fieldValue, clause.value);
+                return !this.evaluateContains(fieldValue, filterValue);
 
             case FilterOperator.StartsWith:
-                return this.evaluateStartsWith(fieldValue, clause.value);
+                return this.evaluateStartsWith(fieldValue, filterValue);
 
             case FilterOperator.NotStartsWith:
                 // If field is null/missing, treat as "does not start with" => returns true
                 if (this.isNullOrUndefined(fieldValue)) {
                     return true;
                 }
-                return !this.evaluateStartsWith(fieldValue, clause.value);
+                return !this.evaluateStartsWith(fieldValue, filterValue);
 
             case FilterOperator.EndsWith:
-                return this.evaluateEndsWith(fieldValue, clause.value);
+                return this.evaluateEndsWith(fieldValue, filterValue);
 
             case FilterOperator.NotEndsWith:
                 // If field is null/missing, treat as "does not end with" => returns true
                 if (this.isNullOrUndefined(fieldValue)) {
                     return true;
                 }
-                return !this.evaluateEndsWith(fieldValue, clause.value);
+                return !this.evaluateEndsWith(fieldValue, filterValue);
 
             case FilterOperator.In:
                 return this.evaluateIn(fieldValue, clause.values);
@@ -380,11 +566,15 @@ export class FilteredBuffer<T extends IndexedRow> {
 
     /**
      * Evaluates equality between field value and filter value.
-     * Handles type coercion based on typeHint.
+     *
+     * When both values are pre-typed (number, Date, boolean) by the row
+     * converter and clause pre-conversion, the comparison is direct with
+     * zero parsing.  Falls back to typeHint-based parsing for untyped
+     * (string) values to maintain backward compatibility.
      */
     private evaluateEquals(
         fieldValue: unknown,
-        filterValue: string | number | boolean | undefined,
+        filterValue: unknown,
         typeHint?: FilterTypeHint,
     ): boolean {
         if (this.isNullOrUndefined(fieldValue) && this.isNullOrUndefined(filterValue)) {
@@ -394,24 +584,60 @@ export class FilteredBuffer<T extends IndexedRow> {
             return false;
         }
 
-        // Determine type hint from filter value if not provided
-        const effectiveTypeHint =
-            typeHint ??
-            (typeof filterValue === "number" ? FilterTypeHint.Number : FilterTypeHint.String);
+        // Pre-typed fast paths (both sides already typed)
+        if (typeof fieldValue === "number" && typeof filterValue === "number") {
+            return fieldValue === filterValue;
+        }
 
-        if (effectiveTypeHint === FilterTypeHint.Number) {
+        if (fieldValue instanceof Date && filterValue instanceof Date) {
+            return fieldValue.getTime() === filterValue.getTime();
+        }
+
+        if (typeof fieldValue === "boolean" && typeof filterValue === "boolean") {
+            return fieldValue === filterValue;
+        }
+
+        // One side typed, the other still raw — parse the raw side
+        if (typeof fieldValue === "number") {
+            const numFilterValue = this.parseNumber(filterValue);
+            return numFilterValue !== undefined && fieldValue === numFilterValue;
+        }
+        if (typeof filterValue === "number") {
+            const numFieldValue = this.parseNumber(fieldValue);
+            return numFieldValue !== undefined && numFieldValue === filterValue;
+        }
+
+        if (fieldValue instanceof Date) {
+            const dateFilterValue = this.parseDate(filterValue);
+            return (
+                dateFilterValue !== undefined && fieldValue.getTime() === dateFilterValue.getTime()
+            );
+        }
+        if (filterValue instanceof Date) {
+            const dateFieldValue = this.parseDate(fieldValue);
+            return (
+                dateFieldValue !== undefined && dateFieldValue.getTime() === filterValue.getTime()
+            );
+        }
+
+        if (typeof fieldValue === "boolean") {
+            return fieldValue === this.parseBoolean(filterValue);
+        }
+        if (typeof filterValue === "boolean") {
+            return this.parseBoolean(fieldValue) === filterValue;
+        }
+
+        // Fallback: use typeHint to parse string values
+        if (typeHint === FilterTypeHint.Number) {
             const numFieldValue = this.parseNumber(fieldValue);
             const numFilterValue = this.parseNumber(filterValue);
             if (numFieldValue === undefined || numFilterValue === undefined) {
-                return false; // Parse failure - no match
+                return false;
             }
             return numFieldValue === numFilterValue;
         }
 
-        if (
-            effectiveTypeHint === FilterTypeHint.Date ||
-            effectiveTypeHint === FilterTypeHint.DateTime
-        ) {
+        if (typeHint === FilterTypeHint.Date || typeHint === FilterTypeHint.DateTime) {
             const dateFieldValue = this.parseDate(fieldValue);
             const dateFilterValue = this.parseDate(filterValue);
             if (dateFieldValue === undefined || dateFilterValue === undefined) {
@@ -420,10 +646,8 @@ export class FilteredBuffer<T extends IndexedRow> {
             return dateFieldValue.getTime() === dateFilterValue.getTime();
         }
 
-        if (effectiveTypeHint === FilterTypeHint.Boolean) {
-            const boolFieldValue = this.parseBoolean(fieldValue);
-            const boolFilterValue = this.parseBoolean(filterValue);
-            return boolFieldValue === boolFilterValue;
+        if (typeHint === FilterTypeHint.Boolean) {
+            return this.parseBoolean(fieldValue) === this.parseBoolean(filterValue);
         }
 
         // Default: string comparison (case-insensitive)
@@ -431,24 +655,57 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Evaluates numeric comparison between field value and filter value.
+     * Evaluates comparison between field value and filter value.
      * Returns: negative if fieldValue < filterValue, 0 if equal, positive if greater.
      * Returns NaN if comparison cannot be performed.
+     *
+     * Pre-typed values (number, Date) on both sides are compared directly.
+     * Falls back to typeHint-based parsing for string values.
      */
     private evaluateComparison(
         fieldValue: unknown,
-        filterValue: string | number | boolean | undefined,
+        filterValue: unknown,
         typeHint?: FilterTypeHint,
     ): number {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return NaN;
         }
 
-        const effectiveTypeHint =
-            typeHint ??
-            (typeof filterValue === "number" ? FilterTypeHint.Number : FilterTypeHint.String);
+        // Pre-typed fast paths (both sides typed)
+        if (typeof fieldValue === "number" && typeof filterValue === "number") {
+            return fieldValue - filterValue;
+        }
 
-        if (effectiveTypeHint === FilterTypeHint.Number) {
+        if (fieldValue instanceof Date && filterValue instanceof Date) {
+            return fieldValue.getTime() - filterValue.getTime();
+        }
+
+        // One side typed, parse the other
+
+        if (typeof fieldValue === "number") {
+            const numFilterValue = this.parseNumber(filterValue);
+            return numFilterValue === undefined ? NaN : fieldValue - numFilterValue;
+        }
+        if (typeof filterValue === "number") {
+            const numFieldValue = this.parseNumber(fieldValue);
+            return numFieldValue === undefined ? NaN : numFieldValue - filterValue;
+        }
+
+        if (fieldValue instanceof Date) {
+            const dateFilterValue = this.parseDate(filterValue);
+            return dateFilterValue === undefined
+                ? NaN
+                : fieldValue.getTime() - dateFilterValue.getTime();
+        }
+        if (filterValue instanceof Date) {
+            const dateFieldValue = this.parseDate(fieldValue);
+            return dateFieldValue === undefined
+                ? NaN
+                : dateFieldValue.getTime() - filterValue.getTime();
+        }
+
+        // Fallback: use typeHint
+        if (typeHint === FilterTypeHint.Number) {
             const numFieldValue = this.parseNumber(fieldValue);
             const numFilterValue = this.parseNumber(filterValue);
             if (numFieldValue === undefined || numFilterValue === undefined) {
@@ -457,10 +714,7 @@ export class FilteredBuffer<T extends IndexedRow> {
             return numFieldValue - numFilterValue;
         }
 
-        if (
-            effectiveTypeHint === FilterTypeHint.Date ||
-            effectiveTypeHint === FilterTypeHint.DateTime
-        ) {
+        if (typeHint === FilterTypeHint.Date || typeHint === FilterTypeHint.DateTime) {
             const dateFieldValue = this.parseDate(fieldValue);
             const dateFilterValue = this.parseDate(filterValue);
             if (dateFieldValue === undefined || dateFilterValue === undefined) {
@@ -469,17 +723,14 @@ export class FilteredBuffer<T extends IndexedRow> {
             return dateFieldValue.getTime() - dateFilterValue.getTime();
         }
 
-        // String comparison
+        // Default: string comparison
         return String(fieldValue).toLowerCase().localeCompare(String(filterValue).toLowerCase());
     }
 
     /**
      * Evaluates contains (substring) check - case-insensitive.
      */
-    private evaluateContains(
-        fieldValue: unknown,
-        filterValue: string | number | boolean | undefined,
-    ): boolean {
+    private evaluateContains(fieldValue: unknown, filterValue: unknown): boolean {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return false;
         }
@@ -490,30 +741,28 @@ export class FilteredBuffer<T extends IndexedRow> {
 
     /**
      * Evaluates starts-with check - case-insensitive.
+     * Leading whitespace is trimmed from the field value so that values like
+     * "  SELECT ..." match a filter of "SELECT".
      */
-    private evaluateStartsWith(
-        fieldValue: unknown,
-        filterValue: string | number | boolean | undefined,
-    ): boolean {
+    private evaluateStartsWith(fieldValue: unknown, filterValue: unknown): boolean {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return false;
         }
-        const strFieldValue = String(fieldValue).toLowerCase();
+        const strFieldValue = String(fieldValue).trimStart().toLowerCase();
         const strFilterValue = String(filterValue).toLowerCase();
         return strFieldValue.startsWith(strFilterValue);
     }
 
     /**
      * Evaluates ends-with check - case-insensitive.
+     * Trailing whitespace is trimmed from the field value so that values like
+     * "SELECT ... \n" match a filter of "Orders".
      */
-    private evaluateEndsWith(
-        fieldValue: unknown,
-        filterValue: string | number | boolean | undefined,
-    ): boolean {
+    private evaluateEndsWith(fieldValue: unknown, filterValue: unknown): boolean {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return false;
         }
-        const strFieldValue = String(fieldValue).toLowerCase();
+        const strFieldValue = String(fieldValue).trimEnd().toLowerCase();
         const strFilterValue = String(filterValue).toLowerCase();
         return strFieldValue.endsWith(strFilterValue);
     }

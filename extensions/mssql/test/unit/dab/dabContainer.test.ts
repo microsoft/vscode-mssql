@@ -10,6 +10,7 @@ import * as sinon from "sinon";
 import * as os from "os";
 import * as dabContainer from "../../../src/dab/dabContainer";
 import * as dockerodeClient from "../../../src/docker/dockerodeClient";
+import { Dab } from "../../../src/sharedInterfaces/dab";
 import { PassThrough } from "stream";
 import * as fs from "fs";
 import * as path from "path";
@@ -79,6 +80,10 @@ suite("DAB Container", () => {
         const result = await dabContainer.pullDabContainerImage();
         expect(pullStub).to.have.been.calledOnce;
         expect(result.success).to.be.true;
+
+        // Verify platform is passed to pull for cross-platform compatibility (DAB only publishes linux/amd64)
+        const pullArgs = pullStub.firstCall.args;
+        expect(pullArgs[1]).to.have.property("platform", Dab.DAB_CONTAINER_PLATFORM);
     });
 
     test("pullDabContainerImage: should return error when pull fails", async () => {

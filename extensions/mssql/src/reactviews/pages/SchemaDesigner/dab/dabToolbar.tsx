@@ -17,6 +17,7 @@ import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
+import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -77,10 +78,12 @@ const useStyles = makeStyles({
 });
 
 interface DabToolbarProps {
+    showDiscovery: boolean;
     onNavigateToSchema?: () => void;
+    onViewConfig?: () => void;
 }
 
-export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
+export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
     const {
@@ -88,7 +91,6 @@ export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
         updateDabApiTypes,
         dabTextFilter,
         setDabTextFilter,
-        generateDabConfig,
         openDabDeploymentDialog,
     } = context;
 
@@ -125,13 +127,20 @@ export function DabToolbar({ onNavigateToSchema }: DabToolbarProps) {
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
+                    <SchemaDesignerWebviewCopilotChatEntry
+                        scenario="dab"
+                        entryPoint="dabToolbar"
+                        discoveryTitle={locConstants.schemaDesigner.dabCopilotDiscoveryTitle}
+                        discoveryBody={locConstants.schemaDesigner.dabCopilotDiscoveryBody}
+                        showDiscovery={showDiscovery}
+                    />
                     <Button
                         appearance="subtle"
-                        icon={<FluentIcons.DocumentCopy16Regular />}
+                        icon={<FluentIcons.Eye16Regular />}
                         size="small"
-                        title={locConstants.schemaDesigner.generateConfig}
-                        onClick={() => void generateDabConfig()}>
-                        {locConstants.schemaDesigner.generateConfig}
+                        title={locConstants.schemaDesigner.viewConfig}
+                        onClick={onViewConfig}>
+                        {locConstants.schemaDesigner.viewConfig}
                     </Button>
                     <Button
                         appearance="primary"
