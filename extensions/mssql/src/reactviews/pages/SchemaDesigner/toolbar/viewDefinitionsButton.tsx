@@ -10,7 +10,7 @@ import {
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
 import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
-import { CodeDefintionIcon16Regular } from "../../../common/icons/fluentIcons";
+import { CodeDefinitionIcon16Regular } from "../../../common/icons/fluentIcons";
 
 export function ViewDefinitionsButton() {
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
@@ -21,7 +21,7 @@ export function ViewDefinitionsButton() {
             <Button
                 appearance="subtle"
                 size="small"
-                icon={<CodeDefintionIcon16Regular />}
+                icon={<CodeDefinitionIcon16Regular />}
                 onClick={() => {
                     toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Script);
                 }}>

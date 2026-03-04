@@ -9,7 +9,7 @@ import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
 import { locConstants } from "../../common/locConstants";
-import { CodeDefintionIcon16Regular } from "../../common/icons/fluentIcons";
+import { CodeDefinitionIcon16Regular } from "../../common/icons/fluentIcons";
 
 const useStyles = makeStyles({
     separator: {
@@ -38,7 +38,7 @@ export const DesignerPageRibbon = () => {
                 <Button
                     size="small"
                     appearance="subtle"
-                    icon={<CodeDefintionIcon16Regular />}
+                    icon={<CodeDefinitionIcon16Regular />}
                     title={locConstants.schemaDesigner.definition}
                     onClick={() => designerContext.toggleDefinitionPane()}>
                     {locConstants.schemaDesigner.definition}

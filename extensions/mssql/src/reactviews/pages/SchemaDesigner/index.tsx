@@ -17,6 +17,7 @@ import { DabPage } from "./dab/dabPage";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { DabProvider } from "./dab/dabContext";
 import { Schema16Regular } from "../../common/icons/fluentIcons";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -46,8 +47,8 @@ const MainLayout = () => {
         getActiveViewFromState(stateActiveView),
     );
     const classes = useStyles();
-    const schemaDesignerTooltip = "Visualize and Design Schema";
-    const dabTooltip = "Build Data API";
+    const schemaDesignerLabel = locConstants.schemaDesigner.schemaDesignerNavLabel;
+    const dabLabel = locConstants.schemaDesigner.dabNavLabel;
 
     useEffect(() => {
         setActiveView(getActiveViewFromState(stateActiveView));
@@ -71,8 +72,8 @@ const MainLayout = () => {
                                     SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
                                 )
                             }
-                            title={schemaDesignerTooltip}
-                            aria-label={schemaDesignerTooltip}
+                            title={schemaDesignerLabel}
+                            aria-label={schemaDesignerLabel}
                         />
                         <ToolbarButton
                             appearance={
@@ -84,8 +85,8 @@ const MainLayout = () => {
                             onClick={() =>
                                 setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
                             }
-                            title={dabTooltip}
-                            aria-label={dabTooltip}
+                            title={dabLabel}
+                            aria-label={dabLabel}
                         />
                     </Toolbar>
                 </div>

@@ -60,6 +60,7 @@ export function FilterTablesButton() {
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
+    const filterLabel = locConstants.schemaDesigner.filter(selectedTables.length);
 
     function loadTables() {
         // When loading tables (e.g., when filter button is clicked), we should maintain
@@ -267,13 +268,12 @@ export function FilterTablesButton() {
     return (
         <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
             <MenuTrigger>
-                <Tooltip
-                    content={locConstants.schemaDesigner.filter(selectedTables.length)}
-                    relationship="label">
-                    <span className={classes.container}>
+                <span className={classes.container}>
+                    <Tooltip content={filterLabel} relationship="label">
                         <Button
                             appearance="subtle"
                             size="small"
+                            aria-label={filterLabel}
                             icon={
                                 selectedTables.length > 0 ? (
                                     <FilterFunnelIcon16Filled />
@@ -287,13 +287,13 @@ export function FilterTablesButton() {
                             }}>
                             {!isCompact && locConstants.schemaDesigner.filter(0)}
                         </Button>
-                        {selectedTables.length > 0 && (
-                            <Badge size="small" className={classes.badge}>
-                                {selectedTables.length}
-                            </Badge>
-                        )}
-                    </span>
-                </Tooltip>
+                    </Tooltip>
+                    {selectedTables.length > 0 && (
+                        <Badge size="small" className={classes.badge}>
+                            {selectedTables.length}
+                        </Badge>
+                    )}
+                </span>
             </MenuTrigger>
 
             <MenuPopover

@@ -52,7 +52,7 @@ export function SchemaDesignerToolbar({
 }: SchemaDesignerToolbarProps) {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
-    const toolbarRef = useRef<HTMLDivElement | null>(undefined as unknown as HTMLDivElement | null);
+    const toolbarRef = useRef<HTMLDivElement | null>(null);
     const [isCompact, setIsCompact] = useState(false);
     /**
      * Stores the scrollWidth measured when the toolbar is rendered with full
