@@ -26,6 +26,12 @@ import { NotebookConnectionManager } from "./notebookConnectionManager";
  *
  * SqlCodeLensProvider defers to this provider for notebook cells by checking
  * the document URI scheme.
+ *
+ * This is intentionally separate from SqlCodeLensProvider rather than sharing
+ * a base class. The two have different data sources (ConnectionManager vs
+ * NotebookConnectionManager), different lookup logic (document URI vs
+ * cell→notebook mapping), different states (connecting/error vs simple
+ * connected/not-connected), and trigger different commands.
  */
 export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode.Disposable {
     private readonly _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
