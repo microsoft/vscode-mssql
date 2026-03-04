@@ -164,20 +164,17 @@ suite("NotebookConnectionManager", () => {
             expect(mgr.getConnectionLabel()).to.include("test-server");
         });
 
-        test("reconnects when database mismatch detected", async () => {
-            // First connection returns wrong DB, second returns correct
-            connectionMgr.getConnectionInfoFromUri
-                .onFirstCall()
-                .returns(makeConnectionInfo({ database: "master" }))
-                .onSecondCall()
-                .returns(makeConnectionInfo({ database: "TestDB" }));
+        test("uses actual database from STS in connection info", async () => {
+            // STS reports the actual database the server opened
+            connectionMgr.getConnectionInfoFromUri.returns(
+                makeConnectionInfo({ database: "ActualDB" }),
+            );
 
-            const info = makeConnectionInfo({ database: "TestDB" });
+            const info = makeConnectionInfo({ database: "RequestedDB" });
             await mgr.connectWith(info);
 
-            // Should have connected twice (initial + reconnect)
-            expect(connectionMgr.connect).to.have.been.calledTwice;
-            expect(sharingService.disconnect).to.have.been.calledOnce;
+            expect(connectionMgr.connect).to.have.been.calledOnce;
+            expect(mgr.getConnectionInfo().database).to.equal("ActualDB");
         });
     });
 

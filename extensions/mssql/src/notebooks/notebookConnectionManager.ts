@@ -140,8 +140,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     /**
      * Connect with a specific connection profile (from Object Explorer context menu).
-     * After connecting, verifies the database from the STS connection info and
-     * reconnects with the correct database if there's a mismatch.
+     * The caller sets `connectionInfo.database` to the OE node's database.
      */
     async connectWith(connectionInfo: IConnectionInfo): Promise<string> {
         const activity = startActivity(
@@ -158,40 +157,12 @@ export class NotebookConnectionManager implements vscode.Disposable {
             const uri = await this.connectInternal(connectionInfo);
             this.log.info(`[connectWith] connect() → URI=${uri}`);
 
-            // Check the actual database from the connection info that STS populated.
-            let actualDb = this.getActualDatabase(uri);
-            this.log.info(
-                `[connectWith] Actual DB: ${actualDb}, Expected: ${database || "(none)"}`,
-            );
-
-            if (
-                database &&
-                actualDb.toLowerCase() !== database.toLowerCase() &&
-                // getActualDatabase() returns "(unknown)" when STS hasn't populated the
-                // connection info yet. In that case we can't confirm a mismatch, so skip
-                // the reconnect and use the database the caller requested.
-                actualDb !== "(unknown)"
-            ) {
-                // Wrong database — disconnect and reconnect with correct DB
-                this.log.info(`[connectWith] Database mismatch! Reconnecting with [${database}]`);
-                this.connectionSharingService.disconnect(uri);
-                const fixedInfo = { ...connectionInfo, database };
-                const newUri = await this.connectInternal(fixedInfo);
-                actualDb = this.getActualDatabase(newUri);
-                this.log.info(`[connectWith] After reconnect: ${actualDb}, URI=${newUri}`);
-                this.connectionUri = newUri;
-                this.connectionInfo = { ...connectionInfo, database: actualDb };
-                this.connectionLabel = formatConnectionLabel(server, actualDb);
-                activity.end(ActivityStatus.Succeeded);
-                return newUri;
-            }
+            const actualDb = this.getActualDatabase(uri);
+            this.log.info(`[connectWith] Connected to database: ${actualDb}`);
 
             this.connectionUri = uri;
-            // If STS hasn't populated the database yet, fall back to the caller's
-            // requested database rather than storing "(unknown)".
-            const resolvedDb = actualDb !== "(unknown)" ? actualDb : (database ?? actualDb);
-            this.connectionInfo = { ...connectionInfo, database: resolvedDb };
-            this.connectionLabel = formatConnectionLabel(server, resolvedDb);
+            this.connectionInfo = { ...connectionInfo, database: actualDb || database };
+            this.connectionLabel = formatConnectionLabel(server, actualDb || database);
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
