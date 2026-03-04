@@ -14,9 +14,8 @@ import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } fro
 import { Readable } from "stream";
 import { ILogger } from "../common/logger";
 
-export type { ILogger };
-
-const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
+const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options.";
+const DefaultRequestTimeoutMs = 20000; // 20 seconds
 
 export interface IHttpClientMessages {
     missingProtocolWarning(proxy: string): string;
@@ -30,6 +29,7 @@ export interface IHttpClientDependencies {
     parseUriScheme?: (value: string) => string | undefined;
     showWarningMessage?: (message: string) => void;
     getErrorMessage?: (error: unknown) => string;
+    getRequestTimeout?: () => number;
     messages?: IHttpClientMessages;
 }
 
@@ -179,12 +179,12 @@ export class HttpClientCore {
                 : new URL(proxy).protocol;
 
             if (!scheme) {
-                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using the MSSQL extension.`;
+                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using this extension.`;
                 localizedMessage = this.dependencies.messages?.missingProtocolWarning(proxy);
             }
         } catch (err) {
             const errorMessage = this.getErrorMessage(err);
-            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using the MSSQL extension.  Error: ${errorMessage}`;
+            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
             localizedMessage = this.dependencies.messages?.unparseableWarning(proxy, errorMessage);
         }
 
@@ -236,6 +236,7 @@ export class HttpClientCore {
         const config: AxiosRequestConfig = {
             headers,
             validateStatus: () => true, // Never throw
+            timeout: this.dependencies.getRequestTimeout?.() ?? DefaultRequestTimeoutMs,
         };
 
         const proxy = this.loadProxyConfig();
@@ -427,7 +428,11 @@ export class HttpClientCore {
 
         return {
             host: proxyEndpoint.hostname,
-            port: Number(proxyEndpoint.port),
+            port: proxyEndpoint.port
+                ? Number(proxyEndpoint.port)
+                : proxyEndpoint.protocol === "https:"
+                  ? 443
+                  : 80,
             auth,
             // Default to rejecting unauthorized certs unless the user explicitly disables strict SSL.
             rejectUnauthorized: strictSSL !== false,

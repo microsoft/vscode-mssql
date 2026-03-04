@@ -8,12 +8,13 @@ import * as fs from "fs";
 import {
     HttpClientCore,
     IHttpClientDependencies,
-    ILogger,
     HttpDownloadError,
     IDownloadFileOptions,
     IDownloadFileResult,
 } from "./httpClientCore";
+import { ILogger } from "../common/logger";
 import * as constants from "../common/constants";
+import { getErrorMessage } from "../common/utils";
 
 export class HttpClient extends HttpClientCore {
     constructor(logger?: ILogger) {
@@ -27,6 +28,7 @@ export class HttpClient extends HttpClientCore {
             showWarningMessage: (message: string) => {
                 void vscode.window.showWarningMessage(message);
             },
+            getErrorMessage,
             // Provide a messages implementation so that HttpClientCore can surface
             // proxy warnings via showWarningMessage. Without this, warnOnInvalidProxySettings
             // would silently skip the showWarningMessage call even though it is wired up above.
@@ -82,8 +84,7 @@ export class HttpClient extends HttpClientCore {
         try {
             result = await this.downloadFile(downloadUrl, fd, options);
         } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            outputChannel?.appendLine(`${constants.downloadError}: ${message}`);
+            outputChannel?.appendLine(`${constants.downloadError}: ${getErrorMessage(e)}`);
             throw e;
         } finally {
             fs.closeSync(fd);
