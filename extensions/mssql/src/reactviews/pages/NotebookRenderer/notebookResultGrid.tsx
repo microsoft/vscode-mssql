@@ -8,6 +8,7 @@ import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
 import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
+import { CellRangeSelector } from "../QueryResult/table/plugins/cellRangeSelector";
 import { NotebookContextMenu } from "./notebookContextMenu.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
 import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
@@ -209,9 +210,16 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
         const headerMenu = new NotebookHeaderMenu<Slick.SlickData>();
         grid.registerPlugin(headerMenu);
 
-        // Register cell selection model for multi-cell selection
+        // Register cell selection model for multi-cell selection.
+        // Pass a custom CellRangeSelector using VS Code's native CSS variable
+        // since the notebook iframe has no Fluent UI theme provider.
         const selectionModel = new CellSelectionModel({
             hasRowSelector: true,
+            cellRangeSelector: new CellRangeSelector({
+                selectionCss: {
+                    border: "2px dashed var(--vscode-focusBorder, #007fd4)",
+                },
+            }),
         });
         grid.setSelectionModel(selectionModel);
 
