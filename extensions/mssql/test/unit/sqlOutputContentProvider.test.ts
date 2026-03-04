@@ -271,16 +271,19 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const oldUri = "file:///old-timer.sql";
         const newUri = "file:///new-timer.sql";
 
-        const oldTimer = setTimeout(() => {}, 1000);
-        contentProvider["_stateUpdateTimers"].set(oldUri, oldTimer as any);
+        const oldThrottledUpdate = Object.assign(() => {}, {
+            cancel: sandbox.stub(),
+        });
+        contentProvider["_stateUpdateThrottles"].set(oldUri, oldThrottledUpdate as any);
 
         await contentProvider.updateQueryRunnerUri(oldUri, newUri);
 
-        expect(contentProvider["_stateUpdateTimers"].has(oldUri)).to.be.false;
-        expect(contentProvider["_stateUpdateTimers"].has(newUri)).to.be.true;
+        expect(oldThrottledUpdate.cancel).to.have.been.calledOnce;
+        expect(contentProvider["_stateUpdateThrottles"].has(oldUri)).to.be.false;
+        expect(contentProvider["_stateUpdateThrottles"].has(newUri)).to.be.true;
 
-        clearTimeout(contentProvider["_stateUpdateTimers"].get(newUri));
-        contentProvider["_stateUpdateTimers"].delete(newUri);
+        contentProvider["_stateUpdateThrottles"].get(newUri)?.cancel();
+        contentProvider["_stateUpdateThrottles"].delete(newUri);
     });
 
     test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
@@ -477,6 +480,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         const mockQueryRunner = {
             runStatement: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
         };
 
         sandbox
@@ -505,6 +509,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         const mockQueryRunner = {
             runStatement: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
         };
 
         sandbox
@@ -539,6 +544,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             onResultSetUpdated: sandbox.stub(),
             onExecutionPlan: sandbox.stub(),
             onSummaryChanged: sandbox.stub(),
+            onComplete: new vscode.EventEmitter<void>().event,
         } as unknown as QueryRunner;
 
         sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
@@ -557,5 +563,129 @@ suite("SqlOutputProvider Tests using mocks", () => {
         );
 
         expect(deleteUriStateSpy).to.have.been.calledWith(uri);
+    });
+
+    test("runQuery should prevent concurrent execution dispatch for same URI", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+
+        let resolveRunner: (value: QueryRunner) => void;
+        const runnerPromise = new Promise<QueryRunner>((resolve) => {
+            resolveRunner = resolve;
+        });
+
+        const onCompleteEmitter = new vscode.EventEmitter<void>();
+        const mockRunner = {
+            uri: uri,
+            runQuery: sandbox.stub().resolves(),
+            onComplete: onCompleteEmitter.event,
+        } as unknown as QueryRunner;
+
+        const initializeStub = sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .returns(runnerPromise);
+
+        const firstRunPromise = contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        const secondRunPromise = contentProvider.runQuery(
+            statusViewInstance,
+            uri,
+            undefined,
+            title,
+        );
+
+        expect(initializeStub).to.have.been.calledOnce;
+        expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+
+        resolveRunner!(mockRunner);
+
+        await Promise.all([firstRunPromise, secondRunPromise]);
+
+        expect((mockRunner.runQuery as sinon.SinonStub).calledOnce).to.be.true;
+
+        // Slot should still be held until query completes
+        const thirdRunPromise = contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        await thirdRunPromise;
+        expect(initializeStub).to.have.been.calledOnce; // Still only once
+        expect(vscodeWrapper.showInformationMessage).to.have.been.calledTwice;
+
+        // Simulate query completion - should release the slot
+        onCompleteEmitter.fire(undefined as any);
+
+        // Now a new query should be allowed
+        const resolvedRunner2 = {
+            uri: uri,
+            runQuery: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+        initializeStub.resolves(resolvedRunner2);
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        expect(initializeStub).to.have.been.calledTwice;
+
+        onCompleteEmitter.dispose();
+    });
+
+    test("runQuery should release execution slot when initialization throws", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const onCompleteEmitter = new vscode.EventEmitter<void>();
+        const mockRunner = {
+            uri: uri,
+            runQuery: sandbox.stub().resolves(),
+            onComplete: onCompleteEmitter.event,
+        } as unknown as QueryRunner;
+
+        const initializeStub = sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .onFirstCall()
+            .rejects(new Error("init failed"))
+            .onSecondCall()
+            .resolves(mockRunner);
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+
+        expect(initializeStub).to.have.been.calledTwice;
+        expect(vscodeWrapper.showInformationMessage).to.not.have.been.called;
+        expect((mockRunner.runQuery as sinon.SinonStub).calledOnce).to.be.true;
+
+        onCompleteEmitter.dispose();
+    });
+
+    test("runCurrentStatement should release execution slot when initialization throws", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const selection: ISelectionData = {
+            startLine: 1,
+            startColumn: 1,
+            endLine: 1,
+            endColumn: 1,
+        };
+        const mockRunner = {
+            uri: uri,
+            runStatement: sandbox.stub().resolves(),
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+
+        const initializeStub = sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .onFirstCall()
+            .rejects(new Error("init failed"))
+            .onSecondCall()
+            .resolves(mockRunner);
+
+        let thrown = false;
+        try {
+            await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
+        } catch {
+            thrown = true;
+        }
+
+        await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
+
+        expect(thrown).to.be.true;
+        expect(initializeStub).to.have.been.calledTwice;
+        expect(vscodeWrapper.showInformationMessage).to.not.have.been.called;
+        expect((mockRunner.runStatement as sinon.SinonStub).calledOnce).to.be.true;
     });
 });

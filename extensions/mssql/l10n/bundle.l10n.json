@@ -236,6 +236,14 @@
     "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
     "Don't Save": "Don't Save",
     "Enable Code Analysis on Build": "Enable Code Analysis on Build",
+    "Search rules...": "Search rules...",
+    "Filter by severity": "Filter by severity",
+    "All severities": "All severities",
+    "No rules match the current filter.": "No rules match the current filter.",
+    "{0} of {1} rules/{0} is the filtered count, {1} is the total count": {
+        "message": "{0} of {1} rules",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
+    },
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -2261,6 +2269,7 @@
         "message": "An error occurred while retrieving rows: {0}",
         "comment": ["{0} is the error message"]
     },
+    "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
     "{0} stopped successfully./{0} stopped successfully.": {
         "message": "{0} stopped successfully.",
         "comment": ["{0} stopped successfully."]
@@ -2395,6 +2404,11 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
+    "Webview '{0}' did not become ready within {1}ms/{0} is the webview name{1} is the timeout in milliseconds": {
+        "message": "Webview '{0}' did not become ready within {1}ms",
+        "comment": ["{0} is the webview name", "{1} is the timeout in milliseconds"]
+    },
+    "Webview was disposed before it became ready": "Webview was disposed before it became ready",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",

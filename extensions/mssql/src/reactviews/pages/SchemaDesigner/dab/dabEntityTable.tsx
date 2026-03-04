@@ -23,7 +23,9 @@ import {
     ChevronDown16Regular,
     ChevronRight16Regular,
     Settings16Regular,
+    Table16Regular,
 } from "@fluentui/react-icons";
+import { Schema16Regular } from "../../../common/icons/fluentIcons";
 import { useCallback, useMemo, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
@@ -83,16 +85,29 @@ const useStyles = makeStyles({
     entityCellDisabled: {
         opacity: 0.6,
     },
+    entityNameCell: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        minWidth: 0,
+        overflow: "hidden",
+    },
     entityName: {
         fontWeight: 600,
         fontSize: "13px",
+        minWidth: 0,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
     },
+    sourceCell: {
+        minWidth: 0,
+        overflow: "hidden",
+    },
     sourceText: {
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
+        minWidth: 0,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -301,6 +316,7 @@ export const DabEntityTable = () => {
                                         }
                                     }}
                                 />
+                                <Schema16Regular />
                                 <Text className={classes.schemaLabel}>{schemaName}</Text>
                                 <Text className={classes.schemaCount}>
                                     {enabledCount}/{entities.length}
@@ -348,7 +364,8 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={`${classes.entityNameCell} ${disabledClass}`}>
+                            <Table16Regular />
                             <Text className={classes.entityName}>
                                 {item.entity.advancedSettings.entityName}
                             </Text>
@@ -365,7 +382,7 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={`${classes.sourceCell} ${disabledClass}`}>
                             <Text className={classes.sourceText}>
                                 {item.entity.schemaName}.{item.entity.tableName}
                             </Text>
