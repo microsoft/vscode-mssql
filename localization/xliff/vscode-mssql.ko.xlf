@@ -2272,10 +2272,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">이 엔드포인트에 접근할 수 있는 사용자 정의</target>
       </trans-unit>
-      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
-        <source xml:lang="en">Definition</source>
-        <target state="translated">정의</target>
-      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -2627,7 +2623,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
         <source xml:lang="en">Enable Code Analysis on Build</source>
-        <target state="new">Enable Code Analysis on Build</target>
+        <target state="translated">빌드에 코드 분석 사용</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -3615,7 +3611,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
         <source xml:lang="en">File path</source>
-        <target state="new">File path</target>
+        <target state="translated">파일 경로</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -6047,10 +6043,6 @@ Error:
         <source xml:lang="en">Publish</source>
         <target state="translated">게시</target>
       </trans-unit>
-      <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
-        <source xml:lang="en">Publish Changes</source>
-        <target state="translated">변경 내용 게시</target>
-      </trans-unit>
       <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
         <source xml:lang="en">Publish DACPAC</source>
         <target state="translated">DACPAC 게시</target>
@@ -7279,6 +7271,10 @@ Query: {2}</source>
         <source xml:lang="en">Show Confirm Password</source>
         <target state="translated">암호 확인 표시</target>
       </trans-unit>
+      <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
+        <source xml:lang="en">Show Definition</source>
+        <target state="new">Show Definition</target>
+      </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">MSSQL 출력 표시</target>
@@ -8352,7 +8348,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
         <source xml:lang="en">View Config</source>
-        <target state="new">View Config</target>
+        <target state="translated">구성 보기</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>

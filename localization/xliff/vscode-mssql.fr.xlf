@@ -539,7 +539,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
-        <target state="new">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</target>
+        <target state="translated">Posez des questions ou proposez des modifications de schéma dans la conversation, et GitHub Copilot met instantanément à jour le schéma dans le diagramme.</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -859,7 +859,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
-        <target state="new">Build APIs with GitHub Copilot</target>
+        <target state="translated">Créez des API avec GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -1342,7 +1342,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
         <source xml:lang="en">Code analysis rules saved successfully</source>
-        <target state="new">Code analysis rules saved successfully</target>
+        <target state="translated">Les règles de Code Analysis ont bien été enregistrées</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -2272,10 +2272,6 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">Définissez qui peut accéder à ce point de terminaison</target>
       </trans-unit>
-      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
-        <source xml:lang="en">Definition</source>
-        <target state="translated">Définition</target>
-      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -2401,7 +2397,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
         <source xml:lang="en">Design Schemas with GitHub Copilot</source>
-        <target state="new">Design Schemas with GitHub Copilot</target>
+        <target state="translated">Schémas de conception avec GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -2531,7 +2527,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
         <source xml:lang="en">Don't Save</source>
-        <target state="new">Don't Save</target>
+        <target state="translated">Ne pas enregistrer</target>
       </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
@@ -2627,7 +2623,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
         <source xml:lang="en">Enable Code Analysis on Build</source>
-        <target state="new">Enable Code Analysis on Build</target>
+        <target state="translated">Activer l'analyse du code sur la build</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -3449,7 +3445,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
         <source xml:lang="en">Failed to read saved rule overrides from project</source>
-        <target state="new">Failed to read saved rule overrides from project</target>
+        <target state="translated">Nous n’avons pas pu lire les remplacements de règles enregistrés à partir du projet</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -3486,7 +3482,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
         <source xml:lang="en">Failed to save code analysis rules</source>
-        <target state="new">Failed to save code analysis rules</target>
+        <target state="translated">Nous n’avons pas pu charger les règles de Code Analysis</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3615,7 +3611,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
         <source xml:lang="en">File path</source>
-        <target state="new">File path</target>
+        <target state="translated">Chemin d’accès au fichier</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -3799,7 +3795,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
         <source xml:lang="en">Folder path</source>
-        <target state="new">Folder path</target>
+        <target state="translated">Chemin d’accès au dossier</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -5608,7 +5604,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
-        <target state="new">Open in GitHub Copilot Chat</target>
+        <target state="translated">Ouvrir dans GitHub Copilot Chat</target>
       </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
@@ -5789,11 +5785,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e08a733c492b2319e9a7c554501990699416bcc3636fae9900a228f1f37a5785">
         <source xml:lang="en">Please choose a backup file to load restore plan</source>
-        <target state="new">Please choose a backup file to load restore plan</target>
+        <target state="translated">Veuillez choisir un fichier de sauvegarde pour charger le plan de restauration</target>
       </trans-unit>
       <trans-unit id="++CODE++a38b089912dad09f6f13bc29ac4da6d9ee55ac22e8e1dff35c42b0ffac3331d5">
         <source xml:lang="en">Please choose a blob to load restore plan</source>
-        <target state="new">Please choose a blob to load restore plan</target>
+        <target state="translated">Veuillez choisir un blob pour charger le plan de restauration</target>
       </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
@@ -5841,7 +5837,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
         <source xml:lang="en">Please select a file, not a folder.</source>
-        <target state="new">Please select a file, not a folder.</target>
+        <target state="translated">Sélectionnez un fichier et non un dossier.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6046,10 +6042,6 @@ Erreur :
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
         <target state="translated">Publier</target>
-      </trans-unit>
-      <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
-        <source xml:lang="en">Publish Changes</source>
-        <target state="translated">Publier les modifications</target>
       </trans-unit>
       <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
         <source xml:lang="en">Publish DACPAC</source>
@@ -6360,7 +6352,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
         <source xml:lang="en">Reset to Defaults?</source>
-        <target state="new">Reset to Defaults?</target>
+        <target state="translated">Réinitialiser les valeurs par défaut ?</target>
       </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
@@ -6491,7 +6483,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
         <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
-        <target state="new">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</target>
+        <target state="translated">Examinez ou proposez des modifications de configuration d'API dans la conversation, et GitHub Copilot met instantanément à jour votre configuration dans le générateur d'API de données.</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -7279,6 +7271,10 @@ Requête : {2}</target>
         <source xml:lang="en">Show Confirm Password</source>
         <target state="translated">Afficher le mot de passe de confirmation</target>
       </trans-unit>
+      <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
+        <source xml:lang="en">Show Definition</source>
+        <target state="new">Show Definition</target>
+      </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">Afficher la sortie MSSQL</target>
@@ -8004,7 +8000,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
-        <target state="new">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</target>
+        <target state="translated">Cette opération réinitialise la gravité de toutes les règles à leur valeur par défaut et désactive l’option « Activer Code Analysis lors de la génération ». Cette action est irréversible. Souhaitez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -8118,7 +8114,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
         <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="new">Unable to read proxy agent options.</target>
+        <target state="translated">Impossible de lire les options de l'agent proxy.</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -8193,7 +8189,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
         <source xml:lang="en">Unsaved Changes</source>
-        <target state="new">Unsaved Changes</target>
+        <target state="translated">Modifications non enregistrées</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -8352,7 +8348,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
         <source xml:lang="en">View Config</source>
-        <target state="new">View Config</target>
+        <target state="translated">Voir la configuration</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -8479,7 +8475,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
         <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
-        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
+        <target state="translated">Vous avez des modifications non enregistrées. Voulez-vous enregistrer avant de fermer ?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -8988,7 +8984,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
-        <target state="new">Cancel Connection</target>
+        <target state="translated">Annuler la connexion</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
