@@ -64,7 +64,7 @@ const useStyles = makeStyles({
         flexShrink: 0,
     },
     rowsAccent: {
-        color: "var(--vscode-textLink-foreground)",
+        color: "var(--vscode-terminal-ansiBlue)",
     },
     timeAccent: {
         color: "var(--vscode-terminal-ansiYellow)",
@@ -105,11 +105,28 @@ const useStyles = makeStyles({
     selectionTooltipText: {
         whiteSpace: "pre-line",
     },
+    selectionTooltipMetrics: {
+        minWidth: "180px",
+        display: "grid",
+        rowGap: "6px",
+    },
+    selectionTooltipMetricRow: {
+        display: "grid",
+        gridTemplateColumns: "max-content minmax(0, 1fr)",
+        columnGap: "12px",
+        alignItems: "baseline",
+    },
     selectionMetricLabel: {
         color: "var(--vscode-descriptionForeground)",
     },
     selectionMetricValue: {
-        color: "var(--vscode-textLink-foreground)",
+        color: "var(--vscode-terminal-ansiBlue)",
+    },
+    selectionTooltipMetricValue: {
+        justifySelf: "end",
+        textAlign: "right",
+        fontVariantNumeric: "tabular-nums",
+        fontFeatureSettings: '"tnum"',
     },
     cancelled: {
         color: "var(--vscode-errorForeground)",
@@ -307,7 +324,7 @@ function parseSelectionMetrics(text: string): Array<{ label: string; value: stri
     const metricRegex = /([A-Z]+):\s*([^:\n]+?)(?=(?:\s{2,}[A-Z]+:)|$|\n)/g;
     let match: RegExpExecArray | null;
 
-    while ((match = metricRegex.exec(text)) !== null) {
+    while ((match = metricRegex.exec(text))) {
         const label = match[1];
         const value = match[2].trim();
         if (!metricMap.has(label)) {
@@ -335,7 +352,7 @@ function parseSelectionMetrics(text: string): Array<{ label: string; value: stri
     return [...orderedKnownMetrics, ...orderedUnknownMetrics];
 }
 
-function renderSelectionMetricsInline(text: string, classes: Record<string, string>): JSX.Element {
+function renderSelectionMetricsInline(text: string, classes: Record<string, string>) {
     const metrics = parseSelectionMetrics(text);
     if (metrics.length === 0) {
         return <span>{text}</span>;
@@ -354,22 +371,24 @@ function renderSelectionMetricsInline(text: string, classes: Record<string, stri
     );
 }
 
-function renderSelectionMetricsTooltip(text: string, classes: Record<string, string>): JSX.Element {
+function renderSelectionMetricsTooltip(text: string, classes: Record<string, string>) {
     const metrics = parseSelectionMetrics(text);
     if (metrics.length === 0) {
         return <span className={classes.selectionTooltipText}>{text}</span>;
     }
 
     return (
-        <span className={classes.selectionTooltipText}>
-            {metrics.map((metric, index) => (
-                <Fragment key={`${metric.label}-tooltip-${index}`}>
-                    {index > 0 ? " \u00b7 " : ""}
-                    <span className={classes.selectionMetricLabel}>{metric.label}:</span>{" "}
-                    <span className={classes.selectionMetricValue}>{metric.value}</span>
-                </Fragment>
+        <div className={classes.selectionTooltipMetrics}>
+            {metrics.map((metric) => (
+                <div className={classes.selectionTooltipMetricRow} key={`${metric.label}-tooltip`}>
+                    <span className={classes.selectionMetricLabel}>{metric.label}:</span>
+                    <span
+                        className={`${classes.selectionMetricValue} ${classes.selectionTooltipMetricValue}`}>
+                        {metric.value}
+                    </span>
+                </div>
             ))}
-        </span>
+        </div>
     );
 }
 
@@ -385,6 +404,7 @@ export const QueryResultSummaryFooter = ({
     const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
     const messages = useQueryResultSelector((state) => state.messages);
     const selectionSummary = useQueryResultSelector((state) => state.selectionSummary);
+    const tabStates = useQueryResultSelector((state) => state.tabStates);
     const isExecuting = useQueryResultSelector((state) => state.isExecuting ?? false);
     const executionStartTime = useQueryResultSelector((state) => state.executionStartTime);
     const [tickTimestamp, setTickTimestamp] = useState<number>(Date.now());
@@ -452,6 +472,14 @@ export const QueryResultSummaryFooter = ({
     );
     const compactRowsText =
         typeof rowsAffectedCount === "number" ? rowsAffectedCount.toLocaleString() : "0";
+    const isTextResultsView =
+        tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results &&
+        tabStates?.resultViewMode === qr.QueryResultViewMode.Text;
+    const isMessagesPane = tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Messages;
+
+    if (isTextResultsView || isMessagesPane) {
+        return <Fragment />;
+    }
 
     return (
         <div className={classes.footer}>
