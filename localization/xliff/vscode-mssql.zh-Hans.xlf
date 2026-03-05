@@ -8990,6 +8990,10 @@ Query: {2}</source>
         <source xml:lang="en">Backup Database (Preview)</source>
         <target state="translated">备份数据库(预览版)</target>
       </trans-unit>
+      <trans-unit id="mssql.buildDataApi">
+        <source xml:lang="en">Build Data API (Preview)...</source>
+        <target state="new">Build Data API (Preview)...</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
         <target state="translated">取消连接</target>
@@ -9574,10 +9578,6 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">架构比较</target>
       </trans-unit>
-      <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Schema Designer</source>
-        <target state="translated">架构设计器</target>
-      </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
         <target state="translated">撰写为 Alter 的脚本</target>
@@ -9835,6 +9835,10 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">可视化查询计划</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Visualize and Design Schema...</source>
+        <target state="new">Visualize and Design Schema...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
