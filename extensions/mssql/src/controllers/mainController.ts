@@ -937,6 +937,7 @@ export default class MainController implements vscode.Disposable {
     private async openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void> {
         const scenario = args?.scenario ?? "schemaDesigner";
         const entryPoint = args?.entryPoint ?? "schemaDesignerToolbar";
+        const promptOverride = args?.prompt?.trim();
         const sendCopilotChatEntryTelemetry = (
             success: boolean,
             reason?: "noActiveDesigner" | "chatCommandMissing",
@@ -967,10 +968,11 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        await vscode.commands.executeCommand(
-            chatCommand,
-            this.getCopilotChatPromptForScenario(scenario),
-        );
+        const promptToUse =
+            promptOverride && promptOverride.length > 0
+                ? promptOverride
+                : this.getCopilotChatPromptForScenario(scenario);
+        await vscode.commands.executeCommand(chatCommand, promptToUse);
         sendCopilotChatEntryTelemetry(true);
     }
 
