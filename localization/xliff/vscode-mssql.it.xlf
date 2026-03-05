@@ -4760,6 +4760,23 @@ Errore:
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">Feedback MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
+        <source xml:lang="en">MSSQL Notebook connected to {0}</source>
+        <note>{0} is the connection label</note>
+        <target state="new">MSSQL Notebook connected to {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
+        <source xml:lang="en">MSSQL: Click to change database</source>
+        <target state="new">MSSQL: Click to change database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f993c79609a3d00c82d5214040869fd0b15ab7404074bc3fcf8111fcc88c5d45">
+        <source xml:lang="en">MSSQL: Click to connect</source>
+        <target state="new">MSSQL: Click to connect</target>
+      </trans-unit>
+      <trans-unit id="++CODE++99a3297c47d9336c0c32fe572074cba7cd53bf9b0d5988c14d3335dd468e2c37">
+        <source xml:lang="en">MSSQL: Not connected</source>
+        <target state="new">MSSQL: Not connected</target>
+      </trans-unit>
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
         <target state="translated">MSSQL: benvenuto e novità</target>
@@ -6127,9 +6144,9 @@ Errore:
         <source xml:lang="en">Query execution failed</source>
         <target state="translated">Esecuzione della query non riuscita</target>
       </trans-unit>
-      <trans-unit id="++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974">
-        <source xml:lang="en">Query execution was cancelled.</source>
-        <target state="translated">L'esecuzione della query è stata annullata.</target>
+      <trans-unit id="++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753">
+        <source xml:lang="en">Query execution was canceled.</source>
+        <target state="new">Query execution was canceled.</target>
       </trans-unit>
       <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
         <source xml:lang="en">Query failed</source>
@@ -6578,19 +6595,6 @@ Query: {2}</target>
         <source xml:lang="en">SQL Login</source>
         <target state="translated">Account di accesso SQL</target>
       </trans-unit>
-      <trans-unit id="++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9">
-        <source xml:lang="en">SQL Notebook connected to {0}</source>
-        <note>{0} is the connection label</note>
-        <target state="translated">Notebook SQL connesso a {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7">
-        <source xml:lang="en">SQL Notebooks: click to change database</source>
-        <target state="translated">Notebook SQL: fare clic per modificare il database</target>
-      </trans-unit>
-      <trans-unit id="++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58">
-        <source xml:lang="en">SQL Notebooks: click to connect</source>
-        <target state="translated">Notebook SQL: fare clic per connettersi</target>
-      </trans-unit>
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">File di piano SQL</target>
@@ -6619,10 +6623,6 @@ Query: {2}</target>
       <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
         <source xml:lang="en">SQL database in Fabric (Preview)</source>
         <target state="translated">Database SQL in Fabric (anteprima)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94">
-        <source xml:lang="en">SQL: Not connected</source>
-        <target state="translated">SQL: non connesso</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
