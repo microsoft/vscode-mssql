@@ -562,6 +562,8 @@
     },
     "Chat": "Chat",
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
+    "Ask GitHub Copilot to Fix": "Ask GitHub Copilot to Fix",
+    "Open GitHub Copilot Chat to help fix these errors": "Open GitHub Copilot Chat to help fix these errors",
     "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
