@@ -3641,12 +3641,6 @@
     <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
       <source xml:lang="en">MSSQL: Click to change database</source>
     </trans-unit>
-    <trans-unit id="++CODE++f993c79609a3d00c82d5214040869fd0b15ab7404074bc3fcf8111fcc88c5d45">
-      <source xml:lang="en">MSSQL: Click to connect</source>
-    </trans-unit>
-    <trans-unit id="++CODE++99a3297c47d9336c0c32fe572074cba7cd53bf9b0d5988c14d3335dd468e2c37">
-      <source xml:lang="en">MSSQL: Not connected</source>
-    </trans-unit>
     <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
       <source xml:lang="en">MSSQL: Welcome &amp; What&apos;s New</source>
     </trans-unit>
