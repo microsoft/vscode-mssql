@@ -139,7 +139,7 @@ suite("DabTool Tests", () => {
             expect(parsed.reason).to.equal("target_mismatch");
             expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
-            expect(mockDesigner.showDabView.called).to.equal(false);
+            expect(mockDesigner.showView.called).to.equal(false);
         });
 
         test("enforces strict targetHint match when active server is missing", async () => {
@@ -168,7 +168,7 @@ suite("DabTool Tests", () => {
             expect(parsed.reason).to.equal("target_mismatch");
             expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
-            expect(mockDesigner.showDabView.called).to.equal(false);
+            expect(mockDesigner.showView.called).to.equal(false);
         });
 
         test("accepts case-insensitive targetHint match and applies changes", async () => {
@@ -253,7 +253,7 @@ suite("DabTool Tests", () => {
             expect(parsed.message).to.equal("Missing payload.expectedVersion.");
             expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
-            expect(mockDesigner.showDabView.called).to.equal(false);
+            expect(mockDesigner.showView.called).to.equal(false);
         });
 
         test("returns invalid_request when apply_changes is missing changes", async () => {
@@ -278,7 +278,7 @@ suite("DabTool Tests", () => {
             expect(parsed.message).to.equal("Missing payload.changes (non-empty array).");
             expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
-            expect(mockDesigner.showDabView.called).to.equal(false);
+            expect(mockDesigner.showView.called).to.equal(false);
         });
 
         test("maps apply_changes success receipt counts for all change types", async () => {
@@ -378,7 +378,7 @@ suite("DabTool Tests", () => {
             expect(parsed.summary.entityCount).to.equal(2);
             expect(mockDesigner.getDabToolState.calledOnce).to.equal(true);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
-            expect(mockDesigner.showDabView.called).to.equal(false);
+            expect(mockDesigner.showView.called).to.equal(false);
         });
 
         test("maps apply_changes success from webview and adds receipt counts", async () => {
@@ -437,7 +437,7 @@ suite("DabTool Tests", () => {
             });
             expect(mockDesigner.applyDabToolChanges.calledOnce).to.equal(true);
             expect(mockDesigner.revealToForeground.calledOnce).to.equal(true);
-            expect(mockDesigner.showDabView.calledOnce).to.equal(true);
+            expect(mockDesigner.showView.calledOnce).to.equal(true);
         });
 
         test("maps apply_changes failure from webview including version/summary", async () => {
@@ -495,7 +495,7 @@ suite("DabTool Tests", () => {
             expect(parsed.returnState).to.equal("none");
             expect(parsed.stateOmittedReason).to.equal("caller_requested_none");
             expect(mockDesigner.revealToForeground.calledOnce).to.equal(true);
-            expect(mockDesigner.showDabView.calledOnce).to.equal(true);
+            expect(mockDesigner.showView.calledOnce).to.equal(true);
         });
 
         test("maps apply_changes failure with config payload when provided by webview", async () => {

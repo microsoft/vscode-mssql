@@ -6852,6 +6852,9 @@
     <trans-unit id="mssql.backupDatabase">
       <source xml:lang="en">Backup Database (Preview)</source>
     </trans-unit>
+    <trans-unit id="mssql.buildDataApi">
+      <source xml:lang="en">Build Data API (Preview)...</source>
+    </trans-unit>
     <trans-unit id="mssql.cancelConnect">
       <source xml:lang="en">Cancel Connection</source>
     </trans-unit>
@@ -7284,9 +7287,6 @@
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
-    <trans-unit id="mssql.schemaDesigner">
-      <source xml:lang="en">Schema Designer</source>
-    </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
     </trans-unit>
@@ -7478,6 +7478,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.schemaDesigner">
+      <source xml:lang="en">Visualize and Design Schema...</source>
     </trans-unit>
     <trans-unit id="mssql.transferActiveEditorConnections.description">
       <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>

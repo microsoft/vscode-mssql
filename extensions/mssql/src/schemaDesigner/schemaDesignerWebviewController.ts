@@ -540,10 +540,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
     }
 
-    public showDabView(): void {
+    public showView(view: SchemaDesigner.SchemaDesignerActiveView): void {
         this.updateState({
             ...this.state,
-            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+            activeView: view,
         });
     }
 
