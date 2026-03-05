@@ -32,8 +32,8 @@
     padding: 4px;
     border-right: 1px solid silver;
     border-left: 0px !important;
-    border-top: 0px !important;
-    border-bottom: 2px solid #bbb;
+    border-top: 1px solid silver !important;
+    border-bottom: 1px solid silver !important;
     float: left;
     background-color: #eee;
     box-sizing: border-box;
@@ -89,6 +89,14 @@
     position: absolute;
     border: 0px;
     width: 100%;
+}
+
+.slick-row.even {
+    background-color: var(--vscode-editor-background);
+}
+
+.slick-row.odd {
+    background-color: var(--vscode-editorWidget-background);
 }
 
 .slick-cell,
