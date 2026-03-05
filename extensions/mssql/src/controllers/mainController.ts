@@ -1792,6 +1792,7 @@ export default class MainController implements vscode.Disposable {
                             node,
                         );
 
+                    schemaDesigner.showSchemaDesignerView();
                     schemaDesigner.revealToForeground();
                 },
             ),
