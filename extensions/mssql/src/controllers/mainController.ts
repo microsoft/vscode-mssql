@@ -64,6 +64,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
@@ -882,6 +883,7 @@ export default class MainController implements vscode.Disposable {
             undefined,
             connectionUri,
         );
+        designer.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
         designer.revealToForeground();
         return designer;
     }
@@ -1792,7 +1794,7 @@ export default class MainController implements vscode.Disposable {
                             node,
                         );
 
-                    schemaDesigner.showSchemaDesignerView();
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
                     schemaDesigner.revealToForeground();
                 },
             ),
@@ -1812,7 +1814,7 @@ export default class MainController implements vscode.Disposable {
                             node,
                         );
 
-                    schemaDesigner.showDabView();
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
                     schemaDesigner.revealToForeground();
                 },
             ),

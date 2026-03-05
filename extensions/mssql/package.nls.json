@@ -226,7 +226,7 @@
     "mssql.userFeedback": "Send Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
     "mssql.schemaDesigner": "Visualize and Design Schema...",
-    "mssql.buildDataApi": "Build Data API...",
+    "mssql.buildDataApi": "Build Data API (Preview)...",
     "mssql.newDeployment": "New Deployment",
     "mssql.stopContainer": "Stop Container",
     "mssql.deleteContainer": "Delete Container",
