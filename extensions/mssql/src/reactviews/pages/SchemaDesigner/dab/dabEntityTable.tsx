@@ -16,6 +16,7 @@ import {
     TableColumnSizingOptions,
     createTableColumn,
     makeStyles,
+    mergeClasses,
     Text,
     tokens,
 } from "@fluentui/react-components";
@@ -276,7 +277,7 @@ export const DabEntityTable = () => {
             return (
                 <DataGridRow
                     key={rowId}
-                    className={`${classes.schemaRow} ${classes.rowNoHighlight}`}
+                    className={mergeClasses(classes.schemaRow, classes.rowNoHighlight)}
                     onClick={() => toggleSchemaCollapsed(schemaName)}>
                     {({ columnId }) => {
                         if (columnId !== "checkbox") {
@@ -348,7 +349,7 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={mergeClasses(classes.entityNameCell, disabledClass)}>
                             <Text className={classes.entityName}>
                                 {item.entity.advancedSettings.entityName}
                             </Text>
@@ -365,7 +366,7 @@ export const DabEntityTable = () => {
                     }
                     const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={mergeClasses(classes.sourceCell, disabledClass)}>
                             <Text className={classes.sourceText}>
                                 {item.entity.schemaName}.{item.entity.tableName}
                             </Text>
