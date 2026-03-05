@@ -303,7 +303,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Notebook cells are managed by SqlNotebookController, not the
         // global ConnectionManager / StatusView. Skip to avoid duplicate
         // status bar items and unwanted auto-connect attempts.
-        if (doc.uri.scheme === "vscode-notebook-cell") {
+        if (this.isNotebookCell(doc)) {
             return;
         }
 
@@ -384,9 +384,9 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Notebook cells have their own connection status bar managed by
         // SqlNotebookController. Skip StatusView updates so we don't show
-        // duplicate status bar items (e.g. "Connect to MSSQL" alongside
-        // the notebook's "MSSQL: Not connected").
-        if (editor.document.uri.scheme === "vscode-notebook-cell") {
+        // duplicate connection status bar items for both the query editor
+        // and the notebook.
+        if (this.isNotebookCell(editor.document)) {
             return;
         }
 
@@ -610,6 +610,10 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Update the URI in the output content provider, which will transfer query runner and webview state to the new URI
         await this._outputContentProvider?.updateQueryRunnerUri(oldUri, newUri);
+    }
+
+    private isNotebookCell(doc: vscode.TextDocument): boolean {
+        return doc.uri.scheme === "vscode-notebook-cell";
     }
 }
 
