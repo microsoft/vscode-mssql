@@ -269,14 +269,14 @@ export class SqlNotebookController implements vscode.Disposable {
         }
         const mgr = this.connections.get(notebook.uri.toString());
         if (mgr?.isConnected()) {
-            this.statusBarItem.text = `$(database) ${mgr.getConnectionLabel()}`;
+            this.statusBarItem.text = `$(check) ${mgr.getConnectionLabel()}`;
             this.statusBarItem.tooltip =
                 LocalizedConstants.Notebooks.statusBarClickToChangeDatabase;
             this.statusBarItem.command = Constants.cmdNotebooksChangeDatabase;
             this.statusBarItem.show();
         } else {
-            this.statusBarItem.text = `$(database) ${LocalizedConstants.Notebooks.statusBarNotConnected}`;
-            this.statusBarItem.tooltip = LocalizedConstants.Notebooks.statusBarClickToConnect;
+            this.statusBarItem.text = `$(plug) ${LocalizedConstants.StatusBar.disconnectedLabel}`;
+            this.statusBarItem.tooltip = LocalizedConstants.StatusBar.notConnectedTooltip;
             this.statusBarItem.command = Constants.cmdNotebooksChangeConnection;
             this.statusBarItem.show();
         }
