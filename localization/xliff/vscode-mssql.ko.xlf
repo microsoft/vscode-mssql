@@ -537,6 +537,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">계속하시겠어요?</target>
       </trans-unit>
+      <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
+        <source xml:lang="en">Ask GitHub Copilot to Fix</source>
+        <target state="new">Ask GitHub Copilot to Fix</target>
+      </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
         <target state="translated">채팅에서 질문하거나 스키마 변경을 제안하면 GitHub Copilot이 다이어그램에서 스키마를 바로 업데이트합니다.</target>
@@ -5590,6 +5594,10 @@ Error:
       <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
         <source xml:lang="en">Open File</source>
         <target state="translated">파일 열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
+        <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
+        <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
