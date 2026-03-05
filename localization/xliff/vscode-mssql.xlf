@@ -6850,7 +6850,7 @@
       <source xml:lang="en">Backup Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.buildDataApi">
-      <source xml:lang="en">Build Data API...</source>
+      <source xml:lang="en">Build Data API (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.cancelConnect">
       <source xml:lang="en">Cancel Connection</source>
