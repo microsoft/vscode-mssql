@@ -16,8 +16,7 @@ import { ShowChangesButton } from "./showChangesButton";
 import { ShowCopilotChangesButton } from "./showCopilotChangesButton";
 import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 import { DesignApiButton } from "./designApiButton";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerToolbarContext } from "./schemaDesignerToolbarContext";
 
@@ -50,7 +49,6 @@ export function SchemaDesignerToolbar({
     showDiscovery,
     onNavigateToDab,
 }: SchemaDesignerToolbarProps) {
-    const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
     const toolbarRef = useRef<HTMLDivElement | null>(null);
     const [isCompact, setIsCompact] = useState(false);
@@ -104,7 +102,7 @@ export function SchemaDesignerToolbar({
                 <Toolbar ref={toolbarRef} size="small" className={classes.toolbar}>
                     <PublishChangesDialogButton />
                     <ViewDefinitionsButton />
-                    {context.isDabEnabled() && <ShowChangesButton />}
+                    <ShowChangesButton />
                     <ExportDiagramButton />
                     <ToolbarDivider />
                     <UndoRedoButtons />
@@ -114,26 +112,22 @@ export function SchemaDesignerToolbar({
                     <ToolbarDivider />
                     <AutoArrangeButton />
                     <FilterTablesButton />
-                    {context.isDabEnabled() && (
-                        <>
-                            <ToolbarDivider />
-                            <SchemaDesignerWebviewCopilotChatEntry
-                                scenario="schemaDesigner"
-                                entryPoint="schemaDesignerToolbar"
-                                discoveryTitle={
-                                    locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryTitle
-                                }
-                                discoveryBody={
-                                    locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryBody
-                                }
-                                showDiscovery={showDiscovery}
-                                hideLabel={isCompact}
-                            />
-                            <ShowCopilotChangesButton />
-                            <ToolbarDivider />
-                            <DesignApiButton onNavigateToDab={onNavigateToDab} />
-                        </>
-                    )}
+                    <ToolbarDivider />
+                    <SchemaDesignerWebviewCopilotChatEntry
+                        scenario="schemaDesigner"
+                        entryPoint="schemaDesignerToolbar"
+                        discoveryTitle={
+                            locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryTitle
+                        }
+                        discoveryBody={
+                            locConstants.schemaDesigner.schemaDesignerCopilotDiscoveryBody
+                        }
+                        showDiscovery={showDiscovery}
+                        hideLabel={isCompact}
+                    />
+                    <ShowCopilotChangesButton />
+                    <ToolbarDivider />
+                    <DesignApiButton onNavigateToDab={onNavigateToDab} />
                 </Toolbar>
             </div>
         </SchemaDesignerToolbarContext.Provider>

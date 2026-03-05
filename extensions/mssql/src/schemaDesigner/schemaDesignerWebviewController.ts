@@ -14,10 +14,7 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import {
-    configEnableDab,
-    configSchemaDesignerEnableExpandCollapseButtons,
-} from "../constants/constants";
+import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
@@ -30,10 +27,6 @@ function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
-}
-
-function isDABEnabled(): boolean {
-    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
 function isCopilotChatInstalled(): boolean {
@@ -85,7 +78,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
-                enableDAB: isDABEnabled(),
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
@@ -487,13 +479,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 this.updateState({
                     ...this.state,
                     enableExpandCollapseButtons: newValue,
-                });
-            }
-            if (e.affectsConfiguration(configEnableDab)) {
-                const newValue = isDABEnabled();
-                this.updateState({
-                    ...this.state,
-                    enableDAB: newValue,
                 });
             }
         });
