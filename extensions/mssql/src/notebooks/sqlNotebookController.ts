@@ -348,10 +348,16 @@ export class SqlNotebookController implements vscode.Disposable {
         }
 
         const key = `notebook.connection.${notebook.uri.toString()}`;
-        void this._workspaceState.update(key, {
-            server: info.server,
-            database: info.database,
-        });
+        this._workspaceState
+            .update(key, {
+                server: info.server,
+                database: info.database,
+            })
+            .then(undefined, (err) => {
+                this.log.warn(
+                    `[saveConnectionMetadataIfConnected] Failed to persist connection metadata for ${notebook.uri.toString()}: ${err?.message ?? err}`,
+                );
+            });
     }
 
     /**
