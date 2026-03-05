@@ -112,6 +112,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
+                if (
+                    e.affectsConfiguration(Constants.configOpenQueryResultsInTabByDefault) &&
+                    this.isOpenQueryResultsInTabByDefaultEnabled
+                ) {
+                    void this.moveCurrentPanelResultToDocumentTab();
+                }
             }),
         );
 
@@ -259,6 +265,33 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             initializationError: undefined,
         };
+    }
+
+    private getCurrentPanelResultUri(): string | undefined {
+        const stateUri = this.state?.uri;
+        if (stateUri && this._queryResultStateMap.has(stateUri) && !this.hasPanel(stateUri)) {
+            return stateUri;
+        }
+
+        const activeEditorUri = getUriKey(this.vscodeWrapper.activeTextEditor?.document?.uri);
+        if (
+            activeEditorUri &&
+            this._queryResultStateMap.has(activeEditorUri) &&
+            !this.hasPanel(activeEditorUri)
+        ) {
+            return activeEditorUri;
+        }
+
+        return undefined;
+    }
+
+    private async moveCurrentPanelResultToDocumentTab(): Promise<void> {
+        const uriToMove = this.getCurrentPanelResultUri();
+        if (!uriToMove) {
+            return;
+        }
+
+        await this.createPanelController(uriToMove);
     }
 
     public async createPanelController(uri: string) {
@@ -597,6 +630,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             true,
             vscode.ConfigurationTarget.Global,
         );
+
+        if (enabled) {
+            await this.moveCurrentPanelResultToDocumentTab();
+        }
 
         sendActionEvent(
             TelemetryViews.QueryResult,
