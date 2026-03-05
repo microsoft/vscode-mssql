@@ -321,7 +321,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
     /**
      * Read persisted connection metadata (server + database) from
-     * workspaceState, keyed by the notebook's file path.
+     * workspaceState, keyed by the notebook's URI string.
      */
     private readConnectionMetadata(
         notebook: vscode.NotebookDocument,
