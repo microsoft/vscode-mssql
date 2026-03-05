@@ -20,6 +20,7 @@ import {
 } from "./chatConstants";
 import { getErrorMessage } from "../utils/utils";
 import * as Constants from "../constants/constants";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 
 /**
  * Gets the connection button info based on current editor context.
@@ -231,6 +232,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                     undefined,
                     connectionUri,
                 );
+                designer.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
                 designer.revealToForeground();
             } else {
                 stream.markdown(

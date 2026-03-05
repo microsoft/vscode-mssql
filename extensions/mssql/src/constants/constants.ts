@@ -37,6 +37,7 @@ export const cmdrevealQueryResult = "mssql.revealQueryResult";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
+export const cmdCancelConnect = "mssql.cancelConnect";
 export const cmdChangeConnection = "mssql.changeConnection";
 export const cmdChangeDatabase = "mssql.changeDatabase";
 export const cmdChooseDatabase = "mssql.chooseDatabase";
@@ -128,6 +129,7 @@ export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.schemaDesigner";
+export const cmdBuildDataApi = "mssql.buildDataApi";
 export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
@@ -234,7 +236,6 @@ export const copilotListFunctionsToolName = "mssql_list_functions";
 export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
-export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
 
@@ -288,7 +289,7 @@ export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
-export const configEnableDab = "mssql.enableDAB";
+export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";

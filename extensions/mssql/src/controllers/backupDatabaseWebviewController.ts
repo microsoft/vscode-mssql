@@ -291,9 +291,9 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 const locBackupType = this.state.formComponents["backupType"].options.find(
                     (option) => option.value === updatedState.formState.backupType,
                 )?.displayName;
-                const splitBackupName = updatedState.formState.backupName.split("_");
+                const splitBackupName = updatedState.formState.backupName.split("-");
                 splitBackupName[1] = locBackupType;
-                updatedState.formState.backupName = splitBackupName.join("_");
+                updatedState.formState.backupName = splitBackupName.join("-");
             }
             return updatedState;
         });
@@ -369,7 +369,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.registerReducer("submitFilePath", async (state, payload) => {
             const backupViewModel = this.backupViewModel(state);
             // Check if an existing file was selected
-            const isExisting = payload.selectedPath.includes(".");
+            const isExisting = !state.fileBrowserState.showFoldersOnly;
 
             // Folder selected, generate default backup name
             if (!isExisting) {
@@ -415,11 +415,11 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
      */
     private getDefaultBackupFileName(state: BackupDatabaseViewModel): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = `${state.databaseName}_${BackupType.Full}`;
+        let name = `${state.databaseName}-${BackupType.Full}`;
         if (newFiles.length > 0) {
-            name += `_${newFiles.length}`;
+            name += `-${newFiles.length}`;
         }
-        return name + `_${new Date().toISOString().slice(0, 19)}.bak`;
+        return name + `-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.bak`;
     }
 
     /**

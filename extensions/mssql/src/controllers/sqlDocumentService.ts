@@ -9,7 +9,7 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
-import { removeUndefinedProperties, getUriKey } from "../utils/utils";
+import { removeUndefinedProperties, getUriKey, uuid } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
 import MainController from "./mainController";
@@ -299,6 +299,14 @@ export default class SqlDocumentService implements vscode.Disposable {
             // Avoid processing events before initialization is complete
             return;
         }
+
+        // Notebook cells are managed by SqlNotebookController, not the
+        // global ConnectionManager / StatusView. Skip to avoid duplicate
+        // status bar items and unwanted auto-connect attempts.
+        if (this.isNotebookCell(doc)) {
+            return;
+        }
+
         this._connectionMgr.onDidOpenTextDocument(doc);
         const docUri = getUriKey(doc.uri);
 
@@ -331,12 +339,18 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
+        // Check if the transfer active editor connections setting is enabled
+        const transferConnectionToOpenedDoc = vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configTransferActiveEditorConnections);
+
         /**
          * If the document is connected now, because the user didn't waitForOngoingCreates
          * or other checks to complete we don't want to overwrite that connection by
          * auto-connecting. So we skip it.
          */
         if (
+            transferConnectionToOpenedDoc &&
             !this._ownedDocuments.has(doc) &&
             !this._connectionMgr.isConnected(docUri) &&
             !this._connectionMgr.isConnecting(docUri)
@@ -365,6 +379,14 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         if (!editor?.document) {
+            return;
+        }
+
+        // Notebook cells have their own connection status bar managed by
+        // SqlNotebookController. Skip StatusView updates so we don't show
+        // duplicate connection status bar items for both the query editor
+        // and the notebook.
+        if (this.isNotebookCell(editor.document)) {
             return;
         }
 
@@ -422,7 +444,7 @@ export default class SqlDocumentService implements vscode.Disposable {
      * @returns The newly created text editor
      */
     public async newQuery(options: NewQueryOptions = {}): Promise<vscode.TextEditor> {
-        const operationKey = Utils.generateGuid();
+        const operationKey = uuid();
 
         try {
             const newQueryPromise = this.createNewQueryDocument(options);
@@ -538,7 +560,12 @@ export default class SqlDocumentService implements vscode.Disposable {
                  * show a new query editor without a connection. The user can then manually
                  * connect if they want to.
                  */
-                return this._lastActiveConnectionInfo
+
+                const transferConnectionToOpenedDoc = vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>(Constants.configTransferActiveEditorConnections);
+
+                return this._lastActiveConnectionInfo && transferConnectionToOpenedDoc
                     ? {
                           shouldConnect: true,
                           connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
@@ -583,6 +610,10 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Update the URI in the output content provider, which will transfer query runner and webview state to the new URI
         await this._outputContentProvider?.updateQueryRunnerUri(oldUri, newUri);
+    }
+
+    private isNotebookCell(doc: vscode.TextDocument): boolean {
+        return doc.uri.scheme === "vscode-notebook-cell";
     }
 }
 

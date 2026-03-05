@@ -64,6 +64,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
@@ -91,7 +92,6 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
-import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -249,6 +249,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdDisconnect);
             this._event.on(Constants.cmdDisconnect, () => {
                 void this.runAndLogErrors(this.onDisconnect());
+            });
+            this.registerCommand(Constants.cmdCancelConnect);
+            this._event.on(Constants.cmdCancelConnect, () => {
+                void this.runAndLogErrors(this.onCancelConnect());
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
@@ -837,19 +841,6 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        // Register mssql_show_schema tool
-        this._context.subscriptions.push(
-            vscode.lm.registerTool(
-                Constants.copilotShowSchemaToolName,
-                new ShowSchemaTool(
-                    this.connectionManager,
-                    async (connectionUri: string, database: string) => {
-                        await this.openSchemaDesigner(connectionUri, database);
-                    },
-                ),
-            ),
-        );
-
         // Register mssql_schema_designer tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
@@ -878,6 +869,7 @@ export default class MainController implements vscode.Disposable {
             undefined,
             connectionUri,
         );
+        designer.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
         designer.revealToForeground();
         return designer;
     }
@@ -933,6 +925,7 @@ export default class MainController implements vscode.Disposable {
     private async openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void> {
         const scenario = args?.scenario ?? "schemaDesigner";
         const entryPoint = args?.entryPoint ?? "schemaDesignerToolbar";
+        const promptOverride = args?.prompt?.trim();
         const sendCopilotChatEntryTelemetry = (
             success: boolean,
             reason?: "noActiveDesigner" | "chatCommandMissing",
@@ -963,10 +956,11 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        await vscode.commands.executeCommand(
-            chatCommand,
-            this.getCopilotChatPromptForScenario(scenario),
-        );
+        const promptToUse =
+            promptOverride && promptOverride.length > 0
+                ? promptOverride
+                : this.getCopilotChatPromptForScenario(scenario);
+        await vscode.commands.executeCommand(chatCommand, promptToUse);
         sendCopilotChatEntryTelemetry(true);
     }
 
@@ -1788,6 +1782,27 @@ export default class MainController implements vscode.Disposable {
                             node,
                         );
 
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+                    schemaDesigner.revealToForeground();
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdBuildDataApi,
+                async (node: TreeNodeInfo) => {
+                    const schemaDesigner =
+                        await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                            this._context,
+                            this._vscodeWrapper,
+                            this,
+                            this.schemaDesignerService,
+                            node.metadata.name,
+                            node,
+                        );
+
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
                     schemaDesigner.revealToForeground();
                 },
             ),
@@ -2366,6 +2381,17 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Cancel an in-progress connection, if any
+     */
+    private async onCancelConnect(): Promise<boolean> {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
+            await this._connectionMgr.onCancelConnect(false);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Manage connection profiles (create, edit, remove).
      * Public for testing purposes
      */
@@ -2899,6 +2925,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
             projectFilePath,
             this.dacFxService,
+            this.sqlProjectsService,
         );
 
         codeAnalysisWebView.revealToForeground();

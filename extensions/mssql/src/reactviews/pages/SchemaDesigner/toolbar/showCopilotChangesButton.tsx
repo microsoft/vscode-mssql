@@ -4,13 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, Button, Tooltip, makeStyles } from "@fluentui/react-components";
-import { Sparkle20Regular } from "@fluentui/react-icons";
+import { Sparkle16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
 import { useCopilotChangesContext } from "../definition/copilot/copilotChangesContext";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 const useStyles = makeStyles({
     container: {
@@ -33,6 +34,7 @@ export function ShowCopilotChangesButton() {
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
     const { trackedChanges } = useCopilotChangesContext();
     const classes = useStyles();
+    const isCompact = useIsToolbarCompact();
     const changeCount = trackedChanges.length;
 
     return (
@@ -43,11 +45,11 @@ export function ShowCopilotChangesButton() {
                 <Button
                     appearance="subtle"
                     size="small"
-                    icon={<Sparkle20Regular />}
+                    icon={<Sparkle16Regular />}
                     onClick={() => {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.CopilotChanges);
                     }}>
-                    {locConstants.schemaDesigner.showCopilotChangesButtonLabel}
+                    {!isCompact && locConstants.schemaDesigner.showCopilotChangesButtonLabel}
                 </Button>
                 {changeCount > 0 && (
                     <Badge size="small" className={classes.badge}>

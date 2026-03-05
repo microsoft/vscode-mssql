@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import {
     DefinitionPanel,
     DefinitionPanelController,
@@ -15,7 +15,7 @@ import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
 
 export interface DabDefinitionsPanelRef {
-    togglePanel: () => void;
+    openPanel: () => void;
 }
 
 export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, ref) => {
@@ -29,25 +29,18 @@ export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, re
     useImperativeHandle(
         ref,
         () => ({
-            togglePanel: () => {
-                definitionPaneRef.current?.togglePanel();
+            openPanel: () => {
+                definitionPaneRef.current?.openPanel();
             },
         }),
         [],
     );
 
-    // Auto-open the panel when a new config is generated
-    useEffect(() => {
-        if (context.dabConfigRequestId > 0) {
-            definitionPaneRef.current?.openPanel();
-        }
-    }, [context.dabConfigRequestId]);
-
     return (
         <DefinitionPanel
             ref={definitionPaneRef}
             scriptTab={{
-                value: context.dabConfigContent,
+                value: context.dabConfigTextFileContent,
                 language: "json",
                 themeKind,
                 openInEditor: context.openDabConfigInEditor,

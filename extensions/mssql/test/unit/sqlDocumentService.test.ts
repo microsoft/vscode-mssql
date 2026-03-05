@@ -480,6 +480,14 @@ suite("SqlDocumentService Tests", () => {
         expect(docUriCallback).to.equal(document.uri.toString());
     });
 
+    test("onDidOpenTextDocument should skip notebook cell documents", async () => {
+        const notebookCellDoc = mockTextDocument("vscode-notebook-cell://notebook/cell1");
+
+        await sqlDocumentService.onDidOpenTextDocument(notebookCellDoc);
+
+        expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
+    });
+
     test("newQuery should call the new query method", async () => {
         let editor: vscode.TextEditor = {
             document: {
@@ -758,6 +766,30 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService["_connectionMgr"] = originalConnectionMgr;
     });
 
+    test("onDidChangeActiveTextEditor should skip StatusView for notebook cells", async () => {
+        const hideStatusBarStub = sandbox.stub();
+        const updateStatusBarStub = sandbox.stub();
+        const updateResultsOnActiveEditorChangeStub = sandbox.stub();
+        sqlDocumentService["_statusview"] = {
+            hideLastShownStatusBar: hideStatusBarStub,
+            updateStatusBarForEditor: updateStatusBarStub,
+        } as any;
+        sqlDocumentService["_outputContentProvider"] = {
+            queryResultWebviewController: {
+                updateResultsOnActiveEditorChange: updateResultsOnActiveEditorChangeStub,
+            },
+        } as any;
+
+        const notebookCellEditor = {
+            document: mockTextDocument("vscode-notebook-cell://notebook/cell1"),
+        } as vscode.TextEditor;
+
+        await sqlDocumentService.onDidChangeActiveTextEditor(notebookCellEditor);
+
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.not.have.been.called;
+    });
+
     function setupConnectionManagerMocks(
         connectionManager: sinon.SinonStubbedInstance<ConnectionManager>,
     ): void {
@@ -989,6 +1021,48 @@ suite("SqlDocumentService Tests", () => {
 
             expect(mockLanguageFlavorChanged).to.have.been.calledOnce;
             expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
+        });
+    });
+
+    suite("transferActiveEditorConnections flag", () => {
+        let configFlagStub: sinon.SinonStub;
+
+        setup(() => {
+            configFlagStub = sandbox.stub();
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: configFlagStub,
+            } as unknown as vscode.WorkspaceConfiguration);
+        });
+
+        test("should transfer connection when transferActiveEditorConnections is true", async () => {
+            configFlagStub.withArgs(Constants.configTransferActiveEditorConnections).returns(true);
+
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            expect(connectionManager.connect).to.have.been.calledOnce;
+            expect(connectionManager.connect.firstCall.args[0]).to.equal(document.uri.toString());
+        });
+
+        test("should NOT transfer connection when transferActiveEditorConnections is false", async () => {
+            configFlagStub.withArgs(Constants.configTransferActiveEditorConnections).returns(false);
+
+            // Set a last active connection
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            expect(connectionManager.connect).to.not.have.been.called;
         });
     });
 });

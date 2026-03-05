@@ -8,8 +8,8 @@ import { Button, Divider, makeStyles, shorthands } from "@fluentui/react-compone
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
-import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
+import { CodeDefinitionIcon16Regular } from "../../common/icons/fluentIcons";
 
 const useStyles = makeStyles({
     separator: {
@@ -38,7 +38,7 @@ export const DesignerPageRibbon = () => {
                 <Button
                     size="small"
                     appearance="subtle"
-                    icon={<FluentIcons.Code16Filled />}
+                    icon={<CodeDefinitionIcon16Regular />}
                     title={locConstants.schemaDesigner.definition}
                     onClick={() => designerContext.toggleDefinitionPane()}>
                     {locConstants.schemaDesigner.definition}

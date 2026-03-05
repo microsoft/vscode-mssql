@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { v4 as uuidv4 } from "uuid";
 import { FilteredBuffer } from "./filteredBuffer";
 import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
 import { Logger } from "../models/logger";
+import { uuid } from "../utils/utils";
 
 /**
  * Default event buffer capacity
@@ -555,7 +555,7 @@ export class ProfilerSession {
     }): EventRow {
         // Generate id and eventNumber if not provided by SQL Tools Service
         // Try to get event_number from values field first, then use counter as fallback
-        const id = event.id || uuidv4();
+        const id = event.id || uuid();
         const eventNumberFromValues = event.values["event_sequence"]
             ? parseInt(event.values["event_sequence"], 10)
             : undefined;

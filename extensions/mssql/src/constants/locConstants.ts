@@ -640,11 +640,7 @@ export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
     // Status bar
-    public static statusBarNotConnected = l10n.t("SQL: Not connected");
-    public static statusBarClickToChangeDatabase = l10n.t(
-        "SQL Notebooks: click to change database",
-    );
-    public static statusBarClickToConnect = l10n.t("SQL Notebooks: click to connect");
+    public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
@@ -715,7 +711,7 @@ export class Notebooks {
     // Info
     public static notebookConnectedTo(label: string) {
         return l10n.t({
-            message: "SQL Notebook connected to {0}",
+            message: "MSSQL Notebook connected to {0}",
             args: [label],
             comment: ["{0} is the connection label"],
         });
@@ -729,7 +725,7 @@ export class Notebooks {
     }
 
     // Cancellation
-    public static executionCancelled = l10n.t("Query execution was cancelled.");
+    public static executionCanceled = l10n.t("Query execution was canceled.");
 
     // Controller
     public static controllerDescription = l10n.t("Execute SQL against SQL Server / Azure SQL");
@@ -1223,6 +1219,9 @@ export class QueryResult {
             args: [error],
             comment: ["{0} is the error message"],
         });
+    public static queryResultPanelFailedToLoad = l10n.t(
+        "The query results panel failed to load. Please try running the query again.",
+    );
 }
 
 export class LocalContainers {
@@ -1476,6 +1475,15 @@ export class Webview {
             comment: ["{0} is the webview name"],
         });
     public static Restore = l10n.t("Restore");
+    public static webviewNotReadyTimeout = (webviewName: string, timeoutMs: number) =>
+        l10n.t({
+            message: "Webview '{0}' did not become ready within {1}ms",
+            args: [webviewName, timeoutMs],
+            comment: ["{0} is the webview name", "{1} is the timeout in milliseconds"],
+        });
+    public static webviewDisposedBeforeReady = l10n.t(
+        "Webview was disposed before it became ready",
+    );
 }
 
 export class TableDesigner {
@@ -1572,6 +1580,11 @@ export class PublishProject {
 export class CodeAnalysis {
     public static Title = l10n.t("Code Analysis");
     public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
+    public static failedToLoadOverrides = l10n.t(
+        "Failed to read saved rule overrides from project",
+    );
+    public static failedToSaveRules = l10n.t("Failed to save code analysis rules");
+    public static rulesSaved = l10n.t("Code analysis rules saved successfully");
 }
 
 export class SchemaCompare {
@@ -2040,7 +2053,7 @@ export class MssqlChatAgent {
         });
     };
     public static schemaDesignerNoActiveDesigner = l10n.t(
-        "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+        "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",

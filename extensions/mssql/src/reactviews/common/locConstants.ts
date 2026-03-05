@@ -189,7 +189,7 @@ export class LocConstants {
 
     public get publishDialog() {
         return {
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             publish: l10n.t("Publish"),
             openPublishScript: l10n.t("Open Publish Script"),
             confirmationText: l10n.t("I have read the summary and understand the potential risks."),
@@ -245,6 +245,28 @@ export class LocConstants {
                     comment: ["{0} is the rule identifier, e.g. SR0001"],
                 }),
             reset: l10n.t("Reset"),
+            resetConfirmTitle: l10n.t("Reset to Defaults?"),
+            resetConfirmMessage: l10n.t(
+                "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
+            ),
+            unsavedChangesTitle: l10n.t("Unsaved Changes"),
+            unsavedChangesMessage: l10n.t(
+                "You have unsaved changes. Do you want to save before closing?",
+            ),
+            dontSave: l10n.t("Don't Save"),
+            enableCodeAnalysisOnBuild: l10n.t("Enable Code Analysis on Build"),
+            searchRules: l10n.t("Search rules..."),
+            filterBySeverity: l10n.t("Filter by severity"),
+            allSeverities: l10n.t("All severities"),
+            noRulesMatchFilter: l10n.t("No rules match the current filter."),
+            filteredRulesCount: (filtered: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} rules",
+                    args: [filtered, total],
+                    comment: ["{0} is the filtered count, {1} is the total count"],
+                }),
+            ruleEnabled: l10n.t("Rule enabled"),
+            ruleDisabled: l10n.t("Rule disabled"),
         };
     }
 
@@ -785,9 +807,13 @@ export class LocConstants {
             },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             openCopilotForSchemaDesigner: l10n.t("Chat"),
             openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
+            askGithubCopilotToFix: l10n.t("Ask GitHub Copilot to Fix"),
+            askGithubCopilotToFixTooltip: l10n.t(
+                "Open GitHub Copilot Chat to help fix these errors",
+            ),
             schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
@@ -1004,7 +1030,7 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
-            definition: l10n.t("Definition"),
+            definition: l10n.t("Show Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1271,7 +1297,7 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            generateConfig: l10n.t("Generate Config"),
+            viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
@@ -2169,10 +2195,11 @@ export class LocConstants {
             fileBrowserFolderTitle: l10n.t("Select a folder"),
             folderRequired: l10n.t("Folder is required"),
             fileRequired: l10n.t("File is required"),
+            pleaseSelectAFile: l10n.t("Please select a file, not a folder."),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
-            pleaseChooseAFile: l10n.t("Please choose a file"),
-            pleaseChooseAFolder: l10n.t("Please choose a folder"),
+            filePath: l10n.t("File path"),
+            folderPath: l10n.t("Folder path"),
         };
     }
 

@@ -26,7 +26,6 @@ import {
 } from "./model";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
-import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
 export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
@@ -73,7 +72,6 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     baselineRevision: number;
     schemaRevision: number;
     notifySchemaChanged: () => void;
-    isDabEnabled: () => boolean;
     onPushUndoState: () => void;
     maybeAutoArrangeForToolBatch: (
         preTableCount: number,
@@ -519,9 +517,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }, 10);
     }
 
-    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
-    const isDabEnabled = () => dabEnabled ?? false;
-
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -564,7 +559,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 baselineRevision,
                 schemaRevision,
                 notifySchemaChanged,
-                isDabEnabled,
                 onPushUndoState,
                 maybeAutoArrangeForToolBatch,
             }}>

@@ -846,5 +846,31 @@ suite("MainController Tests", function () {
                 },
             );
         });
+
+        test("opens chat with prompt override when provided", async () => {
+            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const executeCommandStub = sandbox
+                .stub(vscode.commands, "executeCommand")
+                .resolves(undefined);
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getActiveDesigner: sandbox.stub().returns({}),
+            } as any);
+            sandbox
+                .stub(isolatedController as any, "findChatOpenAgentCommand")
+                .resolves(Constants.vscodeWorkbenchChatOpenAgent);
+
+            await (isolatedController as any).openCopilotChatFromUi({
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerPublishDialogError",
+                prompt: "custom GHCP fix prompt",
+            });
+
+            expect(showErrorMessageStub).to.not.have.been.called;
+            expect(executeCommandStub).to.have.been.calledWith(
+                Constants.vscodeWorkbenchChatOpenAgent,
+                "custom GHCP fix prompt",
+            );
+        });
     });
 });

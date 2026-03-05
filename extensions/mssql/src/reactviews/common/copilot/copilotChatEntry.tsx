@@ -21,9 +21,16 @@ export interface CopilotChatEntryProps {
     tooltip: string;
     onOpenChat: () => void | Promise<void>;
     discovery?: CopilotChatDiscoveryProps;
+    hideLabel?: boolean;
 }
 
-export function CopilotChatEntry({ label, tooltip, onOpenChat, discovery }: CopilotChatEntryProps) {
+export function CopilotChatEntry({
+    label,
+    tooltip,
+    onOpenChat,
+    discovery,
+    hideLabel,
+}: CopilotChatEntryProps) {
     const [target, setTarget] = useState<HTMLButtonElement | null>(null);
 
     const handleOpenChat = async () => {
@@ -40,6 +47,7 @@ export function CopilotChatEntry({ label, tooltip, onOpenChat, discovery }: Copi
                 label={label}
                 tooltip={tooltip}
                 onClick={handleOpenChat}
+                hideLabel={hideLabel}
             />
             {discovery && (
                 <FeatureDiscoveryPopover
