@@ -9,11 +9,11 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import * as sqldbproj from "sqldbproj";
 import {
     NetCoreTool,
     DBProjectConfigurationKey,
     DotnetInstallLocationKey,
+    FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
     getMicrosoftBuildSqlVersion,
 } from "../src/tools/netcoreTool";
 import { getQuotedPath } from "../src/common/utils";
@@ -22,18 +22,6 @@ import { createContext, TestContext } from "./testContext";
 
 let testContext: TestContext;
 let sandbox: sinon.SinonSandbox;
-
-/**
- * Helper to read the default Microsoft.Build.Sql version from package.json
- */
-function getExpectedDefaultVersion(key: string): string {
-    const extension = vscode.extensions.getExtension(sqldbproj.extension.vsCodeName);
-    const configKey = `${DBProjectConfigurationKey}.${key}`;
-    return (
-        extension?.packageJSON?.contributes?.configuration?.[0]?.properties?.[configKey]?.default ||
-        ""
-    );
-}
 
 suite("NetCoreTool: Net core tests", function (): void {
     teardown(function (): void {
@@ -140,23 +128,20 @@ suite("NetCoreTool: Net core tests", function (): void {
             expect(result).to.equal("3.0.0");
         });
 
-        test("Should fall back to package.json default when configured value is invalid or empty", async function (): Promise<void> {
-            // Get expected default from package.json
-            const expectedDefault = getExpectedDefaultVersion(testKey);
-
+        test("Should fall back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION when configured value is invalid or empty", async function (): Promise<void> {
             // Test with invalid semver
             await vscode.workspace
                 .getConfiguration(DBProjectConfigurationKey)
                 .update(testKey, "not-a-valid-version", vscode.ConfigurationTarget.Global);
             let result = getMicrosoftBuildSqlVersion(testKey);
-            expect(result).to.equal(expectedDefault);
+            expect(result).to.equal(FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
 
             // Test with empty config
             await vscode.workspace
                 .getConfiguration(DBProjectConfigurationKey)
                 .update(testKey, undefined, vscode.ConfigurationTarget.Global);
             result = getMicrosoftBuildSqlVersion(testKey);
-            expect(result).to.equal(expectedDefault);
+            expect(result).to.equal(FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
         });
     });
 });

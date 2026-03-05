@@ -8,7 +8,6 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
-import * as sqldbproj from "sqldbproj";
 import { isNullOrUndefined } from "util";
 import * as vscode from "vscode";
 import { l10n } from "vscode";
@@ -33,6 +32,13 @@ export const macPlatform = "darwin";
 export const linuxPlatform = "linux";
 export const minSupportedNetCoreVersionForBuild = "8.0.0";
 
+/**
+ * Fallback version for Microsoft.Build.Sql when the setting is not configured or invalid.
+ * NOTE: Keep this in sync with the default value in package.json:
+ * sqlDatabaseProjects.microsoftBuildSqlVersion.default
+ */
+export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.1.0";
+
 export const enum netCoreInstallState {
     netCoreNotPresent,
     netCoreVersionNotSupported,
@@ -42,8 +48,14 @@ export const enum netCoreInstallState {
 const dotnet = os.platform() === "win32" ? "dotnet.exe" : "dotnet";
 
 /**
- * Returns the configured Microsoft.Build.Sql version, falling back to the extension's
- * registered default (from package.json) when the setting is blank or not a valid semver.
+ * Returns the configured Microsoft.Build.Sql version.
+ *
+ * Resolution order:
+ * 1. User's configured value (global or workspace settings.json) — if it is a valid semver.
+ * 2. Package.json default value — returned by config.get() when the user has not overridden the setting.
+ * 3. FALLBACK_MICROSOFT_BUILD_SQL_VERSION — used only when both of the above are unavailable or
+ *    not a valid semver (e.g. the extension package.json default is missing or the user typed an
+ *    invalid version string).
  */
 export function getMicrosoftBuildSqlVersion(microsoftBuildSqlVersionKey: string): string {
     const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
@@ -52,12 +64,8 @@ export function getMicrosoftBuildSqlVersion(microsoftBuildSqlVersionKey: string)
         return configured;
     }
 
-    // Read the default value from package.json
-    const extension = vscode.extensions.getExtension(sqldbproj.extension.vsCodeName);
-    const configKey = `${DBProjectConfigurationKey}.${microsoftBuildSqlVersionKey}`;
-    const defaultValue =
-        extension?.packageJSON?.contributes?.configuration?.[0]?.properties?.[configKey]?.default;
-    return defaultValue || "";
+    // Fall back to the hardcoded constant if config value is unavailable or invalid
+    return FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
 }
 
 export class NetCoreTool extends ShellExecutionHelper {
