@@ -963,6 +963,9 @@
     <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
       <source xml:lang="en">Close properties pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++105f9aee2b4e7a8a68f94fb679aae79c4d6c8102c8aa19346a7837b0cfec5287">
+      <source xml:lang="en">Close results settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
     </trans-unit>
@@ -4179,6 +4182,9 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe2a2aba229e4f1ea669fed18afe5beb50356b3e49f07643af654b60ad63ce14">
+      <source xml:lang="en">Open results in new tab</source>
+    </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
     </trans-unit>
@@ -4783,6 +4789,9 @@
     <trans-unit id="++CODE++82d510eecb9f37659e99b55edff96e66aced3765063d0981d26bb433381f1945">
       <source xml:lang="en">Results ({0})</source>
       <note>{0} is the keyboard shortcut for the results tab</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2ada9c77ff43c3a64eb670413987d527359f366fe2ddc314dfdfd6102df8ba07">
+      <source xml:lang="en">Results Settings</source>
     </trans-unit>
     <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
       <source xml:lang="en">Results copied to clipboard</source>
@@ -5437,6 +5446,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
       <source xml:lang="en">Show password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f236fff20773e5f49911bed2b6fb31682bb9aee108918aef9cbde3726033276c">
+      <source xml:lang="en">Show query results in a new editor tab instead of the query pane.</source>
     </trans-unit>
     <trans-unit id="++CODE++3a9a8d46a1ea0067cbcb2a7f0f2d4e8c8d9c974f5e8cc08b3089f8d8a696fec3">
       <source xml:lang="en">Show schema for connection &apos;{0}&apos; (ID: {1})?</source>

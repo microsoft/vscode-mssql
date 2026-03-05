@@ -412,6 +412,10 @@
     "Timestamp": "Timestamp",
     "Message": "Message",
     "Open in New Tab": "Open in New Tab",
+    "Results Settings": "Results Settings",
+    "Open results in new tab": "Open results in new tab",
+    "Show query results in a new editor tab instead of the query pane.": "Show query results in a new editor tab instead of the query pane.",
+    "Close results settings": "Close results settings",
     "Showplan XML": "Showplan XML",
     "Show Menu ({0})/{0} is the keyboard shortcut for showing the menu": {
         "message": "Show Menu ({0})",
