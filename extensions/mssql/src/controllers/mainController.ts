@@ -232,6 +232,10 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
+    public get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
+        return this.configuration.get(Constants.configOpenQueryResultsInTabByDefault, false);
+    }
+
     /**
      * Initializes the extension
      */
@@ -1005,6 +1009,7 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
+            openQueryResultsInTabByDefault: this.isOpenQueryResultsInTabByDefaultEnabled.toString(),
             cloudType: getCloudId(),
         });
 

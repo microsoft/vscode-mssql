@@ -537,6 +537,12 @@ export class LocConstants {
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
+            resultsSettings: l10n.t("Results Settings"),
+            showResultsInEditorTab: l10n.t("Open results in new tab"),
+            showResultsInEditorTabDescription: l10n.t(
+                "Show query results in a new editor tab instead of the query pane.",
+            ),
+            closeResultsSettings: l10n.t("Close results settings"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {

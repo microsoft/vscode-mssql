@@ -151,11 +151,11 @@
 }
 
 .slick-cell > .row-number {
-    color: var(--color-content);
-    font-style: italic;
+    color: var(--vscode-editor-foreground);
+    background-color: var(--vscode-keybindingTable-headerBackground);
     font-weight: lighter;
     display: flex;
-    justify-content: flex-end;
+    text-align: left;
 }
 
 .slick-reorder-proxy {

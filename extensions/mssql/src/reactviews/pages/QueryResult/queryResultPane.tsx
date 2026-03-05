@@ -13,7 +13,7 @@ import {
     Text,
     Spinner,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -29,6 +29,7 @@ import { QueryResultsTab } from "./queryResultsTab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
+import { QueryResultSettingsControl } from "./queryResultSettingsControl";
 
 const useStyles = makeStyles({
     root: {
@@ -44,6 +45,11 @@ const useStyles = makeStyles({
         "> *": {
             marginRight: "10px",
         },
+    },
+    ribbonActions: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
     },
     queryResultPaneTabs: {
         flex: 1,
@@ -134,9 +140,6 @@ export const QueryResultPane = () => {
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
 
-    const resultPaneParentRef = useRef<HTMLDivElement>(null);
-    const ribbonRef = useRef<HTMLDivElement>(null);
-
     const { keyBindings } = useVscodeWebview();
 
     useEffect(() => {
@@ -189,11 +192,14 @@ export const QueryResultPane = () => {
         });
         setWebviewLocation(res);
     };
-    const [webviewLocation, setWebviewLocation] = useState("");
+    const [webviewLocation, setWebviewLocation] = useState<qr.QueryResultWebviewLocation>(
+        qr.QueryResultWebviewLocation.Panel,
+    );
+
     useEffect(() => {
         getWebviewLocation().catch((e) => {
             console.error(e);
-            setWebviewLocation("panel");
+            setWebviewLocation(qr.QueryResultWebviewLocation.Panel);
         });
     }, []);
 
@@ -219,7 +225,7 @@ export const QueryResultPane = () => {
             <div className={classes.root}>
                 <div className={classes.noResultsContainer}>
                     <div className={classes.noResultsScrollablePane}>
-                        {webviewLocation === "document" ? (
+                        {webviewLocation === qr.QueryResultWebviewLocation.Document ? (
                             <Spinner
                                 label={locConstants.queryResult.loadingResultsMessage}
                                 labelPosition="below"
@@ -254,8 +260,8 @@ export const QueryResultPane = () => {
     }
 
     return (
-        <div className={classes.root} ref={resultPaneParentRef}>
-            <div className={classes.ribbon} ref={ribbonRef}>
+        <div className={classes.root}>
+            <div className={classes.ribbon}>
                 <TabList
                     size="medium"
                     selectedValue={tabStates!.resultPaneTab}
@@ -292,21 +298,27 @@ export const QueryResultPane = () => {
                         </Tab>
                     )}
                 </TabList>
-                {webviewLocation === "panel" && (
-                    <Button
-                        icon={<OpenRegular />}
-                        iconPosition="after"
-                        appearance="subtle"
-                        onClick={async () => {
-                            await context.extensionRpc.sendRequest(qr.OpenInNewTabRequest.type, {
-                                uri: uri!,
-                            });
-                        }}
-                        title={locConstants.queryResult.openResultInNewTab}
-                        style={{ marginTop: "4px", marginBottom: "4px" }}>
-                        {locConstants.queryResult.openResultInNewTab}
-                    </Button>
-                )}
+                <div className={classes.ribbonActions}>
+                    <QueryResultSettingsControl uri={uri} webviewLocation={webviewLocation} />
+                    {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
+                        <Button
+                            icon={<OpenRegular />}
+                            iconPosition="after"
+                            appearance="subtle"
+                            onClick={async () => {
+                                await context.extensionRpc.sendRequest(
+                                    qr.OpenInNewTabRequest.type,
+                                    {
+                                        uri: uri!,
+                                    },
+                                );
+                            }}
+                            title={locConstants.queryResult.openResultInNewTab}
+                            style={{ marginTop: "4px", marginBottom: "4px" }}>
+                            {locConstants.queryResult.openResultInNewTab}
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <div className={classes.tabContentContainer}>

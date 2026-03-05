@@ -84,10 +84,10 @@ export interface SelectionSummary {
     command: {
         title: string;
         command: string;
-        arguments: any[];
+        arguments: unknown[];
     };
     tooltip: string;
-    continue?: any;
+    continue?: unknown;
     batchId?: number;
     resultId?: number;
 }
@@ -348,6 +348,20 @@ export interface GetWebviewLocationParams {
 export namespace GetWebviewLocationRequest {
     export const type = new RequestType<GetWebviewLocationParams, QueryResultWebviewLocation, void>(
         "getWebviewLocation",
+    );
+}
+
+export namespace GetOpenQueryResultsInTabByDefaultRequest {
+    export const type = new RequestType<void, boolean, void>("getOpenQueryResultsInTabByDefault");
+}
+
+export interface SetOpenQueryResultsInTabByDefaultParams {
+    enabled: boolean;
+}
+
+export namespace SetOpenQueryResultsInTabByDefaultRequest {
+    export const type = new RequestType<SetOpenQueryResultsInTabByDefaultParams, void, void>(
+        "setOpenQueryResultsInTabByDefault",
     );
 }
 

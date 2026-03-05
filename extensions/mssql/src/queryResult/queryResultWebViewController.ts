@@ -474,4 +474,40 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
         return total;
     }
+
+    public getOpenQueryResultsInTabByDefaultRequestHandler(): boolean {
+        return this.vscodeWrapper
+            .getConfiguration()
+            .get<boolean>(Constants.configOpenQueryResultsInTabByDefault, false);
+    }
+
+    public async setOpenQueryResultsInTabByDefaultRequestHandler(enabled: boolean): Promise<void> {
+        const configuration = this.vscodeWrapper.getConfiguration();
+        const previousValue = configuration.get<boolean>(
+            Constants.configOpenQueryResultsInTabByDefault,
+            false,
+        );
+
+        await configuration.update(
+            Constants.configOpenQueryResultsInTabByDefault,
+            enabled,
+            vscode.ConfigurationTarget.Global,
+        );
+
+        // Skip the one-time prompt after users explicitly choose their preferred result location.
+        await configuration.update(
+            Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
+            true,
+            vscode.ConfigurationTarget.Global,
+        );
+
+        sendActionEvent(
+            TelemetryViews.QueryResult,
+            TelemetryActions.QueryResultsTabDefaultSettingToggled,
+            {
+                enabled: enabled.toString(),
+                previousValue: previousValue.toString(),
+            },
+        );
+    }
 }
