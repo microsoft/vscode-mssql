@@ -5180,8 +5180,11 @@
     <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
       <source xml:lang="en">Schema designer is not initialized.</source>
     </trans-unit>
-    <trans-unit id="++CODE++e7e6b995aca6d7f67c7cb625a2a7c581699d5d0ba6e923d921a65e442d96b224">
-      <source xml:lang="en">Schema designer opened. For schema mutations, continue with mssql_schema_designer operations (get_overview/apply_edits).</source>
+    <trans-unit id="++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77">
+      <source xml:lang="en">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</source>
+      <note>{0} is the command identifier &apos;mssql_schema_designer&apos; and must not be translated
+{1} is the operation name &apos;get_overview&apos; and must not be translated
+{2} is the operation name &apos;apply_edits&apos; and must not be translated</note>
     </trans-unit>
     <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
       <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>

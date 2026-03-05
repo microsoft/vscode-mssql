@@ -2021,9 +2021,16 @@ export class MssqlChatAgent {
         });
     };
     public static unknownConnection = l10n.t("Unknown Connection");
-    public static schemaDesignerToolShowSuccessMessage = l10n.t(
-        "Schema designer opened. For schema mutations, continue with mssql_schema_designer operations (get_overview/apply_edits).",
-    );
+    public static schemaDesignerToolShowSuccessMessage = l10n.t({
+        message:
+            "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).",
+        args: ["mssql_schema_designer", "get_overview", "apply_edits"],
+        comment: [
+            "{0} is the command identifier 'mssql_schema_designer' and must not be translated",
+            "{1} is the operation name 'get_overview' and must not be translated",
+            "{2} is the operation name 'apply_edits' and must not be translated",
+        ],
+    });
     public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
     public static schemaDesignerToolConfirmationMessage = (operation: string) => {
         return l10n.t({
