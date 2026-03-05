@@ -297,8 +297,7 @@ suite("PublishChangesDialogButton component", () => {
             dialogElement,
             (element) =>
                 element.props?.children === locConstants.schemaDesigner.askGithubCopilotToFix &&
-                element.props?.["aria-label"] ===
-                    locConstants.schemaDesigner.askGithubCopilotToFixTooltip &&
+                element.props?.title === locConstants.schemaDesigner.askGithubCopilotToFixTooltip &&
                 typeof element.props?.onClick === "function",
         );
 

@@ -517,12 +517,11 @@ export function PublishChangesDialogButton() {
                 {isGithubCopilotFixButtonVisible() && (
                     <Tooltip
                         content={locConstants.schemaDesigner.askGithubCopilotToFixTooltip}
-                        relationship="label">
+                        relationship="description">
                         <Button
                             appearance="secondary"
                             icon={<GithubCopilot16Regular />}
                             title={locConstants.schemaDesigner.askGithubCopilotToFixTooltip}
-                            aria-label={locConstants.schemaDesigner.askGithubCopilotToFixTooltip}
                             onClick={async () => {
                                 await openGithubCopilotToFixError();
                             }}>
