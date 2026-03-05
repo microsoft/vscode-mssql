@@ -289,7 +289,10 @@ export class HttpClientCore {
             const HTTPS_PORT = 443;
             const HTTP_PORT = 80;
             const parsedRequestUrl = new URL(requestUrl);
-            const port = parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT;
+            // Preserve explicitly-specified ports (e.g., https://host:8443/...), only inject default when no port was provided
+            const port =
+                parsedRequestUrl.port ||
+                (parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT);
 
             return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
         }
@@ -416,7 +419,8 @@ export class HttpClientCore {
                   ? 443
                   : 80,
             auth,
-            rejectUnauthorized: typeof strictSSL === "boolean",
+            // Default to rejecting unauthorized certs unless the user explicitly disables strict SSL.
+            rejectUnauthorized: strictSSL !== false,
         };
     }
 
