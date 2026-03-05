@@ -12,11 +12,12 @@ import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useState } from "react";
 import { makeStyles, Toolbar, ToolbarButton, tokens } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { TableSettingsRegular } from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
-import { locConstants } from "../../common/locConstants";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { DabProvider } from "./dab/dabContext";
+import { Schema16Regular } from "../../common/icons/fluentIcons";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -65,7 +66,7 @@ const MainLayout = () => {
                                     ? "primary"
                                     : "subtle"
                             }
-                            icon={<FluentIcons.TableRegular />}
+                            icon={<Schema16Regular />}
                             onClick={() =>
                                 setActiveView(
                                     SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
@@ -80,7 +81,7 @@ const MainLayout = () => {
                                     ? "primary"
                                     : "subtle"
                             }
-                            icon={<FluentIcons.DatabaseSearch24Regular />}
+                            icon={<TableSettingsRegular />}
                             onClick={() =>
                                 setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
                             }

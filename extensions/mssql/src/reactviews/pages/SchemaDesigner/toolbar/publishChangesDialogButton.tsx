@@ -26,8 +26,17 @@ import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useMarkdownStyles } from "../../../common/styles";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
+import { CopilotChat } from "../../../../sharedInterfaces/copilotChat";
+import { ExecuteCommandRequest } from "../../../../sharedInterfaces/webview";
+import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
+import {
+    schemaDesignerPublishErrorDetailsLabel,
+    schemaDesignerPublishErrorFallbackDetails,
+    schemaDesignerPublishErrorPrompt,
+} from "./publishChangesDialogPrompts";
 
-enum PublishDialogStages {
+export enum PublishDialogStages {
     NotStarted = "notStarted",
     ReportLoading = "reportLoading",
     ReportError = "reportError",
@@ -46,6 +55,45 @@ type PublishChangesDialogState = {
     publishError: string | undefined;
     currentStage: PublishDialogStages;
 };
+
+export function buildSchemaDesignerPublishErrorPrompt(errorString: string): string {
+    const errorDetails = errorString.trim() || schemaDesignerPublishErrorFallbackDetails;
+    return `${schemaDesignerPublishErrorPrompt}
+
+${schemaDesignerPublishErrorDetailsLabel}
+\`\`\`
+${errorDetails}
+\`\`\``;
+}
+
+export function isReportOrPublishErrorStage(currentStage: PublishDialogStages): boolean {
+    return (
+        currentStage === PublishDialogStages.ReportError ||
+        currentStage === PublishDialogStages.PublishError
+    );
+}
+
+export function getReportOrPublishErrorForStage(
+    currentStage: PublishDialogStages,
+    reportError: string | undefined,
+    publishError: string | undefined,
+): string {
+    if (currentStage === PublishDialogStages.ReportError) {
+        return reportError ?? "";
+    }
+    if (currentStage === PublishDialogStages.PublishError) {
+        return publishError ?? "";
+    }
+    return "";
+}
+
+export function shouldShowGithubCopilotFixButton(
+    currentStage: PublishDialogStages,
+    isCopilotChatInstalled: boolean,
+    isDabEnabled: boolean,
+): boolean {
+    return isReportOrPublishErrorStage(currentStage) && isCopilotChatInstalled && isDabEnabled;
+}
 
 const useStyles = makeStyles({
     errorSection: {
@@ -67,6 +115,8 @@ export function PublishChangesDialogButton() {
     const markdownClasses = useMarkdownStyles();
     const context = useContext(SchemaDesignerContext);
     const changeContext = useSchemaDesignerChangeContext();
+    const isCopilotChatInstalled =
+        useSchemaDesignerSelector((s) => s?.isCopilotChatInstalled) ?? false;
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
     const hasSchemaChanges = changeContext.schemaChangesCount > 0;
@@ -90,9 +140,11 @@ export function PublishChangesDialogButton() {
         return (
             <Tooltip content={locConstants.schemaDesigner.publishChanges} relationship="label">
                 <Button
-                    appearance="primary"
+                    appearance="subtle"
                     size="small"
-                    icon={<FluentIcons.Save16Regular />}
+                    aria-label={locConstants.schemaDesigner.publishChanges}
+                    title={locConstants.schemaDesigner.publishChanges}
+                    icon={<FluentIcons.DatabaseArrowUp16Regular />}
                     disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
                         setState({
@@ -370,6 +422,42 @@ export function PublishChangesDialogButton() {
         );
     };
 
+    const isGithubCopilotFixButtonVisible = () => {
+        return shouldShowGithubCopilotFixButton(
+            state.currentStage,
+            isCopilotChatInstalled,
+            context.isDabEnabled(),
+        );
+    };
+
+    const getCurrentError = () => {
+        return getReportOrPublishErrorForStage(
+            state.currentStage,
+            state.reportError,
+            state.publishError,
+        );
+    };
+
+    const openGithubCopilotToFixError = async () => {
+        const prompt = buildSchemaDesignerPublishErrorPrompt(getCurrentError());
+        setOpen(false);
+        setState({
+            ...state,
+            isConfirmationChecked: false,
+        });
+
+        await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
+            command: CopilotChat.openFromUiCommand,
+            args: [
+                {
+                    scenario: "schemaDesigner",
+                    entryPoint: "schemaDesignerPublishDialogError",
+                    prompt,
+                },
+            ],
+        });
+    };
+
     const footerButtons = () => {
         return (
             <>
@@ -425,6 +513,21 @@ export function PublishChangesDialogButton() {
                             {locConstants.schemaDesigner.continueEditing}
                         </Button>
                     </DialogTrigger>
+                )}
+                {isGithubCopilotFixButtonVisible() && (
+                    <Tooltip
+                        content={locConstants.schemaDesigner.askGithubCopilotToFixTooltip}
+                        relationship="description">
+                        <Button
+                            appearance="secondary"
+                            icon={<GithubCopilot16Regular />}
+                            title={locConstants.schemaDesigner.askGithubCopilotToFixTooltip}
+                            onClick={async () => {
+                                await openGithubCopilotToFixError();
+                            }}>
+                            {locConstants.schemaDesigner.askGithubCopilotToFix}
+                        </Button>
+                    </Tooltip>
                 )}
                 {state.currentStage !== PublishDialogStages.PublishLoading && (
                     <DialogTrigger disableButtonEnhancement>

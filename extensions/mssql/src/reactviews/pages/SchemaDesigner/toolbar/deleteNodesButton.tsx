@@ -4,21 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Tooltip } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
+import { DeleteIcon16Regular } from "../../../common/icons/fluentIcons";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 export function DeleteNodesButton() {
     const context = useContext(SchemaDesignerContext);
+    const isCompact = useIsToolbarCompact();
     return (
         <Tooltip content={locConstants.schemaDesigner.delete} relationship="label">
             <Button
                 appearance="subtle"
                 size="small"
-                icon={<FluentIcons.Delete16Regular />}
+                icon={<DeleteIcon16Regular />}
                 onClick={() => context.deleteSelectedNodes()}>
-                {locConstants.schemaDesigner.delete}
+                {!isCompact && locConstants.schemaDesigner.delete}
             </Button>
         </Tooltip>
     );

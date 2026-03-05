@@ -4,11 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as vscode from "vscode";
-import * as Constants from "../../src/constants/constants";
-import { NotebookCodeLensProvider } from "../../src/notebooks/notebookCodeLensProvider";
-import { NotebookConnectionManager } from "../../src/notebooks/notebookConnectionManager";
+import * as Constants from "../../../src/constants/constants";
+
+chai.use(sinonChai);
+import { NotebookCodeLensProvider } from "../../../src/notebooks/notebookCodeLensProvider";
+import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 
 suite("NotebookCodeLensProvider", () => {
     let sandbox: sinon.SinonSandbox;
@@ -24,11 +28,14 @@ suite("NotebookCodeLensProvider", () => {
         } as unknown as vscode.TextDocument;
     }
 
-    function makeMockMgr(connected: boolean, label?: string): NotebookConnectionManager {
-        return {
-            isConnected: sinon.stub().returns(connected),
-            getConnectionLabel: sinon.stub().returns(label ?? "test-server / TestDB"),
-        } as unknown as NotebookConnectionManager;
+    function makeMockMgr(
+        connected: boolean,
+        label?: string,
+    ): sinon.SinonStubbedInstance<NotebookConnectionManager> {
+        const mgr = sandbox.createStubInstance(NotebookConnectionManager);
+        mgr.isConnected.returns(connected);
+        mgr.getConnectionLabel.returns(label ?? "test-server / TestDB");
+        return mgr;
     }
 
     setup(() => {

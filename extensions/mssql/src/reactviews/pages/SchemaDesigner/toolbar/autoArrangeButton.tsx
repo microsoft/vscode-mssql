@@ -14,7 +14,7 @@ import {
     DialogTrigger,
     Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { AutoArrangeIcon16Regular } from "../../../common/icons/fluentIcons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -22,10 +22,12 @@ import { Node, Edge, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { layoutFlowComponents } from "../model";
 import eventBus from "../schemaDesignerEvents";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 export function AutoArrangeButton() {
     const context = useContext(SchemaDesignerContext);
     const reactFlow = useReactFlow();
+    const isCompact = useIsToolbarCompact();
 
     const autoArrange = () => {
         eventBus.emit("pushState");
@@ -43,11 +45,8 @@ export function AutoArrangeButton() {
         <Dialog>
             <DialogTrigger>
                 <Tooltip content={locConstants.schemaDesigner.autoArrange} relationship="label">
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<FluentIcons.Flowchart16Regular />}>
-                        {locConstants.schemaDesigner.autoArrange}
+                    <Button appearance="subtle" size="small" icon={<AutoArrangeIcon16Regular />}>
+                        {!isCompact && locConstants.schemaDesigner.autoArrange}
                     </Button>
                 </Tooltip>
             </DialogTrigger>

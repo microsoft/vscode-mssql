@@ -1327,8 +1327,8 @@
         <target state="translated">데이터베이스 프로젝트 닫기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
-        <source xml:lang="en">Code Analysis Settings (Preview)</source>
-        <target state="translated">Code Analysis 설정(미리 보기)</target>
+        <source xml:lang="en">Code Analysis Settings</source>
+        <target state="new">Code Analysis Settings</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
         <source xml:lang="en">Convert to SDK-style project</source>

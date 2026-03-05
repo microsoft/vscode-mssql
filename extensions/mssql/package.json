@@ -1194,8 +1194,8 @@
                 "title": "%mssql.schemaDesigner%",
                 "category": "MS SQL",
                 "icon": {
-                    "dark": "media/designSchema_dark.svg",
-                    "light": "media/designSchema_light.svg"
+                    "dark": "media/applicationQuickStart_dark.svg",
+                    "light": "media/applicationQuickStart_light.svg"
                 }
             },
             {
@@ -1520,6 +1520,12 @@
                         "%mssql.defaultQueryResultsViewMode.text.description%"
                     ],
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
+                    "scope": "application"
+                },
+                "mssql.transferActiveEditorConnections": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.transferActiveEditorConnections.description%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {

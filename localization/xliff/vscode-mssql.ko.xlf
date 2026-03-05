@@ -345,6 +345,10 @@
         <source xml:lang="en">All selected</source>
         <target state="translated">모두 선택됨</target>
       </trans-unit>
+      <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
+        <source xml:lang="en">All severities</source>
+        <target state="translated">모든 심각도</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">Null 허용</target>
@@ -532,6 +536,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">계속하시겠어요?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
+        <source xml:lang="en">Ask GitHub Copilot to Fix</source>
+        <target state="new">Ask GitHub Copilot to Fix</target>
       </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
@@ -1338,7 +1346,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
         <source xml:lang="en">Code analysis rules saved successfully</source>
-        <target state="new">Code analysis rules saved successfully</target>
+        <target state="translated">Code Analysis 규칙을 저장했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -2268,10 +2276,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">이 엔드포인트에 접근할 수 있는 사용자 정의</target>
       </trans-unit>
-      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
-        <source xml:lang="en">Definition</source>
-        <target state="translated">정의</target>
-      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -2527,7 +2531,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
         <source xml:lang="en">Don't Save</source>
-        <target state="new">Don't Save</target>
+        <target state="translated">저장하지 않음</target>
       </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
@@ -2623,7 +2627,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
         <source xml:lang="en">Enable Code Analysis on Build</source>
-        <target state="new">Enable Code Analysis on Build</target>
+        <target state="translated">빌드에 코드 분석 사용</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -3445,7 +3449,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
         <source xml:lang="en">Failed to read saved rule overrides from project</source>
-        <target state="new">Failed to read saved rule overrides from project</target>
+        <target state="translated">프로젝트에서 저장된 규칙 재정의를 읽지 못함</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -3482,7 +3486,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
         <source xml:lang="en">Failed to save code analysis rules</source>
-        <target state="new">Failed to save code analysis rules</target>
+        <target state="translated">Code Analysis 규칙을 로드하지 못함</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3611,7 +3615,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2fb6d38632ea2c0625dce0f2e881d8a50f51ce503f89c9b35c11dba08800ce9f">
         <source xml:lang="en">File path</source>
-        <target state="new">File path</target>
+        <target state="translated">파일 경로</target>
       </trans-unit>
       <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
         <source xml:lang="en">File path is required</source>
@@ -3678,6 +3682,10 @@ Error:
       <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
         <source xml:lang="en">Filter by schema</source>
         <target state="translated">스키마로 필터링</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd">
+        <source xml:lang="en">Filter by severity</source>
+        <target state="translated">심각도로 필터링</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
@@ -3791,7 +3799,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
         <source xml:lang="en">Folder path</source>
-        <target state="new">Folder path</target>
+        <target state="translated">폴더 경로</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -4756,6 +4764,23 @@ Error:
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">MSSQL 피드백</target>
       </trans-unit>
+      <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
+        <source xml:lang="en">MSSQL Notebook connected to {0}</source>
+        <note>{0} is the connection label</note>
+        <target state="new">MSSQL Notebook connected to {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
+        <source xml:lang="en">MSSQL: Click to change database</source>
+        <target state="new">MSSQL: Click to change database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f993c79609a3d00c82d5214040869fd0b15ab7404074bc3fcf8111fcc88c5d45">
+        <source xml:lang="en">MSSQL: Click to connect</source>
+        <target state="new">MSSQL: Click to connect</target>
+      </trans-unit>
+      <trans-unit id="++CODE++99a3297c47d9336c0c32fe572074cba7cd53bf9b0d5988c14d3335dd468e2c37">
+        <source xml:lang="en">MSSQL: Not connected</source>
+        <target state="new">MSSQL: Not connected</target>
+      </trans-unit>
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
         <target state="translated">MSSQL: 시작 및 새로운 기능</target>
@@ -5351,6 +5376,10 @@ Error:
         <source xml:lang="en">No results to display</source>
         <target state="translated">표시할 결과가 없음</target>
       </trans-unit>
+      <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
+        <source xml:lang="en">No rules match the current filter.</source>
+        <target state="translated">현재 필터에 맞는 규칙이 없습니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
         <source xml:lang="en">No saved connection profiles found.</source>
         <target state="translated">저장된 연결 프로필을 찾을 수 없습니다.</target>
@@ -5565,6 +5594,10 @@ Error:
       <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
         <source xml:lang="en">Open File</source>
         <target state="translated">파일 열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
+        <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
+        <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -5829,7 +5862,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
         <source xml:lang="en">Please select a file, not a folder.</source>
-        <target state="new">Please select a file, not a folder.</target>
+        <target state="translated">폴더 말고 파일을 선택해 주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6035,10 +6068,6 @@ Error:
         <source xml:lang="en">Publish</source>
         <target state="translated">게시</target>
       </trans-unit>
-      <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
-        <source xml:lang="en">Publish Changes</source>
-        <target state="translated">변경 내용 게시</target>
-      </trans-unit>
       <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
         <source xml:lang="en">Publish DACPAC</source>
         <target state="translated">DACPAC 게시</target>
@@ -6123,9 +6152,9 @@ Error:
         <source xml:lang="en">Query execution failed</source>
         <target state="translated">쿼리를 실행하지 못함</target>
       </trans-unit>
-      <trans-unit id="++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974">
-        <source xml:lang="en">Query execution was cancelled.</source>
-        <target state="translated">쿼리 실행이 취소되었습니다.</target>
+      <trans-unit id="++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753">
+        <source xml:lang="en">Query execution was canceled.</source>
+        <target state="new">Query execution was canceled.</target>
       </trans-unit>
       <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
         <source xml:lang="en">Query failed</source>
@@ -6348,7 +6377,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
         <source xml:lang="en">Reset to Defaults?</source>
-        <target state="new">Reset to Defaults?</target>
+        <target state="translated">기본값으로 다시 설정하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
@@ -6505,6 +6534,14 @@ Error:
         <source xml:lang="en">Rows per page</source>
         <target state="translated">페이지당 행</target>
       </trans-unit>
+      <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
+        <source xml:lang="en">Rule disabled</source>
+        <target state="new">Rule disabled</target>
+      </trans-unit>
+      <trans-unit id="++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c">
+        <source xml:lang="en">Rule enabled</source>
+        <target state="new">Rule enabled</target>
+      </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
         <target state="translated">규칙 이름</target>
@@ -6574,19 +6611,6 @@ Query: {2}</source>
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL 로그인</target>
       </trans-unit>
-      <trans-unit id="++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9">
-        <source xml:lang="en">SQL Notebook connected to {0}</source>
-        <note>{0} is the connection label</note>
-        <target state="translated">{0}에 연결된 SQL Notebook</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7">
-        <source xml:lang="en">SQL Notebooks: click to change database</source>
-        <target state="translated">SQL Notebook: 데이터베이스를 변경하려면 클릭</target>
-      </trans-unit>
-      <trans-unit id="++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58">
-        <source xml:lang="en">SQL Notebooks: click to connect</source>
-        <target state="translated">SQL Notebook: 연결하려면 클릭</target>
-      </trans-unit>
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">SQL 계획 파일</target>
@@ -6615,10 +6639,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
         <source xml:lang="en">SQL database in Fabric (Preview)</source>
         <target state="translated">Fabric의 SQL 데이터베이스(미리 보기)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94">
-        <source xml:lang="en">SQL: Not connected</source>
-        <target state="translated">SQL: 연결되지 않음</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
@@ -6880,6 +6900,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
         <target state="translated">검색 옵션...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
+        <source xml:lang="en">Search rules...</source>
+        <target state="translated">검색 규칙...</target>
       </trans-unit>
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
@@ -7262,6 +7286,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
         <source xml:lang="en">Show Confirm Password</source>
         <target state="translated">암호 확인 표시</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
+        <source xml:lang="en">Show Definition</source>
+        <target state="new">Show Definition</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
@@ -7928,6 +7956,10 @@ Query: {2}</source>
         <source xml:lang="en">The name of the index.</source>
         <target state="translated">인덱스 이름입니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
+        <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
+        <target state="translated">쿼리 결과 패널을 로드하지 못했습니다. 쿼리를 다시 실행해 보세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">최근 연결 목록이 지워졌지만 연결된 일부 자격 증명을 삭제하는 동안 오류가 발생했습니다. MSSQL 출력 채널에서 오류를 확인하세요.</target>
@@ -7984,7 +8016,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
-        <target state="new">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</target>
+        <target state="translated">이렇게 하면 모든 규칙이 기본 심각도로 다시 설정되고 '빌드 시 Code Analysis 사용'이 비활성화됩니다. 이 작업은 실행 취소할 수 없습니다. 계속하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -8173,7 +8205,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
         <source xml:lang="en">Unsaved Changes</source>
-        <target state="new">Unsaved Changes</target>
+        <target state="translated">저장되지 않은 변경 내용</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -8332,7 +8364,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
         <source xml:lang="en">View Config</source>
-        <target state="new">View Config</target>
+        <target state="translated">구성 보기</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -8389,6 +8421,16 @@ Query: {2}</source>
       <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
         <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
         <target state="translated">현재 연결 정보를 사용하여 연결할 수 없습니다. 연결을 다시 시도하시겠습니까, 아니면 연결 프로필을 편집하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++54d8eabdb1e806a10a7f7185c095b13404226eb5ffa574a62914d06a8e2beee0">
+        <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
+        <note>{0} is the webview name
+{1} is the timeout in milliseconds</note>
+        <target state="translated">Webview '{0}'이(가) {1}ms 내에 준비되지 않았습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
+        <source xml:lang="en">Webview was disposed before it became ready</source>
+        <target state="translated">웹 보기가 준비되기 전에 삭제되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
         <source xml:lang="en">What I can do for you:</source>
@@ -8449,7 +8491,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
         <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
-        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
+        <target state="translated">저장하지 않은 변경 내용이 있습니다. 닫기 전에 저장하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -8755,6 +8797,11 @@ Query: {2}</source>
 {1} is the total number of entities</note>
         <target state="translated">{1} 중 {0} 사용</target>
       </trans-unit>
+      <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
+        <source xml:lang="en">{0} of {1} rules</source>
+        <note>{0} is the filtered count, {1} is the total count</note>
+        <target state="translated">{1}개 중 {0}개 규칙</target>
+      </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
         <note>{0} is the number of tenants with active sessions
@@ -8953,7 +9000,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
-        <target state="new">Cancel Connection</target>
+        <target state="translated">연결 취소</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -9796,6 +9843,10 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">쿼리 계획 시각화</target>
+      </trans-unit>
+      <trans-unit id="mssql.transferActiveEditorConnections.description">
+        <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
+        <target state="translated">사용하도록 설정하면 활성 연결을 새로 열린 SQL 파일로 자동으로 전송합니다. 사용하지 않도록 설정되면 각 SQL 파일의 데이터베이스에 명시적으로 연결해야 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>

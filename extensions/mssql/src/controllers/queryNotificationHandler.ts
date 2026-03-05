@@ -7,7 +7,6 @@
  *  Class for handler and distributing notification coming from the
  *  service layer
  */
-import QueryRunner from "./queryRunner";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     QueryExecuteCompleteNotification,
@@ -26,6 +25,16 @@ import {
 } from "../models/contracts/queryExecute";
 import { NotificationHandler } from "vscode-languageclient";
 
+export interface IQueryEventHandler {
+    handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void;
+    handleBatchStart(result: QueryExecuteBatchNotificationParams): void;
+    handleBatchComplete(result: QueryExecuteBatchNotificationParams): void;
+    handleResultSetAvailable(result: QueryExecuteResultSetAvailableNotificationParams): void;
+    handleResultSetUpdated(result: QueryExecuteResultSetUpdatedNotificationParams): void;
+    handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void;
+    handleMessage(result: QueryExecuteMessageParams): void;
+}
+
 export class QueryNotificationHandler {
     private static _instance: QueryNotificationHandler;
     static get instance() {
@@ -33,14 +42,14 @@ export class QueryNotificationHandler {
     }
 
     // public for testing only
-    public _queryRunners = new Map<string, QueryRunner>();
+    public _queryRunners = new Map<string, IQueryEventHandler>();
     constructor() {
         this.initialize();
     }
 
     // Registers queryRunners with their uris to distribute notifications.
     // public for testing only
-    public registerRunner(runner: QueryRunner, uri: string): void {
+    public registerRunner(runner: IQueryEventHandler, uri: string): void {
         this._queryRunners.set(uri, runner);
     }
 
@@ -82,7 +91,7 @@ export class QueryNotificationHandler {
     }
 
     private makeHandler<T extends { ownerUri: string }>(
-        invoke: (r: QueryRunner, e: T) => void,
+        invoke: (r: IQueryEventHandler, e: T) => void,
         onComplete = false,
     ): NotificationHandler<T> {
         return (e: T) => {

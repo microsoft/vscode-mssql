@@ -32,6 +32,7 @@ import {
     ChevronDown20Regular,
     ChevronRight20Regular,
     Search20Regular,
+    Checkmark20Regular,
 } from "@fluentui/react-icons";
 import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
@@ -114,6 +115,14 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "8px",
         paddingLeft: "56px",
+    },
+    checkmarkContainer: {
+        width: "20px",
+        height: "20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
     },
 
     // --- States ---
@@ -487,13 +496,20 @@ export const CodeAnalysisDialog = () => {
                                                 <TableRow key={rule.ruleId}>
                                                     <TableCell className={styles.tableCell}>
                                                         <div className={styles.childRuleContent}>
-                                                            <Checkbox
-                                                                aria-hidden={true}
-                                                                checked={rule.enabled}
-                                                                disabled={!rule.enabled}
-                                                                style={{ pointerEvents: "none" }}
-                                                                tabIndex={-1}
-                                                            />
+                                                            <div
+                                                                className={
+                                                                    styles.checkmarkContainer
+                                                                }
+                                                                role="img"
+                                                                aria-label={
+                                                                    rule.enabled
+                                                                        ? loc.ruleEnabled
+                                                                        : loc.ruleDisabled
+                                                                }>
+                                                                {rule.enabled && (
+                                                                    <Checkmark20Regular aria-hidden="true" />
+                                                                )}
+                                                            </div>
                                                             <Text>
                                                                 {rule.shortRuleId}:{" "}
                                                                 {rule.displayName}

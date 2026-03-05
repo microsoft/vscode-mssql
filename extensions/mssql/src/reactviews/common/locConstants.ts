@@ -189,7 +189,7 @@ export class LocConstants {
 
     public get publishDialog() {
         return {
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             publish: l10n.t("Publish"),
             openPublishScript: l10n.t("Open Publish Script"),
             confirmationText: l10n.t("I have read the summary and understand the potential risks."),
@@ -265,6 +265,8 @@ export class LocConstants {
                     args: [filtered, total],
                     comment: ["{0} is the filtered count, {1} is the total count"],
                 }),
+            ruleEnabled: l10n.t("Rule enabled"),
+            ruleDisabled: l10n.t("Rule disabled"),
         };
     }
 
@@ -805,9 +807,13 @@ export class LocConstants {
             },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             openCopilotForSchemaDesigner: l10n.t("Chat"),
             openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
+            askGithubCopilotToFix: l10n.t("Ask GitHub Copilot to Fix"),
+            askGithubCopilotToFixTooltip: l10n.t(
+                "Open GitHub Copilot Chat to help fix these errors",
+            ),
             schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
@@ -1024,7 +1030,7 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
-            definition: l10n.t("Definition"),
+            definition: l10n.t("Show Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
