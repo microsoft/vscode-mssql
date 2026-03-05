@@ -347,7 +347,7 @@
       </trans-unit>
       <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
         <source xml:lang="en">All severities</source>
-        <target state="new">All severities</target>
+        <target state="translated">Todas as gravidades</target>
       </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
@@ -1342,7 +1342,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178">
         <source xml:lang="en">Code analysis rules saved successfully</source>
-        <target state="new">Code analysis rules saved successfully</target>
+        <target state="translated">Regras do Code Analysis salvas com sucesso</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -2527,7 +2527,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
         <source xml:lang="en">Don't Save</source>
-        <target state="new">Don't Save</target>
+        <target state="translated">Não Salvar</target>
       </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
@@ -3445,7 +3445,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
         <source xml:lang="en">Failed to read saved rule overrides from project</source>
-        <target state="new">Failed to read saved rule overrides from project</target>
+        <target state="translated">Falha ao ler as substituições de regra salvas do projeto</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -3482,7 +3482,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
         <source xml:lang="en">Failed to save code analysis rules</source>
-        <target state="new">Failed to save code analysis rules</target>
+        <target state="translated">Falha ao salvar regras do Code Analysis</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -3681,7 +3681,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd">
         <source xml:lang="en">Filter by severity</source>
-        <target state="new">Filter by severity</target>
+        <target state="translated">Filtrar por severidade</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
@@ -3795,7 +3795,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
         <source xml:lang="en">Folder path</source>
-        <target state="new">Folder path</target>
+        <target state="translated">Caminho da pasta</target>
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
@@ -5374,7 +5374,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
         <source xml:lang="en">No rules match the current filter.</source>
-        <target state="new">No rules match the current filter.</target>
+        <target state="translated">Nenhuma regra corresponde ao filtro atual.</target>
       </trans-unit>
       <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
         <source xml:lang="en">No saved connection profiles found.</source>
@@ -5854,7 +5854,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++4791a6164d5240e0462939aae1e5f111b575b65dab13089cc16056045c042892">
         <source xml:lang="en">Please select a file, not a folder.</source>
-        <target state="new">Please select a file, not a folder.</target>
+        <target state="translated">Selecione um arquivo, não uma pasta.</target>
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
@@ -6369,7 +6369,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
         <source xml:lang="en">Reset to Defaults?</source>
-        <target state="new">Reset to Defaults?</target>
+        <target state="translated">Redefinir para Padrões?</target>
       </trans-unit>
       <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
         <source xml:lang="en">Resize</source>
@@ -6525,6 +6525,14 @@ Erro:
       <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
         <source xml:lang="en">Rows per page</source>
         <target state="translated">Linhas por página</target>
+      </trans-unit>
+      <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
+        <source xml:lang="en">Rule disabled</source>
+        <target state="new">Rule disabled</target>
+      </trans-unit>
+      <trans-unit id="++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c">
+        <source xml:lang="en">Rule enabled</source>
+        <target state="new">Rule enabled</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -6887,7 +6895,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
         <source xml:lang="en">Search rules...</source>
-        <target state="new">Search rules...</target>
+        <target state="translated">Pesquisar regras...</target>
       </trans-unit>
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
@@ -7942,7 +7950,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
         <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
-        <target state="new">The query results panel failed to load. Please try running the query again.</target>
+        <target state="translated">Falha ao carregar o painel de resultados da consulta. Tente executar a consulta novamente.</target>
       </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
@@ -8000,7 +8008,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
-        <target state="new">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</target>
+        <target state="translated">Isso vai redefinir todas as regras para a severidade padrão e desativar 'Habilitar Code Analysis na Compilação'. Isso não pode ser desfeito. Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -8189,7 +8197,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
         <source xml:lang="en">Unsaved Changes</source>
-        <target state="new">Unsaved Changes</target>
+        <target state="translated">Alterações Não Salvas</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -8410,11 +8418,11 @@ Consulta: {2}</target>
         <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
         <note>{0} is the webview name
 {1} is the timeout in milliseconds</note>
-        <target state="new">Webview '{0}' did not become ready within {1}ms</target>
+        <target state="translated">O modo de exibição da Web "{0}" não ficou pronto em {1}ms</target>
       </trans-unit>
       <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
         <source xml:lang="en">Webview was disposed before it became ready</source>
-        <target state="new">Webview was disposed before it became ready</target>
+        <target state="translated">O modo de exibição da Web foi descartado antes de se tornar pronto</target>
       </trans-unit>
       <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
         <source xml:lang="en">What I can do for you:</source>
@@ -8475,7 +8483,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
         <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
-        <target state="new">You have unsaved changes. Do you want to save before closing?</target>
+        <target state="translated">Você tem alterações não salvas. Deseja salvar antes de sair?</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -8784,7 +8792,7 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
         <source xml:lang="en">{0} of {1} rules</source>
         <note>{0} is the filtered count, {1} is the total count</note>
-        <target state="new">{0} of {1} rules</target>
+        <target state="translated">{0} de {1} regras</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
@@ -8984,7 +8992,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
-        <target state="new">Cancel Connection</target>
+        <target state="translated">Cancelar Conexão</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -9830,7 +9838,7 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
-        <target state="new">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</target>
+        <target state="translated">Quando habilitada, transfira automaticamente a conexão ativa para arquivos SQL recém-abertos. Quando desabilitado, você deve se conectar explicitamente a um banco de dados para cada arquivo SQL.</target>
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
