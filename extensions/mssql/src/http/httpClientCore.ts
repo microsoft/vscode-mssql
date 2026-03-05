@@ -12,7 +12,6 @@ import { Readable } from "stream";
 import { ILogger } from "../models/interfaces";
 
 const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
-const DefaultRequestTimeoutMs = 20000; // 20 seconds
 
 export interface IHttpClientMessages {
     missingProtocolWarning(proxy: string): string;
@@ -26,7 +25,6 @@ export interface IHttpClientDependencies {
     parseUriScheme?: (value: string) => string | undefined;
     showWarningMessage?: (message: string) => void;
     getErrorMessage?: (error: unknown) => string;
-    getRequestTimeout?: () => number;
     messages?: IHttpClientMessages;
 }
 
@@ -227,7 +225,6 @@ export class HttpClientCore {
         const config: AxiosRequestConfig = {
             headers,
             validateStatus: () => true, // Never throw
-            timeout: this.dependencies.getRequestTimeout?.() ?? DefaultRequestTimeoutMs,
         };
 
         const proxy = this.loadProxyConfig();
