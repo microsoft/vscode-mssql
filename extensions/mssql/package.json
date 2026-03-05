@@ -585,7 +585,7 @@
                 },
                 {
                     "command": "mssql.buildDataApi",
-                    "when": "config.mssql.enableDAB && view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
