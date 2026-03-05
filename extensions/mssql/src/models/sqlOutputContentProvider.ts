@@ -21,8 +21,11 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import * as qr from "../sharedInterfaces/queryResult";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
+import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+// Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
+// can transpile to throttle_1.default and fail at runtime in unit tests.
+import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
@@ -46,8 +49,9 @@ export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _actualPlanStatuses: string[] = [];
-    // Throttle timers for state updates per result URI (messages, results, etc.)
-    private _stateUpdateTimers: Map<string, NodeJS.Timeout> = new Map();
+    private _queryExecutionInFlightUris: Set<string> = new Set();
+    // Throttled state update functions per result URI (messages, results, etc.)
+    private _stateUpdateThrottles: Map<string, ReturnType<typeof throttle>> = new Map();
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -294,34 +298,51 @@ export class SqlOutputContentProvider {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
-        const runner = await this.initializeRunnerAndWebviewState(
-            statusView ? statusView : this._statusView,
-            uri,
-            title,
-            executionPlanOptions,
-        );
-
-        if (!runner) {
+        if (!this.tryAcquireExecutionSlot(uri)) {
             if (promise) {
                 promise.reject(false);
             }
             return;
         }
+        try {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+                executionPlanOptions,
+            );
 
-        const includeExecutionPlanXml =
-            executionPlanOptions?.includeActualExecutionPlanXml ??
-            this._actualPlanStatuses.includes(uri);
-        const includeEstimatedExecutionPlanXml =
-            executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+            if (!runner) {
+                this.releaseExecutionSlot(uri);
+                if (promise) {
+                    promise.reject(false);
+                }
+                return;
+            }
 
-        await runner.runQuery(
-            selection,
-            {
-                includeActualExecutionPlanXml: includeExecutionPlanXml,
-                includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
-            },
-            promise,
-        );
+            this.releaseExecutionSlotOnComplete(runner);
+
+            const includeExecutionPlanXml =
+                executionPlanOptions?.includeActualExecutionPlanXml ??
+                this._actualPlanStatuses.includes(uri);
+            const includeEstimatedExecutionPlanXml =
+                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+
+            await runner.runQuery(
+                selection,
+                {
+                    includeActualExecutionPlanXml: includeExecutionPlanXml,
+                    includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
+                },
+                promise,
+            );
+        } catch (error) {
+            this.releaseExecutionSlot(uri);
+            if (promise) {
+                promise.reject(false);
+            }
+            console.log(`Error running query for ${uri}: ${getErrorMessage(error)}`);
+        }
     }
 
     /**
@@ -338,20 +359,57 @@ export class SqlOutputContentProvider {
         selection: ISelectionData,
         title: string,
     ): Promise<void> {
-        const runner = await this.initializeRunnerAndWebviewState(
-            statusView ? statusView : this._statusView,
-            uri,
-            title,
-        );
-
-        if (!runner) {
+        if (!this.tryAcquireExecutionSlot(uri)) {
             return;
         }
 
-        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+        try {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+            );
 
-        await runner.runStatement(selection.startLine, selection.startColumn, {
-            includeActualExecutionPlanXml: includeExecutionPlanXml,
+            if (!runner) {
+                this.releaseExecutionSlot(uri);
+                return;
+            }
+
+            this.releaseExecutionSlotOnComplete(runner);
+
+            const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+            await runner.runStatement(selection.startLine, selection.startColumn, {
+                includeActualExecutionPlanXml: includeExecutionPlanXml,
+            });
+        } catch (_error) {
+            this.releaseExecutionSlot(uri);
+            throw _error;
+        }
+    }
+
+    private tryAcquireExecutionSlot(uri: string): boolean {
+        if (this._queryExecutionInFlightUris.has(uri)) {
+            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
+            return false;
+        }
+
+        this._queryExecutionInFlightUris.add(uri);
+        return true;
+    }
+
+    private releaseExecutionSlot(uri: string): void {
+        this._queryExecutionInFlightUris.delete(uri);
+    }
+
+    /**
+     * Subscribes to the runner's onComplete event to release the execution slot
+     * when the query finishes (whether successfully or with an error).
+     */
+    private releaseExecutionSlotOnComplete(runner: QueryRunner): void {
+        const listener = runner.onComplete(() => {
+            listener.dispose();
+            this.releaseExecutionSlot(runner.uri);
         });
     }
 
@@ -681,64 +739,52 @@ export class SqlOutputContentProvider {
      * Coalesces rapid updates (messages/results) into a single update.
      */
     private scheduleThrottledUpdate(uri: string, delayMs: number = 100): void {
-        if (this._stateUpdateTimers.has(uri)) {
-            return; // already scheduled
+        let throttledUpdate = this._stateUpdateThrottles.get(uri);
+        if (!throttledUpdate) {
+            throttledUpdate = throttle(
+                () => {
+                    if (!this._queryResultWebviewController.hasQueryResultState(uri)) {
+                        return;
+                    }
+                    const state = this._queryResultWebviewController.getQueryResultState(uri);
+                    this.updateWebviewState(uri, state);
+                },
+                delayMs,
+                { leading: false, trailing: true },
+            );
+
+            this._stateUpdateThrottles.set(uri, throttledUpdate);
         }
-        const timer = setTimeout(() => {
-            try {
-                const state = this._queryResultWebviewController.getQueryResultState(uri);
-                this.updateWebviewState(uri, state);
-            } finally {
-                this._stateUpdateTimers.delete(uri);
-            }
-        }, delayMs);
-        this._stateUpdateTimers.set(uri, timer);
+
+        throttledUpdate();
     }
 
     /**
-     * Executed from the MainController when an untitled text document was saved to the disk. If
-     * any queries were executed from the untitled document, the queryrunner will be remapped to
-     * a new resuls uri based on the uri of the newly saved file.
-     * @param untitledUri   The URI of the untitled file
-     * @param savedUri  The URI of the file after it was saved
+     * We throttle updates to the webview state to avoid overwhelming the RPC channel and leading to stuck webview. https://github.com/microsoft/vscode-mssql/issues/18246
+     * We need to migrate any pending throttled updates to the new URI when a query runner URI is updated (ex: after a save as) to ensure the webview state stays in sync and updates are not lost.
      */
-    public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
-        // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = decodeURIComponent(untitledUri);
-        if (!this._queryResultsMap.has(untitledResultsUri)) {
+    private migrateThrottledUpdateUri(oldUri: string, newUri: string): void {
+        const throttledUpdate = this._stateUpdateThrottles.get(oldUri);
+        if (!throttledUpdate || oldUri === newUri) {
             return;
         }
 
-        // NOTE: We don't need to remap the query in the service because the queryrunner still has
-        // the old uri. As long as we make requests to the service against that uri, we'll be good.
-
-        // Remap the query runner in the map
-        let savedResultUri = decodeURIComponent(savedUri);
-        this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
-        this._queryResultsMap.delete(untitledResultsUri);
+        throttledUpdate.cancel();
+        this._stateUpdateThrottles.delete(oldUri);
+        this.scheduleThrottledUpdate(newUri);
     }
 
     public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
-        let queryRunner = this.getQueryRunner(oldUri);
-        if (queryRunner) {
-            queryRunner.updateQueryRunnerUri(oldUri, newUri);
+        this.migrateThrottledUpdateUri(oldUri, newUri);
+
+        const queryRunnerState = this._queryResultsMap.get(oldUri);
+        if (queryRunnerState) {
+            queryRunnerState.queryRunner.updateQueryRunnerUri(oldUri, newUri);
+            this._queryResultsMap.set(newUri, queryRunnerState);
+            this._queryResultsMap.delete(oldUri);
         }
 
-        let state = this._queryResultWebviewController.getQueryResultState(oldUri);
-        if (state) {
-            state.uri = newUri;
-            /**
-             * TODO: aaskhan
-             * Remove adhoc state updates.
-             */
-            await this._queryResultWebviewController.sendNotification(
-                StateChangeNotification.type<qr.QueryResultWebviewState>(),
-                state,
-            );
-            //Update the URI in the query result webview state
-            this._queryResultWebviewController.setQueryResultState(newUri, state);
-            this._queryResultWebviewController.deleteQueryResultState(oldUri);
-        }
+        this._queryResultWebviewController.updateUri(oldUri, newUri);
     }
 
     /**
@@ -790,10 +836,10 @@ export class SqlOutputContentProvider {
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
             // Clear any pending throttled state update for this URI
-            const timer = this._stateUpdateTimers.get(uri);
-            if (timer) {
-                clearTimeout(timer);
-                this._stateUpdateTimers.delete(uri);
+            const throttledUpdate = this._stateUpdateThrottles.get(uri);
+            if (throttledUpdate) {
+                throttledUpdate.cancel();
+                this._stateUpdateThrottles.delete(uri);
             }
             if (queryRunnerState.queryRunner.isExecutingQuery) {
                 // We need to cancel it, which will dispose it

@@ -77,6 +77,6 @@ suite("SqlCodeLensProvider Tests", () => {
         expect(lenses[0].command?.title).to.equal(
             `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`,
         );
-        expect(lenses[0].command?.command).to.equal(Constants.cmdConnect);
+        expect(lenses[0].command?.command).to.equal(Constants.cmdDisconnect);
     });
 });

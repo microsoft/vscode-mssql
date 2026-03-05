@@ -14,6 +14,8 @@ export interface Icons {
     Bug16Regular: FluentIcon;
     Chat16Regular: FluentIcon;
     ClipboardBulletList16Regular: FluentIcon;
+    GithubCopilot16Regular: FluentIcon;
     Lightbulb16Regular: FluentIcon;
+    Schema16Regular: FluentIcon;
     VideoClip16Filled: FluentIcon;
 }

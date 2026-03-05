@@ -46,6 +46,7 @@ export enum TelemetryViews {
     FlatFile = "FlatFile",
     Profiler = "Profiler",
     Restore = "Restore",
+    SqlNotebooks = "SqlNotebooks",
 }
 
 export enum TelemetryActions {
@@ -109,7 +110,6 @@ export enum TelemetryActions {
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
     CopyHeaders = "CopyHeaders",
-    EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     QueryResultsTabDefaultSettingToggled = "QueryResultsTabDefaultSettingToggled",
     OpenQueryResult = "OpenQueryResult",
@@ -165,6 +165,7 @@ export enum TelemetryActions {
     StartConversation = "StartConversation",
     AzureSignIn = "AzureSignIn",
     GetQueryResultState = "GetQueryResultState",
+    CreatePanelController = "CreatePanelController",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
     SchemaDesignerTool = "SchemaDesignerTool",
@@ -243,6 +244,19 @@ export enum TelemetryActions {
     CodeAnalysisDialogOpened = "CodeAnalysisDialogOpened",
     CodeAnalysisRulesLoaded = "CodeAnalysisRulesLoaded",
     CodeAnalysisRulesLoadError = "CodeAnalysisRulesLoadError",
+    CodeAnalysisRulesSaved = "CodeAnalysisRulesSaved",
+    CodeAnalysisRulesSaveError = "CodeAnalysisRulesSaveError",
+    CodeAnalysisEnabledOnBuild = "CodeAnalysisEnabledOnBuild",
+    CodeAnalysisDisabledOnBuild = "CodeAnalysisDisabledOnBuild",
+    // SQL Notebooks
+    CreateNotebook = "CreateNotebook",
+    ExecuteCell = "ExecuteCell",
+    MagicCommand = "MagicCommand",
+    NotebookConnect = "NotebookConnect",
+    NotebookDisconnect = "NotebookDisconnect",
+    NotebookChangeDatabase = "NotebookChangeDatabase",
+    CancelCellExecution = "CancelCellExecution",
+    KernelSelected = "KernelSelected",
 }
 
 /**

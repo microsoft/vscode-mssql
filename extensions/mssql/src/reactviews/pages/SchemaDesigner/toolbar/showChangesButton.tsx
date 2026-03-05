@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, Button, Tooltip, makeStyles } from "@fluentui/react-components";
-import { BranchCompare16Regular } from "@fluentui/react-icons";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
 import {
@@ -12,6 +11,8 @@ import {
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
+import { BranchCompareIcon16Regular } from "../../../common/icons/fluentIcons";
 
 const useStyles = makeStyles({
     container: {
@@ -35,6 +36,7 @@ export function ShowChangesButton() {
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
     const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
+    const isCompact = useIsToolbarCompact();
     const isDabEnabled = enableDAB ?? false;
 
     if (!isDabEnabled) {
@@ -50,8 +52,8 @@ export function ShowChangesButton() {
                     onClick={() => {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Changes);
                     }}
-                    icon={<BranchCompare16Regular />}>
-                    {locConstants.schemaDesigner.showChangesButtonLabel}
+                    icon={<BranchCompareIcon16Regular />}>
+                    {!isCompact && locConstants.schemaDesigner.showChangesButtonLabel}
                 </Button>
                 {changeContext.schemaChangesCount > 0 && (
                     <Badge size="small" className={classes.badge}>

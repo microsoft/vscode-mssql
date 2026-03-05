@@ -14,11 +14,10 @@ import {
 } from "../sharedInterfaces/connectionGroup";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
-import * as Utils from "../models/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import ConnectionManager from "./connectionManager";
 
@@ -123,7 +122,7 @@ export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConn
         name: spec.name,
         description: spec.description,
         color: spec.color,
-        id: Utils.generateGuid(),
+        id: uuid(),
         configSource: vscode.ConfigurationTarget.Global,
     };
 }

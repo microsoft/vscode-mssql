@@ -17,8 +17,7 @@ import {
 } from "../sharedInterfaces/objectManagement";
 import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementService } from "../services/objectManagementService";
-import { generateGuid } from "../models/utils";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import * as LocConstants from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { FormItemSpec, FormReducers } from "../sharedInterfaces/form";
@@ -33,7 +32,7 @@ export abstract class ObjectManagementWebviewController<
     TReducers,
     string
 > {
-    protected readonly contextId = generateGuid();
+    protected readonly contextId = uuid();
     protected readonly objectManagementService: ObjectManagementService;
     protected readonly dialogType: ObjectManagementDialogType;
     protected readonly connectionUri: string;

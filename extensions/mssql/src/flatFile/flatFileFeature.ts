@@ -12,10 +12,10 @@ import {
     RPCMessageType,
     ServerCapabilities,
 } from "vscode-languageclient";
-import * as UUID from "vscode-languageclient/lib/utils/uuid";
 import { ApiType, managerInstance } from "./serviceApiManager";
 import { Feature } from "./clientInterfaces";
 import { flatFileProvider } from "../constants/constants";
+import { uuid } from "../utils/utils";
 
 export class FlatFileFeature extends Feature<undefined> {
     private static readonly messagesTypes: RPCMessageType[] = [ff.ProseDiscoveryRequest.type];
@@ -28,7 +28,7 @@ export class FlatFileFeature extends Feature<undefined> {
 
     public initialize(_capabilities: ServerCapabilities): void {
         this.register(this.messages, {
-            id: UUID.generateUuid(),
+            id: uuid(),
             registerOptions: undefined,
         });
     }

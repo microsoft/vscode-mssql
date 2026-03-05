@@ -3,7 +3,6 @@ import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-t
 
 const mocha = createMochaConfig({
     timeout: 30_000,
-    require: ["./out/test/stubs/moduleShims.js"],
 });
 
 export default defineConfig({

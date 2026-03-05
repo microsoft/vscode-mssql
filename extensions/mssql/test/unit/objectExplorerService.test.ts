@@ -51,7 +51,7 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../../src/models/contracts/objectExplorer/getSessionIdRequest";
-import { generateUUID } from "../e2e/baseFixtures";
+import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { initializeIconUtils } from "./utils";
@@ -1231,7 +1231,7 @@ suite("OE Service Tests", () => {
                 database: "TestDB",
                 authenticationType: "SqlLogin",
                 user: "testUser",
-                password: generateUUID(),
+                password: uuid(),
             } as IConnectionInfo;
 
             // Preemptively set maps to insulate from getRootNodes() byproducts
@@ -1627,7 +1627,7 @@ suite("OE Service Tests", () => {
                 database: "TestDB",
                 authenticationType: "AzureMFA",
                 user: "testUser",
-                password: generateUUID(),
+                password: uuid(),
             } as IConnectionInfo;
 
             // Setup to return undefined to end the test early
@@ -2397,7 +2397,7 @@ suite("OE Service Tests", () => {
                 database: "TestDB",
                 authenticationType: "SqlLogin",
                 user: "testUser",
-                password: generateUUID(),
+                password: uuid(),
             } as IConnectionInfo;
 
             // Call the method
@@ -2550,7 +2550,7 @@ function createMockConnectionProfile(
         database: "TestDB",
         authenticationType: options.authenticationType || "SqlLogin",
         user: options.user ?? "testUser",
-        password: generateUUID(),
+        password: uuid(),
         savePassword: true,
         accountId: options.accountId,
         tenantId: options.tenantId,

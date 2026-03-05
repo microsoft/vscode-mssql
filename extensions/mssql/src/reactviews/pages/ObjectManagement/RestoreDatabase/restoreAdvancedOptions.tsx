@@ -145,13 +145,16 @@ export const AdvancedOptionsDrawer = ({
             {dialog?.type === "fileBrowser" && fileBrowserState && (
                 <FileBrowserDialog
                     ownerUri={ownerUri}
-                    defaultFilePath={defaultFileBrowserExpandPath}
+                    defaultFileBrowserExpandPath={defaultFileBrowserExpandPath}
                     fileTree={fileBrowserState.fileTree}
                     showFoldersOnly={fileBrowserState.showFoldersOnly}
                     provider={context as FileBrowserProvider}
                     fileTypeOptions={fileFilterOptions}
                     closeDialog={() => context.toggleFileBrowserDialog(false, false)}
                     propertyName={fileBrowserProp}
+                    defaultSelectedPath={
+                        formState[fileBrowserProp as keyof RestoreDatabaseFormState] as string
+                    }
                 />
             )}
             <OverlayDrawer

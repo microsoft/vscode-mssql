@@ -8,23 +8,6 @@ With a new rich set of features, this extension enhances the development process
 
 Each feature is crafted to improve productivity, streamline workflows, and make database management tasks more intuitive. Below is an overview of the key experiences provided by the MSSQL extension, aimed at helping developers achieve a more efficient and enjoyable SQL development experience.
 
-## Enabling the new features
-
-### Using MSSQL prompt
-
-After installing the latest version of the MSSQL extension in VS Code, you can proceed to enable the new UI features via a prompt. This prompt will appear on the screen right after the extension is loaded for the first time:
-![enable new UI experience](images/ux/enable-features.png)
-
-### Using VS Code User Settings file
-
-As an alternative, you can enable the new UI features by modifying the `User settings (JSON)` file via the VS Code command palette:
-![modify JSON settings 1](images/ux/enable-features-json-1.png)
-
-Add the `mssql.enableRichExperiences` setting to your settings.json file, and set this option to true:
-![modify JSON settings 2](images/ux/enable-features-json-2.png)
-
-Close the `settings.json` file, save the changes, and proceed to restart VS Code.
-
 ## New features
 
 The latest version of the MSSQL extension introduces a set of powerful new UI features that enhance the development experience. These features make connecting to databases, managing database objects, and analyzing query performance more intuitive and efficient.

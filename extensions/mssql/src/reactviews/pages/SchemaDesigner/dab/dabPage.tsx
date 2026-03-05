@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
-import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
+import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -49,6 +49,9 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
     const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
         useDabContext();
+    const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
+    const canShowDiscovery = isDabTabActive && isInitialized && dabConfig != null;
+    const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(null);
 
     // Initialize DAB config when schema is first initialized
     useEffect(() => {
@@ -59,8 +62,6 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
 
     // Sync DAB config with schema when switching to DAB tab
     useEffect(() => {
-        const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
-
         if (isInitialized && isDabTabActive && dabConfig) {
             // Incremental sync: add new tables, remove deleted ones, keep existing settings
             syncDabConfigWithSchema();
@@ -97,14 +98,18 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
             <PanelGroup direction="vertical">
                 <Panel defaultSize={100}>
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                        <DabToolbar onNavigateToSchema={onNavigateToSchema} />
+                        <DabToolbar
+                            showDiscovery={canShowDiscovery}
+                            onNavigateToSchema={onNavigateToSchema}
+                            onViewConfig={() => definitionsPanelRef.current?.openPanel()}
+                        />
                         <div className={classes.content}>
                             <DabEntityTable />
                         </div>
                     </div>
                 </Panel>
                 <PanelResizeHandle className={classes.resizeHandle} />
-                <DabDefinitionsPanel />
+                <DabDefinitionsPanel ref={definitionsPanelRef} />
             </PanelGroup>
         </div>
     );

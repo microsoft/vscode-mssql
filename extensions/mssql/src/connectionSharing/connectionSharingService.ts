@@ -8,7 +8,6 @@ import ConnectionManager from "../controllers/connectionManager";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile } from "../models/interfaces";
-import { generateGuid } from "../models/utils";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -16,6 +15,8 @@ import { Logger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { QueryCancelRequest } from "../models/contracts/queryCancel";
+import { uuid } from "../utils/utils";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
 
@@ -414,7 +415,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const connectionUri = generateGuid();
+        const connectionUri = uuid();
         if (databaseName) {
             targetConnection.database = databaseName; // Set the database if provided
         }
@@ -492,6 +493,15 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             },
         );
         return result;
+    }
+
+    public async cancelQuery(connectionUri: string): Promise<void> {
+        if (!connectionUri) {
+            return;
+        }
+        await this._client.sendRequest(QueryCancelRequest.type, {
+            ownerUri: connectionUri,
+        });
     }
 
     public getServerInfo(connectionUri: string): mssql.IServerInfo {

@@ -38,6 +38,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
     private _correlationId: string = randomUUID();
+    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
+        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
 
@@ -61,36 +63,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         void this.initialize();
 
-        context.subscriptions.push(
-            vscode.window.onDidChangeActiveTextEditor((editor) => {
-                const uri = getUriKey(editor?.document?.uri);
-                const hasPanel = uri && this.hasPanel(uri);
-                const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
-
-                if (hasWebviewViewState && !hasPanel) {
-                    this.state = this.getQueryResultState(uri);
-                } else if (hasPanel) {
-                    const editorViewColumn = editor?.viewColumn;
-                    const panelViewColumn =
-                        this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
-
-                    /**
-                     * If the results are shown in webview panel, and the active editor is not in the same
-                     * view column as the results, then reveal the panel to the foreground
-                     */
-                    if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
-                        this.revealPanel(uri);
-                    }
-                } else {
-                    this.showSplashScreen();
-                }
-            }),
-        );
-
         // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
-            this.vscodeWrapper.onDidOpenTextDocument((document) => {
+            this.vscodeWrapper.onDidCloseTextDocument((document) => {
                 const uri = getUriKey(document.uri);
+                if (this._sqlDocumentService?.isUriBeingRenamedOrSaved(uri)) {
+                    return;
+                }
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
                 }
@@ -149,6 +128,40 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private get shouldAutoRevealResultsPanel(): boolean {
         return this.vscodeWrapper.getConfiguration().get(Constants.configAutoRevealResultsPanel);
+    }
+
+    public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
+        this.updateSelectionSummary();
+
+        const uri = getUriKey(editor?.document?.uri);
+        const hasPanel = uri && this.hasPanel(uri);
+        const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
+
+        if (hasWebviewViewState) {
+            if (hasPanel) {
+                const editorViewColumn = editor?.viewColumn;
+                const panelViewColumn =
+                    this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
+                /**
+                 * If the results are shown in a webview panel and the active editor is not in the same
+                 * view column as the results, then reveal the panel to the foreground. We explicitly
+                 * check that the editor and results are in different columns before revealing so that
+                 * we do not cover the query editor when the results share the same column.
+                 */
+                if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
+                    this.revealPanel(uri);
+                }
+                /**
+                 * If the results are shown in webview panel, we always set
+                 * the webview view to show splash screen.
+                 */
+                this.showSplashScreen();
+            } else {
+                this.state = this.getQueryResultState(uri);
+            }
+        } else {
+            this.showSplashScreen();
+        }
     }
 
     private async initialize() {
@@ -267,7 +280,24 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
-        await controller.whenWebviewReady();
+        try {
+            await controller.whenWebviewReady();
+        } catch (e) {
+            // If the webview was disposed or timed out before it became ready, clean up the
+            // panel controller entry so callers are not blocked indefinitely.
+            sendErrorEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CreatePanelController,
+                e instanceof Error ? e : new Error(String(e)),
+                true, // includeErrorMessage
+            );
+            this._queryResultWebviewPanelControllerMap.delete(uri);
+            controller.panel.dispose();
+            void this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
+            );
+            throw e;
+        }
     }
 
     public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
@@ -349,6 +379,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this._queryResultStateMap.set(uri, state);
     }
 
+    public hasQueryResultState(uri: string): boolean {
+        return this._queryResultStateMap.has(uri);
+    }
+
     public deleteQueryResultState(uri: string): void {
         this._queryResultStateMap.delete(uri);
     }
@@ -358,6 +392,41 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
                 .updateState(this.getQueryResultState(uri));
+        }
+    }
+
+    private updatePanelUri(oldUri: string, newUri: string): void {
+        const controller = this._queryResultWebviewPanelControllerMap.get(oldUri);
+        if (!controller || oldUri === newUri) {
+            return;
+        }
+
+        this._queryResultWebviewPanelControllerMap.delete(oldUri);
+        this._queryResultWebviewPanelControllerMap.set(newUri, controller);
+        controller.updateUri(newUri);
+    }
+
+    public updateUri(oldUri: string, newUri: string): void {
+        if (oldUri === newUri) {
+            return;
+        }
+
+        this.updatePanelUri(oldUri, newUri);
+
+        if (!this._queryResultStateMap.has(oldUri)) {
+            return;
+        }
+
+        const state = this.getQueryResultState(oldUri);
+        state.uri = newUri;
+        this._queryResultStateMap.set(newUri, state);
+        this._queryResultStateMap.delete(oldUri);
+
+        // Update state in panel or webview view depending on where it is currently shown
+        if (this._queryResultWebviewPanelControllerMap.has(newUri)) {
+            this._queryResultWebviewPanelControllerMap.get(newUri).updateState(state);
+        } else if (this.isVisible()) {
+            this.state = state;
         }
     }
 
@@ -386,6 +455,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
+
+            this.updateSelectionSummary();
         }
     }
 
@@ -473,6 +544,32 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
+    }
+
+    public updateSelectionSummary() {
+        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
+            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
+        );
+
+        if (!activeUri) {
+            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
+        }
+
+        if (!this._queryResultStateMap.has(activeUri)) {
+            this._selectionSummaryStatusBarItem.hide();
+            return;
+        }
+
+        const state = this._queryResultStateMap.get(activeUri);
+
+        if (state?.selectionSummary) {
+            this._selectionSummaryStatusBarItem.text = state.selectionSummary.text;
+            this._selectionSummaryStatusBarItem.tooltip = state.selectionSummary.tooltip;
+            this._selectionSummaryStatusBarItem.command = state.selectionSummary.command;
+            this._selectionSummaryStatusBarItem.show();
+        } else {
+            this._selectionSummaryStatusBarItem.hide();
+        }
     }
 
     public getOpenQueryResultsInTabByDefaultRequestHandler(): boolean {
