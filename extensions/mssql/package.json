@@ -584,49 +584,54 @@
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
+                    "command": "mssql.buildDataApi",
+                    "when": "config.mssql.enableDAB && view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@2"
+                },
+                {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@2"
+                    "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
                     "command": "mssql.searchDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "2_MSSQL_serverDbActions@4"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@4"
+                    "group": "2_MSSQL_serverDbActions@5"
                 },
                 {
                     "command": "mssql.renameDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@5"
+                    "group": "2_MSSQL_serverDbActions@6"
                 },
                 {
                     "command": "mssql.dropDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
+                    "group": "2_MSSQL_serverDbActions@7"
                 },
                 {
                     "command": "mssql.backupDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@7"
+                    "group": "2_MSSQL_serverDbActions@8"
                 },
                 {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.flatFileImport",
@@ -893,6 +898,10 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.buildDataApi",
                     "when": "false"
                 },
                 {
@@ -1197,6 +1206,11 @@
                     "dark": "media/applicationQuickStart_dark.svg",
                     "light": "media/applicationQuickStart_light.svg"
                 }
+            },
+            {
+                "command": "mssql.buildDataApi",
+                "title": "%mssql.buildDataApi%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.editTable",
