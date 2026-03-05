@@ -151,7 +151,7 @@ suite("Schema Designer LM tool manifest schema", () => {
         expect(tableAnyOfRequiredLists).to.deep.include.members([["id"], ["name", "schema"]]);
     });
 
-    test("mssql_schema_designer is gated behind the DAB feature flag", () => {
+    test("mssql_schema_designer is always available", () => {
         const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
@@ -160,6 +160,6 @@ suite("Schema Designer LM tool manifest schema", () => {
         );
         expect(tool, "missing mssql_schema_designer tool in contributes.languageModelTools").to
             .exist;
-        expect(tool.when).to.equal("config.mssql.enableDAB");
+        expect(tool.when).to.be.undefined;
     });
 });

@@ -91,7 +91,6 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
-import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -838,19 +837,6 @@ export default class MainController implements vscode.Disposable {
             vscode.lm.registerTool(
                 Constants.copilotRunQueryToolName,
                 new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
-            ),
-        );
-
-        // Register mssql_show_schema tool
-        this._context.subscriptions.push(
-            vscode.lm.registerTool(
-                Constants.copilotShowSchemaToolName,
-                new ShowSchemaTool(
-                    this.connectionManager,
-                    async (connectionUri: string, database: string) => {
-                        await this.openSchemaDesigner(connectionUri, database);
-                    },
-                ),
             ),
         );
 

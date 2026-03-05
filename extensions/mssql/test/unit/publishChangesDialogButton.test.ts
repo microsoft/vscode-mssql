@@ -119,7 +119,6 @@ Some publish error
         const visible = helpers.shouldShowGithubCopilotFixButton(
             helpers.PublishDialogStages.ReportError,
             true,
-            true,
         );
 
         expect(visible).to.equal(true);
@@ -128,7 +127,6 @@ Some publish error
     test("shouldShowGithubCopilotFixButton returns true for publish error when conditions are met", () => {
         const visible = helpers.shouldShowGithubCopilotFixButton(
             helpers.PublishDialogStages.PublishError,
-            true,
             true,
         );
 
@@ -139,7 +137,6 @@ Some publish error
         const visible = helpers.shouldShowGithubCopilotFixButton(
             helpers.PublishDialogStages.ReportSuccessWithChanges,
             true,
-            true,
         );
 
         expect(visible).to.equal(false);
@@ -148,17 +145,6 @@ Some publish error
     test("shouldShowGithubCopilotFixButton returns false when Copilot is unavailable", () => {
         const visible = helpers.shouldShowGithubCopilotFixButton(
             helpers.PublishDialogStages.PublishError,
-            false,
-            true,
-        );
-
-        expect(visible).to.equal(false);
-    });
-
-    test("shouldShowGithubCopilotFixButton returns false when DAB is disabled", () => {
-        const visible = helpers.shouldShowGithubCopilotFixButton(
-            helpers.PublishDialogStages.PublishError,
-            true,
             false,
         );
 
@@ -229,7 +215,6 @@ suite("PublishChangesDialogButton component", () => {
             extensionRpc: {
                 sendRequest: sendRequestStub,
             },
-            isDabEnabled: () => true,
             getReport: sandbox.stub(),
             publishSession: sandbox.stub(),
             openInEditorWithConnection: sandbox.stub(),
