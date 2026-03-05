@@ -27,6 +27,8 @@ export class SqlNotebookController implements vscode.Disposable {
     private readonly log: vscode.LogOutputChannel;
     private readonly disposables: vscode.Disposable[] = [];
     private executionOrder = 0;
+    // Track notebooks by their document object to handle URI changes on save
+    private readonly notebookToUri = new WeakMap<vscode.NotebookDocument, string>();
 
     constructor(
         private connectionMgr: ConnectionManager,
@@ -112,8 +114,22 @@ export class SqlNotebookController implements vscode.Disposable {
         // as untitled (different URI) and then saved to disk.
         this.disposables.push(
             vscode.workspace.onDidSaveNotebookDocument((notebook) => {
-                this.rekeyConnectionIfNeeded(notebook);
+                this.rekeyConnectionOnSave(notebook);
                 this.saveConnectionMetadataIfConnected(notebook);
+            }),
+        );
+
+        // Clean up connection managers when notebooks are closed
+        this.disposables.push(
+            vscode.workspace.onDidCloseNotebookDocument((notebook) => {
+                const key = notebook.uri.toString();
+                const mgr = this.connections.get(key);
+                if (mgr) {
+                    this.log.info(`[onDidCloseNotebookDocument] Disposing manager for ${key}`);
+                    mgr.dispose();
+                    this.connections.delete(key);
+                }
+                // Note: WeakMap entry will be garbage collected automatically
             }),
         );
 
@@ -253,10 +269,6 @@ export class SqlNotebookController implements vscode.Disposable {
         const key = notebook.uri.toString();
         let mgr = this.connections.get(key);
         if (!mgr) {
-            // Check for a stale entry (e.g., URI changed after Save As)
-            mgr = this.rekeyConnectionIfNeeded(notebook);
-        }
-        if (!mgr) {
             mgr = this._connectionManagerFactory
                 ? this._connectionManagerFactory(
                       this.connectionMgr,
@@ -281,38 +293,30 @@ export class SqlNotebookController implements vscode.Disposable {
 
             this.connections.set(key, mgr);
         }
+        // Track this notebook for URI change detection on save
+        this.notebookToUri.set(notebook, key);
         return mgr;
     }
 
     /**
      * When a notebook is saved (untitled → file), its URI changes but the
-     * connections map still has the entry under the old key. Find the
-     * orphaned entry and re-key it to the current URI.
+     * connections map still has the entry under the old key. Re-key it to
+     * the new URI by tracking the notebook document object.
      */
-    private rekeyConnectionIfNeeded(
-        notebook: vscode.NotebookDocument,
-    ): NotebookConnectionManager | undefined {
+    private rekeyConnectionOnSave(notebook: vscode.NotebookDocument): void {
         const newKey = notebook.uri.toString();
-        if (this.connections.has(newKey)) {
-            return this.connections.get(newKey);
-        }
+        const oldKey = this.notebookToUri.get(notebook);
 
-        for (const [oldKey, mgr] of this.connections) {
-            if (oldKey === newKey) {
-                continue;
-            }
-            // Check if the old key no longer matches any open notebook
-            const stillOpen = vscode.workspace.notebookDocuments.some(
-                (doc) => doc.uri.toString() === oldKey,
-            );
-            if (!stillOpen && mgr.getConnectionInfo()) {
-                this.log.info(`[rekeyConnection] Re-keying connection: ${oldKey} → ${newKey}`);
-                this.connections.delete(oldKey);
-                this.connections.set(newKey, mgr);
-                return mgr;
-            }
+        // Update tracking with current URI
+        this.notebookToUri.set(notebook, newKey);
+
+        // If URI changed and we have a manager under the old key, re-key it
+        if (oldKey && oldKey !== newKey && this.connections.has(oldKey)) {
+            const mgr = this.connections.get(oldKey)!;
+            this.log.info(`[rekeyConnectionOnSave] Re-keying connection: ${oldKey} → ${newKey}`);
+            this.connections.delete(oldKey);
+            this.connections.set(newKey, mgr);
         }
-        return undefined;
     }
 
     /**

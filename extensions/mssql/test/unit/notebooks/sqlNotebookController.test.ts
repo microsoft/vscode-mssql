@@ -164,6 +164,9 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.workspace, "onDidSaveNotebookDocument").returns({
             dispose: sb.stub(),
         });
+        sb.stub(vscode.workspace, "onDidCloseNotebookDocument").returns({
+            dispose: sb.stub(),
+        });
         sb.stub(vscode.languages, "registerCodeLensProvider").returns({
             dispose: sb.stub(),
         });
@@ -467,6 +470,9 @@ suite("SqlNotebookController", () => {
                 dispose: sandbox.stub(),
             });
             sandbox.stub(vscode.workspace, "onDidSaveNotebookDocument").returns({
+                dispose: sandbox.stub(),
+            });
+            sandbox.stub(vscode.workspace, "onDidCloseNotebookDocument").returns({
                 dispose: sandbox.stub(),
             });
             sandbox.stub(vscode.languages, "registerCodeLensProvider").returns({

@@ -323,6 +323,11 @@ suite("NotebookConnectionManager", () => {
         test("uses connectionInfo database over saved context for within-session reconnection", async () => {
             mgr.setReconnectionContext("test-server", "MetadataDB");
 
+            // Configure stub to return SessionDB BEFORE connecting
+            connectionMgr.getConnectionInfoFromUri.returns(
+                makeConnectionInfo({ database: "SessionDB" }),
+            );
+
             // First connect with a specific database
             await mgr.connectWith(makeConnectionInfo({ database: "SessionDB" }));
 
@@ -333,9 +338,6 @@ suite("NotebookConnectionManager", () => {
             // Prompt should use SessionDB (from connectionInfo) not MetadataDB
             stubUI.promptForConnection.resolves(
                 makeConnectionInfo({ server: "test-server", database: "" }),
-            );
-            connectionMgr.getConnectionInfoFromUri.returns(
-                makeConnectionInfo({ database: "SessionDB" }),
             );
 
             await mgr.ensureConnection();
