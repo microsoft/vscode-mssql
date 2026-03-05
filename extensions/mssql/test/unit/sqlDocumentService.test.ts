@@ -480,6 +480,14 @@ suite("SqlDocumentService Tests", () => {
         expect(docUriCallback).to.equal(document.uri.toString());
     });
 
+    test("onDidOpenTextDocument should skip notebook cell documents", async () => {
+        const notebookCellDoc = mockTextDocument("vscode-notebook-cell://notebook/cell1");
+
+        await sqlDocumentService.onDidOpenTextDocument(notebookCellDoc);
+
+        expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
+    });
+
     test("newQuery should call the new query method", async () => {
         let editor: vscode.TextEditor = {
             document: {
@@ -756,6 +764,30 @@ suite("SqlDocumentService Tests", () => {
 
         // Restore the connection manager
         sqlDocumentService["_connectionMgr"] = originalConnectionMgr;
+    });
+
+    test("onDidChangeActiveTextEditor should skip StatusView for notebook cells", async () => {
+        const hideStatusBarStub = sandbox.stub();
+        const updateStatusBarStub = sandbox.stub();
+        const updateResultsOnActiveEditorChangeStub = sandbox.stub();
+        sqlDocumentService["_statusview"] = {
+            hideLastShownStatusBar: hideStatusBarStub,
+            updateStatusBarForEditor: updateStatusBarStub,
+        } as any;
+        sqlDocumentService["_outputContentProvider"] = {
+            queryResultWebviewController: {
+                updateResultsOnActiveEditorChange: updateResultsOnActiveEditorChangeStub,
+            },
+        } as any;
+
+        const notebookCellEditor = {
+            document: mockTextDocument("vscode-notebook-cell://notebook/cell1"),
+        } as vscode.TextEditor;
+
+        await sqlDocumentService.onDidChangeActiveTextEditor(notebookCellEditor);
+
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.not.have.been.called;
     });
 
     function setupConnectionManagerMocks(
