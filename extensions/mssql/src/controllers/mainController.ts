@@ -882,6 +882,7 @@ export default class MainController implements vscode.Disposable {
             undefined,
             connectionUri,
         );
+        designer.showSchemaDesignerView();
         designer.revealToForeground();
         return designer;
     }
@@ -1791,7 +1792,7 @@ export default class MainController implements vscode.Disposable {
                             node.metadata.name,
                             node,
                         );
-
+                    schemaDesigner.showSchemaDesignerView();
                     schemaDesigner.revealToForeground();
                 },
             ),

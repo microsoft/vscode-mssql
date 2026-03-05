@@ -562,6 +562,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
     }
 
+    public showSchemaDesignerView(): void {
+        this.updateState({
+            ...this.state,
+            activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
+        });
+    }
+
     public get designerKey(): string {
         return this._key;
     }
