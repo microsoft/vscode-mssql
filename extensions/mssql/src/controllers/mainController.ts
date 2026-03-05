@@ -671,6 +671,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlNotebookController = new SqlNotebookController(
                 this._connectionMgr,
                 this.connectionSharingService,
+                this._context.workspaceState,
             );
             this._context.subscriptions.push(this.sqlNotebookController);
 

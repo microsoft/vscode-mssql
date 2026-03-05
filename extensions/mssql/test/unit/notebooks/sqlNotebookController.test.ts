@@ -129,6 +129,13 @@ suite("SqlNotebookController", () => {
         } as unknown as vscode.NotebookDocument;
     }
 
+    let applyEditStub: sinon.SinonStub;
+    let mockWorkspaceState: {
+        get: sinon.SinonStub;
+        update: sinon.SinonStub;
+        keys: sinon.SinonStub;
+    };
+
     function setupVscodeMocks(sb: sinon.SinonSandbox): void {
         sb.stub(vscode.notebooks, "createNotebookController").returns(
             mockController as unknown as vscode.NotebookController,
@@ -155,10 +162,14 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.workspace, "onDidChangeNotebookDocument").returns({
             dispose: sb.stub(),
         });
+        sb.stub(vscode.workspace, "onDidSaveNotebookDocument").returns({
+            dispose: sb.stub(),
+        });
         sb.stub(vscode.languages, "registerCodeLensProvider").returns({
             dispose: sb.stub(),
         });
         sb.stub(vscode.workspace, "notebookDocuments").value([]);
+        applyEditStub = sb.stub(vscode.workspace, "applyEdit").resolves(true);
     }
 
     setup(() => {
@@ -249,9 +260,16 @@ suite("SqlNotebookController", () => {
         mockNotebookConnMgr.getCurrentDatabase.returns("TestDB");
         mockNotebookConnMgr.connectCellForIntellisense.resolves();
 
+        mockWorkspaceState = {
+            get: sandbox.stub().returns(undefined),
+            update: sandbox.stub().resolves(),
+            keys: sandbox.stub().returns([]),
+        };
+
         controller = new SqlNotebookController(
             connectionMgr as unknown as ConnectionManager,
             {} as unknown as ConnectionSharingService,
+            mockWorkspaceState as unknown as vscode.Memento,
             () => mockNotebookConnMgr as unknown as NotebookConnectionManager,
         );
     });
@@ -449,6 +467,9 @@ suite("SqlNotebookController", () => {
             sandbox.stub(vscode.workspace, "onDidChangeNotebookDocument").returns({
                 dispose: sandbox.stub(),
             });
+            sandbox.stub(vscode.workspace, "onDidSaveNotebookDocument").returns({
+                dispose: sandbox.stub(),
+            });
             sandbox.stub(vscode.languages, "registerCodeLensProvider").returns({
                 dispose: sandbox.stub(),
             });
@@ -530,6 +551,65 @@ suite("SqlNotebookController", () => {
             await controller.changeConnectionInteractive();
 
             expect(warnStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("connection metadata persistence", () => {
+        test("saves metadata to workspaceState after connectWith", async () => {
+            const mockNotebook = makeNotebook();
+            sandbox.stub(vscode.workspace, "openNotebookDocument").resolves(mockNotebook);
+            sandbox
+                .stub(vscode.window, "showNotebookDocument")
+                .resolves({} as unknown as vscode.NotebookEditor);
+            sandbox.stub(vscode.window, "showInformationMessage").resolves();
+
+            const connInfo = {
+                server: "test-server",
+                database: "TestDB",
+                authenticationType: "SqlLogin",
+            } as IConnectionInfo;
+
+            await controller.createNotebookWithConnection(connInfo);
+
+            expect(mockWorkspaceState.update).to.have.been.calledWith(
+                `notebook.connection.${notebookUri.toString()}`,
+                { server: "test-server", database: "TestDB" },
+            );
+        });
+
+        test("saves metadata after cell execution establishes connection", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            expect(mockWorkspaceState.update).to.have.been.calledWith(
+                `notebook.connection.${notebookUri.toString()}`,
+                { server: "test-server", database: "TestDB" },
+            );
+        });
+
+        test("restores reconnection context from workspaceState", async () => {
+            mockWorkspaceState.get.returns({ server: "saved-server", database: "SavedDB" });
+
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            expect(mockNotebookConnMgr.setReconnectionContext).to.have.been.calledWith(
+                "saved-server",
+                "SavedDB",
+            );
+        });
+
+        test("does not set reconnection context when no metadata present", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            expect(mockNotebookConnMgr.setReconnectionContext).to.not.have.been.called;
         });
     });
 

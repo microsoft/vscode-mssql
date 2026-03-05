@@ -31,6 +31,7 @@ export class SqlNotebookController implements vscode.Disposable {
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
+        private readonly _workspaceState?: vscode.Memento,
         private readonly _connectionManagerFactory?: (
             connectionMgr: ConnectionManager,
             connectionSharingService: ConnectionSharingService,
@@ -103,6 +104,16 @@ export class SqlNotebookController implements vscode.Disposable {
                     this.ensureSqlCellLanguage(notebook);
                     this.updateStatusBar(notebook);
                 }
+            }),
+        );
+
+        // When a notebook is saved, persist connection metadata under the
+        // final file URI. This handles the case where a notebook was created
+        // as untitled (different URI) and then saved to disk.
+        this.disposables.push(
+            vscode.workspace.onDidSaveNotebookDocument((notebook) => {
+                this.rekeyConnectionIfNeeded(notebook);
+                this.saveConnectionMetadataIfConnected(notebook);
             }),
         );
 
@@ -242,6 +253,10 @@ export class SqlNotebookController implements vscode.Disposable {
         const key = notebook.uri.toString();
         let mgr = this.connections.get(key);
         if (!mgr) {
+            // Check for a stale entry (e.g., URI changed after Save As)
+            mgr = this.rekeyConnectionIfNeeded(notebook);
+        }
+        if (!mgr) {
             mgr = this._connectionManagerFactory
                 ? this._connectionManagerFactory(
                       this.connectionMgr,
@@ -253,9 +268,86 @@ export class SqlNotebookController implements vscode.Disposable {
                       this.connectionSharingService,
                       this.log,
                   );
+
+            // Restore saved database context from workspaceState so the
+            // notebook reconnects to its original database instead of master.
+            const savedContext = this.readConnectionMetadata(notebook);
+            if (savedContext) {
+                this.log.info(
+                    `[getConnectionManager] Restored context: ${savedContext.server} / ${savedContext.database}`,
+                );
+                mgr.setReconnectionContext(savedContext.server, savedContext.database);
+            }
+
             this.connections.set(key, mgr);
         }
         return mgr;
+    }
+
+    /**
+     * When a notebook is saved (untitled → file), its URI changes but the
+     * connections map still has the entry under the old key. Find the
+     * orphaned entry and re-key it to the current URI.
+     */
+    private rekeyConnectionIfNeeded(
+        notebook: vscode.NotebookDocument,
+    ): NotebookConnectionManager | undefined {
+        const newKey = notebook.uri.toString();
+        if (this.connections.has(newKey)) {
+            return this.connections.get(newKey);
+        }
+
+        for (const [oldKey, mgr] of this.connections) {
+            if (oldKey === newKey) {
+                continue;
+            }
+            // Check if the old key no longer matches any open notebook
+            const stillOpen = vscode.workspace.notebookDocuments.some(
+                (doc) => doc.uri.toString() === oldKey,
+            );
+            if (!stillOpen && mgr.getConnectionInfo()) {
+                this.log.info(`[rekeyConnection] Re-keying connection: ${oldKey} → ${newKey}`);
+                this.connections.delete(oldKey);
+                this.connections.set(newKey, mgr);
+                return mgr;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Read persisted connection metadata (server + database) from
+     * workspaceState, keyed by the notebook's file path.
+     */
+    private readConnectionMetadata(
+        notebook: vscode.NotebookDocument,
+    ): { server: string; database: string } | undefined {
+        if (!this._workspaceState) {
+            return undefined;
+        }
+        const key = `notebook.connection.${notebook.uri.toString()}`;
+        return this._workspaceState.get<{ server: string; database: string }>(key);
+    }
+
+    /**
+     * Persist the current connection's server + database in workspaceState
+     * so it can be restored after a VS Code restart.
+     */
+    private saveConnectionMetadataIfConnected(notebook: vscode.NotebookDocument): void {
+        if (!this._workspaceState) {
+            return;
+        }
+        const mgr = this.connections.get(notebook.uri.toString());
+        const info = mgr?.getConnectionInfo();
+        if (!info?.server || !info?.database) {
+            return;
+        }
+
+        const key = `notebook.connection.${notebook.uri.toString()}`;
+        void this._workspaceState.update(key, {
+            server: info.server,
+            database: info.database,
+        });
     }
 
     /**
@@ -323,6 +415,7 @@ export class SqlNotebookController implements vscode.Disposable {
         try {
             await connMgr.ensureConnection();
             this.connectCellsForIntellisense(notebook);
+            this.saveConnectionMetadataIfConnected(notebook);
         } catch (err: any) {
             execution.replaceOutput([
                 new vscode.NotebookCellOutput([
@@ -493,6 +586,7 @@ export class SqlNotebookController implements vscode.Disposable {
                     connMgr.disconnect();
                     await connMgr.promptAndConnect();
                     this.connectCellsForIntellisense(notebook);
+                    this.saveConnectionMetadataIfConnected(notebook);
                     const info = connMgr.getConnectionLabel();
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
@@ -545,6 +639,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
                     await connMgr.changeDatabase(targetDb);
                     this.connectCellsForIntellisense(notebook);
+                    this.saveConnectionMetadataIfConnected(notebook);
                     execution.replaceOutput([
                         new vscode.NotebookCellOutput([
                             vscode.NotebookCellOutputItem.text(
@@ -599,6 +694,7 @@ export class SqlNotebookController implements vscode.Disposable {
             const connMgr = this.getConnectionManager(notebook);
             await connMgr.promptAndConnect();
             this.connectCellsForIntellisense(notebook);
+            this.saveConnectionMetadataIfConnected(notebook);
             this.updateStatusBar(notebook);
             this.codeLensProvider.refresh();
             return;
@@ -627,6 +723,7 @@ export class SqlNotebookController implements vscode.Disposable {
 
         await mgr.changeDatabase(picked.label);
         this.connectCellsForIntellisense(notebook);
+        this.saveConnectionMetadataIfConnected(notebook);
         this.updateStatusBar(notebook);
         this.codeLensProvider.refresh();
     }
@@ -646,6 +743,7 @@ export class SqlNotebookController implements vscode.Disposable {
         mgr.disconnect();
         await mgr.promptAndConnect();
         this.connectCellsForIntellisense(notebook);
+        this.saveConnectionMetadataIfConnected(notebook);
         this.updateStatusBar(notebook);
         this.codeLensProvider.refresh();
     }
@@ -673,6 +771,7 @@ export class SqlNotebookController implements vscode.Disposable {
             const connMgr = this.getConnectionManager(notebook);
             await connMgr.connectWith(connectionInfo);
             this.connectCellsForIntellisense(notebook);
+            this.saveConnectionMetadataIfConnected(notebook);
 
             const label = connMgr.getConnectionLabel();
             this.updateStatusBar(notebook);
