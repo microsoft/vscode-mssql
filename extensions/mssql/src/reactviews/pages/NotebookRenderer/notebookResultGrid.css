@@ -15,13 +15,6 @@
     height: 100%;
 }
 
-.notebook-result-grid-container .row-count-label {
-    padding: 4px 8px;
-    font-style: italic;
-    color: var(--vscode-descriptionForeground, #858585);
-    font-size: 12px;
-}
-
 /* SlickGrid theme overrides for notebook renderer */
 .notebook-result-grid-container .slick-header-column.ui-state-default {
     background-color: var(--vscode-keybindingTable-headerBackground, #eee);

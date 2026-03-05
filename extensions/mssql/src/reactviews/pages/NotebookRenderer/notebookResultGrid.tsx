@@ -100,7 +100,7 @@ function getColumnFormatter(
     };
 }
 
-export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResultGridProps) {
+export function NotebookResultGrid({ columnInfo, rows }: NotebookResultGridProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const gridRef = useRef<Slick.Grid<Slick.SlickData> | null>(null);
     const dataViewRef = useRef<TableDataView<Slick.SlickData> | null>(null);
@@ -290,11 +290,7 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
             grid.destroy();
             tableDataView.dispose();
         };
-    }, [columnInfo, rows, rowCount]);
+    }, [columnInfo, rows]);
 
-    return (
-        <div className="notebook-result-grid-container" ref={containerRef}>
-            <div className="row-count-label">{rowCount} row(s)</div>
-        </div>
-    );
+    return <div className="notebook-result-grid-container" ref={containerRef}></div>;
 }
