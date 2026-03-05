@@ -249,6 +249,15 @@ export const DacpacDialogForm = () => {
     };
 
     const loadDatabases = async () => {
+        const applyFixedDatabase = () => {
+            if (isDatabaseFixed && initialDatabaseName) {
+                setAvailableDatabases([initialDatabaseName]);
+                setDatabaseName(initialDatabaseName);
+                return true;
+            }
+            return false;
+        };
+
         try {
             const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
@@ -269,19 +278,15 @@ export const DacpacDialogForm = () => {
                         setDatabaseName(databases[0]);
                     }
                 }
-            } else if (isDatabaseFixed && initialDatabaseName) {
+            } else {
                 // If listing databases returned no results but we have a fixed database,
                 // still populate the dropdown with the known database name
-                setAvailableDatabases([initialDatabaseName]);
-                setDatabaseName(initialDatabaseName);
+                applyFixedDatabase();
             }
         } catch (error) {
-            if (isDatabaseFixed && initialDatabaseName) {
-                // For database-specific connections, the user may not have permission
-                // to list all databases. Use the known database name.
-                setAvailableDatabases([initialDatabaseName]);
-                setDatabaseName(initialDatabaseName);
-            }
+            // For database-specific connections, the user may not have permission
+            // to list all databases. Use the known database name.
+            applyFixedDatabase();
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages((prev) => ({
                 ...prev,
