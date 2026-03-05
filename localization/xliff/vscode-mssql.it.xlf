@@ -6526,6 +6526,14 @@ Errore:
         <source xml:lang="en">Rows per page</source>
         <target state="translated">Righe per pagina</target>
       </trans-unit>
+      <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
+        <source xml:lang="en">Rule disabled</source>
+        <target state="new">Rule disabled</target>
+      </trans-unit>
+      <trans-unit id="++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c">
+        <source xml:lang="en">Rule enabled</source>
+        <target state="new">Rule enabled</target>
+      </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
         <target state="translated">Nome regola</target>
