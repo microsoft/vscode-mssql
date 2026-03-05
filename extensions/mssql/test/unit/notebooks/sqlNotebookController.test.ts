@@ -129,7 +129,6 @@ suite("SqlNotebookController", () => {
         } as unknown as vscode.NotebookDocument;
     }
 
-    let applyEditStub: sinon.SinonStub;
     let mockWorkspaceState: {
         get: sinon.SinonStub;
         update: sinon.SinonStub;
@@ -169,7 +168,7 @@ suite("SqlNotebookController", () => {
             dispose: sb.stub(),
         });
         sb.stub(vscode.workspace, "notebookDocuments").value([]);
-        applyEditStub = sb.stub(vscode.workspace, "applyEdit").resolves(true);
+        sb.stub(vscode.workspace, "applyEdit").resolves(true);
     }
 
     setup(() => {
