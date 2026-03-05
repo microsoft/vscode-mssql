@@ -131,6 +131,23 @@ export class QueryExecuteStatementParams {
     executionPlanOptions?: ExecutionPlanOptions;
 }
 
+/**
+ * Unlike "query/simpleexecute", which returns only the first result set as a flat response,
+ * "query/executeString" uses the full query execution pipeline and supports multiple batches.
+ * Use this when the query may contain multiple statements (e.g. GO-separated batches) and
+ * all result sets need to be retrieved.
+ */
+export namespace QueryExecuteStringRequest {
+    export const type = new RequestType<QueryExecuteStringParams, QueryExecuteResult, void, void>(
+        "query/executeString",
+    );
+}
+
+export class QueryExecuteStringParams {
+    ownerUri: string;
+    query: string;
+}
+
 export class QueryExecuteResult {}
 
 export class ExecutionPlanOptions {
