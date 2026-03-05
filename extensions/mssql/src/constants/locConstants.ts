@@ -2021,7 +2021,6 @@ export class MssqlChatAgent {
         });
     };
     public static unknownConnection = l10n.t("Unknown Connection");
-    public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
     public static schemaDesignerToolShowSuccessMessage = l10n.t(
         "Schema designer opened. For schema mutations, continue with mssql_schema_designer operations (get_overview/apply_edits).",
     );
