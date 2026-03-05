@@ -69,8 +69,7 @@ export class BuildHelper {
             "Microsoft.SqlServer.Server.dll",
         ];
 
-        const sdkVersion = getMicrosoftBuildSqlVersion(constants.microsoftBuildSqlVersionKey);
-
+        const sdkVersion = getMicrosoftBuildSqlVersion();
         const microsoftBuildSqlDllLocation = path.join("tools", "net8.0");
         return this.ensureNugetAndFilesPresence(
             sdkName,

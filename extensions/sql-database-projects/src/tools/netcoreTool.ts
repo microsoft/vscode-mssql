@@ -17,6 +17,7 @@ import {
     DotnetInstallationConfirmation,
     NetCoreSupportedVersionInstallationConfirmation,
     UpdateDotnetLocation,
+    microsoftBuildSqlVersionKey,
 } from "../common/constants";
 import * as utils from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
@@ -57,7 +58,7 @@ const dotnet = os.platform() === "win32" ? "dotnet.exe" : "dotnet";
  *    not a valid semver (e.g. the extension package.json default is missing or the user typed an
  *    invalid version string).
  */
-export function getMicrosoftBuildSqlVersion(microsoftBuildSqlVersionKey: string): string {
+export function getMicrosoftBuildSqlVersion(): string {
     const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
     const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
     if (configured && semver.valid(configured)) {

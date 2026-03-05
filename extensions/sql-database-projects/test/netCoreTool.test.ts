@@ -17,6 +17,7 @@ import {
     getMicrosoftBuildSqlVersion,
 } from "../src/tools/netcoreTool";
 import { getQuotedPath } from "../src/common/utils";
+import * as constants from "../src/common/constants";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
 
@@ -106,23 +107,29 @@ suite("NetCoreTool: Net core tests", function (): void {
     });
 
     suite("getMicrosoftBuildSqlVersion tests", function (): void {
-        const testKey = "microsoftBuildSqlVersion";
-
         teardown(async function (): Promise<void> {
             // Clean up configuration after each test
             await vscode.workspace
                 .getConfiguration(DBProjectConfigurationKey)
-                .update(testKey, undefined, vscode.ConfigurationTarget.Global);
+                .update(
+                    constants.microsoftBuildSqlVersionKey,
+                    undefined,
+                    vscode.ConfigurationTarget.Global,
+                );
         });
 
         test("Should return valid configured value when set", async function (): Promise<void> {
             // Arrange: Set a valid semver version
             await vscode.workspace
                 .getConfiguration(DBProjectConfigurationKey)
-                .update(testKey, "3.0.0", vscode.ConfigurationTarget.Global);
+                .update(
+                    constants.microsoftBuildSqlVersionKey,
+                    "3.0.0",
+                    vscode.ConfigurationTarget.Global,
+                );
 
             // Act
-            const result = getMicrosoftBuildSqlVersion(testKey);
+            const result = getMicrosoftBuildSqlVersion();
 
             // Assert
             expect(result).to.equal("3.0.0");
@@ -132,15 +139,23 @@ suite("NetCoreTool: Net core tests", function (): void {
             // Test with invalid semver
             await vscode.workspace
                 .getConfiguration(DBProjectConfigurationKey)
-                .update(testKey, "not-a-valid-version", vscode.ConfigurationTarget.Global);
-            let result = getMicrosoftBuildSqlVersion(testKey);
+                .update(
+                    constants.microsoftBuildSqlVersionKey,
+                    "not-a-valid-version",
+                    vscode.ConfigurationTarget.Global,
+                );
+            let result = getMicrosoftBuildSqlVersion();
             expect(result).to.equal(FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
 
             // Test with empty config
             await vscode.workspace
                 .getConfiguration(DBProjectConfigurationKey)
-                .update(testKey, undefined, vscode.ConfigurationTarget.Global);
-            result = getMicrosoftBuildSqlVersion(testKey);
+                .update(
+                    constants.microsoftBuildSqlVersionKey,
+                    undefined,
+                    vscode.ConfigurationTarget.Global,
+                );
+            result = getMicrosoftBuildSqlVersion();
             expect(result).to.equal(FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
         });
     });
