@@ -33,6 +33,7 @@ interface TargetDatabaseSectionProps {
     ownerUri: string;
     validationMessages: Record<string, ValidationMessage>;
     isFabric?: boolean;
+    isDatabaseFixed?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -58,6 +59,7 @@ export const TargetDatabaseSection = ({
     ownerUri,
     validationMessages,
     isFabric = false,
+    isDatabaseFixed = false,
 }: TargetDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -72,13 +74,13 @@ export const TargetDatabaseSection = ({
                 <Radio
                     value="new"
                     label={locConstants.dacpacDialog.newDatabase}
-                    disabled={isOperationInProgress || isFabric}
+                    disabled={isOperationInProgress || isFabric || isDatabaseFixed}
                     aria-label={locConstants.dacpacDialog.newDatabase}
                 />
                 <Radio
                     value="existing"
                     label={locConstants.dacpacDialog.existingDatabase}
-                    disabled={isOperationInProgress}
+                    disabled={isOperationInProgress || isDatabaseFixed}
                     aria-label={locConstants.dacpacDialog.existingDatabase}
                 />
             </RadioGroup>
@@ -95,7 +97,7 @@ export const TargetDatabaseSection = ({
                         value={databaseName}
                         onChange={(_, data) => setDatabaseName(data.value)}
                         placeholder={locConstants.dacpacDialog.enterDatabaseName}
-                        disabled={isOperationInProgress}
+                        disabled={isOperationInProgress || isDatabaseFixed}
                         aria-label={locConstants.dacpacDialog.databaseNameLabel}
                     />
                 </Field>
@@ -118,7 +120,7 @@ export const TargetDatabaseSection = ({
                         value={databaseName}
                         selectedOptions={[databaseName]}
                         onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
-                        disabled={isOperationInProgress || !ownerUri}
+                        disabled={isOperationInProgress || !ownerUri || isDatabaseFixed}
                         aria-label={locConstants.dacpacDialog.databaseNameLabel}>
                         {availableDatabases.map((db) => (
                             <Option key={db} value={db}>

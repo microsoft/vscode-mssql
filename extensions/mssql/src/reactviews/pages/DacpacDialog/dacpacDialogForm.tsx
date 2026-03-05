@@ -42,6 +42,7 @@ export const DacpacDialogForm = () => {
     const initialServerName = useDacpacDialogSelector((state) => state.serverName);
     const initialDatabaseName = useDacpacDialogSelector((state) => state.databaseName);
     const initialSelectedProfileId = useDacpacDialogSelector((state) => state.selectedProfileId);
+    const isDatabaseFixed = useDacpacDialogSelector((state) => state.isDatabaseFixed) || false;
 
     // Local state
     const [operationType, setOperationType] = useState<dacpacDialog.DacPacDialogOperationType>(
@@ -120,7 +121,9 @@ export const DacpacDialogForm = () => {
 
     // Clear state when switching operations (Deploy <-> Extract <-> Export <-> Import)
     useEffect(() => {
-        setDatabaseName("");
+        if (!isDatabaseFixed) {
+            setDatabaseName("");
+        }
         setFilePath("");
         setApplicationName("");
         setApplicationVersion(DEFAULT_APPLICATION_VERSION);
@@ -128,7 +131,9 @@ export const DacpacDialogForm = () => {
 
     // Clear the selected database if the server is changed
     useEffect(() => {
-        setDatabaseName("");
+        if (!isDatabaseFixed) {
+            setDatabaseName("");
+        }
     }, [selectedProfileId]);
 
     const loadConnections = async () => {
@@ -247,15 +252,36 @@ export const DacpacDialogForm = () => {
         try {
             const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
-                setAvailableDatabases(result.databases);
-                // Auto-select database if:
-                // 1. Fabric connection (always select first database)
-                if (isFabric && result.databases.length > 0) {
-                    // For Fabric, always select the first database
-                    setDatabaseName(result.databases[0]);
+                let databases = result.databases;
+                if (isDatabaseFixed && initialDatabaseName) {
+                    // Ensure the fixed database is in the list
+                    if (!databases.includes(initialDatabaseName)) {
+                        databases = [initialDatabaseName, ...databases];
+                    }
+                    setAvailableDatabases(databases);
+                    setDatabaseName(initialDatabaseName);
+                } else {
+                    setAvailableDatabases(databases);
+                    // Auto-select database if:
+                    // 1. Fabric connection (always select first database)
+                    if (isFabric && databases.length > 0) {
+                        // For Fabric, always select the first database
+                        setDatabaseName(databases[0]);
+                    }
                 }
+            } else if (isDatabaseFixed && initialDatabaseName) {
+                // If listing databases returned no results but we have a fixed database,
+                // still populate the dropdown with the known database name
+                setAvailableDatabases([initialDatabaseName]);
+                setDatabaseName(initialDatabaseName);
             }
         } catch (error) {
+            if (isDatabaseFixed && initialDatabaseName) {
+                // For database-specific connections, the user may not have permission
+                // to list all databases. Use the known database name.
+                setAvailableDatabases([initialDatabaseName]);
+                setDatabaseName(initialDatabaseName);
+            }
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages((prev) => ({
                 ...prev,
@@ -702,6 +728,7 @@ export const DacpacDialogForm = () => {
                         showDatabaseSource={showDatabaseSource}
                         showNewDatabase={false}
                         isFabric={isFabric}
+                        isDatabaseFixed={isDatabaseFixed}
                     />
                 )}
 
@@ -727,6 +754,7 @@ export const DacpacDialogForm = () => {
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         isFabric={isFabric}
+                        isDatabaseFixed={isDatabaseFixed}
                     />
                 )}
 

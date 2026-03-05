@@ -1953,12 +1953,20 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
+                    // Database is fixed when launched from a database node (not a server node)
+                    const isDatabaseFixed =
+                        !!node &&
+                        node.nodeType !== Constants.serverLabel &&
+                        node.nodeType !== Constants.disconnectedServerNodeType &&
+                        databaseName !== "";
+
                     const initialState: DacpacDialogWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
                         operationType,
+                        isDatabaseFixed,
                     };
 
                     const controller = new DacpacDialogWebviewController(

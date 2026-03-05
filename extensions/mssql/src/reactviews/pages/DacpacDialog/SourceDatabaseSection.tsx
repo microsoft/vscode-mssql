@@ -24,6 +24,7 @@ interface SourceDatabaseSectionProps {
     showDatabaseSource: boolean;
     showNewDatabase: boolean;
     isFabric?: boolean;
+    isDatabaseFixed?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -44,6 +45,7 @@ export const SourceDatabaseSection = ({
     showDatabaseSource,
     showNewDatabase,
     isFabric = false,
+    isDatabaseFixed = false,
 }: SourceDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -68,7 +70,7 @@ export const SourceDatabaseSection = ({
                         value={databaseName}
                         selectedOptions={[databaseName]}
                         onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
-                        disabled={isOperationInProgress || !ownerUri || isFabric}
+                        disabled={isOperationInProgress || !ownerUri || isFabric || isDatabaseFixed}
                         aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
                         {availableDatabases.map((db) => (
                             <Option key={db} value={db}>

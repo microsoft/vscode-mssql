@@ -65,6 +65,11 @@ export interface DacpacDialogWebviewState {
      */
     applicationVersion?: string;
     /**
+     * Whether the database name is fixed (launched from a database node in Object Explorer).
+     * When true, the database dropdown should be disabled and pre-filled with the database name.
+     */
+    isDatabaseFixed?: boolean;
+    /**
      * Whether an operation is currently in progress
      */
     isOperationInProgress?: boolean;
