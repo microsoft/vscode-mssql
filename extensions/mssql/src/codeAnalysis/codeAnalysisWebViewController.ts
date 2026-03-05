@@ -169,7 +169,6 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 }
                 if (payload.closeAfterSave) {
                     this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
-                    this.vscodeWrapper.outputChannel.show();
                     this.panel.dispose();
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty
