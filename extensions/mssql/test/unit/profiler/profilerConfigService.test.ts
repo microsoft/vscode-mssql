@@ -306,9 +306,12 @@ suite("ProfilerConfigService Tests", () => {
             const viewRow = configService.convertEventToViewRow(event, view);
 
             // Should be formatted in local timezone as "YYYY-MM-DD HH:mm:ss.SSS"
+            const localYear = String(testTimestamp.getFullYear());
+            const localMonth = String(testTimestamp.getMonth() + 1).padStart(2, "0");
+            const localDay = String(testTimestamp.getDate()).padStart(2, "0");
             const localHours = String(testTimestamp.getHours()).padStart(2, "0");
             const localMinutes = String(testTimestamp.getMinutes()).padStart(2, "0");
-            expect(viewRow.StartTime).to.include("2024-01-15");
+            expect(viewRow.StartTime).to.include(`${localYear}-${localMonth}-${localDay}`);
             expect(viewRow.StartTime).to.include(`${localHours}:${localMinutes}:00`);
         });
     });
