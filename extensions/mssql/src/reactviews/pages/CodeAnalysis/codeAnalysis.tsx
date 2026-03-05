@@ -500,13 +500,14 @@ export const CodeAnalysisDialog = () => {
                                                                 className={
                                                                     styles.checkmarkContainer
                                                                 }
+                                                                role="img"
                                                                 aria-label={
                                                                     rule.enabled
                                                                         ? loc.ruleEnabled
                                                                         : loc.ruleDisabled
                                                                 }>
                                                                 {rule.enabled && (
-                                                                    <Checkmark20Regular />
+                                                                    <Checkmark20Regular aria-hidden="true" />
                                                                 )}
                                                             </div>
                                                             <Text>
