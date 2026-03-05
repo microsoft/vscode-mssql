@@ -5172,9 +5172,9 @@ Erreur :
         <source xml:lang="en">No active notebook.</source>
         <target state="translated">Aucun bloc-notes actif.</target>
       </trans-unit>
-      <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
-        <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
-        <target state="translated">Aucun concepteur de schéma actif trouvé. Ouvrez d’abord un concepteur de schéma avec /showSchema ou depuis l’interface utilisateur.</target>
+      <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
+        <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
+        <target state="new">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
