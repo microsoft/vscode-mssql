@@ -1250,8 +1250,15 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.receipt.changes.foreignKeysUpdated).to.have.length(1);
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
+            const applyEditsTelemetryCall = sendActionEventStub
+                .getCalls()
+                .find(
+                    (call) =>
+                        call.args[2]?.operation === "apply_edits" &&
+                        call.args[2]?.success === "true",
+                );
+            expect(applyEditsTelemetryCall).to.not.be.undefined;
+            expect(applyEditsTelemetryCall!.args[3]).to.deep.include({
                 editsCount: edits.length,
                 appliedEdits: edits.length,
                 add_table_count: 1,
