@@ -910,7 +910,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(notificationHandlers.has(Dab.OpenUrlNotification.type.method)).to.be.true;
             });
 
-            test("should open URL in VS Code built-in browser", async () => {
+            test("should open http URL in VS Code built-in browser", async () => {
                 const executeCommandStub = sandbox
                     .stub(vscode.commands, "executeCommand")
                     .resolves();
@@ -924,6 +924,37 @@ suite("SchemaDesignerWebviewController tests", () => {
                 await handler({ url });
 
                 expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+
+            test("should open https URL in VS Code built-in browser", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                const url = "https://example.com/graphql";
+                await handler({ url });
+
+                expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+
+            test("should reject non-http/https schemes", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                await handler({ url: "file:///etc/passwd" });
+                expect(executeCommandStub).to.not.have.been.called;
+
+                await handler({ url: "command:workbench.action.terminal.new" });
+                expect(executeCommandStub).to.not.have.been.called;
             });
         });
 
