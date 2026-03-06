@@ -185,9 +185,7 @@ export class NetCoreTool extends ShellExecutionHelper {
             let isSupported = false;
             const stdoutBuffers: Buffer[] = [];
 
-            child = spawn("dotnet --version", [], {
-                shell: true,
-            });
+            child = spawn("dotnet", ["--version"]);
 
             child.stdout.on("data", (b: Buffer) => stdoutBuffers.push(b));
 
@@ -252,14 +250,18 @@ export class NetCoreTool extends ShellExecutionHelper {
 
         await this.verifyNetCoreInstallation(skipVersionSupportedCheck);
 
-        const dotnetPath = utils.getQuotedPath(path.join(this.netcoreInstallLocation, dotnet));
-        const command = dotnetPath + " " + options.argument;
+        const dotnetPath = path.join(this.netcoreInstallLocation, dotnet);
+        const args = options.argument ? options.argument.split(/\s+/) : [];
 
         try {
-            return await this.runStreamedCommand(command, options);
+            return await this.runStreamedCommand(dotnetPath, args, options);
         } catch (error) {
             this._outputChannel.append(
-                l10n.t("\t>>> {0}   … errored out: {1}", command, utils.getErrorMessage(error)),
+                l10n.t(
+                    "\t>>> {0}   … errored out: {1}",
+                    [dotnetPath, ...args].join(" "),
+                    utils.getErrorMessage(error),
+                ),
             ); //errors are localized in our code where emitted, other errors are pass through from external components that are not easily localized
             throw error;
         }

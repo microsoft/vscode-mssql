@@ -14,7 +14,6 @@ import {
     DBProjectConfigurationKey,
     DotnetInstallLocationKey,
 } from "../src/tools/netcoreTool";
-import { getQuotedPath } from "../src/common/utils";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
 
@@ -87,7 +86,8 @@ suite("NetCoreTool: Net core tests", function (): void {
 
         try {
             await netcoreTool.runStreamedCommand(
-                "echo test > " + getQuotedPath(dummyFile),
+                process.execPath,
+                ["-e", `require("fs").writeFileSync(${JSON.stringify(dummyFile)}, "test")`],
                 undefined,
             );
             const text = await fs.promises.readFile(dummyFile);
