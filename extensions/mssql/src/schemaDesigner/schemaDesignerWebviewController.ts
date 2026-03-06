@@ -418,7 +418,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             if (uri.scheme !== "http" && uri.scheme !== "https") {
                 return;
             }
-            await vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
+            try {
+                await vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
+            } catch {
+                void vscode.window.showErrorMessage(LocConstants.SchemaDesigner.failedToOpenUrl);
+            }
         });
 
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {

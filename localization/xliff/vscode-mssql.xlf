@@ -2605,6 +2605,9 @@
       <source xml:lang="en">Failed to open Modify Table: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
+      <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
       <source xml:lang="en">Failed to open XEL file: {0}</source>
       <note>{0} is the error message</note>

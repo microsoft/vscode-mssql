@@ -956,6 +956,22 @@ suite("SchemaDesignerWebviewController tests", () => {
                 await handler({ url: "command:workbench.action.terminal.new" });
                 expect(executeCommandStub).to.not.have.been.called;
             });
+
+            test("should show error message when simpleBrowser.show fails", async () => {
+                sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .rejects(new Error("Command not found"));
+                const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                const url = "http://localhost:5000/swagger/index.html";
+                await handler({ url });
+
+                expect(showErrorStub).to.have.been.calledOnce;
+            });
         });
 
         suite("RunDeploymentStepRequest handler", () => {
