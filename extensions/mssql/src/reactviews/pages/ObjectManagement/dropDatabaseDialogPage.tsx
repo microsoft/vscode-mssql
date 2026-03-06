@@ -159,18 +159,6 @@ export const DropDatabaseDialogPage = ({
             }}>
             {model && (
                 <div className={styles.content}>
-                    <div className={styles.warningCallout}>
-                        <Warning20Regular className={styles.warningIcon} />
-                        <div className={styles.warningText}>
-                            {locConstants.dropDatabase.warningMessage(
-                                model.databaseName,
-                                model.serverName,
-                            )}{" "}
-                            <span className={styles.warningEmphasis}>
-                                {locConstants.dropDatabase.warningEmphasis}
-                            </span>
-                        </div>
-                    </div>
                     <DropDatabaseForm
                         value={dropForm}
                         viewModel={model}
