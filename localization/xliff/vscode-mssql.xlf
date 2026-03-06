@@ -2802,9 +2802,6 @@
     <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
       <source xml:lang="en">Filter Options</source>
     </trans-unit>
-    <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
-      <source xml:lang="en">Filter Settings</source>
-    </trans-unit>
     <trans-unit id="++CODE++8303b392b5ebd96463b39a2d278551d266b1ee0a5a4a707daa49a142fdfedcc5">
       <source xml:lang="en">Filter active</source>
     </trans-unit>
