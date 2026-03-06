@@ -903,6 +903,30 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
+        suite("OpenUrlNotification handler", () => {
+            test("should register OpenUrlNotification handler", () => {
+                createController();
+
+                expect(notificationHandlers.has(Dab.OpenUrlNotification.type.method)).to.be.true;
+            });
+
+            test("should open URL in VS Code built-in browser", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+                expect(handler).to.be.a("function");
+
+                const url = "http://localhost:5000/swagger/index.html";
+                await handler({ url });
+
+                expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+        });
+
         suite("RunDeploymentStepRequest handler", () => {
             test("should register RunDeploymentStepRequest handler", () => {
                 createController();
