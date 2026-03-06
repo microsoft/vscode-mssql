@@ -873,6 +873,24 @@ suite("DabTool Tests", () => {
             const state = await harness.getState();
             harness.commitSpy.resetHistory();
 
+            const emptyActions = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_actions",
+                        entity: { id: "t1" },
+                        enabledActions: [],
+                    },
+                ],
+            });
+
+            expect(emptyActions.success).to.equal(false);
+            if (emptyActions.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(emptyActions.reason).to.equal("validation_error");
+            expect(emptyActions.message).to.equal("enabledActions must be a non-empty array.");
+
             const result = await harness.applyChanges({
                 expectedVersion: state.version,
                 changes: [
@@ -1273,6 +1291,11 @@ suite("DabTool Tests", () => {
                         entity: { schemaName: "dbo", tableName: "Users" },
                         isEnabled: false,
                     },
+                    {
+                        type: "set_entity_actions",
+                        entity: { schemaName: "sales", tableName: "Orders" },
+                        enabledActions: [Dab.EntityAction.Read, Dab.EntityAction.Create],
+                    },
                 ],
             });
 
@@ -1280,8 +1303,12 @@ suite("DabTool Tests", () => {
             if (!result.success) {
                 throw new Error("Expected success response");
             }
-            expect(result.appliedChanges).to.equal(2);
+            expect(result.appliedChanges).to.equal(3);
             expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(
+                harness.getConfig()?.entities.find((entity) => entity.schemaName === "sales")
+                    ?.enabledActions,
+            ).to.deep.equal([Dab.EntityAction.Read, Dab.EntityAction.Create]);
         });
 
         test("apply_changes failure path uses fail-fast prefix commit semantics", async () => {

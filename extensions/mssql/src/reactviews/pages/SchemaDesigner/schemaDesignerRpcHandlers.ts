@@ -1266,6 +1266,28 @@ function resolveEntityRef(
     };
 }
 
+function createDabValidationError(message: string): {
+    success: false;
+    reason: DabApplyFailureReason;
+    message: string;
+} {
+    return {
+        success: false,
+        reason: "validation_error",
+        message,
+    };
+}
+
+function createEntityWithEnabledActions(
+    entity: Dab.DabEntityConfig,
+    enabledActions: Dab.EntityAction[],
+): Dab.DabEntityConfig {
+    return {
+        ...entity,
+        enabledActions: [...enabledActions],
+    };
+}
+
 function applyDabToolChange(
     config: Dab.DabConfig,
     change: Dab.DabToolChange,
@@ -1320,32 +1342,20 @@ function applyDabToolChange(
             }
 
             if (!Array.isArray(change.enabledActions) || change.enabledActions.length === 0) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "enabledActions must be a non-empty array.",
-                };
+                return createDabValidationError("enabledActions must be a non-empty array.");
             }
             const uniqueActions = new Set(change.enabledActions);
             if (uniqueActions.size !== change.enabledActions.length) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "enabledActions must be unique.",
-                };
+                return createDabValidationError("enabledActions must be unique.");
             }
             if (change.enabledActions.some((action) => !allowedActions.has(action))) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "enabledActions contains unsupported values.",
-                };
+                return createDabValidationError("enabledActions contains unsupported values.");
             }
 
-            config.entities[resolvedEntity.index] = {
-                ...resolvedEntity.entity,
-                enabledActions: [...change.enabledActions],
-            };
+            config.entities[resolvedEntity.index] = createEntityWithEnabledActions(
+                resolvedEntity.entity,
+                change.enabledActions,
+            );
             return { success: true };
         }
 
