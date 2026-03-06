@@ -347,7 +347,7 @@
       </trans-unit>
       <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
         <source xml:lang="en">All severities</source>
-        <target state="new">All severities</target>
+        <target state="translated">所有嚴重性</target>
       </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
@@ -3685,7 +3685,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd">
         <source xml:lang="en">Filter by severity</source>
-        <target state="new">Filter by severity</target>
+        <target state="translated">依嚴重性篩選</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
@@ -5370,7 +5370,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
         <source xml:lang="en">No rules match the current filter.</source>
-        <target state="new">No rules match the current filter.</target>
+        <target state="translated">沒有符合目前篩選條件的規則。</target>
       </trans-unit>
       <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
         <source xml:lang="en">No saved connection profiles found.</source>
@@ -6898,7 +6898,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
         <source xml:lang="en">Search rules...</source>
-        <target state="new">Search rules...</target>
+        <target state="translated">搜尋規則...</target>
       </trans-unit>
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
@@ -7953,7 +7953,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
         <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
-        <target state="new">The query results panel failed to load. Please try running the query again.</target>
+        <target state="translated">查詢結果面板無法載入。請嘗試再次執行査詢。</target>
       </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
@@ -8421,11 +8421,11 @@ Query: {2}</source>
         <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
         <note>{0} is the webview name
 {1} is the timeout in milliseconds</note>
-        <target state="new">Webview '{0}' did not become ready within {1}ms</target>
+        <target state="translated">Web 檢視 '{0}' 未能在 {1} 毫秒內準備就緒</target>
       </trans-unit>
       <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
         <source xml:lang="en">Webview was disposed before it became ready</source>
-        <target state="new">Webview was disposed before it became ready</target>
+        <target state="translated">Web 檢視在準備就緒前已處置</target>
       </trans-unit>
       <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
         <source xml:lang="en">What I can do for you:</source>
@@ -8795,7 +8795,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
         <source xml:lang="en">{0} of {1} rules</source>
         <note>{0} is the filtered count, {1} is the total count</note>
-        <target state="new">{0} of {1} rules</target>
+        <target state="translated">{0} / {1} 個規則</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
@@ -9845,7 +9845,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
-        <target state="new">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</target>
+        <target state="translated">啟用後，會自動將目前連線轉移到新開啟的 SQL 檔案。停用時，您必須針對每個 SQL 檔案明確連接資料庫。</target>
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
