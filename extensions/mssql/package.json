@@ -469,16 +469,12 @@
             ],
             "mssql.sqlScriptsSubmenu": [
                 {
-                    "command": "mssql.scriptSelect",
+                    "command": "mssql.scriptCreate",
                     "group": "1_scripts@1"
                 },
                 {
-                    "command": "mssql.scriptCreate",
-                    "group": "1_scripts@2"
-                },
-                {
                     "command": "mssql.scriptDelete",
-                    "group": "1_scripts@3"
+                    "group": "1_scripts@2"
                 }
             ],
             "view/title": [
@@ -551,122 +547,137 @@
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@1"
+                    "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@2"
+                    "group": "3_MSSQL_instanceDatabaseActions@1"
                 },
                 {
                     "command": "mssql.editConnection",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@2"
+                    "group": "2_MSSQL_connection@1"
                 },
                 {
                     "command": "mssql.disconnectObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@3"
+                    "group": "2_MSSQL_connection@2"
                 },
                 {
                     "command": "mssql.removeObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@4"
+                    "group": "2_MSSQL_connection@3"
                 },
                 {
                     "command": "mssql.profiler.launchFromObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1a_MSSQL_profiler@1"
+                    "group": "4_MSSQL_discoverAndProfile@2"
                 },
                 {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@1"
+                    "group": "2a_MSSQL_databaseDesign@1"
                 },
                 {
                     "command": "mssql.buildDataApi",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@2"
+                    "group": "2a_MSSQL_databaseDesign@2"
                 },
                 {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "7_MSSQL_compareAndDacpac@1"
                 },
                 {
                     "command": "mssql.searchDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@4"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "4_MSSQL_discoverAndProfile@1"
+                },
+                {
+                    "command": "mssql.searchDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "3_MSSQL_databaseDiscover@1"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@5"
+                    "group": "7_MSSQL_compareAndDacpac@2"
                 },
                 {
                     "command": "mssql.renameDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
+                    "group": "4_MSSQL_databaseMaintenance@1"
                 },
                 {
                     "command": "mssql.dropDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@7"
+                    "group": "4_MSSQL_databaseMaintenance@5"
+                },
+                {
+                    "command": "mssql.backupDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@2"
                 },
                 {
                     "command": "mssql.backupDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "4_MSSQL_databaseMaintenance@2"
                 },
                 {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "3_MSSQL_instanceDatabaseActions@1"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "3_MSSQL_instanceDatabaseActions@3"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "4_MSSQL_databaseMaintenance@3"
                 },
                 {
                     "command": "mssql.flatFileImport",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "3_MSSQL_instanceDatabaseActions@4"
                 },
                 {
                     "command": "mssql.flatFileImport",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "4_MSSQL_databaseMaintenance@4"
                 },
                 {
                     "command": "mssql.notebooks.createNotebook",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "sqlnotebooks@1"
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "3_MSSQL_newQuery@1"
+                    "group": "1_MSSQL_primary@1"
+                },
+                {
+                    "command": "mssql.scriptSelect",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "1_MSSQL_primary@2"
                 },
                 {
                     "command": "mssql.tableExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableActions@1"
+                    "group": "2b_MSSQL_tableActions@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableActions@2"
+                    "group": "2b_MSSQL_tableActions@2"
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "5_MSSQL_tableScripts@1"
+                    "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -716,27 +727,32 @@
                 {
                     "command": "mssql.copyObjectName",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
-                    "group": "5_MSSQL_tree@4"
+                    "group": "1_MSSQL_primary@95"
                 },
                 {
                     "command": "mssql.copyConnectionString",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
-                    "group": "5_MSSQL_tree@5"
+                    "group": "2_MSSQL_connection@4"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
-                    "group": "5_MSSQL_tree@9999"
+                    "group": "1_MSSQL_primary@90"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "MS_SQL@11"
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "MS_SQL@12"
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "group": "6_MSSQL_copilot@2"
+                },
+                {
+                    "command": "mssql.profiler.launchFromObjectExplorer",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@2"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
@@ -816,15 +832,18 @@
                 },
                 {
                     "command": "mssql.stopContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/",
+                    "group": "9_MSSQL_container@1"
                 },
                 {
                     "command": "mssql.deleteContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "group": "9_MSSQL_container@2"
                 },
                 {
                     "command": "mssql.startContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "group": "9_MSSQL_container@3"
                 }
             ],
             "commandPalette": [

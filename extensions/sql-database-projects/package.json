@@ -246,6 +246,13 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             }
         ],
+        "submenus": [
+            {
+                "id": "sqlDatabaseProjects.objectExplorerSubmenu",
+                "title": "%sqlDatabaseProjects.objectExplorerSubmenu%",
+                "label": "%sqlDatabaseProjects.objectExplorerSubmenu%"
+            }
+        ],
         "menus": {
             "view/title": [
                 {
@@ -383,6 +390,16 @@
                     "when": "false"
                 }
             ],
+            "sqlDatabaseProjects.objectExplorerSubmenu": [
+                {
+                    "command": "sqlDatabaseProjects.createProjectFromDatabase",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "sqlDatabaseProjects.updateProjectFromDatabase",
+                    "group": "navigation@2"
+                }
+            ],
             "view/item/context": [
                 {
                     "command": "sqlDatabaseProjects.build",
@@ -510,14 +527,9 @@
                     "group": "9_dbProjectsLast@9"
                 },
                 {
-                    "command": "sqlDatabaseProjects.createProjectFromDatabase",
+                    "submenu": "sqlDatabaseProjects.objectExplorerSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "sqldbproj@1"
-                },
-                {
-                    "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "sqldbproj@2"
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@1"
                 },
                 {
                     "command": "sqlDatabaseProjects.editSqlCmdVariable",
