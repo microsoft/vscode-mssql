@@ -8,7 +8,13 @@ import { Editor } from "@monaco-editor/react";
 import { ImperativePanelHandle, Panel } from "react-resizable-panels";
 import { resolveVscodeThemeType } from "./utils";
 import { ColorThemeKind } from "../../sharedInterfaces/webview";
-import * as FluentIcons from "@fluentui/react-icons";
+import {
+    ChevronDown12Filled,
+    ChevronUp12Filled,
+    Copy16Regular,
+    Dismiss12Regular,
+    Open12Regular,
+} from "@fluentui/react-icons";
 import { locConstants } from "./locConstants";
 import {
     useRef,
@@ -127,7 +133,7 @@ function getScriptTab(
                     size="small"
                     appearance="subtle"
                     title={locConstants.schemaDesigner.openInEditor}
-                    icon={<FluentIcons.Open12Regular />}
+                    icon={<Open12Regular />}
                     onClick={() => props.openInEditor(props.value)}>
                     {locConstants.schemaDesigner.openInEditor}
                 </Button>
@@ -135,7 +141,7 @@ function getScriptTab(
                     size="small"
                     appearance="subtle"
                     title={locConstants.schemaDesigner.copy}
-                    icon={<FluentIcons.Copy16Regular />}
+                    icon={<Copy16Regular />}
                     onClick={() => props.copyToClipboard(props.value)}
                 />
             </>
@@ -170,7 +176,7 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
         locConstants.tableDesigner.maximizePanelSize,
     );
     const [expandCollapseButtonIcon, setExpandCollapseButtonIcon] = useState<ReactElement>(
-        <FluentIcons.ChevronUp12Filled />,
+        <ChevronUp12Filled />,
     );
 
     useImperativeHandle(
@@ -212,10 +218,10 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
             onResize={(size) => {
                 if (size === MAXIMUMPANEL_SIZE) {
                     setExpandCollapseButtonLabel(locConstants.tableDesigner.restorePanelSize);
-                    setExpandCollapseButtonIcon(<FluentIcons.ChevronDown12Filled />);
+                    setExpandCollapseButtonIcon(<ChevronDown12Filled />);
                 } else {
                     setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
-                    setExpandCollapseButtonIcon(<FluentIcons.ChevronUp12Filled />);
+                    setExpandCollapseButtonIcon(<ChevronUp12Filled />);
                 }
             }}
             onExpand={() => onPanelVisibilityChange?.(true)}
@@ -258,7 +264,7 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
                             size="small"
                             appearance="subtle"
                             title={locConstants.schemaDesigner.close}
-                            icon={<FluentIcons.Dismiss12Regular />}
+                            icon={<Dismiss12Regular />}
                             onClick={() => {
                                 if (panelRef.current) {
                                     panelRef.current.collapse();

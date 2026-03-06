@@ -12,8 +12,13 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
-import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
+import {
+    ArrowLeft16Regular,
+    Eye16Regular,
+    Play16Filled,
+    Dismiss16Regular,
+    Search16Regular,
+} from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
@@ -119,7 +124,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     <Button
                         appearance="subtle"
                         size="small"
-                        icon={<FluentIcons.ArrowLeft16Regular />}
+                        icon={<ArrowLeft16Regular />}
                         onClick={onNavigateToSchema}>
                         {locConstants.schemaDesigner.backToSchema}
                     </Button>
@@ -136,7 +141,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     />
                     <Button
                         appearance="subtle"
-                        icon={<FluentIcons.Eye16Regular />}
+                        icon={<Eye16Regular />}
                         size="small"
                         title={locConstants.schemaDesigner.viewConfig}
                         onClick={onViewConfig}>
@@ -144,7 +149,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                     </Button>
                     <Button
                         appearance="primary"
-                        icon={<FluentIcons.Play16Filled />}
+                        icon={<Play16Filled />}
                         size="small"
                         title={locConstants.schemaDesigner.deploy}
                         onClick={openDabDeploymentDialog}>

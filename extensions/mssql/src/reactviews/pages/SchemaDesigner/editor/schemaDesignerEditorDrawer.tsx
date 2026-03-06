@@ -11,7 +11,7 @@ import {
     OverlayDrawer,
     TabValue,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { Dismiss24Regular } from "@fluentui/react-icons";
 import { SchemaDesignerEditor } from "./schemaDesignerEditor";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
@@ -235,7 +235,7 @@ export const SchemaDesignerEditorDrawer = () => {
                             <Button
                                 appearance="subtle"
                                 aria-label="Close"
-                                icon={<FluentIcons.Dismiss24Regular />}
+                                icon={<Dismiss24Regular />}
                                 onClick={() => setIsEditDrawerOpen(false)}
                             />
                         }>

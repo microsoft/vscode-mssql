@@ -3,24 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fluentui from "@fluentui/react-components";
+import { Theme, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { ColorThemeKind } from "../../sharedInterfaces/webview";
 
 /**
  * This maps the Fluent UI theme variables to the VS Code theme variables.
  */
-export function webviewTheme(themeKind: ColorThemeKind): fluentui.Theme {
+export function webviewTheme(themeKind: ColorThemeKind): Theme {
     let baseTheme;
 
     switch (themeKind) {
         case ColorThemeKind.Light:
         case ColorThemeKind.HighContrastLight:
-            baseTheme = fluentui.webLightTheme;
+            baseTheme = webLightTheme;
             break;
         case ColorThemeKind.Dark:
         case ColorThemeKind.HighContrast:
         default:
-            baseTheme = fluentui.webDarkTheme;
+            baseTheme = webDarkTheme;
             break;
     }
 

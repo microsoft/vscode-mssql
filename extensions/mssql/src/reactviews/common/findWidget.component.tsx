@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, SearchBox, Text, makeStyles } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { ArrowDown16Regular, ArrowUp16Regular, Dismiss16Regular } from "@fluentui/react-icons";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { locConstants } from "./locConstants";
 
@@ -341,7 +341,7 @@ export function FindWidget<T extends SearchableItem>({
             />
             <Button
                 size="small"
-                icon={<FluentIcons.ArrowDown16Regular />}
+                icon={<ArrowDown16Regular />}
                 appearance="subtle"
                 disabled={filteredItems.length === 0}
                 onClick={handleNextItem}
@@ -350,7 +350,7 @@ export function FindWidget<T extends SearchableItem>({
             />
             <Button
                 size="small"
-                icon={<FluentIcons.ArrowUp16Regular />}
+                icon={<ArrowUp16Regular />}
                 appearance="subtle"
                 disabled={filteredItems.length === 0}
                 onClick={handlePreviousItem}
@@ -359,7 +359,7 @@ export function FindWidget<T extends SearchableItem>({
             />
             <Button
                 size="small"
-                icon={<FluentIcons.Dismiss16Regular />}
+                icon={<Dismiss16Regular />}
                 appearance="subtle"
                 onClick={hideSearchWidget}
                 title={locConstants.common.closeFind}

@@ -34,7 +34,13 @@ import {
 import { locConstants } from "../../../common/locConstants";
 import { uuid } from "../../../common/utils";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import * as FluentIcons from "@fluentui/react-icons";
+import {
+    AddRegular,
+    DeleteRegular,
+    ErrorCircleRegular,
+    MoreHorizontalRegular,
+    ReOrderRegular,
+} from "@fluentui/react-icons";
 import { columnUtils, namingUtils, tableUtils } from "../model";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -311,7 +317,7 @@ const ColumnsTable = ({
                         className={`${classes.dragHandleButton} ${
                             draggedRowId === index ? classes.draggingHandleButton : ""
                         }`}
-                        icon={<FluentIcons.ReOrderRegular />}
+                        icon={<ReOrderRegular />}
                         draggable={true}
                         onDragEnter={() => {
                             setDraggedOverRowId(index);
@@ -345,7 +351,7 @@ const ColumnsTable = ({
                                 <PopoverTrigger disableButtonEnhancement>
                                     <Button
                                         icon={
-                                            <FluentIcons.ErrorCircleRegular
+                                            <ErrorCircleRegular
                                                 style={{
                                                     color: "var(--vscode-errorForeground)",
                                                 }}
@@ -442,7 +448,7 @@ const ColumnsTable = ({
                         size="small"
                         appearance="subtle"
                         disabled={Boolean(deleteDisabledReason)}
-                        icon={<FluentIcons.DeleteRegular />}
+                        icon={<DeleteRegular />}
                         onClick={() => deleteColumn(index)}
                     />
                 );
@@ -468,7 +474,7 @@ const ColumnsTable = ({
                             <Button
                                 size="small"
                                 appearance="subtle"
-                                icon={<FluentIcons.MoreHorizontalRegular />}
+                                icon={<MoreHorizontalRegular />}
                             />
                         </PopoverTrigger>
 
@@ -753,7 +759,7 @@ export const SchemaDesignerEditorTablePanel = () => {
             {/* Add Column Button */}
             <Button
                 appearance="secondary"
-                icon={<FluentIcons.AddRegular />}
+                icon={<AddRegular />}
                 className={classes.newColumnButton}
                 onClick={addColumn}>
                 {locConstants.schemaDesigner.newColumn}

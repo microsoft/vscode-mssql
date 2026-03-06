@@ -14,7 +14,12 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import {
+    Checkmark16Regular,
+    ChevronDownRegular,
+    DismissRegular,
+    Warning20Regular,
+} from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, {
     CSSProperties,
@@ -126,7 +131,7 @@ export interface SearchableDropdownProps {
  * Icon Map for options in the searchable dropdown. Add more icons here if you need a specific icon
  */
 export const FluentOptionIcons: Record<string, React.JSX.Element> = {
-    Warning20Regular: <FluentIcons.Warning20Regular />,
+    Warning20Regular: <Warning20Regular />,
 };
 
 export function renderColorSwatch(color: string | undefined): React.JSX.Element | undefined {
@@ -447,15 +452,15 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const getDropdownIcon = () => {
         if (!props.clearable) {
-            return <FluentIcons.ChevronDownRegular />;
+            return <ChevronDownRegular />;
         }
 
         if (selectedOptionIndex === -1) {
-            return <FluentIcons.ChevronDownRegular />;
+            return <ChevronDownRegular />;
         }
 
         return (
-            <FluentIcons.DismissRegular
+            <DismissRegular
                 style={{ cursor: "pointer" }}
                 onClick={(e) => {
                     updateOption({ value: "" });
@@ -738,7 +743,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                     <Text>{option.description}</Text>
                                                 )}
                                                 {option.icon && FluentOptionIcons[option.icon]}
-                                                {isSelected && <FluentIcons.Checkmark16Regular />}
+                                                {isSelected && <Checkmark16Regular />}
                                             </span>
                                         </div>
                                     </div>

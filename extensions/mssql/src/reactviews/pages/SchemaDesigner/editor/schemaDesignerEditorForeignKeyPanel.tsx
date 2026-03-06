@@ -36,7 +36,6 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { uuid } from "../../../common/utils";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
-import * as FluentIcons from "@fluentui/react-icons";
 import {
     FOREIGN_KEY_ERROR_PREFIX,
     SchemaDesignerEditorContext,
@@ -533,7 +532,7 @@ const ForeignKeyCard = ({
             <div className={classes.mappingTableContainer}>
                 {/* Add Column Mapping Button */}
                 <Button
-                    icon={<FluentIcons.AddRegular />}
+                    icon={<AddRegular />}
                     className={classes.actionButton}
                     onClick={addColumnMapping}
                     size="small">

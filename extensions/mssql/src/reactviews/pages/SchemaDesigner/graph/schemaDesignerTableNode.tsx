@@ -23,7 +23,17 @@ import {
     Text,
     Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import {
+    ArrowUndo16Regular,
+    CheckmarkCircle16Regular,
+    ChevronDownRegular,
+    ChevronUpRegular,
+    DeleteRegular,
+    EditRegular,
+    FlowRegular,
+    MoreVerticalRegular,
+    TableRegular,
+} from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position, useUpdateNodeInternals } from "@xyflow/react";
 import { useContext, useRef, useEffect, useState, cloneElement, type ComponentProps } from "react";
@@ -309,7 +319,7 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
         <>
             <Button
                 appearance="subtle"
-                icon={<FluentIcons.EditRegular />}
+                icon={<EditRegular />}
                 onClick={handleEditTable}
                 className={styles.actionButton}
                 size="small"
@@ -317,7 +327,7 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
             <Menu>
                 <MenuTrigger disableButtonEnhancement>
                     <MenuButton
-                        icon={<FluentIcons.MoreVerticalRegular />}
+                        icon={<MoreVerticalRegular />}
                         className={styles.actionButton}
                         size="small"
                         appearance="subtle"
@@ -326,12 +336,10 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 
                 <MenuPopover>
                     <MenuList>
-                        <MenuItem
-                            icon={<FluentIcons.FlowRegular />}
-                            onClick={handleManageRelationships}>
+                        <MenuItem icon={<FlowRegular />} onClick={handleManageRelationships}>
                             {locConstants.schemaDesigner.manageRelationships}
                         </MenuItem>
-                        <MenuItem icon={<FluentIcons.DeleteRegular />} onClick={handleDeleteTable}>
+                        <MenuItem icon={<DeleteRegular />} onClick={handleDeleteTable}>
                             {locConstants.schemaDesigner.delete}
                         </MenuItem>
                     </MenuList>
@@ -405,7 +413,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
                 showQualifiedDiff && styles.tableHeaderDiffModified,
             )}>
             <div className={styles.tableHeaderRow}>
-                <FluentIcons.TableRegular className={styles.tableIcon} />
+                <TableRegular className={styles.tableIcon} />
                 <ConditionalTooltip content={tooltipContent} relationship="label">
                     <Text
                         className={mergeClasses(
@@ -587,7 +595,7 @@ const TableColumn = ({
                             <Button
                                 appearance="primary"
                                 size="small"
-                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                icon={<CheckmarkCircle16Regular />}
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     changeContext.acceptChange!(columnChange);
@@ -605,7 +613,7 @@ const TableColumn = ({
                         <Button
                             appearance="primary"
                             size="small"
-                            icon={<FluentIcons.ArrowUndo16Regular />}
+                            icon={<ArrowUndo16Regular />}
                             disabled={revertInfo ? !revertInfo.canRevert : false}
                             onClick={(event) => {
                                 event.stopPropagation();
@@ -749,13 +757,7 @@ const TableColumns = ({
                     className={styles.collapseButton}
                     onClick={onToggleCollapse}
                     appearance="subtle"
-                    icon={
-                        isCollapsed ? (
-                            <FluentIcons.ChevronDownRegular />
-                        ) : (
-                            <FluentIcons.ChevronUpRegular />
-                        )
-                    }
+                    icon={isCollapsed ? <ChevronDownRegular /> : <ChevronUpRegular />}
                     tabIndex={0}>
                     {isCollapsed ? <span>{EXPAND}</span> : <span>{COLLAPSE}</span>}
                 </Button>
@@ -862,7 +864,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                             <Button
                                 appearance="primary"
                                 size="small"
-                                icon={<FluentIcons.CheckmarkCircle16Regular />}
+                                icon={<CheckmarkCircle16Regular />}
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     changeContext.acceptChange!(tableChange);
@@ -880,7 +882,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                         <Button
                             appearance="primary"
                             size="small"
-                            icon={<FluentIcons.ArrowUndo16Regular />}
+                            icon={<ArrowUndo16Regular />}
                             disabled={revertInfo ? !revertInfo.canRevert : false}
                             onClick={(event) => {
                                 event.stopPropagation();

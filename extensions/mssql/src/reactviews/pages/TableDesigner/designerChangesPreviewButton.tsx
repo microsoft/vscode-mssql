@@ -26,15 +26,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@fluentui/react-dialog";
-import { useContext, useState } from "react";
+import { lazy, Suspense, useContext, useState } from "react";
 
 import { Button } from "@fluentui/react-button";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
-import Markdown from "react-markdown";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { locConstants } from "../../common/locConstants";
 import { useMarkdownStyles } from "../../common/styles";
+
+const Markdown = lazy(() => import("react-markdown"));
 
 const useStyles = makeStyles({
     dialogSurface: {
@@ -218,7 +219,9 @@ export const DesignerChangesPreviewButton = () => {
                             overflow: "hidden",
                         }}>
                         <div className={markdownClasses.markdownPage}>
-                            <Markdown>{generatePreviewReportResult?.report}</Markdown>
+                            <Suspense fallback={<Spinner size="tiny" />}>
+                                <Markdown>{generatePreviewReportResult?.report}</Markdown>
+                            </Suspense>
                         </div>
                         <Checkbox
                             style={{

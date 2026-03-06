@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Tooltip } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { ArrowRedo16Regular, ArrowUndo16Regular } from "@fluentui/react-icons";
 import eventBus from "../schemaDesignerEvents";
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
@@ -30,7 +30,7 @@ export function UndoRedoButtons() {
                 <Button
                     appearance="subtle"
                     size="small"
-                    icon={<FluentIcons.ArrowUndo16Regular />}
+                    icon={<ArrowUndo16Regular />}
                     onClick={() => {
                         eventBus.emit("undo");
                     }}
@@ -42,7 +42,7 @@ export function UndoRedoButtons() {
                 <Button
                     appearance="subtle"
                     size="small"
-                    icon={<FluentIcons.ArrowRedo16Regular />}
+                    icon={<ArrowRedo16Regular />}
                     onClick={() => {
                         eventBus.emit("redo");
                     }}

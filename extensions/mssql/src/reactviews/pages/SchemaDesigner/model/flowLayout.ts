@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dagre from "@dagrejs/dagre";
+import { graphlib, layout } from "@dagrejs/dagre";
 import { Edge, Node } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { FLOW_SPACING, getTableHeight, getTableWidth } from "./flowDimensions";
@@ -32,7 +32,7 @@ export function layoutFlowComponents(
     nodes: Node<SchemaDesigner.Table>[];
     edges: Edge<SchemaDesigner.ForeignKey>[];
 } {
-    const graph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+    const graph = new graphlib.Graph().setDefaultEdgeLabel(() => ({}));
     graph.setGraph(options);
 
     for (const node of nodes) {
@@ -52,7 +52,7 @@ export function layoutFlowComponents(
         }
     }
 
-    dagre.layout(graph);
+    layout(graph);
 
     const layoutedNodes = nodes.map((node) => {
         if (node.hidden) return node;

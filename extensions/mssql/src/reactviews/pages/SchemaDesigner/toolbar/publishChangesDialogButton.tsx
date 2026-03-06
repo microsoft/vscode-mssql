@@ -18,11 +18,15 @@ import {
     Spinner,
     Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import {
+    BranchFilled,
+    CheckmarkCircleFilled,
+    DatabaseArrowUp16Regular,
+    ErrorCircleFilled,
+} from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useState } from "react";
-import Markdown from "react-markdown";
+import { lazy, Suspense, useContext, useState } from "react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useMarkdownStyles } from "../../../common/styles";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
@@ -35,6 +39,8 @@ import {
     schemaDesignerPublishErrorFallbackDetails,
     schemaDesignerPublishErrorPrompt,
 } from "./publishChangesDialogPrompts";
+
+const Markdown = lazy(() => import("react-markdown"));
 
 export enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -143,7 +149,7 @@ export function PublishChangesDialogButton() {
                     size="small"
                     aria-label={locConstants.schemaDesigner.publishChanges}
                     title={locConstants.schemaDesigner.publishChanges}
-                    icon={<FluentIcons.DatabaseArrowUp16Regular />}
+                    icon={<DatabaseArrowUp16Regular />}
                     disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
                         setState({
@@ -247,7 +253,7 @@ export function PublishChangesDialogButton() {
                     justifyContent: "center",
                     minHeight: "200px",
                 }}>
-                <FluentIcons.ErrorCircleFilled
+                <ErrorCircleFilled
                     style={{
                         marginRight: "10px",
                         width: "50px",
@@ -269,7 +275,7 @@ export function PublishChangesDialogButton() {
                     justifyContent: "center",
                     minHeight: "200px",
                 }}>
-                <FluentIcons.CheckmarkCircleFilled
+                <CheckmarkCircleFilled
                     style={{
                         marginRight: "10px",
                         width: "50px",
@@ -319,7 +325,9 @@ export function PublishChangesDialogButton() {
                             overflow: "auto",
                         }}>
                         <div className={markdownClasses.markdownPage}>
-                            <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                            <Suspense fallback={<Spinner size="tiny" />}>
+                                <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                            </Suspense>
                         </div>
                     </div>
 
@@ -381,7 +389,7 @@ export function PublishChangesDialogButton() {
                         justifyContent: "center",
                         minHeight: "200px",
                     }}>
-                    <FluentIcons.BranchFilled
+                    <BranchFilled
                         style={{
                             marginRight: "10px",
                             width: "50px",

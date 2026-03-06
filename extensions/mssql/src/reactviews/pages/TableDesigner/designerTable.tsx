@@ -4,7 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
-import * as fluentui from "@fluentui/react-components";
+import {
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumnDefinition,
+    TableColumnId,
+    TableColumnSizingOptions,
+    TableHeader,
+    TableHeaderCell,
+    TableRow,
+    TableRowData,
+    Text,
+    Toolbar,
+    createTableColumn,
+    makeStyles,
+    useArrowNavigationGroup,
+    useTableColumnSizing_unstable,
+    useTableFeatures,
+} from "@fluentui/react-components";
 import * as l10n from "@vscode/l10n";
 
 import {
@@ -35,7 +54,7 @@ export type ErrorPopupProps = {
     message: string | undefined;
 };
 
-const useStyles = fluentui.makeStyles({
+const useStyles = makeStyles({
     tableCell: {
         display: "flex",
         flexDirection: "row",
@@ -105,7 +124,7 @@ const useStyles = fluentui.makeStyles({
 });
 
 export const DesignerTable = ({ component, model, componentPath, UiArea }: DesignerTableProps) => {
-    const keyboardNavAttr = fluentui.useArrowNavigationGroup({ axis: "grid" });
+    const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
 
     const tableProps = component.componentProperties as designer.DesignerTableProperties;
     const context = useContext(TableDesignerContext);
@@ -120,23 +139,23 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     const MOVE_UP = l10n.t("Move Up");
     const MOVE_DOWN = l10n.t("Move Down");
 
-    const columnsDef: fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[] =
+    const columnsDef: TableColumnDefinition<designer.DesignerTableComponentDataItem>[] =
         tableProps.columns!.map((column) => {
             const colProps = tableProps.itemProperties?.find(
                 (item) => item.propertyName === column,
             );
-            return fluentui.createTableColumn({
+            return createTableColumn({
                 columnId: column,
                 renderHeaderCell: () => (
-                    <fluentui.Text className={classes.tableHeaderCellText}>
+                    <Text className={classes.tableHeaderCellText}>
                         {colProps?.componentProperties.title ?? column}
-                    </fluentui.Text>
+                    </Text>
                 ),
             });
         });
     if (UiArea !== "PropertiesView") {
         columnsDef.push(
-            fluentui.createTableColumn({
+            createTableColumn({
                 columnId: "properties",
                 renderHeaderCell: () => <></>,
             }),
@@ -144,7 +163,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     }
     if (tableProps.canMoveRows) {
         columnsDef.unshift(
-            fluentui.createTableColumn({
+            createTableColumn({
                 columnId: "dragHandle",
                 renderHeaderCell: () => <></>,
             }),
@@ -153,7 +172,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
 
     if (tableProps.canRemoveRows) {
         columnsDef.push(
-            fluentui.createTableColumn({
+            createTableColumn({
                 columnId: "remove",
                 renderHeaderCell: () => {
                     const DELETE = l10n.t("Delete");
@@ -169,12 +188,10 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
         }) ?? [];
 
     const [columns] =
-        useState<fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[]>(
-            columnsDef,
-        );
+        useState<TableColumnDefinition<designer.DesignerTableComponentDataItem>[]>(columnsDef);
 
-    const getColumnSizingOptions = (): fluentui.TableColumnSizingOptions => {
-        const result = {} as fluentui.TableColumnSizingOptions;
+    const getColumnSizingOptions = (): TableColumnSizingOptions => {
+        const result = {} as TableColumnSizingOptions;
         tableProps.columns!.forEach((column) => {
             const colProps = tableProps.itemProperties?.find(
                 (item) => item.propertyName === column,
@@ -211,16 +228,15 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
         }
         return result;
     };
-    const [columnSizingOptions] =
-        useState<fluentui.TableColumnSizingOptions>(getColumnSizingOptions());
+    const [columnSizingOptions] = useState<TableColumnSizingOptions>(getColumnSizingOptions());
 
-    const { getRows, columnSizing_unstable, tableRef } = fluentui.useTableFeatures(
+    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
         {
             columns,
             items,
         },
         [
-            fluentui.useTableColumnSizing_unstable({
+            useTableColumnSizing_unstable({
                 columnSizingOptions,
                 autoFitColumns: false,
                 containerWidthOffset: 20,
@@ -281,7 +297,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
 
     const renderDragHandle = (rowIndex: number) => {
         return (
-            <fluentui.Button
+            <Button
                 appearance="subtle"
                 size="small"
                 className={classes.tableCellButton}
@@ -309,11 +325,9 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
         );
     };
 
-    const renderRemoveButton = (
-        row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
-    ) => {
+    const renderRemoveButton = (row: TableRowData<designer.DesignerTableComponentDataItem>) => {
         return (
-            <fluentui.Button
+            <Button
                 disabled={row.item.canBeDeleted ? !row.item.canBeDeleted : false}
                 appearance="subtle"
                 size="small"
@@ -333,11 +347,11 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     };
 
     const renderPropertiesButton = (
-        row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
+        row: TableRowData<designer.DesignerTableComponentDataItem>,
         rowIndex: number,
     ) => {
         return (
-            <fluentui.Button
+            <Button
                 appearance="subtle"
                 size="small"
                 className={classes.tableCellButton}
@@ -358,8 +372,8 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     };
 
     const getTableCell = (
-        row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
-        columnId: fluentui.TableColumnId,
+        row: TableRowData<designer.DesignerTableComponentDataItem>,
+        columnId: TableColumnId,
         rowIndex: number,
     ) => {
         const colProps = tableProps.itemProperties?.find((item) => item.propertyName === columnId);
@@ -431,9 +445,9 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
 
     return (
         <div>
-            <fluentui.Toolbar size="small">
+            <Toolbar size="small">
                 {tableProps.canAddRows && (
-                    <fluentui.Button
+                    <Button
                         appearance="transparent"
                         icon={<AddFilled className={classes.tableActionIcon} />}
                         onClick={() => {
@@ -446,10 +460,10 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                         }}
                         size="small">
                         {tableProps.labelForAddNewButton}
-                    </fluentui.Button>
+                    </Button>
                 )}
                 {tableProps.canMoveRows && (
-                    <fluentui.Button
+                    <Button
                         icon={<ArrowSortUpFilled className={classes.tableActionIcon} />}
                         onClick={(event) => {
                             (event.target as HTMLElement).focus();
@@ -459,10 +473,10 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                         size="small"
                         appearance="transparent">
                         {MOVE_UP}
-                    </fluentui.Button>
+                    </Button>
                 )}
                 {tableProps.canMoveRows && (
-                    <fluentui.Button
+                    <Button
                         icon={<ArrowSortDownFilled className={classes.tableActionIcon} />}
                         onClick={(event) => {
                             (event.target as HTMLElement).focus();
@@ -472,11 +486,11 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                         size="small"
                         appearance="transparent">
                         {MOVE_DOWN}
-                    </fluentui.Button>
+                    </Button>
                 )}
-            </fluentui.Toolbar>
+            </Toolbar>
             <div>
-                <fluentui.Table
+                <Table
                     {...keyboardNavAttr}
                     as="table"
                     size="extra-small"
@@ -489,26 +503,26 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                 return acc + columnSizingOptions[curr].idealWidth! + 22;
                             }, 0) - 20,
                     }}>
-                    <fluentui.TableHeader
+                    <TableHeader
                         style={{
                             backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
                         }}>
-                        <fluentui.TableRow>
+                        <TableRow>
                             {columnsDef.map((column) => {
                                 return (
-                                    <fluentui.TableHeaderCell
+                                    <TableHeaderCell
                                         {...columnSizing_unstable.getTableHeaderCellProps(
                                             column.columnId,
                                         )}
                                         className={classes.tableHeaderCell}
                                         key={column.columnId}>
                                         {column.renderHeaderCell()}
-                                    </fluentui.TableHeaderCell>
+                                    </TableHeaderCell>
                                 );
                             })}
-                        </fluentui.TableRow>
-                    </fluentui.TableHeader>
-                    <fluentui.TableBody>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {rows.map((row, index) => {
                             const rowError = getRowError(index);
                             let backgroundColor =
@@ -517,7 +531,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                     : "var(--vscode-editor-background)";
                             let draggedOverBorder = "3px solid var(--vscode-focusBorder)";
                             return (
-                                <fluentui.TableRow
+                                <TableRow
                                     style={{
                                         backgroundColor: backgroundColor,
                                         width: "calc(100% - 10px)",
@@ -548,7 +562,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                     key={componentPath.join(".") + index}>
                                     {columnsDef.map((column, columnIndex) => {
                                         return (
-                                            <fluentui.TableCell
+                                            <TableCell
                                                 key={componentPath.join(".") + index + columnIndex}
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     column.columnId,
@@ -564,14 +578,14 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                     maxHeight: "30px",
                                                 }}>
                                                 {getTableCell(row, column.columnId, index)}
-                                            </fluentui.TableCell>
+                                            </TableCell>
                                         );
                                     })}
-                                </fluentui.TableRow>
+                                </TableRow>
                             );
                         })}
-                    </fluentui.TableBody>
-                </fluentui.Table>
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );

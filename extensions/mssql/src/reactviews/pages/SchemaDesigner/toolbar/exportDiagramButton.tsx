@@ -13,11 +13,11 @@ import {
     Tooltip,
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import * as htmlToImage from "html-to-image";
+import { toJpeg, toPng, toSvg } from "html-to-image";
 import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
-import * as FluentIcons from "@fluentui/react-icons";
+import { ArrowExport16Regular } from "@fluentui/react-icons";
 import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 export function ExportDiagramButton() {
@@ -53,67 +53,61 @@ export function ExportDiagramButton() {
 
         switch (format) {
             case "png":
-                void htmlToImage
-                    .toPng(reactFlowContainer, {
-                        width: width,
-                        height: height,
-                        backgroundColor: graphBackgroundColor,
-                        style: {
-                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-                            width: `${width}px`,
-                            height: `${height}px`,
-                        },
-                    })
-                    .then((dataUrl) => {
-                        context.saveAsFile({
-                            format,
-                            fileContents: dataUrl,
-                            width,
-                            height,
-                        });
+                void toPng(reactFlowContainer, {
+                    width: width,
+                    height: height,
+                    backgroundColor: graphBackgroundColor,
+                    style: {
+                        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                        width: `${width}px`,
+                        height: `${height}px`,
+                    },
+                }).then((dataUrl: string) => {
+                    context.saveAsFile({
+                        format,
+                        fileContents: dataUrl,
+                        width,
+                        height,
                     });
+                });
                 break;
             case "jpeg":
-                void htmlToImage
-                    .toJpeg(reactFlowContainer, {
-                        width: width,
-                        height: height,
-                        backgroundColor: graphBackgroundColor,
-                        style: {
-                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-                            width: `${width}px`,
-                            height: `${height}px`,
-                        },
-                    })
-                    .then((dataUrl) => {
-                        context.saveAsFile({
-                            format,
-                            fileContents: dataUrl,
-                            width,
-                            height,
-                        });
+                void toJpeg(reactFlowContainer, {
+                    width: width,
+                    height: height,
+                    backgroundColor: graphBackgroundColor,
+                    style: {
+                        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                        width: `${width}px`,
+                        height: `${height}px`,
+                    },
+                }).then((dataUrl: string) => {
+                    context.saveAsFile({
+                        format,
+                        fileContents: dataUrl,
+                        width,
+                        height,
                     });
+                });
                 break;
             case "svg":
-                void htmlToImage
-                    .toSvg(reactFlowContainer, {
-                        width: width,
-                        height: height,
-                        backgroundColor: graphBackgroundColor,
-                        style: {
-                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-                            width: `${width}px`,
-                            height: `${height}px`,
-                        },
-                    })
-                    .then((dataUrl) => {
-                        context.saveAsFile({
-                            format,
-                            fileContents: dataUrl,
-                            width,
-                            height,
-                        });
+                void toSvg(reactFlowContainer, {
+                    width: width,
+                    height: height,
+                    backgroundColor: graphBackgroundColor,
+                    style: {
+                        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                        width: `${width}px`,
+                        height: `${height}px`,
+                    },
+                }).then((dataUrl: string) => {
+                    context.saveAsFile({
+                        format,
+                        fileContents: dataUrl,
+                        width,
+                        height,
                     });
+                });
                 break;
         }
         context.setRenderOnlyVisibleTables(true); // Reset to default state after export
@@ -123,10 +117,7 @@ export function ExportDiagramButton() {
         <Menu>
             <MenuTrigger disableButtonEnhancement>
                 <Tooltip content={locConstants.schemaDesigner.export} relationship="label">
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<FluentIcons.ArrowExport16Regular />}>
+                    <Button appearance="subtle" size="small" icon={<ArrowExport16Regular />}>
                         {!isCompact && locConstants.schemaDesigner.export}
                     </Button>
                 </Tooltip>

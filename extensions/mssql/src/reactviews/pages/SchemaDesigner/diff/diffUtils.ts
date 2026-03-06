@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sd from "../../../../sharedInterfaces/schemaDesigner";
-import * as lodash from "lodash";
+import isEqual from "lodash/isEqual";
 
 export enum ChangeAction {
     Add = "add",
@@ -101,7 +101,7 @@ export function diffObject<T extends object>(
     for (const prop of properties) {
         const oldValue = (original as Record<string, unknown>)[prop.key];
         const newValue = (current as Record<string, unknown>)[prop.key];
-        if (!lodash.isEqual(oldValue, newValue)) {
+        if (!isEqual(oldValue, newValue)) {
             changes.push({
                 property: prop.key,
                 displayName: prop.displayName,
@@ -248,7 +248,7 @@ export function calculateSchemaDiff(
 
         const oldColumnOrder = (oldTable.columns ?? []).map((column) => column.id);
         const newColumnOrder = (newTable.columns ?? []).map((column) => column.id);
-        if (!lodash.isEqual(oldColumnOrder, newColumnOrder)) {
+        if (!isEqual(oldColumnOrder, newColumnOrder)) {
             const oldColumnNamesById = new Map(
                 (oldTable.columns ?? []).map((column) => [column.id, column.name]),
             );
