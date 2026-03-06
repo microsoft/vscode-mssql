@@ -30,7 +30,7 @@ import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { DownloadType, IConfigUtils } from "./interfaces";
-import { exists } from "../utils/utils";
+import { exists, getErrorMessage } from "../utils/utils";
 import { env } from "process";
 import {
     getAppDataPath,
@@ -193,75 +193,84 @@ export default class SqlToolsServiceClient {
 
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
-    public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
+    public async initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
         this._logger.appendLine(Constants.serviceInitializing);
         this._logPath = context.logUri.fsPath;
-        return PlatformInformation.getCurrent().then((platformInfo) => {
-            return this.initializeForPlatform(platformInfo, context);
-        });
+        const platformInfo = await PlatformInformation.getCurrent();
+
+        const result = await this.initializeForPlatform(platformInfo, context);
+        this._logger.appendLine(
+            `Service ${result.installedBeforeInitializing ? "downloaded and " : ""}${result.isRunning ? "started" : "failed to start"} at ${result.serverPath}`,
+        );
+
+        return result;
     }
 
-    public initializeForPlatform(
+    public async initializeForPlatform(
         platformInfo: PlatformInformation,
         context: vscode.ExtensionContext,
     ): Promise<ServerInitializationResult> {
-        return new Promise<ServerInitializationResult>((resolve, reject) => {
-            this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
+        this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
+        this._logger.appendLine();
+        this._logger.append(`Platform: ${platformInfo.toString()}`);
+        if (!platformInfo.isValidRuntime) {
+            Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
+            throw new Error("Invalid Platform");
+        }
+
+        if (platformInfo.runtimeId) {
+            this._logger.appendLine(` (${platformInfo.getRuntimeDisplayName()})`);
+        } else {
             this._logger.appendLine();
-            this._logger.append(`Platform: ${platformInfo.toString()}`);
-            if (!platformInfo.isValidRuntime) {
-                Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                reject("Invalid Platform");
-            } else {
-                if (platformInfo.runtimeId) {
-                    this._logger.appendLine(` (${platformInfo.getRuntimeDisplayName()})`);
-                } else {
-                    this._logger.appendLine();
+        }
+        this._logger.appendLine();
+
+        // For macOS we need to ensure the tools service version is set appropriately
+        this.updateServiceVersion(platformInfo);
+
+        try {
+            const serverPath = await this._server.getServerPath(platformInfo.runtimeId);
+            if (serverPath === undefined) {
+                // Check if the service already installed and if not open the output channel to show the logs
+                if (this._vscodeWrapper !== undefined) {
+                    this._vscodeWrapper.outputChannel.show();
                 }
-                this._logger.appendLine();
 
-                // For macOS we need to ensure the tools service version is set appropriately
-                this.updateServiceVersion(platformInfo);
+                const installedServerPath = await this._server.downloadServerFiles(
+                    platformInfo.runtimeId,
+                );
+                this._sqlToolsServicePath = path.dirname(installedServerPath);
 
-                this._server
-                    .getServerPath(platformInfo.runtimeId)
-                    .then(async (serverPath) => {
-                        if (serverPath === undefined) {
-                            // Check if the service already installed and if not open the output channel to show the logs
-                            if (this._vscodeWrapper !== undefined) {
-                                this._vscodeWrapper.outputChannel.show();
-                            }
-                            let installedServerPath = await this._server.downloadServerFiles(
-                                platformInfo.runtimeId,
-                            );
-                            this._sqlToolsServicePath = path.dirname(installedServerPath);
-                            await this.initializeLanguageClient(
-                                installedServerPath,
-                                context,
-                                platformInfo.isWindows,
-                            );
-                            await this._client.onReady();
-                            resolve(
-                                new ServerInitializationResult(true, true, installedServerPath),
-                            );
-                        } else {
-                            this._sqlToolsServicePath = path.dirname(serverPath);
-                            await this.initializeLanguageClient(
-                                serverPath,
-                                context,
-                                platformInfo.isWindows,
-                            );
-                            await this._client.onReady();
-                            resolve(new ServerInitializationResult(false, true, serverPath));
-                        }
-                    })
-                    .catch((err) => {
-                        this.logger.logDebug(Constants.serviceLoadingFailed + " " + err);
-                        Utils.showErrorMsg(Constants.serviceLoadingFailed);
-                        reject(err);
-                    });
+                await this.initializeLanguageClient(
+                    installedServerPath,
+                    context,
+                    platformInfo.isWindows,
+                );
+
+                await this._client.onReady();
+
+                return new ServerInitializationResult(
+                    true, // installedBeforeInitializing
+                    true, // isRunning
+                    installedServerPath,
+                );
+            } else {
+                this._sqlToolsServicePath = path.dirname(serverPath);
+
+                await this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
+                await this._client.onReady();
+
+                return new ServerInitializationResult(
+                    false, // installedBeforeInitializing
+                    true, // isRunning
+                    serverPath,
+                );
             }
-        });
+        } catch (err) {
+            this.logger.logDebug(Constants.serviceLoadingFailed + " " + getErrorMessage(err));
+            Utils.showErrorMsg(Constants.serviceLoadingFailed);
+            throw err;
+        }
     }
 
     private updateServiceVersion(platformInfo: PlatformInformation): void {

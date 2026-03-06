@@ -12,8 +12,8 @@ import * as Constants from "../constants/constants";
  */
 export class ServerInitializationResult {
     public constructor(
-        public installedBeforeInitializing: Boolean = false,
-        public isRunning: Boolean = false,
+        public installedBeforeInitializing: boolean = false,
+        public isRunning: boolean = false,
         public serverPath: string = undefined,
     ) {}
 
@@ -25,7 +25,7 @@ export class ServerInitializationResult {
         );
     }
 
-    public withRunning(isRunning: Boolean): ServerInitializationResult {
+    public withRunning(isRunning: boolean): ServerInitializationResult {
         return new ServerInitializationResult(
             this.installedBeforeInitializing,
             isRunning,
