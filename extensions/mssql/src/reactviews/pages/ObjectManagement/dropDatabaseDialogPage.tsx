@@ -5,7 +5,6 @@
 
 import { useContext, useState } from "react";
 import { makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { Warning20Regular } from "@fluentui/react-icons";
 import {
     DropDatabaseParams,
     DropDatabaseViewModel,
