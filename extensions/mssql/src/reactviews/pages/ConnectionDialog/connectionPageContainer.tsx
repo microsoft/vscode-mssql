@@ -100,6 +100,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
+                        mode="modal"
                         state={(dialog as AddFirewallRuleDialogProps).props}
                         addFirewallRule={context.addFirewallRule}
                         closeDialog={context.closeDialog}

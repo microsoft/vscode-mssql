@@ -35,6 +35,8 @@ import { AddFirewallRuleState } from "../../../sharedInterfaces/addFirewallRule"
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { IMssqlAzureTenant } from "../../../sharedInterfaces/azureAccountManagement";
 import { addNewMicrosoftAccount } from "../../common/constants";
+import { DialogPageShell } from "../../common/dialogPageShell";
+import { AddFirewallRuleIcon } from "../../common/icons/addFirewallRule";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",
@@ -42,6 +44,24 @@ enum IpSelectionMode {
 }
 
 const useStyles = makeStyles({
+    shellBody: {
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        maxWidth: "600px",
+        gap: "8px",
+    },
+    content: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    readMoreText: {
+        marginBottom: "12px",
+    },
+    fromToRow: {
+        marginLeft: "40px",
+    },
     ipInputBox: {
         marginLeft: "8px",
         marginRight: "8px",
@@ -49,16 +69,20 @@ const useStyles = makeStyles({
     },
 });
 
+export type AddFirewallRuleDialogMode = "shell" | "modal";
+
 export const AddFirewallRuleDialog = ({
     state,
     addFirewallRule,
     closeDialog,
     signIntoAzure,
+    mode = "shell",
 }: {
     state: AddFirewallRuleState;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     closeDialog: () => void;
     signIntoAzure: () => void;
+    mode?: AddFirewallRuleDialogMode;
 }) => {
     const styles = useStyles();
     const formStyles = useFormStyles();
@@ -144,180 +168,192 @@ export const AddFirewallRuleDialog = ({
         setTenantDisplayText(data.optionText ?? "");
     };
 
+    const dialogTitle = state.serverName
+        ? Loc.firewallRules.createNewFirewallRuleFor(state.serverName)
+        : Loc.firewallRules.createNewFirewallRule;
+
+    const renderFooterButtons = () => (
+        <>
+            <Button
+                appearance="secondary"
+                onClick={() => {
+                    closeDialog();
+                }}>
+                {Loc.common.cancel}
+            </Button>
+            <Button
+                appearance="primary"
+                onClick={() => {
+                    addFirewallRule({
+                        name: ruleName,
+                        azureAccountInfo: {
+                            accountId: selectedAccountId,
+                            tenantId: selectedTenantId,
+                        },
+                        ip:
+                            ipSelectionMode === IpSelectionMode.SpecificIp
+                                ? state.clientIp
+                                : { startIp, endIp },
+                    });
+                }}
+                disabled={!state.isSignedIn || state.addFirewallRuleStatus === ApiStatus.Loading}
+                icon={
+                    state.addFirewallRuleStatus === ApiStatus.Loading ? (
+                        <Spinner size="tiny" />
+                    ) : undefined
+                }>
+                {Loc.firewallRules.addFirewallRule}
+            </Button>
+        </>
+    );
+
+    const renderDialogContent = (showInlineError: boolean) => (
+        <div className={styles.content}>
+            {showInlineError && state.message && (
+                <MessageBar intent="error" style={{ paddingRight: "12px" }}>
+                    {state.message}
+                </MessageBar>
+            )}
+            <div className={styles.readMoreText}>
+                {Loc.firewallRules.firewallRuleNeededMessage}
+                {" " /* extra space before the 'Read More' link*/}
+                <Link href={addFirewallRuleReadMoreUrl}>{Loc.connectionDialog.readMore}</Link>
+            </div>
+
+            {!state.isSignedIn && (
+                <>
+                    {Loc.firewallRules.signIntoAzureToAddFirewallRule}
+                    {" " /* extra space before the 'Sign in' link*/}
+                    <Link
+                        onClick={() => {
+                            signIntoAzure();
+                        }}>
+                        {Loc.azure.signIntoAzure}
+                    </Link>
+                </>
+            )}
+            {state.isSignedIn && (
+                <>
+                    {state.accounts.length > 0 && (
+                        <>
+                            <Field
+                                label={Loc.azure.azureAccount}
+                                className={formStyles.formComponentDiv}>
+                                <Dropdown
+                                    value={selectedAccountDisplayText}
+                                    selectedOptions={[selectedAccountId]}
+                                    onOptionSelect={onAccountOptionSelect}>
+                                    <Option
+                                        text={Loc.azure.addAzureAccount}
+                                        key={addNewMicrosoftAccount}
+                                        value={addNewMicrosoftAccount}>
+                                        {Loc.azure.addAzureAccount}
+                                    </Option>
+                                    {state.accounts.map((account) => {
+                                        return (
+                                            <Option
+                                                text={account.displayName}
+                                                key={account.accountId}
+                                                value={account.accountId}>
+                                                {account.displayName}
+                                            </Option>
+                                        );
+                                    })}
+                                </Dropdown>
+                            </Field>
+                            <Field label={Loc.azure.tenant} className={formStyles.formComponentDiv}>
+                                <Dropdown
+                                    value={tenantDisplayText}
+                                    selectedOptions={[selectedTenantId]}
+                                    onOptionSelect={onTenantOptionSelect}>
+                                    {state.tenants[selectedAccountId]?.map((tenant) => {
+                                        return (
+                                            <Option
+                                                text={formatTenant(tenant)}
+                                                key={tenant.tenantId}
+                                                value={tenant.tenantId}>
+                                                {formatTenant(tenant)}
+                                            </Option>
+                                        );
+                                    })}
+                                </Dropdown>
+                            </Field>
+                        </>
+                    )}
+
+                    <Field
+                        label={Loc.firewallRules.ruleName}
+                        className={formStyles.formComponentDiv}>
+                        <Input
+                            value={ruleName}
+                            onChange={(_ev, data) => {
+                                setRuleName(data.value);
+                            }}
+                            id="ruleName"
+                        />
+                    </Field>
+                    <Field className={formStyles.formComponentDiv}>
+                        <RadioGroup
+                            value={ipSelectionMode}
+                            onChange={(_, data) =>
+                                setIpSelectionMode(data.value as IpSelectionMode)
+                            }>
+                            <Radio
+                                label={Loc.firewallRules.addMyClientIp(state.clientIp)}
+                                value={IpSelectionMode.SpecificIp}
+                            />
+                            <Radio
+                                label={Loc.firewallRules.addMySubnetRange}
+                                value={IpSelectionMode.IpRange}
+                            />
+                        </RadioGroup>
+                    </Field>
+                    <div className={formStyles.formComponentDiv + " " + styles.fromToRow}>
+                        <Label>From</Label>
+                        <Input
+                            value={startIp}
+                            onChange={(_ev, data) => {
+                                setStartIp(data.value);
+                            }}
+                            id="startIpInput"
+                            disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
+                            className={styles.ipInputBox}
+                        />
+                        <Label>To</Label>
+                        <Input
+                            value={endIp}
+                            onChange={(_ev, data) => {
+                                setEndIp(data.value);
+                            }}
+                            id="endIpInput"
+                            disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
+                            className={styles.ipInputBox}
+                        />
+                    </div>
+                </>
+            )}
+        </div>
+    );
+
+    if (mode === "shell") {
+        return (
+            <DialogPageShell
+                icon={<AddFirewallRuleIcon aria-label={dialogTitle} />}
+                title={dialogTitle}
+                errorMessage={state.message}
+                footerEnd={renderFooterButtons()}>
+                <div className={styles.shellBody}>{renderDialogContent(false)}</div>
+            </DialogPageShell>
+        );
+    }
+
     return (
         <Dialog open={true /* standalone dialog always open*/}>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>
-                        {state.serverName
-                            ? Loc.firewallRules.createNewFirewallRuleFor(state.serverName)
-                            : Loc.firewallRules.createNewFirewallRule}
-                    </DialogTitle>
-                    <DialogContent>
-                        <MessageBar intent="error" style={{ paddingRight: "12px" }}>
-                            {state.message}
-                        </MessageBar>
-                        <br />
-                        <div style={{ marginBottom: "12px" }}>
-                            {Loc.firewallRules.firewallRuleNeededMessage}
-                            {" " /* extra space before the 'Read More' link*/}
-                            <Link href={addFirewallRuleReadMoreUrl}>
-                                {Loc.connectionDialog.readMore}
-                            </Link>
-                        </div>
-
-                        {!state.isSignedIn && (
-                            <>
-                                {Loc.firewallRules.signIntoAzureToAddFirewallRule}
-                                {" " /* extra space before the 'Sign in' link*/}
-                                <Link
-                                    onClick={() => {
-                                        signIntoAzure();
-                                    }}>
-                                    {Loc.azure.signIntoAzure}
-                                </Link>
-                            </>
-                        )}
-                        {state.isSignedIn && (
-                            <>
-                                {state.accounts.length > 0 && (
-                                    <>
-                                        <Field
-                                            label={Loc.azure.azureAccount}
-                                            className={formStyles.formComponentDiv}>
-                                            <Dropdown
-                                                value={selectedAccountDisplayText}
-                                                selectedOptions={[selectedAccountId]}
-                                                onOptionSelect={onAccountOptionSelect}>
-                                                <Option
-                                                    text={Loc.azure.addAzureAccount}
-                                                    key={addNewMicrosoftAccount}
-                                                    value={addNewMicrosoftAccount}>
-                                                    {Loc.azure.addAzureAccount}
-                                                </Option>
-                                                {state.accounts.map((account) => {
-                                                    return (
-                                                        <Option
-                                                            text={account.displayName}
-                                                            key={account.accountId}
-                                                            value={account.accountId}>
-                                                            {account.displayName}
-                                                        </Option>
-                                                    );
-                                                })}
-                                            </Dropdown>
-                                        </Field>
-                                        <Field
-                                            label={Loc.azure.tenant}
-                                            className={formStyles.formComponentDiv}>
-                                            <Dropdown
-                                                value={tenantDisplayText}
-                                                selectedOptions={[selectedTenantId]}
-                                                onOptionSelect={onTenantOptionSelect}>
-                                                {state.tenants[selectedAccountId]?.map((tenant) => {
-                                                    return (
-                                                        <Option
-                                                            text={formatTenant(tenant)}
-                                                            key={tenant.tenantId}
-                                                            value={tenant.tenantId}>
-                                                            {formatTenant(tenant)}
-                                                        </Option>
-                                                    );
-                                                })}
-                                            </Dropdown>
-                                        </Field>
-                                    </>
-                                )}
-
-                                <Field
-                                    label={Loc.firewallRules.ruleName}
-                                    className={formStyles.formComponentDiv}>
-                                    <Input
-                                        value={ruleName}
-                                        onChange={(_ev, data) => {
-                                            setRuleName(data.value);
-                                        }}
-                                        id="ruleName"
-                                    />
-                                </Field>
-                                <Field className={formStyles.formComponentDiv}>
-                                    <RadioGroup
-                                        value={ipSelectionMode}
-                                        onChange={(_, data) =>
-                                            setIpSelectionMode(data.value as IpSelectionMode)
-                                        }>
-                                        <Radio
-                                            label={Loc.firewallRules.addMyClientIp(state.clientIp)}
-                                            value={IpSelectionMode.SpecificIp}
-                                        />
-                                        <Radio
-                                            label={Loc.firewallRules.addMySubnetRange}
-                                            value={IpSelectionMode.IpRange}
-                                        />
-                                    </RadioGroup>
-                                </Field>
-                                <div
-                                    className={formStyles.formComponentDiv}
-                                    style={{ marginLeft: "40px" }}>
-                                    <Label>From</Label>
-                                    <Input
-                                        value={startIp}
-                                        onChange={(_ev, data) => {
-                                            setStartIp(data.value);
-                                        }}
-                                        id="startIpInput"
-                                        disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
-                                        className={styles.ipInputBox}
-                                    />
-                                    <Label>To</Label>
-                                    <Input
-                                        value={endIp}
-                                        onChange={(_ev, data) => {
-                                            setEndIp(data.value);
-                                        }}
-                                        id="endIpInput"
-                                        disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
-                                        className={styles.ipInputBox}
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            appearance="primary"
-                            onClick={() => {
-                                addFirewallRule({
-                                    name: ruleName,
-                                    azureAccountInfo: {
-                                        accountId: selectedAccountId,
-                                        tenantId: selectedTenantId,
-                                    },
-                                    ip:
-                                        ipSelectionMode === IpSelectionMode.SpecificIp
-                                            ? state.clientIp
-                                            : { startIp, endIp },
-                                });
-                            }}
-                            disabled={
-                                !state.isSignedIn ||
-                                state.addFirewallRuleStatus === ApiStatus.Loading
-                            }
-                            icon={
-                                state.addFirewallRuleStatus === ApiStatus.Loading ? (
-                                    <Spinner size="tiny" />
-                                ) : undefined
-                            }>
-                            {Loc.firewallRules.addFirewallRule}
-                        </Button>
-                        <Button
-                            appearance="secondary"
-                            onClick={() => {
-                                closeDialog();
-                            }}>
-                            {Loc.common.cancel}
-                        </Button>
-                    </DialogActions>
+                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogContent>{renderDialogContent(true)}</DialogContent>
+                    <DialogActions>{renderFooterButtons()}</DialogActions>
                 </DialogBody>
             </DialogSurface>
         </Dialog>
