@@ -108,6 +108,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "changePassword" && (
                     <ChangePasswordDialog
+                        mode="modal"
                         serverName={changePasswordDialogState?.server}
                         userName={changePasswordDialogState?.userName}
                         onSubmit={context.changePassword}
