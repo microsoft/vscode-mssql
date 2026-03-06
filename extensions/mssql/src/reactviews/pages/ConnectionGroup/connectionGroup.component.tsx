@@ -39,6 +39,10 @@ import { KeyCode } from "../../common/keys";
 import { DialogPageShell } from "../../common/dialogPageShell";
 
 const useStyles = makeStyles({
+    shellBody: {
+        width: "100%",
+        maxWidth: "550px",
+    },
     previewColor: {
         width: "80px",
         borderRadius: "4px",
@@ -131,6 +135,13 @@ export const ConnectionGroupDialog = ({
     const renderFooterButtons = () => (
         <>
             <Button
+                appearance="secondary"
+                onClick={() => {
+                    closeDialog();
+                }}>
+                {Loc.common.cancel}
+            </Button>
+            <Button
                 appearance="primary"
                 type="submit"
                 style={{ width: "auto", whiteSpace: "nowrap" }}
@@ -139,13 +150,6 @@ export const ConnectionGroupDialog = ({
                 }}
                 disabled={!isReadyToSubmit()}>
                 {Loc.connectionGroups.saveConnectionGroup}
-            </Button>
-            <Button
-                appearance="secondary"
-                onClick={() => {
-                    closeDialog();
-                }}>
-                {Loc.common.cancel}
             </Button>
         </>
     );
@@ -257,7 +261,7 @@ export const ConnectionGroupDialog = ({
                 title={dialogTitle}
                 errorMessage={state.message}
                 footerEnd={renderFooterButtons()}>
-                {renderForm(false)}
+                <div className={styles.shellBody}>{renderForm(false)}</div>
             </DialogPageShell>
         );
     }
