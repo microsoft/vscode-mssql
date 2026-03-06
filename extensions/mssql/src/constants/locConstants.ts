@@ -71,6 +71,13 @@ export function renameDatabaseError(
         ],
     });
 }
+export function renamingDatabase(databaseName: string, newDatabaseName: string) {
+    return l10n.t({
+        message: "Renaming database '{0}' to '{1}'...",
+        args: [databaseName, newDatabaseName],
+        comment: ["{0} is the current database name", "{1} is the new database name"],
+    });
+}
 
 export let viewMore = l10n.t("View More");
 export let releaseNotesPromptDescription = l10n.t(
