@@ -423,6 +423,7 @@ export const ObjectExplorerFilterPage = () => {
             title={locConstants.objectExplorerFiltering.filterSettings}
             subtitle={breadcrumb}
             errorMessage={errorMessage}
+            maxContentWidth="medium"
             footerStart={
                 <Button appearance="secondary" onClick={clearAllFilters}>
                     {locConstants.objectExplorerFiltering.clearAll}

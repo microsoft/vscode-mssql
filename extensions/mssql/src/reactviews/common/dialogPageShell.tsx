@@ -14,6 +14,29 @@ import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
 const headerIconSizePx = 24;
 
+const contentWidthPresets = {
+    medium: "600px",
+    wide: "800px",
+} as const;
+
+type DialogPageShellContentPreset = keyof typeof contentWidthPresets;
+
+export type DialogPageShellContentWidth = DialogPageShellContentPreset | number;
+
+function resolveContentWidth(
+    maxContentWidth: DialogPageShellContentWidth | undefined,
+): string | undefined {
+    if (maxContentWidth === undefined) {
+        return undefined;
+    }
+
+    if (typeof maxContentWidth === "number") {
+        return `${maxContentWidth}px`;
+    }
+
+    return contentWidthPresets[maxContentWidth];
+}
+
 const useStyles = makeStyles({
     page: {
         height: "100vh",
@@ -116,7 +139,7 @@ export interface DialogPageShellProps {
     subtitle?: ReactNode;
     errorMessage?: string;
     loadingMessage?: string;
-    maxContentWidth?: string;
+    maxContentWidth?: DialogPageShellContentWidth;
     footerStart?: ReactNode;
     footerEnd?: ReactNode;
     children?: ReactNode;
@@ -128,12 +151,20 @@ export const DialogPageShell = ({
     subtitle,
     errorMessage,
     loadingMessage,
-    maxContentWidth: _maxContentWidth,
+    maxContentWidth,
     footerStart,
     footerEnd,
     children,
 }: DialogPageShellProps) => {
     const styles = useStyles();
+    const resolvedMaxContentWidth = resolveContentWidth(maxContentWidth);
+    const contentWidthStyle = resolvedMaxContentWidth
+        ? {
+              maxWidth: resolvedMaxContentWidth,
+              margin: 0,
+          }
+        : undefined;
+
     const headerIcon =
         icon && isValidElement(icon)
             ? cloneElement(icon as ReactElement, {
@@ -156,7 +187,7 @@ export const DialogPageShell = ({
                         </div>
                     )}
                     {(errorMessage || loadingMessage) && (
-                        <div className={styles.messageStack}>
+                        <div className={styles.messageStack} style={contentWidthStyle}>
                             {errorMessage && (
                                 <MessageBar intent="error">
                                     <MessageBarBody>{errorMessage}</MessageBarBody>
@@ -174,7 +205,9 @@ export const DialogPageShell = ({
                             )}
                         </div>
                     )}
-                    <div className={styles.content}>{children}</div>
+                    <div className={styles.content} style={contentWidthStyle}>
+                        {children}
+                    </div>
                 </div>
             </div>
             {(footerStart || footerEnd) && (

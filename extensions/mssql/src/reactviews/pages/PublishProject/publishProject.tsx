@@ -26,7 +26,6 @@ const useStyles = makeStyles({
     formContent: {
         display: "flex",
         flexDirection: "column",
-        maxWidth: "650px",
         width: "100%",
         gap: "10px",
     },
@@ -75,6 +74,7 @@ function PublishProjectDialog() {
             <DialogPageShell
                 icon={<img src={publishProjectHeaderIcon} alt={loc.publishProject} />}
                 title={loc.publishProjectTitle(projectName)}
+                maxContentWidth="medium"
                 footerStart={
                     <Button
                         appearance="secondary"

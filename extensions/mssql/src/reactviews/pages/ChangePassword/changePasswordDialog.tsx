@@ -38,13 +38,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
     },
-    shellBody: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        width: "100%",
-        maxWidth: "550px",
-    },
     apiErrorMessage: {
         marginBottom: "0",
     },
@@ -232,8 +225,9 @@ export const ChangePasswordDialog = ({
                 title={locConstants.changePasswordDialog.title}
                 subtitle={locConstants.changePasswordDialog.description(serverName ?? "")}
                 errorMessage={resultApiError}
+                maxContentWidth="medium"
                 footerEnd={renderFooterButtons()}>
-                <div className={styles.shellBody}>{formFields}</div>
+                {formFields}
             </DialogPageShell>
         );
     }

@@ -35,7 +35,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        maxWidth: "600px",
         "> *": {
             marginBottom: "15px",
         },
@@ -122,6 +121,7 @@ export const UserSurveyPage = () => {
             icon={<FeedbackIcon />}
             title={title ?? locConstants.userFeedback.microsoftWouldLikeYourFeedback}
             subtitle={subtitle}
+            maxContentWidth="medium"
             footerEnd={
                 <div className={classes.footerButtons}>
                     <Button appearance="secondary" onClick={() => context.cancel()}>

@@ -5,7 +5,7 @@
 
 import { Button } from "@fluentui/react-components";
 import { ReactNode } from "react";
-import { DialogPageShell } from "./dialogPageShell";
+import { DialogPageShell, DialogPageShellContentWidth } from "./dialogPageShell";
 import { Info16Regular, Code16Regular } from "@fluentui/react-icons";
 
 export interface ObjectManagementDialogProps {
@@ -15,7 +15,7 @@ export interface ObjectManagementDialogProps {
     description?: string;
     errorMessage?: string;
     loadingMessage?: string;
-    maxContentWidth?: string;
+    maxContentWidth?: DialogPageShellContentWidth;
     primaryLabel: string;
     cancelLabel: string;
     helpLabel?: string;
@@ -56,7 +56,7 @@ export const ObjectManagementDialog = ({
             subtitle={subtitle ?? description}
             errorMessage={errorMessage}
             loadingMessage={loadingMessage}
-            maxContentWidth={maxContentWidth}
+            maxContentWidth={maxContentWidth ?? "medium"}
             footerStart={
                 <>
                     {helpLabel && (

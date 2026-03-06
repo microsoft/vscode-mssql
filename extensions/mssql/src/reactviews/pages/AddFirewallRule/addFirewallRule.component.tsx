@@ -44,13 +44,6 @@ enum IpSelectionMode {
 }
 
 const useStyles = makeStyles({
-    shellBody: {
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        maxWidth: "600px",
-        gap: "8px",
-    },
     content: {
         display: "flex",
         flexDirection: "column",
@@ -341,8 +334,9 @@ export const AddFirewallRuleDialog = ({
                 icon={<AddFirewallRuleIcon aria-label={dialogTitle} />}
                 title={dialogTitle}
                 errorMessage={state.message}
+                maxContentWidth="medium"
                 footerEnd={renderFooterButtons()}>
-                <div className={styles.shellBody}>{renderDialogContent(false)}</div>
+                {renderDialogContent(false)}
             </DialogPageShell>
         );
     }

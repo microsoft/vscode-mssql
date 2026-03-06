@@ -39,10 +39,6 @@ import { KeyCode } from "../../common/keys";
 import { DialogPageShell } from "../../common/dialogPageShell";
 
 const useStyles = makeStyles({
-    shellBody: {
-        width: "100%",
-        maxWidth: "550px",
-    },
     previewColor: {
         width: "80px",
         borderRadius: "4px",
@@ -260,8 +256,9 @@ export const ConnectionGroupDialog = ({
                 icon={<FolderAdd24Regular aria-label={dialogTitle} />}
                 title={dialogTitle}
                 errorMessage={state.message}
+                maxContentWidth="medium"
                 footerEnd={renderFooterButtons()}>
-                <div className={styles.shellBody}>{renderForm(false)}</div>
+                {renderForm(false)}
             </DialogPageShell>
         );
     }

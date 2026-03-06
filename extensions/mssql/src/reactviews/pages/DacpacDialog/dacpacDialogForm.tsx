@@ -667,6 +667,7 @@ export const DacpacDialogForm = () => {
                     </Link>
                 </>
             }
+            maxContentWidth="medium"
             footerEnd={
                 <>
                     <Button
@@ -787,8 +788,7 @@ const useStyles = makeStyles({
     formContent: {
         display: "flex",
         flexDirection: "column",
-        width: "700px",
-        maxWidth: "100%",
+        width: "100%",
         gap: "16px",
     },
 });
