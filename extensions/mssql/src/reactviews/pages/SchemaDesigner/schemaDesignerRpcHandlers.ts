@@ -1319,32 +1319,32 @@ function applyDabToolChange(
                 return resolvedEntity;
             }
 
-            if (!Array.isArray(change.actions) || change.actions.length === 0) {
+            if (!Array.isArray(change.enabledActions) || change.enabledActions.length === 0) {
                 return {
                     success: false,
                     reason: "validation_error",
-                    message: "actions must be a non-empty array.",
+                    message: "enabledActions must be a non-empty array.",
                 };
             }
-            const uniqueActions = new Set(change.actions);
-            if (uniqueActions.size !== change.actions.length) {
+            const uniqueActions = new Set(change.enabledActions);
+            if (uniqueActions.size !== change.enabledActions.length) {
                 return {
                     success: false,
                     reason: "validation_error",
-                    message: "actions must be unique.",
+                    message: "enabledActions must be unique.",
                 };
             }
-            if (change.actions.some((action) => !allowedActions.has(action))) {
+            if (change.enabledActions.some((action) => !allowedActions.has(action))) {
                 return {
                     success: false,
                     reason: "validation_error",
-                    message: "actions contains unsupported values.",
+                    message: "enabledActions contains unsupported values.",
                 };
             }
 
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
-                enabledActions: [...change.actions],
+                enabledActions: [...change.enabledActions],
             };
             return { success: true };
         }

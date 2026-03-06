@@ -2031,6 +2031,15 @@ export class MssqlChatAgent {
             "{2} is the operation name 'apply_edits' and must not be translated",
         ],
     });
+    public static dabToolShowSuccessMessage = l10n.t({
+        message: "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        args: ["mssql_dab", "get_state", "apply_changes"],
+        comment: [
+            "{0} is the command identifier 'mssql_dab' and must not be translated",
+            "{1} is the operation name 'get_state' and must not be translated",
+            "{2} is the operation name 'apply_changes' and must not be translated",
+        ],
+    });
     public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
     public static schemaDesignerToolConfirmationMessage = (operation: string) => {
         return l10n.t({
@@ -2061,6 +2070,12 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolNoActiveDesigner = l10n.t(
+        "No active Data API Builder found. Please open it first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+    );
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );

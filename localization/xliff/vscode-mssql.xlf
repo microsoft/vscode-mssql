@@ -1642,6 +1642,12 @@
     <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
       <source xml:lang="en">Data API Builder Configuration</source>
     </trans-unit>
+    <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
+      <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+      <note>{0} is the command identifier &apos;mssql_dab&apos; and must not be translated
+{1} is the operation name &apos;get_state&apos; and must not be translated
+{2} is the operation name &apos;apply_changes&apos; and must not be translated</note>
+    </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
     </trans-unit>
@@ -3751,6 +3757,9 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
+      <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
       <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
     </trans-unit>
@@ -3928,6 +3937,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5345fa71b16e5757cbf5cb0b5a9db3acd485d82115bd3b4f841586b9fd0a8892">
+      <source xml:lang="en">No active Data API Builder found. Please open it first using mssql_dab with operation &apos;show&apos; or from the UI.</source>
     </trans-unit>
     <trans-unit id="++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676">
       <source xml:lang="en">No active connection</source>

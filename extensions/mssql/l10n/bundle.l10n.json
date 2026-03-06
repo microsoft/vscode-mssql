@@ -2654,6 +2654,14 @@
             "{2} is the operation name 'apply_edits' and must not be translated"
         ]
     },
+    "Data API Builder opened. Continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_dab' and must not be translated{1} is the operation name 'get_state' and must not be translated{2} is the operation name 'apply_changes' and must not be translated": {
+        "message": "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        "comment": [
+            "{0} is the command identifier 'mssql_dab' and must not be translated",
+            "{1} is the operation name 'get_state' and must not be translated",
+            "{2} is the operation name 'apply_changes' and must not be translated"
+        ]
+    },
     "Execute '{0}' operation on the schema designer?/{0} is the operation name": {
         "message": "Execute '{0}' operation on the schema designer?",
         "comment": ["{0} is the operation name"]
@@ -2671,6 +2679,8 @@
         "message": "Executing '{0}' operation on Data API Builder",
         "comment": ["{0} is the operation name"]
     },
+    "No active Data API Builder found. Please open it first using mssql_dab with operation 'show' or from the UI.": "No active Data API Builder found. Please open it first using mssql_dab with operation 'show' or from the UI.",
+    "Missing connectionId. Please provide a connectionId to open Data API Builder.": "Missing connectionId. Please provide a connectionId to open Data API Builder.",
     "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.": "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",

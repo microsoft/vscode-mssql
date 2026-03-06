@@ -855,7 +855,14 @@ export default class MainController implements vscode.Disposable {
 
         // Register mssql_dab tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
+            vscode.lm.registerTool(
+                Constants.copilotDabToolName,
+                new DabTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) =>
+                        this.openDabDesigner(connectionUri, database),
+                ),
+            ),
         );
     }
 
@@ -870,6 +877,21 @@ export default class MainController implements vscode.Disposable {
             connectionUri,
         );
         designer.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+        designer.revealToForeground();
+        return designer;
+    }
+
+    private async openDabDesigner(connectionUri: string, database: string) {
+        const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+            this._context,
+            this._vscodeWrapper,
+            this,
+            this.schemaDesignerService,
+            database,
+            undefined,
+            connectionUri,
+        );
+        designer.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
         designer.revealToForeground();
         return designer;
     }
