@@ -43,6 +43,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { ApiStatus, isStatus, Status } from "../sharedInterfaces/webview";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
@@ -121,9 +122,9 @@ export default class ConnectionManager {
     >;
     private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
     private _entraSqlTokenCache: Map<string, IToken> = new Map<string, IToken>();
-    private _entraSqlTokenRefreshInFlight: Map<string, Promise<IToken | undefined>> = new Map<
+    private _entraSqlTokenRefreshInFlight: Map<string, Promise<IToken>> = new Map<
         string,
-        Promise<IToken | undefined>
+        Promise<IToken>
     >();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
@@ -1076,7 +1077,10 @@ export default class ConnectionManager {
         profile.email = account.displayInfo.email;
 
         // 4. Use cached token if present and valid/unexpired
-        const cacheKey = this.getEntraSqlTokenCacheKey(connectionInfo);
+        const cacheKey = this.getEntraSqlTokenCacheKey(
+            connectionInfo,
+            account.properties?.owningTenant?.id,
+        );
         const cachedToken = this._entraSqlTokenCache.get(cacheKey);
 
         if (cachedToken) {
@@ -1104,26 +1108,32 @@ export default class ConnectionManager {
         if (!refreshPromise) {
             // Token refresh code cannot figure out if the user closed the browser window,
             // so we wrap it in a cancellable progress dialog to allow the user to cancel
-            // the operation. If the user cancels, we resolve with undefined and handle
-            // that case below.
-            refreshPromise = new Promise<IToken | undefined>((resolve) => {
-                vscode.window.withProgress(
+            // the operation.
+            refreshPromise = new Promise<IToken>((resolve, reject) => {
+                void vscode.window.withProgress(
                     {
                         location: vscode.ProgressLocation.Notification,
-                        title: LocalizedConstants.ObjectExplorer.AzureSignInMessage,
+                        title: LocalizedConstants.ObjectExplorer.AzureSignInMessage(
+                            account.displayInfo.displayName || account.displayInfo.email,
+                        ),
                         cancellable: true,
                     },
-                    async (progress, token) => {
+                    async (_progress, token) => {
                         token.onCancellationRequested(() => {
-                            this._logger.verbose("Azure sign in cancelled by user.");
-                            resolve(undefined);
+                            reject({
+                                status: ApiStatus.Cancelled,
+                                message: "Azure sign in cancelled by user.",
+                            } as Status);
                         });
                         try {
-                            resolve(await refreshTask());
+                            const refreshedToken = await refreshTask();
+                            resolve(refreshedToken);
                         } catch (error) {
-                            this._logger.error("Error refreshing account: " + error);
-                            this._vscodeWrapper.showErrorMessage(error.message);
-                            resolve(undefined);
+                            const refreshErrorStatus: Status = {
+                                status: ApiStatus.Error,
+                                message: getErrorMessage(error),
+                            };
+                            reject(refreshErrorStatus);
                         }
                     },
                 );
@@ -1133,49 +1143,35 @@ export default class ConnectionManager {
             this._entraSqlTokenRefreshInFlight.set(cacheKey, refreshPromise);
         }
 
-        const azureAccountToken = await refreshPromise;
-
-        if (azureAccountToken) {
+        try {
+            const azureAccountToken = await refreshPromise;
             this.applyEntraToken(connectionInfo, azureAccountToken);
             // Save refreshed token so other connections for the same account+tenant can reuse it.
             this._entraSqlTokenCache.set(cacheKey, azureAccountToken);
-        } else {
-            // Prompt user for reauthentication if automatic token refresh failed
-            let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-            let refreshResult = await this.vscodeWrapper.showErrorMessage(
-                errorMessage,
-                LocalizedConstants.refreshTokenLabel,
-            );
+        } catch (error) {
+            if (isStatus(error)) {
+                if (error.status === ApiStatus.Cancelled) {
+                    this._logger.verbose("Refresh cancelled: " + error.message);
+                    throw new Error(LocalizedConstants.cannotConnect);
+                }
 
-            if (refreshResult !== LocalizedConstants.refreshTokenLabel) {
-                throw new Error(LocalizedConstants.cannotConnect);
-            } else {
-                await this.azureController.populateAccountProperties(
-                    profile,
-                    this.accountStore,
-                    getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
-                );
-
-                connectionInfo.azureAccountToken = profile.azureAccountToken;
-                connectionInfo.expiresOn = profile.expiresOn;
-                connectionInfo.accountId = profile.accountId;
-                connectionInfo.tenantId = profile.tenantId;
-                connectionInfo.user = profile.user;
-                connectionInfo.email = profile.email;
-
-                // Populate token cache with new token.
-                this._entraSqlTokenCache.set(cacheKey, {
-                    key: account.key.id,
-                    token: profile.azureAccountToken,
-                    tokenType: "",
-                    expiresOn: profile.expiresOn,
-                });
+                if (error.status === ApiStatus.Error) {
+                    const message = LocalizedConstants.msgAccountRefreshFailed(error.message);
+                    this._logger.error("Error refreshing account: " + message);
+                    await this.vscodeWrapper.showErrorMessage(message);
+                    throw new Error(message);
+                }
             }
+
+            throw error;
         }
     }
 
-    private getEntraSqlTokenCacheKey(connectionInfo: IConnectionInfo): string {
-        return `${connectionInfo.accountId ?? ""}|${connectionInfo.tenantId ?? ""}`;
+    private getEntraSqlTokenCacheKey(
+        connectionInfo: IConnectionInfo,
+        defaultTenantId?: string,
+    ): string {
+        return `${connectionInfo.accountId ?? ""}|${connectionInfo.tenantId ?? defaultTenantId ?? ""}`;
     }
 
     private applyEntraToken(connectionInfo: IConnectionInfo, token: IToken): void {
@@ -1717,7 +1713,10 @@ export default class ConnectionManager {
                     errorHandled: SqlConnectionErrorType.EntraTokenExpired,
                 };
             } catch (error) {
-                Utils.showErrorMsg(getErrorMessage(error));
+                const errorMessage = getErrorMessage(error);
+                if (errorMessage !== LocalizedConstants.cannotConnect) {
+                    Utils.showErrorMsg(errorMessage);
+                }
                 return {
                     isHandled: false,
                     updatedCredentials: credentials,

@@ -313,9 +313,20 @@ export function msgPromptRetryFirewallRuleSignedIn(clientIp: string, serverName:
 export let msgPromptRetryFirewallRuleAdded = l10n.t(
     "Firewall rule successfully added. Retry profile creation? ",
 );
-export let msgAccountRefreshFailed = l10n.t(
-    "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
-);
+export function msgAccountRefreshFailed(error?: string) {
+    if (!error) {
+        return l10n.t(
+            "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
+        );
+    } else {
+        return l10n.t({
+            message:
+                "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.  Error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    }
+}
 export let msgPromptProfileUpdateFailed = l10n.t(
     "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.",
 );
@@ -775,7 +786,13 @@ export class ObjectExplorer {
     public static ScriptDeleteLabel = l10n.t("Delete");
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
-    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
+    public static AzureSignInMessage(accountName: string) {
+        return l10n.t({
+            message: "Signing in to Azure as {0}...",
+            args: [accountName],
+            comment: ["{0} is the account name"],
+        });
+    }
 
     public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
