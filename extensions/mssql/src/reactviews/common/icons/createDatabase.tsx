@@ -5,7 +5,7 @@
 
 import React from "react";
 
-export const DatabaseIcon = Object.assign(
+export const CreateDatabaseIcon = Object.assign(
     React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {
         const { fill = "currentColor", className, style, ...rest } = props;
 
@@ -33,5 +33,5 @@ export const DatabaseIcon = Object.assign(
             </svg>
         );
     }),
-    { displayName: "DatabaseIcon" },
+    { displayName: "CreateDatabaseIcon" },
 );

@@ -1961,6 +1961,11 @@
     <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
       <source xml:lang="en">Drop active connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b3bb5e0f732b7fd074873499ecf3aae07f0ac2b99a9943a20ea0d967954c275">
+      <source xml:lang="en">Drop {0} from {1}. This action</source>
+      <note>{0} is the database name
+{1} is the server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
@@ -3139,6 +3144,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cec4c1fded759957b61fa5bace2234953f9645b8a10f1ac56cdd67e89cb7c118">
+      <source xml:lang="en">I understand this action is permanent and irreversible</source>
     </trans-unit>
     <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
       <source xml:lang="en">I&apos;m sorry, I can only assist with SQL-related questions.</source>
@@ -6518,6 +6526,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2c8930933da74c5cfe75d06d2cffbd2ca06ef1dc934747ea5a6e77db4c642839">
+      <source xml:lang="en">cannot be undone.</source>
     </trans-unit>
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>

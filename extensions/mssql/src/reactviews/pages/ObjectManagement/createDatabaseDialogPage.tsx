@@ -14,7 +14,7 @@ import {
     ObjectManagementScriptRequest,
     ObjectManagementSubmitRequest,
 } from "../../../sharedInterfaces/objectManagement";
-import { DatabaseIcon } from "../../common/icons/database";
+import { CreateDatabaseIcon } from "../../common/icons/createDatabase";
 import { locConstants } from "../../common/locConstants";
 import { getErrorMessage } from "../../common/utils";
 import { ObjectManagementDialog } from "../../common/objectManagementDialog";
@@ -113,7 +113,7 @@ export const CreateDatabaseDialogPage = ({
 
     return (
         <ObjectManagementDialog
-            icon={<DatabaseIcon aria-label={locConstants.createDatabase.title} />}
+            icon={<CreateDatabaseIcon aria-label={locConstants.createDatabase.title} />}
             title={dialogTitle ?? locConstants.createDatabase.title}
             subtitle={model ? locConstants.createDatabase.description(model.serverName) : undefined}
             errorMessage={resultApiError ?? initializationError}

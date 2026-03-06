@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { Image, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { Warning20Regular } from "@fluentui/react-icons";
 import {
     DropDatabaseParams,
@@ -15,16 +15,12 @@ import {
     ObjectManagementScriptRequest,
     ObjectManagementSubmitRequest,
 } from "../../../sharedInterfaces/objectManagement";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { getErrorMessage } from "../../common/utils";
+import { DropDatabaseIcon } from "../../common/icons/dropDatabase";
 import { ObjectManagementDialog } from "../../common/objectManagementDialog";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ObjectManagementContext } from "./objectManagementStateProvider";
 import { DropDatabaseForm, DropDatabaseFormState } from "./dropDatabaseForm";
-
-const databaseLightIcon = require("../../../../media/database_light.svg");
-const databaseDarkIcon = require("../../../../media/database_dark.svg");
 
 const useStyles = makeStyles({
     loadingPage: {
@@ -84,7 +80,6 @@ export const DropDatabaseDialogPage = ({
 }: DropDatabaseDialogPageProps) => {
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
-    const { themeKind } = useVscodeWebview();
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -103,12 +98,7 @@ export const DropDatabaseDialogPage = ({
 
     return (
         <ObjectManagementDialog
-            icon={
-                <Image
-                    src={themeKind === ColorThemeKind.Dark ? databaseDarkIcon : databaseLightIcon}
-                    alt={locConstants.dropDatabase.title}
-                />
-            }
+            icon={<DropDatabaseIcon />}
             title={dialogTitle ?? locConstants.dropDatabase.title}
             subtitle={
                 model
