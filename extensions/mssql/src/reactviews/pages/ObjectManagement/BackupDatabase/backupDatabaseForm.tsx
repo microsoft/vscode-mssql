@@ -47,7 +47,8 @@ const useStyles = makeStyles({
     },
     button: {
         height: "32px",
-        width: "120px",
+        minWidth: "120px",
+        whiteSpace: "nowrap",
     },
     bottomDiv: {
         marginTop: "auto",

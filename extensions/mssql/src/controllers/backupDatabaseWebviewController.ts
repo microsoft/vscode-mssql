@@ -91,6 +91,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             ObjectManagementDialogType.BackupDatabase,
             LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
             LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
+            {
+                light: "backup_light.svg",
+                dark: "backup_dark.svg",
+            },
             "backupDatabaseDialog",
             ownerUri,
             profile.server || "",
