@@ -8,7 +8,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import * as utils from "../common/utils";
 import * as sqldbproj from "sqldbproj";
-import * as extractZipMod from "extract-zip";
+import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
@@ -221,13 +221,7 @@ export class BuildHelper {
         }
 
         try {
-            // extract-zip is a CommonJS module with default export
-            // Use type assertion for cross-platform compatibility
-            const extractZipFn =
-                typeof extractZipMod === "function"
-                    ? extractZipMod
-                    : (extractZipMod as any).default;
-            await extractZipFn(nugetPath, { dir: extractFolderPath });
+            await extractZip(nugetPath, { dir: extractFolderPath });
         } catch (e) {
             throw new NugetExtractionError(
                 constants.errorExtracting(nugetPath, utils.getErrorMessage(e)),
