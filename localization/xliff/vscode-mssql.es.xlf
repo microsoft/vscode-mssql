@@ -6800,6 +6800,13 @@ Consulta: {2}</target>
         <source xml:lang="en">Schema designer is not initialized.</source>
         <target state="translated">El diseñador de esquemas no está inicializado.</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77">
+        <source xml:lang="en">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_schema_designer' and must not be translated
+{1} is the operation name 'get_overview' and must not be translated
+{2} is the operation name 'apply_edits' and must not be translated</note>
+        <target state="new">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</target>
+      </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
         <target state="translated">Se cambió el estado del diseñador de esquemas. Capture el esquema más reciente y vuelva a intentar la operación.</target>
@@ -6815,10 +6822,6 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
         <source xml:lang="en">Schema is required</source>
         <target state="translated">El esquema es obligatorio</target>
-      </trans-unit>
-      <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
-        <source xml:lang="en">Schema visualization opened.</source>
-        <target state="translated">Visualización de esquema abierta.</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
