@@ -9,6 +9,7 @@ import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
+import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { Dab } from "../../sharedInterfaces/dab";
@@ -280,7 +281,7 @@ export class DabTool extends ToolBase<DabToolParams> {
             }
 
             activeDesigner.revealToForeground();
-            activeDesigner.showDabView();
+            activeDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
             const applyResult = await activeDesigner.applyDabToolChanges({
                 expectedVersion,
                 changes,

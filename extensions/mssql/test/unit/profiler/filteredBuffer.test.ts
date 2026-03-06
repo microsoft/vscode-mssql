@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { v4 as uuidv4 } from "uuid";
+import { uuid } from "../../../src/utils/utils";
 import { FilteredBuffer } from "../../../src/profiler/filteredBuffer";
 import { IndexedRow, FilterOperator, FilterTypeHint } from "../../../src/profiler/profilerTypes";
 
@@ -29,7 +29,7 @@ function createTestRow(
     additionalData?: Record<string, string>,
 ): TestRow {
     return {
-        id: uuidv4(),
+        id: uuid(),
         eventNumber: nextEventNumber++,
         name,
         value,
@@ -652,9 +652,9 @@ suite("FilteredBuffer Tests", () => {
 
             const boolFiltered = new FilteredBuffer<BoolRow>(10);
 
-            boolFiltered.add({ id: uuidv4(), eventNumber: 1, name: "test1", active: true });
-            boolFiltered.add({ id: uuidv4(), eventNumber: 2, name: "test2", active: false });
-            boolFiltered.add({ id: uuidv4(), eventNumber: 3, name: "test3", active: true });
+            boolFiltered.add({ id: uuid(), eventNumber: 1, name: "test1", active: true });
+            boolFiltered.add({ id: uuid(), eventNumber: 2, name: "test2", active: false });
+            boolFiltered.add({ id: uuid(), eventNumber: 3, name: "test3", active: true });
 
             boolFiltered.setColumnFilters([
                 {
@@ -749,7 +749,7 @@ suite("FilteredBuffer Tests", () => {
 
         function createEventRow(overrides: Partial<EventRow> = {}): EventRow {
             return {
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: new Date(),
                 eventClass: "SQL:BatchCompleted",
@@ -948,25 +948,25 @@ suite("FilteredBuffer Tests", () => {
             dateFilteredBuffer = new FilteredBuffer<DateTestRow>(100);
 
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Jan15,
                 name: "January event",
             });
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Mar20,
                 name: "March event",
             });
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Jun01,
                 name: "June event",
             });
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Dec31,
                 name: "December event",
@@ -1102,25 +1102,25 @@ suite("FilteredBuffer Tests", () => {
 
             // Add events with profiler-format timestamp strings (as they appear in grid)
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:00:00.000",
                 name: "Early event",
             });
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:29:10.000",
                 name: "Middle event",
             });
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:32:00.000",
                 name: "Late event",
             });
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 21:00:00.000",
                 name: "Much later event",
@@ -1254,7 +1254,7 @@ suite("FilteredBuffer Tests", () => {
 
             // Add diverse test data
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT * FROM Users WHERE active = 1",
@@ -1263,7 +1263,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 55,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT * FROM Orders WHERE total > 100",
@@ -1272,7 +1272,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 60,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "RPC:Completed",
                 textData: "sp_GetUserDetails @userId = 123",
@@ -1281,7 +1281,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 55,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "INSERT INTO Logs VALUES (1, 'test')",
@@ -1290,7 +1290,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 70,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT id FROM Users",
@@ -1400,7 +1400,7 @@ suite("FilteredBuffer Tests", () => {
         test("clauses with mixed null checks", () => {
             // Add a row with undefined duration
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT 1",
@@ -1440,14 +1440,14 @@ suite("FilteredBuffer Tests", () => {
 
             const optFiltered = new FilteredBuffer<OptionalNumRow>(10);
 
-            optFiltered.add({ id: uuidv4(), eventNumber: 1, name: "has value", optionalNum: 150 });
+            optFiltered.add({ id: uuid(), eventNumber: 1, name: "has value", optionalNum: 150 });
             optFiltered.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: 2,
                 name: "no value",
                 optionalNum: undefined,
             });
-            optFiltered.add({ id: uuidv4(), eventNumber: 3, name: "high value", optionalNum: 300 });
+            optFiltered.add({ id: uuid(), eventNumber: 3, name: "high value", optionalNum: 300 });
 
             optFiltered.setColumnFilters([
                 {
@@ -1473,9 +1473,9 @@ suite("FilteredBuffer Tests", () => {
 
             const optFiltered = new FilteredBuffer<OptionalNumRow>(10);
 
-            optFiltered.add({ id: uuidv4(), eventNumber: 1, name: "fast", duration: 50 });
-            optFiltered.add({ id: uuidv4(), eventNumber: 2, name: "slow", duration: 5000 });
-            optFiltered.add({ id: uuidv4(), eventNumber: 3, name: "unknown", duration: undefined });
+            optFiltered.add({ id: uuid(), eventNumber: 1, name: "fast", duration: 50 });
+            optFiltered.add({ id: uuid(), eventNumber: 2, name: "slow", duration: 5000 });
+            optFiltered.add({ id: uuid(), eventNumber: 3, name: "unknown", duration: undefined });
 
             // Find slow queries (duration > 1000) but only where duration is known
             optFiltered.setColumnFilters([
@@ -2169,9 +2169,9 @@ suite("FilteredBuffer Tests", () => {
             }
 
             const boolBuffer = new FilteredBuffer<BoolRow>(10);
-            boolBuffer.add({ id: uuidv4(), eventNumber: 1, name: "a", active: true });
-            boolBuffer.add({ id: uuidv4(), eventNumber: 2, name: "b", active: false });
-            boolBuffer.add({ id: uuidv4(), eventNumber: 3, name: "c", active: true });
+            boolBuffer.add({ id: uuid(), eventNumber: 1, name: "a", active: true });
+            boolBuffer.add({ id: uuid(), eventNumber: 2, name: "b", active: false });
+            boolBuffer.add({ id: uuid(), eventNumber: 3, name: "c", active: true });
 
             // String "true" with Boolean typeHint should be pre-converted
             boolBuffer.setColumnFilters([
@@ -2387,9 +2387,9 @@ suite("FilteredBuffer Tests", () => {
             }
 
             const flagBuffer = new FilteredBuffer<FlagRow>(10);
-            flagBuffer.add({ id: uuidv4(), eventNumber: 1, name: "on1", isActive: true });
-            flagBuffer.add({ id: uuidv4(), eventNumber: 2, name: "off1", isActive: false });
-            flagBuffer.add({ id: uuidv4(), eventNumber: 3, name: "on2", isActive: true });
+            flagBuffer.add({ id: uuid(), eventNumber: 1, name: "on1", isActive: true });
+            flagBuffer.add({ id: uuid(), eventNumber: 2, name: "off1", isActive: false });
+            flagBuffer.add({ id: uuid(), eventNumber: 3, name: "on2", isActive: true });
 
             // String "false" with Boolean typeHint
             flagBuffer.setColumnFilters([

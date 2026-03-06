@@ -7,7 +7,7 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
-import { v4 as uuidv4 } from "uuid";
+import { uuid } from "../../common/utils";
 import { tableUtils } from "./model";
 
 export interface SchemaDesignerApplyEditsHandlerParams {
@@ -707,7 +707,7 @@ export function createSchemaDesignerApplyEditsHandler(
                         }
 
                         const newForeignKey: SchemaDesigner.ForeignKey = {
-                            id: uuidv4(),
+                            id: uuid(),
                             name: edit.foreignKey.name,
                             columnsIds: mappingsResult.columnIds,
                             referencedTableId: referenced.table.id,
@@ -981,15 +981,19 @@ export function registerSchemaDesignerApplyEditsHandler(
 }
 
 export function registerSchemaDesignerGetSchemaStateHandler(params: {
-    isInitialized: boolean;
+    isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     extractSchema: () => SchemaDesigner.Schema;
 }) {
-    const { isInitialized, extensionRpc, extractSchema } = params;
+    const { isInitializedRef, waitForInitialization, extensionRpc, extractSchema } = params;
 
     const handleGetSchemaState = async () => {
-        if (!isInitialized) {
-            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+        if (!isInitializedRef.current) {
+            const initialized = await waitForInitialization();
+            if (!initialized || !isInitializedRef.current) {
+                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            }
         }
         return {
             schema: extractSchema(),

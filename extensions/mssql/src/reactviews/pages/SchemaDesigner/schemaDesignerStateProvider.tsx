@@ -25,8 +25,8 @@ import {
     layoutFlowComponents,
 } from "./model";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
+import { createInitializationGateController } from "./initializationGate";
 import { stateStack } from "./schemaDesignerUndoState";
-import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
 export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
@@ -73,7 +73,6 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     baselineRevision: number;
     schemaRevision: number;
     notifySchemaChanged: () => void;
-    isDabEnabled: () => boolean;
     onPushUndoState: () => void;
     maybeAutoArrangeForToolBatch: (
         preTableCount: number,
@@ -104,6 +103,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const reactFlow = useReactFlow<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>();
     const [isInitialized, setIsInitialized] = useState(false);
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
+    const initializationGateControllerRef = useRef(createInitializationGateController());
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
     const [initializationRequestId, setInitializationRequestId] = useState(0);
     const [findTableText, setFindTableText] = useState<string>("");
@@ -184,15 +184,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, []);
 
     // Respond with the current schema state
+    const waitForInitialization = useCallback(async () => {
+        return initializationGateControllerRef.current.waitForInitialization(
+            () => isInitializedRef.current,
+        );
+    }, []);
+
     useEffect(() => {
         registerSchemaDesignerGetSchemaStateHandler({
-            isInitialized,
+            isInitializedRef,
+            waitForInitialization,
             extensionRpc,
             extractSchema,
         });
-    }, [isInitialized, extensionRpc, extractSchema]);
+    }, [extensionRpc, extractSchema, waitForInitialization]);
 
     const initializeSchemaDesigner = async () => {
+        const initializationGate = initializationGateControllerRef.current.getCurrentGate();
         try {
             setIsInitialized(false);
             isInitializedRef.current = false;
@@ -221,6 +229,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setSchemaNames(model.schemaNames);
             setIsInitialized(true);
             isInitializedRef.current = true;
+            initializationGate.resolve(true);
 
             setTimeout(() => {
                 stateStack.setInitialState(
@@ -240,6 +249,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setInitializationError(errorMessage);
             setIsInitialized(false);
             isInitializedRef.current = false;
+            initializationGate.resolve(false);
             throw error;
         }
     };
@@ -248,6 +258,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setInitializationError(undefined);
         setIsInitialized(false);
         isInitializedRef.current = false;
+        initializationGateControllerRef.current.rotateGate();
         baselineSchemaRef.current = undefined;
         baselineDefinitionRef.current = undefined;
         setBaselineRevision((revision) => revision + 1);
@@ -519,9 +530,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }, 10);
     }
 
-    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
-    const isDabEnabled = () => dabEnabled ?? false;
-
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -564,7 +572,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 baselineRevision,
                 schemaRevision,
                 notifySchemaChanged,
-                isDabEnabled,
                 onPushUndoState,
                 maybeAutoArrangeForToolBatch,
             }}>

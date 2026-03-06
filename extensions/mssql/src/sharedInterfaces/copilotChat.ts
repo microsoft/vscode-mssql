@@ -8,11 +8,15 @@ export namespace CopilotChat {
     const discoveryDismissedStateKeyPrefix = "mssql.copilotChatDiscoveryDismissed";
 
     export type Scenario = "schemaDesigner" | "dab";
-    export type EntryPoint = "schemaDesignerToolbar" | "dabToolbar";
+    export type EntryPoint =
+        | "schemaDesignerToolbar"
+        | "schemaDesignerPublishDialogError"
+        | "dabToolbar";
 
     export interface OpenFromUiArgs {
         scenario: Scenario;
         entryPoint: EntryPoint;
+        prompt?: string;
     }
 
     export type DiscoveryDismissedState = Partial<Record<Scenario, boolean>>;

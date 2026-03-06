@@ -164,6 +164,7 @@ export enum TelemetryActions {
     StartConversation = "StartConversation",
     AzureSignIn = "AzureSignIn",
     GetQueryResultState = "GetQueryResultState",
+    CreatePanelController = "CreatePanelController",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
     SchemaDesignerTool = "SchemaDesignerTool",
@@ -242,6 +243,10 @@ export enum TelemetryActions {
     CodeAnalysisDialogOpened = "CodeAnalysisDialogOpened",
     CodeAnalysisRulesLoaded = "CodeAnalysisRulesLoaded",
     CodeAnalysisRulesLoadError = "CodeAnalysisRulesLoadError",
+    CodeAnalysisRulesSaved = "CodeAnalysisRulesSaved",
+    CodeAnalysisRulesSaveError = "CodeAnalysisRulesSaveError",
+    CodeAnalysisEnabledOnBuild = "CodeAnalysisEnabledOnBuild",
+    CodeAnalysisDisabledOnBuild = "CodeAnalysisDisabledOnBuild",
     // SQL Notebooks
     CreateNotebook = "CreateNotebook",
     ExecuteCell = "ExecuteCell",

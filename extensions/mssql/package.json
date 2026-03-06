@@ -164,10 +164,9 @@
         "shallow-equal": "^3.1.0",
         "slickgrid-react": "^9.8.0",
         "strip-json-comments": "^5.0.1",
-        "tar": "^7.5.8",
+        "tar": "^7.5.10",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
-        "uuid": "^11.0.5",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
@@ -382,7 +381,7 @@
             "editor/title": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && resource not in mssql.connecting",
                     "group": "navigation@1"
                 },
                 {
@@ -397,7 +396,12 @@
                 },
                 {
                     "command": "mssql.connect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && resource not in mssql.connecting",
+                    "group": "navigation@3"
+                },
+                {
+                    "command": "mssql.cancelConnect",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connecting && resourcePath not in mssql.runningQueries",
                     "group": "navigation@3"
                 },
                 {
@@ -585,49 +589,54 @@
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
+                    "command": "mssql.buildDataApi",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@2"
+                },
+                {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@2"
+                    "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
                     "command": "mssql.searchDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "2_MSSQL_serverDbActions@4"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@4"
+                    "group": "2_MSSQL_serverDbActions@5"
                 },
                 {
                     "command": "mssql.renameDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@5"
+                    "group": "2_MSSQL_serverDbActions@6"
                 },
                 {
                     "command": "mssql.dropDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
+                    "group": "2_MSSQL_serverDbActions@7"
                 },
                 {
                     "command": "mssql.backupDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@7"
+                    "group": "2_MSSQL_serverDbActions@8"
                 },
                 {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "2_MSSQL_serverDbActions@9"
                 },
                 {
                     "command": "mssql.flatFileImport",
@@ -897,6 +906,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.buildDataApi",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.searchDatabase",
                     "when": "false"
                 },
@@ -983,6 +996,12 @@
                 "title": "%mssql.disconnect%",
                 "category": "MS SQL",
                 "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "mssql.cancelConnect",
+                "title": "%mssql.cancelConnect%",
+                "category": "MS SQL",
+                "icon": "$(stop-circle)"
             },
             {
                 "command": "mssql.filterNode",
@@ -1189,9 +1208,14 @@
                 "title": "%mssql.schemaDesigner%",
                 "category": "MS SQL",
                 "icon": {
-                    "dark": "media/designSchema_dark.svg",
-                    "light": "media/designSchema_light.svg"
+                    "dark": "media/applicationQuickStart_dark.svg",
+                    "light": "media/applicationQuickStart_light.svg"
                 }
+            },
+            {
+                "command": "mssql.buildDataApi",
+                "title": "%mssql.buildDataApi%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.editTable",
@@ -1520,6 +1544,12 @@
                         "%mssql.defaultQueryResultsViewMode.text.description%"
                     ],
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
+                    "scope": "application"
+                },
+                "mssql.transferActiveEditorConnections": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.transferActiveEditorConnections.description%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {
@@ -2471,35 +2501,6 @@
             }
         ],
         "languageModelTools": [
-            {
-                "name": "mssql_show_schema",
-                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
-                "tags": [
-                    "databases",
-                    "mssql",
-                    "schema",
-                    "visualization"
-                ],
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "connectionId": {
-                            "description": "Connection ID to use for schema visualization.",
-                            "title": "Connection ID",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "connectionId"
-                    ]
-                },
-                "canBeReferencedInPrompt": true,
-                "displayName": "Show Database Schema",
-                "toolReferenceName": "mssql_show_schema",
-                "userDescription": "Show database schema for a connected MSSQL database.",
-                "icon": "$(graph-scatter)",
-                "when": "!config.mssql.enableDAB"
-            },
             {
                 "name": "mssql_schema_designer",
                 "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer for a connectionId when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
@@ -3535,8 +3536,7 @@
                 "displayName": "Schema Designer",
                 "toolReferenceName": "mssql_schema_designer",
                 "userDescription": "Open or manage the active schema designer (no connection needed if it is already open).",
-                "icon": "$(edit)",
-                "when": "config.mssql.enableDAB"
+                "icon": "$(edit)"
             },
             {
                 "name": "mssql_dab",
@@ -3873,8 +3873,7 @@
                 "displayName": "Data API Builder",
                 "toolReferenceName": "mssql_dab",
                 "userDescription": "Inspect or update Data API Builder settings for the active schema designer.",
-                "icon": "$(database)",
-                "when": "config.mssql.enableDAB"
+                "icon": "$(database)"
             },
             {
                 "name": "mssql_connect",

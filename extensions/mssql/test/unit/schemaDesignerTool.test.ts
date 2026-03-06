@@ -255,8 +255,16 @@ suite("SchemaDesignerTool Tests", () => {
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.true;
-            expect(parsedResult.message).to.equal(loc.showSchemaToolSuccessMessage);
+            expect(parsedResult.message).to.equal(loc.schemaDesignerToolShowSuccessMessage);
             expect(parsedResult.version).to.equal(computeSchemaVersion(mockSchema));
+            expect(parsedResult.recommendedTool).to.equal("mssql_schema_designer");
+            expect(parsedResult.recommendedNextCall).to.deep.equal({
+                operation: "get_overview",
+                options: { includeColumns: "namesAndTypes" },
+            });
+            expect(parsedResult.schemaMutationPath).to.equal(
+                "use apply_edits for schema mutations in active designer",
+            );
             expect(parsedResult.server).to.equal(sampleServer);
             expect(parsedResult.database).to.equal(sampleDatabase);
             expect(showSchemaStub).to.have.been.calledOnceWith(sampleConnectionId, sampleDatabase);
