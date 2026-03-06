@@ -21,6 +21,7 @@ import * as constants from "../common/constants";
 import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
 import { GenerateProjectFromOpenApiSpecOptions, ItemType } from "sqldbproj";
 import { FileNode } from "../models/tree/fileFolderTreeItem";
+import { HttpClient } from "../http/httpClient";
 
 /**
  * The main controller class that initializes the extension
@@ -60,6 +61,9 @@ export default class MainController implements vscode.Disposable {
                 .getConfiguration(DBProjectConfigurationKey)
                 .update(DotnetInstallLocationKey, oldNetCoreInstallSetting, true);
         }
+
+        // Warn about invalid proxy settings early during activation
+        new HttpClient().warnOnInvalidProxySettings();
 
         await this.initializeDatabaseProjects();
         return new SqlDatabaseProjectProvider(this.projectsController);

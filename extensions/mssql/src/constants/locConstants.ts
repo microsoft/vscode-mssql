@@ -3084,7 +3084,7 @@ export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
             args: [proxy],
             comment: ["{0} is the proxy URL"],
         });
@@ -3092,7 +3092,7 @@ export class Proxy {
     public static unparseableWarning = (proxy: string, errorMessage: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
             args: [proxy, errorMessage],
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
