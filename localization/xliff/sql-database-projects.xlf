@@ -1000,7 +1000,7 @@
       <source xml:lang="en">Convert to SDK-style project</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.createProjectFromDatabase">
-      <source xml:lang="en">Create Project From Database</source>
+      <source xml:lang="en">Create Project from Database</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.Settings">
       <source xml:lang="en">Database Projects</source>
@@ -1062,11 +1062,14 @@
     <trans-unit id="sqlDatabaseProjects.rename">
       <source xml:lang="en">Rename</source>
     </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
+      <source xml:lang="en">SQL Projects</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
-      <source xml:lang="en">Update Project From Database</source>
+      <source xml:lang="en">Update Project from Database</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
       <source xml:lang="en">Validate External Streaming Job</source>
