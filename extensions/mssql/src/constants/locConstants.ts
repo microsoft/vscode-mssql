@@ -2071,7 +2071,7 @@ export class MssqlChatAgent {
         });
     };
     public static dabToolNoActiveDesigner = l10n.t(
-        "No active Data API Builder found. Please open it first using mssql_dab with operation 'show' or from the UI.",
+        "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
     );
     public static dabToolMissingConnectionId = l10n.t(
         "Missing connectionId. Please provide a connectionId to open Data API Builder.",

@@ -3938,9 +3938,6 @@
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
-    <trans-unit id="++CODE++5345fa71b16e5757cbf5cb0b5a9db3acd485d82115bd3b4f841586b9fd0a8892">
-      <source xml:lang="en">No active Data API Builder found. Please open it first using mssql_dab with operation &apos;show&apos; or from the UI.</source>
-    </trans-unit>
     <trans-unit id="++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676">
       <source xml:lang="en">No active connection</source>
     </trans-unit>
@@ -3958,6 +3955,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19">
       <source xml:lang="en">No active notebook.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
+      <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation &apos;show&apos; or from the UI.</source>
     </trans-unit>
     <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
       <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation &apos;show&apos; or from the UI.</source>
