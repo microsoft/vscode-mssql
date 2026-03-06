@@ -659,6 +659,17 @@ export class Notebooks {
     }
     public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
     public static zeroRows = l10n.t("(0 rows)");
+    public static resultSetTruncated(actual: number, expected: number) {
+        return l10n.t({
+            message:
+                "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+            args: [actual, expected],
+            comment: [
+                "{0} is the number of rows actually returned",
+                "{1} is the total number of rows expected",
+            ],
+        });
+    }
     public static rowCountPlain(count: number) {
         if (count === 1) {
             return l10n.t({
