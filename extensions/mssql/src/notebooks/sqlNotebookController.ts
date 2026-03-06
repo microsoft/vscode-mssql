@@ -519,6 +519,20 @@ export class SqlNotebookController implements vscode.Disposable {
                     continue;
                 }
 
+                if (rs.rows.length < rs.rowCount) {
+                    outputs.push(
+                        new vscode.NotebookCellOutput([
+                            vscode.NotebookCellOutputItem.text(
+                                LocalizedConstants.Notebooks.resultSetTruncated(
+                                    rs.rows.length,
+                                    rs.rowCount,
+                                ),
+                                MIME_TEXT_PLAIN,
+                            ),
+                        ]),
+                    );
+                }
+
                 const plain = formatter.toPlain(rs.columnInfo, rs.rows);
                 outputs.push(
                     new vscode.NotebookCellOutput([

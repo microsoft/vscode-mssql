@@ -2002,6 +2002,13 @@
     },
     "(Command completed successfully)": "(Command completed successfully)",
     "(0 rows)": "(0 rows)",
+    "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded./{0} is the number of rows actually returned{1} is the total number of rows expected": {
+        "message": "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+        "comment": [
+            "{0} is the number of rows actually returned",
+            "{1} is the total number of rows expected"
+        ]
+    },
     "({0} row)/{0} is the number of rows (singular)": {
         "message": "({0} row)",
         "comment": ["{0} is the number of rows (singular)"]
