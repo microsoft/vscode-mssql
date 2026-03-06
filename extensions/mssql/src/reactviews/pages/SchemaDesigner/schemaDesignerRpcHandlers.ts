@@ -981,15 +981,19 @@ export function registerSchemaDesignerApplyEditsHandler(
 }
 
 export function registerSchemaDesignerGetSchemaStateHandler(params: {
-    isInitialized: boolean;
+    isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     extractSchema: () => SchemaDesigner.Schema;
 }) {
-    const { isInitialized, extensionRpc, extractSchema } = params;
+    const { isInitializedRef, waitForInitialization, extensionRpc, extractSchema } = params;
 
     const handleGetSchemaState = async () => {
-        if (!isInitialized) {
-            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+        if (!isInitializedRef.current) {
+            const initialized = await waitForInitialization();
+            if (!initialized || !isInitializedRef.current) {
+                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            }
         }
         return {
             schema: extractSchema(),
