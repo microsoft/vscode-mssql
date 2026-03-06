@@ -24,6 +24,7 @@ export class Common {
     public static error = l10n.t("Error");
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
+    public static remove = l10n.t("Remove");
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");

@@ -546,7 +546,7 @@ export class ConnectionUI {
         noProfilesMessage: string,
         profiles?: IConnectionCredentialsQuickPickItem[],
         confirmQuestionPrompt?: string,
-    ): Promise<IConnectionProfile> {
+    ): Promise<IConnectionProfile | undefined> {
         const profileItems = profiles ?? (await this._connectionStore.getProfilePickListItems());
 
         if (!profileItems || profileItems.length === 0) {
