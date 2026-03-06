@@ -53,6 +53,31 @@ export const ObjectExplorerFilterPage = () => {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
+    const isBetweenOperator = (operator: NodeFilterOperator): boolean => {
+        return (
+            operator === NodeFilterOperator.Between || operator === NodeFilterOperator.NotBetween
+        );
+    };
+
+    const toRawString = (value: unknown): string => {
+        if (typeof value === "string") {
+            return value.trim();
+        }
+        if (value === undefined) {
+            return "";
+        }
+        return String(value).trim();
+    };
+
+    const parseNumericFilterValue = (value: string): number | undefined => {
+        if (value === "") {
+            return undefined;
+        }
+
+        const parsedValue = Number(value);
+        return Number.isNaN(parsedValue) ? undefined : parsedValue;
+    };
+
     const operatorLabels: Record<NodeFilterOperator, string> = {
         [NodeFilterOperator.Contains]: locConstants.objectExplorerFiltering.contains,
         [NodeFilterOperator.NotContains]: locConstants.objectExplorerFiltering.notContains,
@@ -221,10 +246,7 @@ export const ObjectExplorerFilterPage = () => {
 
     const clearAllFilters = () => {
         for (const filters of uiFilters) {
-            if (
-                filters.selectedOperator === NodeFilterOperator.Between ||
-                filters.selectedOperator === NodeFilterOperator.NotBetween
-            ) {
+            if (isBetweenOperator(filters.selectedOperator)) {
                 filters.value = ["", ""];
             } else {
                 filters.value = "";
@@ -234,84 +256,157 @@ export const ObjectExplorerFilterPage = () => {
     };
 
     const submitFilters = () => {
-        const filters: vscodeMssql.NodeFilter[] = uiFilters
-            .map((f) => {
-                let value = undefined;
-                switch (f.type) {
-                    case NodeFilterPropertyDataType.Boolean:
-                        if (f.value === "" || f.value === undefined) {
-                            value = undefined;
-                        } else {
-                            value =
-                                f.choices?.find((c) => c.displayName === f.value)?.name ??
-                                undefined;
-                        }
-                        break;
-                    case NodeFilterPropertyDataType.Number:
-                        if (
-                            f.selectedOperator === NodeFilterOperator.Between ||
-                            f.selectedOperator === NodeFilterOperator.NotBetween
-                        ) {
-                            value = (f.value as string[]).map((v) => Number(v));
-                        } else {
-                            value = Number(f.value);
-                        }
-                        break;
-                    case NodeFilterPropertyDataType.String:
-                    case NodeFilterPropertyDataType.Date:
-                        value = f.value;
-                        break;
-                    case NodeFilterPropertyDataType.Choice:
-                        if (f.value === "" || f.value === undefined) {
-                            value = undefined;
-                        } else {
-                            value =
-                                f.choices?.find((c) => c.displayName === f.value)?.name ??
-                                undefined;
-                        }
-                        break;
-                }
-                return {
-                    name: f.name,
-                    value: value!,
-                    operator: f.selectedOperator,
-                };
-            })
-            .filter((f) => {
-                if (
-                    f.operator === NodeFilterOperator.Between ||
-                    f.operator === NodeFilterOperator.NotBetween
-                ) {
-                    return (f.value as string[])[0] !== "" || (f.value as string[])[1] !== "";
-                }
-                return f.value !== "" && f.value !== undefined;
-            });
-
+        const filters: vscodeMssql.NodeFilter[] = [];
         let errorText = "";
-        for (const filter of filters) {
-            if (
-                filter.operator === NodeFilterOperator.Between ||
-                filter.operator === NodeFilterOperator.NotBetween
-            ) {
-                const value1 = (filter.value as string[] | number[])[0];
-                const value2 = (filter.value as string[] | number[])[1];
-                if (!value1 && value2) {
-                    errorText = locConstants.objectExplorerFiltering.firstValueEmptyError(
-                        getFilterOperatorString(filter.operator),
-                        filter.name,
-                    );
-                } else if (!value2 && value1) {
-                    errorText = locConstants.objectExplorerFiltering.secondValueEmptyError(
-                        getFilterOperatorString(filter.operator),
-                        filter.name,
-                    );
-                } else if (value1 > value2) {
-                    errorText = locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
-                        getFilterOperatorString(filter.operator),
-                        filter.name,
-                    );
+
+        for (const filter of uiFilters) {
+            const betweenOperator = isBetweenOperator(filter.selectedOperator);
+
+            if (filter.type === NodeFilterPropertyDataType.Number) {
+                if (betweenOperator) {
+                    const rawValues = Array.isArray(filter.value)
+                        ? (filter.value as string[])
+                        : [toRawString(filter.value), ""];
+                    const value1Raw = toRawString(rawValues[0]);
+                    const value2Raw = toRawString(rawValues[1]);
+
+                    // Skip empty numeric range filters before any conversion.
+                    if (value1Raw === "" && value2Raw === "") {
+                        continue;
+                    }
+
+                    const value1 = parseNumericFilterValue(value1Raw);
+                    const value2 = parseNumericFilterValue(value2Raw);
+
+                    if (value1 === undefined && value2 !== undefined) {
+                        errorText = locConstants.objectExplorerFiltering.firstValueEmptyError(
+                            getFilterOperatorString(filter.selectedOperator),
+                            filter.name,
+                        );
+                        break;
+                    }
+
+                    if (value2 === undefined && value1 !== undefined) {
+                        errorText = locConstants.objectExplorerFiltering.secondValueEmptyError(
+                            getFilterOperatorString(filter.selectedOperator),
+                            filter.name,
+                        );
+                        break;
+                    }
+
+                    // Treat NaN/invalid numeric values as unset.
+                    if (value1 === undefined && value2 === undefined) {
+                        continue;
+                    }
+
+                    if (value1! > value2!) {
+                        errorText =
+                            locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
+                                getFilterOperatorString(filter.selectedOperator),
+                                filter.name,
+                            );
+                        break;
+                    }
+
+                    filters.push({
+                        name: filter.name,
+                        value: [value1!, value2!],
+                        operator: filter.selectedOperator,
+                    });
+                    continue;
                 }
+
+                const rawValue = toRawString(filter.value);
+                if (rawValue === "") {
+                    continue;
+                }
+
+                const numericValue = parseNumericFilterValue(rawValue);
+                if (numericValue === undefined) {
+                    continue;
+                }
+
+                filters.push({
+                    name: filter.name,
+                    value: numericValue,
+                    operator: filter.selectedOperator,
+                });
+                continue;
             }
+
+            if (betweenOperator) {
+                const rawValues = Array.isArray(filter.value)
+                    ? (filter.value as string[])
+                    : [toRawString(filter.value), ""];
+                const value1 = toRawString(rawValues[0]);
+                const value2 = toRawString(rawValues[1]);
+
+                if (value1 === "" && value2 === "") {
+                    continue;
+                }
+
+                if (value1 === "" && value2 !== "") {
+                    errorText = locConstants.objectExplorerFiltering.firstValueEmptyError(
+                        getFilterOperatorString(filter.selectedOperator),
+                        filter.name,
+                    );
+                    break;
+                }
+
+                if (value2 === "" && value1 !== "") {
+                    errorText = locConstants.objectExplorerFiltering.secondValueEmptyError(
+                        getFilterOperatorString(filter.selectedOperator),
+                        filter.name,
+                    );
+                    break;
+                }
+
+                if (value1 > value2) {
+                    errorText = locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
+                        getFilterOperatorString(filter.selectedOperator),
+                        filter.name,
+                    );
+                    break;
+                }
+
+                filters.push({
+                    name: filter.name,
+                    value: [value1, value2],
+                    operator: filter.selectedOperator,
+                });
+                continue;
+            }
+
+            let value: string | undefined;
+            switch (filter.type) {
+                case NodeFilterPropertyDataType.Boolean:
+                case NodeFilterPropertyDataType.Choice:
+                    if (filter.value === "" || filter.value === undefined) {
+                        value = undefined;
+                    } else {
+                        value =
+                            filter.choices?.find((c) => c.displayName === filter.value)?.name ??
+                            undefined;
+                    }
+                    break;
+                case NodeFilterPropertyDataType.String:
+                case NodeFilterPropertyDataType.Date:
+                    value = filter.value as string;
+                    break;
+                default:
+                    value = undefined;
+                    break;
+            }
+
+            if (value === "" || value === undefined) {
+                continue;
+            }
+
+            filters.push({
+                name: filter.name,
+                value,
+                operator: filter.selectedOperator,
+            });
         }
 
         if (errorText) {
@@ -325,7 +420,7 @@ export const ObjectExplorerFilterPage = () => {
     return (
         <DialogPageShell
             icon={<FilterFunnelIcon16Regular />}
-            title="Filter Settings"
+            title={locConstants.objectExplorerFiltering.filterSettings}
             subtitle={breadcrumb}
             errorMessage={errorMessage}
             footerStart={

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { makeStyles, Spinner } from "@fluentui/react-components";
 import {
     DropDatabaseParams,
     DropDatabaseViewModel,
@@ -37,30 +37,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "20px",
-    },
-    warningCallout: {
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "12px",
-        padding: "14px 18px",
-        borderRadius: "8px",
-        border: "1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-editorWarning-foreground))",
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-inputValidation-warningBackground, var(--vscode-editor-background)) 72%, transparent)",
-        color: "var(--vscode-foreground)",
-    },
-    warningIcon: {
-        color: "var(--vscode-editorWarning-foreground)",
-        flexShrink: 0,
-        marginTop: "1px",
-    },
-    warningText: {
-        fontSize: tokens.fontSizeBase300,
-        lineHeight: tokens.lineHeightBase300,
-    },
-    warningEmphasis: {
-        color: "var(--vscode-editorWarning-foreground)",
-        fontWeight: tokens.fontWeightSemibold,
     },
 });
 

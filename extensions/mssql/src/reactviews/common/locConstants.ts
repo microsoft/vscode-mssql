@@ -75,6 +75,7 @@ export class LocConstants {
 
     public get objectExplorerFiltering() {
         return {
+            filterSettings: l10n.t("Filter Settings"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),

@@ -272,7 +272,9 @@ export const ObjectExplorerFilterContent = ({
                 }
             case "clear":
                 return (
-                    <Tooltip content="Clear" relationship="label">
+                    <Tooltip
+                        content={locConstants.objectExplorerFiltering.clear}
+                        relationship="label">
                         <Button
                             size="small"
                             appearance="subtle"
