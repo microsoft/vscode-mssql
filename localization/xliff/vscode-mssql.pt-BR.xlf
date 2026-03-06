@@ -8401,6 +8401,12 @@ Consulta: {2}</target>
         <source xml:lang="en">Warning</source>
         <target state="translated">Aviso</target>
       </trans-unit>
+      <trans-unit id="++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc">
+        <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
+        <note>{0} is the number of rows actually returned
+{1} is the total number of rows expected</note>
+        <target state="new">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">Avisos detectados. Examine as alterações.</target>
