@@ -758,6 +758,14 @@
         <source xml:lang="en">Project was successfully updated.</source>
         <target state="translated">已成功更新專案。</target>
       </trans-unit>
+      <trans-unit id="++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362">
+        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</source>
+        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3">
+        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.</source>
+        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.</target>
+      </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
         <target state="translated">發佈</target>
@@ -1113,6 +1121,14 @@
       <trans-unit id="++CODE++46b5a7c346e9d00be41ca0356c4761a49755124bab2845df72aa9377b4b53be0">
         <source xml:lang="en">Unable to locate '{0}' target: '{1}'. {2}</source>
         <target state="translated">找不到 '{0}' 目標: '{1}'。{2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705">
+        <source xml:lang="en">Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}</source>
+        <target state="new">Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
+        <source xml:lang="en">Unable to read proxy agent options.</source>
+        <target state="new">Unable to read proxy agent options.</target>
       </trans-unit>
       <trans-unit id="++CODE++c9df623e3c064d4e8d9a2233567158801a01366b17b33096e85bcfcc714ea0c6">
         <source xml:lang="en">Unexpected number of {0} files: {1}</source>
