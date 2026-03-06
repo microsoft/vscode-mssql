@@ -25,6 +25,7 @@ import {
     layoutFlowComponents,
 } from "./model";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
+import { createInitializationGateController } from "./initializationGate";
 import { stateStack } from "./schemaDesignerUndoState";
 
 export interface SchemaDesignerContextProps extends CoreRPCs {
@@ -89,23 +90,6 @@ interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
 
-interface InitializationDeferred {
-    promise: Promise<boolean>;
-    resolve: (value: boolean) => void;
-}
-
-function createInitializationDeferred(): InitializationDeferred {
-    let resolve!: (value: boolean) => void;
-    const promise = new Promise<boolean>((resolver) => {
-        resolve = resolver;
-    });
-
-    return {
-        promise,
-        resolve,
-    };
-}
-
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
     const { extensionRpc } = useVscodeWebview<
@@ -119,7 +103,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const reactFlow = useReactFlow<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>();
     const [isInitialized, setIsInitialized] = useState(false);
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
-    const initializationGateRef = useRef<InitializationDeferred>(createInitializationDeferred());
+    const initializationGateControllerRef = useRef(createInitializationGateController());
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
     const [initializationRequestId, setInitializationRequestId] = useState(0);
     const [findTableText, setFindTableText] = useState<string>("");
@@ -201,11 +185,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // Respond with the current schema state
     const waitForInitialization = useCallback(async () => {
-        if (isInitializedRef.current) {
-            return true;
-        }
-
-        return initializationGateRef.current.promise;
+        return initializationGateControllerRef.current.waitForInitialization(
+            () => isInitializedRef.current,
+        );
     }, []);
 
     useEffect(() => {
@@ -218,10 +200,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, [extensionRpc, extractSchema, waitForInitialization]);
 
     const initializeSchemaDesigner = async () => {
+        const initializationGate = initializationGateControllerRef.current.getCurrentGate();
         try {
             setIsInitialized(false);
             isInitializedRef.current = false;
-            initializationGateRef.current = createInitializationDeferred();
             setInitializationError(undefined);
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
@@ -247,7 +229,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setSchemaNames(model.schemaNames);
             setIsInitialized(true);
             isInitializedRef.current = true;
-            initializationGateRef.current.resolve(true);
+            initializationGate.resolve(true);
 
             setTimeout(() => {
                 stateStack.setInitialState(
@@ -267,7 +249,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setInitializationError(errorMessage);
             setIsInitialized(false);
             isInitializedRef.current = false;
-            initializationGateRef.current.resolve(false);
+            initializationGate.resolve(false);
             throw error;
         }
     };
@@ -276,7 +258,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setInitializationError(undefined);
         setIsInitialized(false);
         isInitializedRef.current = false;
-        initializationGateRef.current = createInitializationDeferred();
+        initializationGateControllerRef.current.rotateGate();
         baselineSchemaRef.current = undefined;
         baselineDefinitionRef.current = undefined;
         setBaselineRevision((revision) => revision + 1);
