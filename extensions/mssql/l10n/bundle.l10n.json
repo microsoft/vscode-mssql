@@ -1192,6 +1192,7 @@
     "Operation failed": "Operation failed",
     "An unexpected error occurred": "An unexpected error occurred",
     "Failed to load databases": "Failed to load databases",
+    "Loading databases...": "Loading databases...",
     "DACPAC deployed successfully": "DACPAC deployed successfully",
     "DACPAC extracted successfully": "DACPAC extracted successfully",
     "BACPAC imported successfully": "BACPAC imported successfully",

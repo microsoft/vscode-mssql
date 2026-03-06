@@ -5,7 +5,7 @@
 
 import { Button, Link, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { dataTierApplicationsDocumentationUrl } from "../../common/constants";
@@ -67,7 +67,11 @@ export const DacpacDialogForm = () => {
     );
     const [ownerUri, setOwnerUri] = useState<string>(initialOwnerUri || "");
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isLoadingDatabases, setIsLoadingDatabases] = useState(false);
     const [isFabric, setIsFabric] = useState(false);
+
+    // Track the current connection's database name (updated on each server connection)
+    const connectionDatabaseNameRef = useRef<string>(initialDatabaseName || "");
 
     // Load available connections when component mounts
     useEffect(() => {
@@ -85,6 +89,7 @@ export const DacpacDialogForm = () => {
     useEffect(() => {
         if (
             ownerUri &&
+            !isConnecting &&
             (operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
                 operationType === dacpacDialog.DacPacDialogOperationType.Extract ||
                 operationType === dacpacDialog.DacPacDialogOperationType.Export ||
@@ -92,7 +97,7 @@ export const DacpacDialogForm = () => {
         ) {
             void loadDatabases();
         }
-    }, [operationType, ownerUri, isFabric]);
+    }, [operationType, ownerUri, isFabric, isConnecting]);
 
     // Update file path suggestion when database or operation type changes for Export/Extract
     useEffect(() => {
@@ -150,6 +155,10 @@ export const DacpacDialogForm = () => {
                 if (result.selectedConnection) {
                     setSelectedProfileId(result.selectedConnection.id!);
 
+                    // Track the connection's database name
+                    const connDbName = result.selectedConnection.database || "";
+                    connectionDatabaseNameRef.current = connDbName;
+
                     // If we have an ownerUri (either provided or from auto-connect)
                     if (result.ownerUri) {
                         setOwnerUri(result.ownerUri);
@@ -158,7 +167,11 @@ export const DacpacDialogForm = () => {
                     // Check if this is a Fabric connection
                     if (result.isFabric) {
                         setIsFabric(true);
-                        // For Fabric, default to existing database
+                    }
+
+                    // If there is an initial database name (from Object Explorer or connection profile),
+                    // default to existing database mode
+                    if (result.isFabric || connDbName) {
                         setIsNewDatabase(false);
                     }
 
@@ -206,6 +219,10 @@ export const DacpacDialogForm = () => {
 
             if (result?.isConnected && result.ownerUri) {
                 setOwnerUri(result.ownerUri);
+                // Track the connection's database name
+                if (result.databaseName) {
+                    connectionDatabaseNameRef.current = result.databaseName;
+                }
                 // Check if this is a Fabric connection
                 if (result.isFabric) {
                     setIsFabric(true);
@@ -213,6 +230,10 @@ export const DacpacDialogForm = () => {
                     setIsNewDatabase(false);
                 } else {
                     setIsFabric(false);
+                    // If the connection has a database, default to existing database mode
+                    if (result.databaseName) {
+                        setIsNewDatabase(false);
+                    }
                 }
                 // Databases will be loaded automatically via useEffect
             } else {
@@ -244,16 +265,32 @@ export const DacpacDialogForm = () => {
     };
 
     const loadDatabases = async () => {
+        setIsLoadingDatabases(true);
         try {
             const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
                 setAvailableDatabases(result.databases);
+                const connDbName = connectionDatabaseNameRef.current;
                 // Auto-select database if:
                 // 1. Fabric connection (always select first database)
                 if (isFabric && result.databases.length > 0) {
                     // For Fabric, always select the first database
                     setDatabaseName(result.databases[0]);
                 }
+                // 2. Connection's database name is in the list
+                else if (connDbName && result.databases.includes(connDbName)) {
+                    setDatabaseName(connDbName);
+                }
+            }
+            // Show error from backend if database listing failed
+            if (result?.errorMessage) {
+                setValidationMessages((prev) => ({
+                    ...prev,
+                    database: {
+                        message: `${locConstants.dacpacDialog.failedToLoadDatabases}: ${result.errorMessage}`,
+                        severity: "error",
+                    },
+                }));
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
@@ -264,6 +301,8 @@ export const DacpacDialogForm = () => {
                     severity: "error",
                 },
             }));
+        } finally {
+            setIsLoadingDatabases(false);
         }
     };
 
@@ -395,11 +434,19 @@ export const DacpacDialogForm = () => {
 
     const clearForm = () => {
         setFilePath("");
-        setDatabaseName("");
         setApplicationName("");
         setApplicationVersion(DEFAULT_APPLICATION_VERSION);
         setValidationMessages({});
-        setIsNewDatabase(true);
+
+        // Restore the connection's default database instead of clearing it
+        const connDbName = connectionDatabaseNameRef.current;
+        if (connDbName) {
+            setDatabaseName(connDbName);
+            setIsNewDatabase(false);
+        } else {
+            setDatabaseName("");
+            setIsNewDatabase(true);
+        }
     };
 
     /**
@@ -697,6 +744,7 @@ export const DacpacDialogForm = () => {
                         setDatabaseName={setDatabaseName}
                         availableDatabases={availableDatabases}
                         isOperationInProgress={isOperationInProgress}
+                        isLoadingDatabases={isLoadingDatabases}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         showDatabaseSource={showDatabaseSource}
@@ -724,6 +772,7 @@ export const DacpacDialogForm = () => {
                         setIsNewDatabase={setIsNewDatabase}
                         availableDatabases={availableDatabases}
                         isOperationInProgress={isOperationInProgress}
+                        isLoadingDatabases={isLoadingDatabases}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         isFabric={isFabric}
@@ -737,6 +786,7 @@ export const DacpacDialogForm = () => {
                         setDatabaseName={setDatabaseName}
                         availableDatabases={availableDatabases}
                         isOperationInProgress={isOperationInProgress}
+                        isLoadingDatabases={isLoadingDatabases}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         showDatabaseSource={false}

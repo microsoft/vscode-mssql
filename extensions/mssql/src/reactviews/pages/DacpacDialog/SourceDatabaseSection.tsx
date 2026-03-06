@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dropdown, Field, Input, makeStyles, Option } from "@fluentui/react-components";
+import { Dropdown, Field, Input, makeStyles, Option, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 
 /**
@@ -19,6 +19,7 @@ interface SourceDatabaseSectionProps {
     setDatabaseName: (value: string) => void;
     availableDatabases: string[];
     isOperationInProgress: boolean;
+    isLoadingDatabases: boolean;
     ownerUri: string;
     validationMessages: Record<string, ValidationMessage>;
     showDatabaseSource: boolean;
@@ -39,6 +40,7 @@ export const SourceDatabaseSection = ({
     setDatabaseName,
     availableDatabases,
     isOperationInProgress,
+    isLoadingDatabases,
     ownerUri,
     validationMessages,
     showDatabaseSource,
@@ -63,19 +65,23 @@ export const SourceDatabaseSection = ({
                             ? "error"
                             : "none"
                     }>
-                    <Dropdown
-                        placeholder={locConstants.dacpacDialog.selectDatabase}
-                        value={databaseName}
-                        selectedOptions={[databaseName]}
-                        onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
-                        disabled={isOperationInProgress || !ownerUri || isFabric}
-                        aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
-                        {availableDatabases.map((db) => (
-                            <Option key={db} value={db}>
-                                {db}
-                            </Option>
-                        ))}
-                    </Dropdown>
+                    {isLoadingDatabases ? (
+                        <Spinner size="tiny" label={locConstants.dacpacDialog.loadingDatabases} />
+                    ) : (
+                        <Dropdown
+                            placeholder={locConstants.dacpacDialog.selectDatabase}
+                            value={databaseName}
+                            selectedOptions={[databaseName]}
+                            onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
+                            disabled={isOperationInProgress || !ownerUri || isFabric}
+                            aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
+                            {availableDatabases.map((db) => (
+                                <Option key={db} value={db}>
+                                    {db}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    )}
                 </Field>
             ) : (
                 showNewDatabase && (

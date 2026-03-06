@@ -596,7 +596,13 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     /**
      * Lists databases on the connected server
      */
-    private async listDatabases(ownerUri: string): Promise<{ databases: string[] }> {
+    private async listDatabases(
+        ownerUri: string,
+    ): Promise<{ databases: string[]; errorMessage?: string }> {
+        const systemDatabases = ["master", "tempdb", "model", "msdb"];
+        const stateDatabaseName = this.state.databaseName;
+
+        let errorMessage: string | undefined;
         try {
             const result = await this.connectionManager.client.sendRequest(
                 ListDatabasesRequest.type,
@@ -604,16 +610,36 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             );
 
             // Filter out system databases
-            const systemDatabases = ["master", "tempdb", "model", "msdb"];
             const userDatabases = (result.databaseNames || []).filter(
                 (db) => !systemDatabases.includes(db.toLowerCase()),
             );
 
-            return { databases: userDatabases };
+            if (userDatabases.length > 0) {
+                // Ensure the state database is in the list if set
+                if (
+                    stateDatabaseName &&
+                    !systemDatabases.includes(stateDatabaseName.toLowerCase()) &&
+                    !userDatabases.includes(stateDatabaseName)
+                ) {
+                    userDatabases.unshift(stateDatabaseName);
+                }
+                return { databases: userDatabases };
+            }
         } catch (error) {
             this.logger.error(`Failed to list databases: ${error}`);
-            return { databases: [] };
+            errorMessage = error instanceof Error ? error.message : "Failed to list databases";
         }
+
+        // Fallback: if the database list is empty or the request failed,
+        // use the database name from the initial state (set via ObjectExplorerUtils.getDatabaseName)
+        if (stateDatabaseName && !systemDatabases.includes(stateDatabaseName.toLowerCase())) {
+            return {
+                databases: [stateDatabaseName],
+                errorMessage,
+            };
+        }
+
+        return { databases: [], errorMessage };
     }
 
     /**
@@ -803,6 +829,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         isConnected: boolean;
         errorMessage?: string;
         isFabric?: boolean;
+        databaseName?: string;
     }> {
         try {
             // Find the profile in saved connections
@@ -824,6 +851,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             // Check if this is a Fabric connection
             const isFabric = this.isFabricConnection(profile as IConnectionDialogProfile);
+            const databaseName = profile.database || "";
 
             // Check if already connected and the connection is valid
             let ownerUri = this.connectionManager.getUriForConnection(profile);
@@ -833,6 +861,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     ownerUri,
                     isConnected: true,
                     isFabric,
+                    databaseName,
                 };
             }
 
@@ -848,6 +877,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     ownerUri,
                     isConnected: true,
                     isFabric,
+                    databaseName,
                 };
             } else {
                 // Check if connection failed due to error or if it was never initiated
@@ -862,6 +892,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     isConnected: false,
                     errorMessage,
                     isFabric,
+                    databaseName,
                 };
             }
         } catch (error) {
