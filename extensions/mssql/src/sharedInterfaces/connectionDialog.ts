@@ -109,6 +109,7 @@ export interface IDialogProps {
         | "loadFromConnectionString"
         | "createConnectionGroup"
         | "changePassword"
+        | "browseConnection"
         | "fileBrowser";
 }
 
@@ -135,6 +136,11 @@ export interface ConnectionStringDialogProps extends IDialogProps {
 export interface CreateConnectionGroupDialogProps extends IDialogProps {
     type: "createConnectionGroup";
     props: ConnectionGroupState;
+}
+
+export interface BrowseConnectionDialogProps extends IDialogProps {
+    type: "browseConnection";
+    browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
 }
 
 export interface AzureSubscriptionInfo {
@@ -233,6 +239,10 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     removeRecentConnection(connection: IConnectionDialogProfile): void;
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
+    openBrowseDialog: (
+        browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
+    ) => void;
+    confirmBrowseDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
     signIntoAzureForBrowse: (
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
@@ -279,6 +289,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
+    openBrowseDialog: {
+        browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
+    };
+    confirmBrowseDialog: {};
     signIntoAzureForFirewallRule: {};
     signIntoAzureForBrowse: {
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;

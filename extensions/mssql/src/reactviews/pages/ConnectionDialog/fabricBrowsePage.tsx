@@ -3,17 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { ConnectButton } from "./components/connectButton.component";
-import { Button, Label, makeStyles } from "@fluentui/react-components";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { Label, makeStyles } from "@fluentui/react-components";
 import {
     AuthenticationType,
-    ConnectionDialogContextProps,
-    ConnectionDialogFormItemSpec,
-    ConnectionDialogWebviewState,
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -22,7 +17,6 @@ import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../sharedInterfaces/fabric";
-import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
@@ -36,17 +30,12 @@ export const FabricBrowsePage = () => {
     );
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
     const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
-    const formState = useConnectionDialogSelector((s) => s.formState);
-    const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
-    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
     if (context === undefined) {
         return undefined;
     }
 
     const styles = useStyles();
-    const formStyles = useFormStyles();
-
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     useEffect(() => {
         if (
@@ -60,6 +49,18 @@ export const FabricBrowsePage = () => {
             }
         }
     }, [loadingAzureAccountsStatus, azureAccounts]);
+
+    useEffect(() => {
+        if (selectedAccountId) {
+            setConnectionProperty("accountId", selectedAccountId);
+        }
+    }, [selectedAccountId]);
+
+    useEffect(() => {
+        if (selectedTenantId) {
+            setConnectionProperty("tenantId", selectedTenantId);
+        }
+    }, [selectedTenantId]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
@@ -132,67 +133,6 @@ export const FabricBrowsePage = () => {
                             onSelectDatabase={handleDatabaseSelected}
                         />
                     </div>
-
-                    {formState.server && (
-                        <>
-                            <div
-                                className={styles.componentGroupHeader}
-                                style={{ marginTop: "16px" }}>
-                                <Label>{Loc.connectionDialog.connectionAuthentication}</Label>
-                            </div>
-                            <div className={styles.componentGroupContainer}>
-                                {mainOptions
-                                    .filter(
-                                        (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
-                                    )
-                                    .map((inputName, idx) => {
-                                        const component =
-                                            formComponents[
-                                                inputName as keyof IConnectionDialogProfile
-                                            ];
-                                        if (component?.hidden !== false) {
-                                            return undefined;
-                                        }
-
-                                        return (
-                                            <FormField<
-                                                IConnectionDialogProfile,
-                                                ConnectionDialogWebviewState,
-                                                ConnectionDialogFormItemSpec,
-                                                ConnectionDialogContextProps
-                                            >
-                                                key={idx}
-                                                context={context}
-                                                formState={formState}
-                                                component={component}
-                                                idx={idx}
-                                                props={{ orientation: "horizontal" }}
-                                                componentProps={{
-                                                    disabled: inputName === "authenticationType",
-                                                }}
-                                            />
-                                        );
-                                    })}
-                            </div>
-                        </>
-                    )}
-
-                    <AdvancedOptionsDrawer
-                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                    />
-                    <div className={formStyles.formNavTray}>
-                        <Button
-                            onClick={(_event) => {
-                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                            }}
-                            className={formStyles.formNavTrayButton}>
-                            {Loc.connectionDialog.advancedSettings}
-                        </Button>
-                        <div className={formStyles.formNavTrayRight}>
-                            <ConnectButton className={formStyles.formNavTrayButton} />
-                        </div>
-                    </div>
                 </>
             )}
         </div>
@@ -226,12 +166,6 @@ const useStyles = makeStyles({
 export const fabricLogoColor = () => {
     return require(`../../media/fabric-color.svg`);
 };
-
-const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
-    "authenticationType",
-    "accountId",
-    "tenantId",
-];
 
 function generateProfileName(database: FabricSqlDbInfo) {
     return `${database.displayName} (${getTypeDisplayName(database.type)})`;

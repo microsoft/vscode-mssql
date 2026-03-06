@@ -6,18 +6,13 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { ConnectButton } from "./components/connectButton.component";
 import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
-    ConnectionDialogContextProps,
-    ConnectionDialogFormItemSpec,
-    ConnectionDialogWebviewState,
+    AuthenticationType,
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
@@ -34,6 +29,8 @@ export const AzureBrowsePage = () => {
     const formState = useConnectionDialogSelector((s) => s.formState);
     const azureServers = useConnectionDialogSelector((s) => s.azureServers);
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
     const loadingAzureAccountsStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureAccountsStatus,
     );
@@ -46,15 +43,9 @@ export const AzureBrowsePage = () => {
     const loadingAzureServersStatus = useConnectionDialogSelector(
         (s) => s.loadingAzureServersStatus,
     );
-    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
-    const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     if (context === undefined) {
         return undefined;
     }
-
-    const formStyles = useFormStyles();
-
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     const [subscriptions, setSubscriptions] = useState<string[]>([]);
     const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
@@ -93,6 +84,18 @@ export const AzureBrowsePage = () => {
         }
 
         setConnectionProperty("server", serverUri);
+
+        if (serverUri) {
+            setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+
+            if (selectedAccountId) {
+                setConnectionProperty("accountId", selectedAccountId);
+            }
+
+            if (selectedTenantId) {
+                setConnectionProperty("tenantId", selectedTenantId);
+            }
+        }
     }
 
     function getAzureAccountsText(): string {
@@ -217,20 +220,43 @@ export const AzureBrowsePage = () => {
     // databases
     useEffect(() => {
         if (!selectedServer) {
+            setDatabases([]);
+            setSelectedDatabase(undefined);
+            setDatabaseValue("");
+            setConnectionProperty("database", "");
             return; // should not be visible if no server is selected
         }
 
         const server = azureServers.find((server) => server.server === selectedServer);
 
         if (!server) {
+            setDatabases([]);
+            setSelectedDatabase(undefined);
+            setDatabaseValue("");
+            setConnectionProperty("database", "");
             return;
         }
 
         const dbs = server.databases;
+        const defaultDatabase = dbs.length === 1 ? dbs[0] : undefined;
 
         setDatabases(dbs.sort());
-        setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
+        setSelectedDatabase(defaultDatabase);
+        setDatabaseValue(defaultDatabase ?? "");
+        setConnectionProperty("database", defaultDatabase ?? "");
     }, [selectedServer]);
+
+    useEffect(() => {
+        if (selectedAccountId) {
+            setConnectionProperty("accountId", selectedAccountId);
+        }
+    }, [selectedAccountId]);
+
+    useEffect(() => {
+        if (selectedTenantId) {
+            setConnectionProperty("tenantId", selectedTenantId);
+        }
+    }, [selectedTenantId]);
 
     // #endregion
 
@@ -278,9 +304,7 @@ export const AzureBrowsePage = () => {
             />
             {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
-                    <div
-                        className={formStyles.formComponentDiv}
-                        style={{ marginTop: "0", marginBottom: "12px" }}>
+                    <div style={{ marginTop: "0", marginBottom: "12px" }}>
                         <Field orientation="horizontal">
                             <span>
                                 <Tooltip
@@ -458,88 +482,25 @@ export const AzureBrowsePage = () => {
                     />
 
                     {selectedServer && (
-                        <>
-                            <FormField<
-                                IConnectionDialogProfile,
-                                ConnectionDialogWebviewState,
-                                ConnectionDialogFormItemSpec,
-                                ConnectionDialogContextProps
-                            >
-                                context={context}
-                                formState={formState}
-                                component={formComponents["trustServerCertificate"]!}
-                                idx={0}
-                                props={{ orientation: "horizontal" }}
-                            />
-                            <AzureFilterCombobox
-                                label={Loc.connectionDialog.databaseLabel}
-                                clearable
-                                content={{
-                                    valueList: databases,
-                                    value: databaseValue,
-                                    setValue: setDatabaseValue,
-                                    selection: selectedDatabase,
-                                    setSelection: (db) => {
-                                        setSelectedDatabase(db);
-                                        setConnectionProperty("database", db ?? "");
-                                    },
-                                    placeholder: `<${Loc.connectionDialog.default}>`,
-                                    invalidOptionErrorMessage:
-                                        Loc.connectionDialog.invalidAzureBrowse(
-                                            Loc.connectionDialog.database,
-                                        ),
-                                }}
-                            />
-                            {mainOptions
-                                .filter(
-                                    // filter out inputs that are manually placed above
-                                    (opt) =>
-                                        !["server", "database", "trustServerCertificate"].includes(
-                                            opt,
-                                        ),
-                                )
-                                .map((inputName, idx) => {
-                                    const component =
-                                        formComponents[inputName as keyof IConnectionDialogProfile];
-                                    if (component?.hidden !== false) {
-                                        return undefined;
-                                    }
-
-                                    return (
-                                        <FormField<
-                                            IConnectionDialogProfile,
-                                            ConnectionDialogWebviewState,
-                                            ConnectionDialogFormItemSpec,
-                                            ConnectionDialogContextProps
-                                        >
-                                            key={idx}
-                                            context={context}
-                                            formState={formState}
-                                            component={component}
-                                            idx={idx}
-                                            props={{ orientation: "horizontal" }}
-                                        />
-                                    );
-                                })}
-                        </>
-                    )}
-
-                    <AdvancedOptionsDrawer
-                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                    />
-                    <div className={formStyles.formNavTray}>
-                        <Button
-                            onClick={(_event) => {
-                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                        <AzureFilterCombobox
+                            label={Loc.connectionDialog.databaseLabel}
+                            clearable
+                            content={{
+                                valueList: databases,
+                                value: databaseValue,
+                                setValue: setDatabaseValue,
+                                selection: selectedDatabase,
+                                setSelection: (db) => {
+                                    setSelectedDatabase(db);
+                                    setConnectionProperty("database", db ?? "");
+                                },
+                                placeholder: `<${Loc.connectionDialog.default}>`,
+                                invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                                    Loc.connectionDialog.database,
+                                ),
                             }}
-                            className={formStyles.formNavTrayButton}>
-                            {Loc.connectionDialog.advancedSettings}
-                        </Button>
-                        <div className={formStyles.formNavTrayRight}>
-                            <ConnectButton className={formStyles.formNavTrayButton} />
-                        </div>
-                    </div>
+                        />
+                    )}
                 </>
             )}
         </div>

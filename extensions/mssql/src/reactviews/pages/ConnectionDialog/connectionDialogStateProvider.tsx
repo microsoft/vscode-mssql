@@ -104,6 +104,16 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             openConnectionStringDialog: function (): void {
                 extensionRpc.action("openConnectionStringDialog");
             },
+            openBrowseDialog: function (
+                browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
+            ): void {
+                extensionRpc.action("openBrowseDialog", {
+                    browseTarget,
+                });
+            },
+            confirmBrowseDialog: function (): void {
+                extensionRpc.action("confirmBrowseDialog");
+            },
             signIntoAzureForFirewallRule: function (): void {
                 extensionRpc.action("signIntoAzureForFirewallRule");
             },

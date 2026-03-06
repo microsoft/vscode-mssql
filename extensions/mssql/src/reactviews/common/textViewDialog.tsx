@@ -15,13 +15,18 @@ import {
     MessageBar,
     makeStyles,
 } from "@fluentui/react-components";
-import { useRef, useEffect } from "react";
+import { ReactNode, useRef, useEffect } from "react";
 
 const useStyles = makeStyles({
     dialogTitle: {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+    },
+    titleContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
     },
     headerButtons: {
         display: "flex",
@@ -56,7 +61,7 @@ export interface TextViewDialogProps {
     /** Callback when dialog should close (ESC key, backdrop click, etc) */
     onClose: () => void;
     /** Dialog title */
-    title: string;
+    title: ReactNode;
     /** Text content to display */
     text: string;
     /** Callback when text changes (only for editable dialogs) */
@@ -117,7 +122,7 @@ export const TextViewDialog: React.FC<TextViewDialogProps> = ({
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle className={styles.dialogTitle}>
-                        <span>{title}</span>
+                        <div className={styles.titleContent}>{title}</div>
                         {headerButtons.length > 0 && (
                             <div className={styles.headerButtons}>
                                 {headerButtons.map((button, index) => (

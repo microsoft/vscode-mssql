@@ -10,6 +10,7 @@ import { Copy24Regular, ClipboardPaste24Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { ConnectionStringDialogProps } from "../../../../sharedInterfaces/connectionDialog";
 import { TextViewDialog } from "../../../common/textViewDialog";
+import { CodeDefinitionIcon16Regular } from "../../../common/icons/fluentIcons";
 
 export const ConnectionStringDialog = ({
     dialogProps,
@@ -45,7 +46,12 @@ export const ConnectionStringDialog = ({
         <TextViewDialog
             isOpen={dialogProps.type === "loadFromConnectionString"}
             onClose={() => context.closeDialog()}
-            title={locConstants.connectionDialog.loadFromConnectionString}
+            title={
+                <>
+                    <CodeDefinitionIcon16Regular />
+                    {locConstants.connectionDialog.loadFromConnectionString}
+                </>
+            }
             text={connectionString}
             onTextChange={setConnectionString}
             readOnly={false}

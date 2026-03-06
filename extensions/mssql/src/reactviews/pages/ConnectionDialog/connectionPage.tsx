@@ -16,10 +16,13 @@ export const useStyles = makeStyles({
         width: "100%",
         maxWidth: "100%",
         maxHeight: "100%",
+        overflow: "hidden",
     },
     mainContainer: {
         ...shorthands.flex(1),
         height: "100%",
+        minWidth: 0,
+        overflow: "hidden",
     },
     mruContainer: {
         position: "relative",

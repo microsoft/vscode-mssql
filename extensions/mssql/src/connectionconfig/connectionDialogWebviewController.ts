@@ -16,6 +16,7 @@ import {
 import {
     AuthenticationType,
     AzureSubscriptionInfo,
+    BrowseConnectionDialogProps,
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
@@ -101,6 +102,18 @@ const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
 
+type BrowseDialogSnapshot = {
+    connectionProfile: IConnectionDialogProfile;
+    selectedInputMode: ConnectionInputMode;
+    formMessage: ConnectionDialogWebviewState["formMessage"];
+    selectedAccountId: ConnectionDialogWebviewState["selectedAccountId"];
+    selectedTenantId: ConnectionDialogWebviewState["selectedTenantId"];
+    azureTenants: ConnectionDialogWebviewState["azureTenants"];
+    loadingAzureTenantsStatus: ConnectionDialogWebviewState["loadingAzureTenantsStatus"];
+    fabricWorkspaces: ConnectionDialogWebviewState["fabricWorkspaces"];
+    fabricWorkspacesLoadStatus: ConnectionDialogWebviewState["fabricWorkspacesLoadStatus"];
+};
+
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
     ConnectionDialogWebviewState,
@@ -126,6 +139,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
+    private _browseDialogSnapshot: BrowseDialogSnapshot | undefined;
 
     //#endregion
 
@@ -265,66 +279,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("setConnectionInputType", async (state, payload) => {
-            this.state.selectedInputMode = payload.inputMode;
-            await this.updateItemVisibility();
+            await this.setSelectedInputMode(state, payload.inputMode);
+
+            return state;
+        });
+
+        this.registerReducer("openBrowseDialog", async (state, payload) => {
+            this._browseDialogSnapshot = this.createBrowseDialogSnapshot(state);
+            state.dialog = {
+                type: "browseConnection",
+                browseTarget: payload.browseTarget,
+            } as BrowseConnectionDialogProps;
+            await this.setSelectedInputMode(state, payload.browseTarget);
+
+            return state;
+        });
+
+        this.registerReducer("confirmBrowseDialog", async (state) => {
+            state.dialog = undefined;
+            this._browseDialogSnapshot = undefined;
+            state.selectedInputMode = ConnectionInputMode.Parameters;
             state.formMessage = undefined;
-            this.updateState();
-
-            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
-                // Start loading Azure servers if it isn't already complete or in progress
-                if (
-                    (state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted ||
-                        state.loadingAzureSubscriptionsStatus === ApiStatus.Error) &&
-                    (state.loadingAzureServersStatus === ApiStatus.NotStarted ||
-                        state.loadingAzureServersStatus === ApiStatus.Error)
-                ) {
-                    await this.loadAllAzureServers(state);
-                }
-            } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                // Don't port connection information when switching to Fabric Browse
-                state.connectionProfile.server = undefined;
-                state.connectionProfile.database = undefined;
-                state.connectionProfile.user = undefined;
-
-                // Also clear old Fabric state
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
-                state.fabricWorkspaces = [];
-
-                if (!state.selectedAccountId) {
-                    if (
-                        state.loadingAzureAccountsStatus === ApiStatus.NotStarted ||
-                        state.loadingAzureAccountsStatus === ApiStatus.Error
-                    ) {
-                        // Indicate we're checking for existing accounts
-                        state.loadingAzureAccountsStatus = ApiStatus.Loading;
-                        this.updateState(state);
-
-                        state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
-                            return {
-                                id: a.id,
-                                name: a.label,
-                            } as IAzureAccount;
-                        });
-
-                        if (state.azureAccounts.length === 0) {
-                            state.loadingAzureAccountsStatus = ApiStatus.NotStarted;
-                        } else {
-                            state.selectedAccountId = state.azureAccounts[0].id;
-                            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
-                        }
-
-                        this.updateState(state);
-                    }
-                }
-
-                if (state.selectedAccountId && state.selectedTenantId) {
-                    await this.loadFabricWorkspaces(
-                        state,
-                        state.selectedAccountId,
-                        state.selectedTenantId,
-                    );
-                }
-            }
+            await this.updateItemVisibility();
+            await this.checkReadyToConnect();
 
             return state;
         });
@@ -426,6 +403,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("closeDialog", async (state) => {
+            if (state.dialog?.type === "browseConnection" && this._browseDialogSnapshot) {
+                this.restoreBrowseDialogSnapshot(state, this._browseDialogSnapshot);
+                this._browseDialogSnapshot = undefined;
+                state.dialog = undefined;
+                await this.updateItemVisibility();
+                await this.checkReadyToConnect();
+
+                return state;
+            }
+
             state.dialog = undefined;
             return state;
         });
@@ -878,6 +865,104 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     //#region Helpers
+
+    private createBrowseDialogSnapshot(state: ConnectionDialogWebviewState): BrowseDialogSnapshot {
+        return {
+            connectionProfile: structuredClone(state.connectionProfile),
+            selectedInputMode: state.selectedInputMode,
+            formMessage: state.formMessage ? structuredClone(state.formMessage) : undefined,
+            selectedAccountId: state.selectedAccountId,
+            selectedTenantId: state.selectedTenantId,
+            azureTenants: structuredClone(state.azureTenants),
+            loadingAzureTenantsStatus: state.loadingAzureTenantsStatus,
+            fabricWorkspaces: structuredClone(state.fabricWorkspaces),
+            fabricWorkspacesLoadStatus: structuredClone(state.fabricWorkspacesLoadStatus),
+        };
+    }
+
+    private restoreBrowseDialogSnapshot(
+        state: ConnectionDialogWebviewState,
+        snapshot: BrowseDialogSnapshot,
+    ) {
+        state.connectionProfile = snapshot.connectionProfile;
+        state.selectedInputMode = snapshot.selectedInputMode;
+        state.formMessage = snapshot.formMessage;
+        state.selectedAccountId = snapshot.selectedAccountId;
+        state.selectedTenantId = snapshot.selectedTenantId;
+        state.azureTenants = snapshot.azureTenants;
+        state.loadingAzureTenantsStatus = snapshot.loadingAzureTenantsStatus;
+        state.fabricWorkspaces = snapshot.fabricWorkspaces;
+        state.fabricWorkspacesLoadStatus = snapshot.fabricWorkspacesLoadStatus;
+    }
+
+    private async setSelectedInputMode(
+        state: ConnectionDialogWebviewState,
+        inputMode: ConnectionInputMode,
+    ) {
+        this.state.selectedInputMode = inputMode;
+        await this.updateItemVisibility();
+        state.formMessage = undefined;
+        this.updateState();
+
+        if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+            state.connectionProfile.server = undefined;
+            state.connectionProfile.database = undefined;
+
+            // Start loading Azure servers if it isn't already complete or in progress
+            if (
+                (state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted ||
+                    state.loadingAzureSubscriptionsStatus === ApiStatus.Error) &&
+                (state.loadingAzureServersStatus === ApiStatus.NotStarted ||
+                    state.loadingAzureServersStatus === ApiStatus.Error)
+            ) {
+                await this.loadAllAzureServers(state);
+            }
+        } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
+            // Don't port connection information when switching to Fabric Browse
+            state.connectionProfile.server = undefined;
+            state.connectionProfile.database = undefined;
+            state.connectionProfile.user = undefined;
+
+            // Also clear old Fabric state
+            state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+            state.fabricWorkspaces = [];
+
+            if (!state.selectedAccountId) {
+                if (
+                    state.loadingAzureAccountsStatus === ApiStatus.NotStarted ||
+                    state.loadingAzureAccountsStatus === ApiStatus.Error
+                ) {
+                    // Indicate we're checking for existing accounts
+                    state.loadingAzureAccountsStatus = ApiStatus.Loading;
+                    this.updateState(state);
+
+                    state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                        return {
+                            id: a.id,
+                            name: a.label,
+                        } as IAzureAccount;
+                    });
+
+                    if (state.azureAccounts.length === 0) {
+                        state.loadingAzureAccountsStatus = ApiStatus.NotStarted;
+                    } else {
+                        state.selectedAccountId = state.azureAccounts[0].id;
+                        state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+                    }
+
+                    this.updateState(state);
+                }
+            }
+
+            if (state.selectedAccountId && state.selectedTenantId) {
+                await this.loadFabricWorkspaces(
+                    state,
+                    state.selectedAccountId,
+                    state.selectedTenantId,
+                );
+            }
+        }
+    }
 
     //#region Connection helpers
 

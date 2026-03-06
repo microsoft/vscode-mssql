@@ -393,6 +393,74 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
+        suite("browseConnection dialog", () => {
+            setup(() => {
+                stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubFetchServersFromAzure(sandbox);
+            });
+
+            test("should open browse dialog and restore the previous connection state on cancel", async () => {
+                controller.state.connectionProfile = {
+                    server: "saved-server",
+                    database: "saved-db",
+                    user: "saved-user",
+                    authenticationType: AuthenticationType.SqlLogin,
+                } as IConnectionDialogProfile;
+                controller.state.formMessage = { message: "existing message" };
+
+                await controller["_reducerHandlers"].get("openBrowseDialog")(controller.state, {
+                    browseTarget: ConnectionInputMode.AzureBrowse,
+                });
+
+                expect(controller.state.dialog).to.deep.equal({
+                    type: "browseConnection",
+                    browseTarget: ConnectionInputMode.AzureBrowse,
+                });
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.AzureBrowse,
+                );
+
+                controller.state.connectionProfile.server = "browse-server";
+                controller.state.connectionProfile.database = "browse-db";
+                controller.state.formMessage = { message: "browse message" };
+
+                await controller["_reducerHandlers"].get("closeDialog")(controller.state, {});
+
+                expect(controller.state.dialog).to.be.undefined;
+                expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+                expect(controller.state.connectionProfile.server).to.equal("saved-server");
+                expect(controller.state.connectionProfile.database).to.equal("saved-db");
+                expect(controller.state.connectionProfile.user).to.equal("saved-user");
+                expect(controller.state.formMessage?.message).to.equal("existing message");
+            });
+
+            test("should keep browse selections when the browse dialog is confirmed", async () => {
+                await controller["_reducerHandlers"].get("openBrowseDialog")(controller.state, {
+                    browseTarget: ConnectionInputMode.AzureBrowse,
+                });
+
+                controller.state.connectionProfile.server = "browse-server";
+                controller.state.connectionProfile.database = "browse-db";
+                controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+                controller.state.formMessage = { message: "temporary browse message" };
+
+                await controller["_reducerHandlers"].get("confirmBrowseDialog")(
+                    controller.state,
+                    {},
+                );
+
+                expect(controller.state.dialog).to.be.undefined;
+                expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+                expect(controller.state.connectionProfile.server).to.equal("browse-server");
+                expect(controller.state.connectionProfile.database).to.equal("browse-db");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.AzureMFA,
+                );
+                expect(controller.state.formMessage).to.be.undefined;
+            });
+        });
+
         test("loadConnection", async () => {
             controller.state.formMessage = { message: "Sample error" };
 
