@@ -890,6 +890,8 @@ suite("DabTool Tests", () => {
             }
             expect(emptyActions.reason).to.equal("validation_error");
             expect(emptyActions.message).to.equal("enabledActions must be a non-empty array.");
+            expect(harness.commitSpy.calledOnce).to.equal(true);
+            harness.commitSpy.resetHistory();
 
             const result = await harness.applyChanges({
                 expectedVersion: state.version,
