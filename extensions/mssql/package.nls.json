@@ -48,7 +48,7 @@
     "mssql.renameDatabase": "Rename Database (Preview)...",
     "mssql.objectExplorerChatWithDatabase": "Open in GitHub Copilot Chat",
     "mssql.objectExplorerChatWithDatabaseInAgentMode": "Open in GitHub Copilot Agent",
-    "mssql.profiler.launchFromObjectExplorer": "Launch Query Profiler (Preview)",
+    "mssql.profiler.launchFromObjectExplorer": "Launch Query Profiler (Preview)...",
     "mssql.copilot.editorSubmenu": "MSSQL Copilot",
     "mssql.copilot.explainQuery": "Explain Query",
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance",

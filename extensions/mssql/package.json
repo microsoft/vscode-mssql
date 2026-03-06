@@ -616,11 +616,6 @@
                 },
                 {
                     "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "3_MSSQL_instanceDatabaseActions@2"
-                },
-                {
-                    "command": "mssql.backupDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
                     "group": "4_MSSQL_databaseMaintenance@2"
                 },
