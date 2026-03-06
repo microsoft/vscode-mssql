@@ -114,7 +114,8 @@ suite("Service Client tests", () => {
             await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
             expect.fail("Expected initializeForPlatform to throw for an invalid platform");
         } catch (error) {
-            expect(error).to.equal("Invalid Platform");
+            expect(error).to.be.instanceOf(Error);
+            expect((error as Error).message).to.equal("Invalid Platform");
         }
     });
 
