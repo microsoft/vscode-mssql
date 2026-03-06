@@ -933,6 +933,7 @@
     },
     "Add to VS Code": "Add to VS Code",
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
+    "View Swagger": "View Swagger",
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
