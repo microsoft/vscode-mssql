@@ -476,6 +476,9 @@
       <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
       <note>{0} is the average, {1} is the count, {2} is the sum</note>
     </trans-unit>
+    <trans-unit id="++CODE++3140d22d8cb307e2e7ffbae4a07225e09537ce90c32033582f01d979c0ad8f26">
+      <source xml:lang="en">Azure</source>
+    </trans-unit>
     <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
       <source xml:lang="en">Azure (China)</source>
     </trans-unit>
@@ -2414,6 +2417,9 @@
     <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
       <source xml:lang="en">Extremely likely</source>
     </trans-unit>
+    <trans-unit id="++CODE++de7b2b8384b81848fa58aef4ac6208b14f283d08c6a3f1090d32855d46fb8e74">
+      <source xml:lang="en">Fabric</source>
+    </trans-unit>
     <trans-unit id="++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3">
       <source xml:lang="en">Fabric API error occurred ({0}): {1}</source>
       <note>{0} is the error code
@@ -3492,6 +3498,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
+    </trans-unit>
+    <trans-unit id="++CODE++329e11b4e2b1ffd96e9d73905daad072762df548c0d0bea04c11694d97cd0afc">
+      <source xml:lang="en">Load from</source>
     </trans-unit>
     <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
       <source xml:lang="en">Load from Connection String</source>

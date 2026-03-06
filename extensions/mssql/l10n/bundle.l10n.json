@@ -299,7 +299,10 @@
         "message": "Connect to {0}",
         "comment": ["{0} is the name of the connection profile"]
     },
+    "Load from": "Load from",
     "Parameters": "Parameters",
+    "Azure": "Azure",
+    "Fabric": "Fabric",
     "Connection String": "Connection String",
     "Browse Azure": "Browse Azure",
     "Browse Fabric": "Browse Fabric",
