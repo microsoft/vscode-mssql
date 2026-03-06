@@ -10,23 +10,14 @@ import { DacpacDialogForm } from "./dacpacDialogForm";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
-    outerContainer: {
-        height: "100%",
-        width: "100%",
-        overflowY: "auto",
-        overflowX: "auto",
-    },
     loadingContainer: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.4)",
-        zIndex: 1000,
+        minHeight: "100vh",
+        width: "100%",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: "var(--vscode-editor-background)",
     },
 });
 
@@ -42,9 +33,5 @@ export const DacpacDialogPage = () => {
         );
     }
 
-    return (
-        <div className={classes.outerContainer}>
-            <DacpacDialogForm />
-        </div>
-    );
+    return <DacpacDialogForm />;
 };

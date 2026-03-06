@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Link, makeStyles, tokens } from "@fluentui/react-components";
-import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
+import { Button, Link, makeStyles } from "@fluentui/react-components";
+import { DatabaseArrowRight20Regular, DatabaseArrowRight24Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { dataTierApplicationsDocumentationUrl } from "../../common/constants";
+import { DialogPageShell } from "../../common/dialogPageShell";
 import { locConstants } from "../../common/locConstants";
 import { ApplicationInfoSection } from "./ApplicationInfoSection";
 import { DacpacDialogContext } from "./dacpacDialogStateProvider";
@@ -655,18 +656,37 @@ export const DacpacDialogForm = () => {
     }
 
     return (
-        <div className={classes.root}>
-            <div className={classes.formContainer}>
-                <div>
-                    <div className={classes.title}>{locConstants.dacpacDialog.title}</div>
-                    <div className={classes.description}>
-                        {locConstants.dacpacDialog.subtitle}{" "}
-                        <Link href={dataTierApplicationsDocumentationUrl}>
-                            {locConstants.dacpacDialog.learnMore}
-                        </Link>
-                    </div>
-                </div>
-
+        <DialogPageShell
+            icon={<DatabaseArrowRight24Regular />}
+            title={locConstants.dacpacDialog.title}
+            subtitle={
+                <>
+                    {locConstants.dacpacDialog.subtitle}{" "}
+                    <Link href={dataTierApplicationsDocumentationUrl}>
+                        {locConstants.dacpacDialog.learnMore}
+                    </Link>
+                </>
+            }
+            footerEnd={
+                <>
+                    <Button
+                        appearance="secondary"
+                        onClick={() => void handleCancel()}
+                        disabled={isOperationInProgress}
+                        aria-label={locConstants.dacpacDialog.cancel}>
+                        {locConstants.dacpacDialog.cancel}
+                    </Button>
+                    <Button
+                        appearance="primary"
+                        icon={<DatabaseArrowRight20Regular />}
+                        onClick={() => void handleSubmit()}
+                        disabled={!isFormValid() || isOperationInProgress || isConnecting}
+                        aria-label={locConstants.dacpacDialog.execute}>
+                        {locConstants.dacpacDialog.execute}
+                    </Button>
+                </>
+            }>
+            <div className={classes.formContent}>
                 <OperationTypeSection
                     operationType={operationType}
                     setOperationType={setOperationType}
@@ -758,59 +778,17 @@ export const DacpacDialogForm = () => {
                         }}
                     />
                 )}
-
-                <div className={classes.actions}>
-                    <Button
-                        appearance="secondary"
-                        onClick={handleCancel}
-                        disabled={isOperationInProgress}
-                        aria-label={locConstants.dacpacDialog.cancel}>
-                        {locConstants.dacpacDialog.cancel}
-                    </Button>
-                    <Button
-                        appearance="primary"
-                        icon={<DatabaseArrowRight20Regular />}
-                        onClick={handleSubmit}
-                        disabled={!isFormValid() || isOperationInProgress || isConnecting}
-                        aria-label={locConstants.dacpacDialog.execute}>
-                        {locConstants.dacpacDialog.execute}
-                    </Button>
-                </div>
             </div>
-        </div>
+        </DialogPageShell>
     );
 };
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        padding: "10px",
-    },
-    formContainer: {
+    formContent: {
         display: "flex",
         flexDirection: "column",
         width: "700px",
-        maxWidth: "calc(100% - 20px)",
+        maxWidth: "100%",
         gap: "16px",
-    },
-    title: {
-        fontSize: tokens.fontSizeBase500,
-        fontWeight: tokens.fontWeightSemibold,
-        marginBottom: "8px",
-    },
-    description: {
-        fontSize: tokens.fontSizeBase300,
-        color: tokens.colorNeutralForeground2,
-        marginBottom: "16px",
-    },
-    actions: {
-        display: "flex",
-        gap: "8px",
-        justifyContent: "flex-end",
-        marginTop: "16px",
-        paddingTop: "16px",
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
 });
