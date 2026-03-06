@@ -167,7 +167,7 @@ export class BuildHelper {
         } catch (e) {
             const errorMessage = utils.getErrorMessage(e);
             if (e instanceof NugetDownloadError) {
-                // Network / connectivity failure — show the proxy/offline help text so users
+                // Network / connectivity failure — show the proxy/offline help text so users can resolve configuration issues.
                 const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
                 outputChannel.appendLine(`${errorMessage}\n${helpMessage}`);
                 void vscode.window.showErrorMessage(helpMessage);
