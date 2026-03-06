@@ -329,19 +329,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("loadConnection", async (state, payload) => {
+        this.registerReducer("loadConnectionForEdit", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection);
+            await this.setConnectionForEdit(payload.connection);
 
-            this._connectionBeingEdited = structuredClone(payload.connection);
-            this.clearFormError();
-            this.state.connectionProfile = payload.connection;
-            this.state.selectedInputMode = ConnectionInputMode.Parameters;
+            return state;
+        });
 
-            await this.updateItemVisibility();
-            await this.handleAzureMFAEdits("azureAuthType");
-            await this.handleAzureMFAEdits("accountId");
-
-            await this.checkReadyToConnect();
+        this.registerReducer("loadConnectionAsNewDraft", async (state, payload) => {
+            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection, {
+                mode: "newDraft",
+            });
+            await this.setConnectionAsNewDraft(payload.connection);
 
             return state;
         });
@@ -1312,25 +1311,57 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
         if (connectionToEdit) {
-            this._connectionBeingEdited = structuredClone(connectionToEdit);
-            const connection = await this.initializeConnectionForDialog(
-                this._connectionBeingEdited,
-            );
-            this.state.connectionProfile = connection;
-            this.state.selectedInputMode = ConnectionInputMode.Parameters;
-
-            if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-                await this.handleAzureMFAEdits("accountId");
-            }
-
-            await this.checkReadyToConnect();
-
+            await this.setConnectionForEdit(connectionToEdit);
             this.updateState();
         }
     }
 
     private loadEmptyConnection() {
         this.state.connectionProfile = getDefaultConnection();
+        this._connectionBeingEdited = undefined;
+        this.state.isEditingConnection = false;
+        this.state.editingConnectionDisplayName = undefined;
+    }
+
+    private async setConnectionForEdit(connectionToLoad: IConnectionInfo): Promise<void> {
+        this.clearFormError();
+        const initializedConnection = await this.initializeConnectionForDialog(
+            structuredClone(connectionToLoad),
+        );
+
+        this._connectionBeingEdited = structuredClone(initializedConnection);
+        this.state.connectionProfile = initializedConnection;
+        this.state.selectedInputMode = ConnectionInputMode.Parameters;
+        this.state.isEditingConnection = true;
+        this.state.editingConnectionDisplayName = getConnectionDisplayName(initializedConnection);
+
+        await this.updateItemVisibility();
+        await this.handleAzureMFAEdits("azureAuthType");
+        await this.handleAzureMFAEdits("accountId");
+        await this.checkReadyToConnect();
+    }
+
+    private async setConnectionAsNewDraft(connectionToCopy: IConnectionInfo): Promise<void> {
+        this.clearFormError();
+        const initializedConnection = await this.initializeConnectionForDialog(
+            structuredClone(connectionToCopy),
+        );
+
+        const connectionDraft = structuredClone(initializedConnection) as IConnectionDialogProfile;
+        connectionDraft.id = undefined;
+        connectionDraft.profileName = undefined;
+        delete (connectionDraft as IConnectionProfileWithSource).configSource;
+
+        this._connectionBeingEdited = undefined;
+        this.state.connectionProfile = connectionDraft;
+        this.state.selectedInputMode = ConnectionInputMode.Parameters;
+        this.state.isEditingConnection = false;
+        this.state.editingConnectionDisplayName = undefined;
+
+        await this.updateItemVisibility();
+        await this.handleAzureMFAEdits("azureAuthType");
+        await this.handleAzureMFAEdits("accountId");
+        await this.checkReadyToConnect();
     }
 
     private async initializeConnectionForDialog(

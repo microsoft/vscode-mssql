@@ -5,6 +5,7 @@
 
 import { locConstants } from "../../../common/locConstants";
 import { DialogHeader } from "../../../common/dialogHeader.component";
+import { useConnectionDialogSelector } from "../connectionDialogSelector";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
     ConnectionDialogReducers,
@@ -19,11 +20,21 @@ export const ConnectionHeader = () => {
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();
+    const isEditingConnection = useConnectionDialogSelector((s) => s.isEditingConnection);
+    const editingConnectionDisplayName = useConnectionDialogSelector(
+        (s) => s.editingConnectionDisplayName,
+    );
+
+    const title =
+        isEditingConnection && editingConnectionDisplayName
+            ? locConstants.connectionDialog.editDatabaseConnection(editingConnectionDisplayName)
+            : locConstants.connectionDialog.connectToDatabase;
+
     return (
         <DialogHeader
             iconLight={databaseIconLight}
             iconDark={databaseIconDark}
-            title={locConstants.connectionDialog.connectToDatabase}
+            title={title}
             themeKind={themeKind}
         />
     );

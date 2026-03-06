@@ -343,6 +343,24 @@ export class LocConstants {
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test Connection"),
             connectToDatabase: l10n.t("Connect to Database"),
+            editDatabaseConnection: (profileName: string) =>
+                l10n.t({
+                    message: "Edit Database Connection - {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
+            editConnection: (profileName: string) =>
+                l10n.t({
+                    message: "Edit {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
+            createCopiedConnection: (profileName: string) =>
+                l10n.t({
+                    message: "Create new connection copied from {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
             connectTo: (profileName: string) =>
                 l10n.t({
                     message: "Connect to {0}",
@@ -394,6 +412,7 @@ export class LocConstants {
                 }),
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
+            copySavedConnectionToNew: l10n.t("Copy connection to a new profile"),
             removeRecentConnection: l10n.t("Remove recent connection"),
             copyConnectionString: l10n.t("Copy connection string to clipboard"),
             pasteConnectionString: l10n.t("Paste connection string from clipboard"),
