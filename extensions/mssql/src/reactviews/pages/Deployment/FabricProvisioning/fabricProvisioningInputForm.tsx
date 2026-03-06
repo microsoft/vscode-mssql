@@ -135,6 +135,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                 <div className={classes.formDiv}>
                     {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
+                            mode="modal"
                             state={
                                 (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
                                     .props

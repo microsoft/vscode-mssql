@@ -120,6 +120,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "createConnectionGroup" && (
                     <ConnectionGroupDialog
+                        mode="modal"
                         state={(dialog as CreateConnectionGroupDialogProps).props}
                         saveConnectionGroup={context.createConnectionGroup}
                         closeDialog={context.closeDialog}
