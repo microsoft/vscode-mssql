@@ -120,7 +120,6 @@ export const ChangePasswordDialog = ({
                     size="medium"
                     disabled
                     value={userName ?? ""}
-                    onChange={(_, data) => setPassword(data.value)}
                     aria-label={locConstants.changePasswordDialog.username}
                     aria-readonly="true"
                 />
