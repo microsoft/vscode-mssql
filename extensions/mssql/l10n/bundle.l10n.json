@@ -2646,7 +2646,14 @@
         "comment": ["{0} is the connection ID"]
     },
     "Unknown Connection": "Unknown Connection",
-    "Schema visualization opened.": "Schema visualization opened.",
+    "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_schema_designer' and must not be translated{1} is the operation name 'get_overview' and must not be translated{2} is the operation name 'apply_edits' and must not be translated": {
+        "message": "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).",
+        "comment": [
+            "{0} is the command identifier 'mssql_schema_designer' and must not be translated",
+            "{1} is the operation name 'get_overview' and must not be translated",
+            "{2} is the operation name 'apply_edits' and must not be translated"
+        ]
+    },
     "Execute '{0}' operation on the schema designer?/{0} is the operation name": {
         "message": "Execute '{0}' operation on the schema designer?",
         "comment": ["{0} is the operation name"]
