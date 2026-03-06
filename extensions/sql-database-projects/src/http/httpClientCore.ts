@@ -3,15 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// NOTE: This file should always be kept in sync with the equivalent in the MSSQL extension:
+// extensions/mssql/src/http/httpClientCore.ts
+
 import * as tunnel from "tunnel";
 import * as http from "http";
 import * as https from "https";
 import * as fs from "fs";
 import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } from "axios";
 import { Readable } from "stream";
-import { ILogger } from "../models/interfaces";
+import { ILogger } from "../common/logger";
 
-const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
+const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options.";
 const HTTPS_PORT = 443;
 const HTTP_PORT = 80;
 
@@ -128,25 +131,31 @@ export class HttpClientCore {
         }
 
         await new Promise<void>((resolve, reject) => {
-            const tmpFile = fs.createWriteStream("", { fd: destinationFd });
+            // autoClose: false keeps fd ownership with the caller (who calls fs.closeSync in finally).
+            // Without it, pipe's automatic end() would trigger auto-close of the fd,
+            // causing the caller's fs.closeSync to throw EBADF.
+            const tmpFile = fs.createWriteStream("", { fd: destinationFd, autoClose: false });
+
+            const cleanup = (err: NodeJS.ErrnoException) => {
+                // Destroy both streams to avoid file-descriptor leaks and stalled pipes
+                response.data.destroy();
+                tmpFile.destroy();
+                reject(new HttpDownloadError("response", err));
+            };
 
             response.data.on("data", (data: Buffer) => {
                 options?.onData?.(data);
             });
 
-            response.data.on("error", (err: NodeJS.ErrnoException) => {
-                reject(new HttpDownloadError("response", err));
-            });
+            response.data.on("error", cleanup);
+            tmpFile.on("error", cleanup);
 
-            tmpFile.on("error", (err: NodeJS.ErrnoException) => {
-                reject(new HttpDownloadError("response", err));
-            });
+            // Resolve only after the WriteStream has fully flushed to disk.
+            // pipe automatically calls tmpFile.end() when the response stream finishes,
+            // which triggers the 'finish' event once all bytes have been written.
+            tmpFile.on("finish", resolve);
 
-            response.data.on("end", () => {
-                resolve();
-            });
-
-            response.data.pipe(tmpFile, { end: false });
+            response.data.pipe(tmpFile);
         });
 
         return {
@@ -245,7 +254,9 @@ export class HttpClientCore {
                 proxy,
                 this.dependencies.getProxyStrictSSL?.(),
             );
-            if (agent.isHttps) {
+            // Axios selects the agent based on the *request* URL scheme, not the proxy scheme.
+            // An HTTPS request must use httpsAgent even when routed through an HTTP proxy.
+            if (requestUrl.startsWith("https")) {
                 config.httpsAgent = agent.agent;
             } else {
                 config.httpAgent = agent.agent;
@@ -274,14 +285,19 @@ export class HttpClientCore {
     }
 
     /**
-     * Constructs a request URL that explicitly includes the port number when no proxy is configured.
+     * Constructs a request URL that explicitly includes the port number.
      *
-     * If a proxy is configured in the request config, the original URL is returned unchanged.
+     * When a proxy is configured, `setupConfigAndProxyForRequest` sets `config.proxy = false` (to
+     * disable Axios's built-in proxy auto-detection in favour of a tunneling agent). In that case,
+     * and when no proxy is involved at all (`config.proxy === undefined`), the explicit port is
+     * added to the URL so that Axios does not fall back to port 80 when routing through an HTTP
+     * proxy. The original URL is returned unchanged only when `config.proxy` is a truthy
+     * `AxiosProxyConfig` object, which does not occur in the current code paths.
      *
      * @param requestUrl - The original request URL.
      * @param config - The Axios request configuration, which may contain proxy settings.
-     * @returns A URL string with the appropriate port included if no proxy is configured,
-     *          otherwise the original request URL.
+     * @returns A URL string with the explicit port included, or the original URL when
+     *          `config.proxy` is a truthy proxy config object.
      */
     private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
         if (!config.proxy) {
@@ -362,7 +378,6 @@ export class HttpClientCore {
         const isHttpsRequest = requestUrl.startsWith("https");
         const isHttpsProxy = proxy.startsWith("https");
         return {
-            isHttps: isHttpsProxy,
             agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
         };
     }
@@ -456,7 +471,6 @@ export class HttpClientCore {
 }
 
 interface ProxyAgent {
-    isHttps: boolean;
     agent: http.Agent | https.Agent;
 }
 

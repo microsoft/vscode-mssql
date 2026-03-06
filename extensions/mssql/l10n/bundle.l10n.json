@@ -3159,12 +3159,12 @@
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Unable to read proxy agent options.": "Unable to read proxy agent options.",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
-        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
+        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
     },
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
-        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
+        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
     },
     "Backup Database - {0}/{0} is the database name": {
