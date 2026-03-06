@@ -1796,6 +1796,10 @@
     },
     "Firewall rule successfully added. Retry profile creation? ": "Firewall rule successfully added. Retry profile creation? ",
     "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.": "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
+    "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.  Error: {0}/{0} is the error message": {
+        "message": "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.  Error: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.": "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.",
     "Unable to expand. Please check logs for more information.": "Unable to expand. Please check logs for more information.",
     "Firewall rule successfully created.": "Firewall rule successfully created.",
@@ -2047,7 +2051,10 @@
     },
     "Insert": "Insert",
     "Alter": "Alter",
-    "Signing in to Azure...": "Signing in to Azure...",
+    "Signing in to Azure as {0}.../{0} is the account name": {
+        "message": "Signing in to Azure as {0}...",
+        "comment": ["{0} is the account name"]
+    },
     "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder./{0} is the group name": {
         "message": "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.",
         "comment": ["{0} is the group name"]
