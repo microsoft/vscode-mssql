@@ -15,6 +15,8 @@ import { Readable } from "stream";
 import { ILogger } from "../common/logger";
 
 const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options.";
+const HTTPS_PORT = 443;
+const HTTP_PORT = 80;
 
 export interface IHttpClientMessages {
     missingProtocolWarning(proxy: string): string;
@@ -302,8 +304,6 @@ export class HttpClientCore {
             // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
             // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
 
-            const HTTPS_PORT = 443;
-            const HTTP_PORT = 80;
             const parsedRequestUrl = new URL(requestUrl);
             // Preserve explicitly-specified ports (e.g., https://host:8443/...), only inject default when no port was provided
             const port =
@@ -431,8 +431,8 @@ export class HttpClientCore {
             port: proxyEndpoint.port
                 ? Number(proxyEndpoint.port)
                 : proxyEndpoint.protocol === "https:"
-                  ? 443
-                  : 80,
+                  ? HTTPS_PORT
+                  : HTTP_PORT,
             auth,
             // Default to rejecting unauthorized certs unless the user explicitly disables strict SSL.
             rejectUnauthorized: strictSSL !== false,
