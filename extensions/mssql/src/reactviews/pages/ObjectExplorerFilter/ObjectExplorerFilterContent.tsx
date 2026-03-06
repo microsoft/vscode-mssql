@@ -22,6 +22,7 @@ import {
     TableRow,
     Text,
     Tooltip,
+    useArrowNavigationGroup,
     useTableColumnSizing_unstable,
     useTableFeatures,
 } from "@fluentui/react-components";
@@ -39,7 +40,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
         width: "100%",
-        maxWidth: "980px",
+        maxWidth: "760px",
     },
     inputs: {
         maxWidth: "150px",
@@ -64,6 +65,48 @@ const useStyles = makeStyles({
     },
 });
 
+const columnsDef: TableColumnDefinition<ObjectExplorerPageFilter>[] = [
+    createTableColumn({
+        columnId: "property",
+        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.property}</>,
+    }),
+    createTableColumn({
+        columnId: "operator",
+        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.operator}</>,
+    }),
+    createTableColumn({
+        columnId: "value",
+        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.value}</>,
+    }),
+    createTableColumn({
+        columnId: "clear",
+        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.clear}</>,
+    }),
+];
+
+const sizingOptions: TableColumnSizingOptions = {
+    property: {
+        minWidth: 150,
+        idealWidth: 180,
+        defaultWidth: 220,
+    },
+    operator: {
+        minWidth: 140,
+        idealWidth: 140,
+        defaultWidth: 140,
+    },
+    value: {
+        minWidth: 150,
+        idealWidth: 150,
+        defaultWidth: 150,
+    },
+    clear: {
+        minWidth: 56,
+        idealWidth: 56,
+        defaultWidth: 56,
+    },
+};
+
 export interface ObjectExplorerFilterContentProps {
     uiFilters: ObjectExplorerPageFilter[];
     setUiFilters: (filters: ObjectExplorerPageFilter[]) => void;
@@ -76,6 +119,7 @@ export const ObjectExplorerFilterContent = ({
     getFilterOperatorString,
 }: ObjectExplorerFilterContentProps) => {
     const classes = useStyles();
+    const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const andText = locConstants.objectExplorerFiltering.and;
 
     const renderCell = (columnId: TableColumnId, item: ObjectExplorerPageFilter) => {
@@ -252,48 +296,6 @@ export const ObjectExplorerFilterContent = ({
         }
     };
 
-    const columnsDef: TableColumnDefinition<ObjectExplorerPageFilter>[] = [
-        createTableColumn({
-            columnId: "property",
-            renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.property}</>,
-        }),
-        createTableColumn({
-            columnId: "operator",
-            renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.operator}</>,
-        }),
-        createTableColumn({
-            columnId: "value",
-            renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.value}</>,
-        }),
-        createTableColumn({
-            columnId: "clear",
-            renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.clear}</>,
-        }),
-    ];
-
-    const sizingOptions: TableColumnSizingOptions = {
-        property: {
-            minWidth: 150,
-            idealWidth: 200,
-            defaultWidth: 300,
-        },
-        operator: {
-            minWidth: 140,
-            idealWidth: 140,
-            defaultWidth: 140,
-        },
-        value: {
-            minWidth: 150,
-            idealWidth: 150,
-            defaultWidth: 150,
-        },
-        clear: {
-            minWidth: 20,
-            idealWidth: 20,
-            defaultWidth: 20,
-        },
-    };
-
     const { getRows, columnSizing_unstable, tableRef } = useTableFeatures<ObjectExplorerPageFilter>(
         {
             columns: columnsDef,
@@ -306,6 +308,7 @@ export const ObjectExplorerFilterContent = ({
     return (
         <div className={classes.root}>
             <Table
+                {...keyboardNavAttr}
                 as="table"
                 size="small"
                 {...columnSizing_unstable.getTableProps()}
