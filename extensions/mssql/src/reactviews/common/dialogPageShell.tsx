@@ -113,7 +113,7 @@ const useStyles = makeStyles({
 export interface DialogPageShellProps {
     icon?: ReactNode;
     title?: string;
-    subtitle?: string;
+    subtitle?: ReactNode;
     errorMessage?: string;
     loadingMessage?: string;
     maxContentWidth?: string;

@@ -75,6 +75,25 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
 
 export class ObjectExplorerFilter {
     private static _filterWebviewController: ObjectExplorerFilterReactWebviewController;
+
+    private static getBreadcrumbSegments(treeNode: TreeNodeInfo): string[] {
+        const segments: string[] = [];
+        let currentNode: TreeNodeInfo | undefined = treeNode;
+
+        while (currentNode) {
+            const label =
+                typeof currentNode.originalLabel === "string"
+                    ? currentNode.originalLabel
+                    : currentNode.label?.toString();
+            if (label && label.trim().length > 0) {
+                segments.unshift(label);
+            }
+            currentNode = currentNode.parentNode;
+        }
+
+        return segments;
+    }
+
     /**
      * This method is used to get the filters from the user for the given treeNode.
      * @param context The extension context
@@ -100,6 +119,7 @@ export class ObjectExplorerFilter {
                         filterProperties: treeNode.filterableProperties,
                         existingFilters: treeNode.filters,
                         nodePath: treeNode.nodePath,
+                        breadcrumbSegments: this.getBreadcrumbSegments(treeNode),
                     },
                 );
             } else {
@@ -107,6 +127,7 @@ export class ObjectExplorerFilter {
                     filterProperties: treeNode.filterableProperties,
                     existingFilters: treeNode.filters,
                     nodePath: treeNode.nodePath,
+                    breadcrumbSegments: this.getBreadcrumbSegments(treeNode),
                 });
             }
             this._filterWebviewController.revealToForeground();
