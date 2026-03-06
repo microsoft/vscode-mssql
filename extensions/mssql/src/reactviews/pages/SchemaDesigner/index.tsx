@@ -11,7 +11,7 @@ import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useState } from "react";
-import { makeStyles, Toolbar, ToolbarButton, tokens } from "@fluentui/react-components";
+import { makeStyles, Toolbar, ToolbarButton, tokens, Tooltip } from "@fluentui/react-components";
 import { TableSettingsRegular } from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
@@ -56,30 +56,39 @@ const MainLayout = () => {
         <div className={classes.root}>
             <div className={classes.nav}>
                 <Toolbar vertical>
-                    <ToolbarButton
-                        appearance={
-                            activeView === SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
-                                ? "primary"
-                                : "subtle"
-                        }
-                        icon={<Schema16Regular />}
-                        onClick={() =>
-                            setActiveView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner)
-                        }
-                        title={schemaDesignerLabel}
-                        aria-label={schemaDesignerLabel}
-                    />
-                    <ToolbarButton
-                        appearance={
-                            activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
-                                ? "primary"
-                                : "subtle"
-                        }
-                        icon={<TableSettingsRegular />}
-                        onClick={() => setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)}
-                        title={dabLabel}
-                        aria-label={dabLabel}
-                    />
+                    <Tooltip content={schemaDesignerLabel} relationship="label">
+                        <ToolbarButton
+                            appearance={
+                                activeView ===
+                                SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
+                                    ? "primary"
+                                    : "subtle"
+                            }
+                            icon={<Schema16Regular />}
+                            onClick={() =>
+                                setActiveView(
+                                    SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
+                                )
+                            }
+                            title={schemaDesignerLabel}
+                            aria-label={schemaDesignerLabel}
+                        />
+                    </Tooltip>
+                    <Tooltip content={dabLabel} relationship="label">
+                        <ToolbarButton
+                            appearance={
+                                activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
+                                    ? "primary"
+                                    : "subtle"
+                            }
+                            icon={<TableSettingsRegular />}
+                            onClick={() =>
+                                setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
+                            }
+                            title={dabLabel}
+                            aria-label={dabLabel}
+                        />
+                    </Tooltip>
                 </Toolbar>
             </div>
             <div className={classes.content}>

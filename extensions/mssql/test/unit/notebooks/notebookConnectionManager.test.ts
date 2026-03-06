@@ -173,31 +173,45 @@ suite("NotebookConnectionManager", () => {
             expect(stubUI.promptForConnection).to.have.been.calledOnce;
         });
 
-        test("re-prompts when existing connection is stale", async () => {
+        test("reconnects silently when stale but connectionInfo is available", async () => {
             await mgr.promptAndConnect();
             sharingService.isConnected.returns(false);
+
+            stubUI.promptForConnection.resetHistory();
+            connectionMgr.connect.resetHistory();
+            await mgr.ensureConnection();
+
+            // Should reconnect without prompting
+            expect(stubUI.promptForConnection).to.not.have.been.called;
+            expect(connectionMgr.connect).to.have.been.calledOnce;
+        });
+
+        test("falls back to prompt when reconnection fails", async () => {
+            await mgr.promptAndConnect();
+            sharingService.isConnected.returns(false);
+
+            // Make the reconnection attempt fail
+            connectionMgr.connect.onSecondCall().resolves(false);
 
             stubUI.promptForConnection.resetHistory();
             await mgr.ensureConnection();
             expect(stubUI.promptForConnection).to.have.been.calledOnce;
         });
 
-        test("clears connection label when stale", async () => {
+        test("updates label after stale reconnection", async () => {
             await mgr.promptAndConnect();
             const labelBefore = mgr.getConnectionLabel();
             expect(labelBefore).to.include("test-server");
 
-            // Mark stale, then re-prompt
+            // Mark stale — reconnection will succeed with stored connectionInfo
             sharingService.isConnected.returns(false);
-            stubUI.promptForConnection.resolves(
-                makeConnectionInfo({ server: "new-server", database: "OtherDB" }),
-            );
             connectionMgr.getConnectionInfoFromUri.returns(
-                makeConnectionInfo({ server: "new-server", database: "OtherDB" }),
+                makeConnectionInfo({ database: "TestDB" }),
             );
 
             await mgr.ensureConnection();
-            expect(mgr.getConnectionLabel()).to.include("new-server");
+            expect(mgr.getConnectionLabel()).to.include("test-server");
+            expect(mgr.getConnectionLabel()).to.include("TestDB");
         });
     });
 
@@ -248,6 +262,90 @@ suite("NotebookConnectionManager", () => {
         test("stores connectionUri after successful connect", async () => {
             const uri = await mgr.promptAndConnect();
             expect(mgr.getConnectionUri()).to.equal(uri);
+        });
+    });
+
+    // ----------------------------------------------------------------
+    // setReconnectionContext + promptAndConnect database restoration
+    // ----------------------------------------------------------------
+    suite("reconnection context", () => {
+        test("restores saved database when server matches and profile has no database", async () => {
+            mgr.setReconnectionContext("test-server", "SavedDB");
+
+            // Simulate a server-level profile with no explicit database
+            stubUI.promptForConnection.resolves(
+                makeConnectionInfo({ server: "test-server", database: "" }),
+            );
+            connectionMgr.getConnectionInfoFromUri.returns(
+                makeConnectionInfo({ database: "SavedDB" }),
+            );
+
+            await mgr.promptAndConnect();
+
+            // The connect call should have received the restored database
+            const connectCall = connectionMgr.connect.getCall(0);
+            const connInfo = connectCall.args[1] as IConnectionInfo;
+            expect(connInfo.database).to.equal("SavedDB");
+        });
+
+        test("does not override when profile has explicit database", async () => {
+            mgr.setReconnectionContext("test-server", "SavedDB");
+
+            // Profile with an explicit database set
+            stubUI.promptForConnection.resolves(
+                makeConnectionInfo({ server: "test-server", database: "ExplicitDB" }),
+            );
+            connectionMgr.getConnectionInfoFromUri.returns(
+                makeConnectionInfo({ database: "ExplicitDB" }),
+            );
+
+            await mgr.promptAndConnect();
+
+            const connectCall = connectionMgr.connect.getCall(0);
+            const connInfo = connectCall.args[1] as IConnectionInfo;
+            expect(connInfo.database).to.equal("ExplicitDB");
+        });
+
+        test("does not override when server does not match", async () => {
+            mgr.setReconnectionContext("original-server", "SavedDB");
+
+            stubUI.promptForConnection.resolves(
+                makeConnectionInfo({ server: "different-server", database: "" }),
+            );
+
+            await mgr.promptAndConnect();
+
+            const connectCall = connectionMgr.connect.getCall(0);
+            const connInfo = connectCall.args[1] as IConnectionInfo;
+            expect(connInfo.database).to.equal("");
+        });
+
+        test("uses connectionInfo database over saved context for within-session reconnection", async () => {
+            mgr.setReconnectionContext("test-server", "MetadataDB");
+
+            // Configure stub to return SessionDB BEFORE connecting
+            connectionMgr.getConnectionInfoFromUri.returns(
+                makeConnectionInfo({ database: "SessionDB" }),
+            );
+
+            // First connect with a specific database
+            await mgr.connectWith(makeConnectionInfo({ database: "SessionDB" }));
+
+            // Now simulate stale connection and reconnection failure
+            sharingService.isConnected.returns(false);
+            connectionMgr.connect.onSecondCall().resolves(false);
+
+            // Prompt should use SessionDB (from connectionInfo) not MetadataDB
+            stubUI.promptForConnection.resolves(
+                makeConnectionInfo({ server: "test-server", database: "" }),
+            );
+
+            await mgr.ensureConnection();
+
+            // The prompt-triggered connect should use SessionDB
+            const lastConnectCall = connectionMgr.connect.lastCall;
+            const connInfo = lastConnectCall.args[1] as IConnectionInfo;
+            expect(connInfo.database).to.equal("SessionDB");
         });
     });
 
