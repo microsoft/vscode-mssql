@@ -8605,6 +8605,11 @@ zustand@^4.4.0:
   dependencies:
     use-sync-external-store "^1.2.2"
 
+zustand@^5.0.8:
+  version "5.0.11"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-5.0.11.tgz#99f912e590de1ca9ce6c6d1cab6cdb1f034ab494"
+  integrity sha512-fdZY+dk7zn/vbWNCYmzZULHRrss0jx5pPFiOuMZ/5HJN6Yv3u+1Wswy/4MpZEkEGhtNH+pwxZB8OKgUBPzYAGg==
+
 zwitch@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/zwitch/-/zwitch-2.0.4.tgz#c827d4b0acb76fc3e685a4c6ec2902d51070e9d7"

@@ -132,7 +132,8 @@
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
         "xliff": "^6.2.1",
-        "yargs": "^17.7.2"
+        "yargs": "^17.7.2",
+        "zustand": "^5.0.8"
     },
     "dependencies": {
         "@azure/arm-resources": "^5.0.0",

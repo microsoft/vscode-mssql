@@ -5,7 +5,7 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
+import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
@@ -131,13 +131,13 @@ const MainLayout = () => {
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
+    <VscodeWebviewProvider2>
         <ReactFlowProvider>
             <SchemaDesignerStateProvider>
                 <MainLayout />
             </SchemaDesignerStateProvider>
         </ReactFlowProvider>
-    </VscodeWebviewProvider>,
+    </VscodeWebviewProvider2>,
 );
 
 const getActiveViewFromState = (
