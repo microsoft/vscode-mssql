@@ -791,12 +791,9 @@ suite("DacpacDialogWebviewController", () => {
     });
     suite("Database Operations", () => {
         test("lists databases successfully", async () => {
-            const mockDatabases = {
-                databaseNames: ["master", "tempdb", "model", "msdb", "TestDB"],
-            };
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
-                .resolves(mockDatabases);
+            connectionManagerStub.listDatabases
+                .withArgs(ownerUri)
+                .resolves(["master", "tempdb", "model", "msdb", "TestDB"]);
             createController();
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             expect(requestHandler, "Request handler was not registered").to.be.a("function");
@@ -804,14 +801,11 @@ suite("DacpacDialogWebviewController", () => {
             // System databases are filtered out, only user databases are returned
             expect(response.databases).to.deep.equal(["TestDB"]);
             expect(response.errorMessage).to.be.undefined;
-            expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
-                ListDatabasesRequest.type,
-                { ownerUri: ownerUri },
-            );
+            expect(connectionManagerStub.listDatabases).to.have.been.calledWith(ownerUri);
         });
         test("returns empty array and error when list databases fails and no state database", async () => {
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+            connectionManagerStub.listDatabases
+                .withArgs(ownerUri)
                 .rejects(new Error("Connection failed"));
             createController();
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
@@ -820,8 +814,8 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.equal("Connection failed");
         });
         test("falls back to state database when list databases fails", async () => {
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+            connectionManagerStub.listDatabases
+                .withArgs(ownerUri)
                 .rejects(new Error("Connection failed"));
             createControllerWithState({ databaseName: "MyDatabase" });
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
@@ -830,20 +824,17 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.equal("Connection failed");
         });
         test("falls back to state database when list returns only system databases", async () => {
-            const mockDatabases = {
-                databaseNames: ["master", "tempdb", "model", "msdb"],
-            };
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
-                .resolves(mockDatabases);
+            connectionManagerStub.listDatabases
+                .withArgs(ownerUri)
+                .resolves(["master", "tempdb", "model", "msdb"]);
             createControllerWithState({ databaseName: "MyDatabase" });
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             const response = await requestHandler!({ ownerUri: ownerUri });
             expect(response.databases).to.deep.equal(["MyDatabase"]);
         });
         test("does not fall back to system database from state", async () => {
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+            connectionManagerStub.listDatabases
+                .withArgs(ownerUri)
                 .rejects(new Error("Connection failed"));
             createControllerWithState({ databaseName: "master" });
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
@@ -852,12 +843,9 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.equal("Connection failed");
         });
         test("includes state database in list when not already present", async () => {
-            const mockDatabases = {
-                databaseNames: ["master", "tempdb", "model", "msdb", "OtherDB"],
-            };
-            sqlToolsClientStub.sendRequest
-                .withArgs(ListDatabasesRequest.type, sinon.match.any)
-                .resolves(mockDatabases);
+            connectionManagerStub.listDatabases
+                .withArgs(ownerUri)
+                .resolves(["master", "tempdb", "model", "msdb", "OtherDB"]);
             createControllerWithState({ databaseName: "MyDatabase" });
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             const response = await requestHandler!({ ownerUri: ownerUri });

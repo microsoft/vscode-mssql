@@ -35,6 +35,7 @@ interface TargetDatabaseSectionProps {
     ownerUri: string;
     validationMessages: Record<string, ValidationMessage>;
     isFabric?: boolean;
+    onDropdownOpen?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -61,6 +62,7 @@ export const TargetDatabaseSection = ({
     ownerUri,
     validationMessages,
     isFabric = false,
+    onDropdownOpen,
 }: TargetDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -116,23 +118,35 @@ export const TargetDatabaseSection = ({
                             ? "error"
                             : "none"
                     }>
-                    {isLoadingDatabases ? (
-                        <Spinner size="tiny" label={locConstants.dacpacDialog.loadingDatabases} />
-                    ) : (
-                        <Dropdown
-                            placeholder={locConstants.dacpacDialog.selectDatabase}
-                            value={databaseName}
-                            selectedOptions={[databaseName]}
-                            onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
-                            disabled={isOperationInProgress || !ownerUri}
-                            aria-label={locConstants.dacpacDialog.databaseNameLabel}>
-                            {availableDatabases.map((db) => (
+                    <Dropdown
+                        placeholder={locConstants.dacpacDialog.selectDatabase}
+                        value={databaseName}
+                        selectedOptions={[databaseName]}
+                        onOptionSelect={(_, data) => {
+                            if (!isLoadingDatabases) {
+                                setDatabaseName(data.optionText || "");
+                            }
+                        }}
+                        onOpenChange={(_, data) => {
+                            if (data.open && onDropdownOpen) {
+                                onDropdownOpen();
+                            }
+                        }}
+                        disabled={isOperationInProgress || !ownerUri}
+                        aria-label={locConstants.dacpacDialog.databaseNameLabel}>
+                        {isLoadingDatabases ? (
+                            <Option key="__loading__" value="" text="" disabled>
+                                <Spinner size="extra-tiny" />{" "}
+                                {locConstants.dacpacDialog.loadingDatabases}
+                            </Option>
+                        ) : (
+                            availableDatabases.map((db) => (
                                 <Option key={db} value={db}>
                                     {db}
                                 </Option>
-                            ))}
-                        </Dropdown>
-                    )}
+                            ))
+                        )}
+                    </Dropdown>
                 </Field>
             )}
         </div>

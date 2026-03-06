@@ -604,13 +604,10 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
         let errorMessage: string | undefined;
         try {
-            const result = await this.connectionManager.client.sendRequest(
-                ListDatabasesRequest.type,
-                { ownerUri: ownerUri },
-            );
+            const databaseNames = await this.connectionManager.listDatabases(ownerUri);
 
             // Filter out system databases
-            const userDatabases = (result.databaseNames || []).filter(
+            const userDatabases = (databaseNames || []).filter(
                 (db) => !systemDatabases.includes(db.toLowerCase()),
             );
 
