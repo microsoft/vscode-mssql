@@ -596,7 +596,7 @@
                 },
                 {
                     "command": "mssql.searchDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_databaseDiscover@1"
                 },
                 {
@@ -631,7 +631,7 @@
                 },
                 {
                     "command": "mssql.restoreDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_databaseMaintenance@3"
                 },
                 {
@@ -641,7 +641,7 @@
                 },
                 {
                     "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_databaseMaintenance@4"
                 },
                 {
