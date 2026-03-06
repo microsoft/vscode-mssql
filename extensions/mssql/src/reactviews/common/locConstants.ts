@@ -1762,6 +1762,14 @@ export class LocConstants {
             valueUnknown: l10n.t("-"),
             dropConnections: l10n.t("Drop active connections"),
             deleteBackupHistory: l10n.t("Delete backup and restore history"),
+            warningMessage: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Drop {0} from {1}. This action",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the database name", "{1} is the server name"],
+                }),
+            warningEmphasis: l10n.t("cannot be undone."),
+            confirmationLabel: l10n.t("I understand this action is permanent and irreversible"),
             helpButton: l10n.t("Help"),
             scriptButton: l10n.t("Script"),
             dropButton: l10n.t("Drop"),

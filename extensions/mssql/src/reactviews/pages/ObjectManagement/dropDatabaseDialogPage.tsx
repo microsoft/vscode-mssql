@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { makeStyles, Spinner } from "@fluentui/react-components";
+import { Image, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { Warning20Regular } from "@fluentui/react-icons";
 import {
     DropDatabaseParams,
     DropDatabaseViewModel,
@@ -14,11 +15,16 @@ import {
     ObjectManagementScriptRequest,
     ObjectManagementSubmitRequest,
 } from "../../../sharedInterfaces/objectManagement";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { getErrorMessage } from "../../common/utils";
 import { ObjectManagementDialog } from "../../common/objectManagementDialog";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ObjectManagementContext } from "./objectManagementStateProvider";
 import { DropDatabaseForm, DropDatabaseFormState } from "./dropDatabaseForm";
+
+const databaseLightIcon = require("../../../../media/database_light.svg");
+const databaseDarkIcon = require("../../../../media/database_dark.svg");
 
 const useStyles = makeStyles({
     loadingPage: {
@@ -29,6 +35,37 @@ const useStyles = makeStyles({
         width: "100%",
         flexDirection: "column",
         backgroundColor: "var(--vscode-editor-background)",
+    },
+    content: {
+        width: "100%",
+        maxWidth: "560px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
+    },
+    warningCallout: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "14px 18px",
+        borderRadius: "8px",
+        border: "1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-editorWarning-foreground))",
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-inputValidation-warningBackground, var(--vscode-editor-background)) 72%, transparent)",
+        color: "var(--vscode-foreground)",
+    },
+    warningIcon: {
+        color: "var(--vscode-editorWarning-foreground)",
+        flexShrink: 0,
+        marginTop: "1px",
+    },
+    warningText: {
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+    },
+    warningEmphasis: {
+        color: "var(--vscode-editorWarning-foreground)",
+        fontWeight: tokens.fontWeightSemibold,
     },
 });
 
@@ -47,8 +84,10 @@ export const DropDatabaseDialogPage = ({
 }: DropDatabaseDialogPageProps) => {
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
+    const { themeKind } = useVscodeWebview();
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isConfirmed, setIsConfirmed] = useState(false);
     const [dropForm, setDropForm] = useState<DropDatabaseFormState>({
         dropConnections: false,
         deleteBackupHistory: false,
@@ -64,8 +103,14 @@ export const DropDatabaseDialogPage = ({
 
     return (
         <ObjectManagementDialog
+            icon={
+                <Image
+                    src={themeKind === ColorThemeKind.Dark ? databaseDarkIcon : databaseLightIcon}
+                    alt={locConstants.dropDatabase.title}
+                />
+            }
             title={dialogTitle ?? locConstants.dropDatabase.title}
-            description={
+            subtitle={
                 model
                     ? locConstants.dropDatabase.description(model.databaseName, model.serverName)
                     : undefined
@@ -76,7 +121,7 @@ export const DropDatabaseDialogPage = ({
             cancelLabel={locConstants.dropDatabase.cancelButton}
             helpLabel={locConstants.dropDatabase.helpButton}
             scriptLabel={locConstants.dropDatabase.scriptButton}
-            primaryDisabled={isSubmitting}
+            primaryDisabled={isSubmitting || !isConfirmed}
             scriptDisabled={isSubmitting}
             onPrimary={async () => {
                 const params: DropDatabaseParams = {
@@ -123,11 +168,27 @@ export const DropDatabaseDialogPage = ({
                 );
             }}>
             {model && (
-                <DropDatabaseForm
-                    value={dropForm}
-                    viewModel={model}
-                    onChange={(next) => setDropForm(next)}
-                />
+                <div className={styles.content}>
+                    <div className={styles.warningCallout}>
+                        <Warning20Regular className={styles.warningIcon} />
+                        <div className={styles.warningText}>
+                            {locConstants.dropDatabase.warningMessage(
+                                model.databaseName,
+                                model.serverName,
+                            )}{" "}
+                            <span className={styles.warningEmphasis}>
+                                {locConstants.dropDatabase.warningEmphasis}
+                            </span>
+                        </div>
+                    </div>
+                    <DropDatabaseForm
+                        value={dropForm}
+                        viewModel={model}
+                        isConfirmed={isConfirmed}
+                        onChange={(next) => setDropForm(next)}
+                        onConfirmationChange={setIsConfirmed}
+                    />
+                </div>
             )}
         </ObjectManagementDialog>
     );
