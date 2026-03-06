@@ -295,6 +295,18 @@
     "Advanced": "Advanced",
     "Test Connection": "Test Connection",
     "Connect to Database": "Connect to Database",
+    "Edit Database Connection - {0}/{0} is the name of the connection profile": {
+        "message": "Edit Database Connection - {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
+    "Edit {0}/{0} is the name of the connection profile": {
+        "message": "Edit {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
+    "Create new connection copied from {0}/{0} is the name of the connection profile": {
+        "message": "Create new connection copied from {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
     "Connect to {0}/{0} is the name of the connection profile": {
         "message": "Connect to {0}",
         "comment": ["{0} is the name of the connection profile"]
@@ -332,6 +344,7 @@
     },
     "Default": "Default",
     "Delete saved connection": "Delete saved connection",
+    "Copy connection to a new profile": "Copy connection to a new profile",
     "Remove recent connection": "Remove recent connection",
     "Copy connection string to clipboard": "Copy connection string to clipboard",
     "Paste connection string from clipboard": "Paste connection string from clipboard",

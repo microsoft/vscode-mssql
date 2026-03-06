@@ -1449,6 +1449,9 @@
     <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
       <source xml:lang="en">Copy connection string to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++58a3543188ba49b9c51c596fa21636899f0714f30de345976c64f65a0c0e4412">
+      <source xml:lang="en">Copy connection to a new profile</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
     </trans-unit>
@@ -1545,6 +1548,10 @@
     </trans-unit>
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
+      <source xml:lang="en">Create new connection copied from {0}</source>
+      <note>{0} is the name of the connection profile</note>
     </trans-unit>
     <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
       <source xml:lang="en">Create new firewall rule for {0}</source>
@@ -1987,11 +1994,19 @@
     <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
       <source xml:lang="en">Edit Data (Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++08d593fb39b41430bb8c2c1162a76d2c273c1180b07a062108bb2c8e7ab2a3c6">
+      <source xml:lang="en">Edit Database Connection - {0}</source>
+      <note>{0} is the name of the connection profile</note>
+    </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
     </trans-unit>
     <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
       <source xml:lang="en">Edit your schema to see changes here.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c8724cfbaf2b6567c288f9f3ec1f1138c9c48bd270325ecc4095993063e8691b">
+      <source xml:lang="en">Edit {0}</source>
+      <note>{0} is the name of the connection profile</note>
     </trans-unit>
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
