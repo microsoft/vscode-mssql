@@ -568,11 +568,11 @@
     <trans-unit id="++CODE++49b20f5a4dbb9f8d013340404a75fde2c85b132dbff19ba95fc3b4857862bef0">
       <source xml:lang="en">Project was successfully updated.</source>
     </trans-unit>
-    <trans-unit id="++CODE++3ea6cf8d07fd2bd4b392b8b7addb9d3442af15c09e9fe6a4b0eaf34f5e70d361">
-      <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: &apos;{0}&apos;.  You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</source>
+    <trans-unit id="++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362">
+      <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: &apos;{0}&apos;. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</source>
     </trans-unit>
-    <trans-unit id="++CODE++739d9bc4b39f81d1fa91a58140b7acaefdedb08fa928d7ca150ff8e119db21c8">
-      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;.  You may encounter connection issues while using the SQL Database Projects extension.</source>
+    <trans-unit id="++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3">
+      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;. You may encounter connection issues while using the SQL Database Projects extension.</source>
     </trans-unit>
     <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
       <source xml:lang="en">Publish</source>
