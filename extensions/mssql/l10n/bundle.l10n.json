@@ -412,8 +412,11 @@
     "Submit": "Submit",
     "Not likely at all": "Not likely at all",
     "Extremely likely": "Extremely likely",
+    "Privacy notice": "Privacy notice",
+    "Read full statement": "Read full statement",
+    "Hide full statement": "Hide full statement",
     "Privacy Statement": "Privacy Statement",
-    "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
+    "Microsoft will process this feedback pursuant to your organization's instructions to improve your experience.": "Microsoft will process this feedback pursuant to your organization's instructions to improve your experience.",
     "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
     "Results ({0})/{0} is the keyboard shortcut for the results tab": {
         "message": "Results ({0})",
