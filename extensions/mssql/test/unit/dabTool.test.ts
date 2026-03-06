@@ -59,6 +59,7 @@ suite("DabTool Tests", () => {
         tables: SchemaDesigner.Table[];
         dabConfig?: Dab.DabConfig | null;
         initialized?: boolean;
+        waitForInitialization?: sinon.SinonStub;
     }) => {
         let currentTables = params.tables;
         let currentDabConfig = params.dabConfig ?? null;
@@ -67,6 +68,8 @@ suite("DabTool Tests", () => {
         const commitSpy = sandbox.spy((config: Dab.DabConfig) => {
             currentDabConfig = config;
         });
+        const waitForInitialization =
+            params.waitForInitialization ?? sandbox.stub().resolves(params.initialized ?? true);
 
         const extensionRpc = {
             onRequest: sandbox.stub().callsFake((type: any, handler: any) => {
@@ -77,6 +80,7 @@ suite("DabTool Tests", () => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc: extensionRpc as any,
             isInitializedRef,
+            waitForInitialization,
             getCurrentDabConfig: () => currentDabConfig,
             getCurrentSchemaTables: () => currentTables,
             commitDabConfig: commitSpy,
@@ -92,6 +96,8 @@ suite("DabTool Tests", () => {
             },
             getConfig: () => currentDabConfig,
             commitSpy,
+            waitForInitialization,
+            isInitializedRef,
         };
     };
 
@@ -155,19 +161,6 @@ suite("DabTool Tests", () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
             sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
-            mockDesigner.getDabToolState.resolves({
-                returnState: "full",
-                version: "dabcfg_state",
-                summary: {
-                    entityCount: 2,
-                    enabledEntityCount: 1,
-                    apiTypes: [Dab.ApiType.Rest],
-                },
-                config: Dab.createDefaultConfig([
-                    createTable("t1", "dbo", "Users"),
-                    createTable("t2", "sales", "Orders"),
-                ]),
-            });
             showDabStub.resolves(mockDesigner);
 
             const options = {
@@ -180,12 +173,6 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(true);
             expect(parsed.message).to.equal(loc.dabToolShowSuccessMessage);
-            expect(parsed.version).to.equal("dabcfg_state");
-            expect(parsed.summary).to.deep.equal({
-                entityCount: 2,
-                enabledEntityCount: 1,
-                apiTypes: [Dab.ApiType.Rest],
-            });
             expect(parsed.recommendedTool).to.equal("mssql_dab");
             expect(parsed.recommendedNextCall).to.deep.equal({
                 operation: "get_state",
@@ -193,8 +180,10 @@ suite("DabTool Tests", () => {
             expect(parsed.server).to.equal(sampleServer);
             expect(parsed.database).to.equal(sampleDatabase);
             expect(parsed).to.not.have.property("config");
+            expect(parsed).to.not.have.property("version");
+            expect(parsed).to.not.have.property("summary");
             expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
-            expect(mockDesigner.getDabToolState.calledOnce).to.equal(true);
+            expect(mockDesigner.getDabToolState.called).to.equal(false);
         });
 
         test("returns no_active_designer when there is no active schema designer", async () => {
@@ -733,7 +722,7 @@ suite("DabTool Tests", () => {
             expect(state).to.not.have.property("config");
         });
 
-        test("get_state throws when handlers are not initialized", async () => {
+        test("get_state throws when initialization does not complete", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
                 dabConfig: null,
@@ -748,9 +737,30 @@ suite("DabTool Tests", () => {
             }
 
             expect(caughtError).to.be.instanceOf(Error);
+            expect(harness.waitForInitialization.calledOnce).to.equal(true);
             expect((caughtError as Error).message).to.equal(
                 locConstants.schemaDesigner.schemaDesignerNotInitialized,
             );
+        });
+
+        test("get_state waits for initialization before returning state", async () => {
+            let harness: ReturnType<typeof createDabHandlerHarness>;
+            const waitForInitialization = sandbox.stub().callsFake(async () => {
+                harness.isInitializedRef.current = true;
+                return true;
+            });
+            harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+                initialized: false,
+                waitForInitialization,
+            });
+
+            const state = await harness.getState();
+
+            expect(waitForInitialization.calledOnce).to.equal(true);
+            expect(state.returnState).to.equal("full");
+            expect(state.summary.entityCount).to.equal(1);
         });
 
         test("get_state avoids commit when config is already synchronized with schema", async () => {

@@ -208,13 +208,9 @@ export class DabTool extends ToolBase<DabToolParams> {
                 }
 
                 const designer = await this._showDab(connectionId, connCreds.database);
-                const state = await designer.getDabToolState();
                 sendToolTelemetry({
                     operation,
                     success: true,
-                    measurements: {
-                        stateOmitted: 1,
-                    },
                 });
 
                 return json(
@@ -222,8 +218,6 @@ export class DabTool extends ToolBase<DabToolParams> {
                         {
                             success: true,
                             message: loc.dabToolShowSuccessMessage,
-                            version: state.version,
-                            summary: state.summary,
                             recommendedTool: this.toolName,
                             recommendedNextCall: {
                                 operation: "get_state",

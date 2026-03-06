@@ -1509,6 +1509,7 @@ function applyDabToolChange(
 export function registerSchemaDesignerDabToolHandlers(params: {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     getCurrentDabConfig: () => Dab.DabConfig | null;
     getCurrentSchemaTables: () => SchemaDesigner.Table[];
     commitDabConfig: (config: Dab.DabConfig) => void;
@@ -1516,6 +1517,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
     const {
         extensionRpc,
         isInitializedRef,
+        waitForInitialization,
         getCurrentDabConfig,
         getCurrentSchemaTables,
         commitDabConfig,
@@ -1523,7 +1525,10 @@ export function registerSchemaDesignerDabToolHandlers(params: {
 
     const handleGetState = async (): Promise<Dab.GetDabToolStateResponse> => {
         if (!isInitializedRef.current) {
-            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            const initialized = await waitForInitialization();
+            if (!initialized || !isInitializedRef.current) {
+                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            }
         }
 
         const baseSnapshot = getCurrentDabConfig();
