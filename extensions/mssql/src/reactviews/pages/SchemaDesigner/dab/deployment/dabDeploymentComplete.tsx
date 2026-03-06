@@ -98,11 +98,17 @@ interface DabDeploymentCompleteProps {
 
 type ApiEndpointAction = "copy" | "addToVSCode" | "openUrl";
 
+interface ApiEndpointOpenUrlConfig {
+    url: string;
+    label: string;
+}
+
 interface ApiEndpoint {
     type: Dab.ApiType;
     label: string;
     url: string;
     actions: ApiEndpointAction[];
+    openUrlConfig?: ApiEndpointOpenUrlConfig;
 }
 
 export const DabDeploymentComplete = ({
@@ -129,6 +135,10 @@ export const DabDeploymentComplete = ({
                 label: locConstants.schemaDesigner.restApi,
                 url: `${apiUrl}/api`,
                 actions: ["openUrl", "copy"],
+                openUrlConfig: {
+                    url: `${apiUrl}/swagger/index.html`,
+                    label: locConstants.schemaDesigner.viewSwagger,
+                },
             });
         }
         if (enabledTypes.includes(Dab.ApiType.GraphQL)) {
@@ -136,7 +146,11 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.GraphQL,
                 label: locConstants.schemaDesigner.graphql,
                 url: `${apiUrl}/graphql`,
-                actions: ["copy"],
+                actions: ["openUrl", "copy"],
+                openUrlConfig: {
+                    url: `${apiUrl}/graphql`,
+                    label: locConstants.schemaDesigner.openNitro,
+                },
             });
         }
         if (enabledTypes.includes(Dab.ApiType.Mcp)) {
@@ -180,6 +194,9 @@ export const DabDeploymentComplete = ({
                         />
                     );
                 case "openUrl":
+                    if (!ep.openUrlConfig) {
+                        return null;
+                    }
                     return (
                         <Button
                             key={action}
@@ -187,10 +204,10 @@ export const DabDeploymentComplete = ({
                             icon={<Open16Regular />}
                             size="small"
                             className={classes.actionButton}
-                            onClick={() => openUrl(`${apiUrl}/swagger/index.html`)}
-                            aria-label={locConstants.schemaDesigner.viewSwagger}
-                            title={locConstants.schemaDesigner.viewSwagger}>
-                            {locConstants.schemaDesigner.viewSwagger}
+                            onClick={() => openUrl(ep.openUrlConfig!.url)}
+                            aria-label={ep.openUrlConfig.label}
+                            title={ep.openUrlConfig.label}>
+                            {ep.openUrlConfig.label}
                         </Button>
                     );
                 case "addToVSCode":
@@ -212,7 +229,7 @@ export const DabDeploymentComplete = ({
                     );
             }
         },
-        [apiUrl, classes.actionButton, copyToClipboard, openUrl, mcpAdded, handleAddMcpServer],
+        [classes.actionButton, copyToClipboard, openUrl, mcpAdded, handleAddMcpServer],
     );
 
     return (
