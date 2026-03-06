@@ -12,6 +12,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 interface DabContextProps {
     isInitialized: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
+    openUrl: (url: string) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
@@ -203,6 +204,13 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
+    const openUrl = useCallback(
+        (url: string) => {
+            void extensionRpc.sendNotification(Dab.OpenUrlNotification.type, { url });
+        },
+        [extensionRpc],
+    );
+
     const openDabConfigInEditor = useCallback(
         (configContent: string) => {
             void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
@@ -368,6 +376,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             value={{
                 isInitialized,
                 copyToClipboard,
+                openUrl,
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,

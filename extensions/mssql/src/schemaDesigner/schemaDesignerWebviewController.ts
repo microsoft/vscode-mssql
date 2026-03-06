@@ -413,6 +413,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
+        this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
+            await vscode.commands.executeCommand("simpleBrowser.show", payload.url);
+        });
+
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
             const message =
