@@ -903,6 +903,77 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
+        suite("OpenUrlNotification handler", () => {
+            test("should register OpenUrlNotification handler", () => {
+                createController();
+
+                expect(notificationHandlers.has(Dab.OpenUrlNotification.type.method)).to.be.true;
+            });
+
+            test("should open http URL in VS Code built-in browser", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+                expect(handler).to.be.a("function");
+
+                const url = "http://localhost:5000/swagger/index.html";
+                await handler({ url });
+
+                expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+
+            test("should open https URL in VS Code built-in browser", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                const url = "https://example.com/graphql";
+                await handler({ url });
+
+                expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+
+            test("should reject non-http/https schemes", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                await handler({ url: "file:///etc/passwd" });
+                expect(executeCommandStub).to.not.have.been.called;
+
+                await handler({ url: "command:workbench.action.terminal.new" });
+                expect(executeCommandStub).to.not.have.been.called;
+            });
+
+            test("should show error message when simpleBrowser.show fails", async () => {
+                sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .rejects(new Error("Command not found"));
+                const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                const url = "http://localhost:5000/swagger/index.html";
+                await handler({ url });
+
+                expect(showErrorStub).to.have.been.calledOnce;
+            });
+        });
+
         suite("RunDeploymentStepRequest handler", () => {
             test("should register RunDeploymentStepRequest handler", () => {
                 createController();

@@ -17,6 +17,7 @@ import {
     Checkmark16Regular,
     Checkmark20Regular,
     Copy16Regular,
+    Open16Regular,
     Warning20Regular,
 } from "@fluentui/react-icons";
 import { useCallback, useMemo, useState } from "react";
@@ -95,11 +96,19 @@ interface DabDeploymentCompleteProps {
     onFinish: () => void;
 }
 
+type ApiEndpointAction = "copy" | "addToVSCode" | "openUrl";
+
+interface ApiEndpointOpenUrlConfig {
+    url: string;
+    label: string;
+}
+
 interface ApiEndpoint {
     type: Dab.ApiType;
     label: string;
     url: string;
-    action: "copy" | "addToVSCode";
+    actions: ApiEndpointAction[];
+    openUrlConfig?: ApiEndpointOpenUrlConfig;
 }
 
 export const DabDeploymentComplete = ({
@@ -109,7 +118,7 @@ export const DabDeploymentComplete = ({
     onFinish,
 }: DabDeploymentCompleteProps) => {
     const classes = useStyles();
-    const { dabConfig, copyToClipboard, addDabMcpServer } = useDabContext();
+    const { dabConfig, copyToClipboard, openUrl, addDabMcpServer } = useDabContext();
     const isSuccess = !error && apiUrl;
     const [mcpAdded, setMcpAdded] = useState(false);
     const [mcpError, setMcpError] = useState<string | null>(null);
@@ -125,7 +134,11 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.Rest,
                 label: locConstants.schemaDesigner.restApi,
                 url: `${apiUrl}/api`,
-                action: "copy",
+                actions: ["openUrl", "copy"],
+                openUrlConfig: {
+                    url: `${apiUrl}/swagger/index.html`,
+                    label: locConstants.schemaDesigner.viewSwagger,
+                },
             });
         }
         if (enabledTypes.includes(Dab.ApiType.GraphQL)) {
@@ -133,7 +146,11 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.GraphQL,
                 label: locConstants.schemaDesigner.graphql,
                 url: `${apiUrl}/graphql`,
-                action: "copy",
+                actions: ["openUrl", "copy"],
+                openUrlConfig: {
+                    url: `${apiUrl}/graphql`,
+                    label: locConstants.schemaDesigner.openNitro,
+                },
             });
         }
         if (enabledTypes.includes(Dab.ApiType.Mcp)) {
@@ -141,7 +158,7 @@ export const DabDeploymentComplete = ({
                 type: Dab.ApiType.Mcp,
                 label: locConstants.schemaDesigner.mcp,
                 url: `${apiUrl}/mcp`,
-                action: "addToVSCode",
+                actions: ["addToVSCode"],
             });
         }
         return result;
@@ -160,41 +177,59 @@ export const DabDeploymentComplete = ({
         [addDabMcpServer],
     );
 
-    const renderEndpointAction = useCallback(
-        (ep: ApiEndpoint) => {
-            if (ep.action === "copy") {
-                return (
-                    <Button
-                        appearance="subtle"
-                        icon={<Copy16Regular />}
-                        size="small"
-                        className={classes.actionButton}
-                        onClick={() => copyToClipboard(ep.url, Dab.CopyTextType.Url)}
-                        aria-label={locConstants.schemaDesigner.copyUrl(ep.label)}
-                        title={locConstants.schemaDesigner.copyUrl(ep.label)}
-                    />
-                );
+    const renderAction = useCallback(
+        (ep: ApiEndpoint, action: ApiEndpointAction) => {
+            switch (action) {
+                case "copy":
+                    return (
+                        <Button
+                            key={action}
+                            appearance="subtle"
+                            icon={<Copy16Regular />}
+                            size="small"
+                            className={classes.actionButton}
+                            onClick={() => copyToClipboard(ep.url, Dab.CopyTextType.Url)}
+                            aria-label={locConstants.schemaDesigner.copyUrl(ep.label)}
+                            title={locConstants.schemaDesigner.copyUrl(ep.label)}
+                        />
+                    );
+                case "openUrl":
+                    if (!ep.openUrlConfig) {
+                        return null;
+                    }
+                    return (
+                        <Button
+                            key={action}
+                            appearance="subtle"
+                            icon={<Open16Regular />}
+                            size="small"
+                            className={classes.actionButton}
+                            onClick={() => openUrl(ep.openUrlConfig!.url)}
+                            aria-label={ep.openUrlConfig.label}
+                            title={ep.openUrlConfig.label}>
+                            {ep.openUrlConfig.label}
+                        </Button>
+                    );
+                case "addToVSCode":
+                    return (
+                        <Button
+                            key={action}
+                            appearance="subtle"
+                            icon={mcpAdded ? <Checkmark16Regular /> : <Add16Regular />}
+                            size="small"
+                            className={classes.actionButton}
+                            disabled={mcpAdded}
+                            onClick={() => void handleAddMcpServer(ep.url)}
+                            aria-label={locConstants.schemaDesigner.addMcpServerToWorkspace}
+                            title={locConstants.schemaDesigner.addMcpServerToWorkspace}>
+                            {mcpAdded
+                                ? locConstants.schemaDesigner.mcpServerAdded
+                                : locConstants.schemaDesigner.addToVSCode}
+                        </Button>
+                    );
             }
-            if (ep.action === "addToVSCode") {
-                return (
-                    <Button
-                        appearance="subtle"
-                        icon={mcpAdded ? <Checkmark16Regular /> : <Add16Regular />}
-                        size="small"
-                        className={classes.actionButton}
-                        disabled={mcpAdded}
-                        onClick={() => void handleAddMcpServer(ep.url)}
-                        aria-label={locConstants.schemaDesigner.addMcpServerToWorkspace}
-                        title={locConstants.schemaDesigner.addMcpServerToWorkspace}>
-                        {mcpAdded
-                            ? locConstants.schemaDesigner.mcpServerAdded
-                            : locConstants.schemaDesigner.addToVSCode}
-                    </Button>
-                );
-            }
-            return null;
         },
-        [classes.actionButton, copyToClipboard, mcpAdded, handleAddMcpServer],
+        [classes.actionButton, copyToClipboard, openUrl, mcpAdded, handleAddMcpServer],
     );
 
     return (
@@ -222,7 +257,7 @@ export const DabDeploymentComplete = ({
                                     <div key={ep.type} className={classes.apiUrlRow}>
                                         <Text className={classes.apiLabel}>{ep.label}</Text>
                                         <Text className={classes.apiUrl}>{ep.url}</Text>
-                                        {renderEndpointAction(ep)}
+                                        {ep.actions.map((action) => renderAction(ep, action))}
                                     </div>
                                 ))}
                             </div>

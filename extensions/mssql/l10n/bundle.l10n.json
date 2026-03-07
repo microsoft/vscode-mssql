@@ -714,8 +714,8 @@
     "Redo": "Redo",
     "Search tables...": "Search tables...",
     "Show table relationships": "Show table relationships",
-    "Schema Designer": "Schema Designer",
-    "DAB": "DAB",
+    "Visualize and Design Schema": "Visualize and Design Schema",
+    "Build Data API": "Build Data API",
     "Show Changes": "Show Changes",
     "Copilot Changes": "Copilot Changes",
     "Highlight Changes": "Highlight Changes",
@@ -933,6 +933,8 @@
     },
     "Add to VS Code": "Add to VS Code",
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
+    "View Swagger": "View Swagger",
+    "Open Nitro": "Open Nitro",
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -2002,6 +2004,13 @@
     },
     "(Command completed successfully)": "(Command completed successfully)",
     "(0 rows)": "(0 rows)",
+    "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded./{0} is the number of rows actually returned{1} is the total number of rows expected": {
+        "message": "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+        "comment": [
+            "{0} is the number of rows actually returned",
+            "{1} is the total number of rows expected"
+        ]
+    },
     "({0} row)/{0} is the number of rows (singular)": {
         "message": "({0} row)",
         "comment": ["{0} is the number of rows (singular)"]
@@ -2475,6 +2484,7 @@
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
+    "Schema Designer": "Schema Designer",
     "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
     "Generating Report. This may take a while...": "Generating Report. This may take a while...",
     "Failed to generate publish script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -2492,6 +2502,7 @@
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
     "Config copied to clipboard": "Config copied to clipboard",
     "URL copied to clipboard": "URL copied to clipboard",
+    "Failed to open URL. The built-in Simple Browser may be disabled.": "Failed to open URL. The built-in Simple Browser may be disabled.",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
@@ -2646,7 +2657,14 @@
         "comment": ["{0} is the connection ID"]
     },
     "Unknown Connection": "Unknown Connection",
-    "Schema visualization opened.": "Schema visualization opened.",
+    "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_schema_designer' and must not be translated{1} is the operation name 'get_overview' and must not be translated{2} is the operation name 'apply_edits' and must not be translated": {
+        "message": "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).",
+        "comment": [
+            "{0} is the command identifier 'mssql_schema_designer' and must not be translated",
+            "{1} is the operation name 'get_overview' and must not be translated",
+            "{2} is the operation name 'apply_edits' and must not be translated"
+        ]
+    },
     "Execute '{0}' operation on the schema designer?/{0} is the operation name": {
         "message": "Execute '{0}' operation on the schema designer?",
         "comment": ["{0} is the operation name"]
@@ -3152,12 +3170,12 @@
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Unable to read proxy agent options.": "Unable to read proxy agent options.",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
-        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
+        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
     },
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
-        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
+        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
     },
     "Backup Database - {0}/{0} is the database name": {

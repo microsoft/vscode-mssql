@@ -865,6 +865,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">GitHub Copilot으로 API 빌드</target>
       </trans-unit>
+      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
+        <source xml:lang="en">Build Data API</source>
+        <target state="new">Build Data API</target>
+      </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
         <target state="translated">종료 코드 {0}(으)로 빌드하지 못함</target>
@@ -2104,10 +2108,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
         <source xml:lang="en">Customize keyboard shortcuts</source>
         <target state="translated">바로 가기 키 사용자 지정</target>
-      </trans-unit>
-      <trans-unit id="++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128">
-        <source xml:lang="en">DAB</source>
-        <target state="translated">DAB</target>
       </trans-unit>
       <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
         <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
@@ -4767,11 +4767,11 @@ Error:
       <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
         <source xml:lang="en">MSSQL Notebook connected to {0}</source>
         <note>{0} is the connection label</note>
-        <target state="new">MSSQL Notebook connected to {0}</target>
+        <target state="translated">{0}에 연결된 MSSQL Notebook</target>
       </trans-unit>
       <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
         <source xml:lang="en">MSSQL: Click to change database</source>
-        <target state="new">MSSQL: Click to change database</target>
+        <target state="translated">MSSQL: 데이터베이스를 변경하려면 클릭</target>
       </trans-unit>
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
@@ -6041,16 +6041,16 @@ Error:
         <source xml:lang="en">Provisioning</source>
         <target state="translated">프로비전</target>
       </trans-unit>
-      <trans-unit id="++CODE++a4c47b3e357e3753f7d611820a0490f9f1d85adaee725ca2af8d72d7e02df590">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
+      <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
+        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="translated">프록시 설정은 찾았지만 URL을 분석하는 중 오류가 발생했습니다('{0}').  MSSQL 확장을 사용할 때 연결 문제가 발생할 수 있습니다.  오류: {1}</target>
+        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
       </trans-unit>
-      <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
+      <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
+        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="translated">프록시 설정은 찾았지만 프로토콜(e.g. http://)이 없습니다('{0}').  MSSQL 확장을 사용할 때 연결 문제가 발생할 수 있습니다.</target>
+        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -6146,7 +6146,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753">
         <source xml:lang="en">Query execution was canceled.</source>
-        <target state="new">Query execution was canceled.</target>
+        <target state="translated">쿼리 실행이 취소되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
         <source xml:lang="en">Query failed</source>
@@ -6528,11 +6528,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
         <source xml:lang="en">Rule disabled</source>
-        <target state="new">Rule disabled</target>
+        <target state="translated">규칙 사용 안 함</target>
       </trans-unit>
       <trans-unit id="++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c">
         <source xml:lang="en">Rule enabled</source>
-        <target state="new">Rule enabled</target>
+        <target state="translated">규칙 사용</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -6800,6 +6800,13 @@ Query: {2}</source>
         <source xml:lang="en">Schema designer is not initialized.</source>
         <target state="translated">스키마 디자이너가 초기화되지 않았습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77">
+        <source xml:lang="en">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_schema_designer' and must not be translated
+{1} is the operation name 'get_overview' and must not be translated
+{2} is the operation name 'apply_edits' and must not be translated</note>
+        <target state="new">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</target>
+      </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
         <target state="translated">스키마 디자이너 상태가 변경되었습니다. 최신 스키마를 가져온 후 작업을 다시 시도해 주세요.</target>
@@ -6815,10 +6822,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
         <source xml:lang="en">Schema is required</source>
         <target state="translated">스키마는 필수 항목임</target>
-      </trans-unit>
-      <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
-        <source xml:lang="en">Schema visualization opened.</source>
-        <target state="translated">스키마 시각화가 열렸습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
@@ -7281,7 +7284,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
         <source xml:lang="en">Show Definition</source>
-        <target state="new">Show Definition</target>
+        <target state="translated">정의 표시</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
@@ -8390,9 +8393,19 @@ Query: {2}</source>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">이 설정을 적용하려면 Visual Studio Code를 다시 시작해야 합니다.  Visual Studio Code를 다시 로드하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
+        <source xml:lang="en">Visualize and Design Schema</source>
+        <target state="new">Visualize and Design Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
         <target state="translated">경고</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc">
+        <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
+        <note>{0} is the number of rows actually returned
+{1} is the total number of rows expected</note>
+        <target state="new">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>

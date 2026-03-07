@@ -8,7 +8,10 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
-import { registerSchemaDesignerApplyEditsHandler } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
+import {
+    registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerGetSchemaStateHandler,
+} from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
 import { normalizeColumn } from "../../src/reactviews/pages/SchemaDesigner/model";
 import { locConstants } from "../../src/reactviews/common/locConstants";
 
@@ -78,6 +81,93 @@ suite("schemaDesignerRpcHandlers", () => {
             getSchema: () => currentSchema,
         };
     };
+
+    const createGetSchemaStateHarness = (params: {
+        isInitializedRef: { current: boolean };
+        waitForInitialization: () => Promise<boolean>;
+        extractSchema: () => SchemaDesigner.Schema;
+    }) => {
+        let getSchemaStateHandler: (() => Promise<{ schema: SchemaDesigner.Schema }>) | undefined;
+        const extensionRpc = {
+            onRequest: sandbox.stub().callsFake((_type: any, handler: any) => {
+                getSchemaStateHandler = handler;
+            }),
+        };
+
+        registerSchemaDesignerGetSchemaStateHandler({
+            isInitializedRef: params.isInitializedRef,
+            waitForInitialization: params.waitForInitialization,
+            extensionRpc: extensionRpc as any,
+            extractSchema: params.extractSchema,
+        });
+
+        return {
+            getSchemaState: async () => getSchemaStateHandler?.(),
+        };
+    };
+
+    test("get_schema_state returns schema immediately when already initialized", async () => {
+        const schema: SchemaDesigner.Schema = { tables: [] };
+        const extractSchema = sandbox.stub().returns(schema);
+        const waitForInitialization = sandbox.stub().resolves(true);
+        const isInitializedRef = { current: true };
+        const { getSchemaState } = createGetSchemaStateHarness({
+            isInitializedRef,
+            waitForInitialization,
+            extractSchema,
+        });
+
+        const result = await getSchemaState();
+
+        expect(result).to.deep.equal({ schema });
+        expect(waitForInitialization.called).to.equal(false);
+        expect(extractSchema.calledOnce).to.equal(true);
+    });
+
+    test("get_schema_state waits for initialization before returning schema", async () => {
+        const schema: SchemaDesigner.Schema = { tables: [] };
+        const extractSchema = sandbox.stub().returns(schema);
+        const isInitializedRef = { current: false };
+        const waitForInitialization = sandbox.stub().callsFake(async () => {
+            isInitializedRef.current = true;
+            return true;
+        });
+        const { getSchemaState } = createGetSchemaStateHarness({
+            isInitializedRef,
+            waitForInitialization,
+            extractSchema,
+        });
+
+        const result = await getSchemaState();
+
+        expect(result).to.deep.equal({ schema });
+        expect(waitForInitialization.calledOnce).to.equal(true);
+        expect(extractSchema.calledOnce).to.equal(true);
+    });
+
+    test("get_schema_state throws when initialization does not complete", async () => {
+        const extractSchema = sandbox.stub().returns({ tables: [] });
+        const waitForInitialization = sandbox.stub().resolves(false);
+        const isInitializedRef = { current: false };
+        const { getSchemaState } = createGetSchemaStateHarness({
+            isInitializedRef,
+            waitForInitialization,
+            extractSchema,
+        });
+
+        let thrown: unknown;
+        try {
+            await getSchemaState();
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(waitForInitialization.calledOnce).to.equal(true);
+        expect(extractSchema.called).to.equal(false);
+        expect((thrown as Error).message).to.equal(
+            locConstants.schemaDesigner.schemaDesignerNotInitialized,
+        );
+    });
 
     test("apply_edits handler calls onMaybeAutoArrange with table/fk pre+post counts", async () => {
         const { applyEdits, onMaybeAutoArrange } = createApplyEditsHarness({ tables: [] });

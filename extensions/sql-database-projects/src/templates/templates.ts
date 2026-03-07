@@ -86,12 +86,7 @@ export async function loadTemplates(templateFolderPath: string) {
         Promise.resolve(
             (newSdkSqlProjectTemplate = macroExpansion(
                 await loadTemplate(templateFolderPath, "newSdkSqlProjectTemplate.xml"),
-                new Map([
-                    [
-                        "MICROSOFT_BUILD_SQL_VERSION",
-                        getMicrosoftBuildSqlVersion(constants.microsoftBuildSqlVersionKey),
-                    ],
-                ]),
+                new Map([["MICROSOFT_BUILD_SQL_VERSION", getMicrosoftBuildSqlVersion()]]),
             )),
         ),
         loadObjectTypeInfo(
