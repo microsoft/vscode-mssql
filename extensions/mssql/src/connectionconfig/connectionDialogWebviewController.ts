@@ -900,7 +900,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
     ): Promise<void> {
-        this.state.testConnectionSucceeded = false;
+        if (propertyName !== "profileName" && propertyName !== "groupId") {
+            this.state.testConnectionSucceeded = false;
+        }
         await this.handleAzureMFAEdits(propertyName);
     }
 

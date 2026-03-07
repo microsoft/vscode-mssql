@@ -576,6 +576,32 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.testConnectionSucceeded).to.be.false;
             });
 
+            test("afterSetFormProperty keeps success indicator for profileName and groupId", async () => {
+                controller.state.formState = testFormState;
+                connectionManager.connect.resolves(true);
+
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: {
+                        propertyName: "profileName",
+                        value: "My profile",
+                        isAction: false,
+                    },
+                });
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: {
+                        propertyName: "groupId",
+                        value: ConnectionConfig.ROOT_GROUP_ID,
+                        isAction: false,
+                    },
+                });
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+            });
+
             test("displays actionable error message for multiple_matching_tokens_error", async () => {
                 mockObjectExplorerProvider.createSession.resolves({
                     sessionId: "testSessionId",

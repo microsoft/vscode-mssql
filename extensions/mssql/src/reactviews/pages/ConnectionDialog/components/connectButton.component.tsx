@@ -13,7 +13,7 @@ import {
     Spinner,
     Tooltip,
 } from "@fluentui/react-components";
-import { CSSProperties, MouseEvent, useContext } from "react";
+import { CSSProperties, MouseEvent, useContext, useState } from "react";
 import { CheckmarkCircleRegular } from "@fluentui/react-icons";
 import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "../connectionDialogSelector";
@@ -35,6 +35,7 @@ export const ConnectButton = ({
     const connectionAction = useConnectionDialogSelector((s) => s.connectionAction);
     const readyToConnect = useConnectionDialogSelector((s) => s.readyToConnect);
     const testConnectionSucceeded = useConnectionDialogSelector((s) => s.testConnectionSucceeded);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     if (!context) {
         return undefined;
@@ -54,42 +55,45 @@ export const ConnectButton = ({
                 alignItems: "center",
                 gap: "8px",
             }}>
-            {testConnectionSucceeded && (
+            {connectionStatus === ApiStatus.Loading ? (
+                <Spinner size="tiny" />
+            ) : testConnectionSucceeded ? (
                 <Tooltip
                     content={locConstants.connectionDialog.testConnectionSucceeded}
                     relationship="description">
                     <CheckmarkCircleRegular
                         style={{
                             color: "var(--vscode-testing-iconPassed, #73c991)",
+                            fontSize: "20px",
                         }}
                     />
                 </Tooltip>
-            )}
-            <Menu positioning="below-end">
+            ) : undefined}
+            <Menu
+                positioning="below-end"
+                open={isMenuOpen}
+                onOpenChange={(_event, data) => {
+                    setIsMenuOpen(data.open);
+                }}>
                 <MenuTrigger disableButtonEnhancement>
                     <SplitButton
-                        id={ConnectButtonId}
                         type="button"
                         appearance="primary"
                         disabled={connectionStatus === ApiStatus.Loading || !readyToConnect}
                         className={className}
                         style={style}
                         iconPosition="after"
-                        icon={
-                            connectionStatus === ApiStatus.Loading ? (
-                                <Spinner size="tiny" />
-                            ) : undefined
-                        }
+                        icon={undefined}
                         menuButton={{
                             "aria-label": locConstants.connectionDialog.connectActions,
                         }}
-                        onClick={(event: MouseEvent<HTMLElement>) => {
-                            const target = event.target as HTMLElement;
-                            if (target.closest('[aria-haspopup="menu"]')) {
-                                return;
-                            }
-
-                            context.connect();
+                        primaryActionButton={{
+                            id: ConnectButtonId,
+                            onClick: (event: MouseEvent<HTMLButtonElement>) => {
+                                event.stopPropagation();
+                                setIsMenuOpen(false);
+                                context.connect();
+                            },
                         }}>
                         {buttonText}
                     </SplitButton>
