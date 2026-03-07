@@ -2916,10 +2916,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.configureCodeAnalysisSettings" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          <Val><![CDATA[Code Analysis Settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Code Analysis 설정(미리 보기)]]></Val>
+            <Val><![CDATA[Code Analysis 설정]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
