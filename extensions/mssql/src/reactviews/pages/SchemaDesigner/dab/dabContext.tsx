@@ -47,7 +47,8 @@ interface DabProviderProps {
 
 export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
-    const { extensionRpc, extractSchema, isInitialized } = schemaDesignerContext;
+    const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
+        schemaDesignerContext;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
@@ -57,16 +58,11 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     );
 
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
-    const isInitializedRef = useRef<boolean>(isInitialized);
     const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
 
     useEffect(() => {
         dabConfigRef.current = dabConfig;
     }, [dabConfig]);
-
-    useEffect(() => {
-        isInitializedRef.current = isInitialized;
-    }, [isInitialized]);
 
     useEffect(() => {
         extractSchemaRef.current = extractSchema;
@@ -76,13 +72,14 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc,
             isInitializedRef,
+            waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
             getCurrentSchemaTables: () => extractSchemaRef.current().tables,
             commitDabConfig: (config) => {
                 setDabConfig(config);
             },
         });
-    }, [extensionRpc]);
+    }, [extensionRpc, waitForInitialization]);
 
     const initializeDabConfig = useCallback(() => {
         const schema = extractSchema();

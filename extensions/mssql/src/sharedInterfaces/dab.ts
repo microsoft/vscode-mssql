@@ -229,7 +229,7 @@ export namespace Dab {
     export type DabToolChange =
         | { type: "set_api_types"; apiTypes: ApiType[] }
         | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
-        | { type: "set_entity_actions"; entity: DabEntityRef; actions: EntityAction[] }
+        | { type: "set_entity_actions"; entity: DabEntityRef; enabledActions: EntityAction[] }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
         | { type: "set_all_entities_enabled"; isEnabled: boolean };
