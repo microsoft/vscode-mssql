@@ -53,6 +53,8 @@ export class ConnectionDialogWebviewState
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
+    public connectionAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
+    public testConnectionSucceeded: boolean = false;
     public readyToConnect: boolean = false;
     public formMessage: DialogMessageSpec | undefined;
     public dialog: IDialogProps | undefined;

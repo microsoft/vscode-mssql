@@ -343,6 +343,9 @@ export class LocConstants {
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test connection"),
+            testConnectionSucceeded: l10n.t("Connection test succeeded"),
+            testing: l10n.t("Testing"),
+            connecting: l10n.t("Connecting"),
             saveWithoutConnecting: l10n.t("Save without connecting"),
             connectToDatabase: l10n.t("Connect to Database"),
             connectTo: (profileName: string) =>

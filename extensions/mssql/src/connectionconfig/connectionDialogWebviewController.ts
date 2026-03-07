@@ -900,6 +900,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
     ): Promise<void> {
+        this.state.testConnectionSucceeded = false;
         await this.handleAzureMFAEdits(propertyName);
     }
 
@@ -1067,6 +1068,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         action: ConnectionSubmitAction,
     ): Promise<ConnectionDialogWebviewState> {
         this._lastSubmittedAction = action;
+        this.state.connectionAction = action;
 
         const cleanedConnection = await this.prepareConnectionForSubmit(state);
         if (!cleanedConnection) {
@@ -1081,6 +1083,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
 
                 this.state.connectionStatus = ApiStatus.Loaded;
+                this.state.testConnectionSucceeded = true;
                 this.updateState();
                 return state;
             }

@@ -507,6 +507,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionStore.saveProfile.notCalled).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
                 expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
+                expect(controller.state.testConnectionSucceeded).to.be.true;
             });
 
             test("saveWithoutConnecting only saves connection profile", async () => {
@@ -520,6 +521,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.notCalled).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+                expect(controller.state.testConnectionSucceeded).to.be.false;
             });
 
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {
@@ -554,6 +556,24 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledTwice).to.be.true;
                 expect(connectionStore.saveProfile.notCalled).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+            });
+
+            test("afterSetFormProperty clears test connection success indicator", async () => {
+                controller.state.formState = testFormState;
+                connectionManager.connect.resolves(true);
+
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+                expect(controller.state.testConnectionSucceeded).to.be.true;
+
+                await controller["_reducerHandlers"].get("formAction")(controller.state, {
+                    event: {
+                        propertyName: "server",
+                        value: "localhost2",
+                        isAction: false,
+                    },
+                });
+
+                expect(controller.state.testConnectionSucceeded).to.be.false;
             });
 
             test("displays actionable error message for multiple_matching_tokens_error", async () => {
