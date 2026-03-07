@@ -9049,8 +9049,8 @@ Consulta: {2}</target>
         <target state="translated">Azure MFA</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
-        <source xml:lang="en">Backup Database (Preview)</source>
-        <target state="translated">Base de datos de copia de seguridad (versión preliminar)</target>
+        <source xml:lang="en">Backup Database (Preview)...</source>
+        <target state="new">Backup Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
@@ -9116,6 +9116,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Command Timeout</source>
         <target state="translated">Tiempo de espera de comando</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaCompare">
+        <source xml:lang="en">Compare Schemas...</source>
+        <target state="new">Compare Schemas...</target>
+      </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">Conectar</target>
@@ -9152,21 +9156,17 @@ Consulta: {2}</target>
         <source xml:lang="en">Copy All</source>
         <target state="translated">Copiar todo</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy Connection String</source>
+        <target state="new">Copy Connection String</target>
+      </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">Copiar nombre de objeto</target>
       </trans-unit>
-      <trans-unit id="mssql.copyConnectionString">
-        <source xml:lang="en">Copy as Connection String</source>
-        <target state="translated">Copiar como cadena de conexión</target>
-      </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Crear Azure Function con enlace SQL</target>
-      </trans-unit>
-      <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">Create Database (Preview)</source>
-        <target state="translated">Crear base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">Create SQL Notebook</source>
@@ -9183,8 +9183,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
 Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar' para enviar los cambios a la base de datos.</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
-        <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="translated">Aplicación de capa de datos (versión preliminar)</target>
+        <source xml:lang="en">DACPAC/BACPAC Operations...</source>
+        <target state="new">DACPAC/BACPAC Operations...</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -9199,8 +9199,8 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <target state="translated">Eliminar grupo de conexiones</target>
       </trans-unit>
       <trans-unit id="mssql.deleteContainer">
-        <source xml:lang="en">Delete Container</source>
-        <target state="translated">Eliminar contenedor</target>
+        <source xml:lang="en">Delete SQL Container</source>
+        <target state="new">Delete SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
@@ -9239,12 +9239,8 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <target state="translated">No muestre mensajes para mostrar los resultados de la consulta en una nueva pestaña.</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="translated">Quitar base de datos (versión preliminar)</target>
-      </trans-unit>
-      <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">Editar conexión</target>
+        <source xml:lang="en">Drop Database (Preview)...</source>
+        <target state="new">Drop Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9254,9 +9250,13 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">Editar permisos de conexión compartida</target>
       </trans-unit>
+      <trans-unit id="mssql.editConnection">
+        <source xml:lang="en">Edit Connection...</source>
+        <target state="new">Edit Connection...</target>
+      </trans-unit>
       <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="translated">Editar datos (versión preliminar)</target>
+        <source xml:lang="en">Edit Table Data (Preview)...</source>
+        <target state="new">Edit Table Data (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -9406,6 +9406,10 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">Filtrado del árbol del Explorador de objetos</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlScriptsSubmenu">
+        <source xml:lang="en">Generate Script</source>
+        <target state="new">Generate Script</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
         <target state="translated">Introducción a MSSQL para Visual Studio Code</target>
@@ -9419,12 +9423,12 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <target state="translated">Importar BACPAC</target>
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
-        <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="translated">Importar archivo plano (versión preliminar)</target>
+        <source xml:lang="en">Import Data (Preview)...</source>
+        <target state="new">Import Data (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="translated">Iniciar el generador de perfiles de consulta (versión preliminar)</target>
+        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
+        <target state="new">Launch Query Profiler (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9475,8 +9479,12 @@ Puede conectarse a una base de datos escribiendo su información de conexión, u
         <target state="translated">Migrar desde Azure Data Studio</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Modify Table</source>
-        <target state="translated">Modificar tabla</target>
+        <source xml:lang="en">Modify Table Structure...</source>
+        <target state="new">Modify Table Structure...</target>
+      </trans-unit>
+      <trans-unit id="mssql.createDatabase">
+        <source xml:lang="en">New Database (Preview)...</source>
+        <target state="new">New Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9541,12 +9549,12 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <target state="translated">Abrir el archivo XEL del generador de perfiles de consulta (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-        <source xml:lang="en">Open in Copilot Agent mode</source>
-        <target state="translated">Abrir en modo agente de Copilot</target>
+        <source xml:lang="en">Open in GitHub Copilot Agent</source>
+        <target state="new">Open in GitHub Copilot Agent</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Open in Copilot Ask mode</source>
-        <target state="translated">Abrir en modo de consulta de Copilot</target>
+        <source xml:lang="en">Open in GitHub Copilot Chat</source>
+        <target state="new">Open in GitHub Copilot Chat</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -9585,24 +9593,24 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <target state="translated">Actualizar caché de IntelliSense</target>
       </trans-unit>
       <trans-unit id="mssql.removeObjectExplorerNode">
-        <source xml:lang="en">Remove</source>
-        <target state="translated">Quitar</target>
+        <source xml:lang="en">Remove Connection</source>
+        <target state="new">Remove Connection</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Quitar cuenta de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">Cambiar nombre de base de datos (versión preliminar)</target>
+        <source xml:lang="en">Rename Database (Preview)...</source>
+        <target state="new">Rename Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
         <target state="translated">Replicación</target>
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
-        <source xml:lang="en">Restore Database (Preview)</source>
-        <target state="translated">Restaurar base de datos (versión preliminar)</target>
+        <source xml:lang="en">Restore Database (Preview)...</source>
+        <target state="new">Restore Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -9628,17 +9636,9 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">SQL Container Version</source>
         <target state="translated">Versión del contenedor de SQL</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlScriptsSubmenu">
-        <source xml:lang="en">SQL Scripts</source>
-        <target state="translated">Scripts SQL</target>
-      </trans-unit>
       <trans-unit id="mssql.profiler.xelEditorDisplayName">
         <source xml:lang="en">SQL Server Extended Events Log</source>
         <target state="translated">Registro de eventos extendidos de SQL Server</target>
-      </trans-unit>
-      <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare</source>
-        <target state="translated">Comparación de esquemas</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -9657,8 +9657,8 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <target state="translated">Script como ejecutar</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">Buscar objetos de base de datos</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -9792,17 +9792,17 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
         <target state="translated">Equivalente en nube soberana de "https://vault.azure.net/"</target>
       </trans-unit>
-      <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start Container</source>
-        <target state="translated">Iniciar contenedor</target>
-      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">Iniciar la captura del historial de consultas</target>
       </trans-unit>
+      <trans-unit id="mssql.startContainer">
+        <source xml:lang="en">Start SQLContainer</source>
+        <target state="new">Start SQLContainer</target>
+      </trans-unit>
       <trans-unit id="mssql.stopContainer">
-        <source xml:lang="en">Stop Container</source>
-        <target state="translated">Detener contenedor</target>
+        <source xml:lang="en">Stop SQL Container</source>
+        <target state="new">Stop SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
