@@ -6363,6 +6363,12 @@ Erreur :
         <source xml:lang="en">Rename Database (Preview)</source>
         <target state="translated">Créer une base de données (préversion)</target>
       </trans-unit>
+      <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
+        <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
+        <note>{0} is the current database name
+{1} is the new database name</note>
+        <target state="new">Renaming database '{0}' to '{1}'...</target>
+      </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
         <target state="translated">Réplication</target>
