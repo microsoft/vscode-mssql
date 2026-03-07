@@ -877,6 +877,105 @@ suite("MainController Tests", function () {
         });
     });
 
+    suite("Copilot Ask Mode Chat Commands", () => {
+        const createIsolatedController = () => {
+            const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
+            const isolatedContext = stubExtensionContext(sandbox);
+            const isolatedController = new MainController(
+                isolatedContext,
+                isolatedConnectionManager,
+                isolatedVscodeWrapper,
+            );
+            return { isolatedController, isolatedVscodeWrapper };
+        };
+
+        test("prefers the current ask-mode chat command", async () => {
+            const { isolatedController } = createIsolatedController();
+            sandbox
+                .stub(isolatedController as any, "getAvailableCommands")
+                .resolves([
+                    Constants.vscodeWorkbenchChatOpen,
+                    Constants.vscodeWorkbenchChatOpenAskLegacy,
+                    Constants.vscodeWorkbenchChatOpenAsk,
+                ]);
+
+            const result = await (isolatedController as any).findChatOpenAskCommand();
+
+            expect(result).to.equal(Constants.vscodeWorkbenchChatOpenAsk);
+        });
+
+        test("falls back to the legacy ask-mode command when needed", async () => {
+            const { isolatedController } = createIsolatedController();
+            sandbox
+                .stub(isolatedController as any, "getAvailableCommands")
+                .resolves([
+                    Constants.vscodeWorkbenchChatOpen,
+                    Constants.vscodeWorkbenchChatOpenAskLegacy,
+                ]);
+
+            const result = await (isolatedController as any).findChatOpenAskCommand();
+
+            expect(result).to.equal(Constants.vscodeWorkbenchChatOpenAskLegacy);
+        });
+
+        test("falls back to the generic chat open command when ask-mode commands are unavailable", async () => {
+            const { isolatedController } = createIsolatedController();
+            sandbox
+                .stub(isolatedController as any, "getAvailableCommands")
+                .resolves([Constants.vscodeWorkbenchChatOpen]);
+
+            const result = await (isolatedController as any).findChatOpenAskCommand();
+
+            expect(result).to.equal(Constants.vscodeWorkbenchChatOpen);
+        });
+
+        test("shows an error when no ask-mode chat command is available", async () => {
+            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            sandbox.stub(isolatedController as any, "findChatOpenAskCommand").resolves(undefined);
+
+            const result = await (isolatedController as any).openCopilotAskChat("test prompt");
+
+            expect(result).to.be.false;
+            expect(showErrorMessageStub).to.have.been.calledOnceWith(
+                LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
+            );
+            expect(executeCommandStub).to.not.have.been.called;
+        });
+
+        test("opens ask-mode chat with the resolved command", async () => {
+            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const executeCommandStub = sandbox
+                .stub(vscode.commands, "executeCommand")
+                .resolves(undefined);
+            sandbox
+                .stub(isolatedController as any, "findChatOpenAskCommand")
+                .resolves(Constants.vscodeWorkbenchChatOpenAskLegacy);
+
+            const result = await (isolatedController as any).openCopilotAskChat("test prompt");
+
+            expect(result).to.be.true;
+            expect(showErrorMessageStub).to.not.have.been.called;
+            expect(executeCommandStub).to.have.been.calledOnceWith(
+                Constants.vscodeWorkbenchChatOpenAskLegacy,
+                "test prompt",
+            );
+        });
+
+        test("routes the internal ask-mode wrapper command through the ask-mode helper", async () => {
+            const openCopilotAskChatStub = sandbox
+                .stub(mainController as any, "openCopilotAskChat")
+                .resolves(true);
+
+            await vscode.commands.executeCommand(Constants.cmdOpenGithubChat, "wrapper prompt");
+
+            expect(openCopilotAskChatStub).to.have.been.calledOnceWith("wrapper prompt");
+        });
+    });
+
     suite("DAB tool registration", () => {
         test("registers mssql_dab with a show callback that opens the DAB view", async () => {
             const registerToolStub = sandbox

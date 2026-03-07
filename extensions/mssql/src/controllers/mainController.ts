@@ -424,8 +424,7 @@ export default class MainController implements vscode.Disposable {
                     sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
                 }
 
-                // Open chat window
-                vscode.commands.executeCommand("workbench.action.chat.open", promptToUse);
+                await this.openCopilotAskChat(promptToUse);
             };
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
@@ -492,11 +491,7 @@ export default class MainController implements vscode.Disposable {
                 }
 
                 if (activeEditor) {
-                    // Open chat window
-                    vscode.commands.executeCommand(
-                        "workbench.action.chat.open",
-                        `@${Constants.mssqlChatParticipantName} Hello!`,
-                    );
+                    await this.openCopilotAskChat(Prompts.genericChatStart);
                 }
             });
 
@@ -544,6 +539,12 @@ export default class MainController implements vscode.Disposable {
                     await this.openCopilotChatFromUi(args);
                 },
             );
+            this.registerCommandWithArgs(Constants.cmdOpenGithubChat);
+            this._event.on(Constants.cmdOpenGithubChat, (prompt?: string) => {
+                void this.runAndLogErrors(
+                    this.openCopilotAskChat(prompt ?? Prompts.genericChatStart),
+                );
+            });
 
             // -- NEW QUERY WITH CONNECTION (Copilot) --
             this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
@@ -914,24 +915,47 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Find the correct chat open agent command variant that exists in the current VS Code version
+     * Find the first available command variant in the current VS Code version
+     */
+    private async findFirstAvailableCommand(
+        possibleCommands: readonly string[],
+    ): Promise<string | undefined> {
+        const commands = await this.getAvailableCommands();
+        return possibleCommands.find((cmd) => commands.includes(cmd));
+    }
+
+    /**
+     * Find the correct ask-mode chat open command variant that exists in the current VS Code version
+     */
+    private async findChatOpenAskCommand(): Promise<string | undefined> {
+        return this.findFirstAvailableCommand([
+            Constants.vscodeWorkbenchChatOpenAsk,
+            Constants.vscodeWorkbenchChatOpenAskLegacy,
+            Constants.vscodeWorkbenchChatOpen,
+        ]);
+    }
+
+    /**
+     * Find the correct agent-mode chat open command variant that exists in the current VS Code version
      */
     private async findChatOpenAgentCommand(): Promise<string | undefined> {
-        const commands = await this.getAvailableCommands();
+        return this.findFirstAvailableCommand([
+            Constants.vscodeWorkbenchChatOpenAgent,
+            Constants.vscodeWorkbenchChatOpenAgentLegacy,
+        ]);
+    }
 
-        // Try to find the correct command, checking both variants
-        const possibleCommands = [
-            Constants.vscodeWorkbenchChatOpenAgent, // Current VS Code
-            Constants.vscodeWorkbenchChatOpenAgentLegacy, // Legacy VS Code
-        ];
-
-        for (const cmd of possibleCommands) {
-            if (commands.includes(cmd)) {
-                return cmd;
-            }
+    private async openCopilotAskChat(prompt: string): Promise<boolean> {
+        const chatCommand = await this.findChatOpenAskCommand();
+        if (!chatCommand) {
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
+            );
+            return false;
         }
 
-        return undefined;
+        await vscode.commands.executeCommand(chatCommand, prompt);
+        return true;
     }
 
     private getCopilotChatPromptForScenario(scenario: CopilotChat.Scenario): string {
