@@ -6952,7 +6952,7 @@
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
-      <source xml:lang="en">DACPAC/BACPAC Operations (Preview)...</source>
+      <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
@@ -6964,7 +6964,7 @@
       <source xml:lang="en">Delete Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.deleteContainer">
-      <source xml:lang="en">Delete Container</source>
+      <source xml:lang="en">Delete SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.deploy">
       <source xml:lang="en">Deploy DACPAC</source>
@@ -7404,14 +7404,14 @@
     <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
     </trans-unit>
-    <trans-unit id="mssql.startContainer">
-      <source xml:lang="en">Start Container</source>
-    </trans-unit>
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.startContainer">
+      <source xml:lang="en">Start SQLContainer</source>
+    </trans-unit>
     <trans-unit id="mssql.stopContainer">
-      <source xml:lang="en">Stop Container</source>
+      <source xml:lang="en">Stop SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>

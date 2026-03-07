@@ -1063,7 +1063,7 @@
       <source xml:lang="en">Rename</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
-      <source xml:lang="en">SQL Projects</source>
+      <source xml:lang="en">SQL Database Projects</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
