@@ -204,6 +204,7 @@ export default class SqlToolsServiceClient {
         );
 
         if (!result.isRunning) {
+            this._logger.appendLine(`Error: ${result.message}`);
             throw new Error(result.message || "Failed to initialize SQL Tools Service");
         }
 
