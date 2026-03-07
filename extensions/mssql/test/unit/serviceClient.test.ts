@@ -5,6 +5,7 @@
 
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
+import chaiAsPromised from "chai-as-promised";
 import * as chai from "chai";
 import { expect } from "chai";
 import ServerProvider from "../../src/languageservice/server";
@@ -18,6 +19,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 interface IFixture {
     platformInfo: PlatformInformation;
@@ -110,12 +112,9 @@ suite("Service Client tests", () => {
         setupMocks(fixture);
         const serviceClient = createServiceClient();
 
-        try {
-            await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
-            expect.fail("Expected initializeForPlatform to throw for an invalid platform");
-        } catch (error) {
-            expect(error).to.equal("Invalid Platform");
-        }
+        await expect(
+            serviceClient.initializeForPlatform(fixture.platformInfo, undefined),
+        ).to.be.rejectedWith(Error, "Invalid Platform");
     });
 
     test.skip("initializeForPlatform should set v1 given mac 10.11 or lower", async () => {
