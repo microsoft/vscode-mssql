@@ -53,6 +53,7 @@ export class ConnectionDialogWebviewState
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
+    public lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
     public readyToConnect: boolean = false;
     public formMessage: DialogMessageSpec | undefined;
     public dialog: IDialogProps | undefined;
@@ -178,6 +179,12 @@ export enum ConnectionInputMode {
     FabricBrowse = "fabricBrowse",
 }
 
+export enum ConnectionSubmitAction {
+    Connect = "connect",
+    TestConnection = "testConnection",
+    SaveWithoutConnecting = "saveWithoutConnecting",
+}
+
 // A Connection Profile contains all the properties of connection credentials, with additional
 // optional name and details on whether password should be saved
 export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
@@ -221,6 +228,9 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
+    testConnection: () => void;
+    saveWithoutConnecting: () => void;
+    retryLastSubmitAction: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
     closeMessage: () => void;
@@ -257,6 +267,9 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
         connection: IConnectionDialogProfile;
     };
     connect: {};
+    testConnection: {};
+    saveWithoutConnecting: {};
+    retryLastSubmitAction: {};
     loadAzureServers: {
         subscriptionId: string;
     };

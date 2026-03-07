@@ -82,6 +82,7 @@ export const ConnectionInfoFormContainer = () => {
 
     return (
         <form onSubmit={handleConnect} className={formStyles.formRoot}>
+            <button type="submit" style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
             <ConnectionHeader />
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>

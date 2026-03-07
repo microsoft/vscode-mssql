@@ -21,11 +21,16 @@ import {
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
+    ConnectionSubmitAction,
     ConnectionStringDialogProps,
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    ConnectionInfo,
+    SqlConnectionErrorType,
+} from "../../src/controllers/connectionManager";
+import * as ConnectionManagerModule from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import {
@@ -487,6 +492,81 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.formState = testFormState;
 
                 await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(connectionManager.connect.calledOnce).to.be.true;
+                expect(connectionStore.saveProfile.calledOnce).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
+                expect(controller.state.lastSubmittedAction).to.equal(
+                    ConnectionSubmitAction.Connect,
+                );
+            });
+
+            test("testConnection only validates connectivity without saving or creating session", async () => {
+                connectionManager.connect.resolves(true);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+
+                expect(connectionManager.connect.calledOnce).to.be.true;
+                expect(connectionStore.saveProfile.notCalled).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+                expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
+                expect(controller.state.lastSubmittedAction).to.equal(
+                    ConnectionSubmitAction.TestConnection,
+                );
+            });
+
+            test("saveWithoutConnecting only saves connection profile", async () => {
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("saveWithoutConnecting")(
+                    controller.state,
+                    {},
+                );
+
+                expect(connectionManager.connect.notCalled).to.be.true;
+                expect(connectionStore.saveProfile.calledOnce).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
+                expect(controller.state.lastSubmittedAction).to.equal(
+                    ConnectionSubmitAction.SaveWithoutConnecting,
+                );
+            });
+
+            test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {
+                const trustCertErrorMessage = "Trust server certificate required";
+                connectionManager.connect.onFirstCall().resolves(false);
+                connectionManager.connect.onSecondCall().resolves(true);
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: 18456,
+                    errorMessage: trustCertErrorMessage,
+                    messages: trustCertErrorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
+
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+
+                controller.state.formState = testFormState;
+                await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
+
+                expect(controller.state.dialog?.type).to.equal("trustServerCert");
+                expect(controller.state.lastSubmittedAction).to.equal(
+                    ConnectionSubmitAction.TestConnection,
+                );
+                expect(connectionManager.connect.calledOnce).to.be.true;
+
+                await controller["_reducerHandlers"].get("retryLastSubmitAction")(
+                    controller.state,
+                    {},
+                );
+
+                expect(connectionManager.connect.calledTwice).to.be.true;
+                expect(connectionStore.saveProfile.notCalled).to.be.true;
+                expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
             });
 
             test("displays actionable error message for multiple_matching_tokens_error", async () => {
