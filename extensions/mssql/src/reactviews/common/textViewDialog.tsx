@@ -157,7 +157,7 @@ export const TextViewDialog: React.FC<TextViewDialogProps> = ({
                             />
                         </div>
                     </DialogContent>
-                    <DialogActions>
+                    <DialogActions position="end">
                         {actions.map((action, index) => (
                             <Button
                                 key={index}

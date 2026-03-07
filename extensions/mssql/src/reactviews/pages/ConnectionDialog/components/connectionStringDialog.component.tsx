@@ -73,14 +73,14 @@ export const ConnectionStringDialog = ({
             ]}
             actions={[
                 {
-                    label: locConstants.common.load,
-                    appearance: "primary",
-                    onClick: () => context.loadFromConnectionString(connectionString),
-                },
-                {
                     label: locConstants.common.cancel,
                     appearance: "secondary",
                     onClick: () => context.closeDialog(),
+                },
+                {
+                    label: locConstants.common.load,
+                    appearance: "primary",
+                    onClick: () => context.loadFromConnectionString(connectionString),
                 },
             ]}
         />

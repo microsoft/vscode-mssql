@@ -98,7 +98,7 @@ export const BrowseConnectionDialog = ({
                         )}
                         {renderBrowseContent(dialogProps.browseTarget)}
                     </DialogContent>
-                    <DialogActions>
+                    <DialogActions position="end">
                         <Button appearance="secondary" onClick={() => context.closeDialog()}>
                             {locConstants.common.cancel}
                         </Button>
@@ -106,7 +106,7 @@ export const BrowseConnectionDialog = ({
                             appearance="primary"
                             disabled={!isBrowseSelectionReady}
                             onClick={() => context.confirmBrowseDialog()}>
-                            {locConstants.common.ok}
+                            {locConstants.common.load}
                         </Button>
                     </DialogActions>
                 </DialogBody>
