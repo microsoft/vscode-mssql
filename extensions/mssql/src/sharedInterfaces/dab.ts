@@ -338,6 +338,17 @@ export namespace Dab {
         export const type = new NotificationType<CopyTextParams>("dab/copyText");
     }
 
+    /**
+     * Notification to open a URL in the VS Code built-in browser
+     */
+    export interface OpenUrlParams {
+        url: string;
+    }
+
+    export namespace OpenUrlNotification {
+        export const type = new NotificationType<OpenUrlParams>("dab/openUrl");
+    }
+
     // ============================================
     // Reducer types for webview state management
     // ============================================

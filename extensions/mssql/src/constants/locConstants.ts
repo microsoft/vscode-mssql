@@ -1724,6 +1724,9 @@ export class SchemaDesigner {
     );
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static failedToOpenUrl = l10n.t(
+        "Failed to open URL. The built-in Simple Browser may be disabled.",
+    );
 }
 
 export class StatusBar {

@@ -1388,6 +1388,8 @@ export class LocConstants {
             addToVSCode: l10n.t("Add to VS Code"),
             addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
             mcpServerAdded: l10n.t("Added"),
+            viewSwagger: l10n.t("View Swagger"),
+            openNitro: l10n.t("Open Nitro"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
