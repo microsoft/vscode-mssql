@@ -15,23 +15,8 @@ export class ServerInitializationResult {
         public installedBeforeInitializing: boolean = false,
         public isRunning: boolean = false,
         public serverPath: string = undefined,
+        public message: string = undefined,
     ) {}
-
-    public clone(): ServerInitializationResult {
-        return new ServerInitializationResult(
-            this.installedBeforeInitializing,
-            this.isRunning,
-            this.serverPath,
-        );
-    }
-
-    public withRunning(isRunning: boolean): ServerInitializationResult {
-        return new ServerInitializationResult(
-            this.installedBeforeInitializing,
-            isRunning,
-            this.serverPath,
-        );
-    }
 }
 
 /*

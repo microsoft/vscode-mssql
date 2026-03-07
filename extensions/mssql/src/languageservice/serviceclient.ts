@@ -203,6 +203,10 @@ export default class SqlToolsServiceClient {
             `Service ${result.installedBeforeInitializing ? "downloaded and " : ""}${result.isRunning ? "started" : "failed to start"} at ${result.serverPath}`,
         );
 
+        if (!result.isRunning) {
+            throw new Error(result.message || "Failed to initialize SQL Tools Service");
+        }
+
         return result;
     }
 
@@ -228,48 +232,41 @@ export default class SqlToolsServiceClient {
         // For macOS we need to ensure the tools service version is set appropriately
         this.updateServiceVersion(platformInfo);
 
+        let installedBeforeInitializing = false;
+        let serverPath: string | undefined = undefined;
+
         try {
-            const serverPath = await this._server.getServerPath(platformInfo.runtimeId);
-            if (serverPath === undefined) {
-                // Check if the service already installed and if not open the output channel to show the logs
+            serverPath = await this._server.getServerPath(platformInfo.runtimeId);
+
+            // check if the service is already installed
+            if (!serverPath) {
+                // Open the output channel to show the logs
                 if (this._vscodeWrapper !== undefined) {
                     this._vscodeWrapper.outputChannel.show();
                 }
 
-                const installedServerPath = await this._server.downloadServerFiles(
-                    platformInfo.runtimeId,
-                );
-                this._sqlToolsServicePath = path.dirname(installedServerPath);
-
-                await this.initializeLanguageClient(
-                    installedServerPath,
-                    context,
-                    platformInfo.isWindows,
-                );
-
-                await this._client.onReady();
-
-                return new ServerInitializationResult(
-                    true, // installedBeforeInitializing
-                    true, // isRunning
-                    installedServerPath,
-                );
-            } else {
-                this._sqlToolsServicePath = path.dirname(serverPath);
-
-                await this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
-                await this._client.onReady();
-
-                return new ServerInitializationResult(
-                    false, // installedBeforeInitializing
-                    true, // isRunning
-                    serverPath,
-                );
+                serverPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
+                installedBeforeInitializing = true;
             }
+
+            await this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
+            await this._client.onReady();
+
+            return new ServerInitializationResult(
+                installedBeforeInitializing,
+                true, // isRunning
+                serverPath,
+            );
         } catch (err) {
-            this.logger.logDebug(Constants.serviceLoadingFailed + " " + getErrorMessage(err));
+            this.logger.logDebug(Constants.serviceLoadingFailed + ": " + getErrorMessage(err));
             Utils.showErrorMsg(Constants.serviceLoadingFailed);
-            throw err;
+
+            return new ServerInitializationResult(
+                installedBeforeInitializing,
+                false, // isRunning
+                serverPath,
+                getErrorMessage(err),
+            );
         }
     }
 
