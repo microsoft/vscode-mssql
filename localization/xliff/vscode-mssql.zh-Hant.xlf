@@ -2159,6 +2159,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Data API Builder Configuration</source>
         <target state="translated">資料 API 建立器設定</target>
       </trans-unit>
+      <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
+        <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_dab' and must not be translated
+{1} is the operation name 'get_state' and must not be translated
+{2} is the operation name 'apply_changes' and must not be translated</note>
+        <target state="new">Data API Builder opened. Continue with {0} operations ({1}/{2}).</target>
+      </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
         <target state="translated">資料類型</target>
@@ -4922,6 +4929,10 @@ Error:
         <note>{0} is the min</note>
         <target state="translated">最小值: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
+        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+        <target state="new">Missing connectionId. Please provide a connectionId to open Data API Builder.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
         <target state="translated">缺少 connectionId。請提供 connectionId 以開啟結構描述設計工具。</target>
@@ -5179,6 +5190,10 @@ Error:
       <trans-unit id="++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19">
         <source xml:lang="en">No active notebook.</source>
         <target state="translated">沒有使用中的筆記本。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
+        <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</source>
+        <target state="new">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</target>
       </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
