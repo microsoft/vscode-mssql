@@ -24,6 +24,7 @@ export class Common {
     public static error = l10n.t("Error");
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
+    public static remove = l10n.t("Remove");
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
@@ -146,10 +147,10 @@ export let msgOpenSqlFile = l10n.t(
 );
 export let recentConnectionsPlaceholder = l10n.t("Choose a connection profile from the list below");
 export let CreateProfileFromConnectionsListLabel = l10n.t("Create Connection Profile");
-export let CreateProfileLabel = l10n.t("Create");
+export let CreateProfileLabel = l10n.t("Create a new connection profile");
 export let ClearRecentlyUsedLabel = l10n.t("Clear Recent Connections List");
-export let EditProfilesLabel = l10n.t("Edit");
-export let RemoveProfileLabel = l10n.t("Remove");
+export let EditProfilesLabel = l10n.t("Edit an existing connection profile");
+export let RemoveProfileLabel = l10n.t("Remove a connection profile");
 export let ManageProfilesPrompt = l10n.t("Manage Connection Profiles");
 export let SampleServerName = l10n.t("{{put-server-name-here}}");
 export let serverPrompt = l10n.t("Server name or ADO.NET connection string");
@@ -257,8 +258,10 @@ export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
 export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
+export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
-export let msgNoProfilesSaved = l10n.t("No connection profile to remove.");
+export let msgNoProfilesToRemove = l10n.t("No connection profiles to remove.");
+export let msgNoProfilesToEdit = l10n.t("No connection profiles to edit.");
 export let msgProfileRemoved = l10n.t("Profile removed successfully");
 export let msgProfileCreated = l10n.t("Profile created successfully");
 export let msgProfileCreatedAndConnected = l10n.t("Profile created and connected");

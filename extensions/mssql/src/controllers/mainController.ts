@@ -1756,13 +1756,26 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdEditConnection,
-                async (node: TreeNodeInfo) => {
+                async (nodeOrProfile: TreeNodeInfo | IConnectionProfile) => {
+                    const connectionProfile =
+                        nodeOrProfile instanceof TreeNodeInfo
+                            ? nodeOrProfile.connectionProfile
+                            : (nodeOrProfile as IConnectionProfile);
+
+                    if (!connectionProfile) {
+                        this._logger.error(
+                            `Unhandled input for ${Constants.cmdEditConnection}: ${JSON.stringify(nodeOrProfile)}`,
+                        );
+
+                        return;
+                    }
+
                     const connDialog = new ConnectionDialogWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this,
                         this._objectExplorerProvider,
-                        node.connectionProfile,
+                        connectionProfile,
                     );
                     connDialog.revealToForeground();
                 },
