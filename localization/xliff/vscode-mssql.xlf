@@ -6899,7 +6899,7 @@
       <source xml:lang="en">Azure MFA</source>
     </trans-unit>
     <trans-unit id="mssql.backupDatabase">
-      <source xml:lang="en">Backup Database (Preview)</source>
+      <source xml:lang="en">Backup Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.buildDataApi">
       <source xml:lang="en">Build Data API (Preview)...</source>
@@ -6949,6 +6949,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaCompare">
+      <source xml:lang="en">Compare Schemas...</source>
+    </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect</source>
     </trans-unit>
@@ -6976,17 +6979,14 @@
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
+    <trans-unit id="mssql.copyConnectionString">
+      <source xml:lang="en">Copy Connection String</source>
+    </trans-unit>
     <trans-unit id="mssql.copyObjectName">
       <source xml:lang="en">Copy Object Name</source>
     </trans-unit>
-    <trans-unit id="mssql.copyConnectionString">
-      <source xml:lang="en">Copy as Connection String</source>
-    </trans-unit>
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
-    </trans-unit>
-    <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">Create Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.createNotebook">
       <source xml:lang="en">Create SQL Notebook</source>
@@ -6998,7 +6998,7 @@
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
-      <source xml:lang="en">Data-tier Application (Preview)</source>
+      <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
@@ -7010,7 +7010,7 @@
       <source xml:lang="en">Delete Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.deleteContainer">
-      <source xml:lang="en">Delete Container</source>
+      <source xml:lang="en">Delete SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.deploy">
       <source xml:lang="en">Deploy DACPAC</source>
@@ -7040,10 +7040,7 @@
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database (Preview)</source>
-    </trans-unit>
-    <trans-unit id="mssql.editConnection">
-      <source xml:lang="en">Edit Connection</source>
+      <source xml:lang="en">Drop Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
       <source xml:lang="en">Edit Connection Group</source>
@@ -7051,8 +7048,11 @@
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>
     </trans-unit>
+    <trans-unit id="mssql.editConnection">
+      <source xml:lang="en">Edit Connection...</source>
+    </trans-unit>
     <trans-unit id="mssql.tableExplorer">
-      <source xml:lang="en">Edit Data (Preview)</source>
+      <source xml:lang="en">Edit Table Data (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan</source>
@@ -7165,6 +7165,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.sqlScriptsSubmenu">
+      <source xml:lang="en">Generate Script</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.title">
       <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
     </trans-unit>
@@ -7175,10 +7178,10 @@
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.flatFileImport">
-      <source xml:lang="en">Import Flat File (Preview)</source>
+      <source xml:lang="en">Import Data (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-      <source xml:lang="en">Launch Query Profiler (Preview)</source>
+      <source xml:lang="en">Launch Query Profiler (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
@@ -7214,7 +7217,10 @@
       <source xml:lang="en">Migrate from Azure Data Studio</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
-      <source xml:lang="en">Modify Table</source>
+      <source xml:lang="en">Modify Table Structure...</source>
+    </trans-unit>
+    <trans-unit id="mssql.createDatabase">
+      <source xml:lang="en">New Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
@@ -7262,10 +7268,10 @@
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-      <source xml:lang="en">Open in Copilot Agent mode</source>
+      <source xml:lang="en">Open in GitHub Copilot Agent</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
-      <source xml:lang="en">Open in Copilot Ask mode</source>
+      <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
@@ -7295,19 +7301,19 @@
       <source xml:lang="en">Refresh IntelliSense Cache</source>
     </trans-unit>
     <trans-unit id="mssql.removeObjectExplorerNode">
-      <source xml:lang="en">Remove</source>
+      <source xml:lang="en">Remove Connection</source>
     </trans-unit>
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database (Preview)</source>
+      <source xml:lang="en">Rename Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
     </trans-unit>
     <trans-unit id="mssql.restoreDatabase">
-      <source xml:lang="en">Restore Database (Preview)</source>
+      <source xml:lang="en">Restore Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result</source>
@@ -7327,14 +7333,8 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
       <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
-    <trans-unit id="mssql.sqlScriptsSubmenu">
-      <source xml:lang="en">SQL Scripts</source>
-    </trans-unit>
     <trans-unit id="mssql.profiler.xelEditorDisplayName">
       <source xml:lang="en">SQL Server Extended Events Log</source>
-    </trans-unit>
-    <trans-unit id="mssql.schemaCompare">
-      <source xml:lang="en">Schema Compare</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
@@ -7349,7 +7349,7 @@
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
     <trans-unit id="mssql.searchDatabase">
-      <source xml:lang="en">Search Database Objects</source>
+      <source xml:lang="en">Search Database Objects...</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
@@ -7450,14 +7450,14 @@
     <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
     </trans-unit>
-    <trans-unit id="mssql.startContainer">
-      <source xml:lang="en">Start Container</source>
-    </trans-unit>
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.startContainer">
+      <source xml:lang="en">Start SQLContainer</source>
+    </trans-unit>
     <trans-unit id="mssql.stopContainer">
-      <source xml:lang="en">Stop Container</source>
+      <source xml:lang="en">Stop SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
