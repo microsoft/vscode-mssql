@@ -1661,6 +1661,10 @@
             "{2} is the error message"
         ]
     },
+    "Renaming database '{0}' to '{1}'.../{0} is the current database name{1} is the new database name": {
+        "message": "Renaming database '{0}' to '{1}'...",
+        "comment": ["{0} is the current database name", "{1} is the new database name"]
+    },
     "View More": "View More",
     "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
     "Started query execution for document \"{0}\"/{0} is the document name": {
