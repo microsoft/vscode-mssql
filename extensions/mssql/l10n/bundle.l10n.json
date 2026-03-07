@@ -291,9 +291,11 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
+    "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",
-    "Test Connection": "Test Connection",
+    "Test connection": "Test connection",
+    "Save without connecting": "Save without connecting",
     "Connect to Database": "Connect to Database",
     "Connect to {0}/{0} is the name of the connection profile": {
         "message": "Connect to {0}",

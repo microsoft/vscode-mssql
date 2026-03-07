@@ -126,6 +126,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
+    private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
 
     //#endregion
 
@@ -359,7 +360,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("retryLastSubmitAction", async (state) => {
-            return this.submitConnectionAction(state, state.lastSubmittedAction);
+            return this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
         this.registerReducer("loadAzureServers", async (state, payload) => {
@@ -404,7 +405,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.dialog = undefined;
             this.updateState(state);
 
-            return await this.submitConnectionAction(state, state.lastSubmittedAction);
+            return await this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
@@ -429,7 +430,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.updateState(state);
 
-            return await this.submitConnectionAction(state, state.lastSubmittedAction);
+            return await this.submitConnectionAction(state, this._lastSubmittedAction);
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
@@ -883,7 +884,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.updateState();
                 const state = await this.submitConnectionAction(
                     this.state,
-                    this.state.lastSubmittedAction,
+                    this._lastSubmittedAction,
                 );
                 this.updateState(state);
             } else {
@@ -1065,7 +1066,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         action: ConnectionSubmitAction,
     ): Promise<ConnectionDialogWebviewState> {
-        this.state.lastSubmittedAction = action;
+        this._lastSubmittedAction = action;
 
         const cleanedConnection = await this.prepareConnectionForSubmit(state);
         if (!cleanedConnection) {
@@ -1211,7 +1212,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 undefined, // errorCode
                 undefined, // errorType
                 {
-                    submitAction: this.state.lastSubmittedAction,
+                    submitAction: this._lastSubmittedAction,
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     cloudType: getCloudId(),

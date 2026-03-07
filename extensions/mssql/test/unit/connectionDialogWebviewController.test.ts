@@ -21,7 +21,6 @@ import {
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
-    ConnectionSubmitAction,
     ConnectionStringDialogProps,
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
@@ -496,9 +495,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledOnce).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
-                expect(controller.state.lastSubmittedAction).to.equal(
-                    ConnectionSubmitAction.Connect,
-                );
             });
 
             test("testConnection only validates connectivity without saving or creating session", async () => {
@@ -511,9 +507,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionStore.saveProfile.notCalled).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
                 expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
-                expect(controller.state.lastSubmittedAction).to.equal(
-                    ConnectionSubmitAction.TestConnection,
-                );
             });
 
             test("saveWithoutConnecting only saves connection profile", async () => {
@@ -527,9 +520,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.notCalled).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
-                expect(controller.state.lastSubmittedAction).to.equal(
-                    ConnectionSubmitAction.SaveWithoutConnecting,
-                );
             });
 
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {
@@ -554,9 +544,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
 
                 expect(controller.state.dialog?.type).to.equal("trustServerCert");
-                expect(controller.state.lastSubmittedAction).to.equal(
-                    ConnectionSubmitAction.TestConnection,
-                );
                 expect(connectionManager.connect.calledOnce).to.be.true;
 
                 await controller["_reducerHandlers"].get("retryLastSubmitAction")(
