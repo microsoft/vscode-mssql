@@ -54,7 +54,7 @@ const useStyles = makeStyles({
     container: {
         width: "100%",
         margin: 0,
-        padding: "28px 24px 32px",
+        padding: "24px 24px 32px",
         boxSizing: "border-box",
     },
     header: {
@@ -62,7 +62,7 @@ const useStyles = makeStyles({
         gridTemplateColumns: "auto 1fr",
         gap: "16px",
         alignItems: "center",
-        paddingBottom: "20px",
+        paddingBottom: "16px",
         borderBottom: "1px solid var(--vscode-editorGroup-border)",
     },
     iconContainer: {
@@ -79,7 +79,7 @@ const useStyles = makeStyles({
         minWidth: 0,
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
+        gap: "2px",
     },
     title: {
         fontSize: tokens.fontSizeBase500,
@@ -97,7 +97,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-        paddingTop: "20px",
+        paddingTop: "16px",
     },
     loadingMessageBody: {
         display: "flex",
@@ -108,7 +108,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "20px",
-        paddingTop: "24px",
+        paddingTop: "20px",
     },
     footer: {
         flexShrink: 0,
