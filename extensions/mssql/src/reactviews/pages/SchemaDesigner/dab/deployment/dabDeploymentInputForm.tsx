@@ -15,7 +15,8 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { debounce } from "lodash";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 
@@ -59,6 +60,29 @@ export const DabDeploymentInputForm = ({
 
     const validationRequestRef = useRef(0);
 
+    const debouncedServerValidation = useMemo(
+        () =>
+            debounce((name: string, portStr: string) => {
+                const requestId = ++validationRequestRef.current;
+                const portNum = parseInt(portStr, 10);
+                void validateParams(name, portNum).then((result) => {
+                    if (requestId !== validationRequestRef.current) {
+                        return;
+                    }
+                    setContainerNameError(
+                        result.isContainerNameValid ? undefined : result.containerNameError,
+                    );
+                    setPortError(result.isPortValid ? undefined : result.portError);
+                });
+            }, 300),
+        [validateParams],
+    );
+
+    // Cancel pending debounced validation on unmount
+    useEffect(() => {
+        return () => debouncedServerValidation.cancel();
+    }, [debouncedServerValidation]);
+
     // Auto-generate validated defaults on mount
     useEffect(() => {
         const initializeDefaults = async () => {
@@ -97,39 +121,23 @@ export const DabDeploymentInputForm = ({
         [],
     );
 
-    // Debounced validation on input change
+    // Validate on input change: client-side immediately, server-side debounced
     useEffect(() => {
         if (isInitializing) {
             return;
         }
 
-        // Immediate client-side validation
         const { nameError, portError } = validateClientSide(containerName, port);
         setContainerNameError(nameError);
         setPortError(portError);
 
-        // Skip server-side if client-side fails
         if (nameError || portError) {
+            debouncedServerValidation.cancel();
             return;
         }
 
-        const requestId = ++validationRequestRef.current;
-        const timeout = setTimeout(() => {
-            const portNum = parseInt(port, 10);
-            void validateParams(containerName, portNum).then((result) => {
-                // Only apply if this is still the latest request
-                if (requestId !== validationRequestRef.current) {
-                    return;
-                }
-                setContainerNameError(
-                    result.isContainerNameValid ? undefined : result.containerNameError,
-                );
-                setPortError(result.isPortValid ? undefined : result.portError);
-            });
-        }, 300);
-
-        return () => clearTimeout(timeout);
-    }, [containerName, port, isInitializing, validateParams, validateClientSide]);
+        debouncedServerValidation(containerName, port);
+    }, [containerName, port, isInitializing, validateClientSide, debouncedServerValidation]);
 
     const handleSubmit = async () => {
         const { nameError, portError } = validateClientSide(containerName, port);
