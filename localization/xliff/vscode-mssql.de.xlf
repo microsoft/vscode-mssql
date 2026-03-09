@@ -539,7 +539,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
         <source xml:lang="en">Ask GitHub Copilot to Fix</source>
-        <target state="new">Ask GitHub Copilot to Fix</target>
+        <target state="translated">GitHub Copilot zur Behebung auffordern</target>
       </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
@@ -5197,7 +5197,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
-        <target state="new">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</target>
+        <target state="translated">Kein aktiver Schemadesigner gefunden. Öffnen Sie zuerst einen mit mssql_schema_designer mit dem Vorgang „show“ oder über die Benutzeroberfläche.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
@@ -5616,7 +5616,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
         <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
-        <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
+        <target state="translated">Öffnen Sie den GitHub Copilot-Chat, um diese Fehler zu beheben</target>
       </trans-unit>
       <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
         <source xml:lang="en">Open Nitro</source>
@@ -6846,7 +6846,7 @@ Abfrage: {2}</target>
         <note>{0} is the command identifier 'mssql_schema_designer' and must not be translated
 {1} is the operation name 'get_overview' and must not be translated
 {2} is the operation name 'apply_edits' and must not be translated</note>
-        <target state="new">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</target>
+        <target state="translated">Schema-Designer geöffnet. Fahren Sie bei Schemamutationen mit {0} Vorgängen ({1}/{2}) fort.</target>
       </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
@@ -9054,7 +9054,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
-        <target state="new">Build Data API (Preview)...</target>
+        <target state="translated">Build Daten-API (Vorschau)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
@@ -9900,7 +9900,7 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Visualize and Design Schema...</source>
-        <target state="new">Visualize and Design Schema...</target>
+        <target state="translated">Schema visualisieren und entwerfen...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
