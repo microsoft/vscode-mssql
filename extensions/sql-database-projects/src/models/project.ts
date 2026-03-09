@@ -210,21 +210,19 @@ export class Project implements ISqlProject {
      * Third case: a real GUID is already present — this method is never called in that case.
      */
     public static async checkPromptProjectGuidStatus(project: Project): Promise<void> {
-        void vscode.window
-            .showInformationMessage(
-                constants.missingProjectGuid(project.projectFileName),
-                constants.addProjectGuidLabel,
-                constants.noString,
-            )
-            .then(async (result) => {
-                if (result === constants.addProjectGuidLabel) {
-                    try {
-                        await project.addProjectGuidToFile();
-                    } catch (error) {
-                        void window.showErrorMessage(utils.getErrorMessage(error));
-                    }
-                }
-            });
+        const result = await vscode.window.showInformationMessage(
+            constants.missingProjectGuid(project.projectFileName),
+            constants.addProjectGuidLabel,
+            constants.noString,
+        );
+
+        if (result === constants.addProjectGuidLabel) {
+            try {
+                await project.addProjectGuidToFile();
+            } catch (error) {
+                void window.showErrorMessage(utils.getErrorMessage(error));
+            }
+        }
     }
 
     /**

@@ -1844,15 +1844,15 @@ suite("Project: properties", function (): void {
         (project as any)._projectGuid = constants.nullProjectGuid;
 
         const stub = sinon
-            .stub(window, "showWarningMessage")
+            .stub(window, "showInformationMessage")
             .returns(<any>Promise.resolve(constants.noString));
 
         await Project.checkPromptProjectGuidStatus(project);
 
-        expect(stub.calledOnce, "showWarningMessage should be called once").to.be.true;
+        expect(stub.calledOnce, "showInformationMessage should be called once").to.be.true;
         expect(
             stub.calledWith(constants.missingProjectGuid(project.projectFileName)),
-            `showWarningMessage not called with expected message. Actual: "${stub.firstCall.args[0]}"`,
+            `showInformationMessage not called with expected message. Actual: "${stub.firstCall.args[0]}"`,
         ).to.be.true;
 
         sinon.restore();
@@ -1862,8 +1862,14 @@ suite("Project: properties", function (): void {
         const project = await testUtils.createTestSqlProject(this.test);
         (project as any)._projectGuid = undefined;
 
+        // Stub the service so addProjectGuidToFile does not require a live STS connection
+        (project as any).sqlProjService = {
+            ...(project as any).sqlProjService,
+            setProjectProperties: sinon.stub().resolves({ success: true }),
+        };
+
         sinon
-            .stub(window, "showWarningMessage")
+            .stub(window, "showInformationMessage")
             .returns(<any>Promise.resolve(constants.addProjectGuidLabel));
 
         await Project.checkPromptProjectGuidStatus(project);
@@ -1885,7 +1891,9 @@ suite("Project: properties", function (): void {
         const project = await testUtils.createTestSqlProject(this.test);
         (project as any)._projectGuid = constants.nullProjectGuid;
 
-        sinon.stub(window, "showWarningMessage").returns(<any>Promise.resolve(constants.noString));
+        sinon
+            .stub(window, "showInformationMessage")
+            .returns(<any>Promise.resolve(constants.noString));
 
         await Project.checkPromptProjectGuidStatus(project);
 
