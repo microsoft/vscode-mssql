@@ -18,7 +18,12 @@ import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
-import { RequestSecurityTokenParams } from "../../src/models/contracts/azure";
+import {
+    AccountType,
+    AzureAuthType,
+    IAccount,
+    RequestSecurityTokenParams,
+} from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
 import { azureCloudProviderId } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
@@ -27,6 +32,7 @@ import { TestPrompter } from "./stubs";
 import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -627,6 +633,327 @@ suite("ConnectionManager Tests", () => {
             expect(creds.emptyPasswordInput).to.be.true;
             expect(creds.password).to.equal("");
             expect(creds.azureAccountToken).to.be.undefined;
+        });
+    });
+
+    suite("createAccountQuickPickItems", () => {
+        let testConnectionManager: ConnectionManager;
+
+        setup(() => {
+            testConnectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined, // prompter
+                mockLogger,
+            );
+        });
+
+        function makeAccount(id: string, name: string, email: string): IAccount {
+            return {
+                key: { id, providerId: "azure" },
+                displayInfo: {
+                    accountType: AccountType.WorkSchool,
+                    userId: email,
+                    displayName: name,
+                    name,
+                    email,
+                },
+                properties: {
+                    azureAuthType: AzureAuthType.AuthCodeGrant,
+                    tenants: [undefined],
+                    providerSettings: undefined,
+                    isMsAccount: false,
+                    owningTenant: undefined,
+                },
+                isStale: false,
+            };
+        }
+
+        test("should include all accounts plus a sign-in item", () => {
+            const accounts = [
+                makeAccount("acc1", "Alice", "alice@contoso.com"),
+                makeAccount("acc2", "Bob", "bob@contoso.com"),
+            ];
+
+            const items = testConnectionManager["createAccountQuickPickItems"](accounts);
+
+            expect(items).to.have.lengthOf(3);
+            expect(items[0].label).to.equal("Alice");
+            expect(items[0].description).to.equal("alice@contoso.com");
+            expect(items[0].account).to.equal(accounts[0]);
+            expect(items[1].label).to.equal("Bob");
+            expect(items[1].account).to.equal(accounts[1]);
+            expect(items[2].account).to.be.undefined;
+        });
+
+        test("should mark the current account in the label", () => {
+            const accounts = [
+                makeAccount("acc1", "Alice", "alice@contoso.com"),
+                makeAccount("acc2", "Bob", "bob@contoso.com"),
+            ];
+
+            const items = testConnectionManager["createAccountQuickPickItems"](accounts, "acc1");
+
+            expect(items[0].label).to.equal(LocalizedConstants.Connection.currentAccount("Alice"));
+            expect(items[1].label).to.equal("Bob");
+        });
+
+        test("should return only sign-in item when no accounts exist", () => {
+            const items = testConnectionManager["createAccountQuickPickItems"]([]);
+
+            expect(items).to.have.lengthOf(1);
+            expect(items[0].account).to.be.undefined;
+        });
+    });
+
+    suite("showAccountQuickPick", () => {
+        let testConnectionManager: ConnectionManager;
+        let createQuickPickStub: sinon.SinonStub;
+        let mockQuickPick: {
+            items: unknown[];
+            selectedItems: unknown[];
+            placeholder: string;
+            onDidAccept: sinon.SinonStub;
+            onDidHide: sinon.SinonStub;
+            show: sinon.SinonStub;
+            dispose: sinon.SinonStub;
+        };
+        let acceptHandler: () => void;
+        let hideHandler: () => void;
+
+        setup(() => {
+            testConnectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined, // prompter
+                mockLogger,
+            );
+
+            mockQuickPick = {
+                items: [],
+                selectedItems: [],
+                placeholder: "",
+                onDidAccept: sandbox.stub().callsFake((handler: () => void) => {
+                    acceptHandler = handler;
+                }),
+                onDidHide: sandbox.stub().callsFake((handler: () => void) => {
+                    hideHandler = handler;
+                }),
+                show: sandbox.stub(),
+                dispose: sandbox.stub(),
+            };
+
+            createQuickPickStub = sandbox
+                .stub(vscode.window, "createQuickPick")
+                .returns(mockQuickPick as unknown as vscode.QuickPick<vscode.QuickPickItem>);
+        });
+
+        function makeAccount(id: string, name: string, email: string): IAccount {
+            return {
+                key: { id, providerId: "azure" },
+                displayInfo: {
+                    accountType: AccountType.WorkSchool,
+                    userId: email,
+                    displayName: name,
+                    name,
+                    email,
+                },
+                properties: {
+                    azureAuthType: AzureAuthType.AuthCodeGrant,
+                    tenants: [undefined],
+                    providerSettings: undefined,
+                    isMsAccount: false,
+                    owningTenant: undefined,
+                },
+                isStale: false,
+            };
+        }
+
+        test("should return account when user selects an account item", async () => {
+            const account = makeAccount("acc1", "Alice", "alice@contoso.com");
+            const items = [{ label: "Alice", description: "alice@contoso.com", account }];
+
+            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+
+            // Simulate user selecting the account
+            mockQuickPick.selectedItems = [items[0]];
+            acceptHandler();
+
+            const result = await resultPromise;
+            expect(result).to.equal(account);
+            expect(createQuickPickStub).to.have.been.calledOnce;
+        });
+
+        // eslint-disable-next-line no-restricted-syntax
+        test("should return null when user selects the sign-in item", async () => {
+            const items = [
+                {
+                    label: LocalizedConstants.Connection.signInToAzure,
+                    description: LocalizedConstants.Connection.signInToAzure,
+                    account: undefined,
+                },
+            ];
+
+            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+
+            // Simulate user selecting the sign-in item (account is undefined)
+            mockQuickPick.selectedItems = [items[0]];
+            acceptHandler();
+
+            const result = await resultPromise;
+            // eslint-disable-next-line no-restricted-syntax
+            expect(result).to.be.null;
+        });
+
+        test("should return undefined when user dismisses the quick pick", async () => {
+            const items = [
+                {
+                    label: "Alice",
+                    description: "alice@contoso.com",
+                    account: makeAccount("acc1", "Alice", "alice@contoso.com"),
+                },
+            ];
+
+            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+
+            // Simulate user pressing Escape
+            hideHandler();
+
+            const result = await resultPromise;
+            expect(result).to.be.undefined;
+        });
+
+        test("should not resolve to undefined when onDidHide fires after onDidAccept", async () => {
+            const account = makeAccount("acc1", "Alice", "alice@contoso.com");
+            const items = [{ label: "Alice", description: "alice@contoso.com", account }];
+
+            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+
+            // Simulate accept then hide (dispose triggers hide)
+            mockQuickPick.selectedItems = [items[0]];
+            acceptHandler();
+            hideHandler();
+
+            const result = await resultPromise;
+            // Should still be the account, not undefined from the hide handler
+            expect(result).to.equal(account);
+        });
+
+        test("should return undefined when accept fires with no selected item", async () => {
+            const items = [
+                {
+                    label: "Alice",
+                    description: "alice@contoso.com",
+                    account: makeAccount("acc1", "Alice", "alice@contoso.com"),
+                },
+            ];
+
+            const resultPromise = testConnectionManager["showAccountQuickPick"](items);
+
+            // Simulate accept with empty selection
+            mockQuickPick.selectedItems = [];
+            acceptHandler();
+
+            const result = await resultPromise;
+            expect(result).to.be.undefined;
+        });
+    });
+
+    suite("selectAccount", () => {
+        let testConnectionManager: ConnectionManager;
+        let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
+        let showAccountQuickPickStub: sinon.SinonStub;
+        let addAccountStub: sinon.SinonStub;
+
+        function makeAccount(id: string, name: string, email: string): IAccount {
+            return {
+                key: { id, providerId: "azure" },
+                displayInfo: {
+                    accountType: AccountType.WorkSchool,
+                    userId: email,
+                    displayName: name,
+                    name,
+                    email,
+                },
+                properties: {
+                    azureAuthType: AzureAuthType.AuthCodeGrant,
+                    tenants: [undefined],
+                    providerSettings: undefined,
+                    isMsAccount: false,
+                    owningTenant: undefined,
+                },
+                isStale: false,
+            };
+        }
+
+        setup(() => {
+            mockAccountStore = sandbox.createStubInstance(AccountStore);
+
+            testConnectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined, // prompter
+                mockLogger,
+            );
+
+            testConnectionManager["_accountStore"] = mockAccountStore;
+            mockAccountStore.getAccounts.resolves([]);
+
+            showAccountQuickPickStub = sandbox.stub(
+                testConnectionManager as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+                "showAccountQuickPick",
+            );
+            addAccountStub = sandbox.stub(testConnectionManager, "addAccount");
+        });
+
+        test("should return the selected account", async () => {
+            const account = makeAccount("acc1", "Alice", "alice@contoso.com");
+            showAccountQuickPickStub.resolves(account);
+
+            const result = await testConnectionManager["selectAccount"]();
+
+            expect(result).to.equal(account);
+            expect(addAccountStub).to.not.have.been.called;
+        });
+
+        // eslint-disable-next-line no-restricted-syntax
+        test("should trigger sign-in and return new account when sign-in item is selected", async () => {
+            const newAccount = makeAccount("new1", "NewUser", "new@contoso.com");
+            // eslint-disable-next-line no-restricted-syntax
+            showAccountQuickPickStub.resolves(null); // null = sign-in selected
+            addAccountStub.resolves(newAccount);
+
+            const result = await testConnectionManager["selectAccount"]();
+
+            expect(result).to.equal(newAccount);
+            expect(addAccountStub).to.have.been.calledOnce;
+        });
+
+        // eslint-disable-next-line no-restricted-syntax
+        test("should throw when sign-in is selected but addAccount returns falsy", async () => {
+            // eslint-disable-next-line no-restricted-syntax
+            showAccountQuickPickStub.resolves(null);
+            addAccountStub.resolves(undefined);
+
+            try {
+                await testConnectionManager["selectAccount"]();
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect(error.message).to.equal(LocalizedConstants.Connection.noAccountSelected);
+            }
+        });
+
+        test("should throw when user dismisses the quick pick", async () => {
+            showAccountQuickPickStub.resolves(undefined);
+
+            try {
+                await testConnectionManager["selectAccount"]();
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect(error.message).to.equal(LocalizedConstants.Connection.noAccountSelected);
+            }
+
+            expect(addAccountStub).to.not.have.been.called;
         });
     });
 });

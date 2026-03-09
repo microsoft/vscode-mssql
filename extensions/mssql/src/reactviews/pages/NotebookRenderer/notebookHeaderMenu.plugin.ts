@@ -6,7 +6,7 @@
 /**
  * Simplified header filter/sort plugin for the notebook renderer.
  * Similar to HeaderMenu but without RPC dependencies or Fluent UI.
- * Uses inline SVG icons with currentColor for automatic theme adaptation.
+ * Reuses shared SVG icons from table.css via CSS background-image.
  * Renders filter popups as plain DOM elements.
  */
 
@@ -14,16 +14,8 @@ import { instanceOfIDisposableDataProvider } from "../QueryResult/table/dataProv
 import { FilterableColumn } from "../QueryResult/table/interfaces";
 import { SortProperties } from "../../../sharedInterfaces/queryResult";
 
-// Inline SVG icons — fill="currentColor" inherits the header text color for automatic theme support.
-const SORT_ICON = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4.85355 2.14645C4.65829 1.95118 4.34171 1.95118 4.14645 2.14645L1.14645 5.14645C0.951184 5.34171 0.951184 5.65829 1.14645 5.85355C1.34171 6.04882 1.65829 6.04882 1.85355 5.85355L4 3.70711V13.5C4 13.7761 4.22386 14 4.5 14C4.77614 14 5 13.7761 5 13.5V3.70711L7.14645 5.85355C7.34171 6.04882 7.65829 6.04882 7.85355 5.85355C8.04882 5.65829 8.04882 5.34171 7.85355 5.14645L4.85355 2.14645ZM11.1525 13.8595C11.3463 14.0468 11.6537 14.0468 11.8475 13.8595L14.8475 10.9594C15.0461 10.7675 15.0514 10.4509 14.8595 10.2524C14.6676 10.0538 14.351 10.0485 14.1525 10.2404L12 12.3212L12 2.5001C12 2.22395 11.7761 2.0001 11.5 2.0001C11.2239 2.0001 11 2.22395 11 2.5001L11 12.3212L8.84752 10.2404C8.64898 10.0485 8.33244 10.0538 8.14051 10.2524C7.94858 10.4509 7.95394 10.7675 8.15248 10.9594L11.1525 13.8595Z"/></svg>`;
-
-const SORT_ASC_ICON = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M7.14645 2.14645C7.34171 1.95118 7.65829 1.95118 7.85355 2.14645L10.8536 5.14645C11.0488 5.34171 11.0488 5.65829 10.8536 5.85355C10.6583 6.04882 10.3417 6.04882 10.1464 5.85355L8 3.70711V13.5C8 13.7761 7.77614 14 7.5 14C7.22386 14 7 13.7761 7 13.5V3.70711L4.85355 5.85355C4.65829 6.04882 4.34171 6.04882 4.14645 5.85355C3.95118 5.65829 3.95118 5.34171 4.14645 5.14645L7.14645 2.14645Z"/></svg>`;
-
-const SORT_DESC_ICON = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M7.14645 13.8536C7.34171 14.0488 7.65829 14.0488 7.85355 13.8536L10.8536 10.8536C11.0488 10.6583 11.0488 10.3417 10.8536 10.1464C10.6583 9.95118 10.3417 9.95118 10.1464 10.1464L8 12.2929V2.5C8 2.22386 7.77614 2 7.5 2C7.22386 2 7 2.22386 7 2.5V12.2929L4.85355 10.1464C4.65829 9.95118 4.34171 9.95118 4.14645 10.1464C3.95118 10.3417 3.95118 10.6583 4.14645 10.8536L7.14645 13.8536Z"/></svg>`;
-
-const FILTER_ICON = `<svg width="14" height="14" viewBox="0 0 2048 2048" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z"/></svg>`;
-
-const FILTER_FILLED_ICON = `<svg width="14" height="14" viewBox="0 0 2048 2048" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z"/></svg>`;
+// Sort/filter icons are provided via CSS background-image in table.css,
+// which references the shared SVG files in src/reactviews/media/.
 
 /** Extra width added to each column to accommodate the sort + filter buttons. */
 export const FilterButtonWidth = 38;
@@ -105,10 +97,9 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
 
         args.node.classList.add("slick-header-with-filter");
 
-        // Sort button
+        // Sort button — uses shared slick-header-sortbutton class (icons via table.css)
         const sortBtn = document.createElement("button");
-        sortBtn.className = "nb-sort-button";
-        sortBtn.innerHTML = SORT_ICON;
+        sortBtn.className = "slick-header-sortbutton";
         sortBtn.title = "Sort";
         sortBtn.tabIndex = -1;
         this.addListener(sortBtn, "click", (e: Event) => {
@@ -120,10 +111,9 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         args.node.appendChild(sortBtn);
         this._columnSortButtonMapping.set(column.id!, sortBtn);
 
-        // Filter button
+        // Filter button — uses shared slick-header-filterbutton class (icons via table.css)
         const filterBtn = document.createElement("button");
-        filterBtn.className = "nb-filter-button";
-        filterBtn.innerHTML = FILTER_ICON;
+        filterBtn.className = "slick-header-filterbutton";
         filterBtn.title = "Filter";
         filterBtn.tabIndex = -1;
         this.addListener(filterBtn, "click", (e: Event) => {
@@ -151,11 +141,11 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         _e: Event,
         args: Slick.OnBeforeHeaderCellDestroyEventArgs<T>,
     ): void {
-        const sortBtn = args.node.querySelector(".nb-sort-button");
+        const sortBtn = args.node.querySelector(".slick-header-sortbutton");
         if (sortBtn) {
             sortBtn.remove();
         }
-        const filterBtn = args.node.querySelector(".nb-filter-button");
+        const filterBtn = args.node.querySelector(".slick-header-filterbutton");
         if (filterBtn) {
             filterBtn.remove();
         }
@@ -168,15 +158,11 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         if (!btn) {
             return;
         }
-        switch (sortState) {
-            case SortProperties.ASC:
-                btn.innerHTML = SORT_ASC_ICON;
-                break;
-            case SortProperties.DESC:
-                btn.innerHTML = SORT_DESC_ICON;
-                break;
-            default:
-                btn.innerHTML = SORT_ICON;
+        btn.classList.remove("sorted-asc", "sorted-desc");
+        if (sortState === SortProperties.ASC) {
+            btn.classList.add("sorted-asc");
+        } else if (sortState === SortProperties.DESC) {
+            btn.classList.add("sorted-desc");
         }
     }
 
@@ -204,6 +190,32 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
             nextSort = SortProperties.NONE;
         }
 
+        // Apply sort via data provider; bail out if the operation was rejected (e.g., threshold exceeded)
+        const dataView = this._grid.getData();
+        if (instanceOfIDisposableDataProvider<T>(dataView)) {
+            if (nextSort === SortProperties.ASC || nextSort === SortProperties.DESC) {
+                const sortApplied = await dataView.sort({
+                    grid: this._grid,
+                    multiColumnSort: false,
+                    sortCol: column,
+                    sortAsc: nextSort === SortProperties.ASC,
+                });
+                if (!sortApplied) {
+                    return;
+                }
+                this._grid.setSortColumn(columnId, nextSort === SortProperties.ASC);
+            } else {
+                const resetApplied = await dataView.resetSort();
+                if (!resetApplied) {
+                    return;
+                }
+                this._grid.setSortColumn("", false);
+            }
+            this._grid.invalidateAllRows();
+            this._grid.updateRowCount();
+            this._grid.render();
+        }
+
         // Clear previous sort column's state
         if (this._currentSortColumn && this._currentSortColumn !== columnId) {
             this._columnSortStateMapping.set(this._currentSortColumn, SortProperties.NONE);
@@ -212,26 +224,6 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
 
         this._columnSortStateMapping.set(columnId, nextSort);
         this._currentSortColumn = nextSort === SortProperties.NONE ? "" : columnId;
-
-        // Apply sort via data provider
-        const dataView = this._grid.getData();
-        if (instanceOfIDisposableDataProvider<T>(dataView)) {
-            if (nextSort === SortProperties.ASC || nextSort === SortProperties.DESC) {
-                await dataView.sort({
-                    grid: this._grid,
-                    multiColumnSort: false,
-                    sortCol: column,
-                    sortAsc: nextSort === SortProperties.ASC,
-                });
-                this._grid.setSortColumn(columnId, nextSort === SortProperties.ASC);
-            } else {
-                dataView.resetSort();
-                this._grid.setSortColumn("", false);
-            }
-            this._grid.invalidateAllRows();
-            this._grid.updateRowCount();
-            this._grid.render();
-        }
 
         this.updateSortIcon(columnId, nextSort);
         this.onSortChanged.notify(nextSort);
@@ -244,7 +236,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         if (!btn) {
             return;
         }
-        btn.innerHTML = hasFilter ? FILTER_FILLED_ICON : FILTER_ICON;
+        btn.classList.toggle("filtered", hasFilter);
     }
 
     private async showFilterPopup(
@@ -532,10 +524,16 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
     }
 
     private async applyFilter(column: FilterableColumn<T>, selected: string[]): Promise<void> {
+        const previousFilterValues = column.filterValues;
         column.filterValues = selected;
         const dataView = this._grid.getData();
         if (instanceOfIDisposableDataProvider<T>(dataView)) {
-            await dataView.filter(this._grid.getColumns());
+            const filterApplied = await dataView.filter(this._grid.getColumns());
+            if (!filterApplied) {
+                // Restore previous filter values since the operation was rejected
+                column.filterValues = previousFilterValues;
+                return;
+            }
             this._grid.invalidateAllRows();
             this._grid.updateRowCount();
             this._grid.render();

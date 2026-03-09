@@ -12,6 +12,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 interface DabContextProps {
     isInitialized: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
+    openUrl: (url: string) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
@@ -21,9 +22,7 @@ interface DabContextProps {
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
-    dabConfigContent: string;
-    dabConfigRequestId: number;
-    generateDabConfig: () => Promise<void>;
+    dabConfigTextFileContent: string;
     openDabConfigInEditor: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
@@ -48,27 +47,22 @@ interface DabProviderProps {
 
 export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
-    const { extensionRpc, extractSchema, isInitialized } = schemaDesignerContext;
+    const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
+        schemaDesignerContext;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
-    const [dabConfigContent, setDabConfigContent] = useState<string>("");
-    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+    const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
         Dab.createDefaultDeploymentState(),
     );
 
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
-    const isInitializedRef = useRef<boolean>(isInitialized);
     const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
 
     useEffect(() => {
         dabConfigRef.current = dabConfig;
     }, [dabConfig]);
-
-    useEffect(() => {
-        isInitializedRef.current = isInitialized;
-    }, [isInitialized]);
 
     useEffect(() => {
         extractSchemaRef.current = extractSchema;
@@ -78,13 +72,14 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc,
             isInitializedRef,
+            waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
             getCurrentSchemaTables: () => extractSchemaRef.current().tables,
             commitDabConfig: (config) => {
                 setDabConfig(config);
             },
         });
-    }, [extensionRpc]);
+    }, [extensionRpc, waitForInitialization]);
 
     const initializeDabConfig = useCallback(() => {
         const schema = extractSchema();
@@ -177,17 +172,23 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [],
     );
 
-    const generateDabConfig = useCallback(async () => {
+    // Auto-generate text config whenever dabConfig changes
+    useEffect(() => {
         if (!dabConfig) {
             return;
         }
-        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
-            config: dabConfig,
-        });
-        if (response.success) {
-            setDabConfigContent(response.configContent);
-            setDabConfigRequestId((id) => id + 1);
-        }
+        void extensionRpc
+            .sendRequest(Dab.GenerateConfigRequest.type, { config: dabConfig })
+            .then((response) => {
+                if (response.success) {
+                    setDabConfigTextFileContent(response.configContent);
+                } else {
+                    console.error("Failed to generate DAB config:", response.error);
+                }
+            })
+            .catch((error) => {
+                console.error("Failed to generate DAB config:", error);
+            });
     }, [dabConfig, extensionRpc]);
 
     const copyToClipboard = useCallback(
@@ -196,6 +197,13 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 text,
                 copyTextType,
             });
+        },
+        [extensionRpc],
+    );
+
+    const openUrl = useCallback(
+        (url: string) => {
+            void extensionRpc.sendNotification(Dab.OpenUrlNotification.type, { url });
         },
         [extensionRpc],
     );
@@ -365,6 +373,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             value={{
                 isInitialized,
                 copyToClipboard,
+                openUrl,
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
@@ -374,9 +383,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 updateDabEntitySettings,
                 dabTextFilter,
                 setDabTextFilter,
-                dabConfigContent,
-                dabConfigRequestId,
-                generateDabConfig,
+                dabConfigTextFileContent,
                 openDabConfigInEditor,
                 dabDeploymentState,
                 openDabDeploymentDialog,

@@ -7,13 +7,15 @@ import { useEffect, useRef } from "react";
 import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
 import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
-import { NotebookCellSelectionModel } from "./notebookCellSelectionModel.plugin";
+import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
+import { CellRangeSelector } from "../QueryResult/table/plugins/cellRangeSelector";
 import { NotebookContextMenu } from "./notebookContextMenu.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
 import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
 import type { IDbColumn, DbCellValue } from "../../../sharedInterfaces/queryResult";
 import "./notebookResultGrid.css";
 import "../../media/slickgrid.css";
+import "../../media/table.css";
 
 export interface NotebookResultGridProps {
     columnInfo: IDbColumn[];
@@ -98,7 +100,7 @@ function getColumnFormatter(
     };
 }
 
-export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResultGridProps) {
+export function NotebookResultGrid({ columnInfo, rows }: NotebookResultGridProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const gridRef = useRef<Slick.Grid<Slick.SlickData> | null>(null);
     const dataViewRef = useRef<TableDataView<Slick.SlickData> | null>(null);
@@ -208,9 +210,16 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
         const headerMenu = new NotebookHeaderMenu<Slick.SlickData>();
         grid.registerPlugin(headerMenu);
 
-        // Register cell selection model for multi-cell selection
-        const selectionModel = new NotebookCellSelectionModel({
+        // Register cell selection model for multi-cell selection.
+        // Pass a custom CellRangeSelector using VS Code's native CSS variable
+        // since the notebook iframe has no Fluent UI theme provider.
+        const selectionModel = new CellSelectionModel({
             hasRowSelector: true,
+            cellRangeSelector: new CellRangeSelector({
+                selectionCss: {
+                    border: "2px dashed var(--vscode-focusBorder, #007fd4)",
+                },
+            }),
         });
         grid.setSelectionModel(selectionModel);
 
@@ -281,11 +290,7 @@ export function NotebookResultGrid({ columnInfo, rows, rowCount }: NotebookResul
             grid.destroy();
             tableDataView.dispose();
         };
-    }, [columnInfo, rows, rowCount]);
+    }, [columnInfo, rows]);
 
-    return (
-        <div className="notebook-result-grid-container" ref={containerRef}>
-            <div className="row-count-label">{rowCount} row(s)</div>
-        </div>
-    );
+    return <div className="notebook-result-grid-container" ref={containerRef}></div>;
 }

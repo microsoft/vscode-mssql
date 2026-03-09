@@ -39,7 +39,13 @@
                 "command": "mssql.runQuery",
                 "key": "f5",
                 "mac": "f5",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
+            },
+            {
+                "command": "notebook.cell.execute",
+                "key": "f5",
+                "mac": "f5",
+                "when": "notebookCellListFocused && notebookType == 'sql'"
             },
             {
                 "command": "mssql.runCurrentStatement",

@@ -29,6 +29,9 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import * as Prompts from "../../src/copilot/prompts";
+import { DabTool } from "../../src/copilot/tools/dabTool";
+import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
+import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
@@ -845,6 +848,93 @@ suite("MainController Tests", function () {
                     success: "true",
                 },
             );
+        });
+
+        test("opens chat with prompt override when provided", async () => {
+            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const executeCommandStub = sandbox
+                .stub(vscode.commands, "executeCommand")
+                .resolves(undefined);
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getActiveDesigner: sandbox.stub().returns({}),
+            } as any);
+            sandbox
+                .stub(isolatedController as any, "findChatOpenAgentCommand")
+                .resolves(Constants.vscodeWorkbenchChatOpenAgent);
+
+            await (isolatedController as any).openCopilotChatFromUi({
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerPublishDialogError",
+                prompt: "custom GHCP fix prompt",
+            });
+
+            expect(showErrorMessageStub).to.not.have.been.called;
+            expect(executeCommandStub).to.have.been.calledWith(
+                Constants.vscodeWorkbenchChatOpenAgent,
+                "custom GHCP fix prompt",
+            );
+        });
+    });
+
+    suite("DAB tool registration", () => {
+        test("registers mssql_dab with a show callback that opens the DAB view", async () => {
+            const registerToolStub = sandbox
+                .stub(vscode.lm, "registerTool")
+                .returns({ dispose: sandbox.stub() } as vscode.Disposable);
+            const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
+            const isolatedContext = stubExtensionContext(sandbox);
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            const getSchemaDesignerStub = sandbox.stub().resolves(mockDesigner);
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getSchemaDesigner: getSchemaDesignerStub,
+            } as any);
+
+            isolatedConnectionManager.getConnectionInfo
+                .withArgs("dab-connection")
+                .returns({ credentials: { database: "AdventureWorks" } } as any);
+
+            const isolatedController = new MainController(
+                isolatedContext,
+                isolatedConnectionManager,
+                isolatedVscodeWrapper,
+            );
+            (isolatedController as any).registerLanguageModelTools();
+
+            const dabToolRegistration = registerToolStub
+                .getCalls()
+                .find((call) => call.args[0] === Constants.copilotDabToolName);
+
+            expect(dabToolRegistration, "Expected mssql_dab tool registration").to.not.be.undefined;
+
+            const dabTool = dabToolRegistration?.args[1] as DabTool;
+            const result = JSON.parse(
+                await dabTool.call(
+                    {
+                        input: {
+                            operation: "show",
+                            connectionId: "dab-connection",
+                        },
+                    } as any,
+                    {} as vscode.CancellationToken,
+                ),
+            );
+
+            expect(result.success).to.equal(true);
+            expect(getSchemaDesignerStub).to.have.been.calledOnceWith(
+                isolatedContext,
+                isolatedVscodeWrapper,
+                isolatedController,
+                isolatedController.schemaDesignerService,
+                "AdventureWorks",
+                undefined,
+                "dab-connection",
+            );
+            expect(mockDesigner.showView).to.have.been.calledOnceWith(
+                SchemaDesigner.SchemaDesignerActiveView.Dab,
+            );
+            expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
         });
     });
 });

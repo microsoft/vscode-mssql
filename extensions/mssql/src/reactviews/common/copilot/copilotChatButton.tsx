@@ -11,10 +11,11 @@ export interface CopilotChatButtonProps {
     label: string;
     tooltip: string;
     onClick: () => void | Promise<void>;
+    hideLabel?: boolean;
 }
 
 export const CopilotChatButton = forwardRef<HTMLButtonElement, CopilotChatButtonProps>(
-    ({ label, tooltip, onClick }, ref) => {
+    ({ label, tooltip, onClick, hideLabel }, ref) => {
         return (
             <Tooltip content={tooltip} relationship="label">
                 <Button
@@ -25,7 +26,7 @@ export const CopilotChatButton = forwardRef<HTMLButtonElement, CopilotChatButton
                     title={tooltip}
                     aria-label={tooltip}
                     onClick={() => void onClick()}>
-                    {label}
+                    {!hideLabel && label}
                 </Button>
             </Tooltip>
         );

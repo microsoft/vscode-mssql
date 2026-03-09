@@ -46,7 +46,7 @@ import {
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
@@ -938,6 +938,23 @@ export default class ConnectionManager {
                 })
                 .filter((key): key is string => !!key),
         );
+
+        vscode.commands.executeCommand(
+            "setContext",
+            "mssql.connecting",
+            Object.keys(this._connections)
+                .filter((key) => this.isConnecting(key))
+                .map((key) => {
+                    try {
+                        key = vscode.Uri.parse(key).toString();
+                    } catch {
+                        // ignore invalid URIs (for example OE-only keys) in context resource list
+                        return undefined;
+                    }
+                    return key;
+                })
+                .filter((key): key is string => !!key),
+        );
     }
 
     /**
@@ -1214,7 +1231,7 @@ export default class ConnectionManager {
         );
 
         if (!fileUri) {
-            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${Utils.generateGuid()}`;
+            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${uuid()}`;
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
@@ -1226,6 +1243,7 @@ export default class ConnectionManager {
 
         this._connections[fileUri] = connectionInfo;
         this._onConnectionsChangedEmitter.fire();
+        this.updateConnectionsContext();
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
@@ -1313,6 +1331,7 @@ export default class ConnectionManager {
         connectionInfo.connecting = false;
 
         this._connections[fileUri] = connectionInfo;
+        this.updateConnectionsContext();
 
         if (Utils.isNotEmpty(result.connectionId)) {
             /**
@@ -1361,6 +1380,7 @@ export default class ConnectionManager {
                 ),
             );
             this._onConnectionsChangedEmitter.fire();
+            this.updateConnectionsContext();
             connectionActivity.endFailed(
                 new Error(result.errorMessage),
                 false, // Do not include error message
@@ -1656,8 +1676,9 @@ export default class ConnectionManager {
                     LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
                 );
             } else {
-                if (message) {
-                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
+                const displayMsg = errorMessage || message;
+                if (displayMsg) {
+                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(displayMsg));
                 }
             }
             return {
@@ -1680,11 +1701,14 @@ export default class ConnectionManager {
         this.updateConnectionsContext();
     }
 
-    public async onCancelConnect(): Promise<void> {
-        const result = await this.connectionUI.promptToCancelConnection();
-        if (result) {
-            await this.cancelConnect();
+    public async onCancelConnect(promptToConfirm: boolean = true): Promise<void> {
+        if (promptToConfirm) {
+            const result = await this.connectionUI.promptToCancelConnection();
+            if (!result) {
+                return;
+            }
         }
+        await this.cancelConnect();
     }
 
     public async cancelConnect(): Promise<void> {
@@ -2012,33 +2036,43 @@ export default class ConnectionManager {
     private async handleSecurityTokenRequest(
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
-        if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
-            const token = this._keyVaultTokenCache.get(JSON.stringify(params));
-            const isExpired = AzureController.isTokenExpired(token.expiresOn);
-            if (!isExpired) {
-                return {
-                    accountKey: token.key,
-                    token: token.token,
-                };
-            } else {
-                this._keyVaultTokenCache.delete(JSON.stringify(params));
+        try {
+            if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
+                const token = this._keyVaultTokenCache.get(JSON.stringify(params));
+                const isExpired = AzureController.isTokenExpired(token.expiresOn);
+                if (!isExpired) {
+                    return {
+                        accountKey: token.key,
+                        token: token.token,
+                    };
+                } else {
+                    this._keyVaultTokenCache.delete(JSON.stringify(params));
+                }
             }
+            const account = await this.selectAccount();
+            const tenant = await this.selectTenantId(account);
+
+            const token = await this.azureController.getAccountSecurityToken(
+                account,
+                tenant,
+                getCloudProviderSettings(account.key.providerId).settings.azureKeyVaultResource,
+            );
+
+            this._keyVaultTokenCache.set(JSON.stringify(params), token);
+
+            return {
+                accountKey: token.key,
+                token: token.token,
+            };
+        } catch (error) {
+            this._logger.error(`Security token request failed: ${getErrorMessage(error)}`);
+            // Return empty response rather than letting the error propagate
+            // to STS as a null reference
+            return {
+                accountKey: "",
+                token: "",
+            };
         }
-        const account = await this.selectAccount();
-        const tenant = await this.selectTenantId(account);
-
-        const token = await this.azureController.getAccountSecurityToken(
-            account,
-            tenant,
-            getCloudProviderSettings(account.key.providerId).settings.azureKeyVaultResource,
-        );
-
-        this._keyVaultTokenCache.set(JSON.stringify(params), token);
-
-        return {
-            accountKey: token.key,
-            token: token.token,
-        };
     }
 
     private async selectAccount(): Promise<IAccount> {
@@ -2049,6 +2083,16 @@ export default class ConnectionManager {
 
         const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
         const selectedAccount = await this.showAccountQuickPick(quickPickItems);
+
+        // eslint-disable-next-line no-restricted-syntax
+        if (selectedAccount === null) {
+            // User selected "Sign in to Azure" — trigger sign-in and use the new account
+            const newAccount = await this.addAccount();
+            if (!newAccount) {
+                throw new Error(LocalizedConstants.Connection.noAccountSelected);
+            }
+            return newAccount;
+        }
 
         if (!selectedAccount) {
             throw new Error(LocalizedConstants.Connection.noAccountSelected);
@@ -2079,30 +2123,47 @@ export default class ConnectionManager {
         return accountItems;
     }
 
+    /*
+     * Shows a quick pick to select an account. Returns the selected account, null if "Sign in to Azure" was selected,
+     * or undefined if the quick pick was dismissed.
+     * @params items The quick pick items to show
+     * @returns The selected account, null if "Sign in to Azure" was selected, or undefined if the quick pick was dismissed
+     */
     private async showAccountQuickPick(
         items: AccountQuickPickItem[],
-    ): Promise<IAccount | undefined> {
-        const account = await new Promise<IAccount | undefined>((resolve, reject) => {
+    ): Promise<IAccount | null | undefined> {
+        const account = await new Promise<IAccount | null | undefined>((resolve, reject) => {
             const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
             quickPick.items = items;
             quickPick.placeholder = LocalizedConstants.Connection.SelectAccountForKeyVault;
+            let accepted = false;
 
             quickPick.onDidAccept(async () => {
                 try {
+                    accepted = true;
                     const selectedItem = quickPick.selectedItems[0];
+                    quickPick.dispose();
                     if (!selectedItem) {
                         resolve(undefined);
                         return;
                     }
 
                     const account = selectedItem.account;
-                    quickPick.dispose();
-                    resolve(account);
+                    // Return null to signal "sign in" was selected (account is undefined on that item)
+                    resolve(account ?? null); // eslint-disable-line no-restricted-syntax
                 } catch (error) {
                     quickPick.dispose();
                     reject(error);
                 }
             });
+
+            quickPick.onDidHide(() => {
+                quickPick.dispose();
+                if (!accepted) {
+                    resolve(undefined);
+                }
+            });
+
             quickPick.show();
         });
         return account;

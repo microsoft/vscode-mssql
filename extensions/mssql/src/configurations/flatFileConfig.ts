@@ -11,9 +11,12 @@ export const flatFileConfig = {
         version: "0.0.12",
         downloadFileNames: {
             Windows_64: "win-x64.zip",
+            Windows_ARM64: "win-arm64.zip",
             Windows_86: "win-x86.zip",
             OSX: "osx-x64.tar.gz",
+            OSX_ARM64: "osx-arm64.tar.gz",
             Linux: "linux-x64.tar.gz",
+            Linux_ARM64: "linux-arm64.tar.gz",
         },
         installDir: "flatfileservice/{#platform#}/{#version#}",
         executableFiles: ["MicrosoftSqlToolsFlatFileImport", "MicrosoftSqlToolsFlatFileImport.exe"],

@@ -138,7 +138,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
             {
                 title: title,
-                viewColumn: vscode.ViewColumn.Beside,
+                viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
@@ -254,7 +254,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 title: "",
                 run: async () => {
                     this.createWebviewPanel();
-                    this.panel.reveal(vscode.ViewColumn.Beside);
+                    this.panel.reveal(vscode.ViewColumn.Active);
                 },
             };
         }
@@ -799,7 +799,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Reveals the webview panel to the foreground
      */
     public revealToForeground(): void {
-        this.panel.reveal(vscode.ViewColumn.Beside);
+        this.panel.reveal(vscode.ViewColumn.Active);
     }
 
     /**

@@ -17,6 +17,7 @@ interface SchemaDesignerWebviewCopilotChatEntryProps {
     discoveryTitle: string;
     discoveryBody: string;
     showDiscovery: boolean;
+    hideLabel?: boolean;
 }
 
 export function SchemaDesignerWebviewCopilotChatEntry({
@@ -25,6 +26,7 @@ export function SchemaDesignerWebviewCopilotChatEntry({
     discoveryTitle,
     discoveryBody,
     showDiscovery,
+    hideLabel,
 }: SchemaDesignerWebviewCopilotChatEntryProps) {
     const context = useContext(SchemaDesignerContext);
     const isCopilotChatInstalled =
@@ -67,6 +69,7 @@ export function SchemaDesignerWebviewCopilotChatEntry({
             label={locConstants.schemaDesigner.openCopilotForSchemaDesigner}
             tooltip={locConstants.schemaDesigner.openCopilotForSchemaDesignerTooltip}
             onOpenChat={openChat}
+            hideLabel={hideLabel}
             discovery={{
                 open: isDiscoveryOpen && showDiscovery,
                 title: discoveryTitle,

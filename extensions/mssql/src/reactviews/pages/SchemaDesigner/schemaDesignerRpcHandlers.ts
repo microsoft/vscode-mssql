@@ -7,7 +7,7 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
-import { v4 as uuidv4 } from "uuid";
+import { uuid } from "../../common/utils";
 import { tableUtils } from "./model";
 
 export interface SchemaDesignerApplyEditsHandlerParams {
@@ -707,7 +707,7 @@ export function createSchemaDesignerApplyEditsHandler(
                         }
 
                         const newForeignKey: SchemaDesigner.ForeignKey = {
-                            id: uuidv4(),
+                            id: uuid(),
                             name: edit.foreignKey.name,
                             columnsIds: mappingsResult.columnIds,
                             referencedTableId: referenced.table.id,
@@ -981,15 +981,19 @@ export function registerSchemaDesignerApplyEditsHandler(
 }
 
 export function registerSchemaDesignerGetSchemaStateHandler(params: {
-    isInitialized: boolean;
+    isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     extractSchema: () => SchemaDesigner.Schema;
 }) {
-    const { isInitialized, extensionRpc, extractSchema } = params;
+    const { isInitializedRef, waitForInitialization, extensionRpc, extractSchema } = params;
 
     const handleGetSchemaState = async () => {
-        if (!isInitialized) {
-            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+        if (!isInitializedRef.current) {
+            const initialized = await waitForInitialization();
+            if (!initialized || !isInitializedRef.current) {
+                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            }
         }
         return {
             schema: extractSchema(),
@@ -1262,6 +1266,28 @@ function resolveEntityRef(
     };
 }
 
+function createDabValidationError(message: string): {
+    success: false;
+    reason: DabApplyFailureReason;
+    message: string;
+} {
+    return {
+        success: false,
+        reason: "validation_error",
+        message,
+    };
+}
+
+function createEntityWithEnabledActions(
+    entity: Dab.DabEntityConfig,
+    enabledActions: Dab.EntityAction[],
+): Dab.DabEntityConfig {
+    return {
+        ...entity,
+        enabledActions: [...enabledActions],
+    };
+}
+
 function applyDabToolChange(
     config: Dab.DabConfig,
     change: Dab.DabToolChange,
@@ -1315,33 +1341,21 @@ function applyDabToolChange(
                 return resolvedEntity;
             }
 
-            if (!Array.isArray(change.actions) || change.actions.length === 0) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "actions must be a non-empty array.",
-                };
+            if (!Array.isArray(change.enabledActions) || change.enabledActions.length === 0) {
+                return createDabValidationError("enabledActions must be a non-empty array.");
             }
-            const uniqueActions = new Set(change.actions);
-            if (uniqueActions.size !== change.actions.length) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "actions must be unique.",
-                };
+            const uniqueActions = new Set(change.enabledActions);
+            if (uniqueActions.size !== change.enabledActions.length) {
+                return createDabValidationError("enabledActions must be unique.");
             }
-            if (change.actions.some((action) => !allowedActions.has(action))) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "actions contains unsupported values.",
-                };
+            if (change.enabledActions.some((action) => !allowedActions.has(action))) {
+                return createDabValidationError("enabledActions contains unsupported values.");
             }
 
-            config.entities[resolvedEntity.index] = {
-                ...resolvedEntity.entity,
-                enabledActions: [...change.actions],
-            };
+            config.entities[resolvedEntity.index] = createEntityWithEnabledActions(
+                resolvedEntity.entity,
+                change.enabledActions,
+            );
             return { success: true };
         }
 
@@ -1505,6 +1519,7 @@ function applyDabToolChange(
 export function registerSchemaDesignerDabToolHandlers(params: {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     getCurrentDabConfig: () => Dab.DabConfig | null;
     getCurrentSchemaTables: () => SchemaDesigner.Table[];
     commitDabConfig: (config: Dab.DabConfig) => void;
@@ -1512,6 +1527,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
     const {
         extensionRpc,
         isInitializedRef,
+        waitForInitialization,
         getCurrentDabConfig,
         getCurrentSchemaTables,
         commitDabConfig,
@@ -1519,7 +1535,10 @@ export function registerSchemaDesignerDabToolHandlers(params: {
 
     const handleGetState = async (): Promise<Dab.GetDabToolStateResponse> => {
         if (!isInitializedRef.current) {
-            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            const initialized = await waitForInitialization();
+            if (!initialized || !isInitializedRef.current) {
+                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            }
         }
 
         const baseSnapshot = getCurrentDabConfig();

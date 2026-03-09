@@ -11,8 +11,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ChangePasswordWebviewController } from "../controllers/changePasswordWebviewController";
 import { ChangePasswordRequest } from "../models/contracts/changePassword";
 import { ChangePasswordResult } from "../sharedInterfaces/changePassword";
-import { generateGuid } from "../models/utils";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 
 export class ChangePasswordService {
     constructor(
@@ -54,7 +53,7 @@ export class ChangePasswordService {
         const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
         try {
             return await this._client.sendRequest(ChangePasswordRequest.type, {
-                ownerUri: `changePassword:${generateGuid()}`,
+                ownerUri: `changePassword:${uuid()}`,
                 connection: connectionDetails,
                 newPassword: newPassword,
             });

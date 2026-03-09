@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as ep from "../../../sharedInterfaces/executionPlan";
+import { uuid } from "../../common/utils";
 
 export class ExecutionPlanView {
     private _diagram: any;
@@ -174,7 +175,7 @@ export class ExecutionPlanView {
     }
 
     private createGraphElementId(): string {
-        return `element-${window.crypto.randomUUID()}`;
+        return `element-${uuid()}`;
     }
 
     /**

@@ -295,8 +295,15 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     withTarget(
                         {
                             success: true,
-                            message: loc.showSchemaToolSuccessMessage,
+                            message: loc.schemaDesignerToolShowSuccessMessage,
                             version,
+                            recommendedTool: this.toolName,
+                            recommendedNextCall: {
+                                operation: "get_overview",
+                                options: { includeColumns: "namesAndTypes" },
+                            },
+                            schemaMutationPath:
+                                "use apply_edits for schema mutations in active designer",
                         },
                         designer,
                     ),

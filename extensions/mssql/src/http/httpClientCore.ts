@@ -12,6 +12,8 @@ import { Readable } from "stream";
 import { ILogger } from "../models/interfaces";
 
 const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options to get tenants.";
+const HTTPS_PORT = 443;
+const HTTP_PORT = 80;
 
 export interface IHttpClientMessages {
     missingProtocolWarning(proxy: string): string;
@@ -168,12 +170,12 @@ export class HttpClientCore {
                 : new URL(proxy).protocol;
 
             if (!scheme) {
-                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using the MSSQL extension.`;
+                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using this extension.`;
                 localizedMessage = this.dependencies.messages?.missingProtocolWarning(proxy);
             }
         } catch (err) {
             const errorMessage = this.getErrorMessage(err);
-            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using the MSSQL extension.  Error: ${errorMessage}`;
+            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
             localizedMessage = this.dependencies.messages?.unparseableWarning(proxy, errorMessage);
         }
 
@@ -286,10 +288,11 @@ export class HttpClientCore {
             // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
             // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
 
-            const HTTPS_PORT = 443;
-            const HTTP_PORT = 80;
             const parsedRequestUrl = new URL(requestUrl);
-            const port = parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT;
+            // Preserve explicitly-specified ports (e.g., https://host:8443/...), only inject default when no port was provided
+            const port =
+                parsedRequestUrl.port ||
+                (parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT);
 
             return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
         }
@@ -410,9 +413,14 @@ export class HttpClientCore {
 
         return {
             host: proxyEndpoint.hostname,
-            port: Number(proxyEndpoint.port),
+            port: proxyEndpoint.port
+                ? Number(proxyEndpoint.port)
+                : proxyEndpoint.protocol === "https:"
+                  ? HTTPS_PORT
+                  : HTTP_PORT,
             auth,
-            rejectUnauthorized: typeof strictSSL === "boolean",
+            // Default to rejecting unauthorized certs unless the user explicitly disables strict SSL.
+            rejectUnauthorized: strictSSL !== false,
         };
     }
 

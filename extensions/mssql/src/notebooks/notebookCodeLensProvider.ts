@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
+import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 
 /**
@@ -15,8 +16,23 @@ import { NotebookConnectionManager } from "./notebookConnectionManager";
  * The MSSQL extension provides its own code lens via SqlCodeLensProvider
  * registered with { language: "sql" }. That provider auto-connects cells to
  * _lastActiveConnectionInfo (which may be stale/wrong for notebooks).
+ *
+ * Why "last connection" doesn't work for notebooks: SqlDocumentService updates
+ * _lastActiveConnectionInfo in onDidChangeActiveTextEditor, which fires from
+ * vscode.window.activeTextEditor. When a notebook is focused, activeTextEditor
+ * is undefined (VS Code uses activeNotebookEditor instead), so the "last
+ * connection" never reflects the notebook's connection. When a notebook cell
+ * document opens, SqlDocumentService auto-connects it to whatever the last
+ * *text editor* connection was — which is unrelated to the notebook.
+ *
  * SqlCodeLensProvider defers to this provider for notebook cells by checking
  * the document URI scheme.
+ *
+ * This is intentionally separate from SqlCodeLensProvider rather than sharing
+ * a base class. The two have different data sources (ConnectionManager vs
+ * NotebookConnectionManager), different lookup logic (document URI vs
+ * cell→notebook mapping), different states (connecting/error vs simple
+ * connected/not-connected), and trigger different commands.
  */
 export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode.Disposable {
     private readonly _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
@@ -52,11 +68,16 @@ export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode
         const mgr = this.connections.get(notebook.uri.toString());
         const range = new vscode.Range(0, 0, 0, 0);
 
-        if (mgr?.isConnected()) {
-            const label = mgr.getConnectionLabel();
+        const connInfo = mgr?.isConnected() ? mgr.getConnectionInfo() : undefined;
+        if (connInfo) {
             return [
                 new vscode.CodeLens(range, {
-                    title: `$(database) ${label}`,
+                    title: generateServerDisplayName(connInfo),
+                    command: Constants.cmdNotebooksChangeConnection,
+                    tooltip: LocalizedConstants.Notebooks.codeLensClickToChangeConnection,
+                }),
+                new vscode.CodeLens(range, {
+                    title: generateDatabaseDisplayName(connInfo),
                     command: Constants.cmdNotebooksChangeDatabase,
                     tooltip: LocalizedConstants.Notebooks.codeLensClickToChangeDatabase,
                 }),
