@@ -1,5 +1,23 @@
 # Change Log
 
+## Version 1.41.0
+
+- Release date: March 25, 2026
+- Release status: GA
+
+### What's new in 1.41.0
+
+- Introduced SQL Notebooks (Public Preview) with built-in support for executing SQL queries in Jupyter notebooks (.ipynb), featuring interactive result grids with sorting, filtering, and copy options
+- Released general availability of Data API Builder, enabling users to design and deploy REST and GraphQL APIs directly from their SQL schemas without requiring the `mssql.enableDAB` preview setting
+- Released general availability of Code Analysis dialog for analyzing and improving SQL Database Projects
+- Added "Build Data API" context menu entry in Object Explorer to open Data API Builder directly from a database connection
+- Added ability to open REST (Swagger) and GraphQL (Nitro) API endpoints in VS Code's built-in Simple Browser directly from the Data API Builder deployment screen
+- Added GitHub Copilot fix action for SQL Database Projects Publish dialog validation errors
+- Improved Query Profiler to display event timestamps in the current time zone and open results in the active editor
+- Added Windows and Linux ARM platform support for Flat File Import
+- Fixed several SQL Notebook issues including F5 query execution shortcut, duplicate status bar connection button, result set truncation warning, and reconnection to the original database
+- Fixed an issue where Browse Azure was not loading resource groups, locations, or servers in the Connection dialog
+
 ## Version 1.40.0
 
 - Release date: February 25, 2026
