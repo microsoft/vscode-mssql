@@ -8,6 +8,7 @@ import * as constants from "../common/constants";
 import * as utils from "../common/utils";
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
+import { randomUUID } from "crypto";
 
 import { promises as fs } from "fs";
 import { Uri, window } from "vscode";
@@ -194,7 +195,36 @@ export class Project implements ISqlProject {
             );
         }
 
+        if (!proj._projectGuid || proj._projectGuid === constants.nullProjectGuid) {
+            void Project.checkPromptProjectGuidStatus(proj);
+        }
+
         return proj;
+    }
+
+    /**
+     * Prompts the user to add a ProjectGuid if one is not present or valid.
+     * Two cases trigger this prompt:
+     * - Case 1: <ProjectGuid> element is absent from the .sqlproj file (DacFx returns all-zeros)
+     * - Case 2: <ProjectGuid> is present but explicitly set to all-zeros
+     * Third case: a real GUID is already present — this method is never called in that case.
+     */
+    public static async checkPromptProjectGuidStatus(project: Project): Promise<void> {
+        void vscode.window
+            .showInformationMessage(
+                constants.missingProjectGuid(project.projectFileName),
+                constants.addProjectGuidLabel,
+                constants.noString,
+            )
+            .then(async (result) => {
+                if (result === constants.addProjectGuidLabel) {
+                    try {
+                        await project.addProjectGuidToFile();
+                    } catch (error) {
+                        void window.showErrorMessage(utils.getErrorMessage(error));
+                    }
+                }
+            });
     }
 
     /**
@@ -600,6 +630,14 @@ export class Project implements ISqlProject {
             return;
         }
 
+        // Ensure a proper GUID exists before calling the cross-platform update.
+        // The DacFx updateProjectForCrossPlatform operation writes the all-zeros GUID
+        // ({00000000-0000-0000-0000-000000000000}) when no <ProjectGuid> is present.
+        // By adding a real GUID first, we prevent that.
+        if (!this._projectGuid) {
+            await this.addProjectGuidToFile();
+        }
+
         TelemetryReporter.sendActionEvent(
             TelemetryViews.ProjectController,
             TelemetryActions.updateProjectForRoundtrip,
@@ -626,6 +664,20 @@ export class Project implements ISqlProject {
         utils.throwIfFailed(result);
 
         await this.readCrossPlatformCompatibility();
+    }
+
+    /**
+     * Generates a unique GUID and inserts it as <ProjectGuid> into the first <PropertyGroup>
+     * of the project file. Updates the in-memory _projectGuid value.
+     * Does nothing if a <ProjectGuid> is already present.
+     */
+    public async addProjectGuidToFile(): Promise<void> {
+        const guid = `{${randomUUID().toUpperCase()}}`;
+        const result = await this.sqlProjService.setProjectProperties(this.projectFilePath, {
+            ProjectGuid: guid,
+        });
+        utils.throwIfFailed(result);
+        this._projectGuid = guid;
     }
 
     //#region Add/Delete/Exclude functions

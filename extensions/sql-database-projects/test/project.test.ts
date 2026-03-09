@@ -1837,6 +1837,65 @@ suite("Project: properties", function (): void {
             constants.invalidProjectPropertyValueProvided(semicolon),
         );
     });
+
+    test("Should prompt user when ProjectGuid is missing", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        // Simulate a missing or all-zeros GUID, which is what DacFx returns when <ProjectGuid> is absent
+        (project as any)._projectGuid = constants.nullProjectGuid;
+
+        const stub = sinon
+            .stub(window, "showWarningMessage")
+            .returns(<any>Promise.resolve(constants.noString));
+
+        await Project.checkPromptProjectGuidStatus(project);
+
+        expect(stub.calledOnce, "showWarningMessage should be called once").to.be.true;
+        expect(
+            stub.calledWith(constants.missingProjectGuid(project.projectFileName)),
+            `showWarningMessage not called with expected message. Actual: "${stub.firstCall.args[0]}"`,
+        ).to.be.true;
+
+        sinon.restore();
+    });
+
+    test("Should add a valid ProjectGuid to project when user accepts prompt", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        (project as any)._projectGuid = undefined;
+
+        sinon
+            .stub(window, "showWarningMessage")
+            .returns(<any>Promise.resolve(constants.addProjectGuidLabel));
+
+        await Project.checkPromptProjectGuidStatus(project);
+
+        expect(project.projectGuid, "projectGuid should be set after accepting prompt").to.not.be
+            .undefined;
+        expect(project.projectGuid, "projectGuid should not be the null GUID").to.not.equal(
+            constants.nullProjectGuid,
+        );
+        // Verify format: {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
+        expect(project.projectGuid).to.match(
+            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
+        );
+
+        sinon.restore();
+    });
+
+    test("Should not add ProjectGuid when user rejects prompt", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        (project as any)._projectGuid = constants.nullProjectGuid;
+
+        sinon.stub(window, "showWarningMessage").returns(<any>Promise.resolve(constants.noString));
+
+        await Project.checkPromptProjectGuidStatus(project);
+
+        expect(
+            (project as any)._projectGuid,
+            "projectGuid should remain unchanged when user rejects the prompt",
+        ).to.equal(constants.nullProjectGuid);
+
+        sinon.restore();
+    });
 });
 
 suite("Project: round trip updates", function (): void {
