@@ -5,11 +5,9 @@
 
 import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { Editor } from "@monaco-editor/react";
-import { resolveVscodeThemeType } from "../../common/utils";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
+import { VscodeEditor } from "../../common/vscodeMonaco";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
@@ -224,11 +222,11 @@ export const TextView = () => {
         <div className={classes.textViewContainer}>
             {textContent ? (
                 <div className={classes.editorContainer}>
-                    <Editor
+                    <VscodeEditor
                         width="100%"
                         height="100%"
                         language="plaintext"
-                        theme={resolveVscodeThemeType(themeKind || ColorThemeKind.Light)}
+                        themeKind={themeKind}
                         value={textContent}
                         options={{
                             readOnly: true,
