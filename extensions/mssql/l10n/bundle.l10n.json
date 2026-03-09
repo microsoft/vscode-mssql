@@ -2000,6 +2000,7 @@
     "Keep in query pane": "Keep in query pane",
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold": "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
     "New Deployment": "New Deployment",
+    "MSSQL: Click to change connection": "MSSQL: Click to change connection",
     "MSSQL: Click to change database": "MSSQL: Click to change database",
     "Connection failed": "Connection failed",
     "Query execution failed": "Query execution failed",
@@ -2044,6 +2045,7 @@
     "Select Database": "Select Database",
     "Choose a database": "Choose a database",
     "(current)": "(current)",
+    "Click to change connection": "Click to change connection",
     "Click to change database": "Click to change database",
     "Connect to SQL Server": "Connect to SQL Server",
     "MSSQL Notebook connected to {0}/{0} is the connection label": {

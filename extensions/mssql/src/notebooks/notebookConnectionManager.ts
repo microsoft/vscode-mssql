@@ -292,6 +292,16 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionLabel = "";
     }
 
+    /**
+     * Disconnect a specific URI from the connection sharing service without
+     * clearing the manager's current state. Used to clean up a previous
+     * connection after a new one has been established.
+     */
+    disconnectUri(uri: string): void {
+        this.log.info(`[disconnectUri] URI=${uri}`);
+        this.connectionSharingService.disconnect(uri);
+    }
+
     getConnectionLabel(): string {
         return this.connectionLabel || LocalizedConstants.Notebooks.notConnected;
     }
