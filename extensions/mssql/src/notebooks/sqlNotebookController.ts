@@ -764,8 +764,24 @@ export class SqlNotebookController implements vscode.Disposable {
         }
 
         const mgr = this.getConnectionManager(notebook);
-        mgr.disconnect();
-        await mgr.promptAndConnect();
+        const previousUri = mgr.getConnectionUri();
+
+        try {
+            // Prompt first so that cancelling the picker preserves the
+            // existing connection instead of disconnecting eagerly.
+            await mgr.promptAndConnect();
+        } catch {
+            // User cancelled or connection failed — keep existing connection.
+            this.updateStatusBar(notebook);
+            this.codeLensProvider.refresh();
+            return;
+        }
+
+        // Clean up the previous connection now that the new one succeeded.
+        if (previousUri) {
+            mgr.disconnectUri(previousUri);
+        }
+
         this.connectCellsForIntellisense(notebook);
         this.saveConnectionMetadataIfConnected(notebook);
         this.updateStatusBar(notebook);
