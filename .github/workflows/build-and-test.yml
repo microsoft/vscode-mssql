@@ -356,7 +356,7 @@ jobs:
           SMOKE_EXIT_CODE=$?
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
-      - name: Upload Smoke Test Screenshots
+      - name: Upload Smoke Test Screenshots and Videos
         uses: actions/upload-artifact@v6
         with:
           name: smoke-test-failure-screenshots
