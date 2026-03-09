@@ -4608,9 +4608,6 @@
       <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos; and cannot start or create live sessions without a database connection.</source>
       <note>{0} is the file name</note>
     </trans-unit>
-    <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
-      <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
-    </trans-unit>
     <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
       <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
     </trans-unit>

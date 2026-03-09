@@ -73,21 +73,16 @@ export class ProfilerController {
             this._logger.verbose(`Server types detected: ${serverTypes.join(", ")}`);
 
             // Determine engine type based on server type
-            this._currentEngineType = serverTypes.includes(ServerType.Azure)
-                ? EngineType.AzureSQLDB
-                : EngineType.Standalone;
+            // Fabric SQL databases use the same Azure SQL profiles
+            this._currentEngineType =
+                serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric)
+                    ? EngineType.AzureSQLDB
+                    : EngineType.Standalone;
             this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
 
-            // Block Fabric connections - profiler is not supported
-            if (serverTypes.includes(ServerType.Fabric)) {
-                this._logger.verbose("Profiler not supported on Fabric");
-                vscode.window.showWarningMessage(LocProfiler.profilerNotSupportedOnFabric);
-                return;
-            }
-
-            // For Azure SQL, we need to ensure a user database is selected
+            // For Azure SQL and Fabric, we need to ensure a user database is selected
             let profileToUse = connectionProfile;
-            if (serverTypes.includes(ServerType.Azure)) {
+            if (serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric)) {
                 const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
                 if (!updatedProfile) {
                     // User cancelled database selection
