@@ -654,6 +654,9 @@
     <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
       <source xml:lang="en">Build APIs with GitHub Copilot</source>
     </trans-unit>
+    <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
+      <source xml:lang="en">Build Data API</source>
+    </trans-unit>
     <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
       <source xml:lang="en">Build failed with exit code {0}</source>
     </trans-unit>
@@ -1530,6 +1533,9 @@
     <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
       <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
+      <source xml:lang="en">Create a new connection profile</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c4e11ad9f72c183a2ea2cdf1ed42c358aee2b87c96cad4d22d7d22b967dd3b8">
       <source xml:lang="en">Create a new database on &apos;{0}&apos;.</source>
       <note>{0} is the name of the server</note>
@@ -1604,9 +1610,6 @@
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
-    <trans-unit id="++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128">
-      <source xml:lang="en">DAB</source>
-    </trans-unit>
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
@@ -1641,6 +1644,12 @@
     </trans-unit>
     <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
       <source xml:lang="en">Data API Builder Configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
+      <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+      <note>{0} is the command identifier &apos;mssql_dab&apos; and must not be translated
+{1} is the operation name &apos;get_state&apos; and must not be translated
+{2} is the operation name &apos;apply_changes&apos; and must not be translated</note>
     </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
@@ -1967,9 +1976,6 @@
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
-    <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
-      <source xml:lang="en">Edit</source>
-    </trans-unit>
     <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
       <source xml:lang="en">Edit Connection Group - {0}</source>
       <note>{0} is the connection group name</note>
@@ -1989,6 +1995,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
+      <source xml:lang="en">Edit an existing connection profile</source>
     </trans-unit>
     <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
       <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -2604,6 +2613,9 @@
     <trans-unit id="++CODE++5e48fe09a77f9c6eaf15d210eb7a4d05f676e38b8999adc6e782ef2b35b4ccbe">
       <source xml:lang="en">Failed to open Modify Table: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
+      <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
     </trans-unit>
     <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
       <source xml:lang="en">Failed to open XEL file: {0}</source>
@@ -3751,6 +3763,9 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
+      <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
       <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
     </trans-unit>
@@ -3947,6 +3962,9 @@
     <trans-unit id="++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19">
       <source xml:lang="en">No active notebook.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
+      <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation &apos;show&apos; or from the UI.</source>
+    </trans-unit>
     <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
       <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation &apos;show&apos; or from the UI.</source>
     </trans-unit>
@@ -3990,8 +4008,11 @@
     <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
       <source xml:lang="en">No connection information found</source>
     </trans-unit>
-    <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
-      <source xml:lang="en">No connection profile to remove.</source>
+    <trans-unit id="++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338">
+      <source xml:lang="en">No connection profiles to edit.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e">
+      <source xml:lang="en">No connection profiles to remove.</source>
     </trans-unit>
     <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
       <source xml:lang="en">No connection selected.</source>
@@ -4262,6 +4283,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
       <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
+      <source xml:lang="en">Open Nitro</source>
     </trans-unit>
     <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
       <source xml:lang="en">Open Publish Script</source>
@@ -4605,13 +4629,13 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
-    <trans-unit id="++CODE++a4c47b3e357e3753f7d611820a0490f9f1d85adaee725ca2af8d72d7e02df590">
-      <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: &apos;{0}&apos;.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
+    <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
+      <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: &apos;{0}&apos;. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
       <note>{0} is the proxy URL
 {1} is the error message</note>
     </trans-unit>
-    <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
-      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;.  You may encounter connection issues while using the MSSQL extension.</source>
+    <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
+      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;. You may encounter connection issues while using the MSSQL extension.</source>
       <note>{0} is the proxy URL</note>
     </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
@@ -4812,6 +4836,9 @@
     <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
       <source xml:lang="en">Remove Sort</source>
     </trans-unit>
+    <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
+      <source xml:lang="en">Remove a connection profile</source>
+    </trans-unit>
     <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
       <source xml:lang="en">Remove file</source>
     </trans-unit>
@@ -4834,6 +4861,11 @@
     </trans-unit>
     <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
       <source xml:lang="en">Rename Database (Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
+      <source xml:lang="en">Renaming database &apos;{0}&apos; to &apos;{1}&apos;...</source>
+      <note>{0} is the current database name
+{1} is the new database name</note>
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
@@ -5419,6 +5451,9 @@
     </trans-unit>
     <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
       <source xml:lang="en">Select package file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730">
+      <source xml:lang="en">Select profile to edit</source>
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
@@ -6366,6 +6401,9 @@
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>
     </trans-unit>
+    <trans-unit id="++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1">
+      <source xml:lang="en">View Swagger</source>
+    </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
     </trans-unit>
@@ -6387,8 +6425,16 @@
     <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
       <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
     </trans-unit>
+    <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
+      <source xml:lang="en">Visualize and Design Schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
       <source xml:lang="en">Warning</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc">
+      <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
+      <note>{0} is the number of rows actually returned
+{1} is the total number of rows expected</note>
     </trans-unit>
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -6853,7 +6899,7 @@
       <source xml:lang="en">Azure MFA</source>
     </trans-unit>
     <trans-unit id="mssql.backupDatabase">
-      <source xml:lang="en">Backup Database (Preview)</source>
+      <source xml:lang="en">Backup Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.buildDataApi">
       <source xml:lang="en">Build Data API (Preview)...</source>
@@ -6903,6 +6949,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaCompare">
+      <source xml:lang="en">Compare Schemas...</source>
+    </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect</source>
     </trans-unit>
@@ -6930,17 +6979,14 @@
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
+    <trans-unit id="mssql.copyConnectionString">
+      <source xml:lang="en">Copy Connection String</source>
+    </trans-unit>
     <trans-unit id="mssql.copyObjectName">
       <source xml:lang="en">Copy Object Name</source>
     </trans-unit>
-    <trans-unit id="mssql.copyConnectionString">
-      <source xml:lang="en">Copy as Connection String</source>
-    </trans-unit>
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
-    </trans-unit>
-    <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">Create Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.createNotebook">
       <source xml:lang="en">Create SQL Notebook</source>
@@ -6952,7 +6998,7 @@
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
-      <source xml:lang="en">Data-tier Application (Preview)</source>
+      <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
@@ -6964,7 +7010,7 @@
       <source xml:lang="en">Delete Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.deleteContainer">
-      <source xml:lang="en">Delete Container</source>
+      <source xml:lang="en">Delete SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.deploy">
       <source xml:lang="en">Deploy DACPAC</source>
@@ -6994,10 +7040,7 @@
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database (Preview)</source>
-    </trans-unit>
-    <trans-unit id="mssql.editConnection">
-      <source xml:lang="en">Edit Connection</source>
+      <source xml:lang="en">Drop Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
       <source xml:lang="en">Edit Connection Group</source>
@@ -7005,8 +7048,11 @@
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>
     </trans-unit>
+    <trans-unit id="mssql.editConnection">
+      <source xml:lang="en">Edit Connection...</source>
+    </trans-unit>
     <trans-unit id="mssql.tableExplorer">
-      <source xml:lang="en">Edit Data (Preview)</source>
+      <source xml:lang="en">Edit Table Data (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan</source>
@@ -7119,6 +7165,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.sqlScriptsSubmenu">
+      <source xml:lang="en">Generate Script</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.title">
       <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
     </trans-unit>
@@ -7129,10 +7178,10 @@
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.flatFileImport">
-      <source xml:lang="en">Import Flat File (Preview)</source>
+      <source xml:lang="en">Import Data (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-      <source xml:lang="en">Launch Query Profiler (Preview)</source>
+      <source xml:lang="en">Launch Query Profiler (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
@@ -7168,7 +7217,10 @@
       <source xml:lang="en">Migrate from Azure Data Studio</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
-      <source xml:lang="en">Modify Table</source>
+      <source xml:lang="en">Modify Table Structure...</source>
+    </trans-unit>
+    <trans-unit id="mssql.createDatabase">
+      <source xml:lang="en">New Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
@@ -7216,10 +7268,10 @@
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-      <source xml:lang="en">Open in Copilot Agent mode</source>
+      <source xml:lang="en">Open in GitHub Copilot Agent</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
-      <source xml:lang="en">Open in Copilot Ask mode</source>
+      <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
@@ -7249,19 +7301,19 @@
       <source xml:lang="en">Refresh IntelliSense Cache</source>
     </trans-unit>
     <trans-unit id="mssql.removeObjectExplorerNode">
-      <source xml:lang="en">Remove</source>
+      <source xml:lang="en">Remove Connection</source>
     </trans-unit>
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database (Preview)</source>
+      <source xml:lang="en">Rename Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
     </trans-unit>
     <trans-unit id="mssql.restoreDatabase">
-      <source xml:lang="en">Restore Database (Preview)</source>
+      <source xml:lang="en">Restore Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result</source>
@@ -7281,14 +7333,8 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
       <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
-    <trans-unit id="mssql.sqlScriptsSubmenu">
-      <source xml:lang="en">SQL Scripts</source>
-    </trans-unit>
     <trans-unit id="mssql.profiler.xelEditorDisplayName">
       <source xml:lang="en">SQL Server Extended Events Log</source>
-    </trans-unit>
-    <trans-unit id="mssql.schemaCompare">
-      <source xml:lang="en">Schema Compare</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
@@ -7303,7 +7349,7 @@
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
     <trans-unit id="mssql.searchDatabase">
-      <source xml:lang="en">Search Database Objects</source>
+      <source xml:lang="en">Search Database Objects...</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
@@ -7404,14 +7450,14 @@
     <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
     </trans-unit>
-    <trans-unit id="mssql.startContainer">
-      <source xml:lang="en">Start Container</source>
-    </trans-unit>
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.startContainer">
+      <source xml:lang="en">Start SQLContainer</source>
+    </trans-unit>
     <trans-unit id="mssql.stopContainer">
-      <source xml:lang="en">Stop Container</source>
+      <source xml:lang="en">Stop SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>

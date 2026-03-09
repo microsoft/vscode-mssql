@@ -54,59 +54,58 @@ suite("DAB LM tool manifest schema", () => {
         return tool;
     };
 
-    test("validates root operation oneOf (get_state vs apply_changes)", () => {
+    test("uses a visible top-level object schema instead of a root oneOf", () => {
         const tool = getTool();
-        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
-        expect(rootOneOf, "missing inputSchema.oneOf").to.be.an("array");
+        expect(tool.inputSchema?.type).to.equal("object");
+        expect(tool.inputSchema?.oneOf).to.equal(undefined);
+        expect(tool.inputSchema?.properties).to.include.keys(
+            "operation",
+            "connectionId",
+            "payload",
+            "options",
+        );
+        expect(tool.inputSchema?.required).to.deep.equal(["operation"]);
+    });
 
-        const operations = rootOneOf
-            .map((variant: any) => variant?.properties?.operation?.enum?.[0])
-            .filter(Boolean);
-        expect(operations.sort()).to.deep.equal(["apply_changes", "get_state"].sort());
+    test("validates top-level operation enum and show connectionId guidance", () => {
+        const tool = getTool();
+        expect(tool.inputSchema?.properties?.operation?.enum).to.deep.equal([
+            "get_state",
+            "apply_changes",
+            "show",
+        ]);
+        expect(tool.inputSchema?.properties?.connectionId?.minLength).to.equal(1);
+        expect(tool.inputSchema?.properties?.connectionId?.description).to.contain(
+            "show operation only",
+        );
+        expect(tool.inputSchema?.properties?.connectionId?.description).to.contain(
+            "Do not include for get_state/apply_changes",
+        );
     });
 
     test("validates apply_changes payload.expectedVersion and changes constraints", () => {
         const tool = getTool();
-        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
-        const applyChanges = rootOneOf.find(
-            (variant: any) => variant?.properties?.operation?.enum?.[0] === "apply_changes",
-        );
-        expect(applyChanges, "missing apply_changes oneOf variant").to.exist;
-
-        const payload = applyChanges.properties?.payload;
-        expect(payload.required).to.include.members(["expectedVersion", "changes"]);
-        expect(payload.properties?.expectedVersion?.minLength).to.equal(1);
-        expect(payload.properties?.changes?.minItems).to.equal(1);
+        const payload = tool.inputSchema?.properties?.payload;
+        expect(payload?.required).to.include.members(["expectedVersion", "changes"]);
+        expect(payload?.properties?.expectedVersion?.minLength).to.equal(1);
+        expect(payload?.properties?.changes?.minItems).to.equal(1);
     });
 
     test("validates targetHint requires both server and database when provided", () => {
         const tool = getTool();
-        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
-        const applyChanges = rootOneOf.find(
-            (variant: any) => variant?.properties?.operation?.enum?.[0] === "apply_changes",
-        );
-        expect(applyChanges, "missing apply_changes oneOf variant").to.exist;
-
         const targetHintRequired =
-            applyChanges.properties?.payload?.properties?.targetHint?.required ?? [];
+            tool.inputSchema?.properties?.payload?.properties?.targetHint?.required ?? [];
         expect(targetHintRequired.slice().sort()).to.deep.equal(["database", "server"]);
     });
 
     test("enforces additionalProperties: false on root/payload/options/change schemas", () => {
         const tool = getTool();
-        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
-        const getState = rootOneOf.find(
-            (variant: any) => variant?.properties?.operation?.enum?.[0] === "get_state",
-        );
-        const applyChanges = rootOneOf.find(
-            (variant: any) => variant?.properties?.operation?.enum?.[0] === "apply_changes",
-        );
-        expect(getState.additionalProperties).to.equal(false);
-        expect(applyChanges.additionalProperties).to.equal(false);
-        expect(applyChanges.properties?.payload?.additionalProperties).to.equal(false);
-        expect(applyChanges.properties?.options?.additionalProperties).to.equal(false);
+        expect(tool.inputSchema?.additionalProperties).to.equal(false);
+        expect(tool.inputSchema?.properties?.payload?.additionalProperties).to.equal(false);
+        expect(tool.inputSchema?.properties?.options?.additionalProperties).to.equal(false);
 
-        const changeVariants = applyChanges.properties?.payload?.properties?.changes?.items?.oneOf;
+        const changeVariants =
+            tool.inputSchema?.properties?.payload?.properties?.changes?.items?.oneOf;
         expect(changeVariants, "missing changes.items.oneOf").to.be.an("array");
         for (const changeVariant of changeVariants) {
             expect(changeVariant.additionalProperties).to.equal(false);
@@ -125,13 +124,10 @@ suite("DAB LM tool manifest schema", () => {
         expect(requiredLists).to.deep.include.members([["id"], ["schemaName", "tableName"]]);
     });
 
-    test("validates enums for apiTypes/actions/authorizationRole/returnState", () => {
+    test("validates enums for apiTypes/enabledActions/authorizationRole/returnState", () => {
         const tool = getTool();
-        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
-        const applyChanges = rootOneOf.find(
-            (variant: any) => variant?.properties?.operation?.enum?.[0] === "apply_changes",
-        );
-        const changeVariants = applyChanges.properties?.payload?.properties?.changes?.items?.oneOf;
+        const changeVariants =
+            tool.inputSchema?.properties?.payload?.properties?.changes?.items?.oneOf;
         const byType = new Map<string, any>();
         for (const variant of changeVariants) {
             byType.set(variant?.properties?.type?.enum?.[0], variant);
@@ -142,16 +138,13 @@ suite("DAB LM tool manifest schema", () => {
             "graphql",
             "mcp",
         ]);
-        expect(byType.get("set_entity_actions")?.properties?.actions?.items?.enum).to.deep.equal([
-            "create",
-            "read",
-            "update",
-            "delete",
-        ]);
+        expect(
+            byType.get("set_entity_actions")?.properties?.enabledActions?.items?.enum,
+        ).to.deep.equal(["create", "read", "update", "delete"]);
         expect(
             tool.inputSchema?.$defs?.advancedSettingsPatch?.properties?.authorizationRole?.enum,
         ).to.deep.equal(["anonymous", "authenticated"]);
-        expect(applyChanges.properties?.options?.properties?.returnState?.enum).to.deep.equal([
+        expect(tool.inputSchema?.properties?.options?.properties?.returnState?.enum).to.deep.equal([
             "full",
             "summary",
             "none",

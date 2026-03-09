@@ -9,8 +9,8 @@
     "sqlDatabaseProjects.build": "Build",
     "sqlDatabaseProjects.buildWithCodeAnalysis": "Build With Code Analysis",
     "sqlDatabaseProjects.publish": "Publish",
-    "sqlDatabaseProjects.createProjectFromDatabase": "Create Project From Database",
-    "sqlDatabaseProjects.updateProjectFromDatabase": "Update Project From Database",
+    "sqlDatabaseProjects.createProjectFromDatabase": "Create Project from Database",
+    "sqlDatabaseProjects.updateProjectFromDatabase": "Update Project from Database",
     "sqlDatabaseProjects.configureCodeAnalysisSettings": "Code Analysis Settings",
     "sqlDatabaseProjects.properties": "Properties",
     "sqlDatabaseProjects.schemaCompare": "Schema Compare",
@@ -31,6 +31,7 @@
     "sqlDatabaseProjects.addExistingItem": "Add Existing Item...",
     "sqlDatabaseProjects.newFolder": "Add Folder",
     "sqlDatabaseProjects.newPublishProfile": "Add Publish Profile",
+    "sqlDatabaseProjects.objectExplorerSubmenu": "SQL Database Projects",
 
     "sqlDatabaseProjects.addDatabaseReference": "Add Database Reference",
     "sqlDatabaseProjects.addSqlCmdVariable": "Add SQLCMD Variable",

@@ -865,6 +865,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} of {1} rules]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 条规则，共 {1} 条]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} password doesn't match the confirmation password]]></Val>
@@ -1113,6 +1122,15 @@
           <Val><![CDATA[>=]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[>=]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Ask GitHub Copilot to Fix]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[要求 GitHub Copilot 修复]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1540,15 +1558,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL: Not connected]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL: 未连接]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[(Command completed successfully)]]></Val>
@@ -1689,6 +1698,15 @@
           <Val><![CDATA[Cannot exclude {0}. Included dependents exist, such as {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[无法排除 {0}。存在包括的依赖项，例如 {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit an existing connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[编辑现有连接配置文件]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2071,15 +2089,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Notebook connected to {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL 笔记本已连接到 {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The behavior when a user tries to update a row with data that is involved in a foreign key relationship.]]></Val>
@@ -2130,6 +2139,15 @@
           <Val><![CDATA[Read docs]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[阅读文档]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The query results panel failed to load. Please try running the query again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查询结果面板加载失败。请尝试重新运行查询。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2431,15 +2449,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish Changes]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[发布更改]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Insufficient Workspace Permissions]]></Val>
@@ -2625,6 +2634,15 @@
           <Val><![CDATA[Show Schema]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[显示架构]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[All severities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所有严重级别]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2818,6 +2836,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rule disabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已禁用规则]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++24649ee0c7a92fd868db079f46ef6b58509081e8b0e8b9ed929606f33c62831d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Zoom Out]]></Val>
@@ -2859,6 +2886,15 @@
           <Val><![CDATA[Blob]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Blob]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select profile to edit]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择要编辑的配置文件]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3502,6 +3538,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query execution was canceled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查询执行已取消。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hostname]]></Val>
@@ -4024,6 +4069,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Renaming database '{0}' to '{1}'...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在将数据库 '{0}' 重命名为 '{1}'...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.]]></Val>
@@ -4060,15 +4114,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No active schema designer found. Please open a schema designer first using /showSchema or from the UI.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[找不到活动架构设计器。请先使用 /showSchema 或 UI 打开架构设计器。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[File not found]]></Val>
@@ -4092,6 +4137,15 @@
           <Val><![CDATA[database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection profiles to remove.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[沒有可移除的连接配置文件。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4879,6 +4933,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection profiles to edit.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[没有可编辑的连接配置文件。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server {0} not found.]]></Val>
@@ -5095,6 +5158,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing connectionId. Please provide a connectionId to open Data API Builder.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[缺少 connectionId。请提供 connectionId 以打开数据 API 生成器。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[delete the saved connection: {0}?]]></Val>
@@ -5280,15 +5352,6 @@
           <Val><![CDATA[Found pending reconnect promise for uri {0}, waiting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[找到 URI {0} 的挂起的重新连接承诺，正在等待。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[编辑]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6004,6 +6067,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[警告: 结果集不完整。正在显示 {0} 行(共 {1} 行)。无法加载完整的结果集。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4dfa72354bcd12e5cf7c9f4bf75d9136658d8614d8372e2191526fd10e855efd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cannot change session while active]]></Val>
@@ -6526,6 +6598,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++54d8eabdb1e806a10a7f7185c095b13404226eb5ffa574a62914d06a8e2beee0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Webview '{0}' did not become ready within {1}ms]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Web 视图“{0}”未在 {1} 毫秒内准备就绪]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Schema Designer Model...]]></Val>
@@ -6720,6 +6801,15 @@
           <Val><![CDATA[Clear Filters]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[清除筛选器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rule enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已启用规则]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7390,15 +7480,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Schema visualization opened.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已打开架构可视化效果。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Refresh Credentials]]></Val>
@@ -7579,6 +7660,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MSSQL Notebook connected to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL 笔记本已连接到 {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Must be a valid number]]></Val>
@@ -7750,6 +7840,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找到代理设置，但在分析 URL 时遇到错误: '{0}'。使用 MSSQL 扩展时可能会遇到连接问题。 错误: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove Sort]]></Val>
@@ -7863,6 +7962,15 @@
           <Val><![CDATA[Filter Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[筛选更改]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create a new connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建新的连接配置文件]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7989,15 +8097,6 @@
           <Val><![CDATA[Authenticated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已经过身份验证]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Notebooks: click to connect]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL 笔记本: 单击以连接]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8628,6 +8727,15 @@
           <Val><![CDATA[Starts With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[开头为]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API Builder opened. Continue with {0} operations ({1}/{2}).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据 API 生成器已打开。继续 {0} 操作({1}/{2})。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9577,6 +9685,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show Definition]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[显示定义]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7e14d9a2aa98cae8c18c407f5dc4452e9f5085f152f6d7bd68ca7453192931b3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a valid media option]]></Val>
@@ -10014,6 +10131,15 @@
           <Val><![CDATA[New Table Name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新建表单名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open GitHub Copilot Chat to help fix these errors]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[打开 GitHub Copilot 对话助手，帮助修复这些错误]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10738,6 +10864,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[生成数据 API]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search within {0} text content]]></Val>
@@ -10986,6 +11121,15 @@
           <Val><![CDATA[Consider adding a name for this foreign key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[请考虑为此外键添加名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到活动架构设计器。请先使用带有 'show' 操作的 mssql_schema_designer 或通过 UI 打开一个。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11341,15 +11485,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Definition]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[定义]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++982508e73b4054980892537f3c6840f282b91d266b07729d248b2140cc50c08f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New to the MSSQL extension? Check out our quick-start guide.]]></Val>
@@ -11688,6 +11823,15 @@
           <Val><![CDATA[Successfully saved results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已成功保存结果至]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search rules...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[搜索规则...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12142,6 +12286,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MSSQL: Click to change database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL: 单击以更改数据库]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publish Settings File]]></Val>
@@ -12165,6 +12318,24 @@
           <Val><![CDATA[{0}: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0}: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找到了代理设置，但没有协议(例如 http://): '{0}'。使用 MSSQL 扩展时可能会遇到连接问题。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to open URL. The built-in Simple Browser may be disabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能打开 URL。内置的简单浏览器可能被禁用。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12318,15 +12489,6 @@
           <Val><![CDATA[Start IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[起始 IP 地址]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a4c47b3e357e3753f7d611820a0490f9f1d85adaee725ca2af8d72d7e02df590" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[找到代理设置，但在分析 URL 时遇到错误: ‘{0}’。 使用 MSSQL 扩展时可能会遇到连接问题。 错误: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12754,6 +12916,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No rules match the current filter.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[没有符合当前筛选条件的规则。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Allow Nulls]]></Val>
@@ -13155,6 +13326,15 @@
           <Val><![CDATA[Description for the table.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[表的说明。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove a connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[移除连接配置文件]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13879,6 +14059,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[架构设计器已打开。对于架构变化，请继续 {0} 操作({1}/{2})。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear cache and refresh token]]></Val>
@@ -13902,15 +14091,6 @@
           <Val><![CDATA[Verifying Docker is installed on your system]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在验证是否已在系统上安装 Docker]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[DAB]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[DAB]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14253,6 +14433,15 @@
           <Val><![CDATA[Change]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[更改]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Swagger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查看 Swagger]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14865,15 +15054,6 @@
           <Val><![CDATA[Browse files]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[浏览文件]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[找到代理设置，但没有协议(例如 http://): ‘{0}’。 使用 MSSQL 扩展时可能会遇到连接问题。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15603,6 +15783,15 @@
           <Val><![CDATA[Copy-only Backup]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[仅复制备份]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by severity]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[按严重性筛选]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16381,6 +16570,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到活动架构设计器。请先使用带有 'show' 操作的 mssql_dab 或通过 UI 打开数据 API 生成器。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to stop and remove DAB container.]]></Val>
@@ -17020,6 +17218,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open Nitro]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[打开 Nitro]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
@@ -17034,6 +17241,15 @@
           <Val><![CDATA['{0}' started.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[“{0}”已开始。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Webview was disposed before it became ready]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Web 视图在准备就绪前已被销毁]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17164,15 +17380,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No connection profile to remove.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[沒有可移除的连接配置文件。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[URL]]></Val>
@@ -17232,15 +17439,6 @@
           <Val><![CDATA[Creating Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在创建容器]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Query execution was cancelled.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[查询执行已取消。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17439,6 +17637,15 @@
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[URI {1} 的连接 {0} 的访问令牌已过期]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Visualize and Design Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可视化和设计架构]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17817,15 +18024,6 @@
           <Val><![CDATA[Are you sure?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[是否确定?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Notebooks: click to change database]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL Notebook: 单击以更改数据库]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18996,9 +19194,30 @@
       </Item>
       <Item ItemId=";package.mssql.backupDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Backup Database (Preview)]]></Val>
+          <Val><![CDATA[Backup Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[备份数据库(预览版)]]></Val>
+            <Val><![CDATA[备份数据库(预览版)...]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Backup Database (Preview)]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.buildDataApi" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API (Preview)...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[生成数据 API (预览版)...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.buildDataApi" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API (Preview)...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[生成数据 API (预览版)...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19638,10 +19857,13 @@
       </Item>
       <Item ItemId=";package.mssql.copyConnectionString" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Copy as Connection String]]></Val>
+          <Val><![CDATA[Copy Connection String]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[复制为连接字符串]]></Val>
+            <Val><![CDATA[复制连接字符串]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Copy as Connection String]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19683,12 +19905,12 @@
       </Item>
       <Item ItemId=";package.mssql.createDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create Database (Preview)]]></Val>
+          <Val><![CDATA[New Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[创建数据库(预览版)]]></Val>
+            <Val><![CDATA[新建数据库(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create Database]]></Val>
+            <Val><![CDATA[Create Database (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -19821,12 +20043,12 @@
       </Item>
       <Item ItemId=";package.mssql.dacpacDialog.launch" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Data-tier Application (Preview)]]></Val>
+          <Val><![CDATA[DACPAC/BACPAC Operations...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[数据层应用程序(预览版)]]></Val>
+            <Val><![CDATA[DACPAC/BACPAC 操作...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Data-tier Application]]></Val>
+            <Val><![CDATA[Data-tier Application (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -19860,10 +20082,13 @@
       </Item>
       <Item ItemId=";package.mssql.deleteContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Delete Container]]></Val>
+          <Val><![CDATA[Delete SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[删除容器]]></Val>
+            <Val><![CDATA[删除 SQL 容器]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Delete Container]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19905,36 +20130,36 @@
       </Item>
       <Item ItemId=";package.mssql.dropDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Drop Database (Preview)]]></Val>
+          <Val><![CDATA[Drop Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[删除数据库(预览版)]]></Val>
+            <Val><![CDATA[删除数据库(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Drop Database]]></Val>
+            <Val><![CDATA[Drop Database (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.editConnection" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit Connection]]></Val>
+          <Val><![CDATA[Edit Connection...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[编辑连接]]></Val>
+            <Val><![CDATA[编辑连接...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Edit Connection (Preview)]]></Val>
+            <Val><![CDATA[Edit Connection]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.editTable" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Modify Table]]></Val>
+          <Val><![CDATA[Modify Table Structure...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[修改表]]></Val>
+            <Val><![CDATA[修改表结构...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Modify Table Structure]]></Val>
+            <Val><![CDATA[Modify Table]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20010,12 +20235,12 @@
       </Item>
       <Item ItemId=";package.mssql.flatFileImport" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Import Flat File (Preview)]]></Val>
+          <Val><![CDATA[Import Data (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[导入平面文件(预览版)]]></Val>
+            <Val><![CDATA[导入数据(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Import flat file (Preview)]]></Val>
+            <Val><![CDATA[Import Flat File (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20418,24 +20643,24 @@
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Copilot Ask mode]]></Val>
+          <Val><![CDATA[Open in GitHub Copilot Chat]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在 Copilot 询问模式下打开]]></Val>
+            <Val><![CDATA[在 GitHub Copilot 对话助手中打开]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Open in Copilot Ask mode (Preview)]]></Val>
+            <Val><![CDATA[Open in Copilot Ask mode]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabaseInAgentMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Copilot Agent mode]]></Val>
+          <Val><![CDATA[Open in GitHub Copilot Agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在 Copilot 智能体模式下打开]]></Val>
+            <Val><![CDATA[在 GitHub Copilot 智能体中打开]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Open in Copilot Agent mode (Preview)]]></Val>
+            <Val><![CDATA[Open in Copilot Agent mode]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20553,12 +20778,12 @@
       </Item>
       <Item ItemId=";package.mssql.profiler.launchFromObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
+          <Val><![CDATA[Launch Query Profiler (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启动查询探查器(预览版)]]></Val>
+            <Val><![CDATA[启动查询探查器(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Launch Profiler (Preview)]]></Val>
+            <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20865,31 +21090,37 @@
       </Item>
       <Item ItemId=";package.mssql.removeObjectExplorerNode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Remove]]></Val>
+          <Val><![CDATA[Remove Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[移除]]></Val>
+            <Val><![CDATA[移除连接]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Remove]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.renameDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Rename Database (Preview)]]></Val>
+          <Val><![CDATA[Rename Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[重命名数据库(预览版)]]></Val>
+            <Val><![CDATA[重命名数据库(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Rename Database]]></Val>
+            <Val><![CDATA[Rename Database (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.restoreDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Restore Database (Preview)]]></Val>
+          <Val><![CDATA[Restore Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[还原数据库(预览版)]]></Val>
+            <Val><![CDATA[还原数据库(预览版)...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Restore Database (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21054,24 +21285,24 @@
       </Item>
       <Item ItemId=";package.mssql.schemaCompare" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Schema Compare]]></Val>
+          <Val><![CDATA[Compare Schemas...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[架构比较]]></Val>
+            <Val><![CDATA[比较架构...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Schema Compare (Preview)]]></Val>
+            <Val><![CDATA[Schema Compare]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.schemaDesigner" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Schema Designer]]></Val>
+          <Val><![CDATA[Visualize and Design Schema...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[架构设计器]]></Val>
+            <Val><![CDATA[可视化和设计架构...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Schema Designer (Preview)]]></Val>
+            <Val><![CDATA[Schema Designer]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -21132,10 +21363,13 @@
       </Item>
       <Item ItemId=";package.mssql.searchDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Search Database Objects]]></Val>
+          <Val><![CDATA[Search Database Objects...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[搜索数据库对象]]></Val>
+            <Val><![CDATA[搜索数据库对象...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Search Database Objects]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21204,19 +21438,25 @@
       </Item>
       <Item ItemId=";package.mssql.sqlScriptsSubmenu" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[SQL Scripts]]></Val>
+          <Val><![CDATA[Generate Script]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL 脚本]]></Val>
+            <Val><![CDATA[生成脚本]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[SQL Scripts]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.startContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start Container]]></Val>
+          <Val><![CDATA[Start SQLContainer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启动容器]]></Val>
+            <Val><![CDATA[启动 SQLContainer]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Start Container]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21249,21 +21489,24 @@
       </Item>
       <Item ItemId=";package.mssql.stopContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Stop Container]]></Val>
+          <Val><![CDATA[Stop SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[停止容器]]></Val>
+            <Val><![CDATA[停止 SQL 容器]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Stop Container]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.tableExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit Data (Preview)]]></Val>
+          <Val><![CDATA[Edit Table Data (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[编辑数据(预览)]]></Val>
+            <Val><![CDATA[编辑表数据(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[View & Edit Data (Preview)]]></Val>
+            <Val><![CDATA[Edit Data (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -21291,6 +21534,15 @@
           <Val><![CDATA[[Optional]5D; Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[可选]5D; 后端服务的日志级别。Azure Data Studio 在每次启动时都会生成文件名；如果文件已存在，日志条目将追加到该文件。有关旧日志文件的清理，请参阅 logRetentionMinutes 和 logFilesRemovalLimit 设置。默认 tracingLevel 记录的内容很少。更改详细级别可能提升日志的记录和磁盘空间要求。“错误”包含“严重”，“警告”包含“错误”，“信息”包含“警告”，“详细级别”包含“信息”]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.transferActiveEditorConnections.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[启用后，会自动将活动连接转移到新打开的 SQL 文件。禁用时，必须为每个 SQL 文件手动连接数据库。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

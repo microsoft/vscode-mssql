@@ -1126,6 +1126,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Ask GitHub Copilot to Fix]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pedir a GitHub Copilot que corrija]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Folder Path]]></Val>
@@ -1549,15 +1558,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++12d0693781acac02405667cd6ba3eb3095d9aad6bed9aca8ad4b0bc8ec095b94" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL: Not connected]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL: no conectado]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[(Command completed successfully)]]></Val>
@@ -1698,6 +1698,15 @@
           <Val><![CDATA[Cannot exclude {0}. Included dependents exist, such as {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[No se puede excluir {0}. Existen dependientes incluidos, como {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit an existing connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Editar un perfil de conexión existente]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2080,15 +2089,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++1a249f7c72db09f77592141bb0c8c5b9e74227e26150be66c9fe582c8ccb4bb9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Notebook connected to {0}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL Notebook conectado a {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The behavior when a user tries to update a row with data that is involved in a foreign key relationship.]]></Val>
@@ -2445,15 +2445,6 @@
           <Val><![CDATA[Copilot Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Cambios de Copilot]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Publish Changes]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Publicar cambios]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2845,6 +2836,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rule disabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Regla deshabilitada]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++24649ee0c7a92fd868db079f46ef6b58509081e8b0e8b9ed929606f33c62831d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Zoom Out]]></Val>
@@ -2886,6 +2886,15 @@
           <Val><![CDATA[Blob]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Blob]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select profile to edit]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Seleccionar perfil para editar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3529,6 +3538,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query execution was canceled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se ha cancelado la ejecución de la consulta.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hostname]]></Val>
@@ -4051,6 +4069,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Renaming database '{0}' to '{1}'...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cambiando el nombre de la base de datos ''{0}'' a ''{1}''...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.]]></Val>
@@ -4087,15 +4114,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No active schema designer found. Please open a schema designer first using /showSchema or from the UI.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[No se encontró ningún diseñador de esquemas activo. Abra primero un diseñador de esquemas utilizando /showSchema o desde la interfaz de usuario.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[File not found]]></Val>
@@ -4119,6 +4137,15 @@
           <Val><![CDATA[database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[base de datos]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection profiles to remove.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No hay perfiles de conexión que quitar.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4906,6 +4933,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection profiles to edit.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No hay perfiles de conexión para editar.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server {0} not found.]]></Val>
@@ -5122,6 +5158,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing connectionId. Please provide a connectionId to open Data API Builder.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Falta connectionId. Proporcione un valor de connectionId para abrir el generador de API de datos.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[delete the saved connection: {0}?]]></Val>
@@ -5307,15 +5352,6 @@
           <Val><![CDATA[Found pending reconnect promise for uri {0}, waiting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Se encontró una promesa de reconexión pendiente para el uri {0}, en espera.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Editar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6027,6 +6063,15 @@
           <Val><![CDATA[Fetch rows]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Capturar filas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Advertencia: el conjunto de resultados está incompleto. Mostrando {0} de {1} filas. No se pudo cargar el conjunto de resultados completo.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6760,6 +6805,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rule enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Regla habilitada]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select Source Schema]]></Val>
@@ -7426,15 +7480,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Schema visualization opened.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Visualización de esquema abierta.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Refresh Credentials]]></Val>
@@ -7615,6 +7660,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MSSQL Notebook connected to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cuaderno de MSSQL conectado a {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Must be a valid number]]></Val>
@@ -7786,6 +7840,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se ha encontrado la configuración del proxy, pero ocurrió un error al analizar la dirección URL: ''{0}''. Puede encontrar problemas de conexión al usar la extensión MSSQL.  Error: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove Sort]]></Val>
@@ -7899,6 +7962,15 @@
           <Val><![CDATA[Filter Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Cambios de filtro]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create a new connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Crear un nuevo perfil de conexión]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8025,15 +8097,6 @@
           <Val><![CDATA[Authenticated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Autenticado]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++6abc57ea622c9cfc71199174a1f2bc31e5ce92ff57a93b53e383238666343a58" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Notebooks: click to connect]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cuadernos de SQL: haga clic para conectarse]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8664,6 +8727,15 @@
           <Val><![CDATA[Starts With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Comienza por]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API Builder opened. Continue with {0} operations ({1}/{2}).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[El generador de API de datos se ha abierto. Continuar con {0} las operaciones ({1}/{2}).]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9613,6 +9685,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show Definition]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrar definición]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7e14d9a2aa98cae8c18c407f5dc4452e9f5085f152f6d7bd68ca7453192931b3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a valid media option]]></Val>
@@ -10050,6 +10131,15 @@
           <Val><![CDATA[New Table Name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nuevo nombre de tabla]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open GitHub Copilot Chat to help fix these errors]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abra GitHub Copilot Chat para ayudar a corregir estos errores]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10774,6 +10864,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[API de datos de compilación]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search within {0} text content]]></Val>
@@ -11022,6 +11121,15 @@
           <Val><![CDATA[Consider adding a name for this foreign key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Considere la posibilidad de agregar un nombre para esta clave externa]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No se encontró ningún diseñador de esquemas activo. Abra uno primero con mssql_schema_designer con la operación "mostrar" o desde la interfaz de usuario.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11373,15 +11481,6 @@
           <Val><![CDATA[Please choose at least one backup set to restore]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Elija al menos un conjunto de copia de seguridad para restaurar.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Definition]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Definición]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12187,6 +12286,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MSSQL: Click to change database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL: haga clic para cambiar la base de datos]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publish Settings File]]></Val>
@@ -12210,6 +12318,24 @@
           <Val><![CDATA[{0}: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0}: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se ha encontrado la configuración de proxy, pero sin un protocolo (por ejemplo, http://): ''{0}''. Puede encontrar problemas de conexión al usar la extensión MSSQL.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to open URL. The built-in Simple Browser may be disabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No se pudo abrir la dirección URL. El explorador simple integrado puede estar deshabilitado.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12363,15 +12489,6 @@
           <Val><![CDATA[Start IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dirección IP inicial]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++a4c47b3e357e3753f7d611820a0490f9f1d85adaee725ca2af8d72d7e02df590" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Se ha encontrado la configuración del proxy, pero ocurrió un error al analizar la dirección URL: ''{0}''.  Puede encontrar problemas de conexión al usar la extensión MSSQL.  Error: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13213,6 +13330,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove a connection profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Quitar un perfil de conexión]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b1b511843263fa8435aafed7abebc29efd242c576fd5d386e04e349e7288e092" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.]]></Val>
@@ -13933,6 +14059,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Diseñador de esquemas abierto. Para mutaciones de esquema, continúe con las {0} operaciones ({1}/{2}).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear cache and refresh token]]></Val>
@@ -13956,15 +14091,6 @@
           <Val><![CDATA[Verifying Docker is installed on your system]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Comprobando que Docker esté instalado en el sistema]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[DAB]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[DAB]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14307,6 +14433,15 @@
           <Val><![CDATA[Change]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Cambiar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Swagger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ver Swagger]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14919,15 +15054,6 @@
           <Val><![CDATA[Browse files]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Examinar archivos]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Se ha encontrado la configuración de proxy, pero sin un protocolo (por ejemplo, http://): ''{0}''.  Puede encontrar problemas de conexión al usar la extensión MSSQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16444,6 +16570,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No se encontró ningún diseñador de esquemas activo. Abra el generador de API de datos primero con mssql_dab con la operación "mostrar" o desde la interfaz de usuario.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to stop and remove DAB container.]]></Val>
@@ -17083,6 +17218,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open Nitro]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir Nitro]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
@@ -17236,15 +17380,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No connection profile to remove.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[No hay ningún perfil de conexión para quitar.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[URL]]></Val>
@@ -17304,15 +17439,6 @@
           <Val><![CDATA[Creating Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Creando contenedor]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++e8446fd26b7cd5f71210d0a1b102ab4f3d608e2b9d5bb96fc6df22a9f5482974" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Query execution was cancelled.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Se canceló la ejecución de la consulta.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17511,6 +17637,15 @@
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[El token de acceso expiró para el {0} de conexión con uri {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Visualize and Design Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visualizar y diseñar esquema]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17889,15 +18024,6 @@
           <Val><![CDATA[Are you sure?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[¿Está seguro?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++f07ba7f813e5fbae5144c2fe1dcec11ef07706fae57a8c1e2b3a5171e8a8c2b7" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[SQL Notebooks: click to change database]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cuadernos de SQL: haga clic para cambiar la base de datos]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19068,9 +19194,30 @@
       </Item>
       <Item ItemId=";package.mssql.backupDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Backup Database (Preview)]]></Val>
+          <Val><![CDATA[Backup Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Base de datos de copia de seguridad (versión preliminar)]]></Val>
+            <Val><![CDATA[Base de datos de copia de seguridad (versión preliminar)...]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Backup Database (Preview)]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.buildDataApi" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API (Preview)...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compilar API de datos (versión preliminar)...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.buildDataApi" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Data API (Preview)...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compilar API de datos (versión preliminar)...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19710,10 +19857,13 @@
       </Item>
       <Item ItemId=";package.mssql.copyConnectionString" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Copy as Connection String]]></Val>
+          <Val><![CDATA[Copy Connection String]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Copiar como cadena de conexión]]></Val>
+            <Val><![CDATA[Copiar cadena de conexión]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Copy as Connection String]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19755,12 +19905,12 @@
       </Item>
       <Item ItemId=";package.mssql.createDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create Database (Preview)]]></Val>
+          <Val><![CDATA[New Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Crear base de datos (versión preliminar)]]></Val>
+            <Val><![CDATA[Nueva base de datos (versión preliminar)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Create Database]]></Val>
+            <Val><![CDATA[Create Database (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -19893,12 +20043,12 @@
       </Item>
       <Item ItemId=";package.mssql.dacpacDialog.launch" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Data-tier Application (Preview)]]></Val>
+          <Val><![CDATA[DACPAC/BACPAC Operations...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aplicación de capa de datos (versión preliminar)]]></Val>
+            <Val><![CDATA[Operaciones DACPAC/BACPAC...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Data-tier Application]]></Val>
+            <Val><![CDATA[Data-tier Application (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -19932,10 +20082,13 @@
       </Item>
       <Item ItemId=";package.mssql.deleteContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Delete Container]]></Val>
+          <Val><![CDATA[Delete SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eliminar contenedor]]></Val>
+            <Val><![CDATA[Eliminar contenedor de SQL]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Delete Container]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19977,36 +20130,36 @@
       </Item>
       <Item ItemId=";package.mssql.dropDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Drop Database (Preview)]]></Val>
+          <Val><![CDATA[Drop Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Quitar base de datos (versión preliminar)]]></Val>
+            <Val><![CDATA[Quitar base de datos (versión preliminar)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Drop Database]]></Val>
+            <Val><![CDATA[Drop Database (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.editConnection" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit Connection]]></Val>
+          <Val><![CDATA[Edit Connection...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Editar conexión]]></Val>
+            <Val><![CDATA[Editar conexión...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Edit Connection (Preview)]]></Val>
+            <Val><![CDATA[Edit Connection]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.editTable" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Modify Table]]></Val>
+          <Val><![CDATA[Modify Table Structure...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Modificar tabla]]></Val>
+            <Val><![CDATA[Modificar estructura de tabla...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Modify Table Structure]]></Val>
+            <Val><![CDATA[Modify Table]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20082,12 +20235,12 @@
       </Item>
       <Item ItemId=";package.mssql.flatFileImport" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Import Flat File (Preview)]]></Val>
+          <Val><![CDATA[Import Data (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Importar archivo plano (versión preliminar)]]></Val>
+            <Val><![CDATA[Importar datos (versión preliminar)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Import flat file (Preview)]]></Val>
+            <Val><![CDATA[Import Flat File (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20490,24 +20643,24 @@
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Copilot Ask mode]]></Val>
+          <Val><![CDATA[Open in GitHub Copilot Chat]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Abrir en modo de consulta de Copilot]]></Val>
+            <Val><![CDATA[Abrir en GitHub Copilot Chat]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Open in Copilot Ask mode (Preview)]]></Val>
+            <Val><![CDATA[Open in Copilot Ask mode]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabaseInAgentMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Copilot Agent mode]]></Val>
+          <Val><![CDATA[Open in GitHub Copilot Agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Abrir en modo agente de Copilot]]></Val>
+            <Val><![CDATA[Abrir en el agente de GitHub Copilot]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Open in Copilot Agent mode (Preview)]]></Val>
+            <Val><![CDATA[Open in Copilot Agent mode]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20625,12 +20778,12 @@
       </Item>
       <Item ItemId=";package.mssql.profiler.launchFromObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
+          <Val><![CDATA[Launch Query Profiler (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Iniciar el generador de perfiles de consulta (versión preliminar)]]></Val>
+            <Val><![CDATA[Iniciar el generador de perfiles de consulta (versión preliminar)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Launch Profiler (Preview)]]></Val>
+            <Val><![CDATA[Launch Query Profiler (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -20937,31 +21090,37 @@
       </Item>
       <Item ItemId=";package.mssql.removeObjectExplorerNode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Remove]]></Val>
+          <Val><![CDATA[Remove Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Quitar]]></Val>
+            <Val><![CDATA[Quitar conexión]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Remove]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.renameDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Rename Database (Preview)]]></Val>
+          <Val><![CDATA[Rename Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cambiar nombre de base de datos (versión preliminar)]]></Val>
+            <Val><![CDATA[Cambiar el nombre de la base de datos (versión preliminar)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Rename Database]]></Val>
+            <Val><![CDATA[Rename Database (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.restoreDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Restore Database (Preview)]]></Val>
+          <Val><![CDATA[Restore Database (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Restaurar base de datos (versión preliminar)]]></Val>
+            <Val><![CDATA[Restaurar base de datos (versión preliminar)...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Restore Database (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21126,24 +21285,24 @@
       </Item>
       <Item ItemId=";package.mssql.schemaCompare" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Schema Compare]]></Val>
+          <Val><![CDATA[Compare Schemas...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Comparación de esquemas]]></Val>
+            <Val><![CDATA[Comparar esquemas...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Schema Compare (Preview)]]></Val>
+            <Val><![CDATA[Schema Compare]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.schemaDesigner" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Schema Designer]]></Val>
+          <Val><![CDATA[Visualize and Design Schema...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Diseñador de esquemas]]></Val>
+            <Val><![CDATA[Visualizar y diseñar esquema...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Schema Designer (Preview)]]></Val>
+            <Val><![CDATA[Schema Designer]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -21204,10 +21363,13 @@
       </Item>
       <Item ItemId=";package.mssql.searchDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Search Database Objects]]></Val>
+          <Val><![CDATA[Search Database Objects...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Buscar objetos de base de datos]]></Val>
+            <Val><![CDATA[Buscar objetos de base de datos...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Search Database Objects]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21276,19 +21438,25 @@
       </Item>
       <Item ItemId=";package.mssql.sqlScriptsSubmenu" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[SQL Scripts]]></Val>
+          <Val><![CDATA[Generate Script]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Scripts SQL]]></Val>
+            <Val><![CDATA[Generar script]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[SQL Scripts]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.startContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start Container]]></Val>
+          <Val><![CDATA[Start SQLContainer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Iniciar contenedor]]></Val>
+            <Val><![CDATA[Iniciar SQLContainer]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Start Container]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21321,21 +21489,24 @@
       </Item>
       <Item ItemId=";package.mssql.stopContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Stop Container]]></Val>
+          <Val><![CDATA[Stop SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Detener contenedor]]></Val>
+            <Val><![CDATA[Detener contenedor de SQL]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Stop Container]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.tableExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit Data (Preview)]]></Val>
+          <Val><![CDATA[Edit Table Data (Preview)...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Editar datos (versión preliminar)]]></Val>
+            <Val><![CDATA[Editar datos de tabla (versión preliminar)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[View & Edit Data (Preview)]]></Val>
+            <Val><![CDATA[Edit Data (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
