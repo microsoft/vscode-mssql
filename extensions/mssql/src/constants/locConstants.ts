@@ -650,6 +650,7 @@ export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
     // Status bar
+    public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
 
     // Errors

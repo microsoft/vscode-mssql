@@ -68,8 +68,8 @@ export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode
         const mgr = this.connections.get(notebook.uri.toString());
         const range = new vscode.Range(0, 0, 0, 0);
 
-        if (mgr?.isConnected()) {
-            const connInfo = mgr.getConnectionInfo();
+        const connInfo = mgr?.isConnected() ? mgr.getConnectionInfo() : undefined;
+        if (connInfo) {
             return [
                 new vscode.CodeLens(range, {
                     title: generateServerDisplayName(connInfo),

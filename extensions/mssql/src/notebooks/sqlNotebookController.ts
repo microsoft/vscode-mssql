@@ -373,7 +373,7 @@ export class SqlNotebookController implements vscode.Disposable {
         if (mgr?.isConnected()) {
             this.statusBarItem.text = `$(check) ${mgr.getConnectionLabel()}`;
             this.statusBarItem.tooltip =
-                LocalizedConstants.Notebooks.codeLensClickToChangeConnection;
+                LocalizedConstants.Notebooks.statusBarClickToChangeConnection;
             this.statusBarItem.command = Constants.cmdNotebooksChangeConnection;
             this.statusBarItem.show();
         } else {
@@ -770,8 +770,19 @@ export class SqlNotebookController implements vscode.Disposable {
             // Prompt first so that cancelling the picker preserves the
             // existing connection instead of disconnecting eagerly.
             await mgr.promptAndConnect();
-        } catch {
-            // User cancelled or connection failed — keep existing connection.
+        } catch (err) {
+            // Cancellation (no selection) — silently keep existing connection.
+            // Real failures — notify the user so they know the change failed.
+            const isCancellation =
+                err instanceof Error &&
+                err.message === LocalizedConstants.Notebooks.noConnectionSelected;
+            if (!isCancellation) {
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : LocalizedConstants.Notebooks.connectionFailed;
+                void vscode.window.showErrorMessage(message);
+            }
             this.updateStatusBar(notebook);
             this.codeLensProvider.refresh();
             return;
