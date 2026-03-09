@@ -17,7 +17,7 @@ import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
@@ -56,7 +56,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         return undefined;
     }
 
-    const { themeKind, keyBindings } = useVscodeWebview();
+    const themeKind = useWebviewStore((s) => s.themeKind);
+    const keyBindings = useWebviewStore((s) => s.keyBindings);
 
     const uri = useQueryResultSelector((state) => state.uri);
     if (!uri) {

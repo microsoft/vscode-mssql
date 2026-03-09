@@ -44,7 +44,6 @@ import {
     BrowseForConfigRequest,
     OpenKeymapLinkNotification as OpenKeymapLinkNotification,
     AzureDataStudioMigrationReducers,
-    AzureDataStudioMigrationWebviewState,
     EntraSignInDialogProps,
     ImportProgressDialogProps,
     ImportWarningDialogProps,
@@ -65,10 +64,7 @@ export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
 
     const classes = useStyles();
-    const { extensionRpc } = useVscodeWebview<
-        AzureDataStudioMigrationWebviewState,
-        AzureDataStudioMigrationReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<AzureDataStudioMigrationReducers>();
     const adsConfigPath = useAzureDataStudioMigrationSelector((s) => s?.adsConfigPath);
     const stateConnectionGroups = useAzureDataStudioMigrationSelector((s) => s?.connectionGroups);
     const stateConnections = useAzureDataStudioMigrationSelector((s) => s?.connections);

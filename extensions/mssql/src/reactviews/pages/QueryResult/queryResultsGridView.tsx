@@ -10,7 +10,7 @@ import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
@@ -65,7 +65,7 @@ export const QueryResultsGridView = () => {
     const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement>>>(new Map());
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
-    const { keyBindings } = useVscodeWebview();
+    const keyBindings = useWebviewStore((s) => s.keyBindings);
 
     // Derive a stable flat list for rendering
     const gridList: GridItem[] = useMemo(() => {

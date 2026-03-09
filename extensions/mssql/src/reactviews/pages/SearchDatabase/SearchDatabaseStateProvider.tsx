@@ -5,7 +5,6 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import {
-    SearchDatabaseWebViewState,
     SearchDatabaseReducers,
     SearchDatabaseContextProps,
     SearchResultItem,
@@ -22,7 +21,7 @@ const SearchDatabaseContext = createContext<SearchDatabaseContextProps>(
 export const SearchDatabaseStateProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<SearchDatabaseWebViewState, SearchDatabaseReducers>();
+    const { extensionRpc } = useVscodeWebview<SearchDatabaseReducers>();
 
     const commands = useMemo<SearchDatabaseContextProps>(
         () => ({

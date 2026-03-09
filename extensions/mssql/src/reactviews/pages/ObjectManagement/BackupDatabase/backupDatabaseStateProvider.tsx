@@ -11,10 +11,7 @@ import {
 } from "../../../../sharedInterfaces/backup";
 import { getCoreRPCs } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import {
-    DisasterRecoveryType,
-    ObjectManagementWebviewState,
-} from "../../../../sharedInterfaces/objectManagement";
+import { DisasterRecoveryType } from "../../../../sharedInterfaces/objectManagement";
 import { WebviewRpc } from "../../../common/rpc";
 
 export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
@@ -28,10 +25,7 @@ interface BackupDatabaseProviderProps {
 }
 
 const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<
-        ObjectManagementWebviewState<BackupDatabaseFormState>,
-        BackupDatabaseReducers<BackupDatabaseFormState>
-    >();
+    const { extensionRpc } = useVscodeWebview<BackupDatabaseReducers<BackupDatabaseFormState>>();
 
     return (
         <BackupDatabaseContext.Provider

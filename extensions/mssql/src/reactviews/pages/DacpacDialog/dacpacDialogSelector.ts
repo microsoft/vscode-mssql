@@ -10,5 +10,5 @@ export function useDacpacDialogSelector<T>(
     selector: (state: DacpacDialogWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<DacpacDialogWebviewState, void, T>(selector, equals);
+    return useVscodeSelector<DacpacDialogWebviewState, T>(selector, equals);
 }

@@ -5,11 +5,7 @@
 
 import React, { createContext, useMemo } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import {
-    UserSurveyContextProps,
-    UserSurveyState,
-    UserSurveyReducers,
-} from "../../../sharedInterfaces/userSurvey";
+import { UserSurveyContextProps, UserSurveyReducers } from "../../../sharedInterfaces/userSurvey";
 import { getCoreRPCs } from "../../common/utils";
 
 const UserSurveyContext = createContext<UserSurveyContextProps | undefined>(undefined);
@@ -19,7 +15,7 @@ interface UserSurveyProviderProps {
 }
 
 const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<UserSurveyState, UserSurveyReducers>();
+    const { extensionRpc } = useVscodeWebview<UserSurveyReducers>();
 
     const commands = useMemo<UserSurveyContextProps>(
         () => ({

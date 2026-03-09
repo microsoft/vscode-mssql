@@ -13,7 +13,6 @@ import {
     QueryResultPaneTabs,
     QueryResultReducers,
     QueryResultViewMode,
-    QueryResultWebviewState,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 import GridContextMenu from "./table/plugins/GridContextMenu";
@@ -99,7 +98,7 @@ interface QueryResultProviderProps {
 }
 
 const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
+    const { extensionRpc } = useVscodeWebview<QueryResultReducers>();
     // Grid context menu state
     const [menuState, setMenuState] = useState<{
         open: boolean;

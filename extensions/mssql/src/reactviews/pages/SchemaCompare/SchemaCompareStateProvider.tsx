@@ -19,10 +19,7 @@ interface SchemaCompareStateProviderProps {
 }
 
 const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<
-        sc.SchemaCompareWebViewState,
-        sc.SchemaCompareReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<sc.SchemaCompareReducers>();
 
     const commands = useMemo<sc.SchemaCompareContextProps>(
         () => ({

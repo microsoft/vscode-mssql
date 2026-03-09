@@ -5,20 +5,13 @@
 
 import { locConstants } from "../../../common/locConstants";
 import { DialogHeader } from "../../../common/dialogHeader.component";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import {
-    ConnectionDialogReducers,
-    ConnectionDialogWebviewState,
-} from "../../../../sharedInterfaces/connectionDialog";
+import { useWebviewStore } from "../../../common/vscodeWebviewProvider";
 
 const databaseIconLight = require("../../../../../media/database_light.svg");
 const databaseIconDark = require("../../../../../media/database_dark.svg");
 
 export const ConnectionHeader = () => {
-    const { themeKind } = useVscodeWebview<
-        ConnectionDialogWebviewState,
-        ConnectionDialogReducers
-    >();
+    const themeKind = useWebviewStore((s) => s.themeKind);
     return (
         <DialogHeader
             iconLight={databaseIconLight}

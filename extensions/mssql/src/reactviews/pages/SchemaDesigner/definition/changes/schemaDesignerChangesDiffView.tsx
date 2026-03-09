@@ -5,8 +5,7 @@
 
 import { makeStyles } from "@fluentui/react-components";
 import { DiffEditor } from "@monaco-editor/react";
-import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
-import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
+import { useWebviewStore } from "../../../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { useSchemaDesignerDefinitionPanelContext } from "../schemaDesignerDefinitionPanelContext";
 
@@ -22,10 +21,7 @@ const useStyles = makeStyles({
 export const SchemaDesignerChangesDiffView = () => {
     const classes = useStyles();
     const { baselineDefinition, code } = useSchemaDesignerDefinitionPanelContext();
-    const { themeKind } = useVscodeWebview<
-        SchemaDesigner.SchemaDesignerWebviewState,
-        SchemaDesigner.SchemaDesignerReducers
-    >();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     return (
         <div className={classes.diffContainer}>

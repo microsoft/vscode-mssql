@@ -43,7 +43,7 @@ import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webvi
 import { themeType } from "../../../../common/utils";
 import { FilterIcon } from "../../../../common/icons/filter";
 import { useConnectionDialogSelector } from "../../connectionDialogSelector";
-import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../../../common/vscodeWebviewProvider";
 
 export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
@@ -54,7 +54,7 @@ export const FabricWorkspaceContentsList = ({
     const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
         (s) => s.fabricWorkspacesLoadStatus,
     );
-    const { themeKind: theme } = useVscodeWebview();
+    const theme = useWebviewStore((s) => s.themeKind);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>(
         ArtifactTypeFilter.ShowAll,

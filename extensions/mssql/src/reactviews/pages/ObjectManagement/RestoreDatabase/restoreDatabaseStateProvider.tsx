@@ -11,10 +11,7 @@ import {
 } from "../../../../sharedInterfaces/restore";
 import { getCoreRPCs } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import {
-    DisasterRecoveryType,
-    ObjectManagementWebviewState,
-} from "../../../../sharedInterfaces/objectManagement";
+import { DisasterRecoveryType } from "../../../../sharedInterfaces/objectManagement";
 import { WebviewRpc } from "../../../common/rpc";
 
 export interface RestoreDatabaseContextProps extends RestoreDatabaseProvider {
@@ -28,10 +25,7 @@ interface RestoreDatabaseProviderProps {
 }
 
 const RestoreDatabaseStateProvider: React.FC<RestoreDatabaseProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<
-        ObjectManagementWebviewState<RestoreDatabaseFormState>,
-        RestoreDatabaseReducers<RestoreDatabaseFormState>
-    >();
+    const { extensionRpc } = useVscodeWebview<RestoreDatabaseReducers<RestoreDatabaseFormState>>();
 
     return (
         <RestoreDatabaseContext.Provider

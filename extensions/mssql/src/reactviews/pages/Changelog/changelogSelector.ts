@@ -10,5 +10,5 @@ export function useChangelogSelector<T>(
     selector: (state: ChangelogWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ChangelogWebviewState, void, T>(selector, equals);
+    return useVscodeSelector<ChangelogWebviewState, T>(selector, equals);
 }

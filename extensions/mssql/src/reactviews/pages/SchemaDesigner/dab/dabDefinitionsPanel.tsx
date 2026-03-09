@@ -9,8 +9,7 @@ import {
     DefinitionPanelController,
     DesignerDefinitionTabs,
 } from "../../../common/definitionPanel";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { useWebviewStore } from "../../../common/vscodeWebviewProvider";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
 
@@ -20,10 +19,7 @@ export interface DabDefinitionsPanelRef {
 
 export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, ref) => {
     const context = useDabContext();
-    const { themeKind } = useVscodeWebview<
-        SchemaDesigner.SchemaDesignerWebviewState,
-        SchemaDesigner.SchemaDesignerReducers
-    >();
+    const themeKind = useWebviewStore((s) => s.themeKind);
     const definitionPaneRef = useRef<DefinitionPanelController>(null);
 
     useImperativeHandle(

@@ -7,7 +7,6 @@ import { createContext, useMemo } from "react";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogReducers,
-    ConnectionDialogWebviewState,
     ConnectionInputMode,
     GetConnectionDisplayNameRequest,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
@@ -30,10 +29,7 @@ interface ConnectionDialogProviderProps {
 }
 
 const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<
-        ConnectionDialogWebviewState,
-        ConnectionDialogReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<ConnectionDialogReducers>();
 
     const commands = useMemo<ConnectionDialogContextProps>(
         () => ({

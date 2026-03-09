@@ -3,18 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    ConnectionDialogReducers,
-    ConnectionDialogWebviewState,
-} from "../../../sharedInterfaces/connectionDialog";
+import { ConnectionDialogWebviewState } from "../../../sharedInterfaces/connectionDialog";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useConnectionDialogSelector<T>(
     selector: (state: ConnectionDialogWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ConnectionDialogWebviewState, ConnectionDialogReducers, T>(
-        selector,
-        equals,
-    );
+    return useVscodeSelector<ConnectionDialogWebviewState, T>(selector, equals);
 }

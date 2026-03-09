@@ -5,7 +5,6 @@
 
 import {
     ObjectExplorerFilterContextProps,
-    ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../../../sharedInterfaces/objectExplorerFilter";
 
@@ -24,7 +23,7 @@ interface ObjectExplorerFilterStateProviderProps {
 const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProviderProps> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
+    const { extensionRpc } = useVscodeWebview<ObjectExplorerReducers>();
 
     const commands = useMemo<ObjectExplorerFilterContextProps>(
         () => ({

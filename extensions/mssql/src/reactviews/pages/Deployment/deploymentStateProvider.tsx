@@ -10,7 +10,6 @@ import {
     DeploymentFormState,
     DeploymentReducers,
     DeploymentType,
-    DeploymentWebviewState,
 } from "../../../sharedInterfaces/deployment";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
@@ -23,7 +22,7 @@ interface DeploymentProviderProps {
 }
 
 const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
+    const { extensionRpc } = useVscodeWebview<DeploymentReducers>();
 
     const commands = useMemo<DeploymentContextProps>(
         () => ({

@@ -4,13 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext, useMemo } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview, useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
-import {
-    CodeAnalysisReducers,
-    CodeAnalysisState,
-    CodeAnalysisProvider,
-} from "../../../sharedInterfaces/codeAnalysis";
+import { CodeAnalysisReducers, CodeAnalysisProvider } from "../../../sharedInterfaces/codeAnalysis";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 export interface CodeAnalysisContextProps extends CodeAnalysisProvider {
@@ -23,7 +19,8 @@ export const CodeAnalysisContext = createContext<CodeAnalysisContextProps | unde
 export const CodeAnalysisStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const { extensionRpc, themeKind } = useVscodeWebview<CodeAnalysisState, CodeAnalysisReducers>();
+    const { extensionRpc } = useVscodeWebview<CodeAnalysisReducers>();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     const value = useMemo<CodeAnalysisContextProps>(
         () => ({

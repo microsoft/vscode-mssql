@@ -40,7 +40,7 @@ import {
     getNextSortState,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview, useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./profiler.css";
@@ -174,7 +174,8 @@ export const Profiler: React.FC = () => {
         closeDetailsPanel,
         exportToCsv,
     } = useProfilerContext();
-    const { themeKind, extensionRpc } = useVscodeWebview();
+    const { extensionRpc } = useVscodeWebview();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     const reactGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const [localRowCount, setLocalRowCount] = useState(0);

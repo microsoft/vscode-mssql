@@ -15,7 +15,7 @@ export interface FormState<
 }
 
 /**
- * FormContextProps without state - for use with VscodeWebviewProvider2 and selectors
+ * FormContextProps without state - for use with VscodeWebviewProvider selector hooks
  */
 export interface FormContextProps<TForm> extends CoreRPCs {
     formAction: (event: FormEvent<TForm>) => void;

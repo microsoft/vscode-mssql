@@ -4,14 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
-import { useVscodeWebviewSelector2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useSchemaDesignerSelector<T>(
     selector: (state: SchemaDesigner.SchemaDesignerWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeWebviewSelector2<SchemaDesigner.SchemaDesignerWebviewState, T>(
-        selector,
-        equals,
-    );
+    return useVscodeSelector<SchemaDesigner.SchemaDesignerWebviewState, T>(selector, equals);
 }

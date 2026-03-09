@@ -5,7 +5,6 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import {
-    TableExplorerWebViewState,
     TableExplorerReducers,
     TableExplorerContextProps,
     ExportData,
@@ -20,7 +19,7 @@ const TableExplorerContext = createContext<TableExplorerContextProps>(
 export const TableExplorerStateProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<TableExplorerWebViewState, TableExplorerReducers>();
+    const { extensionRpc } = useVscodeWebview<TableExplorerReducers>();
 
     const commands = useMemo<TableExplorerContextProps>(
         () => ({

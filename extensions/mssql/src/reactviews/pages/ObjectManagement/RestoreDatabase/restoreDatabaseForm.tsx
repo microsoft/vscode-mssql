@@ -41,7 +41,7 @@ import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { AdvancedOptionsDrawer } from "./restoreAdvancedOptions";
 import { useRestoreDatabaseSelector } from "./restoreDatabaseSelector";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../../common/vscodeWebviewProvider";
 import { RestorePlanTableContainer } from "./restoreTable";
 
 const useStyles = makeStyles({
@@ -148,7 +148,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
         (s) => (s.viewModel.model as RestoreDatabaseViewModel).serverName,
     );
 
-    const { themeKind } = useVscodeWebview();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     const [restoreType, setRestoreType] = useState<DisasterRecoveryType>(
         useRestoreDatabaseSelector((s) => (s.viewModel.model as RestoreDatabaseViewModel).type),

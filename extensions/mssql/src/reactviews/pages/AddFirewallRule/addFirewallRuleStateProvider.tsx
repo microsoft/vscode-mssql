@@ -8,7 +8,6 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     AddFirewallRuleContextProps,
     AddFirewallRuleReducers,
-    AddFirewallRuleState,
 } from "../../../sharedInterfaces/addFirewallRule";
 import { getCoreRPCs } from "../../common/utils";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
@@ -20,7 +19,7 @@ interface AddFirewallRuleProviderProps {
 }
 
 const AddFirewallRuleStateProvider: React.FC<AddFirewallRuleProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<AddFirewallRuleState, AddFirewallRuleReducers>();
+    const { extensionRpc } = useVscodeWebview<AddFirewallRuleReducers>();
 
     const commands = useMemo<AddFirewallRuleContextProps>(
         () => ({

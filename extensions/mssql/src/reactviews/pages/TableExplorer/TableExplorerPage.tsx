@@ -11,7 +11,7 @@ import { DefinitionPanel, DesignerDefinitionTabs } from "../../common/definition
 import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
@@ -72,7 +72,7 @@ const useStyles = makeStyles({
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
-    const { themeKind } = useVscodeWebview();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     // Use selectors to access specific state properties
     const resultSet = useTableExplorerSelector((s) => s.resultSet);

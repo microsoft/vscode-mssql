@@ -10,5 +10,5 @@ export function useObjectManagementSelector<T, S>(
     selector: (state: ObjectManagementWebviewState<S>) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ObjectManagementWebviewState<S>, void, T>(selector, equals);
+    return useVscodeSelector<ObjectManagementWebviewState<S>, T>(selector, equals);
 }

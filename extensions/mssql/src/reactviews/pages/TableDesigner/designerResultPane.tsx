@@ -6,13 +6,11 @@
 import {
     DesignerResultPaneTabs,
     InputBoxProperties,
-    TableDesignerReducers,
-    TableDesignerWebviewState,
 } from "../../../sharedInterfaces/tableDesigner";
 
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useTableDesignerSelector } from "./tableDesignerSelector";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { useContext, useEffect, useState } from "react";
 import {
     DefinitionPanel,
@@ -26,7 +24,7 @@ export const DesignerResultPane = () => {
     const model = useTableDesignerSelector((s) => s?.model);
     const tabStates = useTableDesignerSelector((s) => s?.tabStates);
     const issues = useTableDesignerSelector((s) => s?.issues);
-    const { themeKind } = useVscodeWebview<TableDesignerWebviewState, TableDesignerReducers>();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     if (!context) {
         return undefined;

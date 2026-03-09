@@ -137,10 +137,7 @@ interface TableDesignerProviderProps {
 }
 
 const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<
-        designer.TableDesignerWebviewState,
-        designer.TableDesignerReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<designer.TableDesignerReducers>();
 
     // Use selector to get state for callbacks
     const state = useTableDesignerSelector((s) => s);

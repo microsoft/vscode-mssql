@@ -9,7 +9,6 @@ import {
     ConnectionGroupContextProps,
     ConnectionGroupReducers,
     ConnectionGroupSpec,
-    ConnectionGroupState,
 } from "../../../sharedInterfaces/connectionGroup";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
@@ -22,7 +21,7 @@ interface ConnectionGroupProviderProps {
 
 // Connection Group State Provider component
 const ConnectionGroupStateProvider: React.FC<ConnectionGroupProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<ConnectionGroupState, ConnectionGroupReducers>();
+    const { extensionRpc } = useVscodeWebview<ConnectionGroupReducers>();
 
     const commands = useMemo<ConnectionGroupContextProps>(
         () => ({

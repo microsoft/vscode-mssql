@@ -10,5 +10,5 @@ export function useAzureDataStudioMigrationSelector<T>(
     selector: (state: AzureDataStudioMigrationWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<AzureDataStudioMigrationWebviewState, void, T>(selector, equals);
+    return useVscodeSelector<AzureDataStudioMigrationWebviewState, T>(selector, equals);
 }

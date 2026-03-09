@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CodeAnalysisReducers, CodeAnalysisState } from "../../../sharedInterfaces/codeAnalysis";
+import { CodeAnalysisState } from "../../../sharedInterfaces/codeAnalysis";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useCodeAnalysisSelector<T>(
     selector: (state: CodeAnalysisState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<CodeAnalysisState, CodeAnalysisReducers, T>(selector, equals);
+    return useVscodeSelector<CodeAnalysisState, T>(selector, equals);
 }

@@ -26,7 +26,7 @@ import { getGridCount } from "./table/utils";
 import { QueryMessageTab } from "./queryMessageTab";
 import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 
 const useStyles = makeStyles({
@@ -135,7 +135,7 @@ export const QueryResultPane = () => {
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
 
-    const { keyBindings } = useVscodeWebview();
+    const keyBindings = useWebviewStore((s) => s.keyBindings);
 
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {

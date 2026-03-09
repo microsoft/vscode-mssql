@@ -7,7 +7,7 @@ import React, { useMemo, useRef } from "react";
 import { Menu, MenuList, MenuItem, MenuPopover, MenuTrigger } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
-import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 import { useContextMenuStyles } from "../../../../common/styles";
 
@@ -36,7 +36,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
     const styles = useContextMenuStyles();
     const virtualTarget = useMemo(() => createVirtualElement(x, y), [x, y]);
     const popoverRef = useRef<HTMLDivElement | null>(null);
-    const { keyBindings } = useVscodeWebview();
+    const keyBindings = useWebviewStore((s) => s.keyBindings);
 
     return (
         <div

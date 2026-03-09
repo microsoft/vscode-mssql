@@ -18,7 +18,7 @@ interface ExecutionPlanProviderProps {
 }
 
 const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<ep.ExecutionPlanState, ep.ExecutionPlanReducers>();
+    const { extensionRpc } = useVscodeWebview<ep.ExecutionPlanReducers>();
 
     const commands = useMemo<ExecutionPlanContextProps>(
         () => ({

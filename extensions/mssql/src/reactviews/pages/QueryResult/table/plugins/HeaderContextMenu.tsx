@@ -12,7 +12,7 @@ import {
     PositioningVirtualElement,
 } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
-import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
+import { useWebviewStore } from "../../../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 import { useContextMenuStyles } from "../../../../common/styles";
 
@@ -48,7 +48,7 @@ export const HeaderContextMenu: React.FC<HeaderContextMenuProps> = ({
     const virtualTarget = useMemo(() => createVirtualElement(x, y), [x, y]);
     // eslint-disable-next-line no-restricted-syntax
     const popoverRef = useRef<HTMLDivElement | null>(null);
-    const { keyBindings } = useVscodeWebview();
+    const keyBindings = useWebviewStore((s) => s.keyBindings);
 
     return (
         <div

@@ -3,40 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useRef, useSyncExternalStore } from "react";
-import { VscodeWebviewContext, VscodeWebviewContextProps } from "./vscodeWebviewProvider";
+import { useVscodeWebviewSelector } from "./vscodeWebviewProvider";
 
 /**
  * Read a tiny slice of the webview state without causing whole-app re-renders.
  * Example:
- *   const propValue = useVscodeSelector<MyState, MyReducers, string|undefined>(s => s.prop);
+ *   const propValue = useVscodeSelector<MyState, string|undefined>(s => s.prop);
  */
-export function useVscodeSelector<State, Reducers, T>(
+export function useVscodeSelector<State, T>(
     selector: (s: State) => T,
     equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    const ctx = useContext(VscodeWebviewContext) as unknown as VscodeWebviewContextProps<
-        State,
-        Reducers
-    >;
-    if (!ctx) throw new Error("useVscodeSelector must be used within a VscodeWebviewProvider");
-
-    // Use a server snapshot function that handles undefined state gracefully
-    const getServerSnapshot = useCallback(() => {
-        const snapshot = ctx.getSnapshot();
-        return snapshot || ({} as State);
-    }, [ctx]);
-
-    const snap = useSyncExternalStore(ctx.subscribe, ctx.getSnapshot, getServerSnapshot);
-
-    // Safely handle selection when state might be uninitialized
-    const selected = snap ? selector(snap) : (undefined as T);
-    const ref = useRef(selected);
-
-    // Update whenever the selected slice changes
-    if (!equals(ref.current as T, selected as T)) {
-        ref.current = selected;
-    }
-
-    return ref.current;
+    return useVscodeWebviewSelector<State, T>(selector, equals);
 }

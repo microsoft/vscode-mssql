@@ -104,7 +104,7 @@ interface DacpacDialogProviderProps {
 }
 
 const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<dacpacDialog.DacpacDialogWebviewState, void>();
+    const { extensionRpc } = useVscodeWebview<void>();
 
     // Operation execution methods
     const deployDacpac = async (params: dacpacDialog.DeployDacpacParams) => {

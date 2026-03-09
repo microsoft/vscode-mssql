@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext, useMemo } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview, useWebviewStore } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 import {
     PublishDialogReducers,
-    PublishDialogState,
     IPublishForm,
     PublishProjectProvider,
     GenerateSqlPackageCommandRequest,
@@ -32,10 +31,8 @@ export const PublishProjectContext = createContext<PublishProjectContextProps | 
 export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const { extensionRpc, themeKind } = useVscodeWebview<
-        PublishDialogState,
-        PublishDialogReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<PublishDialogReducers>();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     const value = useMemo<PublishProjectContextProps>(
         () => ({

@@ -21,7 +21,6 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import {
     ConnectionDialogReducers,
-    ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
@@ -111,10 +110,7 @@ export const ConnectionsListContainer = () => {
     const context = useContext(ConnectionDialogContext);
     const savedConnections = useConnectionDialogSelector((s) => s.savedConnections);
     const recentConnections = useConnectionDialogSelector((s) => s.recentConnections);
-    const { extensionRpc } = useVscodeWebview<
-        ConnectionDialogWebviewState,
-        ConnectionDialogReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<ConnectionDialogReducers>();
 
     if (context === undefined) {
         return undefined;

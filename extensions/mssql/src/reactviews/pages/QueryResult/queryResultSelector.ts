@@ -10,8 +10,5 @@ export function useQueryResultSelector<T>(
     selector: (state: qr.QueryResultWebviewState) => T,
     equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    return useVscodeSelector<qr.QueryResultWebviewState, qr.QueryResultReducers, T>(
-        selector,
-        equals,
-    );
+    return useVscodeSelector<qr.QueryResultWebviewState, T>(selector, equals);
 }

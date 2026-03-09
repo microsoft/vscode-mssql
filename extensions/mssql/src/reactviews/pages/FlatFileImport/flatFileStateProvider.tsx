@@ -6,7 +6,6 @@
 import { createContext } from "react";
 import {
     FlatFileImportReducers,
-    FlatFileImportState,
     FlatFileImportProvider,
     FlatFileImportFormState,
     FlatFileStepType,
@@ -26,7 +25,7 @@ export const FlatFileContext = createContext<FlatFileContextProps | undefined>(u
 export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview<FlatFileImportState, FlatFileImportReducers>();
+    const { extensionRpc } = useVscodeWebview<FlatFileImportReducers>();
 
     return (
         <FlatFileContext.Provider

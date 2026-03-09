@@ -94,10 +94,7 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const { extensionRpc } = useVscodeWebview<
-        SchemaDesigner.SchemaDesignerWebviewState,
-        SchemaDesigner.SchemaDesignerReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<SchemaDesigner.SchemaDesignerReducers>();
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);

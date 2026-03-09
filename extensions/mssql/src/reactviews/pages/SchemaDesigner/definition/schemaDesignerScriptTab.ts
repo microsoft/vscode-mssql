@@ -6,8 +6,7 @@
 import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { ScriptTabProps } from "../../../common/definitionPanel";
 import { useContext, useMemo } from "react";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { useWebviewStore } from "../../../common/vscodeWebviewProvider";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerDefinitionPanelContext } from "./schemaDesignerDefinitionPanelContext";
 
@@ -34,10 +33,7 @@ export const getSchemaDesignerScriptTab = ({
 export const useSchemaDesignerScriptTab = (): ScriptTabProps => {
     const context = useContext(SchemaDesignerContext);
     const { code } = useSchemaDesignerDefinitionPanelContext();
-    const { themeKind } = useVscodeWebview<
-        SchemaDesigner.SchemaDesignerWebviewState,
-        SchemaDesigner.SchemaDesignerReducers
-    >();
+    const themeKind = useWebviewStore((s) => s.themeKind);
 
     return useMemo(
         () =>

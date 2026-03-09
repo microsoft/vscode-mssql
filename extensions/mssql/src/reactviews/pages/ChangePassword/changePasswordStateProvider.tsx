@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, ReactNode } from "react";
-import { ChangePasswordWebviewState } from "../../../sharedInterfaces/changePassword";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -21,7 +20,7 @@ interface ChangePasswordProviderProps {
 }
 
 const ChangePasswordStateProvider: React.FC<ChangePasswordProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<ChangePasswordWebviewState, void>();
+    const { extensionRpc } = useVscodeWebview<void>();
     return (
         <ChangePasswordContext.Provider value={{ extensionRpc }}>
             {children}
