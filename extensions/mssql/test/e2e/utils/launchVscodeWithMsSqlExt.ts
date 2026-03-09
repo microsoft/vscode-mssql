@@ -112,7 +112,7 @@ export async function launchVsCodeWithMssqlExtension(
     }
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
-    console.log("Recording Playwright videos to:", videoDir);
+    console.log("Staging Playwright videos in:", videoDir);
 
     const electronApp = await electron.launch({
         executablePath: vscodePath,

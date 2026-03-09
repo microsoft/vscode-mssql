@@ -37,12 +37,17 @@ type PerTestLifecycleHooks = {
     beforeClose?: (context: VsCodeLaunchContext, testInfo: TestInfo) => Promise<void>;
 };
 
+type VideoArtifactDestination = {
+    label: string;
+    outputDir: string;
+    testInfo?: TestInfo;
+};
+
 export function useSharedVsCodeLifecycle(
     hooks: SharedLifecycleHooks = {},
 ): () => VsCodeLaunchContext {
     let context: VsCodeLaunchContext | undefined;
-    let suiteHasFailures = false;
-    const failedTestTitles: string[] = [];
+    const failedTests: VideoArtifactDestination[] = [];
 
     const getContext = (): VsCodeLaunchContext => {
         if (!context) {
@@ -62,8 +67,11 @@ export function useSharedVsCodeLifecycle(
         }
         const currentContext = getContext();
         if (hasTestFailure(testInfo)) {
-            suiteHasFailures = true;
-            failedTestTitles.push(testInfo.title);
+            failedTests.push({
+                label: testInfo.title,
+                outputDir: testInfo.outputDir,
+                testInfo,
+            });
         }
         await screenshotOnFailure(currentContext.page, testInfo);
         await hooks.afterEach?.(currentContext, testInfo);
@@ -76,14 +84,10 @@ export function useSharedVsCodeLifecycle(
         const currentContext = getContext();
         await hooks.beforeClose?.(currentContext);
         await currentContext.electronApp.close();
-        if (!suiteHasFailures) {
+        if (failedTests.length === 0) {
             await cleanupDirectories(currentContext.videoDir);
         } else {
-            const sharedFailureLabel =
-                failedTestTitles.length === 1
-                    ? failedTestTitles[0]
-                    : `${failedTestTitles.length}-failed-tests`;
-            await renameRecordedVideos(currentContext.videoDir, sharedFailureLabel);
+            await storeRecordedVideos(currentContext.videoDir, failedTests);
         }
     });
 
@@ -121,7 +125,13 @@ export function usePerTestVsCodeLifecycle(
         if (!shouldKeepVideo) {
             await cleanupDirectories(currentContext.videoDir);
         } else {
-            await renameRecordedVideos(currentContext.videoDir, testInfo.title);
+            await storeRecordedVideos(currentContext.videoDir, [
+                {
+                    label: testInfo.title,
+                    outputDir: testInfo.outputDir,
+                    testInfo,
+                },
+            ]);
         }
         await cleanupDirectories(
             currentContext.userDataDir,
@@ -133,8 +143,11 @@ export function usePerTestVsCodeLifecycle(
     return getContext;
 }
 
-async function renameRecordedVideos(videoDir: string, label: string): Promise<void> {
-    if (!fs.existsSync(videoDir)) {
+async function storeRecordedVideos(
+    videoDir: string,
+    destinations: VideoArtifactDestination[],
+): Promise<void> {
+    if (!fs.existsSync(videoDir) || destinations.length === 0) {
         return;
     }
 
@@ -144,15 +157,27 @@ async function renameRecordedVideos(videoDir: string, label: string): Promise<vo
     }
 
     const timestamp = Date.now();
-    const safeLabel = sanitizeForFileName(label);
     const sortedFiles = webmFiles.sort();
-    for (const [index, sourcePath] of sortedFiles.entries()) {
-        const targetPath = path.join(videoDir, `${safeLabel}-${timestamp}-${index + 1}.webm`);
-        if (sourcePath === targetPath) {
-            continue;
+
+    for (const destination of destinations) {
+        const safeLabel = sanitizeForFileName(destination.label);
+        await fs.promises.mkdir(destination.outputDir, { recursive: true });
+
+        for (const [index, sourcePath] of sortedFiles.entries()) {
+            const targetPath = path.join(
+                destination.outputDir,
+                `${safeLabel}-${timestamp}-${index + 1}.webm`,
+            );
+            await fs.promises.copyFile(sourcePath, targetPath);
+            destination.testInfo?.attachments.push({
+                name: path.basename(targetPath),
+                path: targetPath,
+                contentType: "video/webm",
+            });
         }
-        await fs.promises.rename(sourcePath, targetPath);
     }
+
+    await cleanupDirectories(videoDir);
 }
 
 async function findWebmFiles(directory: string): Promise<string[]> {
