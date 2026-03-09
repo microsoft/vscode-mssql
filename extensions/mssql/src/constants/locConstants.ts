@@ -650,6 +650,7 @@ export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
     // Status bar
+    public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
 
     // Errors
@@ -726,6 +727,7 @@ export class Notebooks {
     public static currentDatabaseLabel = l10n.t("(current)");
 
     // Code lens
+    public static codeLensClickToChangeConnection = l10n.t("Click to change connection");
     public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
     public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
 
