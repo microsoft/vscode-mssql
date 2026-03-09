@@ -2,7 +2,7 @@
 
 ## Version 1.41.0
 
-- Release date: March 18, 2026
+- Release date: March 16, 2026
 - Release status: GA
 
 ### What's new in 1.41.0
