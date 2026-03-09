@@ -3656,6 +3656,9 @@
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
     </trans-unit>
+    <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
+      <source xml:lang="en">MSSQL: Click to change connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
       <source xml:lang="en">MSSQL: Click to change database</source>
     </trans-unit>
