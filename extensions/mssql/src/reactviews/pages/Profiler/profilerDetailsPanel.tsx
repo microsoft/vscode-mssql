@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import {
     Button,
     Toolbar,
@@ -23,14 +23,13 @@ import {
     Dismiss16Regular,
     ChevronDown16Regular,
 } from "@fluentui/react-icons";
-import { Editor } from "@monaco-editor/react";
 import {
     ProfilerSelectedEventDetails,
     ProfilerEventProperty,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { resolveVscodeThemeType } from "../../common/utils";
 import { locConstants } from "../../common/locConstants";
+import { VscodeEditor } from "../../common/vscodeMonaco";
 
 /**
  * Tab identifiers for the details panel
@@ -163,9 +162,6 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
     const loc = locConstants.profiler.detailsPanel;
     const commonLoc = locConstants.common;
     const [activeTab, setActiveTab] = useState<DetailsPanelTab>(DetailsPanelTab.Text);
-
-    // Memoize the theme for Monaco editor
-    const monacoTheme = useMemo(() => resolveVscodeThemeType(themeKind), [themeKind]);
 
     // Handle tab change
     const handleTabSelect = useCallback((_event: SelectTabEvent, data: SelectTabData) => {
@@ -314,11 +310,11 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                         role="region"
                         aria-label={loc.editorAriaLabel}>
                         {hasTextData ? (
-                            <Editor
+                            <VscodeEditor
                                 height="100%"
                                 width="100%"
                                 language="sql"
-                                theme={monacoTheme}
+                                themeKind={themeKind}
                                 value={selectedEvent.textData}
                                 options={{
                                     readOnly: true,
