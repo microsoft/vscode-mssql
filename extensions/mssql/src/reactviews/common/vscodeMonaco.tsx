@@ -14,7 +14,7 @@ import {
     Monaco,
     loader,
 } from "@monaco-editor/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ColorThemeKind } from "../../sharedInterfaces/webview";
 
 const VSCODE_MONACO_THEME_NAME = "vscode-webview-theme";
@@ -84,13 +84,17 @@ function resolveMonacoBaseTheme(themeKind: ColorThemeKind): MonacoBuiltinTheme {
     }
 }
 
+function getThemeTargetElement(): HTMLElement {
+    return document.body ?? document.documentElement;
+}
+
 function getCssVariable(variableName: string): string | undefined {
     if (typeof document === "undefined") {
         return undefined;
     }
 
     const value = window
-        .getComputedStyle(document.body ?? document.documentElement)
+        .getComputedStyle(getThemeTargetElement())
         .getPropertyValue(variableName)
         .trim();
 
@@ -126,18 +130,13 @@ function defineVscodeMonacoTheme(monaco: Monaco, themeKind: ColorThemeKind): voi
     monaco.editor.setTheme(VSCODE_MONACO_THEME_NAME);
 }
 function useVscodeMonacoTheme(themeKind: ColorThemeKind): BeforeMount {
-    const applyTheme = useCallback(
+    const frameHandleRef = useRef<number | undefined>(undefined);
+
+    const applyTheme = useCallback<BeforeMount>(
         (monaco: Monaco) => {
             defineVscodeMonacoTheme(monaco, themeKind);
         },
         [themeKind],
-    );
-
-    const beforeMount = useCallback<BeforeMount>(
-        (monaco) => {
-            applyTheme(monaco);
-        },
-        [applyTheme],
     );
 
     useEffect(() => {
@@ -146,16 +145,15 @@ function useVscodeMonacoTheme(themeKind: ColorThemeKind): BeforeMount {
         }
 
         let disposed = false;
-        const observerTarget = document.body ?? document.documentElement;
-        let frameHandle = 0;
+        const observerTarget = getThemeTargetElement();
 
         const queueThemeRefresh = () => {
-            if (frameHandle !== 0) {
-                cancelAnimationFrame(frameHandle);
+            if (frameHandleRef.current !== undefined) {
+                cancelAnimationFrame(frameHandleRef.current);
             }
 
-            frameHandle = requestAnimationFrame(() => {
-                frameHandle = 0;
+            frameHandleRef.current = requestAnimationFrame(() => {
+                frameHandleRef.current = undefined;
                 void loader.init().then((monaco) => {
                     if (disposed) {
                         return;
@@ -177,13 +175,14 @@ function useVscodeMonacoTheme(themeKind: ColorThemeKind): BeforeMount {
         return () => {
             disposed = true;
             observer.disconnect();
-            if (frameHandle !== 0) {
-                cancelAnimationFrame(frameHandle);
+            if (frameHandleRef.current !== undefined) {
+                cancelAnimationFrame(frameHandleRef.current);
+                frameHandleRef.current = undefined;
             }
         };
     }, [applyTheme]);
 
-    return beforeMount;
+    return applyTheme;
 }
 
 type VscodeEditorProps = Omit<EditorProps, "theme"> & {
