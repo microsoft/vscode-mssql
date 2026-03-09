@@ -193,10 +193,11 @@ export class Project implements ISqlProject {
                 proj,
                 false /* don't block the thread until the  prompt*/,
             );
-        }
 
-        if (!proj._projectGuid || proj._projectGuid === constants.nullProjectGuid) {
-            void Project.checkPromptProjectGuidStatus(proj);
+            // Prompt the user about missing projectGuid
+            if (!proj._projectGuid || proj._projectGuid === constants.nullProjectGuid) {
+                void Project.checkPromptProjectGuidStatus(proj);
+            }
         }
 
         return proj;
