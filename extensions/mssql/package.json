@@ -1990,11 +1990,6 @@
                     "default": false,
                     "scope": "resource"
                 },
-                "mssql.enableSqlAuthenticationProvider": {
-                    "type": "boolean",
-                    "description": "%mssql.enableSqlAuthenticationProvider%",
-                    "default": true
-                },
                 "mssql.enableConnectionPooling": {
                     "type": "boolean",
                     "description": "%mssql.enableConnectionPooling%",

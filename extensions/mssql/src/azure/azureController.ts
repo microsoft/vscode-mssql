@@ -25,7 +25,6 @@ export abstract class AzureController {
     protected _vscodeWrapper: VscodeWrapper;
     protected _credentialStoreInitialized = false;
     protected logger: Logger;
-    protected _isSqlAuthProviderEnabled: boolean = false;
 
     constructor(
         protected context: vscode.ExtensionContext,
@@ -87,10 +86,6 @@ export abstract class AzureController {
 
     public abstract handleAuthMapping(): void;
 
-    public isSqlAuthProviderEnabled(): boolean {
-        return this._isSqlAuthProviderEnabled;
-    }
-
     public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
         let config = azureUtils.getAzureActiveDirectoryConfig();
         let account = await this.login(config!);
@@ -110,43 +105,9 @@ export abstract class AzureController {
             await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
             throw new Error(LocalizedConstants.msgAccountNotFound);
         }
-        if (!this._isSqlAuthProviderEnabled) {
-            this.logger.verbose(
-                `Account found, refreshing access token for tenant ${profile.tenantId}`,
-            );
-            let azureAccountToken = await this.refreshAccessToken(
-                account,
-                accountStore,
-                profile.tenantId,
-                settings,
-            );
-            if (!azureAccountToken) {
-                let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                return this._vscodeWrapper
-                    .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
-                    .then(async (result) => {
-                        if (result === LocalizedConstants.refreshTokenLabel) {
-                            let refreshedProfile = await this.populateAccountProperties(
-                                profile,
-                                accountStore,
-                                settings,
-                            );
-                            return refreshedProfile;
-                        } else {
-                            return undefined;
-                        }
-                    });
-            }
-
-            profile.azureAccountToken = azureAccountToken.token;
-            profile.expiresOn = azureAccountToken.expiresOn;
-            profile.email = account.displayInfo.email;
-            profile.accountId = account.key.id;
-        } else {
-            this.logger.verbose(
-                "Account found and SQL Authentication Provider is enabled, access token will not be refreshed by extension.",
-            );
-        }
+        this.logger.verbose(
+            "Account found and SQL Authentication Provider is enabled, access token will not be refreshed by extension.",
+        );
         return profile;
     }
 

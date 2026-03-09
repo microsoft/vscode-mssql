@@ -148,7 +148,6 @@ export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
 
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
-export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
 export const enableConnectionPooling = "mssql.enableConnectionPooling";
 export const sqlDbSuffix = ".database.windows.net";
 export const defaultConnectionTimeout = 15;

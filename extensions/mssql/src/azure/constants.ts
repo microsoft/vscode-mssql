@@ -35,11 +35,7 @@ export const mssqlSection = "mssql";
 
 export const tenantSection = "tenant";
 
-export const sqlAuthProviderSection = "enableSqlAuthenticationProvider";
-
 export const enableConnectionPoolingSection = "enableConnectionPooling";
-
-export const mssqlAuthenticationProviderConfig = mssqlSection + "." + sqlAuthProviderSection;
 
 export const accountsClearTokenCacheCommand = accountsSection + "." + clearTokenCacheCommand;
 
