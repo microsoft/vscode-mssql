@@ -11,20 +11,29 @@ import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { DabTool, DabToolParams } from "../../src/copilot/tools/dabTool";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import { registerSchemaDesignerDabToolHandlers } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
 import { locConstants } from "../../src/reactviews/common/locConstants";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
+import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
+import { IConnectionProfile } from "../../src/models/interfaces";
 import * as telemetry from "../../src/telemetry/telemetry";
 
 chai.use(sinonChai);
 
 suite("DabTool Tests", () => {
     let sandbox: sinon.SinonSandbox;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockToken: vscode.CancellationToken;
+    let showDabStub: sinon.SinonStub;
     let dabTool: DabTool;
+
+    const sampleConnectionId = "connection-dab-123";
+    const sampleDatabase = "AdventureWorks";
+    const sampleServer = "localhost";
 
     const createTable = (
         id: string,
@@ -50,6 +59,7 @@ suite("DabTool Tests", () => {
         tables: SchemaDesigner.Table[];
         dabConfig?: Dab.DabConfig | null;
         initialized?: boolean;
+        waitForInitialization?: sinon.SinonStub;
     }) => {
         let currentTables = params.tables;
         let currentDabConfig = params.dabConfig ?? null;
@@ -58,6 +68,8 @@ suite("DabTool Tests", () => {
         const commitSpy = sandbox.spy((config: Dab.DabConfig) => {
             currentDabConfig = config;
         });
+        const waitForInitialization =
+            params.waitForInitialization ?? sandbox.stub().resolves(params.initialized ?? true);
 
         const extensionRpc = {
             onRequest: sandbox.stub().callsFake((type: any, handler: any) => {
@@ -68,6 +80,7 @@ suite("DabTool Tests", () => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc: extensionRpc as any,
             isInitializedRef,
+            waitForInitialization,
             getCurrentDabConfig: () => currentDabConfig,
             getCurrentSchemaTables: () => currentTables,
             commitDabConfig: commitSpy,
@@ -83,13 +96,17 @@ suite("DabTool Tests", () => {
             },
             getConfig: () => currentDabConfig,
             commitSpy,
+            waitForInitialization,
+            isInitializedRef,
         };
     };
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockToken = {} as vscode.CancellationToken;
-        dabTool = new DabTool();
+        showDabStub = sandbox.stub();
+        dabTool = new DabTool(mockConnectionManager, showDabStub as any);
         sandbox.stub(telemetry, "sendActionEvent");
     });
 
@@ -98,6 +115,77 @@ suite("DabTool Tests", () => {
     });
 
     suite("Tool behavior", () => {
+        test("returns invalid_request when show is missing connectionId", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                },
+            } as any as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("invalid_request");
+            expect(parsed.message).to.equal(loc.dabToolMissingConnectionId);
+            expect(showDabStub.called).to.equal(false);
+        });
+
+        test("returns invalid_request when show connectionId is unknown", async () => {
+            mockConnectionManager.getConnectionInfo.returns(undefined as any);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: sampleConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("invalid_request");
+            expect(parsed.message).to.equal(loc.noConnectionError(sampleConnectionId));
+            expect(showDabStub.called).to.equal(false);
+        });
+
+        test("show opens DAB and returns summary guidance without config", async () => {
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            mockConnectionManager.getConnectionInfo.returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            showDabStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: sampleConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(true);
+            expect(parsed.message).to.equal(loc.dabToolShowSuccessMessage);
+            expect(parsed.recommendedTool).to.equal("mssql_dab");
+            expect(parsed.recommendedNextCall).to.deep.equal({
+                operation: "get_state",
+            });
+            expect(parsed.server).to.equal(sampleServer);
+            expect(parsed.database).to.equal(sampleDatabase);
+            expect(parsed).to.not.have.property("config");
+            expect(parsed).to.not.have.property("version");
+            expect(parsed).to.not.have.property("summary");
+            expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
+            expect(mockDesigner.getDabToolState.called).to.equal(false);
+        });
+
         test("returns no_active_designer when there is no active schema designer", async () => {
             const managerStub = {
                 getActiveDesigner: sandbox.stub().returns(undefined),
@@ -111,6 +199,7 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("no_active_designer");
+            expect(parsed.message).to.equal(loc.dabToolNoActiveDesigner);
         });
 
         test("validates targetHint before webview RPC and returns target_mismatch", async () => {
@@ -314,7 +403,7 @@ suite("DabTool Tests", () => {
                             {
                                 type: "set_entity_actions",
                                 entity: { id: "t1" },
-                                actions: [Dab.EntityAction.Read],
+                                enabledActions: [Dab.EntityAction.Read],
                             },
                             {
                                 type: "patch_entity_settings",
@@ -447,7 +536,7 @@ suite("DabTool Tests", () => {
             mockDesigner.applyDabToolChanges.resolves({
                 success: false,
                 reason: "validation_error",
-                message: "actions must be unique.",
+                message: "enabledActions must be unique.",
                 failedChangeIndex: 1,
                 appliedChanges: 1,
                 version: "dabcfg_failed",
@@ -475,7 +564,7 @@ suite("DabTool Tests", () => {
                             {
                                 type: "set_entity_actions",
                                 entity: { id: "t1" },
-                                actions: [Dab.EntityAction.Read, Dab.EntityAction.Read],
+                                enabledActions: [Dab.EntityAction.Read, Dab.EntityAction.Read],
                             },
                         ],
                     },
@@ -633,7 +722,7 @@ suite("DabTool Tests", () => {
             expect(state).to.not.have.property("config");
         });
 
-        test("get_state throws when handlers are not initialized", async () => {
+        test("get_state throws when initialization does not complete", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
                 dabConfig: null,
@@ -648,9 +737,30 @@ suite("DabTool Tests", () => {
             }
 
             expect(caughtError).to.be.instanceOf(Error);
+            expect(harness.waitForInitialization.calledOnce).to.equal(true);
             expect((caughtError as Error).message).to.equal(
                 locConstants.schemaDesigner.schemaDesignerNotInitialized,
             );
+        });
+
+        test("get_state waits for initialization before returning state", async () => {
+            let harness: ReturnType<typeof createDabHandlerHarness>;
+            const waitForInitialization = sandbox.stub().callsFake(async () => {
+                harness.isInitializedRef.current = true;
+                return true;
+            });
+            harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+                initialized: false,
+                waitForInitialization,
+            });
+
+            const state = await harness.getState();
+
+            expect(waitForInitialization.calledOnce).to.equal(true);
+            expect(state.returnState).to.equal("full");
+            expect(state.summary.entityCount).to.equal(1);
         });
 
         test("get_state avoids commit when config is already synchronized with schema", async () => {
@@ -763,13 +873,33 @@ suite("DabTool Tests", () => {
             const state = await harness.getState();
             harness.commitSpy.resetHistory();
 
+            const emptyActions = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_actions",
+                        entity: { id: "t1" },
+                        enabledActions: [],
+                    },
+                ],
+            });
+
+            expect(emptyActions.success).to.equal(false);
+            if (emptyActions.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(emptyActions.reason).to.equal("validation_error");
+            expect(emptyActions.message).to.equal("enabledActions must be a non-empty array.");
+            expect(harness.commitSpy.calledOnce).to.equal(true);
+            harness.commitSpy.resetHistory();
+
             const result = await harness.applyChanges({
                 expectedVersion: state.version,
                 changes: [
                     {
                         type: "set_entity_actions",
                         entity: { id: "t1" },
-                        actions: [Dab.EntityAction.Read, "bogus" as any],
+                        enabledActions: [Dab.EntityAction.Read, "bogus" as any],
                     },
                 ],
             });
@@ -779,7 +909,7 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(result.reason).to.equal("validation_error");
-            expect(result.message).to.equal("actions contains unsupported values.");
+            expect(result.message).to.equal("enabledActions contains unsupported values.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
             expect(harness.commitSpy.calledOnce).to.equal(true);
@@ -1114,7 +1244,7 @@ suite("DabTool Tests", () => {
                     {
                         type: "set_entity_actions",
                         entity: { id: "t1" },
-                        actions: [Dab.EntityAction.Read, Dab.EntityAction.Read],
+                        enabledActions: [Dab.EntityAction.Read, Dab.EntityAction.Read],
                     },
                 ],
             });
@@ -1123,7 +1253,7 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(duplicateActions.reason).to.equal("validation_error");
-            expect(duplicateActions.message).to.equal("actions must be unique.");
+            expect(duplicateActions.message).to.equal("enabledActions must be unique.");
 
             const unsupportedPatchProperty = await harness.applyChanges({
                 expectedVersion: state.version,
@@ -1163,6 +1293,11 @@ suite("DabTool Tests", () => {
                         entity: { schemaName: "dbo", tableName: "Users" },
                         isEnabled: false,
                     },
+                    {
+                        type: "set_entity_actions",
+                        entity: { schemaName: "sales", tableName: "Orders" },
+                        enabledActions: [Dab.EntityAction.Read, Dab.EntityAction.Create],
+                    },
                 ],
             });
 
@@ -1170,8 +1305,12 @@ suite("DabTool Tests", () => {
             if (!result.success) {
                 throw new Error("Expected success response");
             }
-            expect(result.appliedChanges).to.equal(2);
+            expect(result.appliedChanges).to.equal(3);
             expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(
+                harness.getConfig()?.entities.find((entity) => entity.schemaName === "sales")
+                    ?.enabledActions,
+            ).to.deep.equal([Dab.EntityAction.Read, Dab.EntityAction.Create]);
         });
 
         test("apply_changes failure path uses fail-fast prefix commit semantics", async () => {
@@ -1190,7 +1329,7 @@ suite("DabTool Tests", () => {
                     {
                         type: "set_entity_actions",
                         entity: { schemaName: "sales", tableName: "MissingTable" },
-                        actions: [Dab.EntityAction.Read],
+                        enabledActions: [Dab.EntityAction.Read],
                     },
                 ],
             });
