@@ -21,7 +21,6 @@ export type VsCodeLaunchContext = {
     userDataDir: string;
     extensionsDir: string;
     videoDir: string;
-    nodePathDir?: string;
 };
 
 type SharedLifecycleHooks = {
@@ -133,11 +132,7 @@ export function usePerTestVsCodeLifecycle(
                 },
             ]);
         }
-        await cleanupDirectories(
-            currentContext.userDataDir,
-            currentContext.extensionsDir,
-            currentContext.nodePathDir,
-        );
+        await cleanupDirectories(currentContext.userDataDir, currentContext.extensionsDir);
     });
 
     return getContext;

@@ -35,7 +35,6 @@ export async function launchVsCodeWithMssqlExtension(
     userDataDir: string;
     extensionsDir: string;
     videoDir: string;
-    nodePathDir?: string;
 }> {
     const config: mssqlExtensionLaunchConfig = {
         initialConfig: DEFAULT_USER_CONFIG,
