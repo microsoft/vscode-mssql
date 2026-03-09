@@ -786,6 +786,10 @@ export class SqlNotebookController implements vscode.Disposable {
         this.saveConnectionMetadataIfConnected(notebook);
         this.updateStatusBar(notebook);
         this.codeLensProvider.refresh();
+
+        // Follow up with a database picker so the user can choose a database
+        // on the newly selected server. Cancelling keeps the default database.
+        await this.changeDatabaseInteractive();
     }
 
     async createNotebookWithConnection(connectionInfo?: IConnectionInfo): Promise<void> {
