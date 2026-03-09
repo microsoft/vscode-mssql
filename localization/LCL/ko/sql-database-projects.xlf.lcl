@@ -190,6 +190,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프록시 설정은 찾았지만 URL을 분석하는 중 오류가 발생했습니다('{0}'). SQL Database Projects 확장을 사용하는 동안 연결 문제가 발생할 수 있습니다.  오류: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0fd7a3888589d46de552e4f15eb56703fb9529d52f818824b68e21c2b685496b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error finding build files location: {0}]]></Val>
@@ -1594,6 +1603,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to read proxy agent options.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프록시 에이전트 옵션을 읽을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프록시 설정은 찾았지만 프로토콜(e.g. http://)이 없습니다('{0}'). SQL Database Projects 확장을 사용하는 동안 연결 문제가 발생할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++97c59aa9b524fc50bc1c1eb646c9a306160017cda473234d8d5f3f32bb2e93f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced...]]></Val>
@@ -2644,6 +2671,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[nuget.org에 연결할 수 없습니다. 프록시 뒤에 있거나 오프라인 환경이라면, 필요한 DLL 파일을 빌드 디렉터리에 수동으로 넣으세요. {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ef02d22081eab5e1d6b0e0d90ecdb8cf59eeba072d5b2d001be0a493554d4bfa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Different database, same server]]></Val>
@@ -2937,10 +2973,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.createProjectFromDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create Project From Database]]></Val>
+          <Val><![CDATA[Create Project from Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[데이터베이스에서 프로젝트 만들기]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Create Project From Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3151,6 +3190,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.sqlDatabaseProjects.objectExplorerSubmenu" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Database Projects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Database 프로젝트]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.sqlDatabaseProjects.open" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Database Project]]></Val>
@@ -3225,10 +3273,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.updateProjectFromDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Update Project From Database]]></Val>
+          <Val><![CDATA[Update Project from Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터베이스에서 프로젝트 만들기]]></Val>
+            <Val><![CDATA[데이터베이스에서 프로젝트 업데이트]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Update Project From Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
