@@ -2012,6 +2012,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
         <target state="translated">Fabric で SQL データベースを作成する (プレビュー)</target>
       </trans-unit>
+      <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
+        <source xml:lang="en">Create a new connection profile</source>
+        <target state="new">Create a new connection profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++4c4e11ad9f72c183a2ea2cdf1ed42c358aee2b87c96cad4d22d7d22b967dd3b8">
         <source xml:lang="en">Create a new database on '{0}'.</source>
         <note>{0} is the name of the server</note>
@@ -2154,6 +2158,13 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
         <target state="translated">データ API ビルダーの構成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
+        <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_dab' and must not be translated
+{1} is the operation name 'get_state' and must not be translated
+{2} is the operation name 'apply_changes' and must not be translated</note>
+        <target state="new">Data API Builder opened. Continue with {0} operations ({1}/{2}).</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2583,10 +2594,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">VS Code 拡張機能から離れることなくローカル SQL Server を簡単に設定できます。数回クリックするだけで、サーバーを簡単にインストール、構成、管理できます。</target>
       </trans-unit>
-      <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
-        <source xml:lang="en">Edit</source>
-        <target state="translated">編集</target>
-      </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
         <note>{0} is the connection group name</note>
@@ -2612,6 +2619,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">テーブルの編集</target>
+      </trans-unit>
+      <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
+        <source xml:lang="en">Edit an existing connection profile</source>
+        <target state="new">Edit an existing connection profile</target>
       </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -3414,6 +3425,10 @@ Error:
         <source xml:lang="en">Failed to open Modify Table: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">テーブルの変更を開けませんでした: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
+        <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
+        <target state="new">Failed to open URL. The built-in Simple Browser may be disabled.</target>
       </trans-unit>
       <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
         <source xml:lang="en">Failed to open XEL file: {0}</source>
@@ -4914,6 +4929,10 @@ Error:
         <note>{0} is the min</note>
         <target state="translated">最小: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
+        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+        <target state="new">Missing connectionId. Please provide a connectionId to open Data API Builder.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
         <target state="translated">connectionId がありません。スキーマ デザイナーを開くには connectionId を指定してください。</target>
@@ -5172,6 +5191,10 @@ Error:
         <source xml:lang="en">No active notebook.</source>
         <target state="translated">アクティブなノートブックがありません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
+        <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</source>
+        <target state="new">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</target>
+      </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
         <target state="new">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</target>
@@ -5229,9 +5252,13 @@ Error:
         <source xml:lang="en">No connection information found</source>
         <target state="translated">接続に関する情報が見つかりません</target>
       </trans-unit>
-      <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
-        <source xml:lang="en">No connection profile to remove.</source>
-        <target state="translated">削除する接続プロファイルがありません。</target>
+      <trans-unit id="++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338">
+        <source xml:lang="en">No connection profiles to edit.</source>
+        <target state="new">No connection profiles to edit.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e">
+        <source xml:lang="en">No connection profiles to remove.</source>
+        <target state="new">No connection profiles to remove.</target>
       </trans-unit>
       <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
         <source xml:lang="en">No connection selected.</source>
@@ -5590,6 +5617,10 @@ Error:
       <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
         <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
         <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
+        <source xml:lang="en">Open Nitro</source>
+        <target state="new">Open Nitro</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -6313,6 +6344,10 @@ Error:
         <source xml:lang="en">Remove Sort</source>
         <target state="translated">並べ替えの削除</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
+        <source xml:lang="en">Remove a connection profile</source>
+        <target state="new">Remove a connection profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
         <source xml:lang="en">Remove file</source>
         <target state="translated">ファイルを削除する</target>
@@ -6342,6 +6377,12 @@ Error:
       <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
         <source xml:lang="en">Rename Database (Preview)</source>
         <target state="translated">データベース名の変更 (プレビュー)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
+        <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
+        <note>{0} is the current database name
+{1} is the new database name</note>
+        <target state="new">Renaming database '{0}' to '{1}'...</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -7116,6 +7157,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
         <source xml:lang="en">Select package file</source>
         <target state="translated">パッケージ ファイルの選択</target>
+      </trans-unit>
+      <trans-unit id="++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730">
+        <source xml:lang="en">Select profile to edit</source>
+        <target state="new">Select profile to edit</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -8365,6 +8410,10 @@ Query: {2}</source>
         <source xml:lang="en">View More</source>
         <target state="translated">表示数を増やす</target>
       </trans-unit>
+      <trans-unit id="++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1">
+        <source xml:lang="en">View Swagger</source>
+        <target state="new">View Swagger</target>
+      </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">mssql for Visual Studio Code リリース ノートを表示しますか?</target>
@@ -9000,8 +9049,8 @@ Query: {2}</source>
         <target state="translated">Azure MFA</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
-        <source xml:lang="en">Backup Database (Preview)</source>
-        <target state="translated">バックアップ データベース (プレビュー)</target>
+        <source xml:lang="en">Backup Database (Preview)...</source>
+        <target state="new">Backup Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
@@ -9067,6 +9116,10 @@ Query: {2}</source>
         <source xml:lang="en">Command Timeout</source>
         <target state="translated">コマンド タイムアウト</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaCompare">
+        <source xml:lang="en">Compare Schemas...</source>
+        <target state="new">Compare Schemas...</target>
+      </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">接続</target>
@@ -9103,21 +9156,17 @@ Query: {2}</source>
         <source xml:lang="en">Copy All</source>
         <target state="translated">すべてコピー</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy Connection String</source>
+        <target state="new">Copy Connection String</target>
+      </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">オブジェクト名のコピー</target>
       </trans-unit>
-      <trans-unit id="mssql.copyConnectionString">
-        <source xml:lang="en">Copy as Connection String</source>
-        <target state="translated">接続文字列としてコピー</target>
-      </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">SQL バインドを使用して Azure 関数を作成する</target>
-      </trans-unit>
-      <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">Create Database (Preview)</source>
-        <target state="translated">データベースの作成 (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">Create SQL Notebook</source>
@@ -9134,8 +9183,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
 変更が完了したら、[発行] ボタンをクリックして変更をデータベースに送信します。</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
-        <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="translated">データ層アプリケーション (プレビュー)</target>
+        <source xml:lang="en">DACPAC/BACPAC Operations...</source>
+        <target state="new">DACPAC/BACPAC Operations...</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -9150,8 +9199,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">接続グループの削除</target>
       </trans-unit>
       <trans-unit id="mssql.deleteContainer">
-        <source xml:lang="en">Delete Container</source>
-        <target state="translated">コンテナーの削除</target>
+        <source xml:lang="en">Delete SQL Container</source>
+        <target state="new">Delete SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
@@ -9190,12 +9239,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">クエリ結果を新しいタブに表示するためのプロンプトを表示しません。</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="translated">データベースの削除 (プレビュー)</target>
-      </trans-unit>
-      <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">接続の編集</target>
+        <source xml:lang="en">Drop Database (Preview)...</source>
+        <target state="new">Drop Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9205,9 +9250,13 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">接続共有アクセス許可の編集</target>
       </trans-unit>
+      <trans-unit id="mssql.editConnection">
+        <source xml:lang="en">Edit Connection...</source>
+        <target state="new">Edit Connection...</target>
+      </trans-unit>
       <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="translated">データの編集 (プレビュー)</target>
+        <source xml:lang="en">Edit Table Data (Preview)...</source>
+        <target state="new">Edit Table Data (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -9357,6 +9406,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">オブジェクト エクスプローラー ツリーをフィルター処理する</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlScriptsSubmenu">
+        <source xml:lang="en">Generate Script</source>
+        <target state="new">Generate Script</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
         <target state="translated">Visual Studio Code 用の MSSQL を開始する</target>
@@ -9370,12 +9423,12 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">BACPAC のインポート</target>
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
-        <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="translated">フラット ファイルのインポート (プレビュー)</target>
+        <source xml:lang="en">Import Data (Preview)...</source>
+        <target state="new">Import Data (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="translated">Query Profiler (プレビュー) の起動</target>
+        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
+        <target state="new">Launch Query Profiler (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9426,8 +9479,12 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">Azure Data Studio から移行する</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Modify Table</source>
-        <target state="translated">テーブルの変更</target>
+        <source xml:lang="en">Modify Table Structure...</source>
+        <target state="new">Modify Table Structure...</target>
+      </trans-unit>
+      <trans-unit id="mssql.createDatabase">
+        <source xml:lang="en">New Database (Preview)...</source>
+        <target state="new">New Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9492,12 +9549,12 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Query Profiler (プレビュー) XEL ファイルを開く</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-        <source xml:lang="en">Open in Copilot Agent mode</source>
-        <target state="translated">Copilot エージェント モードで開く</target>
+        <source xml:lang="en">Open in GitHub Copilot Agent</source>
+        <target state="new">Open in GitHub Copilot Agent</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Open in Copilot Ask mode</source>
-        <target state="translated">Copilot 質問モードで開く</target>
+        <source xml:lang="en">Open in GitHub Copilot Chat</source>
+        <target state="new">Open in GitHub Copilot Chat</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -9536,24 +9593,24 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">IntelliSense キャッシュの更新</target>
       </trans-unit>
       <trans-unit id="mssql.removeObjectExplorerNode">
-        <source xml:lang="en">Remove</source>
-        <target state="translated">削除</target>
+        <source xml:lang="en">Remove Connection</source>
+        <target state="new">Remove Connection</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra アカウントの削除</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">データベース名の変更 (プレビュー)</target>
+        <source xml:lang="en">Rename Database (Preview)...</source>
+        <target state="new">Rename Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
         <target state="translated">レプリケーション</target>
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
-        <source xml:lang="en">Restore Database (Preview)</source>
-        <target state="translated">データベースの復元 (プレビュー)</target>
+        <source xml:lang="en">Restore Database (Preview)...</source>
+        <target state="new">Restore Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -9579,17 +9636,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">SQL Container Version</source>
         <target state="translated">SQL コンテナーのバージョン</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlScriptsSubmenu">
-        <source xml:lang="en">SQL Scripts</source>
-        <target state="translated">SQL スクリプト</target>
-      </trans-unit>
       <trans-unit id="mssql.profiler.xelEditorDisplayName">
         <source xml:lang="en">SQL Server Extended Events Log</source>
         <target state="translated">SQL Server 拡張イベント ログ</target>
-      </trans-unit>
-      <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare</source>
-        <target state="translated">Schema Compare</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -9608,8 +9657,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">実行としてのスクリプト</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">データベース オブジェクトの検索</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -9743,17 +9792,17 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
         <target state="translated">'https://vault.azure.net/' に相当するソブリン クラウド</target>
       </trans-unit>
-      <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start Container</source>
-        <target state="translated">コンテナーの開始</target>
-      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">クエリ履歴キャプチャの開始</target>
       </trans-unit>
+      <trans-unit id="mssql.startContainer">
+        <source xml:lang="en">Start SQLContainer</source>
+        <target state="new">Start SQLContainer</target>
+      </trans-unit>
       <trans-unit id="mssql.stopContainer">
-        <source xml:lang="en">Stop Container</source>
-        <target state="translated">コンテナーの停止</target>
+        <source xml:lang="en">Stop SQL Container</source>
+        <target state="new">Stop SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>

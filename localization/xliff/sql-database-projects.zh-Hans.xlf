@@ -1351,8 +1351,8 @@
         <target state="translated">转换为 SDK 样式项目</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.createProjectFromDatabase">
-        <source xml:lang="en">Create Project From Database</source>
-        <target state="translated">根据数据库创建项目</target>
+        <source xml:lang="en">Create Project from Database</source>
+        <target state="new">Create Project from Database</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.Settings">
         <source xml:lang="en">Database Projects</source>
@@ -1440,13 +1440,17 @@
         <source xml:lang="en">Rename</source>
         <target state="translated">重命名</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
+        <source xml:lang="en">SQL Database Projects</source>
+        <target state="new">SQL Database Projects</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">架构比较</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
-        <source xml:lang="en">Update Project From Database</source>
-        <target state="translated">从数据库更新项目</target>
+        <source xml:lang="en">Update Project from Database</source>
+        <target state="new">Update Project from Database</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
         <source xml:lang="en">Validate External Streaming Job</source>

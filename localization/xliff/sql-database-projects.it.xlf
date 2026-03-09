@@ -1351,8 +1351,8 @@
         <target state="translated">Convertire in progetto di tipo SDK</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.createProjectFromDatabase">
-        <source xml:lang="en">Create Project From Database</source>
-        <target state="translated">Creare il progetto dal database</target>
+        <source xml:lang="en">Create Project from Database</source>
+        <target state="new">Create Project from Database</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.Settings">
         <source xml:lang="en">Database Projects</source>
@@ -1440,13 +1440,17 @@
         <source xml:lang="en">Rename</source>
         <target state="translated">Rinomina</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
+        <source xml:lang="en">SQL Database Projects</source>
+        <target state="new">SQL Database Projects</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">Confronto schemi</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
-        <source xml:lang="en">Update Project From Database</source>
-        <target state="translated">Aggiorna progetto dal database</target>
+        <source xml:lang="en">Update Project from Database</source>
+        <target state="new">Update Project from Database</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
         <source xml:lang="en">Validate External Streaming Job</source>
