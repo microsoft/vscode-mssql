@@ -726,6 +726,7 @@ export class Notebooks {
     public static currentDatabaseLabel = l10n.t("(current)");
 
     // Code lens
+    public static codeLensClickToChangeConnection = l10n.t("Click to change connection");
     public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
     public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
 

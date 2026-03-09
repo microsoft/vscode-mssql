@@ -373,8 +373,8 @@ export class SqlNotebookController implements vscode.Disposable {
         if (mgr?.isConnected()) {
             this.statusBarItem.text = `$(check) ${mgr.getConnectionLabel()}`;
             this.statusBarItem.tooltip =
-                LocalizedConstants.Notebooks.statusBarClickToChangeDatabase;
-            this.statusBarItem.command = Constants.cmdNotebooksChangeDatabase;
+                LocalizedConstants.Notebooks.codeLensClickToChangeConnection;
+            this.statusBarItem.command = Constants.cmdNotebooksChangeConnection;
             this.statusBarItem.show();
         } else {
             this.statusBarItem.text = `$(plug) ${LocalizedConstants.StatusBar.disconnectedLabel}`;
