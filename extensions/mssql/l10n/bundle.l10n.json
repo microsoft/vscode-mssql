@@ -2044,6 +2044,7 @@
     "Select Database": "Select Database",
     "Choose a database": "Choose a database",
     "(current)": "(current)",
+    "Click to change connection": "Click to change connection",
     "Click to change database": "Click to change database",
     "Connect to SQL Server": "Connect to SQL Server",
     "MSSQL Notebook connected to {0}/{0} is the connection label": {
