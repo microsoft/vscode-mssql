@@ -107,7 +107,10 @@ export const DabDeploymentInputForm = ({
 
             if (!name.trim()) {
                 nameError = locConstants.schemaDesigner.containerNameRequired;
-            } else if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(name)) {
+            } else if (
+                // Docker container name: must start alphanumeric, then alphanumeric/underscore/dot/hyphen
+                !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(name)
+            ) {
                 nameError = locConstants.schemaDesigner.containerNameInvalid;
             }
 
