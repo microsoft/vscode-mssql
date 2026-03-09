@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
+import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 import { NotebookConnectionManager } from "./notebookConnectionManager";
 
 /**
@@ -67,11 +68,16 @@ export class NotebookCodeLensProvider implements vscode.CodeLensProvider, vscode
         const mgr = this.connections.get(notebook.uri.toString());
         const range = new vscode.Range(0, 0, 0, 0);
 
-        if (mgr?.isConnected()) {
-            const label = mgr.getConnectionLabel();
+        const connInfo = mgr?.isConnected() ? mgr.getConnectionInfo() : undefined;
+        if (connInfo) {
             return [
                 new vscode.CodeLens(range, {
-                    title: `$(database) ${label}`,
+                    title: generateServerDisplayName(connInfo),
+                    command: Constants.cmdNotebooksChangeConnection,
+                    tooltip: LocalizedConstants.Notebooks.codeLensClickToChangeConnection,
+                }),
+                new vscode.CodeLens(range, {
+                    title: generateDatabaseDisplayName(connInfo),
                     command: Constants.cmdNotebooksChangeDatabase,
                     tooltip: LocalizedConstants.Notebooks.codeLensClickToChangeDatabase,
                 }),
