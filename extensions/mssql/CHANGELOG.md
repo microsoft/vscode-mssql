@@ -1,5 +1,20 @@
 # Change Log
 
+## Version 1.41.0
+
+- Release date: March 18, 2026
+- Release status: GA
+
+### What's new in 1.41.0
+
+- SQL Database Projects Code Analysis settings dialog is now generally available (GA)
+- Added support for Microsoft.Build.Sql 2.1.0
+- Added warning when SQL notebook result set is incomplete
+- Improved Object Explorer context menus alignment and usability
+- Improved Manage Connection Profiles Edit flow to open Connection Dialog
+- Added progress toast feedback during database rename
+- Fixed SQL projects default SDK fallback behavior
+
 ## Version 1.40.0
 
 - Release date: February 25, 2026
