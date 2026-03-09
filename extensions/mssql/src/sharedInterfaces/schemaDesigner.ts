@@ -332,7 +332,6 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
-        enableDAB?: boolean;
         isCopilotChatInstalled?: boolean;
         copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;

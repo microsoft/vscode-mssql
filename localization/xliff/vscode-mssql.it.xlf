@@ -347,7 +347,7 @@
       </trans-unit>
       <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
         <source xml:lang="en">All severities</source>
-        <target state="new">All severities</target>
+        <target state="translated">Tutte le gravità</target>
       </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
@@ -864,6 +864,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">Crea API con GitHub Copilot</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
+        <source xml:lang="en">Build Data API</source>
+        <target state="new">Build Data API</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -2008,6 +2012,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
         <target state="translated">Creare un database SQL in Fabric (anteprima)</target>
       </trans-unit>
+      <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
+        <source xml:lang="en">Create a new connection profile</source>
+        <target state="new">Create a new connection profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++4c4e11ad9f72c183a2ea2cdf1ed42c358aee2b87c96cad4d22d7d22b967dd3b8">
         <source xml:lang="en">Create a new database on '{0}'.</source>
         <note>{0} is the name of the server</note>
@@ -2105,10 +2113,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Customize keyboard shortcuts</source>
         <target state="translated">Personalizzare i tasti di scelta rapida</target>
       </trans-unit>
-      <trans-unit id="++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128">
-        <source xml:lang="en">DAB</source>
-        <target state="translated">DAB</target>
-      </trans-unit>
       <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
         <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
         <target state="translated">Il contenitore DAB non è diventato pronto entro il timeout previsto.</target>
@@ -2154,6 +2158,13 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
         <target state="translated">Configurazione del generatore di API dati</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
+        <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_dab' and must not be translated
+{1} is the operation name 'get_state' and must not be translated
+{2} is the operation name 'apply_changes' and must not be translated</note>
+        <target state="new">Data API Builder opened. Continue with {0} operations ({1}/{2}).</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2583,10 +2594,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">Configurare facilmente un SQL Server locale senza uscire dall'estensione VS Code. Sono sufficienti pochi clic per installare, configurare e gestire il server senza sforzo.</target>
       </trans-unit>
-      <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
-        <source xml:lang="en">Edit</source>
-        <target state="translated">Modifica</target>
-      </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
         <note>{0} is the connection group name</note>
@@ -2612,6 +2619,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">Modifica tabella</target>
+      </trans-unit>
+      <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
+        <source xml:lang="en">Edit an existing connection profile</source>
+        <target state="new">Edit an existing connection profile</target>
       </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -3415,6 +3426,10 @@ Errore:
         <note>{0} is the error message</note>
         <target state="translated">Apertura di Modifica tabella non riuscita: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
+        <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
+        <target state="new">Failed to open URL. The built-in Simple Browser may be disabled.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
         <source xml:lang="en">Failed to open XEL file: {0}</source>
         <note>{0} is the error message</note>
@@ -3685,7 +3700,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++d44b62308969e928dc096c4e921a750d95081d9a16570b53f2a0e646605167fd">
         <source xml:lang="en">Filter by severity</source>
-        <target state="new">Filter by severity</target>
+        <target state="translated">Filtra in base alla gravità</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
@@ -4767,19 +4782,11 @@ Errore:
       <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
         <source xml:lang="en">MSSQL Notebook connected to {0}</source>
         <note>{0} is the connection label</note>
-        <target state="new">MSSQL Notebook connected to {0}</target>
+        <target state="translated">Notebook MSSQL connesso a {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
         <source xml:lang="en">MSSQL: Click to change database</source>
-        <target state="new">MSSQL: Click to change database</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f993c79609a3d00c82d5214040869fd0b15ab7404074bc3fcf8111fcc88c5d45">
-        <source xml:lang="en">MSSQL: Click to connect</source>
-        <target state="new">MSSQL: Click to connect</target>
-      </trans-unit>
-      <trans-unit id="++CODE++99a3297c47d9336c0c32fe572074cba7cd53bf9b0d5988c14d3335dd468e2c37">
-        <source xml:lang="en">MSSQL: Not connected</source>
-        <target state="new">MSSQL: Not connected</target>
+        <target state="translated">MSSQL: fare clic per cambiare database</target>
       </trans-unit>
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
@@ -4921,6 +4928,10 @@ Errore:
         <source xml:lang="en">Min: {0}</source>
         <note>{0} is the min</note>
         <target state="translated">Min: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
+        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+        <target state="new">Missing connectionId. Please provide a connectionId to open Data API Builder.</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
@@ -5180,9 +5191,13 @@ Errore:
         <source xml:lang="en">No active notebook.</source>
         <target state="translated">Nessun notebook attivo.</target>
       </trans-unit>
-      <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
-        <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
-        <target state="translated">Non è possibile trovare finestre di progettazione dello schema attive. Aprire prima una finestra di progettazione dello schema usando /showSchema o dall'interfaccia utente.</target>
+      <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
+        <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</source>
+        <target state="new">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
+        <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
+        <target state="new">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
@@ -5237,9 +5252,13 @@ Errore:
         <source xml:lang="en">No connection information found</source>
         <target state="translated">Nessuna informazione di connessione disponibile</target>
       </trans-unit>
-      <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
-        <source xml:lang="en">No connection profile to remove.</source>
-        <target state="translated">Non ci sono profili di connessione da rimuovere.</target>
+      <trans-unit id="++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338">
+        <source xml:lang="en">No connection profiles to edit.</source>
+        <target state="new">No connection profiles to edit.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e">
+        <source xml:lang="en">No connection profiles to remove.</source>
+        <target state="new">No connection profiles to remove.</target>
       </trans-unit>
       <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
         <source xml:lang="en">No connection selected.</source>
@@ -5378,7 +5397,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
         <source xml:lang="en">No rules match the current filter.</source>
-        <target state="new">No rules match the current filter.</target>
+        <target state="translated">Nessuna regola corrisponde al filtro corrente.</target>
       </trans-unit>
       <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
         <source xml:lang="en">No saved connection profiles found.</source>
@@ -5598,6 +5617,10 @@ Errore:
       <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
         <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
         <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
+        <source xml:lang="en">Open Nitro</source>
+        <target state="new">Open Nitro</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -6049,16 +6072,16 @@ Errore:
         <source xml:lang="en">Provisioning</source>
         <target state="translated">Provisioning</target>
       </trans-unit>
-      <trans-unit id="++CODE++a4c47b3e357e3753f7d611820a0490f9f1d85adaee725ca2af8d72d7e02df590">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
+      <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
+        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="translated">Impostazioni proxy trovate, ma si è verificato un errore durante l'analisi dell'URL: ''{0}''.  Potrebbero verificarsi problemi di connessione durante l'uso dell'estensione MSSQL.  Errore: {1}</target>
+        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
       </trans-unit>
-      <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
+      <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
+        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="translated">Impostazioni proxy trovate, ma senza un protocollo (ad esempio http://): '{0}'.  Potrebbero verificarsi problemi di connessione durante l'uso dell'estensione MSSQL.</target>
+        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -6154,7 +6177,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++2da839233749a1d48af0f1399da21768ade458db40ba95dcd405a7addefad753">
         <source xml:lang="en">Query execution was canceled.</source>
-        <target state="new">Query execution was canceled.</target>
+        <target state="translated">L'esecuzione della query è stata annullata.</target>
       </trans-unit>
       <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
         <source xml:lang="en">Query failed</source>
@@ -6321,6 +6344,10 @@ Errore:
         <source xml:lang="en">Remove Sort</source>
         <target state="translated">Rimuovi ordinamento</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
+        <source xml:lang="en">Remove a connection profile</source>
+        <target state="new">Remove a connection profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
         <source xml:lang="en">Remove file</source>
         <target state="translated">Rimuovi file</target>
@@ -6350,6 +6377,12 @@ Errore:
       <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
         <source xml:lang="en">Rename Database (Preview)</source>
         <target state="translated">Rinomina database (anteprima)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
+        <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
+        <note>{0} is the current database name
+{1} is the new database name</note>
+        <target state="new">Renaming database '{0}' to '{1}'...</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -6536,11 +6569,11 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
         <source xml:lang="en">Rule disabled</source>
-        <target state="new">Rule disabled</target>
+        <target state="translated">Regola disabilitata</target>
       </trans-unit>
       <trans-unit id="++CODE++57993e10706c49eb54a633479451efd91636bee3f329ca3345632046c4b8060c">
         <source xml:lang="en">Rule enabled</source>
-        <target state="new">Rule enabled</target>
+        <target state="translated">Regola abilitata</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -6808,6 +6841,13 @@ Query: {2}</target>
         <source xml:lang="en">Schema designer is not initialized.</source>
         <target state="translated">La finestra di progettazione dello schema non è inizializzata.</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb752783460568a627729df83424ba6dc42ba33b3a2ba1a4573572d03d801b77">
+        <source xml:lang="en">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_schema_designer' and must not be translated
+{1} is the operation name 'get_overview' and must not be translated
+{2} is the operation name 'apply_edits' and must not be translated</note>
+        <target state="new">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</target>
+      </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
         <target state="translated">Lo stato della finestra di progettazione dello schema è cambiato. Recuperare lo schema più recente e riprovare l'operazione.</target>
@@ -6823,10 +6863,6 @@ Query: {2}</target>
       <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
         <source xml:lang="en">Schema is required</source>
         <target state="translated">Lo schema è obbligatorio</target>
-      </trans-unit>
-      <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
-        <source xml:lang="en">Schema visualization opened.</source>
-        <target state="translated">Visualizzazione dello schema aperta.</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
@@ -6903,7 +6939,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
         <source xml:lang="en">Search rules...</source>
-        <target state="new">Search rules...</target>
+        <target state="translated">Regole di ricerca...</target>
       </trans-unit>
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
@@ -7122,6 +7158,10 @@ Query: {2}</target>
         <source xml:lang="en">Select package file</source>
         <target state="translated">Seleziona file del pacchetto</target>
       </trans-unit>
+      <trans-unit id="++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730">
+        <source xml:lang="en">Select profile to edit</source>
+        <target state="new">Select profile to edit</target>
+      </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
         <target state="translated">Selezionare il profilo da rimuovere</target>
@@ -7289,7 +7329,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
         <source xml:lang="en">Show Definition</source>
-        <target state="new">Show Definition</target>
+        <target state="translated">Mostra definizione</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
@@ -7958,7 +7998,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
         <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
-        <target state="new">The query results panel failed to load. Please try running the query again.</target>
+        <target state="translated">Non è possibile caricare il pannello dei risultati della query. Provare a eseguire di nuovo la query.</target>
       </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
@@ -8370,6 +8410,10 @@ Query: {2}</target>
         <source xml:lang="en">View More</source>
         <target state="translated">Visualizza altro</target>
       </trans-unit>
+      <trans-unit id="++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1">
+        <source xml:lang="en">View Swagger</source>
+        <target state="new">View Swagger</target>
+      </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">Visualizzare le note sulla versione di mssql per Visual Studio Code?</target>
@@ -8398,9 +8442,19 @@ Query: {2}</target>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">È necessario riavviare Visual Studio Code per rendere effettiva questa impostazione.  Ricaricare Visual Studio Code.</target>
       </trans-unit>
+      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
+        <source xml:lang="en">Visualize and Design Schema</source>
+        <target state="new">Visualize and Design Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
         <target state="translated">Avviso</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4dd8d9584066dcf1db567b8f698595cd5da2385469531e7c7684fa0792be1fcc">
+        <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
+        <note>{0} is the number of rows actually returned
+{1} is the total number of rows expected</note>
+        <target state="new">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -8426,11 +8480,11 @@ Query: {2}</target>
         <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
         <note>{0} is the webview name
 {1} is the timeout in milliseconds</note>
-        <target state="new">Webview '{0}' did not become ready within {1}ms</target>
+        <target state="translated">La webview '{0}' non è diventata pronta entro {1} ms</target>
       </trans-unit>
       <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
         <source xml:lang="en">Webview was disposed before it became ready</source>
-        <target state="new">Webview was disposed before it became ready</target>
+        <target state="translated">La webview è stata eliminata prima di diventare pronta</target>
       </trans-unit>
       <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
         <source xml:lang="en">What I can do for you:</source>
@@ -8800,7 +8854,7 @@ Query: {2}</target>
       <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
         <source xml:lang="en">{0} of {1} rules</source>
         <note>{0} is the filtered count, {1} is the total count</note>
-        <target state="new">{0} of {1} rules</target>
+        <target state="translated">{0} di {1} regole</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
@@ -8995,8 +9049,12 @@ Query: {2}</target>
         <target state="translated">Autenticazione a più fattori di Azure</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
-        <source xml:lang="en">Backup Database (Preview)</source>
-        <target state="translated">Database di backup (anteprima)</target>
+        <source xml:lang="en">Backup Database (Preview)...</source>
+        <target state="new">Backup Database (Preview)...</target>
+      </trans-unit>
+      <trans-unit id="mssql.buildDataApi">
+        <source xml:lang="en">Build Data API (Preview)...</source>
+        <target state="new">Build Data API (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
@@ -9058,6 +9116,10 @@ Query: {2}</target>
         <source xml:lang="en">Command Timeout</source>
         <target state="translated">Timeout comando</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaCompare">
+        <source xml:lang="en">Compare Schemas...</source>
+        <target state="new">Compare Schemas...</target>
+      </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">Connetti</target>
@@ -9094,21 +9156,17 @@ Query: {2}</target>
         <source xml:lang="en">Copy All</source>
         <target state="translated">Copia tutto</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy Connection String</source>
+        <target state="new">Copy Connection String</target>
+      </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">Copia nome oggetto</target>
       </trans-unit>
-      <trans-unit id="mssql.copyConnectionString">
-        <source xml:lang="en">Copy as Connection String</source>
-        <target state="translated">Copia come stringa di connessione</target>
-      </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Creare una funzione di Azure con l'associazione SQL</target>
-      </trans-unit>
-      <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">Create Database (Preview)</source>
-        <target state="translated">Crea database (anteprima)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
         <source xml:lang="en">Create SQL Notebook</source>
@@ -9125,8 +9183,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
 Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare le modifiche al tuo database.</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
-        <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="translated">Applicazione livello dati (anteprima)</target>
+        <source xml:lang="en">DACPAC/BACPAC Operations...</source>
+        <target state="new">DACPAC/BACPAC Operations...</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -9141,8 +9199,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Elimina gruppo di connessione</target>
       </trans-unit>
       <trans-unit id="mssql.deleteContainer">
-        <source xml:lang="en">Delete Container</source>
-        <target state="translated">Elimina contenitore</target>
+        <source xml:lang="en">Delete SQL Container</source>
+        <target state="new">Delete SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
@@ -9181,12 +9239,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Non mostrare le richieste per visualizzare i risultati della query in una nuova scheda.</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="translated">Rimuovi database (anteprima)</target>
-      </trans-unit>
-      <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">Modifica connessione</target>
+        <source xml:lang="en">Drop Database (Preview)...</source>
+        <target state="new">Drop Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9196,9 +9250,13 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">Modificare le autorizzazioni di condivisione delle connessioni</target>
       </trans-unit>
+      <trans-unit id="mssql.editConnection">
+        <source xml:lang="en">Edit Connection...</source>
+        <target state="new">Edit Connection...</target>
+      </trans-unit>
       <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="translated">Modifica dati (anteprima)</target>
+        <source xml:lang="en">Edit Table Data (Preview)...</source>
+        <target state="new">Edit Table Data (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -9348,6 +9406,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">Filtra l'albero Esplora oggetti</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlScriptsSubmenu">
+        <source xml:lang="en">Generate Script</source>
+        <target state="new">Generate Script</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
         <target state="translated">Inizia con MSSQL per Visual Studio Code</target>
@@ -9361,12 +9423,12 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Importa BACPAC</target>
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
-        <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="translated">Importazione file flat (anteprima)</target>
+        <source xml:lang="en">Import Data (Preview)...</source>
+        <target state="new">Import Data (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="translated">Avvia Query Profiler (anteprima)</target>
+        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
+        <target state="new">Launch Query Profiler (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9417,8 +9479,12 @@ Puoi connetterti a un database immettendo le informazioni di connessione, usando
         <target state="translated">Effettuare la migrazione da Azure Data Studio</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Modify Table</source>
-        <target state="translated">Modifica tabella</target>
+        <source xml:lang="en">Modify Table Structure...</source>
+        <target state="new">Modify Table Structure...</target>
+      </trans-unit>
+      <trans-unit id="mssql.createDatabase">
+        <source xml:lang="en">New Database (Preview)...</source>
+        <target state="new">New Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9483,12 +9549,12 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Apri file XEL di Query Profiler (anteprima)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-        <source xml:lang="en">Open in Copilot Agent mode</source>
-        <target state="translated">Apri in modalità agente Copilot</target>
+        <source xml:lang="en">Open in GitHub Copilot Agent</source>
+        <target state="new">Open in GitHub Copilot Agent</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Open in Copilot Ask mode</source>
-        <target state="translated">Apri in modalità Chiedi a Copilot</target>
+        <source xml:lang="en">Open in GitHub Copilot Chat</source>
+        <target state="new">Open in GitHub Copilot Chat</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -9527,24 +9593,24 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Aggiorna la cache IntelliSense</target>
       </trans-unit>
       <trans-unit id="mssql.removeObjectExplorerNode">
-        <source xml:lang="en">Remove</source>
-        <target state="translated">Rimuovi</target>
+        <source xml:lang="en">Remove Connection</source>
+        <target state="new">Remove Connection</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Rimuovi l'account Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">Rinomina database (anteprima)</target>
+        <source xml:lang="en">Rename Database (Preview)...</source>
+        <target state="new">Rename Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
         <target state="translated">Replica</target>
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
-        <source xml:lang="en">Restore Database (Preview)</source>
-        <target state="translated">Ripristina database (anteprima)</target>
+        <source xml:lang="en">Restore Database (Preview)...</source>
+        <target state="new">Restore Database (Preview)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -9570,21 +9636,9 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">SQL Container Version</source>
         <target state="translated">Versione del contenitore SQL</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlScriptsSubmenu">
-        <source xml:lang="en">SQL Scripts</source>
-        <target state="translated">Script SQL</target>
-      </trans-unit>
       <trans-unit id="mssql.profiler.xelEditorDisplayName">
         <source xml:lang="en">SQL Server Extended Events Log</source>
         <target state="translated">Log eventi estesi di SQL Server</target>
-      </trans-unit>
-      <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare</source>
-        <target state="translated">Confronto schemi</target>
-      </trans-unit>
-      <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Schema Designer</source>
-        <target state="translated">Finestra di progettazione schema</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -9603,8 +9657,8 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Genera script come EXECUTE</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">Cerca oggetti del database</target>
+        <source xml:lang="en">Search Database Objects...</source>
+        <target state="new">Search Database Objects...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -9738,17 +9792,17 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
         <target state="translated">Equivalente di Sovereign Cloud per `https://vault.azure.net/`</target>
       </trans-unit>
-      <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start Container</source>
-        <target state="translated">Avvia contenitore</target>
-      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">Avvia acquisizione cronologia delle query</target>
       </trans-unit>
+      <trans-unit id="mssql.startContainer">
+        <source xml:lang="en">Start SQLContainer</source>
+        <target state="new">Start SQLContainer</target>
+      </trans-unit>
       <trans-unit id="mssql.stopContainer">
-        <source xml:lang="en">Stop Container</source>
-        <target state="translated">Arresta contenitore</target>
+        <source xml:lang="en">Stop SQL Container</source>
+        <target state="new">Stop SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -9844,9 +9898,13 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">Visualizza un piano di query</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Visualize and Design Schema...</source>
+        <target state="new">Visualize and Design Schema...</target>
+      </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
-        <target state="new">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</target>
+        <target state="translated">Se abilitata, trasferisce automaticamente la connessione attiva ai file SQL appena aperti. Se disabilitata, è necessario connettersi esplicitamente a un database per ogni file SQL.</target>
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>

@@ -190,6 +190,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找到 Proxy 設定，但解析 URL 時遇到錯誤: '{0}'。使用 SQL Database 專案延伸模組時，可能會遇到連線問題。 錯誤: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0fd7a3888589d46de552e4f15eb56703fb9529d52f818824b68e21c2b685496b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error finding build files location: {0}]]></Val>
@@ -1594,6 +1603,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to read proxy agent options.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法讀取 Proxy 代理程式選項。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找到 Proxy 設定，但缺少通訊協定 (例如 http://): '{0}'。使用 SQL Database 專案延伸模組時，可能會遇到連線問題。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++97c59aa9b524fc50bc1c1eb646c9a306160017cda473234d8d5f3f32bb2e93f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced...]]></Val>
@@ -2644,6 +2671,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法連線到 nuget.org。如果您在 Proxy 後方或離線環境中，您可以手動將必要的 DLL 檔案放在建置目錄: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ef02d22081eab5e1d6b0e0d90ecdb8cf59eeba072d5b2d001be0a493554d4bfa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Different database, same server]]></Val>
@@ -2916,10 +2952,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.configureCodeAnalysisSettings" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          <Val><![CDATA[Code Analysis Settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Code Analysis 設定 (預覽)]]></Val>
+            <Val><![CDATA[Code Analysis 設定]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2934,10 +2973,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.createProjectFromDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create Project From Database]]></Val>
+          <Val><![CDATA[Create Project from Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[從資料庫建立專案]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Create Project From Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3148,6 +3190,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.sqlDatabaseProjects.objectExplorerSubmenu" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Database Projects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Database 專案]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.sqlDatabaseProjects.open" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Database Project]]></Val>
@@ -3222,10 +3273,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.updateProjectFromDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Update Project From Database]]></Val>
+          <Val><![CDATA[Update Project from Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[從資料庫更新專案]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Update Project From Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

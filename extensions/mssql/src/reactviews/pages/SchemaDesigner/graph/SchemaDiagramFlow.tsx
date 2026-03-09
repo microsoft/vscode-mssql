@@ -621,30 +621,28 @@ export const SchemaDesignerFlow = () => {
                 minZoom={0.05}
                 fitView>
                 <Controls>
-                    {context.isDabEnabled() && (
-                        <ControlButton
-                            onClick={() =>
-                                changeContext.setShowChangesHighlight(
-                                    !changeContext.showChangesHighlight,
-                                )
-                            }
-                            title={
-                                changeContext.showChangesHighlight
-                                    ? locConstants.schemaDesigner.hideChangesHighlight
-                                    : locConstants.schemaDesigner.highlightChanges
-                            }
-                            aria-label={
-                                changeContext.showChangesHighlight
-                                    ? locConstants.schemaDesigner.hideChangesHighlight
-                                    : locConstants.schemaDesigner.highlightChanges
-                            }>
-                            {changeContext.showChangesHighlight ? (
-                                <BranchCompare16Filled />
-                            ) : (
-                                <BranchCompare16Regular />
-                            )}
-                        </ControlButton>
-                    )}
+                    <ControlButton
+                        onClick={() =>
+                            changeContext.setShowChangesHighlight(
+                                !changeContext.showChangesHighlight,
+                            )
+                        }
+                        title={
+                            changeContext.showChangesHighlight
+                                ? locConstants.schemaDesigner.hideChangesHighlight
+                                : locConstants.schemaDesigner.highlightChanges
+                        }
+                        aria-label={
+                            changeContext.showChangesHighlight
+                                ? locConstants.schemaDesigner.hideChangesHighlight
+                                : locConstants.schemaDesigner.highlightChanges
+                        }>
+                        {changeContext.showChangesHighlight ? (
+                            <BranchCompare16Filled />
+                        ) : (
+                            <BranchCompare16Regular />
+                        )}
+                    </ControlButton>
                 </Controls>
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />

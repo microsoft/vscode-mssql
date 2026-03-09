@@ -90,9 +90,8 @@ export function getReportOrPublishErrorForStage(
 export function shouldShowGithubCopilotFixButton(
     currentStage: PublishDialogStages,
     isCopilotChatInstalled: boolean,
-    isDabEnabled: boolean,
 ): boolean {
-    return isReportOrPublishErrorStage(currentStage) && isCopilotChatInstalled && isDabEnabled;
+    return isReportOrPublishErrorStage(currentStage) && isCopilotChatInstalled;
 }
 
 const useStyles = makeStyles({
@@ -423,11 +422,7 @@ export function PublishChangesDialogButton() {
     };
 
     const isGithubCopilotFixButtonVisible = () => {
-        return shouldShowGithubCopilotFixButton(
-            state.currentStage,
-            isCopilotChatInstalled,
-            context.isDabEnabled(),
-        );
+        return shouldShowGithubCopilotFixButton(state.currentStage, isCopilotChatInstalled);
     };
 
     const getCurrentError = () => {

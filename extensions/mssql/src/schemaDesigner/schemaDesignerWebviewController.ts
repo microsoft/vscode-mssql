@@ -14,10 +14,7 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import {
-    configEnableDab,
-    configSchemaDesignerEnableExpandCollapseButtons,
-} from "../constants/constants";
+import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
@@ -30,10 +27,6 @@ function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
-}
-
-function isDABEnabled(): boolean {
-    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
 function isCopilotChatInstalled(): boolean {
@@ -85,7 +78,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
-                enableDAB: isDABEnabled(),
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
@@ -421,6 +413,18 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
+        this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
+            const uri = vscode.Uri.parse(payload.url, true);
+            if (uri.scheme !== "http" && uri.scheme !== "https") {
+                return;
+            }
+            try {
+                await vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
+            } catch {
+                void vscode.window.showErrorMessage(LocConstants.SchemaDesigner.failedToOpenUrl);
+            }
+        });
+
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
             const message =
@@ -489,13 +493,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     enableExpandCollapseButtons: newValue,
                 });
             }
-            if (e.affectsConfiguration(configEnableDab)) {
-                const newValue = isDABEnabled();
-                this.updateState({
-                    ...this.state,
-                    enableDAB: newValue,
-                });
-            }
         });
         this.registerDisposable(configChangeDisposable);
     }
@@ -555,10 +552,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
     }
 
-    public showDabView(): void {
+    public showView(view: SchemaDesigner.SchemaDesignerActiveView): void {
         this.updateState({
             ...this.state,
-            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+            activeView: view,
         });
     }
 

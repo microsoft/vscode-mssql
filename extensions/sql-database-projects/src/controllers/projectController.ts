@@ -138,9 +138,7 @@ export class ProjectsController {
         }
 
         const sqlProjectsService = await utils.getSqlProjectsService();
-        const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion(
-            constants.microsoftBuildSqlVersionKey,
-        );
+        const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
         const projectStyle = creationParams.sdkStyle
             ? mssqlVscode.ProjectType.SdkStyle
             : mssqlVscode.ProjectType.LegacyStyle;

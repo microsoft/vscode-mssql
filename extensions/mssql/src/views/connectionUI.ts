@@ -368,16 +368,16 @@ export class ConnectionUI {
                 value: ManageProfileTask.Create,
             },
             {
-                name: LocalizedConstants.ClearRecentlyUsedLabel,
-                value: ManageProfileTask.ClearRecentlyUsed,
-            },
-            {
                 name: LocalizedConstants.EditProfilesLabel,
                 value: ManageProfileTask.Edit,
             },
             {
                 name: LocalizedConstants.RemoveProfileLabel,
                 value: ManageProfileTask.Remove,
+            },
+            {
+                name: LocalizedConstants.ClearRecentlyUsedLabel,
+                value: ManageProfileTask.ClearRecentlyUsed,
             },
         ];
 
@@ -411,9 +411,7 @@ export class ConnectionUI {
 
                         return;
                     case ManageProfileTask.Edit:
-                        await self.vscodeWrapper.executeCommand(
-                            "workbench.action.openGlobalSettings",
-                        );
+                        await self.editProfile();
                         return;
                     case ManageProfileTask.Remove:
                         await self.connectionManager.onRemoveProfile();
@@ -508,12 +506,14 @@ export class ConnectionUI {
      * Prompts the user to pick a profile for removal, then removes from the global saved state
      */
     public async removeProfile(): Promise<boolean> {
-        let self = this;
+        const profile = await this.selectProfile(
+            LocalizedConstants.msgSelectProfileToRemove,
+            LocalizedConstants.msgNoProfilesToRemove,
+            undefined, // profiles; use default list
+            LocalizedConstants.confirmRemoveProfilePrompt,
+        );
 
-        // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = await self._connectionStore.getProfilePickListItems();
-        let profile = await self.selectProfileForRemoval(profiles);
-        let profileRemoved = profile ? await self._connectionStore.removeProfile(profile) : false;
+        const profileRemoved = profile ? await this._connectionStore.removeProfile(profile) : false;
 
         if (profileRemoved) {
             // TODO again consider moving information prompts to the prompt package
@@ -522,44 +522,70 @@ export class ConnectionUI {
         return profileRemoved;
     }
 
-    private selectProfileForRemoval(
-        profiles: IConnectionCredentialsQuickPickItem[],
-    ): Promise<IConnectionProfile> {
-        let self = this;
-        if (!profiles || profiles.length === 0) {
-            // Inform the user we have no profiles available for deletion
-            // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
-            this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
-            return Promise.resolve(undefined);
+    /**
+     * Prompts the user to pick a saved profile and opens it in the connection dialog for editing
+     */
+    public async editProfile(): Promise<boolean> {
+        const profile = await this.selectProfile(
+            LocalizedConstants.msgSelectProfileToEdit,
+            LocalizedConstants.msgNoProfilesToEdit,
+            undefined, // profiles; use default list
+            undefined, // confirmationQuestionPrompt; no need for confirmation
+        );
+
+        if (!profile) {
+            return false;
         }
 
-        let chooseProfile = "ChooseProfile";
-        let confirm = "ConfirmRemoval";
-        let questions: IQuestion[] = [
+        await this._vscodeWrapper.executeCommand(constants.cmdEditConnection, profile);
+        return true;
+    }
+
+    private async selectProfile(
+        chooseProfileQuestionPrompt: string,
+        noProfilesMessage: string,
+        profiles?: IConnectionCredentialsQuickPickItem[],
+        confirmQuestionPrompt?: string,
+    ): Promise<IConnectionProfile | undefined> {
+        const profileItems = profiles ?? (await this._connectionStore.getProfilePickListItems());
+
+        if (!profileItems || profileItems.length === 0) {
+            this._vscodeWrapper.showErrorMessage(noProfilesMessage);
+            return undefined;
+        }
+
+        const chooseProfileQuestionName = "ChooseProfile";
+        const confirmQuestionName = "Confirm";
+
+        const questions: IQuestion[] = [
             {
-                // 1: what profile should we remove?
                 type: QuestionTypes.expand,
-                name: chooseProfile,
-                message: LocalizedConstants.msgSelectProfileToRemove,
+                name: "ChooseProfile",
+                message: chooseProfileQuestionPrompt,
                 matchOptions: { matchOnDescription: true },
-                choices: profiles,
-            },
-            {
-                // 2: Confirm removal before proceeding
-                type: QuestionTypes.confirm,
-                name: confirm,
-                message: LocalizedConstants.confirmRemoveProfilePrompt,
+                choices: profileItems,
             },
         ];
 
-        // Prompt and return the value if the user confirmed
-        return self._prompter.prompt(questions).then((answers) => {
-            if (answers && answers[confirm]) {
-                let profilePickItem = <IConnectionCredentialsQuickPickItem>answers[chooseProfile];
-                return <IConnectionProfile>profilePickItem.connectionCreds;
-            } else {
-                return undefined;
-            }
-        });
+        if (confirmQuestionPrompt) {
+            questions.push({
+                type: QuestionTypes.confirm,
+                name: "Confirm",
+                message: confirmQuestionPrompt,
+            });
+        }
+
+        const answers = await this._prompter.prompt(questions);
+        if (!answers || (confirmQuestionName in answers && !answers[confirmQuestionName])) {
+            return undefined;
+        }
+
+        const profilePickItem = answers[
+            chooseProfileQuestionName
+        ] as IConnectionCredentialsQuickPickItem;
+
+        return profilePickItem
+            ? (profilePickItem.connectionCreds as IConnectionProfile)
+            : undefined;
     }
 }

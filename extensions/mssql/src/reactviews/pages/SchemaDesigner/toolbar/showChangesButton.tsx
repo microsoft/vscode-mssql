@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, Button, Tooltip, makeStyles } from "@fluentui/react-components";
-import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
 import {
     SchemaDesignerDefinitionPanelTab,
@@ -34,14 +33,8 @@ const useStyles = makeStyles({
 export function ShowChangesButton() {
     const changeContext = useSchemaDesignerChangeContext();
     const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
-    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
     const isCompact = useIsToolbarCompact();
-    const isDabEnabled = enableDAB ?? false;
-
-    if (!isDabEnabled) {
-        return <></>;
-    }
 
     return (
         <Tooltip content={locConstants.schemaDesigner.showChangesButtonLabel} relationship="label">
