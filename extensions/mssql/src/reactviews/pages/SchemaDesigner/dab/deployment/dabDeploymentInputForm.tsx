@@ -15,7 +15,7 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
@@ -143,6 +143,7 @@ export const DabDeploymentInputForm = ({
     }, [containerName, port, isInitializing, validateClientSide, debouncedServerValidation]);
 
     const handleSubmit = async () => {
+        debouncedServerValidation.cancel();
         const { nameError, portError } = validateClientSide(containerName, port);
         if (nameError || portError) {
             setContainerNameError(nameError);
