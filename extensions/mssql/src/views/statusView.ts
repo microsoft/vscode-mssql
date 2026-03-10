@@ -29,10 +29,6 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
-    // Item for Row Count
-    public rowCount: vscode.StatusBarItem;
-    // Item for execution time
-    public executionTime: vscode.StatusBarItem;
 
     // Timer used for displaying a progress indicator on queries
     public progressTimerId: NodeJS.Timeout;
@@ -66,8 +62,6 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
                 this._statusBars[bar].sqlCmdMode.dispose();
-                this._statusBars[bar].rowCount.dispose();
-                this._statusBars[bar].executionTime.dispose();
                 clearInterval(this._statusBars[bar].progressTimerId);
                 clearInterval(this._statusBars[bar].queryTimer);
                 delete this._statusBars[bar];
@@ -98,8 +92,6 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
         );
         bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
-        bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
-        bar.executionTime = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 70);
         this._statusBars[fileUri] = bar;
     }
 
@@ -130,12 +122,6 @@ export default class StatusView implements vscode.Disposable {
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
             }
-            if (bar.rowCount) {
-                bar.rowCount.dispose();
-            }
-            if (bar.executionTime) {
-                bar.executionTime.dispose();
-            }
 
             delete this._statusBars[fileUri];
         }
@@ -162,8 +148,6 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-        this.showStatusBarItem(fileUri, bar.rowCount);
-        this.showStatusBarItem(fileUri, bar.executionTime);
     }
 
     public setNotConnected(fileUri: string): void {
@@ -183,8 +167,6 @@ export default class StatusView implements vscode.Disposable {
 
         this.hideStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.hideStatusBarItem(fileUri, bar.statusQuery);
-        this.hideStatusBarItem(fileUri, bar.rowCount);
-        this.hideStatusBarItem(fileUri, bar.executionTime);
         clearInterval(bar.queryTimer);
     }
 
@@ -310,35 +292,30 @@ export default class StatusView implements vscode.Disposable {
     public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.command = undefined;
-        bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
-        this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, LocalizedConstants.executeQueryLabel, bar.statusQuery);
+        bar.statusQuery.text = "";
+        bar.statusQuery.hide();
+        clearInterval(bar.queryTimer);
     }
 
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusQuery.text = LocalizedConstants.QueryExecutedLabel;
-        // hide the status bar item with a delay so that the change can be announced by screen reader.
-        setTimeout(() => {
-            bar.statusQuery.hide();
-        }, 200);
-    }
-
-    public setExecutionTime(fileUri: string, time: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.executionTime.text = time;
-        this.showStatusBarItem(fileUri, bar.executionTime);
+        bar.statusQuery.text = "";
+        bar.statusQuery.hide();
         clearInterval(bar.queryTimer);
     }
+
+    /**
+     * Intentionally a no-op. Query execution time is now shown in the query results webview footer.
+     */
+    public setExecutionTime(_fileUri: string, _time: string): void {}
 
     public cancelingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.hide();
 
         bar.statusQuery.command = undefined;
-        bar.statusQuery.text = LocalizedConstants.cancelingQueryLabel;
-        this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
+        bar.statusQuery.text = "";
+        bar.statusQuery.hide();
         clearInterval(bar.queryTimer);
     }
 
@@ -369,23 +346,6 @@ export default class StatusView implements vscode.Disposable {
         bar.sqlCmdMode.text = isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off";
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-    }
-
-    public showRowCount(fileUri: string, message?: string): void {
-        let bar = this.getStatusBar(fileUri);
-        if (message && message.includes("row")) {
-            // Remove parentheses from start and end
-            bar.rowCount.text = message.replace("(", "").replace(")", "");
-        }
-        this.showStatusBarItem(fileUri, bar.rowCount);
-    }
-
-    public hideRowCount(fileUri: string, clear: boolean = false): void {
-        let bar = this.getStatusBar(fileUri);
-        if (clear) {
-            bar.rowCount.text = "";
-        }
-        bar.rowCount.hide();
     }
 
     public updateStatusMessage(
@@ -445,8 +405,6 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
             this._lastShownStatusBar.sqlCmdMode.hide();
-            this._lastShownStatusBar.rowCount.hide();
-            this._lastShownStatusBar.executionTime.hide();
         }
     }
 
@@ -520,38 +478,5 @@ export default class StatusView implements vscode.Disposable {
                 this._lastShownStatusBar = this._statusBars[fileUri];
             }
         }
-    }
-
-    private showProgress(
-        fileUri: string,
-        statusText: string,
-        statusBarItem: vscode.StatusBarItem,
-    ): void {
-        // Do not use the text based in progress indicator when screen reader is on, it is not user friendly to announce the changes every 200 ms.
-        const screenReaderOptimized = vscode.workspace
-            .getConfiguration("editor")
-            .get("accessibilitySupport");
-        if (screenReaderOptimized === "on") {
-            return;
-        }
-        const self = this;
-        let bar = this.getStatusBar(fileUri);
-
-        // Clear any existing timer first
-        clearInterval(bar.queryTimer);
-
-        let milliseconds = 0;
-        bar.queryTimer = setInterval(() => {
-            milliseconds += 1000;
-            const timeString = self.formatMillisecondsToTimeString(milliseconds);
-            statusBarItem.text = statusText + " " + timeString;
-            self.showStatusBarItem(fileUri, statusBarItem);
-        }, 1000);
-    }
-
-    private formatMillisecondsToTimeString(milliseconds: number): string {
-        const minutes = Math.floor(milliseconds / 60000);
-        const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
-        return minutes + ":" + (parseInt(seconds) < 10 ? "0" : "") + seconds;
     }
 }

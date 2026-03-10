@@ -105,6 +105,9 @@
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++249a90b07ed10bd0cd2bcc9819827267428261fb08e181f43e90807c63c65e80">
+      <source xml:lang="en">AVG</source>
+    </trans-unit>
     <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
       <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
@@ -468,14 +471,6 @@
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
     </trans-unit>
-    <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
-      <source xml:lang="en">Average: {0}</source>
-      <note>{0} is the average</note>
-    </trans-unit>
-    <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
-      <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
-      <note>{0} is the average, {1} is the count, {2} is the sum</note>
-    </trans-unit>
     <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
       <source xml:lang="en">Azure (China)</source>
     </trans-unit>
@@ -668,6 +663,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
       <source xml:lang="en">Bulk-logged</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9a37ae78d4e49d2fb6a75dde33cf7be6d9c937cd4c3f3dba599e5023c37ab2ee">
+      <source xml:lang="en">COUNT</source>
     </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
@@ -1013,6 +1011,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
       <source xml:lang="en">Close properties pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++105f9aee2b4e7a8a68f94fb679aae79c4d6c8102c8aa19346a7837b0cfec5287">
+      <source xml:lang="en">Close results settings</source>
     </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
@@ -1489,14 +1490,6 @@
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
-      <source xml:lang="en">Count: {0}</source>
-      <note>{0} is the count</note>
-    </trans-unit>
-    <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
-      <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
-      <note>{0} is the count, {1} is the distinct count, and {2} is the null count</note>
-    </trans-unit>
     <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
       <source xml:lang="en">Create</source>
     </trans-unit>
@@ -1635,6 +1628,9 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d879f806aecb5aae07268875676f90e592f78798941050ecd4dc7e104b84204f">
+      <source xml:lang="en">DISTINCT</source>
     </trans-unit>
     <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
       <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -1912,10 +1908,6 @@
     </trans-unit>
     <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
       <source xml:lang="en">Dissatisfied</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
-      <source xml:lang="en">Distinct Count: {0}</source>
-      <note>{0} is the distinct count</note>
     </trans-unit>
     <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
       <source xml:lang="en">Do not compress backup</source>
@@ -2318,8 +2310,17 @@
     <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
       <source xml:lang="en">Executing query...</source>
     </trans-unit>
+    <trans-unit id="++CODE++a45cd4bd0998e5683cdf4839b883fc0c77599eecfa9c7b658b32dbbd499a8039">
+      <source xml:lang="en">Execution</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f93991ad07957c41dfc5212f2709590b0a723ccb5f5c397fb7c681b218de236d">
+      <source xml:lang="en">Execution cancelled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
+      <source xml:lang="en">Execution time unavailable</source>
     </trans-unit>
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
@@ -3629,6 +3630,9 @@
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d9c014a222db12a18974be6f44524a0fd4a1ff0e964696e699f81ffba52ffce">
+      <source xml:lang="en">MAX</source>
+    </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
     </trans-unit>
@@ -3639,6 +3643,9 @@
     <trans-unit id="++CODE++5d50fcab6afa8bf3d21623505a4148c817c4cff4ec9873bf8f9693e9e8f39415">
       <source xml:lang="en">MCP server is already configured in {0}</source>
       <note>{0} is the file path where the MCP server configuration exists</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d319c28c2d23e115501524432e4ae591254394e799bf3e95c53f526525175e4c">
+      <source xml:lang="en">MIN</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -3682,10 +3689,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
       <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
-    </trans-unit>
-    <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
-      <source xml:lang="en">Max: {0}</source>
-      <note>{0} is the max</note>
     </trans-unit>
     <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
       <source xml:lang="en">Maximize</source>
@@ -3764,10 +3767,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
       <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
-      <source xml:lang="en">Min: {0}</source>
-      <note>{0} is the min</note>
     </trans-unit>
     <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
       <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
@@ -4122,6 +4121,9 @@
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
     </trans-unit>
+    <trans-unit id="++CODE++cdc59fbd2074445096076c2b3d3684fcc816879138cd2ac7b66627df573c4ab4">
+      <source xml:lang="en">No rows affected</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
       <source xml:lang="en">No rules match the current filter.</source>
     </trans-unit>
@@ -4142,6 +4144,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
       <source xml:lang="en">No script generated.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++211f6bbe2c56c016d33be98e6d3d9d9c7552182cfd0652284a2eaa30f71981cf">
+      <source xml:lang="en">No selection</source>
     </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
@@ -4229,10 +4234,6 @@
     </trans-unit>
     <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
       <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
-    </trans-unit>
-    <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
-      <source xml:lang="en">Null Count: {0}</source>
-      <note>{0} is the null count</note>
     </trans-unit>
     <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
       <source xml:lang="en">Number of Rows Read</source>
@@ -4325,6 +4326,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe2a2aba229e4f1ea669fed18afe5beb50356b3e49f07643af654b60ad63ce14">
+      <source xml:lang="en">Open results in new tab</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -4948,6 +4952,9 @@
       <source xml:lang="en">Results ({0})</source>
       <note>{0} is the keyboard shortcut for the results tab</note>
     </trans-unit>
+    <trans-unit id="++CODE++2ada9c77ff43c3a64eb670413987d527359f366fe2ddc314dfdfd6102df8ba07">
+      <source xml:lang="en">Results Settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
       <source xml:lang="en">Results copied to clipboard</source>
     </trans-unit>
@@ -5008,6 +5015,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
+      <source xml:lang="en">Rows</source>
     </trans-unit>
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
@@ -5092,6 +5102,9 @@
     </trans-unit>
     <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
       <source xml:lang="en">SQLCMD Variables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0229e5870ac59e33167a04295c615d5a13aecaa0368b2f1cb4e37f306f07c6cf">
+      <source xml:lang="en">SUM</source>
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
@@ -5473,6 +5486,9 @@
     <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
       <source xml:lang="en">Select the SQL Server Container Image</source>
     </trans-unit>
+    <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
+      <source xml:lang="en">Selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
     </trans-unit>
@@ -5619,6 +5635,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
       <source xml:lang="en">Show password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f236fff20773e5f49911bed2b6fb31682bb9aee108918aef9cbde3726033276c">
+      <source xml:lang="en">Show query results in a new editor tab instead of the query pane.</source>
     </trans-unit>
     <trans-unit id="++CODE++3a9a8d46a1ea0067cbcb2a7f0f2d4e8c8d9c974f5e8cc08b3089f8d8a696fec3">
       <source xml:lang="en">Show schema for connection &apos;{0}&apos; (ID: {1})?</source>
@@ -5870,10 +5889,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
       <source xml:lang="en">Successfully saved results to </source>
-    </trans-unit>
-    <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
-      <source xml:lang="en">Sum: {0}</source>
-      <note>{0} is the sum</note>
     </trans-unit>
     <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
       <source xml:lang="en">Summary loading canceled</source>
@@ -6139,6 +6154,9 @@
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
       <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
     </trans-unit>
+    <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
+      <source xml:lang="en">Time</source>
+    </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
     </trans-unit>
@@ -6182,6 +6200,9 @@
       <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
       <note>{0} is the part name
 {1} is the part input</note>
+    </trans-unit>
+    <trans-unit id="++CODE++78033ae5be44646dfc774d72849e02b99c5180227c92f07d450444d106dbd3d1">
+      <source xml:lang="en">Total execution time:</source>
     </trans-unit>
     <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
       <source xml:lang="en">Total execution time: {0}</source>

@@ -433,6 +433,10 @@
     "Timestamp": "Timestamp",
     "Message": "Message",
     "Open in New Tab": "Open in New Tab",
+    "Results Settings": "Results Settings",
+    "Open results in new tab": "Open results in new tab",
+    "Show query results in a new editor tab instead of the query pane.": "Show query results in a new editor tab instead of the query pane.",
+    "Close results settings": "Close results settings",
     "Showplan XML": "Showplan XML",
     "Show Menu ({0})/{0} is the keyboard shortcut for showing the menu": {
         "message": "Show Menu ({0})",
@@ -512,6 +516,22 @@
         "message": "({0} rows affected)",
         "comment": ["{0} is the number of rows affected"]
     },
+    "No rows affected": "No rows affected",
+    "Selected": "Selected",
+    "Rows": "Rows",
+    "Time": "Time",
+    "Running": "Running",
+    "Execution": "Execution",
+    "No selection": "No selection",
+    "COUNT": "COUNT",
+    "AVG": "AVG",
+    "SUM": "SUM",
+    "MIN": "MIN",
+    "MAX": "MAX",
+    "DISTINCT": "DISTINCT",
+    "Execution cancelled": "Execution cancelled",
+    "Execution time unavailable": "Execution time unavailable",
+    "Total execution time:": "Total execution time:",
     "Result Set Batch {0} - Query {1}/{0} is the batch number{1} is the query number": {
         "message": "Result Set Batch {0} - Query {1}",
         "comment": ["{0} is the batch number", "{1} is the query number"]
@@ -1504,7 +1524,6 @@
         "message": "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
         "comment": ["{0} is the XEL file name"]
     },
-    "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",
     "Not Started": "Not Started",
@@ -2228,42 +2247,6 @@
     "Enter Database Description": "Enter Database Description",
     "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
-    "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
-        "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
-        "comment": ["{0} is the count, {1} is the distinct count, and {2} is the null count"]
-    },
-    "Average: {0}  Count: {1}  Sum: {2}/{0} is the average, {1} is the count, {2} is the sum": {
-        "message": "Average: {0}  Count: {1}  Sum: {2}",
-        "comment": ["{0} is the average, {1} is the count, {2} is the sum"]
-    },
-    "Average: {0}/{0} is the average": {
-        "message": "Average: {0}",
-        "comment": ["{0} is the average"]
-    },
-    "Count: {0}/{0} is the count": {
-        "message": "Count: {0}",
-        "comment": ["{0} is the count"]
-    },
-    "Distinct Count: {0}/{0} is the distinct count": {
-        "message": "Distinct Count: {0}",
-        "comment": ["{0} is the distinct count"]
-    },
-    "Max: {0}/{0} is the max": {
-        "message": "Max: {0}",
-        "comment": ["{0} is the max"]
-    },
-    "Min: {0}/{0} is the min": {
-        "message": "Min: {0}",
-        "comment": ["{0} is the min"]
-    },
-    "Null Count: {0}/{0} is the null count": {
-        "message": "Null Count: {0}",
-        "comment": ["{0} is the null count"]
-    },
-    "Sum: {0}/{0} is the sum": {
-        "message": "Sum: {0}",
-        "comment": ["{0} is the sum"]
-    },
     "An error occurred while copying results: {0}/{0} is the error message": {
         "message": "An error occurred while copying results: {0}",
         "comment": ["{0} is the error message"]

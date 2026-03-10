@@ -490,6 +490,8 @@ export class SqlOutputContentProvider {
                     executionPlanState: {},
                     messages: [],
                     fontSettings: { fontSize: 0, fontFamily: "" },
+                    isExecuting: false,
+                    executionStartTime: undefined,
                 });
             });
 
@@ -500,6 +502,8 @@ export class SqlOutputContentProvider {
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
+                resultWebviewState.isExecuting = true;
+                resultWebviewState.executionStartTime = Date.now();
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -606,6 +610,8 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                resultWebviewState.isExecuting = false;
+                resultWebviewState.executionStartTime = undefined;
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
@@ -666,12 +672,15 @@ export class SqlOutputContentProvider {
                     return;
                 }
                 state.selectionSummary = {
+                    stats: e.stats,
                     text: e.text,
                     command: e.command,
                     tooltip: e.tooltip,
                     continue: e.continue,
+                    batchId: e.batchId,
+                    resultId: e.resultId,
                 };
-                this._queryResultWebviewController.updateSelectionSummary();
+                this.updateWebviewState(e.uri, state);
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);

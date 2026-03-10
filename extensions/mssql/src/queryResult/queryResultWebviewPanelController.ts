@@ -38,6 +38,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 },
                 executionPlanState: {},
                 fontSettings: {},
+                isExecuting: false,
             },
             {
                 title: title,
@@ -71,8 +72,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             if (params.webviewPanel.viewColumn) {
                 this._viewColumn = params.webviewPanel.viewColumn;
             }
-
-            this._queryResultWebviewViewController.updateSelectionSummary();
         });
     }
 

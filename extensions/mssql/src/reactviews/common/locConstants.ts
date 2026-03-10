@@ -560,6 +560,12 @@ export class LocConstants {
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
+            resultsSettings: l10n.t("Results Settings"),
+            showResultsInEditorTab: l10n.t("Open results in new tab"),
+            showResultsInEditorTabDescription: l10n.t(
+                "Show query results in a new editor tab instead of the query pane.",
+            ),
+            closeResultsSettings: l10n.t("Close results settings"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {
@@ -709,6 +715,23 @@ export class LocConstants {
                         });
                 }
             },
+            noRowsAffected: l10n.t("No rows affected"),
+            selectedItemLabel: l10n.t("Selected"),
+            rowsAffectedLabel: l10n.t("Rows"),
+            timeLabel: l10n.t("Time"),
+            runningLabel: l10n.t("Running"),
+            executionLabel: l10n.t("Execution"),
+            noSelectionSummary: l10n.t("No selection"),
+            selectionSummaryCountLabel: l10n.t("COUNT"),
+            selectionSummaryAverageLabel: l10n.t("AVG"),
+            selectionSummarySumLabel: l10n.t("SUM"),
+            selectionSummaryMinLabel: l10n.t("MIN"),
+            selectionSummaryMaxLabel: l10n.t("MAX"),
+            selectionSummaryDistinctLabel: l10n.t("DISTINCT"),
+            selectionSummaryNullLabel: l10n.t("NULL"),
+            executionCancelled: l10n.t("Execution cancelled"),
+            executionTimeUnavailable: l10n.t("Execution time unavailable"),
+            totalExecutionTimePrefix: l10n.t("Total execution time:"),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",
