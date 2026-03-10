@@ -3188,7 +3188,6 @@
     "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Unable to read proxy agent options.": "Unable to read proxy agent options.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
