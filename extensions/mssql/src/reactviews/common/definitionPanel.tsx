@@ -4,12 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Toolbar, makeStyles, Tab, TabList } from "@fluentui/react-components";
-import { Editor } from "@monaco-editor/react";
 import { ImperativePanelHandle, Panel } from "react-resizable-panels";
-import { resolveVscodeThemeType } from "./utils";
 import { ColorThemeKind } from "../../sharedInterfaces/webview";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "./locConstants";
+import { VscodeEditor } from "./vscodeMonaco";
 import {
     useRef,
     useState,
@@ -109,11 +108,11 @@ function getScriptTab(
         label: locConstants.schemaDesigner.definition,
         content: (
             <div className={scriptPaneClassName}>
-                <Editor
+                <VscodeEditor
                     height={"100%"}
                     width={"100%"}
                     language={props.language ?? "sql"}
-                    theme={resolveVscodeThemeType(props.themeKind)}
+                    themeKind={props.themeKind}
                     value={props.value}
                     options={{
                         readOnly: true,
