@@ -253,6 +253,56 @@ suite("DabService Tests", () => {
             });
         });
 
+        // --- Default port injection ---
+
+        suite("should add default SQL Server port when port is missing", () => {
+            test("localhost without port gets default port", () => {
+                const result = transform("Server=localhost;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                );
+            });
+
+            test("127.0.0.1 without port gets default port", () => {
+                const result = transform("Server=127.0.0.1;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                );
+            });
+
+            test("localhost with instance name but no port gets default port", () => {
+                const result = transform("Server=localhost\\SQLEXPRESS;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal\\SQLEXPRESS,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                );
+            });
+
+            test("localhost with container name but no port gets default port", () => {
+                const result = transform("Server=localhost;Database=TestDb;", "my-sql-container");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal\\my-sql-container,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                );
+            });
+
+            test("Data Source without port gets default port", () => {
+                const result = transform("data source=127.0.0.1;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `host.docker.internal,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                );
+            });
+
+            test("should not add default port when port is already specified", () => {
+                const result = transform("Server=localhost,1434;Database=TestDb;");
+                expect(result.connectionString).to.include("Server=host.docker.internal,1434");
+                expect(result.connectionString).to.not.include(`,${Dab.DEFAULT_SQL_SERVER_PORT}`);
+            });
+
+            test("should not add default port for non-localhost addresses", () => {
+                const result = transform("Server=remote-server;Database=TestDb;");
+                expect(result.connectionString).to.not.include(`,${Dab.DEFAULT_SQL_SERVER_PORT}`);
+            });
+        });
+
         // --- Edge cases ---
 
         suite("edge cases", () => {
