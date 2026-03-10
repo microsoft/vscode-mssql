@@ -18,6 +18,7 @@ import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
+import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
     stubUserSurvey,
@@ -767,7 +768,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 // localhost is transformed to host.docker.internal for Docker container access,
                 // with the default SQL Server port appended when not specified
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal,1433;Database=testdb;",
+                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
@@ -789,7 +790,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal\\my-sql-container,1433;Database=testdb;",
+                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
