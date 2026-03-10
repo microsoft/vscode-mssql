@@ -68,20 +68,28 @@ export class ProfilerController {
         );
 
         try {
-            // Check server type and handle accordingly
-            const serverTypes = getServerTypes(connectionProfile);
-            this._logger.verbose(`Server types detected: ${serverTypes.join(", ")}`);
+            // Determine if this is an Azure/Fabric server.
+            // Prefer serverInfo from the existing Object Explorer connection over DNS-based heuristic.
+            const serverInfo = this._connectionManager.getServerInfo(connectionProfile);
+            const isAzureOrFabric = serverInfo
+                ? serverInfo.isCloud
+                : isAzureSqlDbCompatible(getServerTypes(connectionProfile));
+            this._logger.verbose(
+                serverInfo
+                    ? `Server info: engineEditionId=${serverInfo.engineEditionId}, isCloud=${serverInfo.isCloud}`
+                    : `Server types detected: ${getServerTypes(connectionProfile).join(", ")}`,
+            );
 
             // Determine engine type based on server type
             // Fabric SQL databases use the same Azure SQL profiles
-            this._currentEngineType = isAzureSqlDbCompatible(serverTypes)
+            this._currentEngineType = isAzureOrFabric
                 ? EngineType.AzureSQLDB
                 : EngineType.Standalone;
             this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
 
             // For Azure SQL and Fabric, we need to ensure a user database is selected
             let profileToUse = connectionProfile;
-            if (isAzureSqlDbCompatible(serverTypes)) {
+            if (isAzureOrFabric) {
                 const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
                 if (!updatedProfile) {
                     // User cancelled database selection

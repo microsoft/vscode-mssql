@@ -85,6 +85,7 @@ function createMockConnectionManager(sandbox: sinon.SinonSandbox): ConnectionMan
         connect: sandbox.stub().resolves(true),
         disconnect: sandbox.stub().resolves(),
         getConnectionCredentials: sandbox.stub().returns({}),
+        getServerInfo: sandbox.stub().returns(undefined),
     } as unknown as ConnectionManager;
 }
 
@@ -612,6 +613,7 @@ suite("ProfilerController Server Type Tests", () => {
             disconnect: sandbox.stub().resolves(),
             getConnectionCredentials: sandbox.stub().returns({}),
             listDatabases: sandbox.stub().resolves(["UserDB1", "UserDB2", "master", "tempdb"]),
+            getServerInfo: sandbox.stub().returns(undefined),
         } as unknown as ConnectionManager;
 
         mockVscodeWrapper = {
