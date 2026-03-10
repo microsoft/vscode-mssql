@@ -7,13 +7,11 @@
 
 ### What's new in 1.41.0
 
-- SQL Database Projects Code Analysis settings dialog is now generally available (GA)
-- Added support for Microsoft.Build.Sql 2.1.0
-- Added warning when SQL notebook result set is incomplete
-- Improved Object Explorer context menus alignment and usability
-- Improved Manage Connection Profiles Edit flow to open Connection Dialog
-- Added progress toast feedback during database rename
-- Fixed SQL projects default SDK fallback behavior
+- Added Data API Builder support (Preview) to Schema Designer, enabling users to quickly and easily generate REST and GraphQL endpoints for your database schema
+- Added Code Analysis settings dialog for SQL Database Projects
+- Added SQL Notebook support (Preview) allowing users to use SQL queries in their Jupyter notebooks
+- Added support for Fabric databases to the Query Profiler (Preview)
+- Improved Object Explorer context menus organization and usability
 
 ## Version 1.40.0
 
