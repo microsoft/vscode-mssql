@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { l10n } from "vscode";
-import * as os from "os";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -1120,92 +1119,6 @@ export class FabricProvisioning {
 }
 
 export class QueryResult {
-    public static nonNumericSelectionSummary = (
-        count: number,
-        distinctCount: number,
-        nullCount: number,
-    ) =>
-        l10n.t({
-            message: "Count: {0}  Distinct Count: {1}  Null Count: {2}",
-            args: [count, distinctCount, nullCount],
-            comment: ["{0} is the count, {1} is the distinct count, and {2} is the null count"],
-        });
-    public static numericSelectionSummary = (average: string, count: number, sum: number) =>
-        l10n.t({
-            message: "Average: {0}  Count: {1}  Sum: {2}",
-            args: [average, count, sum],
-            comment: ["{0} is the average, {1} is the count, {2} is the sum"],
-        });
-    public static numericSelectionSummaryTooltip = (
-        average: string,
-        count: number,
-        distinctCount: number,
-        max: number,
-        min: number,
-        nullCount: number,
-        sum: number,
-    ) => {
-        return [
-            l10n.t({
-                message: "Average: {0}",
-                args: [average],
-                comment: ["{0} is the average"],
-            }),
-            l10n.t({
-                message: "Count: {0}",
-                args: [count],
-                comment: ["{0} is the count"],
-            }),
-            l10n.t({
-                message: "Distinct Count: {0}",
-                args: [distinctCount],
-                comment: ["{0} is the distinct count"],
-            }),
-            l10n.t({
-                message: "Max: {0}",
-                args: [max],
-                comment: ["{0} is the max"],
-            }),
-            l10n.t({
-                message: "Min: {0}",
-                args: [min],
-                comment: ["{0} is the min"],
-            }),
-            l10n.t({
-                message: "Null Count: {0}",
-                args: [nullCount],
-                comment: ["{0} is the null count"],
-            }),
-            l10n.t({
-                message: "Sum: {0}",
-                args: [sum],
-                comment: ["{0} is the sum"],
-            }),
-        ].join(os.EOL);
-    };
-    public static nonNumericSelectionSummaryTooltip = (
-        count: number,
-        distinctCount: number,
-        nullCount: number,
-    ) => {
-        return [
-            l10n.t({
-                message: "Count: {0}",
-                args: [count],
-                comment: ["{0} is the count"],
-            }),
-            l10n.t({
-                message: "Distinct Count: {0}",
-                args: [distinctCount],
-                comment: ["{0} is the distinct count"],
-            }),
-            l10n.t({
-                message: "Null Count: {0}",
-                args: [nullCount],
-                comment: ["{0} is the null count"],
-            }),
-        ].join(os.EOL);
-    };
     public static copyError = (error: string) =>
         l10n.t({
             message: "An error occurred while copying results: {0}",

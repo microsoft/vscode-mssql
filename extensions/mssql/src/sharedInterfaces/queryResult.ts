@@ -79,14 +79,25 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     executionStartTime?: number;
 }
 
+export interface SelectionSummaryMetrics {
+    average?: number;
+    count: number;
+    distinctCount: number;
+    max?: number;
+    min?: number;
+    nullCount: number;
+    sum?: number;
+}
+
 export interface SelectionSummary {
-    text: string;
-    command: {
+    stats?: SelectionSummaryMetrics;
+    text?: string;
+    command?: {
         title: string;
         command: string;
         arguments: unknown[];
     };
-    tooltip: string;
+    tooltip?: string;
     continue?: unknown;
     batchId?: number;
     resultId?: number;

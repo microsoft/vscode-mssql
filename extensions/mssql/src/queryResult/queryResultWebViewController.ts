@@ -38,8 +38,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
     private _correlationId: string = randomUUID();
-    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
-        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
 
@@ -127,7 +125,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 if (!state) {
                     return;
                 }
-                (state.selectionSummary.continue as Deferred<void>).resolve();
+                (state.selectionSummary?.continue as Deferred<void> | undefined)?.resolve();
             }),
         );
     }
@@ -137,8 +135,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
-        this.updateSelectionSummary();
-
         const uri = getUriKey(editor?.document?.uri);
         const hasPanel = uri && this.hasPanel(uri);
         const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
@@ -488,8 +484,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
-
-            this.updateSelectionSummary();
         }
     }
 
@@ -577,32 +571,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
-    }
-
-    public updateSelectionSummary() {
-        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
-            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
-        );
-
-        if (!activeUri) {
-            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
-        }
-
-        if (!this._queryResultStateMap.has(activeUri)) {
-            this._selectionSummaryStatusBarItem.hide();
-            return;
-        }
-
-        const state = this._queryResultStateMap.get(activeUri);
-
-        if (state?.selectionSummary) {
-            this._selectionSummaryStatusBarItem.text = state.selectionSummary.text;
-            this._selectionSummaryStatusBarItem.tooltip = state.selectionSummary.tooltip;
-            this._selectionSummaryStatusBarItem.command = state.selectionSummary.command;
-            this._selectionSummaryStatusBarItem.show();
-        } else {
-            this._selectionSummaryStatusBarItem.hide();
-        }
     }
 
     public getOpenQueryResultsInTabByDefaultRequestHandler(): boolean {

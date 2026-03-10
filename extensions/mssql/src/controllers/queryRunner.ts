@@ -1096,38 +1096,17 @@ export default class QueryRunner {
                 return;
             }
 
-            let text = "";
-            let tooltip = "";
+            const stats: NonNullable<SelectionSummary["stats"]> = {
+                count: result.count,
+                distinctCount: result.distinctCount,
+                nullCount: result.nullCount,
+            };
 
-            // the selection is numeric
             if (result.average !== undefined && result.average !== null) {
-                const average = result.average.toFixed(2);
-                text = LocalizedConstants.QueryResult.numericSelectionSummary(
-                    average,
-                    result.count,
-                    result.sum,
-                );
-                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
-                    average,
-                    result.count,
-                    result.distinctCount,
-                    result.max ?? 0,
-                    result.min ?? 0,
-                    result.nullCount,
-                    result.sum,
-                );
-            } else {
-                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = LocalizedConstants.QueryResult.nonNumericSelectionSummaryTooltip(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = text;
+                stats.average = result.average;
+                stats.sum = result.sum;
+                stats.max = result.max;
+                stats.min = result.min;
             }
 
             // Resolve the cancel confirmation to clean up
@@ -1136,8 +1115,7 @@ export default class QueryRunner {
             }
 
             this.fireSummaryChangedEvent(requestId, {
-                text,
-                tooltip,
+                stats,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,

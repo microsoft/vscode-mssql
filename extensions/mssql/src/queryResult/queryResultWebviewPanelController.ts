@@ -72,8 +72,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             if (params.webviewPanel.viewColumn) {
                 this._viewColumn = params.webviewPanel.viewColumn;
             }
-
-            this._queryResultWebviewViewController.updateSelectionSummary();
         });
     }
 

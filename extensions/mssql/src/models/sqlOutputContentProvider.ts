@@ -672,6 +672,7 @@ export class SqlOutputContentProvider {
                     return;
                 }
                 state.selectionSummary = {
+                    stats: e.stats,
                     text: e.text,
                     command: e.command,
                     tooltip: e.tooltip,

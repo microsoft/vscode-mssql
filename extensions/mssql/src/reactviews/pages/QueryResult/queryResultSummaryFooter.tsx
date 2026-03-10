@@ -295,68 +295,109 @@ function formatRunningTimeCompact(milliseconds: number): string {
     return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
 }
 
-function abbreviateSummaryText(text: string): string {
-    if (!text) {
-        return "";
-    }
+type SelectionMetricKey = keyof qr.SelectionSummaryMetrics;
 
-    return text
-        .replace(/\bDistinct Count\b/gi, "DISTINCT")
-        .replace(/\bNull Count\b/gi, "NULL")
-        .replace(/\bAverage\b/gi, "AVG")
-        .replace(/\bCount\b/gi, "COUNT")
-        .replace(/\bSum\b/gi, "SUM")
-        .replace(/\bMin\b/gi, "MIN")
-        .replace(/\bMax\b/gi, "MAX");
+const INLINE_NUMERIC_METRIC_ORDER: readonly SelectionMetricKey[] = ["count", "average", "sum"];
+const INLINE_NON_NUMERIC_METRIC_ORDER: readonly SelectionMetricKey[] = [
+    "count",
+    "distinctCount",
+    "nullCount",
+];
+const TOOLTIP_NUMERIC_METRIC_ORDER: readonly SelectionMetricKey[] = [
+    "count",
+    "average",
+    "sum",
+    "min",
+    "max",
+    "distinctCount",
+    "nullCount",
+];
+const TOOLTIP_NON_NUMERIC_METRIC_ORDER: readonly SelectionMetricKey[] = [
+    "count",
+    "distinctCount",
+    "nullCount",
+];
+
+const SELECTION_TOOLTIP_POSITIONING = {
+    position: "above",
+    align: "end",
+    strategy: "fixed",
+    overflowBoundary: "window",
+    flipBoundary: "window",
+} as const;
+
+function isNumericSelectionSummary(stats: qr.SelectionSummaryMetrics): boolean {
+    return typeof stats.average === "number";
 }
 
-const METRIC_ORDER = ["COUNT", "AVG", "SUM", "MIN", "MAX", "DISTINCT", "NULL"] as const;
-
-function isZeroMetricValue(value: string): boolean {
-    const normalized = value.replace(/,/g, "").trim();
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) && parsed === 0;
+function getSelectionMetricLabel(metric: SelectionMetricKey): string {
+    switch (metric) {
+        case "count":
+            return locConstants.queryResult.selectionSummaryCountLabel;
+        case "average":
+            return locConstants.queryResult.selectionSummaryAverageLabel;
+        case "sum":
+            return locConstants.queryResult.selectionSummarySumLabel;
+        case "min":
+            return locConstants.queryResult.selectionSummaryMinLabel;
+        case "max":
+            return locConstants.queryResult.selectionSummaryMaxLabel;
+        case "distinctCount":
+            return locConstants.queryResult.selectionSummaryDistinctLabel;
+        case "nullCount":
+            return locConstants.queryResult.selectionSummaryNullLabel;
+    }
 }
 
-function parseSelectionMetrics(text: string): Array<{ label: string; value: string }> {
-    const metricMap = new Map<string, string>();
-    const discoveredOrder: string[] = [];
-    const metricRegex = /([A-Z]+):\s*([^:\n]+?)(?=(?:\s{2,}[A-Z]+:)|$|\n)/g;
-    let match: RegExpExecArray | null;
-
-    while ((match = metricRegex.exec(text))) {
-        const label = match[1];
-        const value = match[2].trim();
-        if (!metricMap.has(label)) {
-            discoveredOrder.push(label);
-        }
-        metricMap.set(label, value);
+function formatSelectionMetricValue(metric: SelectionMetricKey, value: number): string {
+    if (metric === "average") {
+        return value.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
     }
 
-    const orderedKnownMetrics: Array<{ label: string; value: string }> = [];
-    for (const label of METRIC_ORDER) {
-        const value = metricMap.get(label);
-        if (value === undefined) {
-            continue;
-        }
-        if (label === "NULL" && isZeroMetricValue(value)) {
-            continue;
-        }
-        orderedKnownMetrics.push({ label, value });
+    if (Number.isInteger(value)) {
+        return value.toLocaleString();
     }
 
-    const orderedUnknownMetrics = discoveredOrder
-        .filter((label) => !METRIC_ORDER.includes(label as (typeof METRIC_ORDER)[number]))
-        .map((label) => ({ label, value: metricMap.get(label)! }));
-
-    return [...orderedKnownMetrics, ...orderedUnknownMetrics];
+    return value.toLocaleString(undefined, {
+        maximumFractionDigits: 20,
+    });
 }
 
-function renderSelectionMetricsInline(text: string, classes: Record<string, string>) {
-    const metrics = parseSelectionMetrics(text);
-    if (metrics.length === 0) {
-        return <span>{text}</span>;
-    }
+function getSelectionMetrics(
+    stats: qr.SelectionSummaryMetrics,
+    order: readonly SelectionMetricKey[],
+): Array<{ label: string; value: string }> {
+    return order.flatMap((metric) => {
+        const value = stats[metric];
+        if (typeof value !== "number") {
+            return [];
+        }
+        if (metric === "nullCount" && value === 0) {
+            return [];
+        }
+
+        return [
+            {
+                label: getSelectionMetricLabel(metric),
+                value: formatSelectionMetricValue(metric, value),
+            },
+        ];
+    });
+}
+
+function renderSelectionMetricsInline(
+    stats: qr.SelectionSummaryMetrics,
+    classes: Record<string, string>,
+) {
+    const metrics = getSelectionMetrics(
+        stats,
+        isNumericSelectionSummary(stats)
+            ? INLINE_NUMERIC_METRIC_ORDER
+            : INLINE_NON_NUMERIC_METRIC_ORDER,
+    );
 
     return (
         <span>
@@ -371,11 +412,16 @@ function renderSelectionMetricsInline(text: string, classes: Record<string, stri
     );
 }
 
-function renderSelectionMetricsTooltip(text: string, classes: Record<string, string>) {
-    const metrics = parseSelectionMetrics(text);
-    if (metrics.length === 0) {
-        return <span className={classes.selectionTooltipText}>{text}</span>;
-    }
+function renderSelectionMetricsTooltip(
+    stats: qr.SelectionSummaryMetrics,
+    classes: Record<string, string>,
+) {
+    const metrics = getSelectionMetrics(
+        stats,
+        isNumericSelectionSummary(stats)
+            ? TOOLTIP_NUMERIC_METRIC_ORDER
+            : TOOLTIP_NON_NUMERIC_METRIC_ORDER,
+    );
 
     return (
         <div className={classes.selectionTooltipMetrics}>
@@ -464,11 +510,20 @@ export const QueryResultSummaryFooter = ({
                 ? locConstants.queryResult.runningLabel
                 : `${locConstants.queryResult.runningLabel}: ${compactExecutionText}`
             : executionText;
-
-    const selectionText = abbreviateSummaryText(normalizeStatusText(selectionSummary?.text));
-    const selectionDisplayText = selectionText || locConstants.queryResult.noSelectionSummary;
-    const selectionTooltip = abbreviateSummaryText(
-        selectionSummary?.tooltip || selectionDisplayText,
+    const selectionStats = selectionSummary?.stats;
+    const selectionCommand = selectionSummary?.command;
+    const selectionStatusText = normalizeStatusText(selectionSummary?.text);
+    const selectionDisplayContent = selectionStats
+        ? renderSelectionMetricsInline(selectionStats, classes)
+        : (selectionStatusText ?? "") || locConstants.queryResult.noSelectionSummary;
+    const selectionTooltipContent = selectionStats ? (
+        renderSelectionMetricsTooltip(selectionStats, classes)
+    ) : (
+        <span className={classes.selectionTooltipText}>
+            {selectionSummary?.tooltip ||
+                selectionStatusText ||
+                locConstants.queryResult.noSelectionSummary}
+        </span>
     );
     const compactRowsText =
         typeof rowsAffectedCount === "number" ? rowsAffectedCount.toLocaleString() : "0";
@@ -516,8 +571,9 @@ export const QueryResultSummaryFooter = ({
                 <Tooltip
                     withArrow
                     relationship="description"
-                    content={renderSelectionMetricsTooltip(selectionTooltip, classes)}>
-                    {selectionSummary?.command?.command ? (
+                    positioning={SELECTION_TOOLTIP_POSITIONING}
+                    content={selectionTooltipContent}>
+                    {selectionCommand?.command ? (
                         <button
                             type="button"
                             className={classes.selectionValueButton}
@@ -525,17 +581,15 @@ export const QueryResultSummaryFooter = ({
                                 await context?.extensionRpc.sendRequest(
                                     ExecuteCommandRequest.type,
                                     {
-                                        command: selectionSummary.command.command,
-                                        args: selectionSummary.command.arguments,
+                                        command: selectionCommand.command,
+                                        args: selectionCommand.arguments,
                                     },
                                 );
                             }}>
-                            {renderSelectionMetricsInline(selectionDisplayText, classes)}
+                            {selectionDisplayContent}
                         </button>
                     ) : (
-                        <span className={classes.selectionValue}>
-                            {renderSelectionMetricsInline(selectionDisplayText, classes)}
-                        </span>
+                        <span className={classes.selectionValue}>{selectionDisplayContent}</span>
                     )}
                 </Tooltip>
             </div>
