@@ -1005,6 +1005,79 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.include("Failed to validate database name");
             expect(response.errorMessage).to.include("Network error");
         });
+        test("allows connection database when listing databases returns empty list", async () => {
+            const mockDatabases = {
+                databaseNames: [],
+            };
+            sqlToolsClientStub.sendRequest
+                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+                .resolves(mockDatabases);
+            createControllerWithState({ databaseName: "MyDB" });
+            const requestHandler = requestHandlers.get(
+                ValidateDatabaseNameWebviewRequest.type.method,
+            );
+            const response = await requestHandler!({
+                databaseName: "MyDB",
+                ownerUri: ownerUri,
+                shouldNotExist: false,
+            });
+            expect(response.isValid).to.be.true;
+            expect(response.errorMessage).to.be.undefined;
+        });
+        test("allows connection database case-insensitively when listing databases returns empty list", async () => {
+            const mockDatabases = {
+                databaseNames: [],
+            };
+            sqlToolsClientStub.sendRequest
+                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+                .resolves(mockDatabases);
+            createControllerWithState({ databaseName: "MyDB" });
+            const requestHandler = requestHandlers.get(
+                ValidateDatabaseNameWebviewRequest.type.method,
+            );
+            const response = await requestHandler!({
+                databaseName: "mydb",
+                ownerUri: ownerUri,
+                shouldNotExist: false,
+            });
+            expect(response.isValid).to.be.true;
+            expect(response.errorMessage).to.be.undefined;
+        });
+        test("allows connection database when listing databases fails with error", async () => {
+            sqlToolsClientStub.sendRequest
+                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+                .rejects(new Error("Insufficient permissions"));
+            createControllerWithState({ databaseName: "MyDB" });
+            const requestHandler = requestHandlers.get(
+                ValidateDatabaseNameWebviewRequest.type.method,
+            );
+            const response = await requestHandler!({
+                databaseName: "MyDB",
+                ownerUri: ownerUri,
+                shouldNotExist: false,
+            });
+            expect(response.isValid).to.be.true;
+            expect(response.errorMessage).to.be.undefined;
+        });
+        test("rejects non-connection database when listing databases returns empty list", async () => {
+            const mockDatabases = {
+                databaseNames: [],
+            };
+            sqlToolsClientStub.sendRequest
+                .withArgs(ListDatabasesRequest.type, sinon.match.any)
+                .resolves(mockDatabases);
+            createControllerWithState({ databaseName: "MyDB" });
+            const requestHandler = requestHandlers.get(
+                ValidateDatabaseNameWebviewRequest.type.method,
+            );
+            const response = await requestHandler!({
+                databaseName: "OtherDB",
+                ownerUri: ownerUri,
+                shouldNotExist: false,
+            });
+            expect(response.isValid).to.be.false;
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DatabaseNotFound);
+        });
     });
     suite("Cancel Operation", () => {
         test("cancel notification resolves dialog with undefined and disposes panel", async () => {

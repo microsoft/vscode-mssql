@@ -948,6 +948,13 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             return { isValid: false, errorMessage };
         }
 
+        // Check if the database matches the one from the active connection.
+        // If the user lacks permissions to list databases but is connected to a specific database,
+        // we should trust the connection's database and skip the server-side existence check.
+        const isConnectionDatabase =
+            this.state.databaseName &&
+            databaseName.toLowerCase() === this.state.databaseName.toLowerCase();
+
         // Check if database exists
         try {
             const result = await this.connectionManager.client.sendRequest(
@@ -979,6 +986,11 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             // For Extract/Export operations, database must exist
             if (!shouldNotExist && !exists) {
+                // If the database matches the connection's database, trust it even if
+                // the list is incomplete (user may lack permissions to list all databases)
+                if (isConnectionDatabase) {
+                    return { isValid: true };
+                }
                 return {
                     isValid: false,
                     errorMessage: LocConstants.DacpacDialog.DatabaseNotFound,
@@ -987,6 +999,11 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             return { isValid: true };
         } catch (error) {
+            // If listing databases failed but the database matches the connection's database,
+            // allow the operation since the user is already connected to this database
+            if (isConnectionDatabase) {
+                return { isValid: true };
+            }
             const errorMessage =
                 error instanceof Error
                     ? `Failed to validate database name: ${error.message}`
