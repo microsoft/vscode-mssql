@@ -764,9 +764,10 @@ suite("SchemaDesignerWebviewController tests", () => {
                 const result = await handler({ config: mockDabConfig });
 
                 const parsedConfig = JSON.parse(result.configContent);
-                // localhost is transformed to host.docker.internal for Docker container access
+                // localhost is transformed to host.docker.internal for Docker container access,
+                // with the default SQL Server port appended when not specified
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal;Database=testdb;",
+                    "Server=host.docker.internal,1433;Database=testdb;",
                 );
             });
 
@@ -788,7 +789,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal\\my-sql-container;Database=testdb;",
+                    "Server=host.docker.internal\\my-sql-container,1433;Database=testdb;",
                 );
             });
 
