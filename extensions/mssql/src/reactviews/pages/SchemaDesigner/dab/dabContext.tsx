@@ -349,7 +349,14 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
             stepStatuses: prev.stepStatuses.map((s) => {
                 if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
-                    return { ...s, status: ApiStatus.NotStarted, message: undefined };
+                    return {
+                        ...s,
+                        status: ApiStatus.NotStarted,
+                        message: undefined,
+                        fullErrorText: undefined,
+                        errorLink: undefined,
+                        errorLinkText: undefined,
+                    };
                 }
                 return s;
             }),
