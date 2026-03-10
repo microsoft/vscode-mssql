@@ -6,6 +6,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { DefaultSqlPortNumber } from "../constants/constants";
 import { DabConfigFileBuilder } from "../dab/dabConfigFileBuilder";
 import {
     checkDockerInstallation,
@@ -367,7 +368,7 @@ export class DabService implements Dab.IDabService {
         // DAB does not infer the default SQL Server port, so explicitly add it
         // when the connection string omits the port for a localhost address.
         if (!hasPort) {
-            newServerValue += `,${Dab.DEFAULT_SQL_SERVER_PORT}`;
+            newServerValue += `,${DefaultSqlPortNumber}`;
         }
 
         // Replace in connection string

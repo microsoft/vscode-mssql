@@ -9,6 +9,7 @@ import { DabService } from "../../../src/services/dabService";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 import * as dockerUtils from "../../../src/docker/dockerUtils";
 import * as dabContainer from "../../../src/dab/dabContainer";
+import { DefaultSqlPortNumber } from "../../../src/constants/constants";
 
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
     return {
@@ -259,47 +260,47 @@ suite("DabService Tests", () => {
             test("localhost without port gets default port", () => {
                 const result = transform("Server=localhost;Database=TestDb;");
                 expect(result.connectionString).to.include(
-                    `Server=host.docker.internal,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                    `Server=host.docker.internal,${DefaultSqlPortNumber}`,
                 );
             });
 
             test("127.0.0.1 without port gets default port", () => {
                 const result = transform("Server=127.0.0.1;Database=TestDb;");
                 expect(result.connectionString).to.include(
-                    `Server=host.docker.internal,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                    `Server=host.docker.internal,${DefaultSqlPortNumber}`,
                 );
             });
 
             test("localhost with instance name but no port gets default port", () => {
                 const result = transform("Server=localhost\\SQLEXPRESS;Database=TestDb;");
                 expect(result.connectionString).to.include(
-                    `Server=host.docker.internal\\SQLEXPRESS,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                    `Server=host.docker.internal\\SQLEXPRESS,${DefaultSqlPortNumber}`,
                 );
             });
 
             test("localhost with container name but no port gets default port", () => {
                 const result = transform("Server=localhost;Database=TestDb;", "my-sql-container");
                 expect(result.connectionString).to.include(
-                    `Server=host.docker.internal\\my-sql-container,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber}`,
                 );
             });
 
             test("Data Source without port gets default port", () => {
                 const result = transform("data source=127.0.0.1;Database=TestDb;");
                 expect(result.connectionString).to.include(
-                    `host.docker.internal,${Dab.DEFAULT_SQL_SERVER_PORT}`,
+                    `host.docker.internal,${DefaultSqlPortNumber}`,
                 );
             });
 
             test("should not add default port when port is already specified", () => {
                 const result = transform("Server=localhost,1434;Database=TestDb;");
                 expect(result.connectionString).to.include("Server=host.docker.internal,1434");
-                expect(result.connectionString).to.not.include(`,${Dab.DEFAULT_SQL_SERVER_PORT}`);
+                expect(result.connectionString).to.not.include(`,${DefaultSqlPortNumber}`);
             });
 
             test("should not add default port for non-localhost addresses", () => {
                 const result = transform("Server=remote-server;Database=TestDb;");
-                expect(result.connectionString).to.not.include(`,${Dab.DEFAULT_SQL_SERVER_PORT}`);
+                expect(result.connectionString).to.not.include(`,${DefaultSqlPortNumber}`);
             });
         });
 
