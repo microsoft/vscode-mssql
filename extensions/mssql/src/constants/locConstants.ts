@@ -24,6 +24,7 @@ export class Common {
     public static error = l10n.t("Error");
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
+    public static remove = l10n.t("Remove");
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
@@ -69,6 +70,13 @@ export function renameDatabaseError(
             "{1} is the new database name",
             "{2} is the error message",
         ],
+    });
+}
+export function renamingDatabase(databaseName: string, newDatabaseName: string) {
+    return l10n.t({
+        message: "Renaming database '{0}' to '{1}'...",
+        args: [databaseName, newDatabaseName],
+        comment: ["{0} is the current database name", "{1} is the new database name"],
     });
 }
 
@@ -146,10 +154,10 @@ export let msgOpenSqlFile = l10n.t(
 );
 export let recentConnectionsPlaceholder = l10n.t("Choose a connection profile from the list below");
 export let CreateProfileFromConnectionsListLabel = l10n.t("Create Connection Profile");
-export let CreateProfileLabel = l10n.t("Create");
+export let CreateProfileLabel = l10n.t("Create a new connection profile");
 export let ClearRecentlyUsedLabel = l10n.t("Clear Recent Connections List");
-export let EditProfilesLabel = l10n.t("Edit");
-export let RemoveProfileLabel = l10n.t("Remove");
+export let EditProfilesLabel = l10n.t("Edit an existing connection profile");
+export let RemoveProfileLabel = l10n.t("Remove a connection profile");
 export let ManageProfilesPrompt = l10n.t("Manage Connection Profiles");
 export let SampleServerName = l10n.t("{{put-server-name-here}}");
 export let serverPrompt = l10n.t("Server name or ADO.NET connection string");
@@ -257,8 +265,10 @@ export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
 export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
+export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
-export let msgNoProfilesSaved = l10n.t("No connection profile to remove.");
+export let msgNoProfilesToRemove = l10n.t("No connection profiles to remove.");
+export let msgNoProfilesToEdit = l10n.t("No connection profiles to edit.");
 export let msgProfileRemoved = l10n.t("Profile removed successfully");
 export let msgProfileCreated = l10n.t("Profile created successfully");
 export let msgProfileCreatedAndConnected = l10n.t("Profile created and connected");
@@ -640,6 +650,7 @@ export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
     // Status bar
+    public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
 
     // Errors
@@ -659,6 +670,17 @@ export class Notebooks {
     }
     public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
     public static zeroRows = l10n.t("(0 rows)");
+    public static resultSetTruncated(actual: number, expected: number) {
+        return l10n.t({
+            message:
+                "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+            args: [actual, expected],
+            comment: [
+                "{0} is the number of rows actually returned",
+                "{1} is the total number of rows expected",
+            ],
+        });
+    }
     public static rowCountPlain(count: number) {
         if (count === 1) {
             return l10n.t({
@@ -705,6 +727,7 @@ export class Notebooks {
     public static currentDatabaseLabel = l10n.t("(current)");
 
     // Code lens
+    public static codeLensClickToChangeConnection = l10n.t("Click to change connection");
     public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
     public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
 
@@ -1713,6 +1736,9 @@ export class SchemaDesigner {
     );
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static failedToOpenUrl = l10n.t(
+        "Failed to open URL. The built-in Simple Browser may be disabled.",
+    );
 }
 
 export class StatusBar {
@@ -2031,6 +2057,15 @@ export class MssqlChatAgent {
             "{2} is the operation name 'apply_edits' and must not be translated",
         ],
     });
+    public static dabToolShowSuccessMessage = l10n.t({
+        message: "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        args: ["mssql_dab", "get_state", "apply_changes"],
+        comment: [
+            "{0} is the command identifier 'mssql_dab' and must not be translated",
+            "{1} is the operation name 'get_state' and must not be translated",
+            "{2} is the operation name 'apply_changes' and must not be translated",
+        ],
+    });
     public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
     public static schemaDesignerToolConfirmationMessage = (operation: string) => {
         return l10n.t({
@@ -2061,6 +2096,12 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolNoActiveDesigner = l10n.t(
+        "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+    );
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
@@ -3084,7 +3125,7 @@ export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
             args: [proxy],
             comment: ["{0} is the proxy URL"],
         });
@@ -3092,7 +3133,7 @@ export class Proxy {
     public static unparseableWarning = (proxy: string, errorMessage: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
             args: [proxy, errorMessage],
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });

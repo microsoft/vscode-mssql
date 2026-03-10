@@ -30,11 +30,15 @@ suite("NotebookCodeLensProvider", () => {
 
     function makeMockMgr(
         connected: boolean,
-        label?: string,
+        server?: string,
+        database?: string,
     ): sinon.SinonStubbedInstance<NotebookConnectionManager> {
         const mgr = sandbox.createStubInstance(NotebookConnectionManager);
         mgr.isConnected.returns(connected);
-        mgr.getConnectionLabel.returns(label ?? "test-server / TestDB");
+        mgr.getConnectionInfo.returns({
+            server: server ?? "test-server",
+            database: database ?? "TestDB",
+        } as any);
         return mgr;
     }
 
@@ -72,14 +76,20 @@ suite("NotebookCodeLensProvider", () => {
         expect(result).to.deep.equal([]);
     });
 
-    test("shows connection label when connected", () => {
-        connections.set(notebookUri, makeMockMgr(true, "myserver / MyDB"));
+    test("shows server and database lenses when connected", () => {
+        connections.set(notebookUri, makeMockMgr(true, "myserver", "MyDB"));
         const doc = makeCellDocument(cellUri);
         const lenses = provider.provideCodeLenses(doc, {} as vscode.CancellationToken);
 
-        expect(lenses).to.have.length(1);
-        expect(lenses[0].command!.title).to.include("myserver / MyDB");
-        expect(lenses[0].command!.command).to.equal(Constants.cmdNotebooksChangeDatabase);
+        expect(lenses).to.have.length(2);
+
+        // First lens: server name, triggers change connection
+        expect(lenses[0].command!.title).to.equal("myserver");
+        expect(lenses[0].command!.command).to.equal(Constants.cmdNotebooksChangeConnection);
+
+        // Second lens: database name with icon, triggers change database
+        expect(lenses[1].command!.title).to.include("MyDB");
+        expect(lenses[1].command!.command).to.equal(Constants.cmdNotebooksChangeDatabase);
     });
 
     test("shows connect prompt when not connected", () => {

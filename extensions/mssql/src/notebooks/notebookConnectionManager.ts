@@ -40,6 +40,14 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private log: vscode.LogOutputChannel;
     private readonly queryExecutor: NotebookQueryExecutor;
 
+    /**
+     * Saved reconnection context from notebook metadata.
+     * Used to restore the database when the user picks a server-level
+     * profile (no explicit database) during reconnection.
+     */
+    private _savedServer: string | undefined;
+    private _savedDatabase: string | undefined;
+
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
@@ -52,6 +60,17 @@ export class NotebookConnectionManager implements vscode.Disposable {
             client ?? SqlToolsServiceClient.instance,
             notificationHandler ?? QueryNotificationHandler.instance,
         );
+    }
+
+    /**
+     * Set the reconnection context from persisted notebook metadata.
+     * Called when recreating the manager after a VS Code restart so that
+     * promptAndConnect() can restore the correct database instead of
+     * defaulting to master.
+     */
+    setReconnectionContext(server: string, database: string): void {
+        this._savedServer = server;
+        this._savedDatabase = database;
     }
 
     /**
@@ -94,6 +113,20 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionLabel = "";
         }
 
+        // Try reconnecting with stored connection info (within-session stale connection)
+        if (this.connectionInfo) {
+            this.log.info("[ensureConnection] Attempting reconnect with stored connection info");
+            try {
+                const uri = await this.connectInternal(this.connectionInfo);
+                this.connectionUri = uri;
+                const actualDb = this.getActualDatabase(uri);
+                this.connectionLabel = formatConnectionLabel(this.connectionInfo.server, actualDb);
+                return uri;
+            } catch (err: any) {
+                this.log.warn(`[ensureConnection] Reconnect failed: ${err.message}, will prompt`);
+            }
+        }
+
         // No alive connection — prompt the user
         this.log.info("[ensureConnection] No connection, prompting user");
         return this.promptAndConnect();
@@ -112,10 +145,24 @@ export class NotebookConnectionManager implements vscode.Disposable {
         );
         try {
             const pickListItems = await this.connectionMgr.connectionStore.getPickListItems();
-            const connectionInfo =
+            let connectionInfo =
                 await this.connectionMgr.connectionUI.promptForConnection(pickListItems);
             if (!connectionInfo) {
                 throw new Error(LocalizedConstants.Notebooks.noConnectionSelected);
+            }
+
+            // If the notebook has a saved database context and the user picked a
+            // server-level profile (no explicit database), restore the saved database
+            // so the notebook reconnects to its original database instead of master.
+            const savedDb = this.connectionInfo?.database || this._savedDatabase;
+            const savedServer = this.connectionInfo?.server || this._savedServer;
+            if (
+                savedDb &&
+                !connectionInfo.database &&
+                savedServer?.toLowerCase() === connectionInfo.server.toLowerCase()
+            ) {
+                this.log.info(`[promptAndConnect] Restoring saved database context: ${savedDb}`);
+                connectionInfo = { ...connectionInfo, database: savedDb };
             }
 
             this.log.info(
@@ -243,6 +290,16 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = undefined;
         this.connectionInfo = undefined;
         this.connectionLabel = "";
+    }
+
+    /**
+     * Disconnect a specific URI from the connection sharing service without
+     * clearing the manager's current state. Used to clean up a previous
+     * connection after a new one has been established.
+     */
+    disconnectUri(uri: string): void {
+        this.log.info(`[disconnectUri] URI=${uri}`);
+        this.connectionSharingService.disconnect(uri);
     }
 
     getConnectionLabel(): string {

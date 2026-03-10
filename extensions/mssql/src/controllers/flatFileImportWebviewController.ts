@@ -17,7 +17,7 @@ import {
 } from "../sharedInterfaces/flatFileImport";
 import { ProseDiscoveryParams, FlatFileProvider } from "../models/contracts/flatFile";
 import { FormItemSpec, FormItemType } from "../sharedInterfaces/form";
-import { defaultSchema, flatFileImportFileTypes } from "../constants/constants";
+import { azureMfa, defaultSchema, flatFileImportFileTypes } from "../constants/constants";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import { SimpleExecuteResult } from "vscode-mssql";
@@ -31,6 +31,7 @@ import { getErrorMessage } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { FlatFileClient } from "../flatFile/flatFileClient";
 import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
+import { stripEntraAuthPropertiesFromConnectionString } from "../flatFile/flatFileUtils";
 
 /**
  * Controller for the Flat File Import dialog
@@ -186,7 +187,22 @@ export class FlatFileImportWebviewController extends FormWebviewController<
 
                 // Set other default params for the import request
                 const batchSize = 1000; // default batch size
-                const azureAccessToken = this.profile.azureAccountToken;
+                let azureAccessToken: string | undefined;
+                let finalConnectionString = connectionString;
+
+                if (this.profile.authenticationType === azureMfa) {
+                    // Ensure the Entra token is valid (refresh if expired)
+                    await this.connectionManager.confirmEntraTokenValidity(this.profile);
+                    azureAccessToken = this.profile.azureAccountToken;
+
+                    // Strip auth properties from the connection string that conflict with
+                    // setting an access token (SqlConnection disallows UserID/Password/Authentication
+                    // when AccessToken is set).
+                    finalConnectionString =
+                        stripEntraAuthPropertiesFromConnectionString(connectionString);
+                } else {
+                    azureAccessToken = this.profile.azureAccountToken;
+                }
 
                 // Send column changes (if any) before sending the import request
                 for (const colChange of state.columnChanges) {
@@ -199,7 +215,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
 
                 // Send import request
                 const insertDataResult = await this.provider.sendInsertDataRequest({
-                    connectionString: connectionString,
+                    connectionString: finalConnectionString,
                     batchSize: batchSize,
                     azureAccessToken: azureAccessToken,
                 });

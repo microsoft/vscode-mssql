@@ -1041,8 +1041,8 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Schema Designer"),
-            dabNavLabel: l10n.t("DAB"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            dabNavLabel: l10n.t("Build Data API"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
@@ -1388,6 +1388,8 @@ export class LocConstants {
             addToVSCode: l10n.t("Add to VS Code"),
             addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
             mcpServerAdded: l10n.t("Added"),
+            viewSwagger: l10n.t("View Swagger"),
+            openNitro: l10n.t("Open Nitro"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
