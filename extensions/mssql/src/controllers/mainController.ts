@@ -424,8 +424,9 @@ export default class MainController implements vscode.Disposable {
                     sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
                 }
 
-                // Open chat window
-                vscode.commands.executeCommand("workbench.action.chat.open", promptToUse);
+                // Open chat window in Ask mode when supported, otherwise fall back to generic open.
+                const chatCommand = await this.findChatOpenAskCommand();
+                await vscode.commands.executeCommand(chatCommand, promptToUse);
             };
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
@@ -493,8 +494,9 @@ export default class MainController implements vscode.Disposable {
 
                 if (activeEditor) {
                     // Open chat window
-                    vscode.commands.executeCommand(
-                        "workbench.action.chat.open",
+                    const chatCommand = await this.findChatOpenAskCommand();
+                    await vscode.commands.executeCommand(
+                        chatCommand,
                         `@${Constants.mssqlChatParticipantName} Hello!`,
                     );
                 }
@@ -891,17 +893,10 @@ export default class MainController implements vscode.Disposable {
         return this._availableCommands;
     }
 
-    /**
-     * Find the correct chat open agent command variant that exists in the current VS Code version
-     */
-    private async findChatOpenAgentCommand(): Promise<string | undefined> {
+    private async findFirstAvailableCommand(
+        possibleCommands: readonly string[],
+    ): Promise<string | undefined> {
         const commands = await this.getAvailableCommands();
-
-        // Try to find the correct command, checking both variants
-        const possibleCommands = [
-            Constants.vscodeWorkbenchChatOpenAgent, // Current VS Code
-            Constants.vscodeWorkbenchChatOpenAgentLegacy, // Legacy VS Code
-        ];
 
         for (const cmd of possibleCommands) {
             if (commands.includes(cmd)) {
@@ -910,6 +905,24 @@ export default class MainController implements vscode.Disposable {
         }
 
         return undefined;
+    }
+
+    /**
+     * Find the correct chat open agent command variant that exists in the current VS Code version
+     */
+    private async findChatOpenAgentCommand(): Promise<string | undefined> {
+        return this.findFirstAvailableCommand(Constants.vscodeWorkbenchChatOpenAgentCommands);
+    }
+
+    /**
+     * Find the correct chat Ask-mode command variant that exists in the current VS Code version.
+     * Falls back to the generic open command when Ask mode isn't available.
+     */
+    private async findChatOpenAskCommand(): Promise<string> {
+        return (
+            (await this.findFirstAvailableCommand(Constants.vscodeWorkbenchChatOpenAskCommands)) ??
+            Constants.vscodeWorkbenchChatOpen
+        );
     }
 
     private getCopilotChatPromptForScenario(scenario: CopilotChat.Scenario): string {

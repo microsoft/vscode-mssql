@@ -222,7 +222,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdOpenGithubChat,
+                        value: constants.vscodeWorkbenchChatOpen,
                         args: [`@${constants.mssqlChatParticipantName} Hello!`],
                     },
                     {

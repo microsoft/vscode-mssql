@@ -118,8 +118,19 @@ export const cmdAzureSignInToCloud = "azure-account.loginToCloud";
 export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
+export const vscodeWorkbenchChatOpen = "workbench.action.chat.open";
+export const vscodeWorkbenchChatOpenAsk = "workbench.action.chat.openAsk";
+export const vscodeWorkbenchChatOpenAskAlternate = "workbench.action.chat.openask";
+export const vscodeWorkbenchChatOpenAskCommands = [
+    vscodeWorkbenchChatOpenAsk,
+    vscodeWorkbenchChatOpenAskAlternate,
+] as const;
 export const vscodeWorkbenchChatOpenAgent = "workbench.action.chat.openagent";
 export const vscodeWorkbenchChatOpenAgentLegacy = "workbench.action.chat.openAgent";
+export const vscodeWorkbenchChatOpenAgentCommands = [
+    vscodeWorkbenchChatOpenAgent,
+    vscodeWorkbenchChatOpenAgentLegacy,
+] as const;
 export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
@@ -137,7 +148,6 @@ export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
-export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
