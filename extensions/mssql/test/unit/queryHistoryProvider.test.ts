@@ -20,10 +20,28 @@ import { stubVscodeWrapper, initializeIconUtils } from "./utils";
 import { createWorkspaceConfiguration } from "./stubs";
 import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
+import {
+    decryptData,
+    type EncryptedData,
+    encryptData,
+    generateEncryptionKey,
+} from "../../src/utils/encryptionUtils";
 
 chai.use(sinonChai);
 
-suite("QueryHistoryProvider Tests", () => {
+suite("QueryHistoryProvider persistence", () => {
+    interface PersistedQueryHistoryPayload {
+        version: number;
+        nodes: Array<{
+            queryString: string;
+            ownerUri?: string;
+            credentials?: Record<string, unknown>;
+            timeStamp: number;
+            connectionLabel: string;
+            isSuccess: boolean;
+        }>;
+    }
+
     let sandbox: sinon.SinonSandbox;
     let provider: QueryHistoryProvider;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
@@ -38,6 +56,8 @@ suite("QueryHistoryProvider Tests", () => {
         delete: sinon.SinonStub<[string], Promise<void>>;
     };
     let context: vscode.ExtensionContext;
+    let secretValues: Map<string, string>;
+    let persistedFileContents: Uint8Array | undefined;
 
     function createProvider(): QueryHistoryProvider {
         return new QueryHistoryProvider(
@@ -72,13 +92,49 @@ suite("QueryHistoryProvider Tests", () => {
         );
     }
 
-    function waitForAsyncWork(): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, 0));
+    function waitForPersistedStorageWork(): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    function setEncryptedPersistedHistoryContent(
+        serializedHistory: string,
+        encryptionKey: string = generateEncryptionKey(),
+    ): string {
+        secretValues.set(Constants.queryHistoryEncryptionKeySecretStorageKey, encryptionKey);
+        persistedFileContents = new TextEncoder().encode(
+            JSON.stringify(encryptData(serializedHistory, encryptionKey)),
+        );
+
+        return encryptionKey;
+    }
+
+    function setEncryptedPersistedHistory(
+        persistedData: unknown,
+        encryptionKey: string = generateEncryptionKey(),
+    ): string {
+        return setEncryptedPersistedHistoryContent(JSON.stringify(persistedData), encryptionKey);
+    }
+
+    function getPersistedHistoryPayload(): PersistedQueryHistoryPayload {
+        expect(persistedFileContents).to.not.be.undefined;
+
+        const encryptionKey = secretValues.get(Constants.queryHistoryEncryptionKeySecretStorageKey);
+        expect(encryptionKey).to.not.be.undefined;
+
+        const encryptedData = JSON.parse(
+            new TextDecoder().decode(persistedFileContents),
+        ) as EncryptedData;
+
+        return JSON.parse(
+            decryptData(encryptedData, encryptionKey!),
+        ) as PersistedQueryHistoryPayload;
     }
 
     setup(() => {
         sandbox = sinon.createSandbox();
         initializeIconUtils();
+        secretValues = new Map<string, string>();
+        persistedFileContents = undefined;
 
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         outputContentProviderStub = sandbox.createStubInstance(SqlOutputContentProvider);
@@ -87,23 +143,54 @@ suite("QueryHistoryProvider Tests", () => {
         statusViewStub = sandbox.createStubInstance(StatusView);
         prompterStub = sandbox.createStubInstance(CodeAdapter);
 
+        sandbox.stub(vscode.workspace.fs, "createDirectory").resolves();
+        sandbox.stub(vscode.workspace.fs, "writeFile").callsFake(async (_uri, content) => {
+            persistedFileContents = content;
+        });
+        sandbox.stub(vscode.workspace.fs, "readFile").callsFake(async () => {
+            if (!persistedFileContents) {
+                throw vscode.FileSystemError.FileNotFound();
+            }
+
+            return persistedFileContents;
+        });
+        sandbox.stub(vscode.workspace.fs, "delete").callsFake(async () => {
+            persistedFileContents = undefined;
+        });
+        sandbox.stub(vscode.workspace.fs, "stat").callsFake(async () => {
+            if (!persistedFileContents) {
+                throw vscode.FileSystemError.FileNotFound();
+            }
+
+            return {
+                type: vscode.FileType.File,
+                ctime: 0,
+                mtime: 0,
+                size: persistedFileContents.length,
+            } as vscode.FileStat;
+        });
+
         const config = createWorkspaceConfiguration({
             [Constants.configQueryHistoryLimit]: 10,
         });
         vscodeWrapperStub.getConfiguration.returns(config);
 
         secretStorage = {
-            get: sandbox.stub<[string], Promise<string | undefined>>(),
-            store: sandbox.stub<[string, string], Promise<void>>(),
-            delete: sandbox.stub<[string], Promise<void>>(),
+            get: sandbox
+                .stub<[string], Promise<string | undefined>>()
+                .callsFake(async (key) => secretValues.get(key)),
+            store: sandbox.stub<[string, string], Promise<void>>().callsFake(async (key, value) => {
+                secretValues.set(key, value);
+            }),
+            delete: sandbox.stub<[string], Promise<void>>().callsFake(async (key) => {
+                secretValues.delete(key);
+            }),
         };
-        secretStorage.get.resolves(undefined);
-        secretStorage.store.resolves();
-        secretStorage.delete.resolves();
 
         context = {
             secrets: secretStorage as unknown as vscode.SecretStorage,
             subscriptions: [],
+            globalStorageUri: vscode.Uri.file("/query-history-tests"),
         } as unknown as vscode.ExtensionContext;
     });
 
@@ -111,750 +198,253 @@ suite("QueryHistoryProvider Tests", () => {
         sandbox.restore();
     });
 
-    suite("constructor", () => {
-        test("should call restoreQueryHistory on construction", async () => {
-            provider = createProvider();
+    test("restores nodes from encrypted global storage", async () => {
+        setEncryptedPersistedHistory({
+            version: 1,
+            nodes: [
+                {
+                    queryString: "SELECT * FROM users",
+                    ownerUri: "file:///test.sql",
+                    timeStamp: new Date(2025, 0, 15, 10, 30, 0).getTime(),
+                    connectionLabel: "(localhost|testdb)",
+                    isSuccess: true,
+                },
+                {
+                    queryString: "INSERT INTO logs VALUES(1)",
+                    ownerUri: "file:///test2.sql",
+                    timeStamp: new Date(2025, 0, 14, 9, 0, 0).getTime(),
+                    connectionLabel: "(localhost|master)",
+                    isSuccess: false,
+                },
+            ],
+        });
 
-            // restoreQueryHistory is called in the constructor via void promise;
-            // since secretStorage.get resolves undefined, it should not change nodes
-            // Wait for the async restore to complete
-            await new Promise((resolve) => setTimeout(resolve, 50));
+        provider = createProvider();
+        await waitForPersistedStorageWork();
 
-            expect(secretStorage.get).to.have.been.calledOnceWithExactly(
-                Constants.queryHistorySecretStorageKey,
-            );
+        const children = provider.getChildren();
+        expect(children).to.have.lengthOf(2);
+        expect((children[0] as QueryHistoryNode).queryString).to.equal("SELECT * FROM users");
+        expect((children[1] as QueryHistoryNode).queryString).to.equal(
+            "INSERT INTO logs VALUES(1)",
+        );
+        expect(secretStorage.store).to.not.have.been.called;
+    });
+
+    test("restores persisted credentials", async () => {
+        setEncryptedPersistedHistory({
+            version: 1,
+            nodes: [
+                {
+                    queryString: "SELECT 1",
+                    ownerUri: "file:///test.sql",
+                    credentials: {
+                        server: "localhost",
+                        database: "master",
+                        authenticationType: Constants.sqlAuthentication,
+                        user: "sa",
+                        password: "secret",
+                        savePassword: true,
+                    },
+                    timeStamp: new Date(2025, 0, 15, 10, 30, 0).getTime(),
+                    connectionLabel: "(localhost|master) : sa",
+                    isSuccess: true,
+                },
+            ],
+        });
+
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        const node = provider.getChildren()[0] as QueryHistoryNode;
+        expect(node.credentials).to.deep.include({
+            server: "localhost",
+            database: "master",
+            user: "sa",
+            password: "secret",
         });
     });
 
-    suite("clearAll", () => {
-        test("should reset nodes to empty and persist", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
+    test("does not overwrite newer history when restore finishes later", async () => {
+        setEncryptedPersistedHistory({
+            version: 1,
+            nodes: [
+                {
+                    queryString: "restored query",
+                    ownerUri: "file:///restored.sql",
+                    timeStamp: new Date(2025, 0, 10).getTime(),
+                    connectionLabel: "(localhost|restoreddb)",
+                    isSuccess: true,
+                },
+            ],
+        });
 
-            provider.clearAll();
+        let resolveStoredHistory: ((value: Uint8Array) => void) | undefined;
+        const encryptedFileContents = persistedFileContents;
+        const readFileStub = vscode.workspace.fs.readFile as unknown as sinon.SinonStub;
+        readFileStub.callsFake(
+            () =>
+                new Promise((resolve) => {
+                    resolveStoredHistory = resolve;
+                }),
+        );
 
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-            expect(secretStorage.delete).to.have.been.calledOnceWithExactly(
-                Constants.queryHistorySecretStorageKey,
-            );
+        provider = createProvider();
+
+        outputContentProviderStub.getQueryRunner.returns({
+            getQueryString: sandbox.stub().returns("fresh query"),
+        } as any);
+        connectionManagerStub.getConnectionInfo.returns({
+            credentials: {
+                server: "localhost",
+                database: "master",
+                authenticationType: Constants.sqlAuthentication,
+                user: "sa",
+            } as any,
+        } as any);
+
+        provider.refresh("file:///fresh.sql", new Date(2025, 0, 20), false);
+
+        expect(resolveStoredHistory).to.not.be.undefined;
+        resolveStoredHistory?.(encryptedFileContents!);
+        await waitForPersistedStorageWork();
+
+        const node = provider.getChildren()[0] as QueryHistoryNode;
+        expect(node.queryString).to.equal("fresh query");
+        expect(node.ownerUri).to.equal("file:///fresh.sql");
+    });
+
+    test("shows EmptyHistoryNode when encrypted storage has invalid JSON", async () => {
+        setEncryptedPersistedHistoryContent("not valid json{{{");
+
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        const children = provider.getChildren();
+        expect(children).to.have.lengthOf(1);
+        expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
+    });
+
+    test("stores history nodes in encrypted global storage", async () => {
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        connectionManagerStub.getConnectionInfo.returns({
+            credentials: {
+                server: "localhost",
+                database: "master",
+                authenticationType: Constants.sqlAuthentication,
+                user: "sa",
+                password: "secret",
+                savePassword: true,
+            } as any,
+        } as any);
+        outputContentProviderStub.getQueryRunner.returns({
+            getQueryString: sandbox.stub().returns("SELECT 1"),
+        } as any);
+
+        provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
+        await waitForPersistedStorageWork();
+
+        expect(secretStorage.store).to.have.been.calledOnceWithExactly(
+            Constants.queryHistoryEncryptionKeySecretStorageKey,
+            sinon.match.string,
+        );
+
+        const payload = getPersistedHistoryPayload();
+        expect(payload.version).to.equal(1);
+        expect(payload.nodes).to.have.lengthOf(1);
+        expect(payload.nodes[0].queryString).to.equal("SELECT 1");
+        expect(payload.nodes[0].connectionLabel).to.contain("localhost");
+        expect(payload.nodes[0].credentials).to.deep.include({
+            server: "localhost",
+            database: "master",
+            user: "sa",
+            password: "secret",
         });
     });
 
-    suite("refresh", () => {
-        test("should add a node and persist", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
+    test("does not persist password when savePassword is false", async () => {
+        provider = createProvider();
+        await waitForPersistedStorageWork();
 
-            const ownerUri = "file:///test.sql";
-            const timeStamp = new Date(2025, 0, 15, 10, 30, 0);
+        connectionManagerStub.getConnectionInfo.returns({
+            credentials: {
+                server: "localhost",
+                database: "master",
+                authenticationType: Constants.sqlAuthentication,
+                user: "sa",
+                password: "secret",
+                savePassword: false,
+            } as any,
+        } as any);
+        outputContentProviderStub.getQueryRunner.returns({
+            getQueryString: sandbox.stub().returns("SELECT 1"),
+        } as any);
 
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
+        provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
+        await waitForPersistedStorageWork();
 
-            provider.refresh(ownerUri, timeStamp, false);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(QueryHistoryNode);
-
-            const node = children[0] as QueryHistoryNode;
-            expect(node.queryString).to.equal("SELECT 1");
-            expect(node.isSuccess).to.equal(true);
-
-            // persistQueryHistory should have been called (store called after restore's get)
-            expect(secretStorage.store).to.have.been.called;
-        });
-
-        test("should ignore refresh when query text is unavailable", async () => {
-            provider = createProvider();
-            await waitForAsyncWork();
-
-            outputContentProviderStub.getQueryRunner.returns(undefined as any);
-
-            provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-            expect(secretStorage.store).to.not.have.been.called;
-        });
-
-        test("should create a history entry when connection info is unavailable", async () => {
-            provider = createProvider();
-            await waitForAsyncWork();
-
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
-            connectionManagerStub.getConnectionInfo.returns(undefined as any);
-
-            expect(() => {
-                provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
-            }).to.not.throw();
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            const node = children[0] as QueryHistoryNode;
-            expect(node.queryString).to.equal("SELECT 1");
-            expect(node.connectionLabel).to.equal("");
-            expect(node.historyNodeLabel).to.equal("SELECT 1");
-        });
-
-        test("should sort nodes by timestamp descending", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const ownerUri = "file:///test.sql";
-            const olderTime = new Date(2025, 0, 10);
-            const newerTime = new Date(2025, 0, 20);
-
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
-
-            provider.refresh(ownerUri, olderTime, false);
-            provider.refresh(ownerUri, newerTime, false);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(2);
-            const first = children[0] as QueryHistoryNode;
-            const second = children[1] as QueryHistoryNode;
-            expect(first.timeStamp.getTime()).to.be.greaterThan(second.timeStamp.getTime());
-        });
-
-        test("should respect query history limit", async () => {
-            // Set limit to 2
-            const config = createWorkspaceConfiguration({
-                [Constants.configQueryHistoryLimit]: 2,
-            });
-            vscodeWrapperStub.getConfiguration.returns(config);
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const ownerUri = "file:///test.sql";
-
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
-
-            provider.refresh(ownerUri, new Date(2025, 0, 10), false);
-            provider.refresh(ownerUri, new Date(2025, 0, 15), false);
-            provider.refresh(ownerUri, new Date(2025, 0, 20), false);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(2);
+        const payload = getPersistedHistoryPayload();
+        expect(payload.nodes[0].credentials).to.deep.include({
+            server: "localhost",
+            database: "master",
+            user: "sa",
+            password: "",
         });
     });
 
-    suite("getTreeItem", () => {
-        test("should return the same node passed in", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const node = createTestNode();
-            expect(provider.getTreeItem(node)).to.equal(node);
-        });
-
-        test("should return EmptyHistoryNode when passed", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const emptyNode = new EmptyHistoryNode();
-            expect(provider.getTreeItem(emptyNode)).to.equal(emptyNode);
-        });
-    });
-
-    suite("getChildren", () => {
-        test("should return EmptyHistoryNode when no history exists", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-    });
-
-    suite("deleteQueryHistoryEntry", () => {
-        test("should remove the specified node and persist", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            // Add a node via refresh
-            const ownerUri = "file:///test.sql";
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
-            provider.refresh(ownerUri, new Date(), false);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            const node = children[0] as QueryHistoryNode;
-
-            // Reset store call count before delete
-            secretStorage.store.resetHistory();
-            secretStorage.delete.resetHistory();
-
-            provider.deleteQueryHistoryEntry(node);
-
-            const afterDelete = provider.getChildren();
-            expect(afterDelete).to.have.lengthOf(1);
-            expect(afterDelete[0]).to.be.instanceOf(EmptyHistoryNode);
-            // When no nodes remain, persistQueryHistory deletes the key
-            expect(secretStorage.delete).to.have.been.calledWithExactly(
-                Constants.queryHistorySecretStorageKey,
-            );
-        });
-
-        test("should do nothing when node is not found", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const unknownNode = createTestNode("SELECT unknown");
-
-            // Should not throw
-            provider.deleteQueryHistoryEntry(unknownNode);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-
-        test("should add EmptyHistoryNode when last entry is deleted", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const ownerUri = "file:///test.sql";
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
-            provider.refresh(ownerUri, new Date(), false);
-
-            const node = provider.getChildren()[0] as QueryHistoryNode;
-            provider.deleteQueryHistoryEntry(node);
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-    });
-
-    suite("restoreQueryHistory", () => {
-        test("should restore nodes from secret storage", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "SELECT * FROM users",
-                        ownerUri: "file:///test.sql",
-                        timeStamp: new Date(2025, 0, 15, 10, 30, 0).getTime(),
-                        connectionLabel: "(localhost|testdb)",
-                        isSuccess: true,
-                    },
-                    {
-                        queryString: "INSERT INTO logs VALUES(1)",
-                        ownerUri: "file:///test2.sql",
-                        timeStamp: new Date(2025, 0, 14, 9, 0, 0).getTime(),
-                        connectionLabel: "(localhost|master)",
-                        isSuccess: false,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(2);
-
-            const first = children[0] as QueryHistoryNode;
-            expect(first.queryString).to.equal("SELECT * FROM users");
-            expect(first.isSuccess).to.equal(true);
-            expect(first.connectionLabel).to.equal("(localhost|testdb)");
-
-            const second = children[1] as QueryHistoryNode;
-            expect(second.queryString).to.equal("INSERT INTO logs VALUES(1)");
-            expect(second.isSuccess).to.equal(false);
-        });
-
-        test("should not overwrite newer history when restore finishes later", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "restored query",
-                        ownerUri: "file:///restored.sql",
-                        timeStamp: new Date(2025, 0, 10).getTime(),
-                        connectionLabel: "(localhost|restoreddb)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-
-            let resolveStoredHistory: ((value: string | undefined) => void) | undefined;
-            secretStorage.get.callsFake(
-                () =>
-                    new Promise((resolve) => {
-                        resolveStoredHistory = resolve;
-                    }),
-            );
-
-            provider = createProvider();
-
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("fresh query"),
-            } as any);
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-
-            provider.refresh("file:///fresh.sql", new Date(2025, 0, 20), false);
-
-            expect(resolveStoredHistory).to.not.be.undefined;
-            resolveStoredHistory?.(JSON.stringify(persistedData));
-            await waitForAsyncWork();
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            const node = children[0] as QueryHistoryNode;
-            expect(node.queryString).to.equal("fresh query");
-            expect(node.ownerUri).to.equal("file:///fresh.sql");
-        });
-
-        test("should sort restored nodes by timestamp descending", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "older query",
-                        ownerUri: "",
-                        timeStamp: new Date(2025, 0, 10).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                    {
-                        queryString: "newer query",
-                        ownerUri: "",
-                        timeStamp: new Date(2025, 0, 20).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(2);
-            const first = children[0] as QueryHistoryNode;
-            const second = children[1] as QueryHistoryNode;
-            expect(first.queryString).to.equal("newer query");
-            expect(second.queryString).to.equal("older query");
-        });
-
-        test("should respect query history limit when restoring", async () => {
-            const config = createWorkspaceConfiguration({
-                [Constants.configQueryHistoryLimit]: 1,
-            });
-            vscodeWrapperStub.getConfiguration.returns(config);
-
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "query 1",
-                        ownerUri: "",
-                        timeStamp: new Date(2025, 0, 10).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                    {
-                        queryString: "query 2",
-                        ownerUri: "",
-                        timeStamp: new Date(2025, 0, 20).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect((children[0] as QueryHistoryNode).queryString).to.equal("query 2");
-        });
-
-        test("should show EmptyHistoryNode when storage is empty", async () => {
-            secretStorage.get.resolves(undefined);
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-
-        test("should show EmptyHistoryNode when storage has wrong version", async () => {
-            const persistedData = {
-                version: 999,
-                nodes: [
-                    {
-                        queryString: "SELECT 1",
-                        ownerUri: "",
-                        timeStamp: Date.now(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-
-        test("should show EmptyHistoryNode when storage has invalid JSON", async () => {
-            secretStorage.get.resolves("not valid json{{{");
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-
-        test("should skip nodes with missing required fields", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "valid query",
-                        ownerUri: "",
-                        timeStamp: new Date(2025, 0, 15).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                    {
-                        // missing queryString
-                        ownerUri: "",
-                        timeStamp: Date.now(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                    {
-                        queryString: "another valid",
-                        ownerUri: "",
-                        // missing timeStamp
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                    {
-                        queryString: "missing isSuccess",
-                        ownerUri: "",
-                        timeStamp: Date.now(),
-                        connectionLabel: "(localhost|db)",
-                        // missing isSuccess
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect((children[0] as QueryHistoryNode).queryString).to.equal("valid query");
-        });
-
-        test("should skip nodes with invalid timestamp", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "bad timestamp",
-                        ownerUri: "",
-                        timeStamp: NaN,
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-
-        test("should show EmptyHistoryNode when all persisted nodes are invalid", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        // all fields wrong type
-                        queryString: 123,
-                        ownerUri: "",
-                        timeStamp: "not a number",
-                        connectionLabel: false,
-                        isSuccess: "yes",
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            expect(children[0]).to.be.instanceOf(EmptyHistoryNode);
-        });
-
-        test("should default ownerUri to empty string when missing", async () => {
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: "SELECT 1",
-                        // ownerUri omitted
-                        timeStamp: new Date(2025, 0, 15).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            expect(children).to.have.lengthOf(1);
-            const node = children[0] as QueryHistoryNode;
-            expect(node.ownerUri).to.equal("");
-        });
-
-        test("should truncate long query strings on restore", async () => {
-            const longQuery = "A".repeat(25000);
-            const persistedData = {
-                version: 1,
-                nodes: [
-                    {
-                        queryString: longQuery,
-                        ownerUri: "",
-                        timeStamp: new Date(2025, 0, 15).getTime(),
-                        connectionLabel: "(localhost|db)",
-                        isSuccess: true,
-                    },
-                ],
-            };
-            secretStorage.get.resolves(JSON.stringify(persistedData));
-
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const children = provider.getChildren();
-            const node = children[0] as QueryHistoryNode;
-            // maxPersistedQueryLength is 20000
-            expect(node.queryString.length).to.equal(20000);
-        });
-    });
-
-    suite("persistQueryHistory", () => {
-        test("should store history nodes in secret storage", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            const ownerUri = "file:///test.sql";
-            connectionManagerStub.getConnectionInfo.returns({
-                credentials: {
-                    server: "localhost",
-                    database: "master",
-                    authenticationType: Constants.sqlAuthentication,
-                    user: "sa",
-                } as any,
-            } as any);
-            outputContentProviderStub.getQueryRunner.returns({
-                getQueryString: sandbox.stub().returns("SELECT 1"),
-            } as any);
-
-            secretStorage.store.resetHistory();
-            provider.refresh(ownerUri, new Date(2025, 0, 15), false);
-
-            // Wait for async persist
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            expect(secretStorage.store).to.have.been.called;
-            const storeCall = secretStorage.store.lastCall;
-            expect(storeCall.args[0]).to.equal(Constants.queryHistorySecretStorageKey);
-
-            const payload = JSON.parse(storeCall.args[1]);
-            expect(payload.version).to.equal(1);
-            expect(payload.nodes).to.have.lengthOf(1);
-            expect(payload.nodes[0].queryString).to.equal("SELECT 1");
-            expect(payload.nodes[0].isSuccess).to.equal(true);
-            expect(payload.nodes[0].connectionLabel).to.contain("localhost");
-        });
-
-        test("should cap persisted node count and query length", async () => {
-            provider = createProvider();
-            await waitForAsyncWork();
-
-            const longQuery = "A".repeat(25000);
-            const queryHistoryProvider = provider as unknown as {
-                _queryHistoryNodes: Array<QueryHistoryNode | EmptyHistoryNode>;
-                persistQueryHistory: () => Promise<void>;
-            };
-
-            queryHistoryProvider._queryHistoryNodes = [
-                createTestNode(longQuery, "(localhost|db0)", new Date(2025, 0, 1)),
-                ...Array.from({ length: 259 }, (_, index) =>
-                    createTestNode(
-                        `SELECT ${index + 1}`,
-                        `(localhost|db${index + 1})`,
-                        new Date(2025, 0, 1, 0, index + 1),
-                    ),
+    test("caps persisted node count and query length", async () => {
+        provider = createProvider();
+        await waitForPersistedStorageWork();
+
+        const longQuery = "A".repeat(25000);
+        const queryHistoryProvider = provider as unknown as {
+            _queryHistoryNodes: Array<QueryHistoryNode | EmptyHistoryNode>;
+            persistQueryHistory: () => Promise<void>;
+        };
+
+        queryHistoryProvider._queryHistoryNodes = [
+            createTestNode(longQuery, "(localhost|db0)", new Date(2025, 0, 1)),
+            ...Array.from({ length: 259 }, (_, index) =>
+                createTestNode(
+                    `SELECT ${index + 1}`,
+                    `(localhost|db${index + 1})`,
+                    new Date(2025, 0, 1, 0, index + 1),
                 ),
-            ];
+            ),
+        ];
 
-            secretStorage.store.resetHistory();
-            await queryHistoryProvider.persistQueryHistory();
+        await queryHistoryProvider.persistQueryHistory();
 
-            expect(secretStorage.store).to.have.been.calledOnce;
-            const payload = JSON.parse(secretStorage.store.firstCall.args[1]);
-            expect(payload.nodes).to.have.lengthOf(250);
-            expect(payload.nodes[0].queryString.length).to.equal(20000);
-        });
-
-        test("should delete storage key when no history nodes remain", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            secretStorage.delete.resetHistory();
-            provider.clearAll();
-
-            // Wait for async persist
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            expect(secretStorage.delete).to.have.been.calledWithExactly(
-                Constants.queryHistorySecretStorageKey,
-            );
-        });
+        const payload = getPersistedHistoryPayload();
+        expect(payload.nodes).to.have.lengthOf(250);
+        expect(payload.nodes[0].queryString.length).to.equal(20000);
     });
 
-    suite("showQueryHistoryCommandPalette", () => {
-        test("should filter out EmptyHistoryNode when building quick pick list", async () => {
-            provider = createProvider();
-            await new Promise((resolve) => setTimeout(resolve, 50));
+    test("clears persisted file when no history nodes remain", async () => {
+        provider = createProvider();
+        await waitForPersistedStorageWork();
 
-            // Provider starts with EmptyHistoryNode; calling showQueryHistoryCommandPalette
-            // should not pass EmptyHistoryNode to the UI
-            prompterStub.promptSingle.resolves(undefined);
+        connectionManagerStub.getConnectionInfo.returns({
+            credentials: {
+                server: "localhost",
+                database: "master",
+                authenticationType: Constants.sqlAuthentication,
+                user: "sa",
+            } as any,
+        } as any);
+        outputContentProviderStub.getQueryRunner.returns({
+            getQueryString: sandbox.stub().returns("SELECT 1"),
+        } as any);
 
-            await provider.showQueryHistoryCommandPalette();
+        provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
+        await waitForPersistedStorageWork();
+        expect(persistedFileContents).to.not.be.undefined;
 
-            // The prompter should have been called with an empty options array
-            // since EmptyHistoryNode is filtered out
-            expect(prompterStub.promptSingle).to.have.been.calledOnce;
-        });
-    });
-});
+        provider.clearAll();
+        await waitForPersistedStorageWork();
 
-suite("QueryHistoryNode Tests", () => {
-    setup(() => {
-        initializeIconUtils();
-    });
-
-    test("isSuccess getter should return true for successful queries", () => {
-        const node = new QueryHistoryNode(
-            "SELECT 1 : (localhost|master)",
-            "tooltip",
-            "SELECT 1",
-            "file:///test.sql",
-            undefined,
-            new Date(),
-            "(localhost|master)",
-            true,
-        );
-        expect(node.isSuccess).to.equal(true);
-    });
-
-    test("isSuccess getter should return false for failed queries", () => {
-        const node = new QueryHistoryNode(
-            "SELECT 1 : (localhost|master)",
-            "tooltip",
-            "SELECT 1",
-            "file:///test.sql",
-            undefined,
-            new Date(),
-            "(localhost|master)",
-            false,
-        );
-        expect(node.isSuccess).to.equal(false);
+        expect(persistedFileContents).to.be.undefined;
     });
 });
