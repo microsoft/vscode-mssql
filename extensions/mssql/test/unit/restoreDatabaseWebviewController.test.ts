@@ -18,9 +18,11 @@ import * as LocConstants from "../../src/constants/locConstants";
 import {
     allFileTypes,
     defaultBackupFileTypes,
+    defaultDatabase,
     restoreDatabaseHelpLink,
 } from "../../src/constants/constants";
 import {
+    DisasterRecoveryAzureFormState,
     DisasterRecoveryType,
     ObjectManagementDialogType,
     ObjectManagementFormItemSpec,
@@ -32,12 +34,18 @@ import {
     RecoveryState,
     RestoreDatabaseFormState,
     RestoreDatabaseViewModel,
+    RestorePlanResponse,
 } from "../../src/sharedInterfaces/restore";
 import { RestoreDatabaseWebviewController } from "../../src/controllers/restoreDatabaseWebviewController";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as utils from "../../src/controllers/sharedDisasterRecoveryUtils";
+import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
+import { BlobItem } from "@azure/storage-blob";
+import { BlobContainer, StorageAccount } from "@azure/arm-storage";
+import { MediaDeviceType } from "../../src/sharedInterfaces/backup";
 
 chai.use(sinonChai);
 
@@ -146,6 +154,8 @@ suite("RestoreDatabaseWebviewController", () => {
                 subscriptionId: "",
                 storageAccountId: "",
                 blobContainerId: "",
+                dataFileFolder: mockConfigInfo.configInfo.dataFileFolder,
+                logFileFolder: mockConfigInfo.configInfo.logFileFolder,
             } as RestoreDatabaseFormState,
             formComponents: {},
             fileBrowserState: undefined,
@@ -722,5 +732,1129 @@ suite("RestoreDatabaseWebviewController", () => {
         expect(
             (resultState.viewModel.model as RestoreDatabaseViewModel).restorePlanStatus,
         ).to.equal(ApiStatus.NotStarted);
+    });
+
+    test("loadAzureComponent reducer", async () => {
+        const loadAzureComponentHelperStub = sandbox
+            .stub(utils, "loadAzureComponentHelper")
+            .resolves(
+                mockInitialState as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+            );
+        const loadBlobComponentStub = sandbox
+            .stub(controller as any, "loadBlobComponent")
+            .resolves(mockInitialState);
+        const getRestorePlanStub = sandbox
+            .stub(controller as any, "getRestorePlan")
+            .resolves(mockInitialState);
+
+        // Path 1: payload.componentName === "blob" and blob status is NotStarted
+        let stateWithBlobNotStarted = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.Loaded,
+                    azureComponentStatuses: {
+                        ...(mockInitialState.viewModel.model as RestoreDatabaseViewModel)
+                            .azureComponentStatuses,
+                        blob: ApiStatus.NotStarted,
+                    },
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        let result = await controller["_reducerHandlers"].get("loadAzureComponent")(
+            stateWithBlobNotStarted,
+            { componentName: "blob" },
+        );
+        expect(loadBlobComponentStub).to.have.been.calledOnce;
+        expect(getRestorePlanStub).to.have.been.calledOnce;
+        expect(loadAzureComponentHelperStub).to.not.have.been.called;
+        const resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.azureComponentStatuses["blob"]).to.equal(ApiStatus.Loaded);
+
+        // Reset stubs
+        loadBlobComponentStub.resetHistory();
+        getRestorePlanStub.resetHistory();
+        loadAzureComponentHelperStub.resetHistory();
+
+        // Path 2: payload.componentName !== "blob" → falls through to loadAzureComponentHelper
+        await controller["_reducerHandlers"].get("loadAzureComponent")(mockInitialState, {
+            componentName: "subscriptionId",
+        });
+        expect(loadBlobComponentStub).to.not.have.been.called;
+        expect(getRestorePlanStub).to.not.have.been.called;
+        expect(loadAzureComponentHelperStub).to.have.been.calledOnce;
+
+        // Path 3: restorePlanStatus is Loading — should set to NotStarted
+        let stateWithLoading = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.Loading,
+                    azureComponentStatuses: {
+                        ...(mockInitialState.viewModel.model as RestoreDatabaseViewModel)
+                            .azureComponentStatuses,
+                        blob: ApiStatus.NotStarted,
+                    },
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        await controller["_reducerHandlers"].get("loadAzureComponent")(stateWithLoading, {
+            componentName: "accountId",
+        });
+        // When loading, restorePlanStatus should NOT be overwritten to NotStarted
+        expect(
+            (stateWithLoading.viewModel.model as RestoreDatabaseViewModel).restorePlanStatus,
+        ).to.equal(ApiStatus.Loading);
+    });
+
+    test("setType reducer", async () => {
+        const setTypeStub = sandbox
+            .stub(utils, "setType")
+            .resolves(
+                mockInitialState as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>,
+            );
+        const getRestorePlanStub = sandbox
+            .stub(controller as any, "getRestorePlan")
+            .resolves(mockInitialState);
+        const updateViewModelStub = sandbox.spy(controller as any, "updateViewModel");
+
+        // Path 1: type is Database → triggers getRestorePlan
+        await controller["_reducerHandlers"].get("setType")(mockInitialState, {
+            type: DisasterRecoveryType.Database,
+        });
+        expect(setTypeStub).to.have.been.calledOnce;
+        expect(getRestorePlanStub).to.have.been.calledOnce;
+        const resultModel = (await updateViewModelStub.returnValues[0]).viewModel
+            .model as RestoreDatabaseViewModel;
+        expect(resultModel.errorMessage).to.be.undefined;
+
+        setTypeStub.resetHistory();
+        getRestorePlanStub.resetHistory();
+        updateViewModelStub.resetHistory();
+
+        // Path 2: type is not Database → does NOT trigger getRestorePlan
+        await controller["_reducerHandlers"].get("setType")(mockInitialState, {
+            type: DisasterRecoveryType.BackupFile,
+        });
+        expect(setTypeStub).to.have.been.calledOnce;
+        expect(getRestorePlanStub).to.not.have.been.called;
+
+        // Path 3: restorePlanStatus is Loading → should NOT reset to NotStarted
+        setTypeStub.resolves({
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.Loading,
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<DisasterRecoveryAzureFormState>);
+        const result = await controller["_reducerHandlers"].get("setType")(mockInitialState, {
+            type: DisasterRecoveryType.Url,
+        });
+        expect((result.viewModel.model as RestoreDatabaseViewModel).restorePlanStatus).to.equal(
+            ApiStatus.Loading,
+        );
+    });
+
+    test("removeBackupFile reducer", async () => {
+        const stateWithFiles = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    errorMessage: "some error",
+                    backupFiles: [
+                        { filePath: "C:\\Backups\\file1.bak", isExisting: true },
+                        { filePath: "C:\\Backups\\file2.bak", isExisting: true },
+                    ],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        // Path 1: remove existing file
+        let result = await controller["_reducerHandlers"].get("removeBackupFile")(stateWithFiles, {
+            filePath: "C:\\Backups\\file1.bak",
+        });
+        const resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.backupFiles).to.have.length(1);
+        expect(resultModel.backupFiles[0].filePath).to.equal("C:\\Backups\\file2.bak");
+        expect(resultModel.errorMessage).to.be.undefined; // error message cleared
+
+        // Path 2: remove non-existent file — list unchanged
+        const numberOfFilesBefore = (stateWithFiles.viewModel.model as RestoreDatabaseViewModel)
+            .backupFiles.length;
+        result = await controller["_reducerHandlers"].get("removeBackupFile")(stateWithFiles, {
+            filePath: "C:\\Backups\\nonexistent.bak",
+        });
+        expect((result.viewModel.model as RestoreDatabaseViewModel).backupFiles).to.have.length(
+            numberOfFilesBefore,
+        );
+    });
+
+    test("updateSelectedBackupSets reducer", async () => {
+        const mockRestorePlan = {
+            backupSetsToRestore: [
+                { id: "set-1", properties: [], isSelected: false },
+                { id: "set-2", properties: [], isSelected: false },
+                { id: "set-3", properties: [], isSelected: false },
+            ],
+            sessionId: "session-123",
+            canRestore: true,
+            errorMessage: undefined,
+            dbFiles: [],
+            databaseNamesFromBackupSets: ["db1", "db2"],
+            planDetails: undefined,
+        } as RestorePlanResponse;
+
+        const stateWithPlan = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    errorMessage: "some error",
+                    restorePlan: mockRestorePlan,
+                    selectedBackupSets: [],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        // Path 1: select indices 0 and 2
+        let result = await controller["_reducerHandlers"].get("updateSelectedBackupSets")(
+            stateWithPlan,
+            { selectedBackupSets: [0, 2] },
+        );
+        let resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.selectedBackupSets).to.deep.equal(["set-1", "set-3"]);
+        expect(resultModel.errorMessage).to.be.undefined; // error message cleared
+
+        // Path 2: empty selection
+        result = await controller["_reducerHandlers"].get("updateSelectedBackupSets")(
+            stateWithPlan,
+            { selectedBackupSets: [] },
+        );
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.selectedBackupSets).to.deep.equal([]);
+
+        // Path 3: no restorePlan (undefined) → should return empty array
+        const stateNoPlan = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlan: {
+                        ...mockRestorePlan,
+                        backupSetsToRestore: undefined,
+                    },
+                    selectedBackupSets: [],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["_reducerHandlers"].get("updateSelectedBackupSets")(stateNoPlan, {
+            selectedBackupSets: [0],
+        });
+        expect(
+            (result.viewModel.model as RestoreDatabaseViewModel).selectedBackupSets,
+        ).to.deep.equal([]);
+    });
+
+    test("submitFilePath reducer", async () => {
+        const getRestorePlanStub = sandbox
+            .stub(controller as any, "getRestorePlan")
+            .resolves(mockInitialState);
+
+        const stateWithFiles = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    errorMessage: "some error",
+                    backupFiles: [{ filePath: "C:\\Backups\\existing.bak", isExisting: true }],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        // Path 1: no propertyName, new path not already in list → adds file and calls getRestorePlan
+        let result = await controller["_reducerHandlers"].get("submitFilePath")(stateWithFiles, {
+            selectedPath: "C:\\Backups\\new.bak",
+            propertyName: undefined,
+        });
+        let resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.backupFiles).to.have.length(2);
+        expect(resultModel.backupFiles[1].filePath).to.equal("C:\\Backups\\new.bak");
+        expect(resultModel.backupFiles[1].isExisting).to.be.true;
+        expect(getRestorePlanStub).to.have.been.calledOnce;
+        expect(resultModel.errorMessage).to.be.undefined;
+
+        getRestorePlanStub.resetHistory();
+
+        // Path 2: no propertyName, path already exists → does NOT add duplicate, no extra getRestorePlan
+        const previousLength = (stateWithFiles.viewModel.model as RestoreDatabaseViewModel)
+            .backupFiles.length;
+        result = await controller["_reducerHandlers"].get("submitFilePath")(stateWithFiles, {
+            selectedPath: "C:\\Backups\\existing.bak",
+            propertyName: undefined,
+        });
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.backupFiles).to.have.length(previousLength);
+        expect(getRestorePlanStub).to.not.have.been.called;
+
+        // Path 3: propertyName maps to formState key
+        expect(mockInitialState.formState.dataFileFolder).to.equal(
+            mockConfigInfo.configInfo.dataFileFolder,
+        );
+        result = await controller["_reducerHandlers"].get("submitFilePath")(mockInitialState, {
+            selectedPath: "C:\\NewData",
+            propertyName: "dataFileFolder",
+        });
+        expect(result.formState.dataFileFolder).to.equal("C:\\NewData");
+
+        // Path 4: propertyName maps to viewModel key
+        result = await controller["_reducerHandlers"].get("submitFilePath")(stateWithFiles, {
+            selectedPath: "C:\\Backups\\someFile.bak",
+            propertyName: "someViewModelProp",
+        });
+        // No crash — property set on restoreViewModel if it exists there
+    });
+
+    test("restoreDatabase reducer should call restoreHelper and send telemetry", async () => {
+        const { sendActionEvent } = stubTelemetry(sandbox);
+        const restoreHelperStub = sandbox
+            .stub(controller as any, "restoreHelper")
+            .resolves({ result: true, errorMessage: undefined });
+
+        const result = await controller["_reducerHandlers"].get("restoreDatabase")(
+            mockInitialState,
+            {},
+        );
+
+        expect(restoreHelperStub).to.have.been.calledOnceWith(TaskExecutionMode.executeAndScript);
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.Restore,
+            TelemetryActions.Restore,
+            { restoreType: (mockInitialState.viewModel.model as RestoreDatabaseViewModel).type },
+        );
+        expect(result).to.deep.equal(mockInitialState); // state returned unchanged
+    });
+
+    test("openRestoreScript reducer", async () => {
+        const { sendActionEvent } = stubTelemetry(sandbox);
+        const restoreHelperStub = sandbox
+            .stub(controller as any, "restoreHelper")
+            .resolves({ result: true, errorMessage: undefined });
+
+        // Path 1: restorePlanStatus !== Loaded → sets errorMessage, no restoreHelper
+        const stateNotLoaded = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.NotStarted,
+                    selectedBackupSets: [],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        let result = await controller["_reducerHandlers"].get("openRestoreScript")(
+            stateNotLoaded,
+            {},
+        );
+        expect(restoreHelperStub).to.not.have.been.called;
+        expect((result.viewModel.model as RestoreDatabaseViewModel).errorMessage).to.equal(
+            LocConstants.RestoreDatabase.cannotGenerateScriptWithNoRestorePlan,
+        );
+
+        // Path 2: restorePlanStatus === Loaded but no selectedBackupSets → sets different error
+        const stateLoadedNoSets = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.Loaded,
+                    selectedBackupSets: [],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["_reducerHandlers"].get("openRestoreScript")(
+            stateLoadedNoSets,
+            {},
+        );
+        expect(restoreHelperStub).to.not.have.been.called;
+        expect((result.viewModel.model as RestoreDatabaseViewModel).errorMessage).to.equal(
+            LocConstants.RestoreDatabase.pleaseChooseAtLeastOneBackupSetToRestore,
+        );
+
+        // Path 3: Loaded + selectedBackupSets present → calls restoreHelper and sends telemetry
+        const stateReady = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.Loaded,
+                    selectedBackupSets: ["set-1"],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["_reducerHandlers"].get("openRestoreScript")(stateReady, {});
+        expect(restoreHelperStub).to.have.been.calledOnceWith(TaskExecutionMode.script);
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.Restore,
+            TelemetryActions.ScriptRestore,
+            { restoreType: (stateReady.viewModel.model as RestoreDatabaseViewModel).type },
+        );
+    });
+
+    test("loadBlobComponent", async () => {
+        const mockSubscription = {
+            subscriptionId: "sub-1",
+            name: "My Subscription",
+        } as AzureSubscription;
+        const mockStorageAccount = { id: "sa-1", name: "myStorageAccount" } as StorageAccount;
+        const mockBlobContainer = { id: "bc-1", name: "myContainer" } as BlobContainer;
+        const mockBlobs = [{ name: "backup1.bak" }, { name: "backup2.bak" }] as BlobItem[];
+
+        const stateWithAzureSelections = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                subscriptionId: "sub-1",
+                storageAccountId: "sa-1",
+                blobContainerId: "bc-1",
+            },
+            formComponents: {
+                ...mockInitialState.formComponents,
+                blob: {
+                    type: FormItemType.SearchableDropdown,
+                    options: [],
+                    placeholder: "",
+                },
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    subscriptions: [mockSubscription],
+                    storageAccounts: [mockStorageAccount],
+                    blobContainers: [mockBlobContainer],
+                    blobs: [],
+                    azureComponentStatuses: {
+                        ...(mockInitialState.viewModel.model as RestoreDatabaseViewModel)
+                            .azureComponentStatuses,
+                        blob: ApiStatus.NotStarted,
+                    },
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        const fetchBlobsStub = sandbox
+            .stub(VsCodeAzureHelper, "fetchBlobsForContainer")
+            .resolves(mockBlobs as any);
+
+        // Path 1: missing subscriptionId → error state, no fetch
+        const stateMissingSubscription = {
+            ...stateWithAzureSelections,
+            formState: { ...stateWithAzureSelections.formState, subscriptionId: "" },
+        };
+        let result = await controller["loadBlobComponent"](stateMissingSubscription);
+        let resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(fetchBlobsStub).to.not.have.been.called;
+        expect(resultModel.azureComponentStatuses["blob"]).to.equal(ApiStatus.Error);
+        expect(result.formComponents["blob"].placeholder).to.equal(
+            LocConstants.RestoreDatabase.noBlobsFound,
+        );
+
+        // Path 2: missing storageAccountId → error state, no fetch
+        const stateMissingStorage = {
+            ...stateWithAzureSelections,
+            formState: { ...stateWithAzureSelections.formState, storageAccountId: "" },
+        };
+        result = await controller["loadBlobComponent"](stateMissingStorage);
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(fetchBlobsStub).to.not.have.been.called;
+        expect(resultModel.azureComponentStatuses["blob"]).to.equal(ApiStatus.Error);
+        expect(result.formComponents["blob"].placeholder).to.equal(
+            LocConstants.RestoreDatabase.noBlobsFound,
+        );
+
+        // Path 3: missing blobContainerId → error state, no fetch
+        const stateMissingContainer = {
+            ...stateWithAzureSelections,
+            formState: { ...stateWithAzureSelections.formState, blobContainerId: "" },
+        };
+        result = await controller["loadBlobComponent"](stateMissingContainer);
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(fetchBlobsStub).to.not.have.been.called;
+        expect(resultModel.azureComponentStatuses["blob"]).to.equal(ApiStatus.Error);
+        expect(result.formComponents["blob"].placeholder).to.equal(
+            LocConstants.RestoreDatabase.noBlobsFound,
+        );
+
+        // Path 4: all fields present, blobs returned → sets options, selects first blob
+        result = await controller["loadBlobComponent"](stateWithAzureSelections);
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(fetchBlobsStub).to.have.been.calledOnceWith(
+            mockSubscription,
+            mockStorageAccount,
+            mockBlobContainer,
+        );
+        expect(result.formComponents["blob"].options).to.deep.equal([
+            { value: "backup1.bak", displayName: "backup1.bak" },
+            { value: "backup2.bak", displayName: "backup2.bak" },
+        ]);
+        expect(result.formState.blob).to.equal("backup1.bak");
+        expect(result.formComponents["blob"].placeholder).to.equal(
+            LocConstants.RestoreDatabase.selectABlob,
+        );
+        expect(resultModel.blobs).to.deep.equal(mockBlobs);
+
+        fetchBlobsStub.resetHistory();
+
+        // Path 5: all fields present, no blobs returned → empty options, noBlobsFound placeholder
+        fetchBlobsStub.resolves([]);
+        result = await controller["loadBlobComponent"](stateWithAzureSelections);
+        expect(result.formComponents["blob"].options).to.deep.equal([]);
+        expect(result.formState.blob).to.equal("");
+        expect(result.formComponents["blob"].placeholder).to.equal(
+            LocConstants.RestoreDatabase.noBlobsFound,
+        );
+        expect((result.viewModel.model as RestoreDatabaseViewModel).blobs).to.deep.equal([]);
+
+        fetchBlobsStub.resetHistory();
+
+        // Path 6: fetchBlobsForContainer throws → sets errorMessage on state
+        fetchBlobsStub.rejects(new Error("Network error"));
+        result = await controller["loadBlobComponent"](stateWithAzureSelections);
+        expect(result.errorMessage).to.equal("Network error");
+    });
+
+    test("updatePlanFromState should sync formState and viewModel values into restorePlan planDetails", () => {
+        const mockRestoreViewModel: RestoreDatabaseViewModel = {
+            ...mockInitialState.viewModel.model,
+            restorePlan: {
+                planDetails: {
+                    sourceDatabaseName: { currentValue: "", defaultValue: "oldDb" },
+                    targetDatabaseName: { currentValue: "", defaultValue: "oldTarget" },
+                    backupFiles: { currentValue: [], defaultValue: [] },
+                } as any,
+            },
+        } as RestoreDatabaseViewModel;
+
+        const stateWithValues = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                sourceDatabaseName: "myDatabase",
+                targetDatabaseName: "myTarget",
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        // Path 1: explicit state provided — formState keys present in planDetails get written
+        const result = controller["updatePlanFromState"](mockRestoreViewModel, stateWithValues);
+        expect(result.restorePlan.planDetails["sourceDatabaseName"].currentValue).to.equal(
+            "myDatabase",
+        );
+        expect(result.restorePlan.planDetails["targetDatabaseName"].currentValue).to.equal(
+            "myTarget",
+        );
+
+        // Path 2: viewModel key present in planDetails gets written from restoreViewModel
+        const viewModelWithBackupFiles: RestoreDatabaseViewModel = {
+            ...mockRestoreViewModel,
+            backupFiles: [{ filePath: "C:\\Backups\\file.bak", isExisting: true }],
+            restorePlan: {
+                planDetails: {
+                    backupFiles: { currentValue: [], defaultValue: [] },
+                    sourceDatabaseName: { currentValue: "", defaultValue: "oldDb" },
+                } as any,
+            },
+        } as RestoreDatabaseViewModel;
+        mockInitialState.formState.sourceDatabaseName = "original";
+        const result2 = controller["updatePlanFromState"](
+            viewModelWithBackupFiles,
+            mockInitialState,
+        );
+        expect(result2.restorePlan.planDetails["backupFiles"].currentValue).to.deep.equal(
+            viewModelWithBackupFiles.backupFiles,
+        );
+        expect(result2.restorePlan.planDetails["sourceDatabaseName"].currentValue).to.equal(
+            "original",
+        );
+
+        // Path 3: key in formState but NOT in planDetails → planDetails unchanged
+        const stateWithExtraKey = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                accountId: "some-account", // not in planDetails
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        const result3 = controller["updatePlanFromState"](
+            viewModelWithBackupFiles,
+            stateWithExtraKey,
+        );
+        expect(result3.restorePlan.planDetails["accountId"]).to.be.undefined;
+
+        // Path 4: no explicit state provided — falls back to this.state
+        controller.state.formState.sourceDatabaseName = "fromThisState";
+        const viewModelForThisState: RestoreDatabaseViewModel = {
+            ...mockRestoreViewModel,
+            restorePlan: {
+                planDetails: {
+                    sourceDatabaseName: { currentValue: "", defaultValue: "" },
+                } as any,
+            },
+        } as RestoreDatabaseViewModel;
+
+        const result4 = controller["updatePlanFromState"](viewModelForThisState);
+        expect(result4.restorePlan.planDetails["sourceDatabaseName"].currentValue).to.equal(
+            "fromThisState",
+        );
+    });
+
+    test("setDefaultFormValuesFromPlan should populate empty form values from plan defaults", () => {
+        // Path 1: formState key present, currently empty → filled from defaultValue
+        const stateWithEmptyFormValues = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                sourceDatabaseName: "", // empty — should be filled
+                targetDatabaseName: "existingTarget", // non-empty — should NOT be overwritten
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlan: {
+                        planDetails: {
+                            sourceDatabaseName: { currentValue: "", defaultValue: "defaultDb" },
+                            targetDatabaseName: { currentValue: "", defaultValue: "defaultTarget" },
+                        } as any,
+                    },
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        const result = controller["setDefaultFormValuesFromPlan"](stateWithEmptyFormValues);
+        expect(stateWithEmptyFormValues.formState.sourceDatabaseName).to.equal("defaultDb");
+        expect(stateWithEmptyFormValues.formState.targetDatabaseName).to.equal("existingTarget");
+        expect(result).to.be.instanceOf(Object); // returns restoreViewModel
+
+        // Path 2: key is in restoreViewModel (not formState), currently empty → filled from defaultValue
+        const stateWithEmptyViewModelProp = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    url: "", // empty viewModel prop
+                    restorePlan: {
+                        planDetails: {
+                            url: {
+                                currentValue: "",
+                                defaultValue: "https://defaultstorage.blob.core.windows.net",
+                            },
+                        } as any,
+                    },
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        const result2 = controller["setDefaultFormValuesFromPlan"](stateWithEmptyViewModelProp);
+        expect(result2.url).to.equal("https://defaultstorage.blob.core.windows.net");
+
+        // Path 3: key is in restoreViewModel, already has a value → NOT overwritten
+        const stateWithExistingViewModelProp = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    url: "https://existing.blob.core.windows.net",
+                    restorePlan: {
+                        planDetails: {
+                            url: {
+                                currentValue: "",
+                                defaultValue: "https://shouldnotreplace.blob.core.windows.net",
+                            },
+                        } as any,
+                    },
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        const result3 = controller["setDefaultFormValuesFromPlan"](stateWithExistingViewModelProp);
+        expect(result3.url).to.equal("https://existing.blob.core.windows.net");
+
+        // Path 4: no explicit state — falls back to this.state
+        controller.state.formState.sourceDatabaseName = "";
+        (controller.state.viewModel.model as RestoreDatabaseViewModel).restorePlan = {
+            planDetails: {
+                sourceDatabaseName: { currentValue: "", defaultValue: "fromThisState" },
+            },
+        } as any;
+
+        controller["setDefaultFormValuesFromPlan"]();
+        expect(controller.state.formState.sourceDatabaseName).to.equal("fromThisState");
+
+        // Path 5: restorePlan is undefined — no crash, returns restoreViewModel as-is
+        const stateNoPlan = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlan: undefined,
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        const result5 = controller["setDefaultFormValuesFromPlan"](stateNoPlan);
+        expect(result5).to.be.instanceOf(Object);
+        expect(result5.restorePlan).to.be.undefined;
+    });
+
+    test("restoreHelper", async () => {
+        const { sendErrorEvent } = stubTelemetry(sandbox);
+        const getRestoreParamsStub = sandbox
+            .stub(controller as any, "getRestoreParams")
+            .resolves({ ownerUri: "ownerUri" });
+        const restoreDatabaseStub = mockObjectManagementService.restoreDatabase as sinon.SinonStub;
+
+        // Path 1: happy path → calls getRestoreParams and restoreDatabase, returns result
+        restoreDatabaseStub.resolves({ result: true, errorMessage: undefined });
+        let result = await controller["restoreHelper"](TaskExecutionMode.executeAndScript);
+        expect(getRestoreParamsStub).to.have.been.calledOnceWith(
+            TaskExecutionMode.executeAndScript,
+            false,
+            false,
+        );
+        expect(restoreDatabaseStub).to.have.been.calledOnce;
+        expect(result.result).to.be.true;
+        expect(result.errorMessage).to.be.undefined;
+
+        getRestoreParamsStub.resetHistory();
+        restoreDatabaseStub.resetHistory();
+
+        // Path 2: script mode → passes correct taskMode through
+        restoreDatabaseStub.resolves({ result: true, errorMessage: undefined });
+        await controller["restoreHelper"](TaskExecutionMode.script);
+        expect(getRestoreParamsStub).to.have.been.calledOnceWith(
+            TaskExecutionMode.script,
+            false,
+            false,
+        );
+
+        getRestoreParamsStub.resetHistory();
+        restoreDatabaseStub.resetHistory();
+
+        // Path 3: restoreDatabase throws → sets errorMessage on state, sends error telemetry, returns undefined
+        const restoreError = new Error("Restore failed");
+        restoreDatabaseStub.rejects(restoreError);
+        result = await controller["restoreHelper"](TaskExecutionMode.executeAndScript);
+        expect(result).to.be.undefined;
+        expect(controller.state.errorMessage).to.equal("Restore failed");
+        expect(sendErrorEvent).to.have.been.calledWith(
+            TelemetryViews.Restore,
+            TelemetryActions.Restore,
+            restoreError,
+            false,
+            undefined,
+            undefined,
+            { isScript: "false" },
+        );
+
+        getRestoreParamsStub.resetHistory();
+        restoreDatabaseStub.resetHistory();
+        (controller.state as any).errorMessage = undefined;
+
+        // Path 4: getRestoreParams throws → same error handling path
+        getRestoreParamsStub.rejects(new Error("Params error"));
+        result = await controller["restoreHelper"](TaskExecutionMode.script);
+        expect(result).to.be.undefined;
+        expect(controller.state.errorMessage).to.equal("Params error");
+        expect(sendErrorEvent).to.have.been.calledWith(
+            TelemetryViews.Restore,
+            TelemetryActions.Restore,
+            sinon.match.instanceOf(Error),
+            false,
+            undefined,
+            undefined,
+            { isScript: "true" }, // script mode
+        );
+    });
+
+    test("getRestorePlan", async () => {
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
+        const cancelRestorePlanStub =
+            mockObjectManagementService.cancelRestorePlan as sinon.SinonStub;
+        const getRestorePlanStub = mockObjectManagementService.getRestorePlan as sinon.SinonStub;
+        const getRestoreParamsStub = sandbox
+            .stub(controller as any, "getRestoreParams")
+            .resolves({ ownerUri: "ownerUri" });
+
+        const mockPlan = {
+            canRestore: true,
+            sessionId: "session-1",
+            planDetails: {
+                sourceDatabaseName: { currentValue: "testDatabase", defaultValue: "" },
+                targetDatabaseName: { currentValue: "restoredDb", defaultValue: "" },
+                standbyFile: { currentValue: "C:\\standby.bak", defaultValue: "" },
+                tailLogBackupFile: { currentValue: "C:\\taillog.bak", defaultValue: "" },
+            },
+            backupSetsToRestore: [
+                { id: "set-1", isSelected: true },
+                { id: "set-2", isSelected: false },
+                { id: "set-3", isSelected: true },
+            ],
+        };
+
+        getRestorePlanStub.resolves(mockPlan);
+
+        const stateWithSourceOptions = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                sourceDatabaseName: "",
+                targetDatabaseName: "",
+                standbyFile: "",
+                tailLogBackupFile: "",
+            },
+            formComponents: {
+                ...mockInitialState.formComponents,
+                sourceDatabaseName: {
+                    options: [
+                        { value: "testDatabase", displayName: "testDatabase" },
+                        { value: "otherDatabase", displayName: "otherDatabase" },
+                    ],
+                },
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    restorePlanStatus: ApiStatus.NotStarted,
+                    cachedRestorePlanParams: undefined,
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        // Path 1: happy path — plan loaded, fields populated, selected backup sets filtered
+        let result = await controller["getRestorePlan"](false, stateWithSourceOptions);
+        let resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+
+        expect(getRestoreParamsStub).to.have.been.calledOnceWith(
+            TaskExecutionMode.execute,
+            true,
+            false,
+        );
+        expect(cancelRestorePlanStub).to.not.have.been.called;
+        expect(resultModel.restorePlanStatus).to.equal(ApiStatus.Loaded);
+        expect(resultModel.restorePlan).to.deep.equal(mockPlan);
+        expect(resultModel.cachedRestorePlanParams).to.deep.equal({ ownerUri: "ownerUri" });
+        expect(result.formState.sourceDatabaseName).to.equal("testDatabase");
+        expect(result.formState.targetDatabaseName).to.equal("restoredDb");
+        expect(result.formState.standbyFile).to.equal("C:\\standby.bak");
+        expect(result.formState.tailLogBackupFile).to.equal("C:\\taillog.bak");
+        expect(resultModel.selectedBackupSets).to.deep.equal(["set-1", "set-3"]);
+        expect(result.errorMessage).to.be.undefined;
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.Restore,
+            TelemetryActions.GetRestorePlan,
+        );
+
+        getRestoreParamsStub.resetHistory();
+        cancelRestorePlanStub.resetHistory();
+
+        // Path 2: useDefaults = true → passed through to getRestoreParams
+        await controller["getRestorePlan"](true, stateWithSourceOptions);
+        expect(getRestoreParamsStub).to.have.been.calledOnceWith(
+            TaskExecutionMode.execute,
+            true,
+            true,
+        );
+
+        getRestoreParamsStub.resetHistory();
+
+        // Path 3: plan.canRestore = false → restorePlanStatus set to Error
+        getRestorePlanStub.resolves({ ...mockPlan, canRestore: false });
+        result = await controller["getRestorePlan"](false, stateWithSourceOptions);
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.restorePlanStatus).to.equal(ApiStatus.Error);
+
+        getRestorePlanStub.resolves(mockPlan);
+        getRestoreParamsStub.resetHistory();
+
+        // Path 4: sourceDatabaseName from plan NOT in options → formState not updated
+        const stateWithoutMatchingOption = {
+            ...stateWithSourceOptions,
+            formState: {
+                ...stateWithSourceOptions.formState,
+                sourceDatabaseName: "existingSelection",
+            },
+            formComponents: {
+                ...stateWithSourceOptions.formComponents,
+                sourceDatabaseName: {
+                    options: [{ value: "otherDatabase", displayName: "otherDatabase" }],
+                },
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["getRestorePlan"](false, stateWithoutMatchingOption);
+        expect(result.formState.sourceDatabaseName).to.equal("existingSelection");
+
+        getRestoreParamsStub.resetHistory();
+
+        // Path 5: currently loading with cached params → cancels existing plan first
+        const cachedParams = { ownerUri: "ownerUri", taskExecutionMode: TaskExecutionMode.execute };
+        const stateCurrentlyLoading = {
+            ...stateWithSourceOptions,
+            viewModel: {
+                ...stateWithSourceOptions.viewModel,
+                model: {
+                    ...stateWithSourceOptions.viewModel.model,
+                    restorePlanStatus: ApiStatus.Loading,
+                    cachedRestorePlanParams: cachedParams,
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        cancelRestorePlanStub.resolves();
+        await controller["getRestorePlan"](false, stateCurrentlyLoading);
+        expect(cancelRestorePlanStub).to.have.been.calledOnceWith(cachedParams);
+
+        getRestoreParamsStub.resetHistory();
+        cancelRestorePlanStub.resetHistory();
+
+        // Path 6: getRestorePlan service throws → sets Error status, errorMessage, sends error telemetry
+        getRestorePlanStub.rejects(new Error("Plan fetch failed"));
+        result = await controller["getRestorePlan"](false, stateWithSourceOptions);
+        resultModel = result.viewModel.model as RestoreDatabaseViewModel;
+        expect(resultModel.restorePlanStatus).to.equal(ApiStatus.Error);
+        expect(resultModel.restorePlan).to.be.undefined;
+        expect(resultModel.errorMessage).to.equal("Plan fetch failed");
+        expect(sendErrorEvent).to.have.been.calledWith(
+            TelemetryViews.Restore,
+            TelemetryActions.GetRestorePlan,
+            sinon.match.instanceOf(Error),
+            false,
+        );
+
+        // Path 7: no explicit state → falls back to this.state
+        getRestorePlanStub.resolves(mockPlan);
+        getRestoreParamsStub.resetHistory();
+        await controller["getRestorePlan"](false);
+        expect(getRestoreParamsStub).to.have.been.called;
+    });
+
+    test("getRestoreParams", async () => {
+        const createSasKeyStub = sandbox
+            .stub(utils, "createSasKey")
+            .callsFake((state) => Promise.resolve(state));
+        const getUrlStub = sandbox
+            .stub(utils, "getUrl")
+            .resolves("https://storage.blob.core.windows.net/container");
+        const updatePlanFromStateStub = sandbox.spy(controller as any, "updatePlanFromState");
+
+        // Path 1: BackupFile type — joins file paths with comma
+        const stateWithBackupFiles = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                sourceDatabaseName: "testDatabase",
+                targetDatabaseName: "restoredDb",
+                relocateDbFiles: false,
+                blob: "",
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    type: DisasterRecoveryType.BackupFile,
+                    backupFiles: [
+                        { filePath: "C:\\Backups\\file1.bak", isExisting: true },
+                        { filePath: "C:\\Backups\\file2.bak", isExisting: true },
+                    ],
+                    restorePlan: undefined,
+                    selectedBackupSets: ["set-1"],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        let result = await controller["getRestoreParams"](
+            TaskExecutionMode.executeAndScript,
+            false,
+            false,
+            stateWithBackupFiles,
+        );
+        expect(result.options["backupFilePaths"]).to.equal(
+            "C:\\Backups\\file1.bak,C:\\Backups\\file2.bak",
+        );
+        expect(result.options["deviceType"]).to.equal(MediaDeviceType.File);
+        expect(result.options["readHeaderFromMedia"]).to.be.true;
+        expect(result.options["selectedBackupSets"]).to.deep.equal(["set-1"]);
+        expect(result.ownerUri).to.equal("ownerUri");
+        expect(result.taskExecutionMode).to.equal(TaskExecutionMode.executeAndScript);
+        expect(getUrlStub).to.not.have.been.called;
+        expect(createSasKeyStub).to.have.been.called;
+
+        createSasKeyStub.resetHistory();
+
+        // Path 2: Url type — calls getUrl and appends blob name
+        const stateWithUrl = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                blob: "myBackup.bak",
+                targetDatabaseName: "restoredDb",
+                relocateDbFiles: false,
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    type: DisasterRecoveryType.Url,
+                    backupFiles: [],
+                    restorePlan: undefined,
+                    selectedBackupSets: [],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["getRestoreParams"](
+            TaskExecutionMode.execute,
+            true,
+            false,
+            stateWithUrl,
+        );
+        expect(getUrlStub).to.have.been.calledOnce;
+        expect(createSasKeyStub).to.have.been.calledOnce;
+        expect(result.options["backupFilePaths"]).to.equal(
+            "https://storage.blob.core.windows.net/container/myBackup.bak",
+        );
+        expect(result.options["deviceType"]).to.equal(MediaDeviceType.Url);
+
+        getUrlStub.resetHistory();
+        createSasKeyStub.resetHistory();
+
+        // Path 3: Database type — backupFilePaths is empty, readHeaderFromMedia is false
+        const stateWithDatabase = {
+            ...mockInitialState,
+            formState: {
+                ...mockInitialState.formState,
+                sourceDatabaseName: "testDatabase",
+                targetDatabaseName: "restoredDb",
+                relocateDbFiles: false,
+            },
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    type: DisasterRecoveryType.Database,
+                    backupFiles: [],
+                    restorePlan: undefined,
+                    selectedBackupSets: [],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["getRestoreParams"](
+            TaskExecutionMode.execute,
+            false, // isRestorePlan
+            false, // useDefaults
+            stateWithDatabase,
+        );
+        expect(result.options["backupFilePaths"]).to.equal("");
+        expect(result.options["readHeaderFromMedia"]).to.be.false;
+        expect(result.readHeaderFromMedia).to.be.false;
+        // AssertionError: expected '' to equal 'testDatabase'
+        expect(result.sourceDatabaseName).to.equal("testDatabase");
+        expect(result.options["sourceDatabaseName"]).to.equal("testDatabase");
+        expect(getUrlStub).to.not.have.been.called;
+        expect(createSasKeyStub).to.have.been.called;
+
+        createSasKeyStub.resetHistory();
+
+        // Path 4: useDefaults = true → targetDatabaseName is defaultDatabase, sourceDatabaseName is ""
+        result = await controller["getRestoreParams"](
+            TaskExecutionMode.execute,
+            true,
+            true,
+            stateWithDatabase,
+        );
+        expect(result.options["targetDatabaseName"]).to.equal(defaultDatabase);
+        expect(result.options["sourceDatabaseName"]).to.equal("");
+
+        // Path 5: isRestorePlan = true → selectedBackupSets and sessionId are null/undefined
+        result = await controller["getRestoreParams"](
+            TaskExecutionMode.execute,
+            true,
+            false,
+            stateWithBackupFiles,
+        );
+        expect(result.options["selectedBackupSets"]).to.be.null;
+        expect(result.options["sessionId"]).to.be.undefined;
+        expect(result.options["overwriteTargetDatabase"]).to.be.true;
+
+        // Path 6: isRestorePlan = false with restorePlan present →
+        // calls updatePlanFromState, only includes options where currentValue != defaultValue
+        const stateWithPlan = {
+            ...stateWithBackupFiles,
+            formState: {
+                ...stateWithBackupFiles.formState,
+                relocateDbFiles: true, // differs from default (false)
+                replaceDatabase: false, // matches default
+            },
+            viewModel: {
+                ...stateWithBackupFiles.viewModel,
+                model: {
+                    ...stateWithBackupFiles.viewModel.model,
+                    restorePlan: {
+                        sessionId: "session-1",
+                        planDetails: {
+                            relocateDbFiles: { currentValue: false, defaultValue: false },
+                            replaceDatabase: { currentValue: false, defaultValue: false },
+                        },
+                    } as any,
+                    selectedBackupSets: ["set-1"],
+                } as RestoreDatabaseViewModel,
+            },
+        } as ObjectManagementWebviewState<RestoreDatabaseFormState>;
+
+        result = await controller["getRestoreParams"](
+            TaskExecutionMode.executeAndScript,
+            false,
+            false,
+            stateWithPlan,
+        );
+        expect(updatePlanFromStateStub).to.have.been.called;
+        expect(result.options["relocateDbFiles"]).to.equal(true); // differs from default
+        expect(result.options["replaceDatabase"]).to.be.undefined; // matches default — excluded
+        expect(result.options["sessionId"]).to.equal("session-1");
+        expect(result.options["selectedBackupSets"]).to.deep.equal(["set-1"]);
+
+        // Path 7: no explicit state → falls back to this.state
+        result = await controller["getRestoreParams"](TaskExecutionMode.execute, true, false);
+        expect(result.ownerUri).to.equal("ownerUri");
     });
 });
