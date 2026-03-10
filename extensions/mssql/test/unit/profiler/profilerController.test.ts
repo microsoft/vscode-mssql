@@ -649,7 +649,7 @@ suite("ProfilerController Server Type Tests", () => {
         );
     }
 
-    test("should show warning message when connecting to Fabric server", async () => {
+    test("should connect and launch profiler for Fabric server", async () => {
         const mockTreeNodeInfo = {
             connectionProfile: {
                 server: "testserver.database.fabric.microsoft.com",
@@ -658,13 +658,19 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
+        // Mock the template selection quick pick
+        showQuickPickStub.resolves({
+            label: "Standard",
+            template: { id: "Standard_Azure", name: "Standard", defaultView: "standard" },
+        });
+
         createController();
         const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
         await launchCommand!(mockTreeNodeInfo);
 
-        expect(showWarningMessageStub).to.have.been.called;
-        expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.false;
+        expect(showWarningMessageStub).to.not.have.been.called;
+        expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.true;
     });
 
     test("should prompt for database when Azure SQL has no database selected", async () => {
