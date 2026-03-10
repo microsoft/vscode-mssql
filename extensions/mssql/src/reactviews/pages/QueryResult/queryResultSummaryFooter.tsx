@@ -64,10 +64,10 @@ const useStyles = makeStyles({
         flexShrink: 0,
     },
     rowsAccent: {
-        color: "var(--vscode-terminal-ansiBlue)",
+        color: "var(--vscode-foreground)",
     },
     timeAccent: {
-        color: "var(--vscode-terminal-ansiYellow)",
+        color: "var(--vscode-foreground)",
     },
     selectionSegment: {
         minWidth: 0,
@@ -97,7 +97,7 @@ const useStyles = makeStyles({
         background: "none",
         padding: 0,
         margin: 0,
-        color: "var(--vscode-textLink-foreground)",
+        color: "var(--vscode-foreground)",
         cursor: "pointer",
         fontSize: "11px",
         fontWeight: 600,
@@ -120,7 +120,7 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
     },
     selectionMetricValue: {
-        color: "var(--vscode-terminal-ansiBlue)",
+        color: "var(--vscode-foreground)",
     },
     selectionTooltipMetricValue: {
         justifySelf: "end",
@@ -129,7 +129,7 @@ const useStyles = makeStyles({
         fontFeatureSettings: '"tnum"',
     },
     cancelled: {
-        color: "var(--vscode-errorForeground)",
+        color: "var(--vscode-foreground)",
     },
 });
 
