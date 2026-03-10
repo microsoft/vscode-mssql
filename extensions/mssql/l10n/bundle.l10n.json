@@ -523,6 +523,12 @@
     "Running": "Running",
     "Execution": "Execution",
     "No selection": "No selection",
+    "COUNT": "COUNT",
+    "AVG": "AVG",
+    "SUM": "SUM",
+    "MIN": "MIN",
+    "MAX": "MAX",
+    "DISTINCT": "DISTINCT",
     "Execution cancelled": "Execution cancelled",
     "Execution time unavailable": "Execution time unavailable",
     "Total execution time:": "Total execution time:",
@@ -2241,42 +2247,6 @@
     "Enter Database Description": "Enter Database Description",
     "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
-    "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
-        "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
-        "comment": ["{0} is the count, {1} is the distinct count, and {2} is the null count"]
-    },
-    "Average: {0}  Count: {1}  Sum: {2}/{0} is the average, {1} is the count, {2} is the sum": {
-        "message": "Average: {0}  Count: {1}  Sum: {2}",
-        "comment": ["{0} is the average, {1} is the count, {2} is the sum"]
-    },
-    "Average: {0}/{0} is the average": {
-        "message": "Average: {0}",
-        "comment": ["{0} is the average"]
-    },
-    "Count: {0}/{0} is the count": {
-        "message": "Count: {0}",
-        "comment": ["{0} is the count"]
-    },
-    "Distinct Count: {0}/{0} is the distinct count": {
-        "message": "Distinct Count: {0}",
-        "comment": ["{0} is the distinct count"]
-    },
-    "Max: {0}/{0} is the max": {
-        "message": "Max: {0}",
-        "comment": ["{0} is the max"]
-    },
-    "Min: {0}/{0} is the min": {
-        "message": "Min: {0}",
-        "comment": ["{0} is the min"]
-    },
-    "Null Count: {0}/{0} is the null count": {
-        "message": "Null Count: {0}",
-        "comment": ["{0} is the null count"]
-    },
-    "Sum: {0}/{0} is the sum": {
-        "message": "Sum: {0}",
-        "comment": ["{0} is the sum"]
-    },
     "An error occurred while copying results: {0}/{0} is the error message": {
         "message": "An error occurred while copying results: {0}",
         "comment": ["{0} is the error message"]

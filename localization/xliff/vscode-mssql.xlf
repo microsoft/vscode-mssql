@@ -105,6 +105,9 @@
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++249a90b07ed10bd0cd2bcc9819827267428261fb08e181f43e90807c63c65e80">
+      <source xml:lang="en">AVG</source>
+    </trans-unit>
     <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
       <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
@@ -468,14 +471,6 @@
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
     </trans-unit>
-    <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
-      <source xml:lang="en">Average: {0}</source>
-      <note>{0} is the average</note>
-    </trans-unit>
-    <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
-      <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
-      <note>{0} is the average, {1} is the count, {2} is the sum</note>
-    </trans-unit>
     <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
       <source xml:lang="en">Azure (China)</source>
     </trans-unit>
@@ -668,6 +663,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
       <source xml:lang="en">Bulk-logged</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9a37ae78d4e49d2fb6a75dde33cf7be6d9c937cd4c3f3dba599e5023c37ab2ee">
+      <source xml:lang="en">COUNT</source>
     </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
@@ -1492,14 +1490,6 @@
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
-      <source xml:lang="en">Count: {0}</source>
-      <note>{0} is the count</note>
-    </trans-unit>
-    <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
-      <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
-      <note>{0} is the count, {1} is the distinct count, and {2} is the null count</note>
-    </trans-unit>
     <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
       <source xml:lang="en">Create</source>
     </trans-unit>
@@ -1638,6 +1628,9 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d879f806aecb5aae07268875676f90e592f78798941050ecd4dc7e104b84204f">
+      <source xml:lang="en">DISTINCT</source>
     </trans-unit>
     <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
       <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -1915,10 +1908,6 @@
     </trans-unit>
     <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
       <source xml:lang="en">Dissatisfied</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
-      <source xml:lang="en">Distinct Count: {0}</source>
-      <note>{0} is the distinct count</note>
     </trans-unit>
     <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
       <source xml:lang="en">Do not compress backup</source>
@@ -3641,6 +3630,9 @@
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d9c014a222db12a18974be6f44524a0fd4a1ff0e964696e699f81ffba52ffce">
+      <source xml:lang="en">MAX</source>
+    </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
     </trans-unit>
@@ -3651,6 +3643,9 @@
     <trans-unit id="++CODE++5d50fcab6afa8bf3d21623505a4148c817c4cff4ec9873bf8f9693e9e8f39415">
       <source xml:lang="en">MCP server is already configured in {0}</source>
       <note>{0} is the file path where the MCP server configuration exists</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d319c28c2d23e115501524432e4ae591254394e799bf3e95c53f526525175e4c">
+      <source xml:lang="en">MIN</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -3694,10 +3689,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
       <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
-    </trans-unit>
-    <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
-      <source xml:lang="en">Max: {0}</source>
-      <note>{0} is the max</note>
     </trans-unit>
     <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
       <source xml:lang="en">Maximize</source>
@@ -3776,10 +3767,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
       <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
-      <source xml:lang="en">Min: {0}</source>
-      <note>{0} is the min</note>
     </trans-unit>
     <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
       <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
@@ -4247,10 +4234,6 @@
     </trans-unit>
     <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
       <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
-    </trans-unit>
-    <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
-      <source xml:lang="en">Null Count: {0}</source>
-      <note>{0} is the null count</note>
     </trans-unit>
     <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
       <source xml:lang="en">Number of Rows Read</source>
@@ -5120,6 +5103,9 @@
     <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
       <source xml:lang="en">SQLCMD Variables</source>
     </trans-unit>
+    <trans-unit id="++CODE++0229e5870ac59e33167a04295c615d5a13aecaa0368b2f1cb4e37f306f07c6cf">
+      <source xml:lang="en">SUM</source>
+    </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
     </trans-unit>
@@ -5903,10 +5889,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
       <source xml:lang="en">Successfully saved results to </source>
-    </trans-unit>
-    <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
-      <source xml:lang="en">Sum: {0}</source>
-      <note>{0} is the sum</note>
     </trans-unit>
     <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
       <source xml:lang="en">Summary loading canceled</source>
