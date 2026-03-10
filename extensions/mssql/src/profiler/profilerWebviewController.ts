@@ -24,7 +24,7 @@ import {
     ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { getProfilerConfigService } from "./profilerConfigService";
+import { getProfilerConfigService, FIELD_DATABASE_NAME } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import {
@@ -814,7 +814,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             enabled: true,
             clauses: [
                 {
-                    field: "DatabaseName",
+                    field: FIELD_DATABASE_NAME,
                     operator: FilterOperator.In,
                     values: [databaseName],
                 },
@@ -896,7 +896,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     enabled: true,
                     clauses: [
                         {
-                            field: "DatabaseName",
+                            field: FIELD_DATABASE_NAME,
                             operator: FilterOperator.In,
                             values: [this._initialDatabaseFilter],
                         },
