@@ -8,14 +8,16 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
+import type { IConnectionInfo } from "vscode-mssql";
 import { QueryHistoryProvider } from "../../src/queryHistory/queryHistoryProvider";
 import { QueryHistoryNode, EmptyHistoryNode } from "../../src/queryHistory/queryHistoryNode";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
+import type { IConnectionProfile } from "../../src/models/interfaces";
 import { stubVscodeWrapper, initializeIconUtils } from "./utils";
 import { createWorkspaceConfiguration } from "./stubs";
 import { IPrompter } from "../../src/prompts/question";
@@ -30,6 +32,21 @@ import {
 chai.use(sinonChai);
 
 suite("QueryHistoryProvider persistence", () => {
+    type QueryRunnerStub = Pick<
+        ReturnType<SqlOutputContentProvider["getQueryRunner"]>,
+        "getQueryString"
+    >;
+    type TestConnectionCredentials = Pick<
+        IConnectionProfile,
+        "server" | "database" | "authenticationType" | "user"
+    > &
+        Partial<Pick<IConnectionProfile, "password" | "savePassword">>;
+    type QueryHistoryProviderPrivate = QueryHistoryProvider & {
+        readEncryptedPersistedQueryHistory(): Promise<string | undefined>;
+        writePersistedQueryHistoryContent(serializedHistory: string): Promise<void>;
+        clearPersistedQueryHistoryContent(): Promise<void>;
+    };
+
     interface PersistedQueryHistoryPayload {
         version: number;
         nodes: Array<{
@@ -58,6 +75,7 @@ suite("QueryHistoryProvider persistence", () => {
     let context: vscode.ExtensionContext;
     let secretValues: Map<string, string>;
     let persistedFileContents: Uint8Array | undefined;
+    let readEncryptedPersistedQueryHistoryStub: sinon.SinonStub<[], Promise<string | undefined>>;
 
     function createProvider(): QueryHistoryProvider {
         return new QueryHistoryProvider(
@@ -96,10 +114,67 @@ suite("QueryHistoryProvider persistence", () => {
         return new Promise((resolve) => setTimeout(resolve, 50));
     }
 
-    function setEncryptedPersistedHistoryContent(
+    function createQueryRunnerStub(
+        queryString: string,
+    ): ReturnType<SqlOutputContentProvider["getQueryRunner"]> {
+        const queryRunner: QueryRunnerStub = {
+            getQueryString: sandbox.stub().returns(queryString),
+        };
+
+        return queryRunner as ReturnType<SqlOutputContentProvider["getQueryRunner"]>;
+    }
+
+    function createConnectionResult(credentials: TestConnectionCredentials): ConnectionInfo {
+        const connectionInfo = new ConnectionInfo();
+        connectionInfo.credentials = credentials as unknown as IConnectionInfo;
+        return connectionInfo;
+    }
+
+    async function readPersistedFileContents(): Promise<Uint8Array | undefined> {
+        return persistedFileContents;
+    }
+
+    async function readEncryptedPersistedHistoryContent(): Promise<string | undefined> {
+        const encryptedFileContents = await readPersistedFileContents();
+        if (!encryptedFileContents) {
+            return undefined;
+        }
+
+        const encryptionKey = secretValues.get(Constants.queryHistoryEncryptionKeySecretStorageKey);
+        if (!encryptionKey) {
+            return undefined;
+        }
+
+        const encryptedData = JSON.parse(
+            new TextDecoder().decode(encryptedFileContents),
+        ) as EncryptedData;
+
+        return decryptData(encryptedData, encryptionKey);
+    }
+
+    async function writePersistedHistoryContent(serializedHistory: string): Promise<void> {
+        let encryptionKey = secretValues.get(Constants.queryHistoryEncryptionKeySecretStorageKey);
+        if (!encryptionKey) {
+            encryptionKey = generateEncryptionKey();
+            await secretStorage.store(
+                Constants.queryHistoryEncryptionKeySecretStorageKey,
+                encryptionKey,
+            );
+        }
+
+        persistedFileContents = new TextEncoder().encode(
+            JSON.stringify(encryptData(serializedHistory, encryptionKey)),
+        );
+    }
+
+    async function clearPersistedHistoryContent(): Promise<void> {
+        persistedFileContents = undefined;
+    }
+
+    async function setEncryptedPersistedHistoryContent(
         serializedHistory: string,
         encryptionKey: string = generateEncryptionKey(),
-    ): string {
+    ): Promise<string> {
         secretValues.set(Constants.queryHistoryEncryptionKeySecretStorageKey, encryptionKey);
         persistedFileContents = new TextEncoder().encode(
             JSON.stringify(encryptData(serializedHistory, encryptionKey)),
@@ -108,14 +183,15 @@ suite("QueryHistoryProvider persistence", () => {
         return encryptionKey;
     }
 
-    function setEncryptedPersistedHistory(
+    async function setEncryptedPersistedHistory(
         persistedData: unknown,
         encryptionKey: string = generateEncryptionKey(),
-    ): string {
+    ): Promise<string> {
         return setEncryptedPersistedHistoryContent(JSON.stringify(persistedData), encryptionKey);
     }
 
-    function getPersistedHistoryPayload(): PersistedQueryHistoryPayload {
+    async function getPersistedHistoryPayload(): Promise<PersistedQueryHistoryPayload> {
+        const persistedFileContents = await readPersistedFileContents();
         expect(persistedFileContents).to.not.be.undefined;
 
         const encryptionKey = secretValues.get(Constants.queryHistoryEncryptionKeySecretStorageKey);
@@ -143,33 +219,6 @@ suite("QueryHistoryProvider persistence", () => {
         statusViewStub = sandbox.createStubInstance(StatusView);
         prompterStub = sandbox.createStubInstance(CodeAdapter);
 
-        sandbox.stub(vscode.workspace.fs, "createDirectory").resolves();
-        sandbox.stub(vscode.workspace.fs, "writeFile").callsFake(async (_uri, content) => {
-            persistedFileContents = content;
-        });
-        sandbox.stub(vscode.workspace.fs, "readFile").callsFake(async () => {
-            if (!persistedFileContents) {
-                throw vscode.FileSystemError.FileNotFound();
-            }
-
-            return persistedFileContents;
-        });
-        sandbox.stub(vscode.workspace.fs, "delete").callsFake(async () => {
-            persistedFileContents = undefined;
-        });
-        sandbox.stub(vscode.workspace.fs, "stat").callsFake(async () => {
-            if (!persistedFileContents) {
-                throw vscode.FileSystemError.FileNotFound();
-            }
-
-            return {
-                type: vscode.FileType.File,
-                ctime: 0,
-                mtime: 0,
-                size: persistedFileContents.length,
-            } as vscode.FileStat;
-        });
-
         const config = createWorkspaceConfiguration({
             [Constants.configQueryHistoryLimit]: 10,
         });
@@ -192,14 +241,31 @@ suite("QueryHistoryProvider persistence", () => {
             subscriptions: [],
             globalStorageUri: vscode.Uri.file("/query-history-tests"),
         } as unknown as vscode.ExtensionContext;
+
+        const queryHistoryProviderPrototype =
+            QueryHistoryProvider.prototype as unknown as QueryHistoryProviderPrivate;
+        readEncryptedPersistedQueryHistoryStub = sandbox.stub(
+            queryHistoryProviderPrototype,
+            "readEncryptedPersistedQueryHistory",
+        ) as sinon.SinonStub<[], Promise<string | undefined>>;
+        readEncryptedPersistedQueryHistoryStub.callsFake(readEncryptedPersistedHistoryContent);
+        sandbox
+            .stub(queryHistoryProviderPrototype, "writePersistedQueryHistoryContent")
+            .callsFake(async (serializedHistory: string) =>
+                writePersistedHistoryContent(serializedHistory),
+            );
+        sandbox
+            .stub(queryHistoryProviderPrototype, "clearPersistedQueryHistoryContent")
+            .callsFake(async () => clearPersistedHistoryContent());
     });
 
     teardown(() => {
         sandbox.restore();
+        persistedFileContents = undefined;
     });
 
     test("restores nodes from encrypted global storage", async () => {
-        setEncryptedPersistedHistory({
+        await setEncryptedPersistedHistory({
             version: 1,
             nodes: [
                 {
@@ -232,7 +298,7 @@ suite("QueryHistoryProvider persistence", () => {
     });
 
     test("restores persisted credentials", async () => {
-        setEncryptedPersistedHistory({
+        await setEncryptedPersistedHistory({
             version: 1,
             nodes: [
                 {
@@ -243,7 +309,7 @@ suite("QueryHistoryProvider persistence", () => {
                         database: "master",
                         authenticationType: Constants.sqlAuthentication,
                         user: "sa",
-                        password: "secret",
+                        password: "example-value",
                         savePassword: true,
                     },
                     timeStamp: new Date(2025, 0, 15, 10, 30, 0).getTime(),
@@ -261,12 +327,12 @@ suite("QueryHistoryProvider persistence", () => {
             server: "localhost",
             database: "master",
             user: "sa",
-            password: "secret",
+            password: "example-value",
         });
     });
 
     test("does not overwrite newer history when restore finishes later", async () => {
-        setEncryptedPersistedHistory({
+        const persistedHistory = {
             version: 1,
             nodes: [
                 {
@@ -277,12 +343,11 @@ suite("QueryHistoryProvider persistence", () => {
                     isSuccess: true,
                 },
             ],
-        });
+        };
 
-        let resolveStoredHistory: ((value: Uint8Array) => void) | undefined;
-        const encryptedFileContents = persistedFileContents;
-        const readFileStub = vscode.workspace.fs.readFile as unknown as sinon.SinonStub;
-        readFileStub.callsFake(
+        let resolveStoredHistory: ((value: string | undefined) => void) | undefined;
+        readEncryptedPersistedQueryHistoryStub.resetBehavior();
+        readEncryptedPersistedQueryHistoryStub.callsFake(
             () =>
                 new Promise((resolve) => {
                     resolveStoredHistory = resolve;
@@ -291,22 +356,20 @@ suite("QueryHistoryProvider persistence", () => {
 
         provider = createProvider();
 
-        outputContentProviderStub.getQueryRunner.returns({
-            getQueryString: sandbox.stub().returns("fresh query"),
-        } as any);
-        connectionManagerStub.getConnectionInfo.returns({
-            credentials: {
+        outputContentProviderStub.getQueryRunner.returns(createQueryRunnerStub("fresh query"));
+        connectionManagerStub.getConnectionInfo.returns(
+            createConnectionResult({
                 server: "localhost",
                 database: "master",
                 authenticationType: Constants.sqlAuthentication,
                 user: "sa",
-            } as any,
-        } as any);
+            }),
+        );
 
         provider.refresh("file:///fresh.sql", new Date(2025, 0, 20), false);
 
         expect(resolveStoredHistory).to.not.be.undefined;
-        resolveStoredHistory?.(encryptedFileContents!);
+        resolveStoredHistory?.(JSON.stringify(persistedHistory));
         await waitForPersistedStorageWork();
 
         const node = provider.getChildren()[0] as QueryHistoryNode;
@@ -315,7 +378,7 @@ suite("QueryHistoryProvider persistence", () => {
     });
 
     test("shows EmptyHistoryNode when encrypted storage has invalid JSON", async () => {
-        setEncryptedPersistedHistoryContent("not valid json{{{");
+        await setEncryptedPersistedHistoryContent("not valid json{{{");
 
         provider = createProvider();
         await waitForPersistedStorageWork();
@@ -329,19 +392,17 @@ suite("QueryHistoryProvider persistence", () => {
         provider = createProvider();
         await waitForPersistedStorageWork();
 
-        connectionManagerStub.getConnectionInfo.returns({
-            credentials: {
+        connectionManagerStub.getConnectionInfo.returns(
+            createConnectionResult({
                 server: "localhost",
                 database: "master",
                 authenticationType: Constants.sqlAuthentication,
                 user: "sa",
-                password: "secret",
+                password: "example-value",
                 savePassword: true,
-            } as any,
-        } as any);
-        outputContentProviderStub.getQueryRunner.returns({
-            getQueryString: sandbox.stub().returns("SELECT 1"),
-        } as any);
+            }),
+        );
+        outputContentProviderStub.getQueryRunner.returns(createQueryRunnerStub("SELECT 1"));
 
         provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
         await waitForPersistedStorageWork();
@@ -351,7 +412,7 @@ suite("QueryHistoryProvider persistence", () => {
             sinon.match.string,
         );
 
-        const payload = getPersistedHistoryPayload();
+        const payload = await getPersistedHistoryPayload();
         expect(payload.version).to.equal(1);
         expect(payload.nodes).to.have.lengthOf(1);
         expect(payload.nodes[0].queryString).to.equal("SELECT 1");
@@ -360,7 +421,7 @@ suite("QueryHistoryProvider persistence", () => {
             server: "localhost",
             database: "master",
             user: "sa",
-            password: "secret",
+            password: "example-value",
         });
     });
 
@@ -368,24 +429,22 @@ suite("QueryHistoryProvider persistence", () => {
         provider = createProvider();
         await waitForPersistedStorageWork();
 
-        connectionManagerStub.getConnectionInfo.returns({
-            credentials: {
+        connectionManagerStub.getConnectionInfo.returns(
+            createConnectionResult({
                 server: "localhost",
                 database: "master",
                 authenticationType: Constants.sqlAuthentication,
                 user: "sa",
-                password: "secret",
+                password: "example-value",
                 savePassword: false,
-            } as any,
-        } as any);
-        outputContentProviderStub.getQueryRunner.returns({
-            getQueryString: sandbox.stub().returns("SELECT 1"),
-        } as any);
+            }),
+        );
+        outputContentProviderStub.getQueryRunner.returns(createQueryRunnerStub("SELECT 1"));
 
         provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
         await waitForPersistedStorageWork();
 
-        const payload = getPersistedHistoryPayload();
+        const payload = await getPersistedHistoryPayload();
         expect(payload.nodes[0].credentials).to.deep.include({
             server: "localhost",
             database: "master",
@@ -417,7 +476,7 @@ suite("QueryHistoryProvider persistence", () => {
 
         await queryHistoryProvider.persistQueryHistory();
 
-        const payload = getPersistedHistoryPayload();
+        const payload = await getPersistedHistoryPayload();
         expect(payload.nodes).to.have.lengthOf(250);
         expect(payload.nodes[0].queryString.length).to.equal(20000);
     });
@@ -426,25 +485,23 @@ suite("QueryHistoryProvider persistence", () => {
         provider = createProvider();
         await waitForPersistedStorageWork();
 
-        connectionManagerStub.getConnectionInfo.returns({
-            credentials: {
+        connectionManagerStub.getConnectionInfo.returns(
+            createConnectionResult({
                 server: "localhost",
                 database: "master",
                 authenticationType: Constants.sqlAuthentication,
                 user: "sa",
-            } as any,
-        } as any);
-        outputContentProviderStub.getQueryRunner.returns({
-            getQueryString: sandbox.stub().returns("SELECT 1"),
-        } as any);
+            }),
+        );
+        outputContentProviderStub.getQueryRunner.returns(createQueryRunnerStub("SELECT 1"));
 
         provider.refresh("file:///test.sql", new Date(2025, 0, 15), false);
         await waitForPersistedStorageWork();
-        expect(persistedFileContents).to.not.be.undefined;
+        expect(await readPersistedFileContents()).to.not.be.undefined;
 
         provider.clearAll();
         await waitForPersistedStorageWork();
 
-        expect(persistedFileContents).to.be.undefined;
+        expect(await readPersistedFileContents()).to.be.undefined;
     });
 });
