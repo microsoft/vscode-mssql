@@ -15,7 +15,7 @@ import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 const headerIconSizePx = 24;
 
 const contentWidthPresets = {
-    medium: "600px",
+    medium: "720px",
     wide: "800px",
 } as const;
 
@@ -50,11 +50,12 @@ const useStyles = makeStyles({
         flex: "1 1 auto",
         overflowY: "auto",
         overflowX: "hidden",
+        scrollbarGutter: "stable both-edges",
     },
     container: {
         width: "100%",
         margin: 0,
-        padding: "24px 24px 32px",
+        padding: "16px 0 32px",
         boxSizing: "border-box",
     },
     header: {
@@ -114,7 +115,7 @@ const useStyles = makeStyles({
         flexShrink: 0,
         borderTop: "1px solid var(--vscode-editorGroup-border)",
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
-        padding: "12px 24px",
+        padding: "12px 0",
     },
     footerInner: {
         width: "100%",
@@ -160,10 +161,18 @@ export const DialogPageShell = ({
     const resolvedMaxContentWidth = resolveContentWidth(maxContentWidth);
     const contentWidthStyle = resolvedMaxContentWidth
         ? {
+              width: "100%",
               maxWidth: resolvedMaxContentWidth,
-              margin: 0,
+              margin: "0 auto",
           }
-        : undefined;
+        : { width: "100%" };
+    const footerWidthStyle = resolvedMaxContentWidth
+        ? {
+              width: "100%",
+              maxWidth: `calc(${resolvedMaxContentWidth} + 48px)`,
+              margin: "0 auto",
+          }
+        : { width: "100%" };
 
     const headerIcon =
         icon && isValidElement(icon)
@@ -178,7 +187,7 @@ export const DialogPageShell = ({
             <div className={styles.scrollRegion}>
                 <div className={styles.container}>
                     {(icon || title || subtitle) && (
-                        <div className={styles.header}>
+                        <div className={styles.header} style={contentWidthStyle}>
                             <div className={styles.iconContainer}>{headerIcon}</div>
                             <div className={styles.headerText}>
                                 {title && <div className={styles.title}>{title}</div>}
@@ -212,7 +221,7 @@ export const DialogPageShell = ({
             </div>
             {(footerStart || footerEnd) && (
                 <div className={styles.footer}>
-                    <div className={styles.footerInner}>
+                    <div className={styles.footerInner} style={footerWidthStyle}>
                         <div className={styles.footerGroup}>{footerStart}</div>
                         <div className={styles.footerGroup}>{footerEnd}</div>
                     </div>
