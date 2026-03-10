@@ -335,6 +335,7 @@ export namespace SchemaDesigner {
         isCopilotChatInstalled?: boolean;
         copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;
+        isDabDeploymentSupported?: boolean;
     }
 
     export interface ExportFileOptions {

@@ -16,6 +16,7 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
@@ -104,6 +105,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this._key = `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
+
+        this.updateState({
+            ...this.state,
+            isDabDeploymentSupported: this.resolveIsDabDeploymentSupported(),
+        });
 
         this.setupRequestHandlers();
         this.setupReducers();
@@ -581,6 +587,27 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 ?.credentials?.server;
         }
 
+        return undefined;
+    }
+
+    /**
+     * Determines whether the DAB (Data API Builder) feature is supported for this connection.
+     * Currently only SQL Login connections are supported because DAB runs in a local
+     * Docker container that cannot perform interactive Azure AD authentication.
+     */
+    private resolveIsDabDeploymentSupported(): boolean {
+        const authType = this.resolveAuthenticationType();
+        return authType === AuthenticationType.SqlLogin;
+    }
+
+    private resolveAuthenticationType(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.authenticationType;
+        }
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.authenticationType;
+        }
         return undefined;
     }
 
