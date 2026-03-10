@@ -21,7 +21,7 @@ import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
-import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -74,15 +74,14 @@ export class ProfilerController {
 
             // Determine engine type based on server type
             // Fabric SQL databases use the same Azure SQL profiles
-            this._currentEngineType =
-                serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric)
-                    ? EngineType.AzureSQLDB
-                    : EngineType.Standalone;
+            this._currentEngineType = isAzureSqlDbCompatible(serverTypes)
+                ? EngineType.AzureSQLDB
+                : EngineType.Standalone;
             this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
 
             // For Azure SQL and Fabric, we need to ensure a user database is selected
             let profileToUse = connectionProfile;
-            if (serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric)) {
+            if (isAzureSqlDbCompatible(serverTypes)) {
                 const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
                 if (!updatedProfile) {
                     // User cancelled database selection
