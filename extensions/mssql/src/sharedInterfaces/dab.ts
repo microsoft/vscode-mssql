@@ -12,6 +12,11 @@ import { ApiStatus, Status } from "./webview";
  */
 export namespace Dab {
     /**
+     * Default SQL Server port, used when the connection string omits the port.
+     */
+    export const DEFAULT_SQL_SERVER_PORT = 1433;
+
+    /**
      * API types that can be enabled for DAB
      */
     export enum ApiType {

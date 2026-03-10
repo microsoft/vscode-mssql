@@ -350,6 +350,7 @@ export class DabService implements Dab.IDabService {
         //   Containerized SQL Server does not use named instances.
         // - For host SQL Server, replace only the host, preserving instance name and port.
         let newServerValue: string;
+        const hasPort = serverValue.includes(",");
         if (sqlServerContainerName) {
             // Extract port if present (comma-separated), discard any instance name
             const commaIndex = serverValue.indexOf(",");
@@ -361,6 +362,12 @@ export class DabService implements Dab.IDabService {
                 new RegExp(`^${this.escapeRegex(host)}`, "i"),
                 "host.docker.internal",
             );
+        }
+
+        // DAB does not infer the default SQL Server port, so explicitly add it
+        // when the connection string omits the port for a localhost address.
+        if (!hasPort) {
+            newServerValue += `,${Dab.DEFAULT_SQL_SERVER_PORT}`;
         }
 
         // Replace in connection string
