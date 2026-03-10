@@ -654,8 +654,8 @@
     <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
       <source xml:lang="en">Build APIs with GitHub Copilot</source>
     </trans-unit>
-    <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
-      <source xml:lang="en">Build Data API</source>
+    <trans-unit id="++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033">
+      <source xml:lang="en">Build Data API (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
       <source xml:lang="en">Build failed with exit code {0}</source>
@@ -1645,8 +1645,8 @@
     <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
       <source xml:lang="en">Data API Builder</source>
     </trans-unit>
-    <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
-      <source xml:lang="en">Data API Builder Configuration</source>
+    <trans-unit id="++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5">
+      <source xml:lang="en">Data API Builder Configuration (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
       <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>

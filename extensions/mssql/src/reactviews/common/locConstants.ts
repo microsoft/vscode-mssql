@@ -1042,7 +1042,7 @@ export class LocConstants {
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
-            dabNavLabel: l10n.t("Build Data API"),
+            dabNavLabel: l10n.t("Build Data API (Preview)"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
@@ -1275,7 +1275,7 @@ export class LocConstants {
                 }),
 
             // DAB (Data API Builder) strings
-            dabTitle: l10n.t("Data API Builder Configuration"),
+            dabTitle: l10n.t("Data API Builder Configuration (Preview)"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
