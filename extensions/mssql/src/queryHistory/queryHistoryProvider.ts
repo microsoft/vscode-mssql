@@ -32,11 +32,19 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     private _queryHistoryNodes: QueryHistoryTreeNode[] = [new EmptyHistoryNode()];
     private _queryHistoryLimit: number;
     private _queryHistoryUI: QueryHistoryUI;
+    private _queryHistoryMutationId = 0;
 
+    /**
+     * Version number for the persisted query history. Increment this if there are breaking changes to the persisted format to ensure old formats are not loaded.
+     */
     private static readonly _queryHistoryStorageVersion = 1;
-
+    /**
+     * Maximum length of a query string to persist. This is to prevent extremely long queries from taking up too much storage space. This limit does not affect the queries that are stored in memory and shown in the UI, only the ones that are persisted and restored.
+     */
     private static readonly _maxPersistedQueryLength = 20000;
-
+    /**
+     * Maximum number of query history entries to persist. This is to prevent the persisted query history from taking up too much storage space. This limit does not affect the number of queries that are stored in memory and shown in the UI, only the ones that are persisted and restored.
+     */
     private static readonly _maxPersistedNodes = 250;
 
     constructor(
@@ -55,44 +63,37 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     }
 
     clearAll(): void {
+        this._queryHistoryMutationId++;
         this._queryHistoryNodes = [new EmptyHistoryNode()];
         this._onDidChangeTreeData.fire(undefined);
         void this.persistQueryHistory();
     }
 
-    refresh(ownerUri: string, timeStamp: Date, hasError): void {
-        const timeStampString = timeStamp.toLocaleString();
-        const historyNodeLabel = this.createHistoryNodeLabel(ownerUri);
-        const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStampString);
+    refresh(ownerUri: string, timeStamp: Date, hasError: boolean): void {
         const queryString = this.getQueryString(ownerUri);
-        const connectionLabel = this.getConnectionLabel(ownerUri);
+        if (queryString === undefined) {
+            return;
+        }
+
+        const timestampLabel = timeStamp.toLocaleString();
+        const credentials = this._connectionManager.getConnectionInfo(ownerUri)?.credentials;
+        const connectionLabel = this.getConnectionLabel(credentials);
+        const historyNodeLabel = this.createHistoryNodeLabel(queryString, connectionLabel);
+        const tooltip = this.createHistoryNodeTooltip(queryString, connectionLabel, timestampLabel);
         const node = new QueryHistoryNode(
             historyNodeLabel,
             tooltip,
             queryString,
             ownerUri,
-            this._connectionManager.getConnectionInfo(ownerUri)?.credentials,
+            credentials,
             timeStamp,
             connectionLabel,
             !hasError,
         );
-        if (this._queryHistoryNodes.length === 1) {
-            if (this._queryHistoryNodes[0] instanceof EmptyHistoryNode) {
-                this._queryHistoryNodes = [];
-            }
-        }
-        this._queryHistoryNodes.push(node);
-        // sort the query history sorted by timestamp
-        this._queryHistoryNodes.sort((a, b) => {
-            return (
-                (b as QueryHistoryNode).timeStamp.getTime() -
-                (a as QueryHistoryNode).timeStamp.getTime()
-            );
-        });
-        // Remove old entries if we are over the limit.
-        if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
-            this._queryHistoryNodes.pop();
-        }
+
+        this._queryHistoryMutationId++;
+        this.removeEmptyHistoryNode();
+        this.insertHistoryNode(node);
         this._onDidChangeTreeData.fire(undefined);
         void this.persistQueryHistory();
     }
@@ -115,12 +116,12 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
         const options = this._queryHistoryNodes
             .filter((node): node is QueryHistoryNode => node instanceof QueryHistoryNode)
             .map((node) => this._queryHistoryUI.convertToQuickPickItem(node));
-        let queryHistoryQuickPickItem =
+        const selectedHistoryEntry =
             await this._queryHistoryUI.showQueryHistoryCommandPalette(options);
-        if (queryHistoryQuickPickItem) {
+        if (selectedHistoryEntry) {
             await this.openQueryHistoryEntry(
-                queryHistoryQuickPickItem.node,
-                queryHistoryQuickPickItem.action === QueryHistoryAction.RunQueryHistoryAction,
+                selectedHistoryEntry.node,
+                selectedHistoryEntry.action === QueryHistoryAction.RunQueryHistoryAction,
             );
         }
         return undefined;
@@ -200,17 +201,14 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
      * Deletes a query history entry for a URI
      */
     public deleteQueryHistoryEntry(node: QueryHistoryNode): void {
-        let index = this._queryHistoryNodes.findIndex((n) => {
-            let historyNode = n as QueryHistoryNode;
-            return historyNode === node;
-        });
-        if (index < 0) {
+        const nodeIndex = this._queryHistoryNodes.indexOf(node);
+        if (nodeIndex < 0) {
             return;
         }
-        this._queryHistoryNodes.splice(index, 1);
-        if (this._queryHistoryNodes.length === 0) {
-            this._queryHistoryNodes.push(new EmptyHistoryNode());
-        }
+
+        this._queryHistoryMutationId++;
+        this._queryHistoryNodes.splice(nodeIndex, 1);
+        this.ensureEmptyHistoryNode();
         this._onDidChangeTreeData.fire(undefined);
         void this.persistQueryHistory();
     }
@@ -225,19 +223,19 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     /**
      * Creates the node label for a query history node
      */
-    private createHistoryNodeLabel(ownerUri: string): string {
-        if (this.getQueryString(ownerUri) === undefined) {
-            return "";
-        }
-        const queryString = Utils.limitStringSize(this.getQueryString(ownerUri)).trim();
-        const connectionLabel = Utils.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
-        return `${queryString} : ${connectionLabel}`;
+    private createHistoryNodeLabel(queryString: string, connectionLabel: string): string {
+        const historyNodeLabel = Utils.limitStringSize(queryString).trim();
+        const displayConnectionLabel = Utils.limitStringSize(connectionLabel).trim();
+
+        return displayConnectionLabel
+            ? `${historyNodeLabel} : ${displayConnectionLabel}`
+            : historyNodeLabel;
     }
 
     /**
      * Gets the selected text for the corresponding query history listing
      */
-    private getQueryString(ownerUri: string): string {
+    private getQueryString(ownerUri: string): string | undefined {
         const queryRunner = this._outputContentProvider.getQueryRunner(ownerUri);
         if (!queryRunner) {
             return undefined;
@@ -248,26 +246,40 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     /**
      * Creates a connection label based on credentials
      */
-    private getConnectionLabel(ownerUri: string): string {
-        const connInfo = this._connectionManager.getConnectionInfo(ownerUri);
-        const credentials = connInfo.credentials;
-        let connString = `(${credentials.server}|${credentials.database})`;
-        if (credentials.authenticationType === Constants.sqlAuthentication) {
-            connString = `${connString} : ${credentials.user}`;
+    private getConnectionLabel(credentials?: vscodeMssql.IConnectionInfo): string {
+        const server = credentials?.server ?? "";
+        const database = credentials?.database ?? "";
+        const hasConnectionDetails = server.length > 0 || database.length > 0;
+        let connectionLabel = hasConnectionDetails ? `(${server}|${database})` : "";
+
+        if (
+            connectionLabel &&
+            credentials?.authenticationType === Constants.sqlAuthentication &&
+            credentials.user
+        ) {
+            connectionLabel = `${connectionLabel} : ${credentials.user}`;
         }
-        return connString;
+
+        return connectionLabel;
     }
 
     /**
      * Creates a detailed tool tip when a node is hovered
      */
-    private createHistoryNodeTooltip(ownerUri: string, timeStamp: string): string {
-        const queryString = this.getQueryString(ownerUri);
-        const connectionLabel = this.getConnectionLabel(ownerUri);
-        return `${connectionLabel}${os.EOL}${os.EOL}${timeStamp}${os.EOL}${os.EOL}${queryString}`;
+    private createHistoryNodeTooltip(
+        queryString: string,
+        connectionLabel: string,
+        timeStamp: string,
+    ): string {
+        const tooltipSections = connectionLabel
+            ? [connectionLabel, timeStamp, queryString]
+            : [timeStamp, queryString];
+        return tooltipSections.join(`${os.EOL}${os.EOL}`);
     }
 
     private async restoreQueryHistory(): Promise<void> {
+        const restoreMutationId = this._queryHistoryMutationId;
+
         try {
             const serializedHistory = await this._context.secrets.get(
                 Constants.queryHistorySecretStorageKey,
@@ -289,6 +301,10 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
                 .map((node) => this.createNodeFromPersisted(node))
                 .filter((node): node is QueryHistoryNode => node !== undefined);
 
+            if (restoreMutationId !== this._queryHistoryMutationId) {
+                return;
+            }
+
             if (restoredNodes.length === 0) {
                 this._queryHistoryNodes = [new EmptyHistoryNode()];
             } else {
@@ -298,7 +314,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
 
             this._onDidChangeTreeData.fire(undefined);
         } catch {
-            this._queryHistoryNodes = [new EmptyHistoryNode()];
+            if (restoreMutationId === this._queryHistoryMutationId) {
+                this._queryHistoryNodes = [new EmptyHistoryNode()];
+            }
         }
     }
 
@@ -319,10 +337,12 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
         }
 
         const safeQuery = node.queryString.slice(0, QueryHistoryProvider._maxPersistedQueryLength);
-        const historyNodeLabel = Utils.limitStringSize(safeQuery).trim();
-        const connectionLabel = Utils.limitStringSize(node.connectionLabel).trim();
-        const label = `${historyNodeLabel} : ${connectionLabel}`;
-        const tooltip = `${node.connectionLabel}${os.EOL}${os.EOL}${restoredTimestamp.toLocaleString()}${os.EOL}${os.EOL}${safeQuery}`;
+        const label = this.createHistoryNodeLabel(safeQuery, node.connectionLabel);
+        const tooltip = this.createHistoryNodeTooltip(
+            safeQuery,
+            node.connectionLabel,
+            restoredTimestamp.toLocaleString(),
+        );
 
         return new QueryHistoryNode(
             label,
@@ -366,6 +386,39 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
             Constants.queryHistorySecretStorageKey,
             JSON.stringify(payload),
         );
+    }
+
+    private removeEmptyHistoryNode(): void {
+        if (
+            this._queryHistoryNodes.length === 1 &&
+            this._queryHistoryNodes[0] instanceof EmptyHistoryNode
+        ) {
+            this._queryHistoryNodes = [];
+        }
+    }
+
+    private ensureEmptyHistoryNode(): void {
+        if (this._queryHistoryNodes.length === 0) {
+            this._queryHistoryNodes.push(new EmptyHistoryNode());
+        }
+    }
+
+    private insertHistoryNode(node: QueryHistoryNode): void {
+        const insertIndex = this._queryHistoryNodes.findIndex(
+            (historyNode) =>
+                historyNode instanceof QueryHistoryNode &&
+                historyNode.timeStamp.getTime() < node.timeStamp.getTime(),
+        );
+
+        if (insertIndex < 0) {
+            this._queryHistoryNodes.push(node);
+        } else {
+            this._queryHistoryNodes.splice(insertIndex, 0, node);
+        }
+
+        if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
+            this._queryHistoryNodes.pop();
+        }
     }
 }
 
