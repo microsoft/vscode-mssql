@@ -28,7 +28,7 @@ import { UserSurveyContext } from "./userSurveryStateProvider";
 import { useUserSurveySelector } from "./userSurveySelector";
 import { locConstants } from "../../common/locConstants";
 import { DialogPageShell } from "../../common/dialogPageShell";
-import { FeedbackIcon } from "../../common/icons/feedback.tsx";
+import { FeedbackIcon } from "../../common/icons/feedback";
 
 const useStyles = makeStyles({
     formContainer: {
