@@ -117,9 +117,13 @@ const useStyles = makeStyles({
     settingsButton: {
         minWidth: "auto",
     },
+    warningIconWrapper: {
+        display: "flex",
+        alignItems: "center",
+        flexShrink: 0,
+    },
     warningIcon: {
         color: tokens.colorPaletteYellowForeground2,
-        flexShrink: 0,
     },
     emptyState: {
         display: "flex",
@@ -130,6 +134,19 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
 });
+
+function formatUnsupportedReasons(reasons: Dab.DabUnsupportedReason[]): string {
+    return reasons
+        .map((r) => {
+            switch (r.type) {
+                case "noPrimaryKey":
+                    return locConstants.schemaDesigner.unsupportedNoPrimaryKey;
+                case "unsupportedDataTypes":
+                    return locConstants.schemaDesigner.unsupportedDataTypes(r.columns);
+            }
+        })
+        .join("; ");
+}
 
 export const DabEntityTable = () => {
     const classes = useStyles();
@@ -361,15 +378,6 @@ export const DabEntityTable = () => {
                                     toggleDabEntity(item.entity.id, data.checked === true)
                                 }
                             />
-                            {!item.entity.isSupported && item.entity.unsupportedReason && (
-                                <Tooltip
-                                    content={item.entity.unsupportedReason}
-                                    relationship="description">
-                                    <span>
-                                        <Warning16Regular className={classes.warningIcon} />
-                                    </span>
-                                </Tooltip>
-                            )}
                         </div>
                     );
                 },
@@ -388,6 +396,17 @@ export const DabEntityTable = () => {
                             <Text className={classes.entityName}>
                                 {item.entity.advancedSettings.entityName}
                             </Text>
+                            {!item.entity.isSupported && item.entity.unsupportedReasons && (
+                                <Tooltip
+                                    content={formatUnsupportedReasons(
+                                        item.entity.unsupportedReasons,
+                                    )}
+                                    relationship="description">
+                                    <span className={classes.warningIconWrapper}>
+                                        <Warning16Regular className={classes.warningIcon} />
+                                    </span>
+                                </Tooltip>
+                            )}
                         </div>
                     );
                 },

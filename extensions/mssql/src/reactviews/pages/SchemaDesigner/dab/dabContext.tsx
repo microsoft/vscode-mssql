@@ -101,11 +101,11 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             .filter((e) => tableById.has(e.id))
             .map((e) => {
                 const table = tableById.get(e.id)!;
-                const { isSupported, reason } = Dab.validateTableForDab(table);
+                const { isSupported, reasons } = Dab.validateTableForDab(table);
                 return {
                     ...e,
                     isSupported,
-                    unsupportedReason: reason,
+                    unsupportedReasons: reasons,
                     // Force disable if newly unsupported; keep current state otherwise
                     isEnabled: !isSupported ? false : e.isEnabled,
                 };
@@ -121,7 +121,8 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             const original = originalById.get(updated.id)!;
             return (
                 updated.isSupported !== original.isSupported ||
-                updated.unsupportedReason !== original.unsupportedReason ||
+                JSON.stringify(updated.unsupportedReasons) !==
+                    JSON.stringify(original.unsupportedReasons) ||
                 updated.isEnabled !== original.isEnabled
             );
         });
