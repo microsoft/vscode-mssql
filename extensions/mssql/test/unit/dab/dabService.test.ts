@@ -43,6 +43,12 @@ const defaultConnectionInfo: Dab.DabConnectionInfo = {
     connectionString: "Server=localhost;Database=TestDb;Trusted_Connection=true;",
 };
 
+type DabServiceWithTransform = {
+    transformConnectionInfoForDocker: (
+        connectionInfo: Dab.DabConnectionInfo,
+    ) => Dab.DabConnectionInfo;
+};
+
 suite("DabService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let dabService: DabService;
@@ -84,7 +90,9 @@ suite("DabService Tests", () => {
             connectionString: string,
             sqlServerContainerName?: string,
         ): Dab.DabConnectionInfo {
-            return (dabService as any).transformConnectionInfoForDocker({
+            return (
+                dabService as unknown as DabServiceWithTransform
+            ).transformConnectionInfoForDocker({
                 connectionString,
                 sqlServerContainerName,
             });
@@ -333,7 +341,9 @@ suite("DabService Tests", () => {
                     connectionString: "Server=remote-server;Database=TestDb;",
                     sqlServerContainerName: "some-container",
                 };
-                const result = (dabService as any).transformConnectionInfoForDocker(input);
+                const result = (
+                    dabService as unknown as DabServiceWithTransform
+                ).transformConnectionInfoForDocker(input);
                 expect(result).to.equal(input);
             });
         });
@@ -489,6 +499,30 @@ suite("DabService Tests", () => {
             expect(result.error).to.include("required");
         });
 
+        test("should return startup logs when startContainer fails", async () => {
+            sandbox.stub(dabContainer, "startDabDockerContainer").resolves({
+                success: false,
+                error: "Failed to start DAB container. Please check the Docker logs for details.",
+                fullErrorText: "Container exited immediately",
+                containerLogs: "fail: startup failed",
+            });
+
+            const params: Dab.DabDeploymentParams = {
+                containerName: "test-container",
+                port: 5000,
+            };
+
+            const result = await dabService.runDeploymentStep(
+                Dab.DabDeploymentStepOrder.startContainer,
+                params,
+                createTestConfig(),
+                defaultConnectionInfo,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.containerLogs).to.equal("fail: startup failed");
+        });
+
         test("should run checkContainer step successfully", async () => {
             sandbox
                 .stub(dabContainer, "checkIfDabContainerIsReady")
@@ -508,13 +542,14 @@ suite("DabService Tests", () => {
             expect(result.apiUrl).to.equal("http://localhost:5000");
         });
 
-        test("should forward deployment log updates for checkContainer", async () => {
-            const deploymentLogHandler = sandbox.stub().resolves();
+        test("should return failure logs for checkContainer failures", async () => {
             const checkIfReadyStub = sandbox
                 .stub(dabContainer, "checkIfDabContainerIsReady")
-                .callsFake(async (_containerName, _port, onDeploymentLog) => {
-                    await onDeploymentLog?.("startup log");
-                    return { success: true, port: 5000 };
+                .resolves({
+                    success: false,
+                    error: "Unable to launch the Data API builder engine.",
+                    fullErrorText: "fail: startup failed",
+                    containerLogs: "fail: startup failed",
                 });
 
             const params: Dab.DabDeploymentParams = {
@@ -525,14 +560,11 @@ suite("DabService Tests", () => {
             const result = await dabService.runDeploymentStep(
                 Dab.DabDeploymentStepOrder.checkContainer,
                 params,
-                undefined,
-                undefined,
-                deploymentLogHandler,
             );
 
-            expect(result.success).to.be.true;
+            expect(result.success).to.be.false;
             expect(checkIfReadyStub).to.have.been.calledOnce;
-            expect(deploymentLogHandler).to.have.been.calledOnceWith("startup log");
+            expect(result.containerLogs).to.equal("fail: startup failed");
         });
 
         test("should return error when checkContainer is called without params", async () => {
@@ -637,7 +669,7 @@ suite("DabService Tests", () => {
         test("should handle undefined success as false", async () => {
             sandbox
                 .stub(dabContainer, "stopAndRemoveDabContainer")
-                .resolves({ success: undefined as any });
+                .resolves({ success: undefined as unknown as boolean });
 
             const result = await dabService.stopDeployment("test-container");
 
