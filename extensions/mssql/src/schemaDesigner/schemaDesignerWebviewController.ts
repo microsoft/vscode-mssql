@@ -419,6 +419,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
+        this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
+            const doc = await vscode.workspace.openTextDocument({
+                content: payload.logsContent,
+                language: "log",
+            });
+            await vscode.window.showTextDocument(doc, { preview: false });
+        });
+
         this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
             const uri = vscode.Uri.parse(payload.url, true);
             if (uri.scheme !== "http" && uri.scheme !== "https") {
@@ -436,7 +444,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             const message =
                 payload.copyTextType === Dab.CopyTextType.Url
                     ? LocConstants.SchemaDesigner.urlCopiedToClipboard
-                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+                    : payload.copyTextType === Dab.CopyTextType.Logs
+                      ? LocConstants.SchemaDesigner.logsCopiedToClipboard
+                      : LocConstants.SchemaDesigner.configCopiedToClipboard;
             await vscode.window.showInformationMessage(message);
         });
 
@@ -458,14 +468,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     ? {
                           connectionString: this.connectionString,
                           sqlServerContainerName: this._sqlServerContainerName,
-                      }
-                    : undefined,
-                payload.step === Dab.DabDeploymentStepOrder.checkContainer
-                    ? (containerLogs) => {
-                          void this.sendNotification(Dab.DeploymentLogNotification.type, {
-                              step: payload.step,
-                              containerLogs,
-                          });
                       }
                     : undefined,
             );

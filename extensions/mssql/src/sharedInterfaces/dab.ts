@@ -305,27 +305,6 @@ export namespace Dab {
     }
 
     // ============================================
-    // Notifications (Extension -> Webview)
-    // ============================================
-
-    /**
-     * Incremental deployment log update for a specific DAB deployment step.
-     */
-    export interface DabDeploymentLogUpdate {
-        step: DabDeploymentStepOrder;
-        containerLogs: string;
-    }
-
-    export namespace DeploymentLogNotification {
-        export const type = new NotificationType<DabDeploymentLogUpdate>("dab/deploymentLog");
-    }
-
-    /**
-     * Callback used to stream the latest container logs while a deployment step is running.
-     */
-    export type DabDeploymentLogHandler = (logs: string) => void | Promise<void>;
-
-    // ============================================
     // Notifications (Webview -> Extension)
     // ============================================
 
@@ -343,11 +322,23 @@ export namespace Dab {
     }
 
     /**
+     * Notification to open deployment logs in a new tab.
+     */
+    export interface OpenLogsInNewTabParams {
+        logsContent: string;
+    }
+
+    export namespace OpenLogsInNewTabNotification {
+        export const type = new NotificationType<OpenLogsInNewTabParams>("dab/openLogsInNewTab");
+    }
+
+    /**
      * Notification to copy text to clipboard with a context-appropriate toast message
      */
     export enum CopyTextType {
         Config = "config",
         Url = "url",
+        Logs = "logs",
     }
 
     export interface CopyTextParams {
@@ -601,6 +592,10 @@ export namespace Dab {
          */
         fullErrorText?: string;
         /**
+         * Container logs captured when the readiness check failed.
+         */
+        containerLogs?: string;
+        /**
          * Link to documentation for fixing the error
          */
         errorLink?: string;
@@ -769,7 +764,6 @@ export namespace Dab {
             params?: DabDeploymentParams,
             config?: DabConfig,
             connectionInfo?: DabConnectionInfo,
-            onDeploymentLog?: DabDeploymentLogHandler,
         ): Promise<RunDeploymentStepResponse>;
 
         /**

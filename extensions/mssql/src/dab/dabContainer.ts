@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
+import { PassThrough } from "stream";
 import * as tar from "tar";
 import { DockerCommandParams } from "../sharedInterfaces/localContainers";
 import { LocalContainers } from "../constants/locConstants";
@@ -21,6 +22,72 @@ import {
 } from "../docker/dockerUtils";
 
 const dabContainerLogTail = 200;
+const dabLaunchFailureText = "Unable to launch the Data API builder engine.";
+const dabContainerMaxLogBufferChars = 256_000;
+
+function sanitizeContainerLogText(text: string): string {
+    return text
+        .replace(/\u0000/g, "")
+        .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+}
+
+interface ContainerLogStream {
+    dispose: () => void;
+    getLogs: () => string | undefined;
+    hasLaunchFailure: () => boolean;
+}
+
+async function startContainerLogStream(
+    containerName: string,
+): Promise<ContainerLogStream | undefined> {
+    const container = await getContainerByName(containerName);
+    if (!container) {
+        return undefined;
+    }
+
+    const dockerClient = getDockerodeClient();
+    const rawLogsStream = (await container.logs({
+        follow: true,
+        stdout: true,
+        stderr: true,
+        tail: dabContainerLogTail,
+    })) as NodeJS.ReadableStream;
+    const stdoutStream = new PassThrough();
+    const stderrStream = new PassThrough();
+    dockerClient.modem.demuxStream(rawLogsStream, stdoutStream, stderrStream);
+
+    let bufferedLogs = "";
+
+    const appendChunk = (chunk: Buffer | string) => {
+        bufferedLogs += sanitizeContainerLogText(chunk.toString("utf8"));
+        if (bufferedLogs.length > dabContainerMaxLogBufferChars) {
+            bufferedLogs = bufferedLogs.slice(-dabContainerMaxLogBufferChars);
+        }
+    };
+
+    const dispose = () => {
+        stdoutStream.removeListener("data", appendChunk);
+        stderrStream.removeListener("data", appendChunk);
+        const destroyLogStream = (
+            rawLogsStream as NodeJS.ReadableStream & {
+                destroy?: () => void;
+            }
+        ).destroy;
+        destroyLogStream?.call(rawLogsStream);
+    };
+
+    stdoutStream.on("data", appendChunk);
+    stderrStream.on("data", appendChunk);
+
+    return {
+        dispose,
+        getLogs: () => {
+            const logs = bufferedLogs.trim();
+            return logs.length > 0 ? logs : undefined;
+        },
+        hasLaunchFailure: () => bufferedLogs.includes(dabLaunchFailureText),
+    };
+}
 
 /**
  * Pulls the DAB container image from MCR
@@ -117,76 +184,40 @@ export async function startDabDockerContainer(
 export async function checkIfDabContainerIsReady(
     containerName: string,
     port: number,
-    onLogUpdate?: Dab.DabDeploymentLogHandler,
-): Promise<DockerCommandParams> {
+): Promise<DockerCommandParams & { containerLogs?: string }> {
     const timeoutMs = 60_000; // 1 minute timeout for DAB
     const intervalMs = 1000;
     const start = Date.now();
-    let lastPublishedLogs = "";
-    let isPublishingLogs = false;
 
     dockerLogger.appendLine(
         `Checking if DAB container ${containerName} is ready on port ${port}...`,
     );
 
-    const getContainerLogSnapshot = async (): Promise<string | undefined> => {
-        const container = await getContainerByName(containerName);
-        if (!container) {
-            return undefined;
+    const logStream = await startContainerLogStream(containerName).catch(() => undefined);
+
+    const poll = async (): Promise<DockerCommandParams & { containerLogs?: string }> => {
+        const logs = logStream?.getLogs();
+
+        if (logStream?.hasLaunchFailure()) {
+            dockerLogger.appendLine(`DAB container logs:\n${logs}`);
+            return {
+                success: false,
+                error: dabLaunchFailureText,
+                fullErrorText: logs,
+                containerLogs: logs,
+            };
         }
 
-        const logs = await container.logs({
-            stdout: true,
-            stderr: true,
-            tail: dabContainerLogTail,
-        });
-
-        const nextLogs = logs.toString("utf8").trim();
-        return nextLogs.length > 0 ? nextLogs : undefined;
-    };
-
-    const publishContainerLogs = async (): Promise<void> => {
-        if (!onLogUpdate || isPublishingLogs) {
-            return;
-        }
-
-        isPublishingLogs = true;
-        try {
-            const nextLogs = await getContainerLogSnapshot();
-            if (!nextLogs || nextLogs === lastPublishedLogs) {
-                return;
-            }
-
-            lastPublishedLogs = nextLogs;
-            await onLogUpdate(nextLogs);
-        } catch {
-            // Ignore log retrieval errors while waiting for readiness
-        } finally {
-            isPublishingLogs = false;
-        }
-    };
-
-    const logInterval = onLogUpdate
-        ? setInterval(() => {
-              void publishContainerLogs();
-          }, intervalMs)
-        : undefined;
-
-    const poll = async (): Promise<DockerCommandParams> => {
         // Check timeout before polling
         if (Date.now() - start > timeoutMs) {
-            try {
-                await publishContainerLogs();
-                const logs = await getContainerLogSnapshot();
-                if (logs) {
-                    dockerLogger.appendLine(`DAB container logs:\n${logs}`);
-                }
-            } catch {
-                // Ignore log retrieval errors
+            if (logs) {
+                dockerLogger.appendLine(`DAB container logs:\n${logs}`);
             }
             return {
                 success: false,
                 error: LocalContainers.dabContainerReadyTimeout,
+                fullErrorText: logs,
+                containerLogs: logs,
             };
         }
 
@@ -214,12 +245,9 @@ export async function checkIfDabContainerIsReady(
     };
 
     try {
-        await publishContainerLogs();
         return await poll();
     } finally {
-        if (logInterval) {
-            clearInterval(logInterval);
-        }
+        logStream?.dispose();
     }
 }
 

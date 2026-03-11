@@ -9,13 +9,74 @@ import {
     ChevronDown20Regular,
     ChevronUp20Regular,
     Circle20Regular,
+    Copy16Regular,
     Dismiss20Regular,
+    Open16Regular,
 } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
+import { useDabContext } from "../dabContext";
 import { getDabStepLabels } from "./dabDeploymentUtils";
+
+const LOG_PREVIEW_CHAR_COUNT = 2000;
+const FAIL_LOG_LINE_PREFIX = "fail:";
+const DAB_ENGINE_FAILURE_TEXT = "Unable to launch the Data API builder engine.";
+const STRUCTURED_LOG_LINE_PATTERN = /^(trce|dbug|info|warn|fail|crit):/;
+
+function getFailureLogView(logs?: string): string | undefined {
+    if (!logs) {
+        return undefined;
+    }
+
+    const lines = logs.split(/\r?\n/);
+    const failureSections: string[] = [];
+
+    for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+        const trimmedLine = line.trim();
+
+        if (line.startsWith(FAIL_LOG_LINE_PREFIX)) {
+            const blockLines = [line];
+            let nextIndex = index + 1;
+
+            while (nextIndex < lines.length) {
+                const nextLine = lines[nextIndex];
+                const nextTrimmedLine = nextLine.trim();
+
+                if (
+                    nextTrimmedLine === DAB_ENGINE_FAILURE_TEXT ||
+                    (STRUCTURED_LOG_LINE_PATTERN.test(nextLine) &&
+                        !nextLine.startsWith(FAIL_LOG_LINE_PREFIX))
+                ) {
+                    break;
+                }
+
+                if (nextLine.startsWith(FAIL_LOG_LINE_PREFIX) && blockLines.length > 0) {
+                    break;
+                }
+
+                blockLines.push(nextLine);
+                nextIndex++;
+            }
+
+            failureSections.push(blockLines.join("\n").trimEnd());
+            index = nextIndex - 1;
+            continue;
+        }
+
+        if (trimmedLine === DAB_ENGINE_FAILURE_TEXT) {
+            failureSections.push(trimmedLine);
+        }
+    }
+
+    if (failureSections.length === 0) {
+        return logs.trim();
+    }
+
+    return failureSections.join("\n").trim();
+}
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -59,10 +120,13 @@ const useStyles = makeStyles({
         background: tokens.colorNeutralBackground2,
     },
     logHeader: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
         padding: "6px 8px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
-    logOutput: {
+    logPreview: {
         margin: 0,
         padding: "8px",
         maxHeight: "220px",
@@ -74,6 +138,15 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase200,
         background: tokens.colorNeutralBackground1,
     },
+    logMeta: {
+        padding: "0 8px 8px",
+        color: tokens.colorNeutralForeground3,
+    },
+    logActions: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+    },
 });
 
 interface DabStepCardProps {
@@ -82,13 +155,16 @@ interface DabStepCardProps {
 
 export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const classes = useStyles();
+    const { copyToClipboard, openLogsInNewTab } = useDabContext();
     const [expanded, setExpanded] = useState(true);
-    const [showFullErrorText, setShowFullErrorText] = useState(false);
 
     const labels = getDabStepLabels()[stepStatus.step];
     const isError = stepStatus.status === ApiStatus.Error;
     const isCompleted = stepStatus.status === ApiStatus.Loaded;
     const hasContainerLogs = !!stepStatus.containerLogs?.trim();
+    const failedLogView = getFailureLogView(stepStatus.containerLogs);
+    const logPreview = failedLogView?.slice(0, LOG_PREVIEW_CHAR_COUNT);
+    const areLogsTruncated = !!failedLogView && failedLogView.length > LOG_PREVIEW_CHAR_COUNT;
 
     // Auto-expand on error
     useEffect(() => {
@@ -141,26 +217,48 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
                             </a>
                         </div>
                     )}
-                    {hasContainerLogs && (
+                    {isError && hasContainerLogs && (
                         <div className={classes.logSection}>
-                            <Text block weight="semibold" className={classes.logHeader}>
-                                {locConstants.schemaDesigner.containerLogs}
-                            </Text>
-                            <pre className={classes.logOutput}>{stepStatus.containerLogs}</pre>
+                            <div className={classes.logHeader}>
+                                <Text weight="semibold">
+                                    {locConstants.schemaDesigner.containerLogs}
+                                </Text>
+                                <div className={classes.logActions}>
+                                    <Button
+                                        size="small"
+                                        appearance="subtle"
+                                        icon={<Copy16Regular />}
+                                        title={locConstants.common.copy}
+                                        aria-label={locConstants.common.copy}
+                                        onClick={() =>
+                                            copyToClipboard(
+                                                stepStatus.containerLogs ?? "",
+                                                Dab.CopyTextType.Logs,
+                                            )
+                                        }>
+                                        {locConstants.common.copy}
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        appearance="subtle"
+                                        icon={<Open16Regular />}
+                                        title={locConstants.queryResult.openResultInNewTab}
+                                        aria-label={locConstants.queryResult.openResultInNewTab}
+                                        onClick={() => openLogsInNewTab(failedLogView ?? "")}>
+                                        {locConstants.queryResult.openResultInNewTab}
+                                    </Button>
+                                </div>
+                            </div>
+                            <pre className={classes.logPreview}>{logPreview}</pre>
+                            {areLogsTruncated && (
+                                <Text size={200} className={classes.logMeta}>
+                                    {locConstants.schemaDesigner.showingFirstCharacters(
+                                        LOG_PREVIEW_CHAR_COUNT,
+                                    )}
+                                </Text>
+                            )}
                         </div>
                     )}
-                    <div className={classes.topSpace}>
-                        {isError && showFullErrorText && (
-                            <div style={{ marginBottom: "8px" }}>{stepStatus.fullErrorText}</div>
-                        )}
-                        {stepStatus.fullErrorText && (
-                            <a onClick={() => setShowFullErrorText(!showFullErrorText)}>
-                                {showFullErrorText
-                                    ? locConstants.localContainers.hideFullErrorMessage
-                                    : locConstants.localContainers.showFullErrorMessage}
-                            </a>
-                        )}
-                    </div>
                 </div>
             )}
         </Card>
