@@ -24,6 +24,8 @@ import {
 const dabContainerLogTail = 200;
 const dabLaunchFailureText = "Unable to launch the Data API builder engine.";
 const dabContainerMaxLogBufferChars = 256_000;
+const failLogLinePrefix = "fail:";
+const structuredLogLinePattern = /^(trce|dbug|info|warn|fail|crit):/;
 
 /**
  * Logs from Docker containers can sometimes include non-printable characters that can cause issues when displayed in VS Code or copied to clipboard.
@@ -36,6 +38,59 @@ function sanitizeContainerLogText(text: string): string {
     return text
         .replace(/\u0000/g, "")
         .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+}
+
+export function filterDabContainerLogsForDisplay(logs?: string): string | undefined {
+    if (!logs) {
+        return undefined;
+    }
+
+    const lines = logs.split(/\r?\n/);
+    const failureSections: string[] = [];
+
+    for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+        const trimmedLine = line.trim();
+
+        if (line.startsWith(failLogLinePrefix)) {
+            const blockLines = [line];
+            let nextIndex = index + 1;
+
+            while (nextIndex < lines.length) {
+                const nextLine = lines[nextIndex];
+                const nextTrimmedLine = nextLine.trim();
+
+                if (
+                    nextTrimmedLine === dabLaunchFailureText ||
+                    (structuredLogLinePattern.test(nextLine) &&
+                        !nextLine.startsWith(failLogLinePrefix))
+                ) {
+                    break;
+                }
+
+                if (nextLine.startsWith(failLogLinePrefix) && blockLines.length > 0) {
+                    break;
+                }
+
+                blockLines.push(nextLine);
+                nextIndex++;
+            }
+
+            failureSections.push(blockLines.join("\n").trimEnd());
+            index = nextIndex - 1;
+            continue;
+        }
+
+        if (trimmedLine === dabLaunchFailureText) {
+            failureSections.push(trimmedLine);
+        }
+    }
+
+    if (failureSections.length === 0) {
+        return logs.trim();
+    }
+
+    return failureSections.join("\n").trim();
 }
 
 interface ContainerLogStream {
@@ -173,14 +228,15 @@ export async function checkIfDabContainerIsReady(
 
     const poll = async (): Promise<DockerCommandParams & { containerLogs?: string }> => {
         const logs = logStream?.getLogs();
+        const filteredLogs = filterDabContainerLogsForDisplay(logs);
 
         if (logStream?.hasLaunchFailure()) {
             dockerLogger.appendLine(`DAB container logs:\n${logs}`);
             return {
                 success: false,
                 error: dabLaunchFailureText,
-                fullErrorText: logs,
-                containerLogs: logs,
+                fullErrorText: filteredLogs,
+                containerLogs: filteredLogs,
             };
         }
 
@@ -192,8 +248,8 @@ export async function checkIfDabContainerIsReady(
             return {
                 success: false,
                 error: LocalContainers.dabContainerReadyTimeout,
-                fullErrorText: logs,
-                containerLogs: logs,
+                fullErrorText: filteredLogs,
+                containerLogs: filteredLogs,
             };
         }
 

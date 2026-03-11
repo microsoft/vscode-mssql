@@ -21,62 +21,6 @@ import { useDabContext } from "../dabContext";
 import { getDabStepLabels } from "./dabDeploymentUtils";
 
 const LOG_PREVIEW_CHAR_COUNT = 2000;
-const FAIL_LOG_LINE_PREFIX = "fail:";
-const DAB_ENGINE_FAILURE_TEXT = "Unable to launch the Data API builder engine.";
-const STRUCTURED_LOG_LINE_PATTERN = /^(trce|dbug|info|warn|fail|crit):/;
-
-function getFailureLogView(logs?: string): string | undefined {
-    if (!logs) {
-        return undefined;
-    }
-
-    const lines = logs.split(/\r?\n/);
-    const failureSections: string[] = [];
-
-    for (let index = 0; index < lines.length; index++) {
-        const line = lines[index];
-        const trimmedLine = line.trim();
-
-        if (line.startsWith(FAIL_LOG_LINE_PREFIX)) {
-            const blockLines = [line];
-            let nextIndex = index + 1;
-
-            while (nextIndex < lines.length) {
-                const nextLine = lines[nextIndex];
-                const nextTrimmedLine = nextLine.trim();
-
-                if (
-                    nextTrimmedLine === DAB_ENGINE_FAILURE_TEXT ||
-                    (STRUCTURED_LOG_LINE_PATTERN.test(nextLine) &&
-                        !nextLine.startsWith(FAIL_LOG_LINE_PREFIX))
-                ) {
-                    break;
-                }
-
-                if (nextLine.startsWith(FAIL_LOG_LINE_PREFIX) && blockLines.length > 0) {
-                    break;
-                }
-
-                blockLines.push(nextLine);
-                nextIndex++;
-            }
-
-            failureSections.push(blockLines.join("\n").trimEnd());
-            index = nextIndex - 1;
-            continue;
-        }
-
-        if (trimmedLine === DAB_ENGINE_FAILURE_TEXT) {
-            failureSections.push(trimmedLine);
-        }
-    }
-
-    if (failureSections.length === 0) {
-        return logs.trim();
-    }
-
-    return failureSections.join("\n").trim();
-}
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -129,7 +73,7 @@ const useStyles = makeStyles({
     logPreview: {
         margin: 0,
         padding: "8px",
-        maxHeight: "220px",
+        maxHeight: "100px",
         overflowY: "auto",
         whiteSpace: "pre-wrap",
         wordBreak: "break-word",
@@ -162,9 +106,9 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const isError = stepStatus.status === ApiStatus.Error;
     const isCompleted = stepStatus.status === ApiStatus.Loaded;
     const hasContainerLogs = !!stepStatus.containerLogs?.trim();
-    const failedLogView = getFailureLogView(stepStatus.containerLogs);
-    const logPreview = failedLogView?.slice(0, LOG_PREVIEW_CHAR_COUNT);
-    const areLogsTruncated = !!failedLogView && failedLogView.length > LOG_PREVIEW_CHAR_COUNT;
+    const logPreview = stepStatus.containerLogs?.slice(0, LOG_PREVIEW_CHAR_COUNT);
+    const areLogsTruncated =
+        !!stepStatus.containerLogs && stepStatus.containerLogs.length > LOG_PREVIEW_CHAR_COUNT;
 
     // Auto-expand on error
     useEffect(() => {
@@ -244,7 +188,9 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
                                         icon={<Open16Regular />}
                                         title={locConstants.queryResult.openResultInNewTab}
                                         aria-label={locConstants.queryResult.openResultInNewTab}
-                                        onClick={() => openLogsInNewTab(failedLogView ?? "")}>
+                                        onClick={() =>
+                                            openLogsInNewTab(stepStatus.containerLogs ?? "")
+                                        }>
                                         {locConstants.queryResult.openResultInNewTab}
                                     </Button>
                                 </div>

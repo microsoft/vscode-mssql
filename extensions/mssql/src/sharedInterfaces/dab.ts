@@ -515,7 +515,7 @@ export namespace Dab {
          */
         step: DabDeploymentStepOrder;
         /**
-         * Latest container log snapshot for this step
+         * Filtered container logs for display for this step
          */
         containerLogs?: string;
         /**
@@ -592,7 +592,7 @@ export namespace Dab {
          */
         fullErrorText?: string;
         /**
-         * Container logs captured when the readiness check failed.
+         * Filtered container logs captured when the readiness check failed.
          */
         containerLogs?: string;
         /**
