@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import { PassThrough } from "stream";
 import * as tar from "tar";
 import { DockerCommandParams } from "../sharedInterfaces/localContainers";
 import { LocalContainers } from "../constants/locConstants";
@@ -18,6 +17,7 @@ import {
     findAvailablePort,
     pullContainerImage,
     sanitizeContainerInput,
+    startContainerLogMonitor,
     validateContainerName,
 } from "../docker/dockerUtils";
 
@@ -25,6 +25,13 @@ const dabContainerLogTail = 200;
 const dabLaunchFailureText = "Unable to launch the Data API builder engine.";
 const dabContainerMaxLogBufferChars = 256_000;
 
+/**
+ * Logs from Docker containers can sometimes include non-printable characters that can cause issues when displayed in VS Code or copied to clipboard.
+ * This function removes common non-printable characters while preserving the readability of the logs.
+ * It specifically targets null characters and other control characters that are not typically useful in log output.
+ * @param text The raw log text from the Docker container
+ * @returns The sanitized log text with non-printable characters removed
+ */
 function sanitizeContainerLogText(text: string): string {
     return text
         .replace(/\u0000/g, "")
@@ -45,47 +52,16 @@ async function startContainerLogStream(
         return undefined;
     }
 
-    const dockerClient = getDockerodeClient();
-    const rawLogsStream = (await container.logs({
-        follow: true,
-        stdout: true,
-        stderr: true,
+    const logMonitor = await startContainerLogMonitor(container, {
         tail: dabContainerLogTail,
-    })) as NodeJS.ReadableStream;
-    const stdoutStream = new PassThrough();
-    const stderrStream = new PassThrough();
-    dockerClient.modem.demuxStream(rawLogsStream, stdoutStream, stderrStream);
-
-    let bufferedLogs = "";
-
-    const appendChunk = (chunk: Buffer | string) => {
-        bufferedLogs += sanitizeContainerLogText(chunk.toString("utf8"));
-        if (bufferedLogs.length > dabContainerMaxLogBufferChars) {
-            bufferedLogs = bufferedLogs.slice(-dabContainerMaxLogBufferChars);
-        }
-    };
-
-    const dispose = () => {
-        stdoutStream.removeListener("data", appendChunk);
-        stderrStream.removeListener("data", appendChunk);
-        const destroyLogStream = (
-            rawLogsStream as NodeJS.ReadableStream & {
-                destroy?: () => void;
-            }
-        ).destroy;
-        destroyLogStream?.call(rawLogsStream);
-    };
-
-    stdoutStream.on("data", appendChunk);
-    stderrStream.on("data", appendChunk);
+        maxBufferLength: dabContainerMaxLogBufferChars,
+        transformChunk: sanitizeContainerLogText,
+    });
 
     return {
-        dispose,
-        getLogs: () => {
-            const logs = bufferedLogs.trim();
-            return logs.length > 0 ? logs : undefined;
-        },
-        hasLaunchFailure: () => bufferedLogs.includes(dabLaunchFailureText),
+        dispose: logMonitor.dispose,
+        getLogs: logMonitor.getLogs,
+        hasLaunchFailure: () => logMonitor.includes(dabLaunchFailureText),
     };
 }
 

@@ -33,8 +33,8 @@ import {
     prepareForDockerContainerCommand,
     pullContainerImage,
     sanitizeContainerInput,
+    startContainerLogMonitor,
     startDocker,
-    waitForContainerReadyFromLogs,
 } from "../docker/dockerUtils";
 
 /**
@@ -300,12 +300,12 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
             };
         }
 
-        const isReady = await waitForContainerReadyFromLogs(
-            container,
-            startTimestampSeconds,
-            timeoutMs,
-            readyMessage,
-        );
+        const logMonitor = await startContainerLogMonitor(container, {
+            since: startTimestampSeconds,
+            maxBufferLength: readyMessage.length * 2,
+        });
+        const isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
+        logMonitor.dispose();
         if (isReady) {
             dockerLogger.appendLine(`${containerName} is ready for connections!`);
             return { success: true };
