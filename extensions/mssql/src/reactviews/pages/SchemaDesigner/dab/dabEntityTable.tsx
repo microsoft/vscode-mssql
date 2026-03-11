@@ -87,6 +87,9 @@ const useStyles = makeStyles({
     entityCellDisabled: {
         opacity: 0.6,
     },
+    entityCellUnsupported: {
+        opacity: 0.4,
+    },
     entityNameCell: {
         display: "flex",
         alignItems: "center",
@@ -194,7 +197,7 @@ export const DabEntityTable = () => {
         });
     }, [dabConfig, dabTextFilter]);
 
-    // Group filtered entities by schema
+    // Group filtered entities by schema, with unsupported entities sorted to the bottom
     const entitiesBySchema = useMemo(() => {
         const groups: Record<string, typeof filteredEntities> = {};
         for (const entity of filteredEntities) {
@@ -203,7 +206,17 @@ export const DabEntityTable = () => {
             }
             groups[entity.schemaName].push(entity);
         }
-        return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+        return Object.entries(groups)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(
+                ([schemaName, entities]) =>
+                    [
+                        schemaName,
+                        [...entities].sort(
+                            (a, b) => Number(!a.isSupported) - Number(!b.isSupported),
+                        ),
+                    ] as [string, typeof filteredEntities],
+            );
     }, [filteredEntities]);
 
     // Build flattened row list for DataGrid
@@ -389,7 +402,11 @@ export const DabEntityTable = () => {
                     if (item.type !== "entity") {
                         return null;
                     }
-                    const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
+                    const disabledClass = !item.entity.isSupported
+                        ? classes.entityCellUnsupported
+                        : !item.entity.isEnabled
+                          ? classes.entityCellDisabled
+                          : "";
                     return (
                         <div className={`${classes.entityNameCell} ${disabledClass}`}>
                             <Table16Regular />
@@ -418,7 +435,11 @@ export const DabEntityTable = () => {
                     if (item.type !== "entity") {
                         return null;
                     }
-                    const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
+                    const disabledClass = !item.entity.isSupported
+                        ? classes.entityCellUnsupported
+                        : !item.entity.isEnabled
+                          ? classes.entityCellDisabled
+                          : "";
                     return (
                         <div className={`${classes.sourceCell} ${disabledClass}`}>
                             <Text className={classes.sourceText}>
@@ -436,9 +457,11 @@ export const DabEntityTable = () => {
                         if (item.type !== "entity") {
                             return null;
                         }
-                        const disabledClass = !item.entity.isEnabled
-                            ? classes.entityCellDisabled
-                            : "";
+                        const disabledClass = !item.entity.isSupported
+                            ? classes.entityCellUnsupported
+                            : !item.entity.isEnabled
+                              ? classes.entityCellDisabled
+                              : "";
                         return (
                             <div className={disabledClass}>
                                 {renderActionCell(item.entity, action)}
