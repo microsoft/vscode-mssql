@@ -21,7 +21,7 @@ import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
-import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -68,26 +68,28 @@ export class ProfilerController {
         );
 
         try {
-            // Check server type and handle accordingly
-            const serverTypes = getServerTypes(connectionProfile);
-            this._logger.verbose(`Server types detected: ${serverTypes.join(", ")}`);
+            // Determine if this is an Azure/Fabric server.
+            // Prefer serverInfo from the existing Object Explorer connection over DNS-based heuristic.
+            const serverInfo = this._connectionManager.getServerInfo(connectionProfile);
+            const isAzureOrFabric = serverInfo
+                ? serverInfo.isCloud
+                : isAzureSqlDbCompatible(getServerTypes(connectionProfile));
+            this._logger.verbose(
+                serverInfo
+                    ? `Server info: engineEditionId=${serverInfo.engineEditionId}, isCloud=${serverInfo.isCloud}`
+                    : `Server types detected: ${getServerTypes(connectionProfile).join(", ")}`,
+            );
 
             // Determine engine type based on server type
-            this._currentEngineType = serverTypes.includes(ServerType.Azure)
+            // Fabric SQL databases use the same Azure SQL profiles
+            this._currentEngineType = isAzureOrFabric
                 ? EngineType.AzureSQLDB
                 : EngineType.Standalone;
             this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
 
-            // Block Fabric connections - profiler is not supported
-            if (serverTypes.includes(ServerType.Fabric)) {
-                this._logger.verbose("Profiler not supported on Fabric");
-                vscode.window.showWarningMessage(LocProfiler.profilerNotSupportedOnFabric);
-                return;
-            }
-
-            // For Azure SQL, we need to ensure a user database is selected
+            // For Azure SQL and Fabric, we need to ensure a user database is selected
             let profileToUse = connectionProfile;
-            if (serverTypes.includes(ServerType.Azure)) {
+            if (isAzureOrFabric) {
                 const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
                 if (!updatedProfile) {
                     // User cancelled database selection
