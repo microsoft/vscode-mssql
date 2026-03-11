@@ -144,22 +144,29 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                         onClick={onViewConfig}>
                         {locConstants.schemaDesigner.viewConfig}
                     </Button>
-                    <Tooltip
-                        content={
-                            isDabDeploymentSupported
-                                ? locConstants.schemaDesigner.deploy
-                                : locConstants.schemaDesigner.dabDeploymentNotSupported
-                        }
-                        relationship="label">
+                    {isDabDeploymentSupported ? (
                         <Button
                             appearance="primary"
                             icon={<FluentIcons.Play16Filled />}
                             size="small"
-                            disabled={!isDabDeploymentSupported}
                             onClick={openDabDeploymentDialog}>
                             {locConstants.schemaDesigner.deploy}
                         </Button>
-                    </Tooltip>
+                    ) : (
+                        <Tooltip
+                            content={locConstants.schemaDesigner.dabDeploymentNotSupported}
+                            relationship="label">
+                            <span>
+                                <Button
+                                    appearance="primary"
+                                    icon={<FluentIcons.Play16Filled />}
+                                    size="small"
+                                    disabled>
+                                    {locConstants.schemaDesigner.deploy}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    )}
                 </div>
             </div>
 
