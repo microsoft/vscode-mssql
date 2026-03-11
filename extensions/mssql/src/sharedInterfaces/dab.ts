@@ -791,17 +791,17 @@ export namespace Dab {
 
     /**
      * SQL Server data types that are not supported by Data API Builder.
+     * Documented at https://learn.microsoft.com/en-us/azure/data-api-builder/feature-availability#unsupported-data-types
      */
     export const DAB_UNSUPPORTED_DATA_TYPES = [
-        "geography",
-        "geometry",
-        "hierarchyid",
+        "sys.geography",
+        "sys.geometry",
+        "sys.hierarchyid",
+        "json",
+        "rowversion",
         "sql_variant",
+        "vector",
         "xml",
-        "image",
-        "text",
-        "ntext",
-        "timestamp",
     ];
 
     /**
