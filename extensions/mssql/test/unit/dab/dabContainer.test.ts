@@ -173,9 +173,8 @@ suite("DAB Container", () => {
         }
     });
 
-    test("startDabDockerContainer: should return container logs when start fails", async () => {
+    test("startDabDockerContainer: should return full error text when start fails", async () => {
         const startStub = sandbox.stub().rejects(new Error("Container exited immediately"));
-        const logsStub = sandbox.stub().resolves(Buffer.from("fail: startup failed\nstack trace"));
         const putArchiveStub = sandbox.stub().callsFake((stream: NodeJS.ReadableStream) => {
             return new Promise<void>((resolve) => {
                 stream.on("end", resolve);
@@ -186,7 +185,6 @@ suite("DAB Container", () => {
         const createContainerStub = sandbox.stub().resolves({
             start: startStub,
             putArchive: putArchiveStub,
-            logs: logsStub,
         });
         const dockerClientMock = createDockerClientMock({
             createContainer: createContainerStub,
@@ -204,7 +202,7 @@ suite("DAB Container", () => {
 
             expect(result.success).to.be.false;
             expect(result.error).to.include("Failed to start DAB container");
-            expect(result.containerLogs).to.equal("fail: startup failed\nstack trace");
+            expect(result.fullErrorText).to.equal("Container exited immediately");
         } finally {
             fs.unlinkSync(configFilePath);
             fs.rmdirSync(tempDir);

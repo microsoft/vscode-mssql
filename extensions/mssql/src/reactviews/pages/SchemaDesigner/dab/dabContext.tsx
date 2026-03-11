@@ -38,7 +38,7 @@ interface DabContextProps {
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
-    retryDabDeploymentSteps: () => void;
+    retryDabDeploymentSteps: () => Promise<void>;
     addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
 }
 
@@ -368,7 +368,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         setDabDeploymentState(Dab.createDefaultDeploymentState());
     }, []);
 
-    const retryDabDeploymentSteps = useCallback(() => {
+    const retryDabDeploymentSteps = useCallback(async () => {
+        try {
+            await extensionRpc.sendRequest(Dab.StopDeploymentRequest.type, {
+                containerName: dabDeploymentState.params.containerName,
+            });
+        } catch (error) {
+            console.error("Failed to clean up DAB container before retry:", error);
+        }
+
         setDabDeploymentState((prev) => ({
             ...prev,
             currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
@@ -389,7 +397,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             error: undefined,
             apiUrl: undefined,
         }));
-    }, []);
+    }, [dabDeploymentState.params.containerName, extensionRpc]);
 
     const addDabMcpServer = useCallback(
         async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {

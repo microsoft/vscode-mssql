@@ -499,12 +499,11 @@ suite("DabService Tests", () => {
             expect(result.error).to.include("required");
         });
 
-        test("should return startup logs when startContainer fails", async () => {
+        test("should expose startContainer full error text as frontend log content", async () => {
             sandbox.stub(dabContainer, "startDabDockerContainer").resolves({
                 success: false,
                 error: "Failed to start DAB container. Please check the Docker logs for details.",
                 fullErrorText: "Container exited immediately",
-                containerLogs: "fail: startup failed",
             });
 
             const params: Dab.DabDeploymentParams = {
@@ -520,7 +519,7 @@ suite("DabService Tests", () => {
             );
 
             expect(result.success).to.be.false;
-            expect(result.containerLogs).to.equal("fail: startup failed");
+            expect(result.containerLogs).to.equal("Container exited immediately");
         });
 
         test("should run checkContainer step successfully", async () => {
