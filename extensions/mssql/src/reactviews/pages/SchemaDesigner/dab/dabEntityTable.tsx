@@ -14,6 +14,7 @@ import {
     DataGridRow,
     TableColumnDefinition,
     TableColumnSizingOptions,
+    Tooltip,
     createTableColumn,
     makeStyles,
     Text,
@@ -24,6 +25,7 @@ import {
     ChevronRight16Regular,
     Settings16Regular,
     Table16Regular,
+    Warning16Regular,
 } from "@fluentui/react-icons";
 import { Schema16Regular } from "../../../common/icons/fluentIcons";
 import { useCallback, useMemo, useState } from "react";
@@ -114,6 +116,10 @@ const useStyles = makeStyles({
     },
     settingsButton: {
         minWidth: "auto",
+    },
+    warningIcon: {
+        color: tokens.colorPaletteYellowForeground2,
+        flexShrink: 0,
     },
     emptyState: {
         display: "flex",
@@ -241,7 +247,7 @@ export const DabEntityTable = () => {
 
     const renderActionHeaderCell = useCallback(
         (action: Dab.EntityAction) => {
-            const enabledEntities = filteredEntities.filter((e) => e.isEnabled);
+            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
             const withAction = enabledEntities.filter((e) => e.enabledActions.includes(action));
             const allHave =
                 enabledEntities.length > 0 && withAction.length === enabledEntities.length;
@@ -284,8 +290,10 @@ export const DabEntityTable = () => {
 
     const renderSchemaRow = useCallback(
         (rowId: string | number, schemaName: string, entities: Dab.DabEntityConfig[]) => {
-            const enabledCount = entities.filter((e) => e.isEnabled).length;
-            const allChecked = enabledCount === entities.length;
+            const supportedEntities = entities.filter((e) => e.isSupported);
+            const enabledCount = supportedEntities.filter((e) => e.isEnabled).length;
+            const allChecked =
+                supportedEntities.length > 0 && enabledCount === supportedEntities.length;
             const noneChecked = enabledCount === 0;
             const isCollapsed = collapsedSchemas.has(schemaName);
             return (
@@ -304,6 +312,7 @@ export const DabEntityTable = () => {
                                 {isCollapsed ? <ChevronRight16Regular /> : <ChevronDown16Regular />}
                                 <Checkbox
                                     checked={allChecked ? true : noneChecked ? false : "mixed"}
+                                    disabled={supportedEntities.length === 0}
                                     aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
                                         schemaName,
                                     )}
@@ -311,7 +320,7 @@ export const DabEntityTable = () => {
                                     onChange={(_, data) => {
                                         const enable =
                                             data.checked === true || data.checked === "mixed";
-                                        for (const entity of entities) {
+                                        for (const entity of supportedEntities) {
                                             toggleDabEntity(entity.id, enable);
                                         }
                                     }}
@@ -344,6 +353,7 @@ export const DabEntityTable = () => {
                         <div className={classes.entityCheckboxCell}>
                             <Checkbox
                                 checked={item.entity.isEnabled}
+                                disabled={!item.entity.isSupported}
                                 aria-label={locConstants.schemaDesigner.enableEntity(
                                     item.entity.advancedSettings.entityName,
                                 )}
@@ -351,6 +361,15 @@ export const DabEntityTable = () => {
                                     toggleDabEntity(item.entity.id, data.checked === true)
                                 }
                             />
+                            {!item.entity.isSupported && item.entity.unsupportedReason && (
+                                <Tooltip
+                                    content={item.entity.unsupportedReason}
+                                    relationship="description">
+                                    <span>
+                                        <Warning16Regular className={classes.warningIcon} />
+                                    </span>
+                                </Tooltip>
+                            )}
                         </div>
                     );
                 },

@@ -81,6 +81,16 @@ export namespace Dab {
          */
         isEnabled: boolean;
         /**
+         * Whether this table is supported by DAB.
+         * Tables without primary keys or with unsupported data types are not supported.
+         */
+        isSupported: boolean;
+        /**
+         * Reason why the table is not supported (shown to user).
+         * Only set when isSupported is false.
+         */
+        unsupportedReason?: string;
+        /**
          * Enabled CRUD actions for this entity
          */
         enabledActions: EntityAction[];
@@ -768,14 +778,74 @@ export namespace Dab {
     // ============================================
 
     /**
+     * Human-readable reason strings for unsupported DAB entities.
+     * These are intentionally not localized because they are defined in
+     * sharedInterfaces (no access to l10n). They contain technical details
+     * (column names and data types) that are language-neutral.
+     */
+    export const DabUnsupportedReasons = {
+        noPrimaryKey: "Table must have a primary key to be used with Data API Builder",
+        unsupportedDataTypes: (columns: string) =>
+            `Table contains column types not supported by Data API Builder: ${columns}`,
+    };
+
+    /**
+     * SQL Server data types that are not supported by Data API Builder.
+     */
+    export const DAB_UNSUPPORTED_DATA_TYPES = [
+        "geography",
+        "geometry",
+        "hierarchyid",
+        "sql_variant",
+        "xml",
+        "image",
+        "text",
+        "ntext",
+        "timestamp",
+    ];
+
+    /**
+     * Validates whether a schema table is supported by DAB.
+     * Runs all checks and collects all reasons for unsupported tables.
+     * @returns An object with isSupported and an optional reason string.
+     */
+    export function validateTableForDab(table: SchemaDesigner.Table): {
+        isSupported: boolean;
+        reason?: string;
+    } {
+        const columns = table.columns ?? [];
+        const reasons: string[] = [];
+
+        const hasPrimaryKey = columns.some((c) => c.isPrimaryKey);
+        if (!hasPrimaryKey) {
+            reasons.push(DabUnsupportedReasons.noPrimaryKey);
+        }
+
+        const unsupportedColumns = columns.filter(
+            (c) => c.dataType && DAB_UNSUPPORTED_DATA_TYPES.includes(c.dataType.toLowerCase()),
+        );
+        if (unsupportedColumns.length > 0) {
+            const details = unsupportedColumns.map((c) => `${c.name} (${c.dataType})`).join(", ");
+            reasons.push(DabUnsupportedReasons.unsupportedDataTypes(details));
+        }
+
+        return reasons.length > 0
+            ? { isSupported: false, reason: reasons.join("; ") }
+            : { isSupported: true };
+    }
+
+    /**
      * Creates default entity configuration from a schema table
      */
     export function createDefaultEntityConfig(table: SchemaDesigner.Table): DabEntityConfig {
+        const { isSupported, reason } = validateTableForDab(table);
         return {
             id: table.id,
             tableName: table.name,
             schemaName: table.schema,
-            isEnabled: true,
+            isEnabled: isSupported,
+            isSupported,
+            unsupportedReason: reason,
             enabledActions: [
                 EntityAction.Create,
                 EntityAction.Read,

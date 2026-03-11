@@ -14,6 +14,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
         tableName: "Users",
         schemaName: "dbo",
         isEnabled: true,
+        isSupported: true,
         enabledActions: [
             Dab.EntityAction.Create,
             Dab.EntityAction.Read,

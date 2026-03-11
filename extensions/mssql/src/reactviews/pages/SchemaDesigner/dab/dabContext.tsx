@@ -93,14 +93,40 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         }
 
         const schema = extractSchema();
-        const currentTableIds = new Set(schema.tables.map((t) => t.id));
+        const tableById = new Map(schema.tables.map((t) => [t.id, t]));
         const existingEntityIds = new Set(dabConfig.entities.map((e) => e.id));
 
+        // Re-validate existing entities against the current schema
+        const updatedEntities = dabConfig.entities
+            .filter((e) => tableById.has(e.id))
+            .map((e) => {
+                const table = tableById.get(e.id)!;
+                const { isSupported, reason } = Dab.validateTableForDab(table);
+                return {
+                    ...e,
+                    isSupported,
+                    unsupportedReason: reason,
+                    // Force disable if newly unsupported; keep current state otherwise
+                    isEnabled: !isSupported ? false : e.isEnabled,
+                };
+            });
+
         const newTables = schema.tables.filter((t) => !existingEntityIds.has(t.id));
-        const updatedEntities = dabConfig.entities.filter((e) => currentTableIds.has(e.id));
         const newEntities = newTables.map((t) => Dab.createDefaultEntityConfig(t));
 
-        if (newEntities.length > 0 || updatedEntities.length !== dabConfig.entities.length) {
+        const entitiesRemoved = updatedEntities.length !== dabConfig.entities.length;
+        const entitiesAdded = newEntities.length > 0;
+        const originalById = new Map(dabConfig.entities.map((e) => [e.id, e]));
+        const validationChanged = updatedEntities.some((updated) => {
+            const original = originalById.get(updated.id)!;
+            return (
+                updated.isSupported !== original.isSupported ||
+                updated.unsupportedReason !== original.unsupportedReason ||
+                updated.isEnabled !== original.isEnabled
+            );
+        });
+
+        if (entitiesAdded || entitiesRemoved || validationChanged) {
             setDabConfig({
                 ...dabConfig,
                 entities: [...updatedEntities, ...newEntities],
