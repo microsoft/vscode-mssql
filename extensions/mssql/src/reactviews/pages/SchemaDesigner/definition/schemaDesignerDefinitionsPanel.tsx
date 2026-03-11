@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { DefinitionPanel } from "../../../common/definitionPanel";
 import {
     SchemaDesignerDefinitionPanelTab,
@@ -30,11 +30,12 @@ export const SchemaDesignerDefinitionsPanel = () => {
         setCode,
         initializeBaselineDefinition,
         definitionPaneRef,
+        isDefinitionPanelVisible,
+        setIsDefinitionPanelVisible,
         setIsChangesPanelVisible,
         activeTab,
         setActiveTab,
     } = useSchemaDesignerDefinitionPanelContext();
-    const [isDefinitionPanelVisible, setIsDefinitionPanelVisible] = useState<boolean>(true);
     const scriptTab = useSchemaDesignerScriptTab();
     const changesCustomTab = useSchemaDesignerChangesCustomTab();
     const copilotChangesCustomTab = useSchemaDesignerCopilotChangesCustomTab();
