@@ -14,6 +14,7 @@ import { ProfilerService } from "../../../src/services/profilerService";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
 import { SessionState, SessionType } from "../../../src/profiler/profilerTypes";
+import { stubVscodeWrapper } from "../utils";
 
 chai.use(sinonChai);
 
@@ -40,29 +41,6 @@ function createMockProfilerService(
 }
 
 /**
- * Creates a mock VscodeWrapper for testing.
- */
-function createMockVscodeWrapper(
-    sandbox: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const mock = sandbox.createStubInstance(VscodeWrapper);
-    const mockOutputChannel = {
-        appendLine: sandbox.stub(),
-        append: sandbox.stub(),
-        show: sandbox.stub(),
-        clear: sandbox.stub(),
-    } as unknown as vscode.OutputChannel;
-    Object.defineProperty(mock, "outputChannel", {
-        get: () => mockOutputChannel,
-        configurable: true,
-    });
-    mock.getConfiguration.returns({
-        get: sandbox.stub().returns(10000),
-    } as unknown as vscode.WorkspaceConfiguration);
-    return mock;
-}
-
-/**
  * Creates a mock ConnectionManager for testing.
  */
 function createMockConnectionManager(
@@ -85,11 +63,9 @@ function createMockConnectionManager(
     };
     Object.defineProperty(mock, "connectionStore", {
         get: () => connectionStore,
-        configurable: true,
     });
     Object.defineProperty(mock, "connectionUI", {
         get: () => connectionUI,
-        configurable: true,
     });
     mock.connect.resolves(true);
     mock.disconnect.resolves(true);
@@ -174,7 +150,10 @@ suite("ProfilerController Tests", () => {
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
 
-        mockVscodeWrapper = createMockVscodeWrapper(sandbox);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        mockVscodeWrapper.getConfiguration.returns({
+            get: sandbox.stub().returns(10000),
+        } as unknown as vscode.WorkspaceConfiguration);
         mockConnectionManager = createMockConnectionManager(sandbox);
         mockProfilerService = createMockProfilerService(sandbox);
         mockSessionManager = new ProfilerSessionManager(mockProfilerService);
@@ -678,27 +657,15 @@ suite("ProfilerController Server Type Tests", () => {
         };
         Object.defineProperty(mockConnectionManager, "connectionStore", {
             get: () => connectionStore,
-            configurable: true,
         });
         Object.defineProperty(mockConnectionManager, "connectionUI", {
             get: () => connectionUI,
-            configurable: true,
         });
         mockConnectionManager.connect.resolves(true);
         mockConnectionManager.disconnect.resolves(true);
         mockConnectionManager.listDatabases.resolves(["UserDB1", "UserDB2", "master", "tempdb"]);
 
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        const mockOutputChannel = {
-            appendLine: sandbox.stub(),
-            append: sandbox.stub(),
-            show: sandbox.stub(),
-            clear: sandbox.stub(),
-        } as unknown as vscode.OutputChannel;
-        Object.defineProperty(mockVscodeWrapper, "outputChannel", {
-            get: () => mockOutputChannel,
-            configurable: true,
-        });
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockVscodeWrapper.getConfiguration.returns({
             get: sandbox.stub().returns(10000),
         } as unknown as vscode.WorkspaceConfiguration);
