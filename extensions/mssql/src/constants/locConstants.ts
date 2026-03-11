@@ -3114,9 +3114,6 @@ export class Profiler {
     public static noDatabasesFound = l10n.t(
         "No databases found on the server. Please check your connection.",
     );
-    public static profilerNotSupportedOnFabric = l10n.t(
-        "Profiler is not supported on Microsoft Fabric SQL databases.",
-    );
 }
 
 export class Proxy {

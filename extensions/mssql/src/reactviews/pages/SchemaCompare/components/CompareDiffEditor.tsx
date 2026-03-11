@@ -4,16 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useEffect, useRef, forwardRef } from "react";
-import { DiffEditor } from "@monaco-editor/react";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
     SchemaCompareReducers,
     SchemaCompareWebViewState,
 } from "../../../../sharedInterfaces/schemaCompare";
-import { resolveVscodeThemeType } from "../../../common/utils";
 import { Divider, makeStyles, tokens } from "@fluentui/react-components";
 import { locConstants as loc } from "../../../common/locConstants";
+import { VscodeDiffEditor } from "../../../common/vscodeMonaco";
 import * as mssql from "vscode-mssql";
 import "./compareDiffEditor.css";
 
@@ -110,12 +109,12 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
                         {loc.schemaCompare.compareDetails}
                     </Divider>
                 </div>
-                <DiffEditor
+                <VscodeDiffEditor
                     height="100%"
                     language="sql"
                     original={modified}
                     modified={original}
-                    theme={resolveVscodeThemeType(themeKind)}
+                    themeKind={themeKind}
                     options={{
                         renderSideBySide: renderSideBySide ?? true,
                         renderOverviewRuler: true,
