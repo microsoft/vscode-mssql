@@ -1302,6 +1302,9 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
+            dabDeploymentNotSupported: l10n.t(
+                "Local container deployment is currently only supported for SQL Authentication connections.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog

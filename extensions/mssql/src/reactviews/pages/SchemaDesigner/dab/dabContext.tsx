@@ -7,10 +7,12 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { registerSchemaDesignerDabToolHandlers } from "../schemaDesignerRpcHandlers";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 interface DabContextProps {
     isInitialized: boolean;
+    isDabDeploymentSupported: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     openUrl: (url: string) => void;
     dabConfig: Dab.DabConfig | null;
@@ -49,6 +51,8 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
     const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
         schemaDesignerContext;
+    const isDabDeploymentSupported =
+        useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
@@ -379,6 +383,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         <DabContext.Provider
             value={{
                 isInitialized,
+                isDabDeploymentSupported,
                 copyToClipboard,
                 openUrl,
                 dabConfig,

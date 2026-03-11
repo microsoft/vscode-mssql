@@ -1739,6 +1739,9 @@ export class SchemaDesigner {
     public static failedToOpenUrl = l10n.t(
         "Failed to open URL. The built-in Simple Browser may be disabled.",
     );
+    public static dabDeploymentNotSupported = l10n.t(
+        "Local container deployment is currently only supported for SQL Authentication connections.",
+    );
 }
 
 export class StatusBar {
