@@ -460,6 +460,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                           sqlServerContainerName: this._sqlServerContainerName,
                       }
                     : undefined,
+                payload.step === Dab.DabDeploymentStepOrder.checkContainer
+                    ? (containerLogs) => {
+                          void this.sendNotification(Dab.DeploymentLogNotification.type, {
+                              step: payload.step,
+                              containerLogs,
+                          });
+                      }
+                    : undefined,
             );
         });
 

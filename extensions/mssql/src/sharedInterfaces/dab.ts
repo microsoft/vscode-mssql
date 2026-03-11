@@ -305,6 +305,27 @@ export namespace Dab {
     }
 
     // ============================================
+    // Notifications (Extension -> Webview)
+    // ============================================
+
+    /**
+     * Incremental deployment log update for a specific DAB deployment step.
+     */
+    export interface DabDeploymentLogUpdate {
+        step: DabDeploymentStepOrder;
+        containerLogs: string;
+    }
+
+    export namespace DeploymentLogNotification {
+        export const type = new NotificationType<DabDeploymentLogUpdate>("dab/deploymentLog");
+    }
+
+    /**
+     * Callback used to stream the latest container logs while a deployment step is running.
+     */
+    export type DabDeploymentLogHandler = (logs: string) => void | Promise<void>;
+
+    // ============================================
     // Notifications (Webview -> Extension)
     // ============================================
 
@@ -502,6 +523,10 @@ export namespace Dab {
          * The step this status is for
          */
         step: DabDeploymentStepOrder;
+        /**
+         * Latest container log snapshot for this step
+         */
+        containerLogs?: string;
         /**
          * Full error text for debugging
          */
@@ -744,6 +769,7 @@ export namespace Dab {
             params?: DabDeploymentParams,
             config?: DabConfig,
             connectionInfo?: DabConnectionInfo,
+            onDeploymentLog?: DabDeploymentLogHandler,
         ): Promise<RunDeploymentStepResponse>;
 
         /**

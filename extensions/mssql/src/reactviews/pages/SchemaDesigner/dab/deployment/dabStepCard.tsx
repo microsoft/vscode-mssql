@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Spinner, Card, Button, makeStyles, tokens } from "@fluentui/react-components";
+import { Spinner, Card, Button, Text, makeStyles, tokens } from "@fluentui/react-components";
 import {
     Checkmark20Regular,
     ChevronDown20Regular,
@@ -50,6 +50,30 @@ const useStyles = makeStyles({
         marginLeft: "32px",
         marginBottom: "8px",
     },
+    logSection: {
+        marginTop: "12px",
+        marginRight: "8px",
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: tokens.borderRadiusMedium,
+        overflow: "hidden",
+        background: tokens.colorNeutralBackground2,
+    },
+    logHeader: {
+        padding: "6px 8px",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    logOutput: {
+        margin: 0,
+        padding: "8px",
+        maxHeight: "220px",
+        overflowY: "auto",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        fontFamily: "var(--vscode-editor-font-family)",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+        background: tokens.colorNeutralBackground1,
+    },
 });
 
 interface DabStepCardProps {
@@ -64,6 +88,7 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const labels = getDabStepLabels()[stepStatus.step];
     const isError = stepStatus.status === ApiStatus.Error;
     const isCompleted = stepStatus.status === ApiStatus.Loaded;
+    const hasContainerLogs = !!stepStatus.containerLogs?.trim();
 
     // Auto-expand on error
     useEffect(() => {
@@ -114,6 +139,14 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
                                 rel="noopener noreferrer">
                                 {stepStatus.errorLinkText}
                             </a>
+                        </div>
+                    )}
+                    {hasContainerLogs && (
+                        <div className={classes.logSection}>
+                            <Text block weight="semibold" className={classes.logHeader}>
+                                {locConstants.schemaDesigner.containerLogs}
+                            </Text>
+                            <pre className={classes.logOutput}>{stepStatus.containerLogs}</pre>
                         </div>
                     )}
                     <div className={classes.topSpace}>

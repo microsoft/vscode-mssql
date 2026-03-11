@@ -20,6 +20,8 @@ import {
     validateContainerName,
 } from "../docker/dockerUtils";
 
+const dabContainerLogTail = 200;
+
 /**
  * Pulls the DAB container image from MCR
  */
@@ -115,28 +117,69 @@ export async function startDabDockerContainer(
 export async function checkIfDabContainerIsReady(
     containerName: string,
     port: number,
+    onLogUpdate?: Dab.DabDeploymentLogHandler,
 ): Promise<DockerCommandParams> {
     const timeoutMs = 60_000; // 1 minute timeout for DAB
     const intervalMs = 1000;
     const start = Date.now();
+    let lastPublishedLogs = "";
+    let isPublishingLogs = false;
 
     dockerLogger.appendLine(
         `Checking if DAB container ${containerName} is ready on port ${port}...`,
     );
 
+    const getContainerLogSnapshot = async (): Promise<string | undefined> => {
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            return undefined;
+        }
+
+        const logs = await container.logs({
+            stdout: true,
+            stderr: true,
+            tail: dabContainerLogTail,
+        });
+
+        const nextLogs = logs.toString("utf8").trim();
+        return nextLogs.length > 0 ? nextLogs : undefined;
+    };
+
+    const publishContainerLogs = async (): Promise<void> => {
+        if (!onLogUpdate || isPublishingLogs) {
+            return;
+        }
+
+        isPublishingLogs = true;
+        try {
+            const nextLogs = await getContainerLogSnapshot();
+            if (!nextLogs || nextLogs === lastPublishedLogs) {
+                return;
+            }
+
+            lastPublishedLogs = nextLogs;
+            await onLogUpdate(nextLogs);
+        } catch {
+            // Ignore log retrieval errors while waiting for readiness
+        } finally {
+            isPublishingLogs = false;
+        }
+    };
+
+    const logInterval = onLogUpdate
+        ? setInterval(() => {
+              void publishContainerLogs();
+          }, intervalMs)
+        : undefined;
+
     const poll = async (): Promise<DockerCommandParams> => {
         // Check timeout before polling
         if (Date.now() - start > timeoutMs) {
-            // Try to get container logs for debugging
             try {
-                const container = await getContainerByName(containerName);
-                if (container) {
-                    const logs = await container.logs({
-                        stdout: true,
-                        stderr: true,
-                        tail: 50,
-                    });
-                    dockerLogger.appendLine(`DAB container logs:\n${logs.toString()}`);
+                await publishContainerLogs();
+                const logs = await getContainerLogSnapshot();
+                if (logs) {
+                    dockerLogger.appendLine(`DAB container logs:\n${logs}`);
                 }
             } catch {
                 // Ignore log retrieval errors
@@ -170,7 +213,14 @@ export async function checkIfDabContainerIsReady(
         return poll();
     };
 
-    return poll();
+    try {
+        await publishContainerLogs();
+        return await poll();
+    } finally {
+        if (logInterval) {
+            clearInterval(logInterval);
+        }
+    }
 }
 
 /**

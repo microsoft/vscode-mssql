@@ -60,6 +60,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
         Dab.createDefaultDeploymentState(),
     );
+    const deploymentLogNotificationRegisteredRef = useRef(false);
 
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
     const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
@@ -266,6 +267,29 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
+    const updateDeploymentStepLogs = useCallback(
+        (step: Dab.DabDeploymentStepOrder, containerLogs?: string) => {
+            setDabDeploymentState((prev) => ({
+                ...prev,
+                stepStatuses: prev.stepStatuses.map((s) =>
+                    s.step === step ? { ...s, containerLogs } : s,
+                ),
+            }));
+        },
+        [],
+    );
+
+    useEffect(() => {
+        if (deploymentLogNotificationRegisteredRef.current) {
+            return;
+        }
+
+        deploymentLogNotificationRegisteredRef.current = true;
+        extensionRpc.onNotification(Dab.DeploymentLogNotification.type, (payload) => {
+            updateDeploymentStepLogs(payload.step, payload.containerLogs);
+        });
+    }, [extensionRpc, updateDeploymentStepLogs]);
+
     const updateDeploymentStepStatus = useCallback(
         (
             step: Dab.DabDeploymentStepOrder,
@@ -289,6 +313,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
 
     const runDabDeploymentStep = useCallback(
         async (step: Dab.DabDeploymentStepOrder) => {
+            updateDeploymentStepLogs(step, undefined);
             updateDeploymentStepStatus(step, ApiStatus.Loading);
 
             if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
@@ -340,7 +365,13 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 );
             }
         },
-        [dabConfig, dabDeploymentState.params, extensionRpc, updateDeploymentStepStatus],
+        [
+            dabConfig,
+            dabDeploymentState.params,
+            extensionRpc,
+            updateDeploymentStepLogs,
+            updateDeploymentStepStatus,
+        ],
     );
 
     const resetDabDeploymentState = useCallback(() => {
@@ -357,6 +388,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                         ...s,
                         status: ApiStatus.NotStarted,
                         message: undefined,
+                        containerLogs: undefined,
                         fullErrorText: undefined,
                         errorLink: undefined,
                         errorLinkText: undefined,

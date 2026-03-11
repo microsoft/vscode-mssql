@@ -1410,6 +1410,7 @@ export class LocConstants {
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
+            containerLogs: l10n.t("Container logs"),
         };
     }
 

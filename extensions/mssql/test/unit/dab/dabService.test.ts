@@ -508,6 +508,33 @@ suite("DabService Tests", () => {
             expect(result.apiUrl).to.equal("http://localhost:5000");
         });
 
+        test("should forward deployment log updates for checkContainer", async () => {
+            const deploymentLogHandler = sandbox.stub().resolves();
+            const checkIfReadyStub = sandbox
+                .stub(dabContainer, "checkIfDabContainerIsReady")
+                .callsFake(async (_containerName, _port, onDeploymentLog) => {
+                    await onDeploymentLog?.("startup log");
+                    return { success: true, port: 5000 };
+                });
+
+            const params: Dab.DabDeploymentParams = {
+                containerName: "test-container",
+                port: 5000,
+            };
+
+            const result = await dabService.runDeploymentStep(
+                Dab.DabDeploymentStepOrder.checkContainer,
+                params,
+                undefined,
+                undefined,
+                deploymentLogHandler,
+            );
+
+            expect(result.success).to.be.true;
+            expect(checkIfReadyStub).to.have.been.calledOnce;
+            expect(deploymentLogHandler).to.have.been.calledOnceWith("startup log");
+        });
+
         test("should return error when checkContainer is called without params", async () => {
             const result = await dabService.runDeploymentStep(
                 Dab.DabDeploymentStepOrder.checkContainer,

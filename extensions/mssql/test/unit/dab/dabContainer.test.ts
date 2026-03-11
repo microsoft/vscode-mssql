@@ -204,6 +204,67 @@ suite("DAB Container", () => {
         global.fetch = originalFetch;
     });
 
+    test("checkIfDabContainerIsReady: should publish container logs while checking readiness", async () => {
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().resolves({
+            status: 200,
+        } as Response);
+
+        const logsStub = sandbox.stub().resolves(Buffer.from("startup log"));
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().resolves([{ Id: "container-id" }]),
+            getContainer: sandbox.stub().returns({
+                logs: logsStub,
+            }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const onLogUpdate = sandbox.stub().resolves();
+
+        const result = await dabContainer.checkIfDabContainerIsReady(
+            "test-dab-container",
+            5000,
+            onLogUpdate,
+        );
+
+        expect(result.success).to.be.true;
+        expect(onLogUpdate).to.have.been.calledOnceWith("startup log");
+
+        global.fetch = originalFetch;
+    });
+
+    test("checkIfDabContainerIsReady: should return timeout after publishing the latest logs", async () => {
+        const clock = sandbox.useFakeTimers();
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().rejects(new Error("Connection refused"));
+
+        const logsStub = sandbox.stub().resolves(Buffer.from("still starting"));
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().resolves([{ Id: "container-id" }]),
+            getContainer: sandbox.stub().returns({
+                logs: logsStub,
+            }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const onLogUpdate = sandbox.stub().resolves();
+
+        const resultPromise = dabContainer.checkIfDabContainerIsReady(
+            "test-dab-container",
+            5000,
+            onLogUpdate,
+        );
+
+        await clock.tickAsync(61_000);
+        const result = await resultPromise;
+
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("timeout period");
+        expect(onLogUpdate).to.have.been.calledWith("still starting");
+
+        global.fetch = originalFetch;
+    });
+
     test("stopAndRemoveDabContainer: should stop and remove a DAB container successfully", async () => {
         const stopStub = sandbox.stub().resolves();
         const removeStub = sandbox.stub().resolves();
