@@ -1469,6 +1469,10 @@ export class UserSurvey {
         "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     );
     public static submitIssue = l10n.t("Submit an issue");
+    public static mssqlMarketplaceReviewPrompt = l10n.t(
+        "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    );
+    public static writeReview = l10n.t("Write a review");
 }
 
 export class Webview {

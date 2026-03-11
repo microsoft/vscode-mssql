@@ -124,6 +124,7 @@ export enum TelemetryActions {
     LoadConnections = "LoadConnections",
     AddFirewallRule = "AddFirewallRule",
     SubmitGithubIssue = "SubmitGithubIssue",
+    SubmitReview = "SubmitReview",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     OpenDeployment = "OpenDeploymentDialog",
