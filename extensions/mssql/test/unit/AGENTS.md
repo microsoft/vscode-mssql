@@ -5,6 +5,7 @@
 - You must not edit application/source files unless writing effective unit tests demands it. Confirm before editing files outside of /test/unit, and justify why you need to make those changes.
 - You must use Sinon, not TypeMoq. If easily possible, replace TypeMoq mocks/stubs/helpers with Sinon equivalents.
 - You must use chai's `expect` for assertions; when checking Sinon interactions, use sinon-chai. Avoid `sinon.assert` and Node's `assert` in favor of `expect(...).to.have.been...` helpers.
+- For telemetry and logging assertions, do not depend on exact call counts, call order, or call indexes such as `calledOnce`, `calledTwice`, `getCall(0)`, or `firstCall`. Assert that the expected event payload or log message was emitted with `calledWith`, `calledWithMatch`, or equivalent matchers.
 - You must avoid Object.defineProperty hacks and (if possible) fake/partial plain objects; use sandbox.createStubInstance(type) and sandbox.stub(obj, 'prop').value(...).
 - You must avoid unnecessary casts, like `myVar as unknown as MyType` when myVar is already a sinon-stubbed instance of MyType.
 - Use a Sinon sandbox (setup/teardown with sinon.createSandbox()); keep helper closures (e.g., createServer) inside setup where the

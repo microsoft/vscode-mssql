@@ -758,7 +758,7 @@ suite("MainController Tests", function () {
             expect(showErrorMessageStub).to.have.been.calledOnceWith(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
             );
-            expect(sendActionEvent).to.have.been.calledOnceWith(
+            expect(sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Open,
                 {
@@ -838,7 +838,7 @@ suite("MainController Tests", function () {
                 Constants.vscodeWorkbenchChatOpenAgent,
                 Prompts.dabAgentPrompt,
             );
-            expect(sendActionEvent).to.have.been.calledOnceWith(
+            expect(sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Open,
                 {
