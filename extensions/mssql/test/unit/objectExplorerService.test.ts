@@ -1333,7 +1333,7 @@ suite("OE Service Tests", () => {
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
                 sinon.match.any,
-                sinon.match({ connectionType: connectionProfile.authenticationType }),
+                sinon.match({ connectionType: "newConnection" }),
             );
             expect(
                 endStub,
