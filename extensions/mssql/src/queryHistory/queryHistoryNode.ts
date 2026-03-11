@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import * as os from "os";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IconUtils } from "../utils/iconUtils";
+import * as vscodeMssql from "vscode-mssql";
 
 /**
  * Empty Node shown when no queries are available
@@ -26,6 +27,7 @@ export class EmptyHistoryNode extends vscode.TreeItem {
 export class QueryHistoryNode extends vscode.TreeItem {
     private static readonly _contextValue = "queryHistoryNode";
     private _ownerUri: string;
+    private _credentials: vscodeMssql.IConnectionInfo;
     private _timeStamp: Date;
     private _isSuccess: boolean;
     private _queryString: string;
@@ -36,6 +38,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
         tooltip: string,
         queryString: string,
         ownerUri: string,
+        credentials: vscodeMssql.IConnectionInfo,
         timeStamp: Date,
         connectionLabel: string,
         isSuccess: boolean,
@@ -43,6 +46,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
         super(label, vscode.TreeItemCollapsibleState.None);
         this._queryString = queryString;
         this._ownerUri = ownerUri;
+        this._credentials = credentials;
         this._timeStamp = timeStamp;
         this._isSuccess = isSuccess;
         this._connectionLabel = connectionLabel;
@@ -69,6 +73,10 @@ export class QueryHistoryNode extends vscode.TreeItem {
 
     public get ownerUri(): string {
         return this._ownerUri;
+    }
+
+    public get credentials(): vscodeMssql.IConnectionInfo {
+        return this._credentials;
     }
 
     public get timeStamp(): Date {

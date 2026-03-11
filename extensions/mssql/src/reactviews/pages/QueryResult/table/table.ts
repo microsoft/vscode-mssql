@@ -28,6 +28,7 @@ import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 import { MouseButton } from "../../../common/utils";
 import { ColorThemeKind, WebviewKeyBindings } from "../../../../sharedInterfaces/webview";
+import debounce from "lodash/debounce";
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     return {
@@ -65,6 +66,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _lastScrollAt: number = 0;
     private _isScrollStateRestored: boolean = false;
     private _isColumnWidthRestored: boolean = false;
+    private _notifyScrollPositionDebounced?: ReturnType<typeof debounce>;
+    private readonly _scrollPositionNotificationDebounceDelayMs: number = 100;
 
     constructor(
         parent: HTMLElement,
@@ -220,11 +223,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             });
         });
 
-        this._grid.onScroll.subscribe(async (_e, data) => {
-            if (!data) {
-                return;
-            }
-
+        const notifyScrollPosition = () => {
             // We want to avoid sending scroll position updates before the initial
             // scroll position has been restored from the saved state. As restoring
             // takes time, we will always reset the position to 0 before restoring
@@ -235,7 +234,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
             const viewport = this._grid.getViewport();
             this._lastScrollAt = Date.now();
-            await this.context.extensionRpc.sendNotification(
+            void this.context.extensionRpc.sendNotification(
                 SetGridScrollPositionNotification.type,
                 {
                     uri: this.uri,
@@ -244,6 +243,14 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                     scrollTop: viewport.top,
                 },
             );
+        };
+        this._notifyScrollPositionDebounced = debounce(
+            notifyScrollPosition,
+            this._scrollPositionNotificationDebounceDelayMs,
+        );
+        this._grid.onScroll.subscribe(() => {
+            this._lastScrollAt = Date.now();
+            this._notifyScrollPositionDebounced?.();
         });
 
         this.style(styles);
@@ -451,6 +458,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public dispose() {
+        this._notifyScrollPositionDebounced?.cancel();
+        this._notifyScrollPositionDebounced = undefined;
         this._container.remove();
     }
 

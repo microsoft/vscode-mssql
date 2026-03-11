@@ -26,6 +26,7 @@ export const serverLabel = "Server";
 export const disconnectedDockerContainer = "disconnectedDockerContainer";
 export const dockerContainer = "DockerContainer";
 export const dockerContainerDatabase = "DockerContainerDatabase";
+export const databasesSubNodeType = "Databases";
 export const folderLabel = "Folder";
 export const database_green = "Database_green";
 export const database_red = "Database_red";
@@ -36,6 +37,7 @@ export const cmdrevealQueryResult = "mssql.revealQueryResult";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
+export const cmdCancelConnect = "mssql.cancelConnect";
 export const cmdChangeConnection = "mssql.changeConnection";
 export const cmdChangeDatabase = "mssql.changeDatabase";
 export const cmdChooseDatabase = "mssql.chooseDatabase";
@@ -65,6 +67,7 @@ export const cmdExtractDacpac = "mssql.dacpacDialog.extract";
 export const cmdImportBacpac = "mssql.dacpacDialog.import";
 export const cmdExportBacpac = "mssql.dacpacDialog.export";
 export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
+export const cmdConfigureCodeAnalysisSettings = "mssql.configureCodeAnalysisSettings";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -95,7 +98,7 @@ export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
 export const cmdObjectExplorerCollapseOrExpandByDefault =
     "objectExplorer.collapseConnectionGroupsOnStartup";
-export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
+export const cmdEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
@@ -126,6 +129,7 @@ export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.schemaDesigner";
+export const cmdBuildDataApi = "mssql.buildDataApi";
 export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
@@ -136,7 +140,12 @@ export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigrati
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
+export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
 export const cmdFlatFileImport = "mssql.flatFileImport";
+export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
+export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
+export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
+
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -176,8 +185,6 @@ export const localhost = "localhost";
 export const defaultSqlServerContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
-export const untitledSaveTimeThreshold = 50.0;
-export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
@@ -229,7 +236,6 @@ export const copilotListFunctionsToolName = "mssql_list_functions";
 export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
-export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
 
@@ -262,10 +268,6 @@ export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
-export const configEnableRichExperiences = "mssql.enableRichExperiences";
-export const configEnableRichExperiencesDoNotShowPrompt =
-    "mssql.enableRichExperiencesDoNotShowPrompt";
-export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
@@ -287,7 +289,7 @@ export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
-export const configEnableDab = "mssql.enableDAB";
+export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
@@ -333,7 +335,6 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
-export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
@@ -390,3 +391,6 @@ export const operationIdExportBacpac = "ExportOperation";
 export const operationIdExtractDacpac = "ExtractOperation";
 export const operationIdImportBacpac = "ImportOperation";
 export const operationIdDeployDacpac = "DeployOperation";
+
+// Code Analysis Constants
+export const codeAnalysisViewId = "codeAnalysis";

@@ -89,7 +89,7 @@ suite("FileBrowserService Tests", () => {
         } as any;
 
         // Stub the logger
-        const loggerStub = sinon.stub(fileBrowserService["_logger"], "error");
+        const loggerStub = sandbox.stub(fileBrowserService["_logger"], "error");
 
         // Ensure no promise is set for this ownerUri
         fileBrowserService["_pendingFileBrowserOpens"].delete(ownerUri);
@@ -100,9 +100,6 @@ suite("FileBrowserService Tests", () => {
         // Verify that logger.error was called
         expect(loggerStub.calledOnce).to.be.true;
         expect(loggerStub.firstCall.args[0]).to.include(ownerUri);
-
-        // Restore stub
-        loggerStub.restore();
     });
 
     test("handleFileBrowserExpandNotification", async () => {
@@ -137,7 +134,7 @@ suite("FileBrowserService Tests", () => {
         } as any;
 
         // Stub the logger
-        const loggerStub = sinon.stub(fileBrowserService["_logger"], "error");
+        const loggerStub = sandbox.stub(fileBrowserService["_logger"], "error");
 
         // Ensure no promise is set for this ownerUri
         fileBrowserService["_pendingFileBrowserExpands"].delete(ownerUri);
@@ -148,9 +145,6 @@ suite("FileBrowserService Tests", () => {
         // Verify that logger.error was called
         expect(loggerStub.calledOnce).to.be.true;
         expect(loggerStub.firstCall.args[0]).to.include(ownerUri);
-
-        // Restore stub
-        loggerStub.restore();
     });
 
     test("openFileBrowser should handle successful open", async () => {
@@ -352,7 +346,7 @@ suite("FileBrowserService Tests", () => {
         expect(fileBrowserService.fileBrowserState).to.be.undefined;
 
         // Stub the logger
-        const loggerStub = sinon.stub(fileBrowserService["_logger"], "error");
+        sandbox.stub(fileBrowserService["_logger"], "error");
         sqlToolsClientStub.sendRequest
             .withArgs(FileBrowserCloseRequest.type, sinon.match.any)
             .rejects(new Error("Close failed"));
@@ -363,8 +357,5 @@ suite("FileBrowserService Tests", () => {
         } catch (e) {
             expect(e.message).to.equal("Close failed");
         }
-
-        // Restore stub
-        loggerStub.restore();
     });
 });

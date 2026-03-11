@@ -46,7 +46,7 @@ import {
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
@@ -938,6 +938,23 @@ export default class ConnectionManager {
                 })
                 .filter((key): key is string => !!key),
         );
+
+        vscode.commands.executeCommand(
+            "setContext",
+            "mssql.connecting",
+            Object.keys(this._connections)
+                .filter((key) => this.isConnecting(key))
+                .map((key) => {
+                    try {
+                        key = vscode.Uri.parse(key).toString();
+                    } catch {
+                        // ignore invalid URIs (for example OE-only keys) in context resource list
+                        return undefined;
+                    }
+                    return key;
+                })
+                .filter((key): key is string => !!key),
+        );
     }
 
     /**
@@ -990,7 +1007,7 @@ export default class ConnectionManager {
      * then prompts the user to select a connection via quickpick
      * @returns the connection profile selected by the user, or undefined if canceled
      */
-    public async onNewConnection(): Promise<IConnectionInfo> {
+    public async promptToConnect(): Promise<IConnectionInfo> {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!fileUri) {
             // A text document needs to be open before we can connect
@@ -1214,7 +1231,7 @@ export default class ConnectionManager {
         );
 
         if (!fileUri) {
-            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${Utils.generateGuid()}`;
+            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${uuid()}`;
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
@@ -1225,6 +1242,8 @@ export default class ConnectionManager {
         connectionInfo.connecting = true;
 
         this._connections[fileUri] = connectionInfo;
+        this._onConnectionsChangedEmitter.fire();
+        this.updateConnectionsContext();
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
@@ -1312,6 +1331,7 @@ export default class ConnectionManager {
         connectionInfo.connecting = false;
 
         this._connections[fileUri] = connectionInfo;
+        this.updateConnectionsContext();
 
         if (Utils.isNotEmpty(result.connectionId)) {
             /**
@@ -1360,6 +1380,7 @@ export default class ConnectionManager {
                 ),
             );
             this._onConnectionsChangedEmitter.fire();
+            this.updateConnectionsContext();
             connectionActivity.endFailed(
                 new Error(result.errorMessage),
                 false, // Do not include error message
@@ -1655,7 +1676,10 @@ export default class ConnectionManager {
                     LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
                 );
             } else {
-                Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
+                const displayMsg = errorMessage || message;
+                if (displayMsg) {
+                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(displayMsg));
+                }
             }
             return {
                 isHandled: false,
@@ -1677,11 +1701,14 @@ export default class ConnectionManager {
         this.updateConnectionsContext();
     }
 
-    public async onCancelConnect(): Promise<void> {
-        const result = await this.connectionUI.promptToCancelConnection();
-        if (result) {
-            await this.cancelConnect();
+    public async onCancelConnect(promptToConfirm: boolean = true): Promise<void> {
+        if (promptToConfirm) {
+            const result = await this.connectionUI.promptToCancelConnection();
+            if (!result) {
+                return;
+            }
         }
+        await this.cancelConnect();
     }
 
     public async cancelConnect(): Promise<void> {
@@ -1782,21 +1809,44 @@ export default class ConnectionManager {
     }
 
     /**
-     * Copies the connection info from one file to another, optionally disconnecting the old file.
-     * @param oldFileUri File to copy the connection info from
-     * @param newFileUri File to copy the connection info to
-     * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
-     * @returns
+     * Moves the connection from one URI to another.
+     * @param oldFileUri File URI to transfer connection info from
+     * @param newFileUri File URI to transfer connection info to
+     * @returns true if a transfer occurred; otherwise false
      */
-    public async copyConnectionToFile(oldFileUri: string, newFileUri: string): Promise<void> {
-        // Is the new file connected or the old file not connected?
-        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
-            return;
+    public async transferConnectionToFile(
+        oldFileUri: string,
+        newFileUri: string,
+    ): Promise<boolean> {
+        if (!oldFileUri || !newFileUri || oldFileUri === newFileUri) {
+            return false;
         }
 
-        // Connect the saved uri and disconnect the untitled uri on successful connection
-        let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
-        await this.connect(newFileUri, creds);
+        // If old isn't connected or new is already connected, there is nothing to transfer.
+        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
+            return false;
+        }
+
+        const creds: IConnectionInfo | undefined = this._connections[oldFileUri]?.credentials;
+        if (!creds) {
+            return false;
+        }
+
+        // Deep-clone credentials so that connect()/prepareConnectionInfo() mutations
+        // (e.g. token/password updates) don't affect the old connection's state
+        // if the transfer fails.
+        const clonedCreds: IConnectionInfo = Utils.deepClone(creds);
+        const didConnect = await this.connect(newFileUri, clonedCreds);
+        if (!didConnect) {
+            return false;
+        }
+
+        // Best effort cleanup of old URI after successful transfer.
+        if (this.isConnected(oldFileUri)) {
+            await this.disconnect(oldFileUri);
+        }
+
+        return true;
     }
 
     public async refreshAzureAccountToken(uri: string): Promise<void> {
@@ -1986,33 +2036,43 @@ export default class ConnectionManager {
     private async handleSecurityTokenRequest(
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
-        if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
-            const token = this._keyVaultTokenCache.get(JSON.stringify(params));
-            const isExpired = AzureController.isTokenExpired(token.expiresOn);
-            if (!isExpired) {
-                return {
-                    accountKey: token.key,
-                    token: token.token,
-                };
-            } else {
-                this._keyVaultTokenCache.delete(JSON.stringify(params));
+        try {
+            if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
+                const token = this._keyVaultTokenCache.get(JSON.stringify(params));
+                const isExpired = AzureController.isTokenExpired(token.expiresOn);
+                if (!isExpired) {
+                    return {
+                        accountKey: token.key,
+                        token: token.token,
+                    };
+                } else {
+                    this._keyVaultTokenCache.delete(JSON.stringify(params));
+                }
             }
+            const account = await this.selectAccount();
+            const tenant = await this.selectTenantId(account);
+
+            const token = await this.azureController.getAccountSecurityToken(
+                account,
+                tenant,
+                getCloudProviderSettings(account.key.providerId).settings.azureKeyVaultResource,
+            );
+
+            this._keyVaultTokenCache.set(JSON.stringify(params), token);
+
+            return {
+                accountKey: token.key,
+                token: token.token,
+            };
+        } catch (error) {
+            this._logger.error(`Security token request failed: ${getErrorMessage(error)}`);
+            // Return empty response rather than letting the error propagate
+            // to STS as a null reference
+            return {
+                accountKey: "",
+                token: "",
+            };
         }
-        const account = await this.selectAccount();
-        const tenant = await this.selectTenantId(account);
-
-        const token = await this.azureController.getAccountSecurityToken(
-            account,
-            tenant,
-            getCloudProviderSettings(account.key.providerId).settings.azureKeyVaultResource,
-        );
-
-        this._keyVaultTokenCache.set(JSON.stringify(params), token);
-
-        return {
-            accountKey: token.key,
-            token: token.token,
-        };
     }
 
     private async selectAccount(): Promise<IAccount> {
@@ -2023,6 +2083,16 @@ export default class ConnectionManager {
 
         const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
         const selectedAccount = await this.showAccountQuickPick(quickPickItems);
+
+        // eslint-disable-next-line no-restricted-syntax
+        if (selectedAccount === null) {
+            // User selected "Sign in to Azure" — trigger sign-in and use the new account
+            const newAccount = await this.addAccount();
+            if (!newAccount) {
+                throw new Error(LocalizedConstants.Connection.noAccountSelected);
+            }
+            return newAccount;
+        }
 
         if (!selectedAccount) {
             throw new Error(LocalizedConstants.Connection.noAccountSelected);
@@ -2053,30 +2123,47 @@ export default class ConnectionManager {
         return accountItems;
     }
 
+    /*
+     * Shows a quick pick to select an account. Returns the selected account, null if "Sign in to Azure" was selected,
+     * or undefined if the quick pick was dismissed.
+     * @params items The quick pick items to show
+     * @returns The selected account, null if "Sign in to Azure" was selected, or undefined if the quick pick was dismissed
+     */
     private async showAccountQuickPick(
         items: AccountQuickPickItem[],
-    ): Promise<IAccount | undefined> {
-        const account = await new Promise<IAccount | undefined>((resolve, reject) => {
+    ): Promise<IAccount | null | undefined> {
+        const account = await new Promise<IAccount | null | undefined>((resolve, reject) => {
             const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
             quickPick.items = items;
             quickPick.placeholder = LocalizedConstants.Connection.SelectAccountForKeyVault;
+            let accepted = false;
 
             quickPick.onDidAccept(async () => {
                 try {
+                    accepted = true;
                     const selectedItem = quickPick.selectedItems[0];
+                    quickPick.dispose();
                     if (!selectedItem) {
                         resolve(undefined);
                         return;
                     }
 
                     const account = selectedItem.account;
-                    quickPick.dispose();
-                    resolve(account);
+                    // Return null to signal "sign in" was selected (account is undefined on that item)
+                    resolve(account ?? null); // eslint-disable-line no-restricted-syntax
                 } catch (error) {
                     quickPick.dispose();
                     reject(error);
                 }
             });
+
+            quickPick.onDidHide(() => {
+                quickPick.dispose();
+                if (!accepted) {
+                    resolve(undefined);
+                }
+            });
+
             quickPick.show();
         });
         return account;

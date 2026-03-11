@@ -78,7 +78,7 @@ suite("File Browser Utilities", () => {
     }
 
     test("openFileBrowser Reducer: ", async () => {
-        let openFileBrowserStub = sinon.stub(mockFileBrowserService, "openFileBrowser").resolves({
+        let openFileBrowserStub = sandbox.stub(mockFileBrowserService, "openFileBrowser").resolves({
             succeeded: true,
         } as FileBrowserOpenResponse);
         registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, []);
@@ -111,7 +111,7 @@ suite("File Browser Utilities", () => {
 
         openFileBrowserStub.restore();
 
-        openFileBrowserStub = sinon.stub(mockFileBrowserService, "openFileBrowser").resolves({
+        openFileBrowserStub = sandbox.stub(mockFileBrowserService, "openFileBrowser").resolves({
             succeeded: false,
             message: "Failed to open file browser",
         } as FileBrowserOpenResponse);
@@ -125,7 +125,7 @@ suite("File Browser Utilities", () => {
     });
 
     test("expandNode Reducer", async () => {
-        let expandStub = sinon.stub(mockFileBrowserService, "expandFilePath").resolves({
+        let expandStub = sandbox.stub(mockFileBrowserService, "expandFilePath").resolves({
             succeeded: true,
         } as FileBrowserExpandResponse);
 
@@ -149,7 +149,7 @@ suite("File Browser Utilities", () => {
         expect(result).to.deep.equal(mockState);
         expandStub.restore();
 
-        expandStub = sinon.stub(mockFileBrowserService, "expandFilePath").resolves({
+        expandStub = sandbox.stub(mockFileBrowserService, "expandFilePath").resolves({
             succeeded: false,
             message: "Failed to expand node",
         } as FileBrowserExpandResponse);
@@ -185,7 +185,7 @@ suite("File Browser Utilities", () => {
     });
 
     test("closeFileBrowser Reducer", async () => {
-        let closeStub = sinon.stub(mockFileBrowserService, "closeFileBrowser").resolves({
+        let closeStub = sandbox.stub(mockFileBrowserService, "closeFileBrowser").resolves({
             succeeded: true,
         } as FileBrowserCloseResponse);
 
@@ -210,7 +210,7 @@ suite("File Browser Utilities", () => {
 
         closeStub.restore();
 
-        closeStub = sinon.stub(mockFileBrowserService, "closeFileBrowser").resolves({
+        closeStub = sandbox.stub(mockFileBrowserService, "closeFileBrowser").resolves({
             succeeded: false,
             message: "Failed to close file browser",
         } as FileBrowserCloseResponse);
@@ -225,7 +225,7 @@ suite("File Browser Utilities", () => {
     });
 
     test("toggleFileBrowserDialog Reducer: open and close", async () => {
-        let openStub = sinon.stub(mockFileBrowserService, "openFileBrowser").resolves({
+        let openStub = sandbox.stub(mockFileBrowserService, "openFileBrowser").resolves({
             succeeded: true,
         } as FileBrowserOpenResponse);
 
@@ -257,7 +257,7 @@ suite("File Browser Utilities", () => {
 
         openStub.restore();
 
-        openStub = sinon.stub(mockFileBrowserService, "openFileBrowser").resolves({
+        openStub = sandbox.stub(mockFileBrowserService, "openFileBrowser").resolves({
             succeeded: false,
             message: "Failed to open file browser",
         } as FileBrowserOpenResponse);

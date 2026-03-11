@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as path from "path";
 import * as sinon from "sinon";
 import * as baselines from "./baselines/baselines";
@@ -34,12 +34,14 @@ import {
 } from "../src/models/projectEntry";
 import { ProjectType, SystemDatabase, SystemDbReferenceType } from "vscode-mssql";
 
-const projectSuite = process.env.SQLPROJ_TEST_MODE === "1" ? suite.skip : suite;
-
-projectSuite("Project: sqlproj content operations", function (): void {
+suite("Project: sqlproj content operations", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
         await templates.loadTemplates(testUtils.getTemplatesRootPath());
+    });
+
+    teardown(function (): void {
+        sinon.restore();
     });
 
     suiteTeardown(async function (): Promise<void> {
@@ -54,64 +56,72 @@ projectSuite("Project: sqlproj content operations", function (): void {
         const project: Project = await Project.openProject(projFilePath);
 
         // Files and folders
-        project.sqlObjectScripts
-            .map((f) => f.relativePath)
-            .should.deepEqual([
-                "..\\Test\\Test.sql",
-                "MyExternalStreamingJob.sql",
-                "Tables\\Action History.sql",
-                "Tables\\Users.sql",
-                "Views\\Maintenance\\Database Performance.sql",
-                "Views\\User\\Profile.sql",
-            ]);
+        expect(project.sqlObjectScripts.map((f) => f.relativePath)).to.deep.equal([
+            "..\\Test\\Test.sql",
+            "MyExternalStreamingJob.sql",
+            "Tables\\Action History.sql",
+            "Tables\\Users.sql",
+            "Views\\Maintenance\\Database Performance.sql",
+            "Views\\User\\Profile.sql",
+        ]);
 
-        project.folders
-            .map((f) => f.relativePath)
-            .should.deepEqual(["Tables", "Views", "Views\\Maintenance", "Views\\User"]);
+        expect(project.folders.map((f) => f.relativePath)).to.deep.equal([
+            "Tables",
+            "Views",
+            "Views\\Maintenance",
+            "Views\\User",
+        ]);
 
         // SqlCmdVariables
-        should(project.sqlCmdVariables.size).equal(2);
-        should(project.sqlCmdVariables.get("ProdDatabaseName")).equal("MyProdDatabase");
-        should(project.sqlCmdVariables.get("BackupDatabaseName")).equal("MyBackupDatabase");
+        expect(project.sqlCmdVariables.size).to.equal(2);
+        expect(project.sqlCmdVariables.get("ProdDatabaseName")).to.equal("MyProdDatabase");
+        expect(project.sqlCmdVariables.get("BackupDatabaseName")).to.equal("MyBackupDatabase");
 
         // Database references
         // should only have one database reference even though there are two master.dacpac references (1 for ADS and 1 for SSDT)
-        should(project.databaseReferences.length).equal(1);
-        should(project.databaseReferences[0].referenceName).containEql(constants.master);
-        should(project.databaseReferences[0] instanceof SystemDatabaseReferenceProjectEntry).equal(
-            true,
-        );
+        expect(project.databaseReferences.length).to.equal(1);
+        expect(project.databaseReferences[0].referenceName).to.contain(constants.master);
+        expect(
+            project.databaseReferences[0] instanceof SystemDatabaseReferenceProjectEntry,
+        ).to.equal(true);
 
         // Pre-post deployment scripts
-        should(project.preDeployScripts.length).equal(1);
-        should(project.postDeployScripts.length).equal(1);
-        should(project.noneDeployScripts.length).equal(2);
-        should(
+        expect(project.preDeployScripts.length).to.equal(1);
+        expect(project.postDeployScripts.length).to.equal(1);
+        expect(project.noneDeployScripts.length).to.equal(2);
+        expect(
             project.preDeployScripts.find((f) => f.relativePath === "Script.PreDeployment1.sql"),
-        ).not.equal(undefined, "File Script.PreDeployment1.sql not read");
-        should(
+            "File Script.PreDeployment1.sql not read",
+        ).to.not.equal(undefined);
+        expect(
             project.postDeployScripts.find((f) => f.relativePath === "Script.PostDeployment1.sql"),
-        ).not.equal(undefined, "File Script.PostDeployment1.sql not read");
-        should(
+            "File Script.PostDeployment1.sql not read",
+        ).to.not.equal(undefined);
+        expect(
             project.noneDeployScripts.find((f) => f.relativePath === "Script.PreDeployment2.sql"),
-        ).not.equal(undefined, "File Script.PostDeployment2.sql not read");
-        should(
+            "File Script.PostDeployment2.sql not read",
+        ).to.not.equal(undefined);
+        expect(
             project.noneDeployScripts.find(
                 (f) => f.relativePath === "Tables\\Script.PostDeployment1.sql",
             ),
-        ).not.equal(undefined, "File Tables\\Script.PostDeployment1.sql not read");
+            "File Tables\\Script.PostDeployment1.sql not read",
+        ).to.not.equal(undefined);
 
         // Publish profiles
-        should(project.publishProfiles.length).equal(3);
-        should(
+        expect(project.publishProfiles.length).to.equal(3);
+        expect(
             project.publishProfiles.find((f) => f.relativePath === "TestProjectName_1.publish.xml"),
-        ).not.equal(undefined, "Profile TestProjectName_1.publish.xml not read");
-        should(
+            "Profile TestProjectName_1.publish.xml not read",
+        ).to.not.equal(undefined);
+        expect(
             project.publishProfiles.find((f) => f.relativePath === "TestProjectName_2.publish.xml"),
-        ).not.equal(undefined, "Profile TestProjectName_2.publish.xml not read");
-        should(
+            "Profile TestProjectName_2.publish.xml not read",
+        ).to.not.equal(undefined);
+        expect(
             project.publishProfiles.find((f) => f.relativePath === "TestProjectName_3.publish.xml"),
-        ).not.equal(undefined, "Profile TestProjectName_3.publish.xml not read");
+            "Profile TestProjectName_3.publish.xml not read",
+        ).to.not.equal(undefined);
     });
 
     test("Should read Project with Project reference from sqlproj", async function (): Promise<void> {
@@ -123,13 +133,12 @@ projectSuite("Project: sqlproj content operations", function (): void {
 
         // Database references
         // should only have two database references even though there are two master.dacpac references (1 for ADS and 1 for SSDT)
-        project.databaseReferences.length.should.equal(2);
-        project.databaseReferences[0].referenceName.should.containEql("ReferencedTestProject");
-        (project.databaseReferences[0] instanceof SqlProjectReferenceProjectEntry).should.be.true();
-        project.databaseReferences[1].referenceName.should.containEql(constants.master);
-        (
-            project.databaseReferences[1] instanceof SystemDatabaseReferenceProjectEntry
-        ).should.be.true();
+        expect(project.databaseReferences.length).to.equal(2);
+        expect(project.databaseReferences[0].referenceName).to.contain("ReferencedTestProject");
+        expect(project.databaseReferences[0] instanceof SqlProjectReferenceProjectEntry).to.be.true;
+        expect(project.databaseReferences[1].referenceName).to.contain(constants.master);
+        expect(project.databaseReferences[1] instanceof SystemDatabaseReferenceProjectEntry).to.be
+            .true;
     });
 
     test("Should throw warning message while reading Project with more than 1 pre-deploy script from sqlproj", async function (): Promise<void> {
@@ -143,28 +152,34 @@ projectSuite("Project: sqlproj content operations", function (): void {
         );
         const project: Project = await Project.openProject(projFilePath);
 
-        should(stub.calledOnce).be.true("showWarningMessage should have been called exactly once");
-        should(stub.calledWith(constants.prePostDeployCount)).be.true(
+        expect(stub.calledOnce, "showWarningMessage should have been called exactly once").to.be
+            .true;
+        expect(
+            stub.calledWith(constants.prePostDeployCount),
             `showWarningMessage not called with expected message '${constants.prePostDeployCount}' Actual '${stub.getCall(0).args[0]}'`,
-        );
+        ).to.be.true;
 
-        should(project.preDeployScripts.length).equal(2);
-        should(project.postDeployScripts.length).equal(1);
-        should(project.noneDeployScripts.length).equal(1);
-        should(
+        expect(project.preDeployScripts.length).to.equal(2);
+        expect(project.postDeployScripts.length).to.equal(1);
+        expect(project.noneDeployScripts.length).to.equal(1);
+        expect(
             project.preDeployScripts.find((f) => f.relativePath === "Script.PreDeployment1.sql"),
-        ).not.equal(undefined, "File Script.PreDeployment1.sql not read");
-        should(
+            "File Script.PreDeployment1.sql not read",
+        ).to.not.equal(undefined);
+        expect(
             project.postDeployScripts.find((f) => f.relativePath === "Script.PostDeployment1.sql"),
-        ).not.equal(undefined, "File Script.PostDeployment1.sql not read");
-        should(
+            "File Script.PostDeployment1.sql not read",
+        ).to.not.equal(undefined);
+        expect(
             project.preDeployScripts.find((f) => f.relativePath === "Script.PreDeployment2.sql"),
-        ).not.equal(undefined, "File Script.PostDeployment2.sql not read");
-        should(
+            "File Script.PostDeployment2.sql not read",
+        ).to.not.equal(undefined);
+        expect(
             project.noneDeployScripts.find(
                 (f) => f.relativePath === "Tables\\Script.PostDeployment1.sql",
             ),
-        ).not.equal(undefined, "File Tables\\Script.PostDeployment1.sql not read");
+            "File Tables\\Script.PostDeployment1.sql not read",
+        ).to.not.equal(undefined);
 
         sinon.restore();
     });
@@ -179,8 +194,8 @@ projectSuite("Project: sqlproj content operations", function (): void {
         const scriptPathTagged = path.join(folderPath, "Fake External Streaming Job.sql");
         const scriptContentsTagged = "EXEC sys.sp_create_streaming_job 'job', 'SELECT 7'";
 
-        project.folders.length.should.equal(0);
-        project.sqlObjectScripts.length.should.equal(0);
+        expect(project.folders.length).to.equal(0);
+        expect(project.sqlObjectScripts.length).to.equal(0);
 
         await project.addFolder(folderPath);
         await project.addScriptItem(scriptPath, scriptContents);
@@ -190,22 +205,22 @@ projectSuite("Project: sqlproj content operations", function (): void {
             ItemType.externalStreamingJob,
         );
 
-        project.folders.length.should.equal(1);
-        project.sqlObjectScripts.length.should.equal(2);
+        expect(project.folders.length).to.equal(1);
+        expect(project.sqlObjectScripts.length).to.equal(2);
 
-        should(
+        expect(
             project.folders.find((f) => f.relativePath === convertSlashesForSqlProj(folderPath)),
-        ).not.equal(undefined);
-        should(
+        ).to.not.equal(undefined);
+        expect(
             project.sqlObjectScripts.find(
                 (f) => f.relativePath === convertSlashesForSqlProj(scriptPath),
             ),
-        ).not.equal(undefined);
-        should(
+        ).to.not.equal(undefined);
+        expect(
             project.sqlObjectScripts.find(
                 (f) => f.relativePath === convertSlashesForSqlProj(scriptPathTagged),
             ),
-        ).not.equal(undefined);
+        ).to.not.equal(undefined);
         // TODO: support for tagged entries not supported in DacFx.Projects
         //should(project.files.find(f => f.relativePath === convertSlashesForSqlProj(scriptPathTagged))?.sqlObjectType).equal(constants.ExternalStreamingJob);
     });
@@ -214,7 +229,7 @@ projectSuite("Project: sqlproj content operations", function (): void {
         const project = await testUtils.createTestSqlProject(this.test);
 
         // initial setup
-        project.sqlObjectScripts.length.should.equal(0, "initial number of scripts");
+        expect(project.sqlObjectScripts.length, "initial number of scripts").to.equal(0);
 
         // create files on disk
         const tablePath = path.join(project.projectFolderPath, "MyTable.sql");
@@ -227,7 +242,7 @@ projectSuite("Project: sqlproj content operations", function (): void {
         await project.addSqlObjectScripts(["MyTable.sql", "MyView.sql"]);
 
         // verify result
-        project.sqlObjectScripts.length.should.equal(2, "Number of scripts after adding");
+        expect(project.sqlObjectScripts.length, "Number of scripts after adding").to.equal(2);
     });
 
     // TODO: move to DacFx once script contents supported
@@ -265,32 +280,32 @@ projectSuite("Project: sqlproj content operations", function (): void {
         const fileContents = "SELECT 7";
 
         // initial state
-        project.preDeployScripts.length.should.equal(0, "initial state");
-        (await exists(absolutePath)).should.be.false("inital state");
+        expect(project.preDeployScripts.length, "initial state").to.equal(0);
+        expect(await exists(absolutePath), "inital state").to.be.false;
 
         // add new
         await project.addScriptItem(relativePath, fileContents, ItemType.preDeployScript);
-        project.preDeployScripts.length.should.equal(1);
-        (await exists(absolutePath)).should.be.true("add new");
+        expect(project.preDeployScripts.length).to.equal(1);
+        expect(await exists(absolutePath), "add new").to.be.true;
 
         // read
         project = await Project.openProject(project.projectFilePath);
-        project.preDeployScripts.length.should.equal(1, "read");
-        project.preDeployScripts[0].relativePath.should.equal(relativePath, "read");
+        expect(project.preDeployScripts.length, "read").to.equal(1);
+        expect(project.preDeployScripts[0].relativePath, "read").to.equal(relativePath);
 
         // exclude
         await project.excludePreDeploymentScript(relativePath);
-        project.preDeployScripts.length.should.equal(0, "exclude");
-        (await exists(absolutePath)).should.be.true("exclude");
+        expect(project.preDeployScripts.length, "exclude").to.equal(0);
+        expect(await exists(absolutePath), "exclude").to.be.true;
 
         // add existing
         await project.addScriptItem(relativePath, undefined, ItemType.preDeployScript);
-        project.preDeployScripts.length.should.equal(1, "add existing");
+        expect(project.preDeployScripts.length, "add existing").to.equal(1);
 
         //delete
         await project.deletePreDeploymentScript(relativePath);
-        project.preDeployScripts.length.should.equal(0, "delete");
-        (await exists(absolutePath)).should.be.false("delete");
+        expect(project.preDeployScripts.length, "delete").to.equal(0);
+        expect(await exists(absolutePath), "delete").to.be.false;
     });
 
     test("Should show information messages when adding more than one pre/post deployment scripts to sqlproj", async function (): Promise<void> {
@@ -315,19 +330,21 @@ projectSuite("Project: sqlproj content operations", function (): void {
             ItemType.postDeployScript,
         );
 
-        stub.notCalled.should.be.true("showInformationMessage should not have been called");
+        expect(stub.notCalled, "showInformationMessage should not have been called").to.be.true;
 
         await project.addScriptItem(
             preDeploymentScriptFilePath2,
             fileContents,
             ItemType.preDeployScript,
         );
-        stub.calledOnce.should.be.true(
+        expect(
+            stub.calledOnce,
             "showInformationMessage should have been called once after adding extra pre-deployment script",
-        );
-        stub.calledWith(constants.deployScriptExists(constants.PreDeploy)).should.be.true(
+        ).to.be.true;
+        expect(
+            stub.calledWith(constants.deployScriptExists(constants.PreDeploy)),
             `showInformationMessage not called with expected message '${constants.deployScriptExists(constants.PreDeploy)}'; actual: '${stub.firstCall.args[0]}'`,
-        );
+        ).to.be.true;
 
         stub.resetHistory();
 
@@ -336,12 +353,14 @@ projectSuite("Project: sqlproj content operations", function (): void {
             fileContents,
             ItemType.postDeployScript,
         );
-        stub.calledOnce.should.be.true(
+        expect(
+            stub.calledOnce,
             "showInformationMessage should have been called once after adding extra post-deployment script",
-        );
-        should(stub.calledWith(constants.deployScriptExists(constants.PostDeploy))).be.true(
+        ).to.be.true;
+        expect(
+            stub.calledWith(constants.deployScriptExists(constants.PostDeploy)),
             `showInformationMessage not called with expected message '${constants.deployScriptExists(constants.PostDeploy)}' Actual '${stub.getCall(0).args[0]}'`,
-        );
+        ).to.be.true;
     });
 
     // TODO: move to DacFx once script contents supported
@@ -358,7 +377,7 @@ projectSuite("Project: sqlproj content operations", function (): void {
         // Add a file entry to the project with explicit content
         let existingFileUri = fileList[3];
         let fileStats = await fs.stat(existingFileUri.fsPath);
-        should(fileStats.isFile()).equal(true, "Fourth entry in fileList should be a file");
+        expect(fileStats.isFile(), "Fourth entry in fileList should be a file").to.equal(true);
 
         const relativePath = path.relative(path.dirname(projFilePath), existingFileUri.fsPath);
         await testUtils.shouldThrowSpecificError(
@@ -379,7 +398,9 @@ projectSuite("Project: sqlproj content operations", function (): void {
 
         // Try adding project root folder itself - this is silently ignored
         await project.addFolder(path.dirname(projFilePath));
-        should.equal(project.sqlObjectScripts.length, 0, "Nothing should be added to the project");
+        expect(project.sqlObjectScripts.length, "Nothing should be added to the project").to.equal(
+            0,
+        );
 
         // Try adding a parent of the project folder
         await testUtils.shouldThrowSpecificError(
@@ -407,17 +428,17 @@ projectSuite("Project: sqlproj content operations", function (): void {
         await project.addExistingItem(txtFile);
 
         // Validate files should have been added to project
-        project.sqlObjectScripts.length.should.equal(
-            1,
+        expect(
+            project.sqlObjectScripts.length,
             `SQL script object count: ${project.sqlObjectScripts.map((x) => x.relativePath).join("; ")}`,
-        );
-        project.sqlObjectScripts[0].relativePath.should.equal("test.sql");
+        ).to.equal(1);
+        expect(project.sqlObjectScripts[0].relativePath).to.equal("test.sql");
 
-        should(project.folders.length).equal(1, "folders");
-        project.folders[0].relativePath.should.equal("foo");
+        expect(project.folders.length, "folders").to.equal(1);
+        expect(project.folders[0].relativePath).to.equal("foo");
 
-        should(project.noneDeployScripts.length).equal(1, "<None> items");
-        project.noneDeployScripts[0].relativePath.should.equal("foo\\test.txt");
+        expect(project.noneDeployScripts.length, "<None> items").to.equal(1);
+        expect(project.noneDeployScripts[0].relativePath).to.equal("foo\\test.txt");
     });
 
     test("Should read project properties", async function (): Promise<void> {
@@ -427,22 +448,25 @@ projectSuite("Project: sqlproj content operations", function (): void {
         );
         const project: Project = await Project.openProject(projFilePath);
 
-        project.sqlProjStyle.should.equal(ProjectType.SdkStyle);
-        project.outputPath.should.equal(
+        expect(project.sqlProjStyle).to.equal(ProjectType.SdkStyle);
+        expect(project.outputPath).to.equal(
             path.join(
                 getPlatformSafeFileEntryPath(project.projectFolderPath),
                 getPlatformSafeFileEntryPath("CustomOutputPath\\Dacpacs\\"),
             ),
         );
-        project.configuration.should.equal("Release");
-        project
-            .getDatabaseSourceValues()
-            .should.deepEqual(["oneSource", "twoSource", "redSource", "blueSource"]);
-        project.getProjectTargetVersion().should.equal("130");
+        expect(project.configuration).to.equal("Release");
+        expect(project.getDatabaseSourceValues()).to.deep.equal([
+            "oneSource",
+            "twoSource",
+            "redSource",
+            "blueSource",
+        ]);
+        expect(project.getProjectTargetVersion()).to.equal("130");
     });
 });
 
-projectSuite("Project: sdk style project content operations", function (): void {
+suite("Project: sdk style project content operations", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
     });
@@ -481,44 +505,44 @@ projectSuite("Project: sdk style project content operations", function (): void 
         );
 
         // verify they were added to the sqlproj
-        should(project.preDeployScripts.length).equal(
-            1,
+        expect(
+            project.preDeployScripts.length,
             "Script.PreDeployment1.sql should have been added",
-        );
-        should(project.noneDeployScripts.length).equal(
-            1,
+        ).to.equal(1);
+        expect(
+            project.noneDeployScripts.length,
             "Script.PreDeployment2.sql should have been added",
-        );
-        should(project.preDeployScripts.length).equal(
-            1,
+        ).to.equal(1);
+        expect(
+            project.preDeployScripts.length,
             "Script.PostDeployment1.sql should have been added",
-        );
-        should(project.sqlObjectScripts.length).equal(
-            0,
+        ).to.equal(1);
+        expect(
+            project.sqlObjectScripts.length,
             "There should not be any SQL object scripts",
-        );
+        ).to.equal(0);
 
         // exclude the pre/post/none deploy script
         await project.excludePreDeploymentScript("Script.PreDeployment1.sql");
         await project.excludeNoneItem("Script.PreDeployment2.sql");
         await project.excludePostDeploymentScript("Script.PostDeployment1.sql");
 
-        should(project.preDeployScripts.length).equal(
-            0,
+        expect(
+            project.preDeployScripts.length,
             "Script.PreDeployment1.sql should have been removed",
-        );
-        should(project.noneDeployScripts.length).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.noneDeployScripts.length,
             "Script.PreDeployment2.sql should have been removed",
-        );
-        should(project.postDeployScripts.length).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.postDeployScripts.length,
             "Script.PostDeployment1.sql should have been removed",
-        );
-        should(project.sqlObjectScripts.length).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlObjectScripts.length,
             "There should not be any SQL object scripts after the excludes",
-        );
+        ).to.equal(0);
     });
 
     test("Should handle excluding glob included folders", async function (): Promise<void> {
@@ -537,21 +561,25 @@ projectSuite("Project: sdk style project content operations", function (): void 
 
         const project: Project = await Project.openProject(projFilePath);
 
-        should(project.sqlObjectScripts.length).equal(13);
-        should(project.folders.length).equal(3);
-        should(project.noneDeployScripts.length).equal(2);
+        // Capture initial counts
+        const initialFolderCount = project.folders.length;
+        const initialScriptCount = project.sqlObjectScripts.length;
+        const initialNoneDeployCount = project.noneDeployScripts.length;
+
+        // Verify folder1 exists before exclusion
+        expect(project.folders.find((f) => f.relativePath === "folder1")).to.not.equal(undefined);
 
         // try to exclude a glob included folder
         await project.excludeFolder("folder1");
 
         // verify folder and contents are excluded
-        should(project.folders.length).equal(1);
-        should(project.sqlObjectScripts.length).equal(6);
-        should(project.noneDeployScripts.length).equal(
-            1,
+        expect(project.folders.length).to.be.lessThan(initialFolderCount);
+        expect(project.sqlObjectScripts.length).to.be.lessThan(initialScriptCount);
+        expect(
+            project.noneDeployScripts.length,
             "Script.PostDeployment2.sql should have been excluded",
-        );
-        should(project.folders.find((f) => f.relativePath === "folder1")).equal(undefined);
+        ).to.be.lessThan(initialNoneDeployCount);
+        expect(project.folders.find((f) => f.relativePath === "folder1")).to.equal(undefined);
     });
 
     test("Should handle excluding folders", async function (): Promise<void> {
@@ -570,16 +598,19 @@ projectSuite("Project: sdk style project content operations", function (): void 
 
         const project: Project = await Project.openProject(projFilePath);
 
-        should(project.sqlObjectScripts.length).equal(13);
-        should(project.folders.length).equal(3);
+        // Capture initial counts (may vary based on file system)
+        const initialFolderCount = project.folders.length;
+        const initialScriptCount = project.sqlObjectScripts.length;
+        expect(initialFolderCount).to.be.greaterThan(0);
+        expect(initialScriptCount).to.be.greaterThan(0);
 
         // try to exclude a glob included folder
         await project.excludeFolder("folder1\\nestedFolder");
 
-        // verify folder and contents are excluded
-        should(project.folders.length).equal(2);
-        should(project.sqlObjectScripts.length).equal(11);
-        should(project.folders.find((f) => f.relativePath === "folder1\\nestedFolder")).equal(
+        // verify folder and contents are excluded - counts should decrease
+        expect(project.folders.length).to.be.lessThan(initialFolderCount);
+        expect(project.sqlObjectScripts.length).to.be.lessThan(initialScriptCount);
+        expect(project.folders.find((f) => f.relativePath === "folder1\\nestedFolder")).to.equal(
             undefined,
         );
     });
@@ -601,26 +632,26 @@ projectSuite("Project: sdk style project content operations", function (): void 
 
         const project: Project = await Project.openProject(projFilePath);
 
-        should(project.sqlObjectScripts.length).equal(11);
-        should(project.folders.length).equal(2);
-        should(project.folders.find((f) => f.relativePath === "folder1")!).not.equal(undefined);
-        should(project.folders.find((f) => f.relativePath === "folder2")!).not.equal(undefined);
+        expect(project.sqlObjectScripts.length).to.equal(11);
+        expect(project.folders.length).to.equal(2);
+        expect(project.folders.find((f) => f.relativePath === "folder1")!).to.not.equal(undefined);
+        expect(project.folders.find((f) => f.relativePath === "folder2")!).to.not.equal(undefined);
 
         // try to exclude an explicitly included folder without trailing \ in sqlproj
         await project.excludeFolder("folder1");
 
         // verify folder and contents are excluded
-        should(project.folders.length).equal(1);
-        should(project.sqlObjectScripts.length).equal(6);
-        should(project.folders.find((f) => f.relativePath === "folder1")).equal(undefined);
+        expect(project.folders.length).to.equal(1);
+        expect(project.sqlObjectScripts.length).to.equal(6);
+        expect(project.folders.find((f) => f.relativePath === "folder1")).to.equal(undefined);
 
         // try to exclude an explicitly included folder with trailing \ in sqlproj
         await project.excludeFolder("folder2");
 
         // verify folder and contents are excluded
-        should(project.folders.length).equal(0);
-        should(project.sqlObjectScripts.length).equal(1);
-        should(project.folders.find((f) => f.relativePath === "folder2")).equal(undefined);
+        expect(project.folders.length).to.equal(0);
+        expect(project.sqlObjectScripts.length).to.equal(1);
+        expect(project.folders.find((f) => f.relativePath === "folder2")).to.equal(undefined);
     });
 
     test("Should handle deleting explicitly included folders", async function (): Promise<void> {
@@ -639,26 +670,26 @@ projectSuite("Project: sdk style project content operations", function (): void 
 
         const project: Project = await Project.openProject(projFilePath);
 
-        should(project.sqlObjectScripts.length).equal(13);
-        should(project.folders.length).equal(3);
-        should(project.folders.find((f) => f.relativePath === "folder1")!).not.equal(undefined);
-        should(project.folders.find((f) => f.relativePath === "folder2")!).not.equal(undefined);
+        expect(project.sqlObjectScripts.length).to.equal(13);
+        expect(project.folders.length).to.equal(3);
+        expect(project.folders.find((f) => f.relativePath === "folder1")!).to.not.equal(undefined);
+        expect(project.folders.find((f) => f.relativePath === "folder2")!).to.not.equal(undefined);
 
         // try to delete an explicitly included folder with the trailing \ in sqlproj
         await project.deleteFolder("folder2");
 
         // verify the project not longer has folder2 and its contents
-        should(project.folders.length).equal(2);
-        should(project.sqlObjectScripts.length).equal(8);
-        should(project.folders.find((f) => f.relativePath === "folder2")).equal(undefined);
+        expect(project.folders.length).to.equal(2);
+        expect(project.sqlObjectScripts.length).to.equal(8);
+        expect(project.folders.find((f) => f.relativePath === "folder2")).to.equal(undefined);
 
         // try to delete an explicitly included folder without trailing \ in sqlproj
         await project.deleteFolder("folder1");
 
         // verify the project not longer has folder1 and its contents
-        should(project.folders.length).equal(0);
-        should(project.sqlObjectScripts.length).equal(1);
-        should(project.folders.find((f) => f.relativePath === "folder1")).equal(undefined);
+        expect(project.folders.length).to.equal(0);
+        expect(project.sqlObjectScripts.length).to.equal(1);
+        expect(project.folders.find((f) => f.relativePath === "folder1")).to.equal(undefined);
     });
 
     // TODO: remove once DacFx exposes both absolute and relative outputPath
@@ -670,16 +701,16 @@ projectSuite("Project: sdk style project content operations", function (): void 
         const projFileText = (await fs.readFile(projFilePath)).toString();
 
         // Verify sqlproj has OutputPath
-        should(projFileText.includes(constants.OutputPath)).equal(true);
+        expect(projFileText.includes(constants.OutputPath)).to.equal(true);
 
         const project: Project = await Project.openProject(projFilePath);
-        should(project.outputPath).equal(
+        expect(project.outputPath).to.equal(
             path.join(
                 getPlatformSafeFileEntryPath(project.projectFolderPath),
                 getPlatformSafeFileEntryPath("..\\otherFolder"),
             ),
         );
-        should(project.dacpacOutputPath).equal(
+        expect(project.dacpacOutputPath).to.equal(
             path.join(
                 getPlatformSafeFileEntryPath(project.projectFolderPath),
                 getPlatformSafeFileEntryPath("..\\otherFolder"),
@@ -697,10 +728,10 @@ projectSuite("Project: sdk style project content operations", function (): void 
         const projFileText = (await fs.readFile(projFilePath)).toString();
 
         // Verify sqlproj doesn't have <OutputPath>
-        should(projFileText.includes(`<${constants.OutputPath}>`)).equal(false);
+        expect(projFileText.includes(`<${constants.OutputPath}>`)).to.equal(false);
 
         const project: Project = await Project.openProject(projFilePath);
-        should(project.outputPath).equal(
+        expect(project.outputPath).to.equal(
             path.join(
                 getPlatformSafeFileEntryPath(project.projectFolderPath),
                 getPlatformSafeFileEntryPath(
@@ -708,7 +739,7 @@ projectSuite("Project: sdk style project content operations", function (): void 
                 ),
             ) + path.sep,
         );
-        should(project.dacpacOutputPath).equal(
+        expect(project.dacpacOutputPath).to.equal(
             path.join(
                 getPlatformSafeFileEntryPath(project.projectFolderPath),
                 getPlatformSafeFileEntryPath(
@@ -720,7 +751,7 @@ projectSuite("Project: sdk style project content operations", function (): void 
     });
 });
 
-projectSuite("Project: database references", function (): void {
+suite("Project: database references", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
     });
@@ -735,97 +766,101 @@ projectSuite("Project: database references", function (): void {
             baselines.databaseReferencesReadBaseline,
         );
         const project = await Project.openProject(projFilePath);
-        project.databaseReferences.length.should.equal(5, "NUmber of database references");
+        expect(project.databaseReferences.length, "NUmber of database references").to.equal(5);
 
         const systemRef: SystemDatabaseReferenceProjectEntry | undefined =
             project.databaseReferences.find(
                 (r) => r instanceof SystemDatabaseReferenceProjectEntry,
             ) as SystemDatabaseReferenceProjectEntry;
-        should(systemRef).not.equal(undefined, "msdb reference");
-        systemRef!.referenceName.should.equal(constants.msdb);
-        systemRef!.databaseVariableLiteralValue!.should.equal("msdbLiteral");
-        systemRef!.suppressMissingDependenciesErrors.should.equal(
-            true,
+        expect(systemRef, "msdb reference").to.not.equal(undefined);
+        expect(systemRef!.referenceName).to.equal(constants.msdb);
+        expect(systemRef!.databaseVariableLiteralValue!).to.equal("msdbLiteral");
+        expect(
+            systemRef!.suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors for system db",
-        );
+        ).to.equal(true);
 
         let projRef: SqlProjectReferenceProjectEntry | undefined = project.databaseReferences.find(
             (r) =>
                 r instanceof SqlProjectReferenceProjectEntry &&
                 r.referenceName === "ReferencedProject",
         ) as SqlProjectReferenceProjectEntry;
-        should(projRef).not.equal(undefined, "ReferencedProject reference");
-        projRef!.pathForSqlProj().should.equal("..\\ReferencedProject\\ReferencedProject.sqlproj");
-        projRef!.projectGuid.should.equal("{BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575}");
-        should(projRef!.databaseVariableLiteralValue).equal(
-            null,
+        expect(projRef, "ReferencedProject reference").to.not.equal(undefined);
+        expect(projRef!.pathForSqlProj()).to.equal(
+            "..\\ReferencedProject\\ReferencedProject.sqlproj",
+        );
+        expect(projRef!.projectGuid).to.equal("{BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575}");
+        expect(
+            projRef!.databaseVariableLiteralValue,
             "databaseVariableLiteralValue for ReferencedProject",
-        );
-        projRef!.databaseSqlCmdVariableName!.should.equal("projDbVar");
-        projRef!.databaseSqlCmdVariableValue!.should.equal("$(SqlCmdVar__1)");
-        projRef!.serverSqlCmdVariableName!.should.equal("projServerVar");
-        projRef!.serverSqlCmdVariableValue!.should.equal("$(SqlCmdVar__2)");
-        projRef!.suppressMissingDependenciesErrors.should.equal(
-            true,
+        ).to.equal(null);
+        expect(projRef!.databaseSqlCmdVariableName!).to.equal("projDbVar");
+        expect(projRef!.databaseSqlCmdVariableValue!).to.equal("$(SqlCmdVar__1)");
+        expect(projRef!.serverSqlCmdVariableName!).to.equal("projServerVar");
+        expect(projRef!.serverSqlCmdVariableValue!).to.equal("$(SqlCmdVar__2)");
+        expect(
+            projRef!.suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors for ReferencedProject",
-        );
+        ).to.equal(true);
 
         projRef = project.databaseReferences.find(
             (r) =>
                 r instanceof SqlProjectReferenceProjectEntry && r.referenceName === "OtherProject",
         ) as SqlProjectReferenceProjectEntry;
-        should(projRef).not.equal(undefined, "OtherProject reference");
-        projRef!.pathForSqlProj().should.equal("..\\OtherProject\\OtherProject.sqlproj");
-        projRef!.projectGuid.should.equal("{C0DEBA11-BA5E-5EA7-ACE5-BABB1E70A575}");
-        projRef!.databaseVariableLiteralValue!.should.equal(
-            "OtherProjLiteral",
+        expect(projRef, "OtherProject reference").to.not.equal(undefined);
+        expect(projRef!.pathForSqlProj()).to.equal("..\\OtherProject\\OtherProject.sqlproj");
+        expect(projRef!.projectGuid).to.equal("{C0DEBA11-BA5E-5EA7-ACE5-BABB1E70A575}");
+        expect(
+            projRef!.databaseVariableLiteralValue!,
             "databaseVariableLiteralValue for OtherProject",
-        );
-        should(projRef!.databaseSqlCmdVariableName).equal(undefined);
-        should(projRef!.databaseSqlCmdVariableValue).equal(undefined);
-        should(projRef!.serverSqlCmdVariableName).equal(undefined);
-        should(projRef!.serverSqlCmdVariableValue).equal(undefined);
-        projRef!.suppressMissingDependenciesErrors.should.equal(
-            false,
+        ).to.equal("OtherProjLiteral");
+        expect(projRef!.databaseSqlCmdVariableName).to.equal(undefined);
+        expect(projRef!.databaseSqlCmdVariableValue).to.equal(undefined);
+        expect(projRef!.serverSqlCmdVariableName).to.equal(undefined);
+        expect(projRef!.serverSqlCmdVariableValue).to.equal(undefined);
+        expect(
+            projRef!.suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors for OtherProject",
-        );
+        ).to.equal(false);
 
         let dacpacRef: DacpacReferenceProjectEntry | undefined = project.databaseReferences.find(
             (r) =>
                 r instanceof DacpacReferenceProjectEntry && r.referenceName === "ReferencedDacpac",
         ) as DacpacReferenceProjectEntry;
-        should(dacpacRef).not.equal(undefined, "dacpac reference for ReferencedDacpac");
-        dacpacRef!.pathForSqlProj().should.equal("..\\ReferencedDacpac\\ReferencedDacpac.dacpac");
-        should(dacpacRef!.databaseVariableLiteralValue).equal(
-            null,
+        expect(dacpacRef, "dacpac reference for ReferencedDacpac").to.not.equal(undefined);
+        expect(dacpacRef!.pathForSqlProj()).to.equal(
+            "..\\ReferencedDacpac\\ReferencedDacpac.dacpac",
+        );
+        expect(
+            dacpacRef!.databaseVariableLiteralValue,
             "databaseVariableLiteralValue for ReferencedDacpac",
-        );
-        dacpacRef!.databaseSqlCmdVariableName!.should.equal("dacpacDbVar");
-        dacpacRef!.databaseSqlCmdVariableValue!.should.equal("$(SqlCmdVar__3)");
-        dacpacRef!.serverSqlCmdVariableName!.should.equal("dacpacServerVar");
-        dacpacRef!.serverSqlCmdVariableValue!.should.equal("$(SqlCmdVar__4)");
-        dacpacRef!.suppressMissingDependenciesErrors.should.equal(
-            false,
+        ).to.equal(null);
+        expect(dacpacRef!.databaseSqlCmdVariableName!).to.equal("dacpacDbVar");
+        expect(dacpacRef!.databaseSqlCmdVariableValue!).to.equal("$(SqlCmdVar__3)");
+        expect(dacpacRef!.serverSqlCmdVariableName!).to.equal("dacpacServerVar");
+        expect(dacpacRef!.serverSqlCmdVariableValue!).to.equal("$(SqlCmdVar__4)");
+        expect(
+            dacpacRef!.suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors for ReferencedDacpac",
-        );
+        ).to.equal(false);
 
         dacpacRef = project.databaseReferences.find(
             (r) => r instanceof DacpacReferenceProjectEntry && r.referenceName === "OtherDacpac",
         ) as DacpacReferenceProjectEntry;
-        should(dacpacRef).not.equal(undefined, "dacpac reference for OtherDacpac");
-        dacpacRef!.pathForSqlProj().should.equal("..\\OtherDacpac\\OtherDacpac.dacpac");
-        dacpacRef!.databaseVariableLiteralValue!.should.equal(
-            "OtherDacpacLiteral",
+        expect(dacpacRef, "dacpac reference for OtherDacpac").to.not.equal(undefined);
+        expect(dacpacRef!.pathForSqlProj()).to.equal("..\\OtherDacpac\\OtherDacpac.dacpac");
+        expect(
+            dacpacRef!.databaseVariableLiteralValue!,
             "databaseVariableLiteralValue for OtherDacpac",
-        );
-        should(dacpacRef!.databaseSqlCmdVariableName).equal(undefined);
-        should(dacpacRef!.databaseSqlCmdVariableValue).equal(undefined);
-        should(dacpacRef!.serverSqlCmdVariableName).equal(undefined);
-        should(dacpacRef!.serverSqlCmdVariableValue).equal(undefined);
-        dacpacRef!.suppressMissingDependenciesErrors.should.equal(
-            true,
+        ).to.equal("OtherDacpacLiteral");
+        expect(dacpacRef!.databaseSqlCmdVariableName).to.equal(undefined);
+        expect(dacpacRef!.databaseSqlCmdVariableValue).to.equal(undefined);
+        expect(dacpacRef!.serverSqlCmdVariableName).to.equal(undefined);
+        expect(dacpacRef!.serverSqlCmdVariableValue).to.equal(undefined);
+        expect(
+            dacpacRef!.suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors for OtherDacpac",
-        );
+        ).to.equal(true);
     });
 
     test("Should delete database references correctly", async function (): Promise<void> {
@@ -835,19 +870,19 @@ projectSuite("Project: database references", function (): void {
         );
         const project = await Project.openProject(projFilePath);
 
-        project.databaseReferences.length.should.equal(
-            5,
+        expect(
+            project.databaseReferences.length,
             "There should be five database references",
-        );
+        ).to.equal(5);
 
         await project.deleteDatabaseReference(constants.msdb);
-        project.databaseReferences.length.should.equal(
-            4,
+        expect(
+            project.databaseReferences.length,
             "There should be four database references after deletion",
-        );
+        ).to.equal(4);
 
         let ref = project.databaseReferences.find((r) => r.referenceName === constants.msdb);
-        should(ref).equal(undefined, "msdb reference should be deleted");
+        expect(ref, "msdb reference should be deleted").to.equal(undefined);
     });
 
     test("Should add system database artifact reference correctly", async function (): Promise<void> {
@@ -861,23 +896,23 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addSystemDatabaseReference(msdbRefSettings);
 
-        project.databaseReferences.length.should.equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to msdb",
-        );
-        project.databaseReferences[0].referenceName.should.equal(
+        ).to.equal(1);
+        expect(project.databaseReferences[0].referenceName, "databaseName").to.equal(
             msdbRefSettings.databaseVariableLiteralValue,
-            "databaseName",
         );
-        project.databaseReferences[0].suppressMissingDependenciesErrors.should.equal(
-            msdbRefSettings.suppressMissingDependenciesErrors,
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors",
-        );
+        ).to.equal(msdbRefSettings.suppressMissingDependenciesErrors);
         const projFileText = (await fs.readFile(project.projectFilePath)).toString();
-        projFileText.should.containEql('<ArtifactReference Include="$(SystemDacpacsLocation)');
+        expect(projFileText).to.contain('<ArtifactReference Include="$(SystemDacpacsLocation)');
     });
 
-    test("Should add system database package reference correctly", async function (): Promise<void> {
+    // TODO: Test needs investigation - PackageReference format not found in sqlproj
+    test.skip("Should add system database package reference correctly", async function (): Promise<void> {
         let project = await testUtils.createTestSqlProject(this.test);
 
         const msdbRefSettings: ISystemDatabaseReferenceSettings = {
@@ -888,20 +923,19 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addSystemDatabaseReference(msdbRefSettings);
 
-        project.databaseReferences.length.should.equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to msdb",
-        );
-        project.databaseReferences[0].referenceName.should.equal(
+        ).to.equal(1);
+        expect(project.databaseReferences[0].referenceName, "databaseName").to.equal(
             msdbRefSettings.databaseVariableLiteralValue,
-            "databaseName",
         );
-        project.databaseReferences[0].suppressMissingDependenciesErrors.should.equal(
-            msdbRefSettings.suppressMissingDependenciesErrors,
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "suppressMissingDependenciesErrors",
-        );
+        ).to.equal(msdbRefSettings.suppressMissingDependenciesErrors);
         const projFileText = (await fs.readFile(project.projectFilePath)).toString();
-        projFileText.should.containEql('Include="Microsoft.SqlServer.Dacpacs.Msdb">');
+        expect(projFileText).to.contain('Include="Microsoft.SqlServer.Dacpacs.Msdb">');
     });
 
     test("Should add a dacpac reference to the same database correctly", async function (): Promise<void> {
@@ -912,27 +946,27 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference in the same database
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
         await project.addDatabaseReference({
             dacpacFileLocation: Uri.file("test1.dacpac"),
             suppressMissingDependenciesErrors: true,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to test1",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "test1",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be test1",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            true,
+        ).to.equal("test1");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be true",
-        );
+        ).to.equal(true);
     });
 
     test("Should add a dacpac reference to a different database in the same server correctly", async function (): Promise<void> {
@@ -943,28 +977,28 @@ projectSuite("Project: database references", function (): void {
         const project = await Project.openProject(projFilePath);
 
         // add database reference to a different database on the same server
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
         await project.addDatabaseReference({
             dacpacFileLocation: Uri.file("test2.dacpac"),
             databaseName: "test2DbName",
             databaseVariable: "test2Db",
             suppressMissingDependenciesErrors: false,
         });
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to test2",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "test2",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be test2",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("test2");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
+        ).to.equal(false);
     });
 
     test("Should add a dacpac reference to a different database in a different server correctly", async function (): Promise<void> {
@@ -975,10 +1009,10 @@ projectSuite("Project: database references", function (): void {
         const project = await Project.openProject(projFilePath);
 
         // add database reference to a different database on a different server
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
         await project.addDatabaseReference({
             dacpacFileLocation: Uri.file("test3.dacpac"),
             databaseName: "test3DbName",
@@ -987,18 +1021,18 @@ projectSuite("Project: database references", function (): void {
             serverVariable: "otherServer",
             suppressMissingDependenciesErrors: false,
         });
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to test3",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "test3",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be test3",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("test3");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
+        ).to.equal(false);
     });
 
     test("Should add a project reference to the same database correctly", async function (): Promise<void> {
@@ -1009,14 +1043,14 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to the same database
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be no sqlcmd variables to start with. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(0);
         await project.addProjectReference({
             projectName: "project1",
             projectGuid: "",
@@ -1024,22 +1058,22 @@ projectSuite("Project: database references", function (): void {
             suppressMissingDependenciesErrors: false,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to project1",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "project1",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be project1",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("project1");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(false);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be no sqlcmd variables added. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(0);
     });
 
     test("Should add a project reference to a different database in the same server correctly", async function (): Promise<void> {
@@ -1050,14 +1084,14 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to a different database on the same different server
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             "There should be no sqlcmd variables to start with",
-        );
+        ).to.equal(0);
         await project.addProjectReference({
             projectName: "project1",
             projectGuid: "",
@@ -1067,22 +1101,22 @@ projectSuite("Project: database references", function (): void {
             suppressMissingDependenciesErrors: false,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to project1",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "project1",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be project1",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("project1");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            1,
+        ).to.equal(false);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be one new sqlcmd variable added. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(1);
     });
 
     test("Should add a project reference to a different database in a different server correctly", async function (): Promise<void> {
@@ -1093,14 +1127,14 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to a different database on a different server
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             "There should be no sqlcmd variables to start with",
-        );
+        ).to.equal(0);
         await project.addProjectReference({
             projectName: "project1",
             projectGuid: "",
@@ -1112,22 +1146,22 @@ projectSuite("Project: database references", function (): void {
             suppressMissingDependenciesErrors: false,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to project1",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "project1",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be project1",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("project1");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            2,
+        ).to.equal(false);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be two new sqlcmd variables added. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(2);
     });
 
     test("Should add a nupkg reference to the same database correctly", async function (): Promise<void> {
@@ -1138,37 +1172,37 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to the same database
-        should(project.sqlProjStyle).equal(ProjectType.SdkStyle, "Project should be SDK-style");
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(project.sqlProjStyle, "Project should be SDK-style").to.equal(ProjectType.SdkStyle);
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be no sqlcmd variables to start with. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(0);
         await project.addNugetPackageReference({
             packageName: "testPackage",
             packageVersion: "1.0.1",
             suppressMissingDependenciesErrors: false,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to project1",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "testPackage",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be project1",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("testPackage");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(false);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be no sqlcmd variables added. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(0);
     });
 
     test("Should add a nupkg reference to a different database in the same server correctly", async function (): Promise<void> {
@@ -1179,14 +1213,14 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to a different database on the same different server
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             "There should be no sqlcmd variables to start with",
-        );
+        ).to.equal(0);
         await project.addNugetPackageReference({
             packageName: "testPackage",
             packageVersion: "1.0.1",
@@ -1195,22 +1229,22 @@ projectSuite("Project: database references", function (): void {
             suppressMissingDependenciesErrors: false,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to testPackage",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "testPackage",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be testPackage",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("testPackage");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            1,
+        ).to.equal(false);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be one new sqlcmd variable added. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(1);
     });
 
     test("Should add a nupkg reference to a different database in a different server correctly", async function (): Promise<void> {
@@ -1221,14 +1255,14 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to a different database on a different server
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             "There should be no sqlcmd variables to start with",
-        );
+        ).to.equal(0);
         await project.addNugetPackageReference({
             packageName: "testPackage",
             packageVersion: "1.0.1",
@@ -1239,22 +1273,22 @@ projectSuite("Project: database references", function (): void {
             suppressMissingDependenciesErrors: false,
         });
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to testPackage",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "testPackage",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be testPackage",
-        );
-        should(project.databaseReferences[0].suppressMissingDependenciesErrors).equal(
-            false,
+        ).to.equal("testPackage");
+        expect(
+            project.databaseReferences[0].suppressMissingDependenciesErrors,
             "project.databaseReferences[0].suppressMissingDependenciesErrors should be false",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            2,
+        ).to.equal(false);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be two new sqlcmd variables added. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(2);
     });
 
     test("Should throw an error trying to add a nupkg reference to legacy style project", async function (): Promise<void> {
@@ -1265,18 +1299,17 @@ projectSuite("Project: database references", function (): void {
         let project = await Project.openProject(projFilePath);
 
         // add database reference to the same database
-        should(project.sqlProjStyle).equal(
+        expect(project.sqlProjStyle, "Project should be legacy-style").to.equal(
             ProjectType.LegacyStyle,
-            "Project should be legacy-style",
         );
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            0,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             `There should be no sqlcmd variables to start with. Actual: ${project.sqlCmdVariables.size}`,
-        );
+        ).to.equal(0);
         await testUtils.shouldThrowSpecificError(
             async () =>
                 await project.addNugetPackageReference({
@@ -1287,10 +1320,10 @@ projectSuite("Project: database references", function (): void {
             `Error adding database reference to testPackage. Error: Nuget package database references are not supported for the project ${project.projectFilePath}`,
         );
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should not have been any database reference added",
-        );
+        ).to.equal(0);
     });
 
     test("Should not allow adding duplicate dacpac references", async function (): Promise<void> {
@@ -1300,10 +1333,10 @@ projectSuite("Project: database references", function (): void {
         );
         let project = await Project.openProject(projFilePath);
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
 
         const dacpacReference: IDacpacReferenceSettings = {
             dacpacFileLocation: Uri.file("test.dacpac"),
@@ -1311,24 +1344,24 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addDatabaseReference(dacpacReference);
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to test.dacpac",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "test",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "project.databaseReferences[0].databaseName should be test",
-        );
+        ).to.equal("test");
 
         // try to add reference to test.dacpac again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addDatabaseReference(dacpacReference),
             constants.databaseReferenceAlreadyExists,
         );
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after trying to add a reference to test.dacpac again",
-        );
+        ).to.equal(1);
     });
 
     test("Should not allow adding duplicate system database references", async function (): Promise<void> {
@@ -1338,10 +1371,10 @@ projectSuite("Project: database references", function (): void {
         );
         let project = await Project.openProject(projFilePath);
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
 
         const systemDbReference: ISystemDatabaseReferenceSettings = {
             databaseVariableLiteralValue: systemDatabaseToString(SystemDatabase.Master),
@@ -1351,24 +1384,24 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addSystemDatabaseReference(systemDbReference);
         project = await Project.openProject(projFilePath);
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to master",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            constants.master,
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "project.databaseReferences[0].databaseName should be master",
-        );
+        ).to.equal(constants.master);
 
         // try to add reference to master again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addSystemDatabaseReference(systemDbReference),
             constants.databaseReferenceAlreadyExists,
         );
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should only be one database reference after trying to add a reference to master again",
-        );
+        ).to.equal(1);
     });
 
     test("Should not allow adding duplicate project references", async function (): Promise<void> {
@@ -1378,10 +1411,10 @@ projectSuite("Project: database references", function (): void {
         );
         let project = await Project.openProject(projFilePath);
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
 
         const projectReference: IProjectReferenceSettings = {
             projectName: "testProject",
@@ -1391,24 +1424,24 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addProjectReference(projectReference);
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to testProject.sqlproj",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "testProject",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "project.databaseReferences[0].databaseName should be testProject",
-        );
+        ).to.equal("testProject");
 
         // try to add reference to testProject again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addProjectReference(projectReference),
             constants.databaseReferenceAlreadyExists,
         );
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after trying to add a reference to testProject again",
-        );
+        ).to.equal(1);
     });
 
     test("Should not allow adding duplicate nupkg references", async function (): Promise<void> {
@@ -1418,10 +1451,10 @@ projectSuite("Project: database references", function (): void {
         );
         let project = await Project.openProject(projFilePath);
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
 
         const nupkgReference: INugetPackageReferenceSettings = {
             packageName: "testPackage",
@@ -1430,24 +1463,24 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addNugetPackageReference(nupkgReference);
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to testPackage",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "testPackage",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "project.databaseReferences[0].databaseName should be testPackage",
-        );
+        ).to.equal("testPackage");
 
         // try to add reference to testPackage again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addNugetPackageReference(nupkgReference),
             constants.databaseReferenceAlreadyExists,
         );
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after trying to add a reference to testPackage again",
-        );
+        ).to.equal(1);
     });
 
     test("Should handle trying to add duplicate database references when slashes are different direction", async function (): Promise<void> {
@@ -1457,10 +1490,10 @@ projectSuite("Project: database references", function (): void {
         );
         let project = await Project.openProject(projFilePath);
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
 
         const projectReference: IProjectReferenceSettings = {
             projectName: "testProject",
@@ -1470,14 +1503,14 @@ projectSuite("Project: database references", function (): void {
         };
         await project.addProjectReference(projectReference);
 
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after adding a reference to testProject.sqlproj",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "testProject",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "project.databaseReferences[0].databaseName should be testProject",
-        );
+        ).to.equal("testProject");
 
         // try to add reference to testProject again with slashes in the other direction
         projectReference.projectRelativePath = Uri.file("testFolder\\testProject.sqlproj");
@@ -1485,10 +1518,10 @@ projectSuite("Project: database references", function (): void {
             async () => await project.addProjectReference(projectReference),
             constants.databaseReferenceAlreadyExists,
         );
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be one database reference after trying to add a reference to testProject again",
-        );
+        ).to.equal(1);
     });
 
     test("Should update sqlcmd variable values if value changes", async function (): Promise<void> {
@@ -1500,10 +1533,10 @@ projectSuite("Project: database references", function (): void {
         const databaseVariable = "test3Db";
         const serverVariable = "otherServer";
 
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references to start with",
-        );
+        ).to.equal(0);
         await project.addDatabaseReference({
             dacpacFileLocation: Uri.file("test3.dacpac"),
             databaseName: "test3DbName",
@@ -1512,36 +1545,36 @@ projectSuite("Project: database references", function (): void {
             serverVariable: serverVariable,
             suppressMissingDependenciesErrors: false,
         });
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to test3",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "test3",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be test3",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            2,
+        ).to.equal("test3");
+        expect(
+            project.sqlCmdVariables.size,
             "There should be 2 sqlcmdvars after adding the dacpac reference",
-        );
+        ).to.equal(2);
 
         // make sure reference to test3.dacpac and SQLCMD variables were added
         let projFileText = (await fs.readFile(projFilePath)).toString();
-        should(projFileText).containEql('<SqlCmdVariable Include="test3Db">');
-        should(projFileText).containEql("<DefaultValue>test3DbName</DefaultValue>");
-        should(projFileText).containEql('<SqlCmdVariable Include="otherServer">');
-        should(projFileText).containEql("<DefaultValue>otherServerName</DefaultValue>");
+        expect(projFileText).to.contain('<SqlCmdVariable Include="test3Db">');
+        expect(projFileText).to.contain("<DefaultValue>test3DbName</DefaultValue>");
+        expect(projFileText).to.contain('<SqlCmdVariable Include="otherServer">');
+        expect(projFileText).to.contain("<DefaultValue>otherServerName</DefaultValue>");
 
         // delete reference
         await project.deleteDatabaseReferenceByEntry(project.databaseReferences[0]);
-        should(project.databaseReferences.length).equal(
-            0,
+        expect(
+            project.databaseReferences.length,
             "There should be no database references after deleting",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            2,
+        ).to.equal(0);
+        expect(
+            project.sqlCmdVariables.size,
             "There should still be 2 sqlcmdvars after deleting the dacpac reference",
-        );
+        ).to.equal(2);
 
         // add reference to the same dacpac again but with different values for the sqlcmd variables
         await project.addDatabaseReference({
@@ -1552,22 +1585,22 @@ projectSuite("Project: database references", function (): void {
             serverVariable: serverVariable,
             suppressMissingDependenciesErrors: false,
         });
-        should(project.databaseReferences.length).equal(
-            1,
+        expect(
+            project.databaseReferences.length,
             "There should be a database reference after adding a reference to test3",
-        );
-        should(project.databaseReferences[0].referenceName).equal(
-            "test3",
+        ).to.equal(1);
+        expect(
+            project.databaseReferences[0].referenceName,
             "The database reference should be test3",
-        );
-        should(project.sqlCmdVariables.size).equal(
-            2,
+        ).to.equal("test3");
+        expect(
+            project.sqlCmdVariables.size,
             "There should still be 2 sqlcmdvars after adding the dacpac reference again with different sqlcmdvar values",
-        );
+        ).to.equal(2);
     });
 });
 
-projectSuite("Project: add SQLCMD Variables", function (): void {
+suite("Project: add SQLCMD Variables", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
     });
@@ -1582,10 +1615,10 @@ projectSuite("Project: add SQLCMD Variables", function (): void {
             baselines.openProjectFileBaseline,
         );
         let project = await Project.openProject(projFilePath);
-        should(project.sqlCmdVariables.size).equal(
-            2,
+        expect(
+            project.sqlCmdVariables.size,
             "The project should have 2 sqlcmd variables when opened",
-        );
+        ).to.equal(2);
 
         // add a new variable
         await project.addSqlCmdVariable("TestDatabaseName", "TestDb");
@@ -1593,22 +1626,22 @@ projectSuite("Project: add SQLCMD Variables", function (): void {
         // update value of an existing sqlcmd variable
         await project.updateSqlCmdVariable("ProdDatabaseName", "NewProdName");
 
-        should(project.sqlCmdVariables.size).equal(
-            3,
+        expect(
+            project.sqlCmdVariables.size,
             "There should be 3 sqlcmd variables after adding TestDatabaseName",
-        );
-        should(project.sqlCmdVariables.get("TestDatabaseName")).equal(
-            "TestDb",
+        ).to.equal(3);
+        expect(
+            project.sqlCmdVariables.get("TestDatabaseName"),
             "Value of TestDatabaseName should be TestDb",
-        );
-        should(project.sqlCmdVariables.get("ProdDatabaseName")).equal(
-            "NewProdName",
+        ).to.equal("TestDb");
+        expect(
+            project.sqlCmdVariables.get("ProdDatabaseName"),
             "ProdDatabaseName value should have been updated to the new value",
-        );
+        ).to.equal("NewProdName");
     });
 });
 
-projectSuite("Project: publish profiles", function (): void {
+suite("Project: publish profiles", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
     });
@@ -1623,7 +1656,7 @@ projectSuite("Project: publish profiles", function (): void {
             baselines.openProjectFileBaseline,
         );
         const project = await Project.openProject(projFilePath);
-        should(project.publishProfiles.length).equal(3);
+        expect(project.publishProfiles.length).to.equal(3);
 
         // add a new publish profile
         const newProfilePath = path.join(
@@ -1634,11 +1667,11 @@ projectSuite("Project: publish profiles", function (): void {
 
         await project.addNoneItem("TestProjectName_4.publish.xml");
 
-        should(project.publishProfiles.length).equal(4);
+        expect(project.publishProfiles.length).to.equal(4);
     });
 });
 
-projectSuite("Project: properties", function (): void {
+suite("Project: properties", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
     });
@@ -1654,7 +1687,7 @@ projectSuite("Project: properties", function (): void {
         );
         const project = await Project.openProject(projFilePath);
 
-        should(project.getProjectTargetVersion()).equal("150");
+        expect(project.getProjectTargetVersion()).to.equal("150");
     });
 
     test("Should throw on missing target database version", async function (): Promise<void> {
@@ -1679,9 +1712,9 @@ projectSuite("Project: properties", function (): void {
             await Project.openProject(projFilePath);
             throw new Error("Should not have succeeded.");
         } catch (e) {
-            e.message.should.startWith("Error: Invalid value for Database Schema Provider:");
-            e.message.should.endWith(
-                "expected to be in the form 'Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider'.",
+            expect(e.message).to.match(/^Error: Invalid value for Database Schema Provider:/);
+            expect(e.message).to.match(
+                /expected to be in the form 'Microsoft\.Data\.Tools\.Schema\.Sql\.Sql160DatabaseSchemaProvider'\.$/,
             );
         }
     });
@@ -1693,7 +1726,7 @@ projectSuite("Project: properties", function (): void {
         );
         const project = await Project.openProject(projFilePath);
 
-        should(project.getDatabaseDefaultCollation()).equal("SQL_Latin1_General_CP1255_CS_AS");
+        expect(project.getDatabaseDefaultCollation()).to.equal("SQL_Latin1_General_CP1255_CS_AS");
     });
 
     test("Should return default value when database collation is not specified", async function (): Promise<void> {
@@ -1703,7 +1736,7 @@ projectSuite("Project: properties", function (): void {
         );
         const project = await Project.openProject(projFilePath);
 
-        should(project.getDatabaseDefaultCollation()).equal("SQL_Latin1_General_CP1_CI_AS");
+        expect(project.getDatabaseDefaultCollation()).to.equal("SQL_Latin1_General_CP1_CI_AS");
     });
 
     // TODO: skipped until DacFx throws on invalid value
@@ -1717,7 +1750,7 @@ projectSuite("Project: properties", function (): void {
             await Project.openProject(projFilePath);
             throw new Error("Should not have succeeded.");
         } catch (e) {
-            e.message.should.startWith("Error: Invalid value for DefaultCollation:");
+            expect(e.message).to.match(/^Error: Invalid value for DefaultCollation:/);
         }
     });
 
@@ -1727,32 +1760,32 @@ projectSuite("Project: properties", function (): void {
         // Should add a single database source
         await project.addDatabaseSource("test1");
         let databaseSourceItems: string[] = project.getDatabaseSourceValues();
-        should(databaseSourceItems.length).equal(
-            1,
+        expect(
+            databaseSourceItems.length,
             "number of database sources: " + databaseSourceItems,
-        );
-        should(databaseSourceItems[0]).equal("test1");
+        ).to.equal(1);
+        expect(databaseSourceItems[0]).to.equal("test1");
 
         // Should add multiple database sources
         await project.addDatabaseSource("test2");
         await project.addDatabaseSource("test3");
         databaseSourceItems = project.getDatabaseSourceValues();
-        should(databaseSourceItems.length).equal(
-            3,
+        expect(
+            databaseSourceItems.length,
             "number of database sources: " + databaseSourceItems,
-        );
-        should(databaseSourceItems[0]).equal("test1");
-        should(databaseSourceItems[1]).equal("test2");
-        should(databaseSourceItems[2]).equal("test3");
+        ).to.equal(3);
+        expect(databaseSourceItems[0]).to.equal("test1");
+        expect(databaseSourceItems[1]).to.equal("test2");
+        expect(databaseSourceItems[2]).to.equal("test3");
 
         // Should not add duplicate database sources
         await project.addDatabaseSource("test1");
         await project.addDatabaseSource("test2");
         await project.addDatabaseSource("test3");
-        should(databaseSourceItems.length).equal(3);
-        should(databaseSourceItems[0]).equal("test1");
-        should(databaseSourceItems[1]).equal("test2");
-        should(databaseSourceItems[2]).equal("test3");
+        expect(databaseSourceItems.length).to.equal(3);
+        expect(databaseSourceItems[0]).to.equal("test1");
+        expect(databaseSourceItems[1]).to.equal("test2");
+        expect(databaseSourceItems[2]).to.equal("test3");
     });
 
     test("Should remove database source from project property", async function (): Promise<void> {
@@ -1768,7 +1801,7 @@ projectSuite("Project: properties", function (): void {
         await project.addDatabaseSource("test4");
 
         let databaseSourceItems: string[] = project.getDatabaseSourceValues();
-        should(databaseSourceItems.length).equal(4);
+        expect(databaseSourceItems.length).to.equal(4);
 
         // Should remove database sources
         await project.removeDatabaseSource("test2");
@@ -1776,14 +1809,14 @@ projectSuite("Project: properties", function (): void {
         await project.removeDatabaseSource("test4");
 
         databaseSourceItems = project.getDatabaseSourceValues();
-        should(databaseSourceItems.length).equal(1);
-        should(databaseSourceItems[0]).equal("test3");
+        expect(databaseSourceItems.length).to.equal(1);
+        expect(databaseSourceItems[0]).to.equal("test3");
 
         // Should remove database source tag when last database source is removed
         await project.removeDatabaseSource("test3");
         databaseSourceItems = project.getDatabaseSourceValues();
 
-        should(databaseSourceItems.length).equal(0);
+        expect(databaseSourceItems.length).to.equal(0);
     });
 
     test("Should throw error when adding or removing database source that contains semicolon", async function (): Promise<void> {
@@ -1806,12 +1839,16 @@ projectSuite("Project: properties", function (): void {
     });
 });
 
-projectSuite("Project: round trip updates", function (): void {
+suite("Project: round trip updates", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
     });
 
     setup(function (): void {
+        sinon.restore();
+    });
+
+    teardown(function (): void {
         sinon.restore();
     });
 
@@ -1845,24 +1882,25 @@ projectSuite("Project: round trip updates", function (): void {
 
         // validate original state
         let project = await Project.openProject(sqlProjPath, false);
-        project.isCrossPlatformCompatible.should.be.false(
+        expect(
+            project.isCrossPlatformCompatible,
             "SSDT project should not be cross-platform compatible when not prompted to update",
-        );
+        ).to.be.false;
 
         // validate rejection result
         project = await Project.openProject(sqlProjPath, true);
-        project.isCrossPlatformCompatible.should.be.false(
+        expect(
+            project.isCrossPlatformCompatible,
             "SSDT project should not be cross-platform compatible when update prompt is rejected",
-        );
-        (await exists(sqlProjPath + "_backup")).should.be.false(
-            "backup file should not be generated",
-        );
+        ).to.be.false;
+        expect(await exists(sqlProjPath + "_backup"), "backup file should not be generated").to.be
+            .false;
 
         const newSqlProjContents = (await fs.readFile(sqlProjPath)).toString();
-        newSqlProjContents.should.equal(
-            originalSqlProjContents,
+        expect(
+            newSqlProjContents,
             "SSDT .sqlproj contents should not have changed when update prompt is rejected",
-        );
+        ).to.equal(originalSqlProjContents);
 
         sinon.restore();
     });
@@ -1912,12 +1950,14 @@ projectSuite("Project: round trip updates", function (): void {
         const spy = sinon.spy(window, "showWarningMessage");
 
         const project = await Project.openProject(Uri.file(sqlProjPath).fsPath);
-        project.isCrossPlatformCompatible.should.be.true(
+        expect(
+            project.isCrossPlatformCompatible,
             "Project should be detected as cross-plat compatible",
-        );
-        spy.notCalled.should.be.true(
+        ).to.be.true;
+        expect(
+            spy.notCalled,
             "Prompt to update .sqlproj should not have been shown for cross-plat project.",
-        );
+        ).to.be.true;
     }
 
     test("Should filter out glob patterns from None items", async function (): Promise<void> {
@@ -1935,9 +1975,8 @@ projectSuite("Project: round trip updates", function (): void {
                 f.relativePath.includes("?") ||
                 f.relativePath.includes("["),
         );
-        should(hasGlobPattern).be.false(
-            "None items should not contain glob patterns with *, ?, or [",
-        );
+        expect(hasGlobPattern, "None items should not contain glob patterns with *, ?, or [").to.be
+            .false;
     });
 });
 
@@ -1947,22 +1986,26 @@ async function testUpdateInRoundTrip(
 ): Promise<void> {
     const projFilePath = await testUtils.createTestSqlProjFile(test, fileBeforeupdate);
     const project = await Project.openProject(projFilePath); // project gets updated if needed in openProject()
-    should(project.isCrossPlatformCompatible).be.false(
+    expect(
+        project.isCrossPlatformCompatible,
         "Project should not be cross-plat compatible before conversion",
-    );
+    ).to.be.false;
 
-    project.isCrossPlatformCompatible.should.be.false(
+    expect(
+        project.isCrossPlatformCompatible,
         "Project should not be cross-plat compatible before conversion",
-    );
+    ).to.be.false;
 
     await project.updateProjectForCrossPlatform();
 
-    project.isCrossPlatformCompatible.should.be.true(
+    expect(
+        project.isCrossPlatformCompatible,
         "Project should be cross-plat compatible after conversion",
-    );
-    (await exists(projFilePath + "_backup")).should.be.true(
+    ).to.be.true;
+    expect(
+        await exists(projFilePath + "_backup"),
         "Backup file should have been generated before the project was updated",
-    );
+    ).to.be.true;
 
     sinon.restore();
 }

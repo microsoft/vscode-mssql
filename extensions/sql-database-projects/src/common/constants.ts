@@ -97,6 +97,7 @@ export const schemaCompareStartCommand = "schemaCompare.start";
 export const schemaCompareRunComparisonCommand = "schemaCompare.runComparison";
 export const mssqlSchemaCompareCommand = "mssql.schemaCompare";
 export const mssqlPublishProjectCommand = "mssql.publishDatabaseProject";
+export const mssqlConfigureCodeAnalysisSettingsCommand = "mssql.configureCodeAnalysisSettings";
 export const vscodeOpenCommand = "vscode.open";
 export const refreshDataWorkspaceCommand = "dataworkspace.refresh";
 
@@ -882,7 +883,31 @@ export const downloading = l10n.t("Downloading");
 
 //#endregion
 
+//#region proxy
+export const Proxy = {
+    missingProtocolWarning: (proxy: string) =>
+        l10n.t(
+            "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.",
+            proxy,
+        ),
+    unparseableWarning: (proxy: string, errorMessage: string) =>
+        l10n.t(
+            "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}",
+            proxy,
+            errorMessage,
+        ),
+    unableToGetProxyAgentOptions: l10n.t("Unable to read proxy agent options."),
+};
+//#endregion
+
 //#region buildHelper
+export function nugetDownloadFailedHelp(buildDirPath: string): string {
+    return l10n.t(
+        "Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}",
+        buildDirPath,
+    );
+}
+
 export function downloadingNuget(nuget: string) {
     return l10n.t("Downloading {0} nuget to get build DLLs ", nuget);
 }

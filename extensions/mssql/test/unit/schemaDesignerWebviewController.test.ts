@@ -13,8 +13,12 @@ import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schema
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
+import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
+import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
+import * as copilotUtils from "../../src/copilot/copilotUtils";
+import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
     stubUserSurvey,
@@ -163,6 +167,42 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(ctrl.schemaDesignerDetails).to.be.undefined;
         });
 
+        test("should initialize copilot chat discovery state from globalState", () => {
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"), false)
+                .returns(true);
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("dab"), false)
+                .returns(false);
+
+            const ctrl = createController();
+
+            expect(ctrl.state.copilotChatDiscoveryDismissed).to.deep.equal({
+                schemaDesigner: true,
+                dab: false,
+            });
+        });
+
+        test("should set copilot availability to true when Copilot Chat extension is installed", () => {
+            sandbox
+                .stub(vscode.extensions, "getExtension")
+                .withArgs("github.copilot-chat")
+                .returns({} as vscode.Extension<any>);
+
+            const ctrl = createController();
+            expect(ctrl.state.isCopilotChatInstalled).to.be.true;
+        });
+
+        test("should set copilot availability to false when Copilot Chat extension is not installed", () => {
+            sandbox
+                .stub(vscode.extensions, "getExtension")
+                .withArgs("github.copilot-chat")
+                .returns(undefined);
+
+            const ctrl = createController();
+            expect(ctrl.state.isCopilotChatInstalled).to.be.false;
+        });
+
         test("should register all request handlers", () => {
             createController();
 
@@ -194,6 +234,38 @@ suite("SchemaDesignerWebviewController tests", () => {
                     SchemaDesigner.CloseSchemaDesignerNotification.type.method,
                 ),
             ).to.be.true;
+        });
+    });
+
+    suite("Copilot chat discovery reducer", () => {
+        test("dismissCopilotChatDiscovery persists the scenario and updates state", async () => {
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"), false)
+                .returns(true);
+            (mockContext.globalState.get as sinon.SinonStub)
+                .withArgs(CopilotChat.getDiscoveryDismissedStateKey("dab"), false)
+                .returns(false);
+            (mockContext.globalState.update as sinon.SinonStub).resolves();
+            const ctrl = createController();
+            const reducerHandler = requestHandlers.get(
+                ReducerRequest.type<SchemaDesigner.SchemaDesignerReducers>().method,
+            );
+
+            expect(reducerHandler).to.not.be.undefined;
+
+            await reducerHandler!({
+                type: "dismissCopilotChatDiscovery",
+                payload: { scenario: "dab" },
+            });
+
+            expect(mockContext.globalState.update).to.have.been.calledOnceWith(
+                CopilotChat.getDiscoveryDismissedStateKey("dab"),
+                true,
+            );
+            expect(ctrl.state.copilotChatDiscoveryDismissed).to.deep.equal({
+                schemaDesigner: true,
+                dab: true,
+            });
         });
     });
 
@@ -693,9 +765,10 @@ suite("SchemaDesignerWebviewController tests", () => {
                 const result = await handler({ config: mockDabConfig });
 
                 const parsedConfig = JSON.parse(result.configContent);
-                // localhost is transformed to host.docker.internal for Docker container access
+                // localhost is transformed to host.docker.internal for Docker container access,
+                // with the default SQL Server port appended when not specified
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal;Database=testdb;",
+                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
@@ -717,7 +790,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    "Server=host.docker.internal\\my-sql-container;Database=testdb;",
+                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber};Database=testdb;`,
                 );
             });
 
@@ -783,14 +856,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
         });
 
-        suite("CopyConfigNotification handler", () => {
-            test("should register CopyConfigNotification handler", () => {
+        suite("CopyTextNotification handler", () => {
+            test("should register CopyTextNotification handler", () => {
                 createController();
 
-                expect(notificationHandlers.has(Dab.CopyConfigNotification.type.method)).to.be.true;
+                expect(notificationHandlers.has(Dab.CopyTextNotification.type.method)).to.be.true;
             });
 
-            test("should copy config content to clipboard and show notification", async () => {
+            test("should copy text to clipboard and show config message for Config type", async () => {
                 const writeTextStub = sandbox.stub().resolves();
                 sandbox.stub(vscode.env, "clipboard").value({
                     writeText: writeTextStub,
@@ -801,14 +874,105 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 createController();
 
-                const handler = notificationHandlers.get(Dab.CopyConfigNotification.type.method);
+                const handler = notificationHandlers.get(Dab.CopyTextNotification.type.method);
                 expect(handler).to.be.a("function");
 
-                const configContent = '{"$schema": "test"}';
-                await handler({ configContent });
+                const text = '{"$schema": "test"}';
+                await handler({ text, copyTextType: Dab.CopyTextType.Config });
 
-                expect(writeTextStub).to.have.been.calledOnceWith(configContent);
+                expect(writeTextStub).to.have.been.calledOnceWith(text);
                 expect(showInfoStub).to.have.been.calledOnce;
+            });
+
+            test("should show URL message for Url type", async () => {
+                const writeTextStub = sandbox.stub().resolves();
+                sandbox.stub(vscode.env, "clipboard").value({
+                    writeText: writeTextStub,
+                });
+                const showInfoStub = sandbox
+                    .stub(vscode.window, "showInformationMessage")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.CopyTextNotification.type.method);
+
+                const url = "http://localhost:5000/api";
+                await handler({ text: url, copyTextType: Dab.CopyTextType.Url });
+
+                expect(writeTextStub).to.have.been.calledOnceWith(url);
+                expect(showInfoStub).to.have.been.calledOnce;
+            });
+        });
+
+        suite("OpenUrlNotification handler", () => {
+            test("should register OpenUrlNotification handler", () => {
+                createController();
+
+                expect(notificationHandlers.has(Dab.OpenUrlNotification.type.method)).to.be.true;
+            });
+
+            test("should open http URL in VS Code built-in browser", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+                expect(handler).to.be.a("function");
+
+                const url = "http://localhost:5000/swagger/index.html";
+                await handler({ url });
+
+                expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+
+            test("should open https URL in VS Code built-in browser", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                const url = "https://example.com/graphql";
+                await handler({ url });
+
+                expect(executeCommandStub).to.have.been.calledOnceWith("simpleBrowser.show", url);
+            });
+
+            test("should reject non-http/https schemes", async () => {
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                await handler({ url: "file:///etc/passwd" });
+                expect(executeCommandStub).to.not.have.been.called;
+
+                await handler({ url: "command:workbench.action.terminal.new" });
+                expect(executeCommandStub).to.not.have.been.called;
+            });
+
+            test("should show error message when simpleBrowser.show fails", async () => {
+                sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .rejects(new Error("Command not found"));
+                const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.OpenUrlNotification.type.method);
+
+                const url = "http://localhost:5000/swagger/index.html";
+                await handler({ url });
+
+                expect(showErrorStub).to.have.been.calledOnce;
             });
         });
 
@@ -924,6 +1088,195 @@ suite("SchemaDesignerWebviewController tests", () => {
                     // Expected to fail in test environment without Docker
                 }
             });
+        });
+
+        suite("AddMcpServerRequest handler", () => {
+            test("should register AddMcpServerRequest handler", () => {
+                createController();
+
+                expect(requestHandlers.has(Dab.AddMcpServerRequest.type.method)).to.be.true;
+            });
+
+            test("should delegate to addMcpServerToWorkspace with correct parameters", async () => {
+                const addMcpStub = sandbox
+                    .stub(copilotUtils, "addMcpServerToWorkspace")
+                    .resolves({ success: true });
+
+                createController();
+
+                const handler = requestHandlers.get(Dab.AddMcpServerRequest.type.method);
+                expect(handler).to.be.a("function");
+
+                const payload: Dab.AddMcpServerParams = {
+                    serverName: "DabMcp-5000",
+                    serverUrl: "http://localhost:5000/mcp",
+                };
+
+                const result = await handler(payload);
+
+                expect(addMcpStub).to.have.been.calledOnceWithExactly(
+                    "DabMcp-5000",
+                    "http://localhost:5000/mcp",
+                );
+                expect(result.success).to.be.true;
+            });
+
+            test("should return error response when addMcpServerToWorkspace fails", async () => {
+                sandbox.stub(copilotUtils, "addMcpServerToWorkspace").resolves({
+                    success: false,
+                    error: "No workspace folder is open.",
+                });
+
+                createController();
+
+                const handler = requestHandlers.get(Dab.AddMcpServerRequest.type.method);
+
+                const payload: Dab.AddMcpServerParams = {
+                    serverName: "DabMcp-5000",
+                    serverUrl: "http://localhost:5000/mcp",
+                };
+
+                const result = await handler(payload);
+
+                expect(result.success).to.be.false;
+                expect(result.error).to.equal("No workspace folder is open.");
+            });
+        });
+    });
+
+    suite("isDabDeploymentSupported", () => {
+        test("should set isDabDeploymentSupported to true when authenticationType is SqlLogin via treeNode", () => {
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+        });
+
+        test("should set isDabDeploymentSupported to false when authenticationType is AzureMFA via treeNode", () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    }) as any,
+            );
+
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should set isDabDeploymentSupported to false when authenticationType is Integrated via treeNode", () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "localhost",
+                        database: databaseName,
+                        authenticationType: "Integrated",
+                    }) as any,
+            );
+
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should resolve isDabDeploymentSupported from connectionUri when no treeNode", () => {
+            (mockMainController.connectionManager as any).getConnectionInfo = sandbox
+                .stub()
+                .returns({
+                    credentials: {
+                        server: "localhost",
+                        database: databaseName,
+                        authenticationType: "SqlLogin",
+                    },
+                });
+
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                connectionUri,
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+        });
+
+        test("should set isDabDeploymentSupported to false when connectionUri has non-SqlLogin auth", () => {
+            (mockMainController.connectionManager as any).getConnectionInfo = sandbox
+                .stub()
+                .returns({
+                    credentials: {
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    },
+                });
+
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                connectionUri,
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                undefined, // no connectionUri
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+    });
+
+    suite("RunDeploymentStepRequest deployment guard", () => {
+        test("should block deployment and return error when isDabDeploymentSupported is false", async () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    }) as any,
+            );
+
+            const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+            createController();
+
+            const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            const payload: Dab.RunDeploymentStepParams = {
+                step: Dab.DabDeploymentStepOrder.dockerInstallation,
+            };
+
+            const result = await handler(payload);
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.be.a("string");
+            expect(showErrorStub).to.have.been.calledOnce;
         });
     });
 

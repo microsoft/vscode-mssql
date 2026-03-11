@@ -7,17 +7,18 @@ import {
     Button,
     Checkbox,
     Divider,
-    Dropdown,
+    Input,
     makeStyles,
-    Option,
     Text,
     tokens,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { useContext } from "react";
+import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { useDabContext } from "./dabContext";
+import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 
 const useStyles = makeStyles({
     toolbarContainer: {
@@ -67,18 +68,9 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         width: "100%",
     },
-    filterLeft: {
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-    },
-    entityEndpointsLabel: {
-        fontSize: "13px",
-        fontWeight: 500,
-    },
-    schemaDropdown: {
-        minWidth: "120px",
-        maxWidth: "250px",
+    searchInput: {
+        minWidth: "180px",
+        maxWidth: "300px",
     },
     enabledCount: {
         fontSize: "12px",
@@ -86,15 +78,21 @@ const useStyles = makeStyles({
     },
 });
 
-export function DabToolbar() {
+interface DabToolbarProps {
+    showDiscovery: boolean;
+    onNavigateToSchema?: () => void;
+    onViewConfig?: () => void;
+}
+
+export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: DabToolbarProps) {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useDabContext();
     const {
         dabConfig,
+        isDabDeploymentSupported,
         updateDabApiTypes,
-        dabSchemaFilter,
-        setDabSchemaFilter,
-        generateDabConfig,
+        dabTextFilter,
+        setDabTextFilter,
         openDabDeploymentDialog,
     } = context;
 
@@ -115,35 +113,60 @@ export function DabToolbar() {
     const allApiTypesSelected = allApiTypes.every((t) => dabConfig.apiTypes.includes(t));
     const noneApiTypesExtraSelected = dabConfig.apiTypes.length <= 1;
 
-    // Get unique schemas from entities for the filter dropdown
-    const availableSchemas = Array.from(
-        new Set(dabConfig.entities.map((e) => e.schemaName)),
-    ).sort();
-
     return (
         <div className={classes.toolbarContainer}>
             {/* Header row with title and action buttons */}
             <div className={classes.headerRow}>
                 <div className={classes.titleSection}>
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<FluentIcons.ArrowLeft16Regular />}
+                        onClick={onNavigateToSchema}>
+                        {locConstants.schemaDesigner.backToSchema}
+                    </Button>
+                    <Divider vertical style={{ height: "20px" }} />
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
+                    <SchemaDesignerWebviewCopilotChatEntry
+                        scenario="dab"
+                        entryPoint="dabToolbar"
+                        discoveryTitle={locConstants.schemaDesigner.dabCopilotDiscoveryTitle}
+                        discoveryBody={locConstants.schemaDesigner.dabCopilotDiscoveryBody}
+                        showDiscovery={showDiscovery}
+                    />
                     <Button
                         appearance="subtle"
-                        icon={<FluentIcons.DocumentCopy16Regular />}
+                        icon={<FluentIcons.Eye16Regular />}
                         size="small"
-                        title={locConstants.schemaDesigner.generateConfig}
-                        onClick={() => void generateDabConfig()}>
-                        {locConstants.schemaDesigner.generateConfig}
+                        title={locConstants.schemaDesigner.viewConfig}
+                        onClick={onViewConfig}>
+                        {locConstants.schemaDesigner.viewConfig}
                     </Button>
-                    <Button
-                        appearance="primary"
-                        icon={<FluentIcons.Play16Filled />}
-                        size="small"
-                        title={locConstants.schemaDesigner.deploy}
-                        onClick={openDabDeploymentDialog}>
-                        {locConstants.schemaDesigner.deploy}
-                    </Button>
+                    {isDabDeploymentSupported ? (
+                        <Button
+                            appearance="primary"
+                            icon={<FluentIcons.Play16Filled />}
+                            size="small"
+                            onClick={openDabDeploymentDialog}>
+                            {locConstants.schemaDesigner.deploy}
+                        </Button>
+                    ) : (
+                        <Tooltip
+                            content={locConstants.schemaDesigner.dabDeploymentNotSupported}
+                            relationship="label">
+                            <span>
+                                <Button
+                                    appearance="primary"
+                                    icon={<FluentIcons.Play16Filled />}
+                                    size="small"
+                                    disabled>
+                                    {locConstants.schemaDesigner.deploy}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    )}
                 </div>
             </div>
 
@@ -183,39 +206,29 @@ export function DabToolbar() {
                 </div>
             </div>
 
-            {/* Entity Endpoints filter row */}
+            {/* Filter row */}
             <div className={classes.filterRow}>
-                <div className={classes.filterLeft}>
-                    <Text className={classes.entityEndpointsLabel}>
-                        {locConstants.schemaDesigner.entityEndpoints}
-                    </Text>
-                    <Dropdown
-                        className={classes.schemaDropdown}
-                        size="small"
-                        multiselect
-                        button={{
-                            style: {
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                            },
-                        }}
-                        value={
-                            dabSchemaFilter.length === 0
-                                ? locConstants.schemaDesigner.allSchemas
-                                : dabSchemaFilter.join(", ")
-                        }
-                        selectedOptions={dabSchemaFilter}
-                        onOptionSelect={(_, data) => {
-                            setDabSchemaFilter(data.selectedOptions);
-                        }}>
-                        {availableSchemas.map((schema) => (
-                            <Option key={schema} value={schema}>
-                                {schema}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </div>
+                <Input
+                    className={classes.searchInput}
+                    size="small"
+                    placeholder={locConstants.schemaDesigner.filterEntities}
+                    aria-label={locConstants.schemaDesigner.filterEntities}
+                    value={dabTextFilter}
+                    onChange={(_, data) => setDabTextFilter(data.value)}
+                    contentBefore={<Search16Regular />}
+                    contentAfter={
+                        dabTextFilter ? (
+                            <Button
+                                appearance="transparent"
+                                icon={<Dismiss16Regular />}
+                                size="small"
+                                aria-label={locConstants.common.clear}
+                                onClick={() => setDabTextFilter("")}
+                                style={{ minWidth: "auto", padding: 0 }}
+                            />
+                        ) : null
+                    }
+                />
                 <Text className={classes.enabledCount}>
                     {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
                 </Text>

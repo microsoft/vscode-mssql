@@ -24,7 +24,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
-        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -36,7 +35,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
             (node) => {
                 this.refresh(node);
             },
-            this._isRichExperienceEnabled,
         );
     }
 

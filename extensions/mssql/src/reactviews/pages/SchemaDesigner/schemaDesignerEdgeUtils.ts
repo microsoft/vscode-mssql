@@ -12,6 +12,8 @@
 
 export interface ForeignKeyEdgeDataLike {
     id?: string;
+    columnsIds?: string[];
+    referencedColumnsIds?: string[];
 }
 
 export interface ForeignKeyEdgeLike {
@@ -53,19 +55,19 @@ export function applyColumnRenamesToIncomingForeignKeyEdges<T extends ForeignKey
             continue;
         }
 
-        // Update data payload (per-column edge -> referencedColumns is typically a single-element array)
-        const data = edge.data as unknown as { referencedColumns?: string[] } | undefined;
-        if (!data?.referencedColumns || data.referencedColumns.length !== 1) {
+        // Update data payload (per-column edge -> referencedColumnsIds is typically a single-element array)
+        const data = edge.data;
+        if (!data?.referencedColumnsIds || data.referencedColumnsIds.length !== 1) {
             continue;
         }
 
-        const oldReferencedColName = data.referencedColumns[0];
-        const newReferencedColName = renamedColumns.get(oldReferencedColName);
-        if (!newReferencedColName || newReferencedColName === oldReferencedColName) {
+        const oldReferencedColId = data.referencedColumnsIds[0];
+        const newReferencedColId = renamedColumns.get(oldReferencedColId);
+        if (!newReferencedColId || newReferencedColId === oldReferencedColId) {
             continue;
         }
 
-        data.referencedColumns = [newReferencedColName];
+        data.referencedColumnsIds = [newReferencedColId];
     }
 }
 
@@ -89,19 +91,19 @@ export function applyColumnRenamesToOutgoingForeignKeyEdges<T extends ForeignKey
             continue;
         }
 
-        // Update data payload (per-column edge -> columns is typically a single-element array)
-        const data = edge.data as unknown as { columns?: string[] } | undefined;
-        if (!data?.columns || data.columns.length !== 1) {
+        // Update data payload (per-column edge -> columnsIds is typically a single-element array)
+        const data = edge.data;
+        if (!data?.columnsIds || data.columnsIds.length !== 1) {
             continue;
         }
 
-        const oldSourceColName = data.columns[0];
-        const newSourceColName = renamedColumns.get(oldSourceColName);
-        if (!newSourceColName || newSourceColName === oldSourceColName) {
+        const oldSourceColId = data.columnsIds[0];
+        const newSourceColId = renamedColumns.get(oldSourceColId);
+        if (!newSourceColId || newSourceColId === oldSourceColId) {
             continue;
         }
 
-        data.columns = [newSourceColName];
+        data.columnsIds = [newSourceColId];
     }
 }
 

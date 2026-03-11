@@ -131,6 +131,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
         overflowY: "auto",
+        minHeight: 0,
         paddingRight: "8px",
     },
     mainGrid: {
@@ -191,13 +192,16 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "16px",
+        minHeight: 0,
+        overflowY: "auto",
+        paddingRight: "8px",
     },
     sidebarCard: {
         borderRadius: "12px",
         border: "1px solid var(--vscode-editorWidget-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
         padding: "15px",
-        overflowY: "auto",
+        flexShrink: 0,
     },
     list: {
         display: "flex",

@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, ToolbarButton, Tooltip, makeStyles } from "@fluentui/react-components";
-import { BranchCompare20Regular } from "@fluentui/react-icons";
-import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
+import { Badge, Button, Tooltip, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "../definition/schemaDesignerDefinitionPanelContext";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
+import { BranchCompareIcon16Regular } from "../../../common/icons/fluentIcons";
 
 const useStyles = makeStyles({
     container: {
@@ -32,28 +32,27 @@ const useStyles = makeStyles({
 
 export function ShowChangesButton() {
     const changeContext = useSchemaDesignerChangeContext();
-    const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
-    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const { activeTab, isDefinitionPanelVisible, toggleDefinitionPanel } =
+        useSchemaDesignerDefinitionPanelContext();
     const classes = useStyles();
-    const isDabEnabled = enableDAB ?? false;
-
-    if (!isDabEnabled) {
-        return <></>;
-    }
+    const isCompact = useIsToolbarCompact();
+    const buttonLabel =
+        isDefinitionPanelVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes
+            ? locConstants.schemaDesigner.hideChangesButtonLabel
+            : locConstants.schemaDesigner.showChangesButtonLabel;
 
     return (
-        <Tooltip
-            content={locConstants.schemaDesigner.showChangesButtonLabel(
-                changeContext.schemaChangesCount,
-            )}
-            relationship="label">
+        <Tooltip content={buttonLabel} relationship="label">
             <span className={classes.container}>
-                <ToolbarButton
+                <Button
+                    appearance="subtle"
+                    size="small"
                     onClick={() => {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Changes);
                     }}
-                    icon={<BranchCompare20Regular />}
-                />
+                    icon={<BranchCompareIcon16Regular />}>
+                    {!isCompact && buttonLabel}
+                </Button>
                 {changeContext.schemaChangesCount > 0 && (
                     <Badge size="small" className={classes.badge}>
                         {changeContext.schemaChangesCount}

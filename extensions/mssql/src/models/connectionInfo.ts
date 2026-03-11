@@ -360,3 +360,11 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
 
     return [ServerType.Other];
 }
+
+/**
+ * Checks whether the given server types indicate an Azure SQL DB-compatible server
+ * (Azure SQL or Fabric SQL).
+ */
+export function isAzureSqlDbCompatible(serverTypes: ServerType[]): boolean {
+    return serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric);
+}

@@ -30,10 +30,80 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-january2026",
+                        value: "https://aka.ms/vscode-mssql-february2026",
                     },
                 ],
             },
+            {
+                title: locConstants.Changelog.queryProfilerTitle,
+                description: locConstants.Changelog.queryProfilerDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-query-profiler-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-query-profiler",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.globalObjectSearchTitle,
+                description: locConstants.Changelog.globalObjectSearchDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-object-search-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-object-search",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.backupRestoreTitle,
+                description: locConstants.Changelog.backupRestoreDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-backup-restore-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-backup-restore",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.databaseManagementTitle,
+                description: locConstants.Changelog.databaseManagementDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-database-management-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-database-management",
+                    },
+                ],
+            },
+        ],
+    },
+    secondaryContent: {
+        title: locConstants.Changelog.secondaryContentTitle,
+        description: locConstants.Changelog.secondaryContentDescription,
+        entries: [
             {
                 title: locConstants.Changelog.editDataTitle,
                 description: locConstants.Changelog.editDataDescription,
@@ -47,6 +117,22 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-edit-data",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.sqlProjPublishTitle,
+                description: locConstants.Changelog.sqlProjPublishDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-docs",
                     },
                 ],
             },
@@ -71,28 +157,6 @@ export const changelogConfig: ChangelogWebviewState = {
                     },
                 ],
             },
-            {
-                title: locConstants.Changelog.sqlProjPublishTitle,
-                description: locConstants.Changelog.sqlProjPublishDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-docs",
-                    },
-                ],
-            },
-        ],
-    },
-    secondaryContent: {
-        title: locConstants.Changelog.secondaryContentTitle,
-        description: locConstants.Changelog.secondaryContentDescription,
-        entries: [
             {
                 title: locConstants.Changelog.schemaDesignerTitle,
                 description: locConstants.Changelog.schemaDesignerDescription,

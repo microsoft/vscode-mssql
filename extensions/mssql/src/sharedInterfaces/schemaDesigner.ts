@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { CopilotChat } from "./copilotChat";
 
 export namespace SchemaDesigner {
     /**
@@ -115,19 +116,15 @@ export namespace SchemaDesigner {
         /**
          * Parent columns of the relationship
          */
-        columns: string[];
-        /**
-         * Referenced schema of the relationship
-         */
-        referencedSchemaName: string;
+        columnsIds: string[];
         /**
          * Referenced table of the relationship
          */
-        referencedTableName: string;
+        referencedTableId: string;
         /**
          * Referenced columns of the relationship
          */
-        referencedColumns: string[];
+        referencedColumnsIds: string[];
         /**
          * On delete action of the relationship
          */
@@ -335,8 +332,10 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
-        enableDAB?: boolean;
+        isCopilotChatInstalled?: boolean;
+        copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;
+        isDabDeploymentSupported?: boolean;
     }
 
     export interface ExportFileOptions {
@@ -368,6 +367,7 @@ export namespace SchemaDesigner {
         getReport: GetReportOptions;
         copyToClipboard: CopyToClipboardOptions;
         openInEditor: OpenInEditorOptions;
+        dismissCopilotChatDiscovery: CopilotChat.DismissDiscoveryPayload;
     }
 
     export interface SchemaDesignerCacheItem {
@@ -509,6 +509,13 @@ export namespace SchemaDesigner {
         onUpdateAction: number;
     }
 
+    export type ForeignKeySet = Partial<
+        Pick<ForeignKeyCreate, "name" | "onDeleteAction" | "onUpdateAction"> & {
+            referencedTable: TableRef;
+            mappings: ForeignKeyMapping[];
+        }
+    >;
+
     export type SchemaDesignerEdit =
         | { op: "add_table"; table: TableRef; initialColumns?: ColumnCreate[] }
         | { op: "drop_table"; table: TableRef }
@@ -518,17 +525,11 @@ export namespace SchemaDesigner {
         | { op: "set_column"; table: TableRef; column: ColumnRef; set: Partial<ColumnCreate> }
         | { op: "add_foreign_key"; table: TableRef; foreignKey: ForeignKeyCreate }
         | { op: "drop_foreign_key"; table: TableRef; foreignKey: ForeignKeyRef }
-        | {
+        | ({
               op: "set_foreign_key";
               table: TableRef;
               foreignKey: ForeignKeyRef;
-              set: Partial<
-                  Pick<ForeignKeyCreate, "name" | "onDeleteAction" | "onUpdateAction"> & {
-                      referencedTable: TableRef;
-                      mappings: ForeignKeyMapping[];
-                  }
-              >;
-          };
+          } & ForeignKeySet);
 
     export interface ApplyEditsWebviewParams {
         edits: SchemaDesignerEdit[];

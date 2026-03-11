@@ -3,21 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ToolbarButton, Tooltip } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { Button, Tooltip } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
+import { DeleteIcon16Regular } from "../../../common/icons/fluentIcons";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 
 export function DeleteNodesButton() {
     const context = useContext(SchemaDesignerContext);
+    const isCompact = useIsToolbarCompact();
     return (
         <Tooltip content={locConstants.schemaDesigner.delete} relationship="label">
-            <ToolbarButton
+            <Button
                 appearance="subtle"
-                icon={<FluentIcons.Delete20Regular />}
-                onClick={() => context.deleteSelectedNodes()}
-            />
+                size="small"
+                icon={<DeleteIcon16Regular />}
+                onClick={() => context.deleteSelectedNodes()}>
+                {!isCompact && locConstants.schemaDesigner.delete}
+            </Button>
         </Tooltip>
     );
 }

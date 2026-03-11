@@ -18,17 +18,20 @@ import {
 import * as utils from "../../src/reactviews/common/utils";
 
 suite("keyboardUtils Tests", () => {
+    let sandbox: sinon.SinonSandbox;
     let isMacStub: sinon.SinonStub;
 
     setup(() => {
+        sandbox = sinon.createSandbox();
         // Mock navigator.platform for isMac() function
         // Default to non-Mac platform
-        isMacStub = sinon.stub(utils, "isMac").returns(false);
+        isMacStub = sandbox.stub(utils, "isMac").returns(false);
     });
 
     teardown(() => {
-        isMacStub.restore();
+        sandbox.restore();
     });
+
     suite("getShortcutInfo", () => {
         test("should return empty label and combination for undefined", () => {
             const result = getShortcutInfo(undefined);

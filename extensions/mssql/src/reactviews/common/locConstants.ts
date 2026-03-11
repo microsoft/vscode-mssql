@@ -56,6 +56,8 @@ export class LocConstants {
             refresh: l10n.t("Refresh"),
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
+            save: l10n.t("Save"),
+            tryIt: l10n.t("Try it"),
             dismiss: l10n.t("Dismiss"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
@@ -67,6 +69,7 @@ export class LocConstants {
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
+            ok: l10n.t("OK"),
         };
     }
 
@@ -186,10 +189,84 @@ export class LocConstants {
 
     public get publishDialog() {
         return {
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
             publish: l10n.t("Publish"),
             openPublishScript: l10n.t("Open Publish Script"),
             confirmationText: l10n.t("I have read the summary and understand the potential risks."),
+        };
+    }
+
+    public get codeAnalysis() {
+        return {
+            codeAnalysisTitle: (projectName: string) =>
+                l10n.t({
+                    message: "Code Analysis - {0}",
+                    args: [projectName],
+                    comment: ["{0} is the name of the database project"],
+                }),
+            loadingCodeAnalysisRules: l10n.t("Loading code analysis rules..."),
+            noCodeAnalysisRulesAvailable: l10n.t("No code analysis rules available."),
+            rulesCount: (ruleCount: number) =>
+                l10n.t({
+                    message: "{0} rules",
+                    args: [ruleCount],
+                    comment: ["{0} is the number of code analysis rules"],
+                }),
+            rules: l10n.t("Rules"),
+            severity: l10n.t("Severity"),
+            enableRule: (ruleId: string) =>
+                l10n.t({
+                    message: "Enable {0}",
+                    args: [ruleId],
+                    comment: ["{0} is the rule identifier, e.g. SR0001"],
+                }),
+            enableCategory: (category: string) =>
+                l10n.t({
+                    message: "Enable all rules in {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
+            expandCategory: (category: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
+            collapseCategory: (category: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [category],
+                    comment: ["{0} is the category name, e.g. Design"],
+                }),
+            severityForRule: (ruleId: string) =>
+                l10n.t({
+                    message: "Severity for {0}",
+                    args: [ruleId],
+                    comment: ["{0} is the rule identifier, e.g. SR0001"],
+                }),
+            reset: l10n.t("Reset"),
+            resetConfirmTitle: l10n.t("Reset to Defaults?"),
+            resetConfirmMessage: l10n.t(
+                "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
+            ),
+            unsavedChangesTitle: l10n.t("Unsaved Changes"),
+            unsavedChangesMessage: l10n.t(
+                "You have unsaved changes. Do you want to save before closing?",
+            ),
+            dontSave: l10n.t("Don't Save"),
+            enableCodeAnalysisOnBuild: l10n.t("Enable Code Analysis on Build"),
+            searchRules: l10n.t("Search rules..."),
+            filterBySeverity: l10n.t("Filter by severity"),
+            allSeverities: l10n.t("All severities"),
+            noRulesMatchFilter: l10n.t("No rules match the current filter."),
+            filteredRulesCount: (filtered: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} rules",
+                    args: [filtered, total],
+                    comment: ["{0} is the filtered count, {1} is the total count"],
+                }),
+            ruleEnabled: l10n.t("Rule enabled"),
+            ruleDisabled: l10n.t("Rule disabled"),
         };
     }
 
@@ -688,6 +765,15 @@ export class LocConstants {
             dataType: l10n.t("Type"),
             primaryKey: l10n.t("Primary Key"),
             delete: l10n.t("Delete"),
+            cannotDeleteColumnUsedInForeignKey: l10n.t(
+                "Cannot delete column because it is used by a foreign key.",
+            ),
+            cannotDeleteColumnReferencedByForeignKey: l10n.t(
+                "Cannot delete column because it is referenced by a foreign key.",
+            ),
+            cannotDeleteColumnUsedByForeignKeyRelations: l10n.t(
+                "Cannot delete column because it is part of foreign key relationships.",
+            ),
             newForeignKey: l10n.t("Add new foreign key"),
             foreignKeyIndex: (index: number) =>
                 l10n.t({
@@ -721,7 +807,21 @@ export class LocConstants {
             },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
-            publishChanges: l10n.t("Publish Changes"),
+            publishChanges: l10n.t("Apply Changes"),
+            openCopilotForSchemaDesigner: l10n.t("Chat"),
+            openCopilotForSchemaDesignerTooltip: l10n.t("Open in GitHub Copilot Chat"),
+            askGithubCopilotToFix: l10n.t("Ask GitHub Copilot to Fix"),
+            askGithubCopilotToFixTooltip: l10n.t(
+                "Open GitHub Copilot Chat to help fix these errors",
+            ),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
+            schemaDesignerCopilotDiscoveryBody: l10n.t(
+                "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
+            ),
+            dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
+            dabCopilotDiscoveryBody: l10n.t(
+                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
+            ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
@@ -931,6 +1031,8 @@ export class LocConstants {
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
             definition: l10n.t("Definition"),
+            showDefinition: l10n.t("Show Definition"),
+            hideDefinition: l10n.t("Hide Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -941,14 +1043,11 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Schema Designer"),
-            dabNavLabel: l10n.t("DAB"),
-            showChangesButtonLabel: (changeCount: number) =>
-                l10n.t({
-                    message: "Show Changes ({0})",
-                    args: [changeCount],
-                    comment: ["{0} is the number of schema changes"],
-                }),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            dabNavLabel: l10n.t("Build Data API (Preview)"),
+            showChangesButtonLabel: l10n.t("Show Changes"),
+            hideChangesButtonLabel: l10n.t("Hide Changes"),
+            showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
@@ -956,6 +1055,12 @@ export class LocConstants {
                     message: "Changes ({0})",
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
+                }),
+            copilotChangesPanelTitle: (changeCount: number) =>
+                l10n.t({
+                    message: "Copilot Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of copilot changes"],
                 }),
             noChangesYet: l10n.t("No changes yet."),
             noChangesYetSubtitle: l10n.t("Edit your schema to see changes here."),
@@ -1134,9 +1239,46 @@ export class LocConstants {
                         comment: ["{0} is the number of changes"],
                     }),
             },
+            accept: l10n.t("Accept"),
+            acceptAll: l10n.t("Accept All"),
+            undoAll: l10n.t("Undo All"),
+            undoAllConfirmation: l10n.t("Undo All Copilot Changes"),
+            undoAllConfirmationContent: l10n.t(
+                "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
+            ),
+            reject: l10n.t("Reject"),
+            reviewingCopilotChange: l10n.t("Reviewing Copilot Change"),
+            changeNofM: (current: number, total: number) =>
+                l10n.t({
+                    message: "Change {0} of {1}",
+                    args: [current, total],
+                    comment: [
+                        "{0} is the current change number",
+                        "{1} is the total number of changes",
+                    ],
+                }),
+            copilotUnknown: l10n.t("Unknown"),
+            copilotOnDelete: l10n.t("On Delete"),
+            copilotOnUpdate: l10n.t("On Update"),
+            copilotReferencedSchema: l10n.t("Referenced schema"),
+            copilotReferencedTable: l10n.t("Referenced table"),
+            copilotReferencedColumns: l10n.t("Referenced columns"),
+            copilotForeignKeys: l10n.t("Foreign keys"),
+            copilotDataType: l10n.t("Data type"),
+            copilotPrimaryKey: l10n.t("Primary key"),
+            copilotAllowNull: l10n.t("Allow null"),
+            copilotPropertySummaryMore: (firstProperty: string, additionalCount: number) =>
+                l10n.t({
+                    message: "{0}, +{1} more",
+                    args: [firstProperty, additionalCount],
+                    comment: [
+                        "{0} is the first changed property label",
+                        "{1} is the count of additional changed properties",
+                    ],
+                }),
 
             // DAB (Data API Builder) strings
-            dabTitle: l10n.t("Data API Builder Configuration"),
+            dabTitle: l10n.t("Data API Builder Configuration (Preview)"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1144,6 +1286,7 @@ export class LocConstants {
             all: l10n.t("All"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
+            filterEntities: l10n.t("Filter entities..."),
             nOfMEnabled: (enabled: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} enabled",
@@ -1157,9 +1300,13 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            generateConfig: l10n.t("Generate Config"),
+            viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
+            dabDeploymentNotSupported: l10n.t(
+                "Local container deployment is currently only supported for SQL Authentication connections.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
+            designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
             entityName: l10n.t("Entity Name"),
@@ -1179,6 +1326,39 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+            toggleAllEntitiesInSchema: (schemaName: string) =>
+                l10n.t({
+                    message: "Toggle all entities in {0}",
+                    args: [schemaName],
+                    comment: ["{0} is the schema name"],
+                }),
+            enableEntity: (entityName: string) =>
+                l10n.t({
+                    message: "Enable {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            actionForEntity: (action: string, entityName: string) =>
+                l10n.t({
+                    message: "{0} action for {1}",
+                    args: [action, entityName],
+                    comment: [
+                        "{0} is the action name (Create, Read, etc.)",
+                        "{1} is the entity name",
+                    ],
+                }),
+            settingsForEntity: (entityName: string) =>
+                l10n.t({
+                    message: "Settings for {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            selectAllAction: (action: string) =>
+                l10n.t({
+                    message: "Select all {0}",
+                    args: [action],
+                    comment: ["{0} is the action name (Create, Read, etc.)"],
+                }),
 
             // DAB Deployment Dialog
             deployDabContainer: l10n.t("Deploy DAB Container"),
@@ -1204,6 +1384,18 @@ export class LocConstants {
             deploymentFailed: l10n.t("Deployment Failed"),
             dabContainerRunning: l10n.t("DAB container is running!"),
             apiAvailableAt: l10n.t("Your API is available at:"),
+            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
+            copyUrl: (apiType: string) =>
+                l10n.t({
+                    message: "Copy {0} URL",
+                    args: [apiType],
+                    comment: ["{0} is the API type name, e.g. REST API or GraphQL"],
+                }),
+            addToVSCode: l10n.t("Add to VS Code"),
+            addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
+            mcpServerAdded: l10n.t("Added"),
+            viewSwagger: l10n.t("View Swagger"),
+            openNitro: l10n.t("Open Nitro"),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
@@ -1942,6 +2134,9 @@ export class LocConstants {
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
+            keymapTooltip: l10n.t(
+                "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.",
+            ),
             keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
             importedConnectionGroups: (count: number) =>
                 count === 1
@@ -2008,10 +2203,11 @@ export class LocConstants {
             fileBrowserFolderTitle: l10n.t("Select a folder"),
             folderRequired: l10n.t("Folder is required"),
             fileRequired: l10n.t("File is required"),
+            pleaseSelectAFile: l10n.t("Please select a file, not a folder."),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
-            pleaseChooseAFile: l10n.t("Please choose a file"),
-            pleaseChooseAFolder: l10n.t("Please choose a folder"),
+            filePath: l10n.t("File path"),
+            folderPath: l10n.t("Folder path"),
         };
     }
 
@@ -2126,8 +2322,8 @@ export class LocConstants {
             stateReadOnly: l10n.t("Read-Only"),
 
             // Status bar
-            noSession: l10n.t("Profiler (Preview): No session"),
-            sessionStatusTooltip: l10n.t("Profiler (Preview) Session Status"),
+            noSession: l10n.t("Query Profiler (Preview): No session"),
+            sessionStatusTooltip: l10n.t("Query Profiler (Preview) Session Status"),
             eventsCount: (count: number) =>
                 l10n.t({
                     message: "{0} events",
@@ -2304,6 +2500,8 @@ export class LocConstants {
             backupSetsToRestore: l10n.t("Backup sets to restore"),
             advancedRestoreOptions: l10n.t("Advanced restore options"),
             couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
+            chooseBackupFile: l10n.t("Please choose a backup file to load restore plan"),
+            chooseBlob: l10n.t("Please choose a blob to load restore plan"),
         };
     }
 }

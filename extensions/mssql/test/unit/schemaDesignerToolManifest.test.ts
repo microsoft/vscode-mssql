@@ -80,8 +80,9 @@ suite("Schema Designer LM tool manifest schema", () => {
         expect(addColumn.properties.column.required).to.include.members(["name", "dataType"]);
 
         const setForeignKey = byOp.get("set_foreign_key");
-        expect(setForeignKey.required).to.include.members(["table", "foreignKey", "set"]);
-        expect(setForeignKey.properties.set.properties).to.have.property("mappings");
+        expect(setForeignKey.required).to.include.members(["table", "foreignKey"]);
+        expect(setForeignKey.properties).to.have.property("mappings");
+        expect(setForeignKey.properties).to.not.have.property("set");
     });
 
     test("mssql_schema_designer apply_edits requires payload.expectedVersion", () => {
@@ -150,7 +151,7 @@ suite("Schema Designer LM tool manifest schema", () => {
         expect(tableAnyOfRequiredLists).to.deep.include.members([["id"], ["name", "schema"]]);
     });
 
-    test("mssql_schema_designer is gated behind the DAB feature flag", () => {
+    test("mssql_schema_designer is always available", () => {
         const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
@@ -159,6 +160,6 @@ suite("Schema Designer LM tool manifest schema", () => {
         );
         expect(tool, "missing mssql_schema_designer tool in contributes.languageModelTools").to
             .exist;
-        expect(tool.when).to.equal("config.mssql.enableDAB");
+        expect(tool.when).to.be.undefined;
     });
 });

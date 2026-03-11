@@ -62,3 +62,7 @@ export enum KeyCode {
     ContextMenu = "ContextMenu",
     Tab = "Tab",
 }
+
+export enum EventType {
+    Keydown = "keydown",
+}

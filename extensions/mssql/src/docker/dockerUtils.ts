@@ -19,7 +19,7 @@ import {
     windowsDockerDesktopExecutable,
     x64,
 } from "../constants/constants";
-import { LocalContainers, msgYes, Common, RemoveProfileLabel } from "../constants/locConstants";
+import { LocalContainers, msgYes, Common } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { FormItemValidationState } from "../sharedInterfaces/form";
@@ -511,11 +511,14 @@ export async function getDockerPath(executable: string): Promise<string> {
 export async function pullContainerImage(
     imageName: string,
     errorMessage: string,
+    platform?: string,
 ): Promise<DockerCommandParams> {
     try {
         dockerLogger.appendLine(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
-        const pullStream = await dockerClient.pull(imageName);
+        const pullStream = platform
+            ? await dockerClient.pull(imageName, { platform })
+            : await dockerClient.pull(imageName);
         await new Promise<void>((resolve, reject) => {
             dockerClient.modem.followProgress(pullStream, (error) =>
                 error ? reject(error) : resolve(),
@@ -778,9 +781,9 @@ export async function prepareForDockerContainerCommand(
         const confirmation = await vscode.window.showInformationMessage(
             LocalContainers.containerDoesNotExistError,
             { modal: true },
-            RemoveProfileLabel,
+            Common.remove,
         );
-        if (confirmation === RemoveProfileLabel) {
+        if (confirmation === Common.remove) {
             await objectExplorerService.removeNode(containerNode, false);
         }
         return {

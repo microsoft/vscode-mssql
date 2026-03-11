@@ -188,7 +188,7 @@ suite("TableDesignerWebviewController tests", () => {
             isValid: false,
         };
 
-        const secondStub = sinon
+        const secondStub = sandbox
             .stub(mockTableDesignerService, "processTableEdit")
             .resolves(editResponse as any);
 
@@ -267,7 +267,7 @@ suite("TableDesignerWebviewController tests", () => {
         publishChangesStub.restore();
 
         const errorMessage = "error message";
-        sinon.stub(mockTableDesignerService, "publishChanges").rejects(new Error(errorMessage));
+        sandbox.stub(mockTableDesignerService, "publishChanges").rejects(new Error(errorMessage));
 
         result = await controller["_reducerHandlers"].get("publishChanges")(
             callState,
@@ -367,7 +367,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         // Error scenario
         const errorMessage = "Preview generation failed";
-        sinon
+        sandbox
             .stub(mockTableDesignerService, "generatePreviewReport")
             .rejects(new Error(errorMessage));
 

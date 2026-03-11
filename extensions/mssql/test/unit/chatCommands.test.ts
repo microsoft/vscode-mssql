@@ -67,7 +67,7 @@ suite("Chat Commands Tests", () => {
         sandbox
             .stub(mockMainController, "connectionManager")
             .get(() => mockConnectionManager as unknown as ConnectionManager);
-        mockMainController.onNewConnection.resolves(true);
+        mockMainController.promptToConnect.resolves(true);
         mockMainController.onNewQueryWithConnection.resolves(true);
         mockMainController.onChooseDatabase.resolves(true);
 

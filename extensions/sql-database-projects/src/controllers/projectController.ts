@@ -18,7 +18,7 @@ import { SqlDatabaseProjectTreeViewProvider } from "./databaseProjectTreeViewPro
 import { FolderNode, FileNode } from "../models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../models/tree/baseTreeItem";
 import { ImportDataModel } from "../models/api/import";
-import { NetCoreTool, DotNetError } from "../tools/netcoreTool";
+import { NetCoreTool, DotNetError, getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
 import { BuildHelper } from "../tools/buildHelper";
 import {
     ISystemDatabaseReferenceSettings,
@@ -138,8 +138,7 @@ export class ProjectsController {
         }
 
         const sqlProjectsService = await utils.getSqlProjectsService();
-        // default version of Microsoft.Build.Sql for SDK style projects, update in README when updating this, and buildHelper.cs for legacy projects SDK support
-        const microsoftBuildSqlSDKStyleDefaultVersion = "2.0.0";
+        const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
         const projectStyle = creationParams.sdkStyle
             ? mssqlVscode.ProjectType.SdkStyle
             : mssqlVscode.ProjectType.LegacyStyle;
@@ -838,7 +837,9 @@ export class ProjectsController {
 
                 // Case 2: Check for nested object type folder (e.g., "Sales/Functions")
                 if (folderName) {
-                    const nestedPath = path.join(schemaFolder.relativePath, folderName);
+                    const nestedPath = utils.convertSlashesForSqlProj(
+                        path.join(schemaFolder.relativePath, folderName),
+                    );
                     const nestedFolder = project.folders.find(
                         (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
                     );
@@ -2272,10 +2273,6 @@ export class ProjectsController {
             void vscode.window.showInformationMessage(constants.equalComparison);
             return;
         }
-        if (comparisonResult.areEqual) {
-            void vscode.window.showInformationMessage(constants.equalComparison);
-            return;
-        }
 
         // Publish the changes (retrieved from the cache by operationId)
         const publishResult = await this.schemaComparePublishProjectChanges(
@@ -2360,6 +2357,44 @@ export class ProjectsController {
         }
 
         return result;
+    }
+
+    //#endregion
+
+    //#region Code Analysis
+
+    /**
+     * Opens the Code Analysis configuration for a SQL project
+     * @param context The project node from the tree view
+     */
+    public async configureCodeAnalysisSettings(
+        treeNode: dataworkspace.WorkspaceTreeItem,
+    ): Promise<void>;
+    public async configureCodeAnalysisSettings(project: Project): Promise<void>;
+    public async configureCodeAnalysisSettings(
+        context: Project | dataworkspace.WorkspaceTreeItem,
+    ): Promise<void> {
+        try {
+            const project = await this.getProjectFromContext(context);
+
+            TelemetryReporter.createActionEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.configureCodeAnalysisSettings,
+            ).send();
+
+            // Delegate to mssql extension's Code Analysis dialog
+            await vscode.commands.executeCommand(
+                constants.mssqlConfigureCodeAnalysisSettingsCommand,
+                project.projectFilePath,
+            );
+        } catch (err) {
+            void vscode.window.showErrorMessage(utils.getErrorMessage(err));
+            TelemetryReporter.sendErrorEvent2(
+                TelemetryViews.ProjectController,
+                TelemetryActions.configureCodeAnalysisSettings,
+                err,
+            );
+        }
     }
 
     //#endregion

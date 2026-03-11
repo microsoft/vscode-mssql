@@ -62,10 +62,14 @@ div.react-flow__node.react-flow__node-tableNode > div {
 
 div.react-flow__node.react-flow__node-tableNode:focus > div {
     border: 1px solid var(--vscode-focusBorder);
+    outline: 2px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
 }
 
 div.react-flow__node.react-flow__node-tableNode.selected > div {
     border: 1px solid var(--vscode-focusBorder);
+    outline: 2px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
 }
 
 div.react-flow__node.react-flow__node-tableNode .column {
@@ -112,6 +116,17 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
 .react-flow__edge.schema-designer-edge-deleted .react-flow__arrowhead path {
     fill: var(--vscode-gitDecoration-deletedResourceForeground);
     stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+}
+
+/* Selected edges override highlight colors */
+.react-flow__edge.selected .react-flow__edge-path {
+    stroke: var(--vscode-focusBorder);
+    stroke-width: 3;
+}
+
+.react-flow__edge.selected .react-flow__arrowhead path {
+    fill: var(--vscode-focusBorder);
+    stroke: var(--vscode-focusBorder);
 }
 
 .react-flow__edge.schema-designer-edge-deleted {

@@ -462,5 +462,23 @@ suite("DacFxService Tests", () => {
             );
             expect(result).to.equal(expectedResult);
         });
+
+        test("should send request with GetCodeAnalysisRulesRequest.type and empty params", async () => {
+            // Arrange
+            const expectedResult = { success: true, errorMessage: "", rules: [] };
+            sqlToolsClientStub.sendRequest.resolves(expectedResult);
+            const service = new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
+
+            // Act
+            const result = await service.getCodeAnalysisRules();
+
+            // Assert
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledOnce;
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
+                dacFxContracts.GetCodeAnalysisRulesRequest.type,
+                {},
+            );
+            expect(result).to.equal(expectedResult);
+        });
     });
 });

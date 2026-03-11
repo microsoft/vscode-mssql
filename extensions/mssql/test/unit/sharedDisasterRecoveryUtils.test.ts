@@ -490,7 +490,7 @@ suite("Shared Disaster Recovery Utils", () => {
         fetchBlobContainersStub.restore();
     });
 
-    test("reloadAzureComponents resets downstream Azure components", () => {
+    test("reloadAzureComponents resets downstream Azure components for backup dialog", () => {
         const state = {
             viewModel: {
                 model: {

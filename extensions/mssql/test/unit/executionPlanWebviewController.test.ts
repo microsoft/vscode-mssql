@@ -253,7 +253,7 @@ suite("Execution Plan Utilities", () => {
 
         const mockUri = vscode.Uri.file("/plan.sqlplan");
 
-        const showSaveDialogStub = sinon.stub(vscode.window, "showSaveDialog").resolves(mockUri);
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(mockUri);
 
         const writeFileStub = sinon.stub().resolves();
         const mockFs = {
@@ -269,8 +269,6 @@ suite("Execution Plan Utilities", () => {
         expect(result, "State should not change").to.deep.equal(mockInitialState);
 
         expect(writeFileStub).to.have.been.calledOnce;
-
-        showSaveDialogStub.restore();
     });
 
     test("showXml: should call showXml and return the state", async () => {

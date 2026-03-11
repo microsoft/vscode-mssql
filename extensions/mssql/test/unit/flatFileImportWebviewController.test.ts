@@ -81,6 +81,7 @@ suite("FlatFileImportWebviewController", () => {
             mockProvider,
             mockConnectionProfile,
             "ownerUri",
+            databases[0], // pass initial database name
         );
         await controller["initialize"]();
     });

@@ -5,7 +5,7 @@
 
 import { Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
-import { useMaybeAutoArrangeForToolBatch } from "./schemaDesignerToolBatchUtils";
+import { useMaybeAutoArrangeForToolBatch } from "./model";
 import { useOnPushUndoState } from "./schemaDesignerUndoState";
 
 export const useSchemaDesignerToolBatchHandlers = ({

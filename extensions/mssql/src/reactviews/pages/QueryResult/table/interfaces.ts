@@ -87,7 +87,7 @@ export const defaultTableStyles: ITableStyles = {
     listHoverOutline: "var(--vscode-contrastActiveBorder)",
     listInactiveFocusOutline: "var(--vscode-list-inactiveFocusOutline)",
     tableHeaderBackground: "var(--vscode-keybindingTable-headerBackground)",
-    tableHeaderForeground: "var(--vscode-foreground)",
+    tableHeaderForeground: "var(--vscode-editor-foreground)",
     nullCellBackground: "var(--vscode-mssql-resultsGridNullBackground)",
     nullCellForeground: "var(--vscode-mssql-resultsGridNullForeground)",
 };

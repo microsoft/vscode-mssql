@@ -229,7 +229,7 @@ export namespace Dab {
     export type DabToolChange =
         | { type: "set_api_types"; apiTypes: ApiType[] }
         | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
-        | { type: "set_entity_actions"; entity: DabEntityRef; actions: EntityAction[] }
+        | { type: "set_entity_actions"; entity: DabEntityRef; enabledActions: EntityAction[] }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
         | { type: "set_all_entities_enabled"; isEnabled: boolean };
@@ -322,14 +322,31 @@ export namespace Dab {
     }
 
     /**
-     * Notification to copy config to clipboard
+     * Notification to copy text to clipboard with a context-appropriate toast message
      */
-    export interface CopyConfigParams {
-        configContent: string;
+    export enum CopyTextType {
+        Config = "config",
+        Url = "url",
     }
 
-    export namespace CopyConfigNotification {
-        export const type = new NotificationType<CopyConfigParams>("dab/copyConfig");
+    export interface CopyTextParams {
+        text: string;
+        copyTextType: CopyTextType;
+    }
+
+    export namespace CopyTextNotification {
+        export const type = new NotificationType<CopyTextParams>("dab/copyText");
+    }
+
+    /**
+     * Notification to open a URL in the VS Code built-in browser
+     */
+    export interface OpenUrlParams {
+        url: string;
+    }
+
+    export namespace OpenUrlNotification {
+        export const type = new NotificationType<OpenUrlParams>("dab/openUrl");
     }
 
     // ============================================
@@ -354,6 +371,13 @@ export namespace Dab {
      * features and bug fixes without manual version management.
      */
     export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
+
+    /**
+     * Platform to use when pulling the DAB container image.
+     * DAB only publishes linux/amd64 images, so this must be specified
+     * explicitly to avoid pull failures on Mac ARM (which defaults to linux/arm64).
+     */
+    export const DAB_CONTAINER_PLATFORM = "linux/amd64";
 
     /**
      * Default port for DAB container
@@ -646,6 +670,37 @@ export namespace Dab {
     export namespace StopDeploymentRequest {
         export const type = new RequestType<StopDeploymentParams, StopDeploymentResponse, void>(
             "dab/stopDeployment",
+        );
+    }
+
+    /**
+     * Request to add an MCP server definition to the workspace .vscode/mcp.json
+     */
+    export interface AddMcpServerParams {
+        /**
+         * Name for the MCP server entry in mcp.json
+         */
+        serverName: string;
+        /**
+         * URL of the MCP server endpoint
+         */
+        serverUrl: string;
+    }
+
+    export interface AddMcpServerResponse {
+        /**
+         * Whether the operation was successful
+         */
+        success: boolean;
+        /**
+         * Error message if operation failed
+         */
+        error?: string;
+    }
+
+    export namespace AddMcpServerRequest {
+        export const type = new RequestType<AddMcpServerParams, AddMcpServerResponse, void>(
+            "dab/addMcpServer",
         );
     }
 

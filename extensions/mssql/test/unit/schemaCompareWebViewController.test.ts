@@ -383,7 +383,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareWebViewTitle,
         );
 
-        const launchStub = sinon.stub(controller, "launch").resolves();
+        const launchStub = sandbox.stub(controller, "launch").resolves();
 
         await controller.start(undefined, mockTarget, false);
 
@@ -397,8 +397,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(sourceArg2, "source should be undefined").to.be.undefined;
         expect(targetArg2, "target should match mockTarget").to.deep.equal(mockTarget);
         expect(runComparisonArg2, "runComparison should be false").to.be.false;
-
-        launchStub.restore();
     });
 
     test("start - calls launch with runComparison true", async () => {
@@ -444,7 +442,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         // Stub launch to track its calls
-        const launchStub = sinon.stub(controller, "launch").resolves();
+        const launchStub = sandbox.stub(controller, "launch").resolves();
 
         await controller.start(mockSource, mockTarget, true);
 

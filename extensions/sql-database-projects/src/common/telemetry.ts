@@ -39,6 +39,7 @@ export enum TelemetryActions {
     changePlatformType = "changePlatformType",
     createProjectFromDatabase = "createProjectFromDatabase",
     updateProjectFromDatabase = "updateProjectFromDatabase",
+    configureCodeAnalysisSettings = "configureCodeAnalysisSettings",
     publishToContainer = "publishToContainer",
     publishToNewAzureServer = "publishToNewAzureServer",
     generateProjectFromOpenApiSpec = "generateProjectFromOpenApiSpec",

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Badge,
     Menu,
     MenuTrigger,
     MenuPopover,
@@ -14,18 +15,42 @@ import {
     List,
     Switch,
     Tooltip,
-    ToolbarButton,
+    makeStyles,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { DismissRegular } from "@fluentui/react-icons";
+import {
+    FilterFunnelIcon16Filled,
+    FilterFunnelIcon16Regular,
+} from "../../../common/icons/filterFunnel";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
+
+const useStyles = makeStyles({
+    container: {
+        position: "relative",
+        display: "inline-flex",
+    },
+    badge: {
+        position: "absolute",
+        right: "-5px",
+        top: "0px",
+        padding: "0 3px",
+        borderRadius: "7px",
+        border: "1px solid var(--vscode-panel-background)",
+        boxSizing: "border-box",
+        pointerEvents: "none",
+    },
+});
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
+    const classes = useStyles();
     const reactFlow = useReactFlow();
+    const isCompact = useIsToolbarCompact();
     if (!context) {
         return undefined;
     }
@@ -35,6 +60,7 @@ export function FilterTablesButton() {
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
+    const filterLabel = locConstants.schemaDesigner.filter(selectedTables.length);
 
     function loadTables() {
         // When loading tables (e.g., when filter button is clicked), we should maintain
@@ -242,18 +268,32 @@ export function FilterTablesButton() {
     return (
         <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
             <MenuTrigger>
-                <Tooltip
-                    content={locConstants.schemaDesigner.filter(selectedTables.length)}
-                    relationship="label">
-                    <ToolbarButton
-                        appearance="subtle"
-                        icon={<FluentIcons.Filter20Regular />}
-                        onClick={() => {
-                            loadTables();
-                            setIsFilterMenuOpen(!isFilterMenuOpen);
-                        }}
-                    />
-                </Tooltip>
+                <span className={classes.container}>
+                    <Tooltip content={filterLabel} relationship="label">
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            aria-label={filterLabel}
+                            icon={
+                                selectedTables.length > 0 ? (
+                                    <FilterFunnelIcon16Filled />
+                                ) : (
+                                    <FilterFunnelIcon16Regular />
+                                )
+                            }
+                            onClick={() => {
+                                loadTables();
+                                setIsFilterMenuOpen(!isFilterMenuOpen);
+                            }}>
+                            {!isCompact && locConstants.schemaDesigner.filter(0)}
+                        </Button>
+                    </Tooltip>
+                    {selectedTables.length > 0 && (
+                        <Badge size="small" className={classes.badge}>
+                            {selectedTables.length}
+                        </Badge>
+                    )}
+                </span>
             </MenuTrigger>
 
             <MenuPopover
@@ -317,7 +357,7 @@ export function FilterTablesButton() {
                             }
                         }}
                         appearance="subtle"
-                        icon={<FluentIcons.DismissRegular />}>
+                        icon={<DismissRegular />}>
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
                 </div>

@@ -30,6 +30,7 @@ import {
     ArrowUndo16Regular,
     BranchCompare16Regular,
     BranchCompare16Filled,
+    CheckmarkCircle16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -42,7 +43,13 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
-import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
+import {
+    buildSchemaFromFlowState,
+    foreignKeyUtils,
+    getTableHeight,
+    getTableWidth,
+    namingUtils,
+} from "../model";
 import {
     Button,
     Dialog,
@@ -61,10 +68,11 @@ import {
     useToastController,
 } from "@fluentui/react-components";
 import eventBus from "../schemaDesignerEvents";
-import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
+import { uuid } from "../../../common/utils";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
+import { CopilotReviewToolbar } from "./copilotReviewToolbar";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -291,9 +299,9 @@ export const SchemaDesignerFlow = () => {
             const tgtNode = reactFlow.getNode(first.target) as Node<SchemaDesigner.Table>;
 
             if (srcNode && tgtNode) {
-                const width = flowUtils.getTableWidth();
-                const srcHeight = flowUtils.getTableHeight(srcNode.data);
-                const tgtHeight = flowUtils.getTableHeight(tgtNode.data);
+                const width = getTableWidth();
+                const srcHeight = getTableHeight(srcNode.data);
+                const tgtHeight = getTableHeight(tgtNode.data);
 
                 const srcCx = srcNode.position.x + width / 2;
                 const srcCy = srcNode.position.y + srcHeight / 2;
@@ -363,21 +371,17 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        const schema = flowUtils.extractSchemaModel(schemaNodes, relationshipEdges);
-
-        const existingForeignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
-            relationshipEdges,
-            sourceNode.data.id,
-            schema,
-        );
+        const schema = buildSchemaFromFlowState(schemaNodes, relationshipEdges);
+        const existingForeignKeys =
+            schema.tables.find((table) => table.id === sourceNode.data.id)?.foreignKeys ?? [];
 
         // Create the foreign key data
         const foreignKeyData = foreignKeyUtils.createForeignKeyFromConnection(
             sourceNode,
             targetNode,
-            sourceColumn.name,
-            targetColumn.name,
-            uuidv4(),
+            sourceColumn.id,
+            targetColumn.id,
+            uuid(),
             namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
         );
 
@@ -428,29 +432,29 @@ export const SchemaDesignerFlow = () => {
                 connectionState.toHandle.id,
             );
 
-            const sourceColumnName =
+            const validatedSourceColumnId =
                 (connectionState.fromNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === sourceColumnId,
-                )?.name ?? "";
-            const targetColumnName =
+                )?.id ?? "";
+            const validatedTargetColumnId =
                 (connectionState.toNode.data as SchemaDesigner.Table).columns.find(
                     (c) => c.id === targetColumnId,
-                )?.name ?? "";
+                )?.id ?? "";
 
-            if (!sourceColumnName || !targetColumnName) {
+            if (!validatedSourceColumnId || !validatedTargetColumnId) {
                 return;
             }
 
             const potentialForeignKey = foreignKeyUtils.createForeignKeyFromConnection(
                 connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,
                 connectionState.toNode as unknown as Node<SchemaDesigner.Table>,
-                sourceColumnName,
-                targetColumnName,
+                validatedSourceColumnId,
+                validatedTargetColumnId,
             );
 
             // Validate the foreign key
             const validationResult = foreignKeyUtils.isForeignKeyValid(
-                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges).tables,
+                buildSchemaFromFlowState(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
@@ -490,6 +494,7 @@ export const SchemaDesignerFlow = () => {
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
+            <CopilotReviewToolbar />
             <ReactFlow
                 nodes={displayNodes}
                 edges={displayEdges}
@@ -616,30 +621,28 @@ export const SchemaDesignerFlow = () => {
                 minZoom={0.05}
                 fitView>
                 <Controls>
-                    {context.isDabEnabled() && (
-                        <ControlButton
-                            onClick={() =>
-                                changeContext.setShowChangesHighlight(
-                                    !changeContext.showChangesHighlight,
-                                )
-                            }
-                            title={
-                                changeContext.showChangesHighlight
-                                    ? locConstants.schemaDesigner.hideChangesHighlight
-                                    : locConstants.schemaDesigner.highlightChanges
-                            }
-                            aria-label={
-                                changeContext.showChangesHighlight
-                                    ? locConstants.schemaDesigner.hideChangesHighlight
-                                    : locConstants.schemaDesigner.highlightChanges
-                            }>
-                            {changeContext.showChangesHighlight ? (
-                                <BranchCompare16Filled />
-                            ) : (
-                                <BranchCompare16Regular />
-                            )}
-                        </ControlButton>
-                    )}
+                    <ControlButton
+                        onClick={() =>
+                            changeContext.setShowChangesHighlight(
+                                !changeContext.showChangesHighlight,
+                            )
+                        }
+                        title={
+                            changeContext.showChangesHighlight
+                                ? locConstants.schemaDesigner.hideChangesHighlight
+                                : locConstants.schemaDesigner.highlightChanges
+                        }
+                        aria-label={
+                            changeContext.showChangesHighlight
+                                ? locConstants.schemaDesigner.hideChangesHighlight
+                                : locConstants.schemaDesigner.highlightChanges
+                        }>
+                        {changeContext.showChangesHighlight ? (
+                            <BranchCompare16Filled />
+                        ) : (
+                            <BranchCompare16Regular />
+                        )}
+                    </ControlButton>
                 </Controls>
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
@@ -653,8 +656,25 @@ export const SchemaDesignerFlow = () => {
                         top: edgeUndoState.position.y,
                         zIndex: 5,
                         padding: "10px",
+                        display: "flex",
+                        gap: "4px",
+                        alignItems: "center",
                     }}
                     onMouseLeave={() => setEdgeUndoState(null)}>
+                    {changeContext.acceptChange && (
+                        <Tooltip content={locConstants.schemaDesigner.accept} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<CheckmarkCircle16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    changeContext.acceptChange!(edgeUndoState.change);
+                                    setEdgeUndoState(null);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip
                         content={
                             edgeUndoState.canRevert

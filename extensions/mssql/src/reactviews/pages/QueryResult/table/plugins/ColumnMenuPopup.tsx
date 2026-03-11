@@ -79,7 +79,7 @@ const useStyles = makeStyles({
     sectionHeading: {
         fontSize: tokens.fontSizeBase100,
         fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground1,
         textTransform: "uppercase",
         letterSpacing: "0.5px",
         lineHeight: "16px",
@@ -184,7 +184,7 @@ const useStyles = makeStyles({
         textAlign: "center",
     },
     counter: {
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground1,
         whiteSpace: "nowrap",
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
@@ -192,6 +192,7 @@ const useStyles = makeStyles({
         paddingRight: "4px",
     },
     compactCheckbox: {
+        color: tokens.colorNeutralForeground1,
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
         minHeight: ITEM_HEIGHT + "px",

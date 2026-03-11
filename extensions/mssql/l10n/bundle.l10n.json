@@ -79,6 +79,11 @@
     "Expand": "Expand",
     "Collapse": "Collapse",
     "Filter Settings": "Filter Settings",
+    "Select All": "Select All",
+    "Copy": "Copy",
+    "Copy with Headers": "Copy with Headers",
+    "Copy Headers": "Copy Headers",
+    "Error: Failed to parse query result data.": "Error: Failed to parse query result data.",
     "Cancel": "Cancel",
     "Are you sure?": "Are you sure?",
     "Are you sure you want to {0}?/{0} is the action being confirmed": {
@@ -86,7 +91,6 @@
         "comment": ["{0} is the action being confirmed"]
     },
     "Close": "Close",
-    "Copy": "Copy",
     "Apply": "Apply",
     "Next": "Next",
     "Clear Selection": "Clear Selection",
@@ -107,6 +111,8 @@
     "Refresh": "Refresh",
     "Show password": "Show password",
     "Hide password": "Hide password",
+    "Save": "Save",
+    "Try it": "Try it",
     "Dismiss": "Dismiss",
     "Error": "Error",
     "Get Started": "Get Started",
@@ -116,8 +122,8 @@
     "Loading": "Loading",
     "General": "General",
     "Previous": "Previous",
-    "Clear All": "Clear All",
     "OK": "OK",
+    "Clear All": "Clear All",
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -190,8 +196,56 @@
     "Schema": "Schema",
     "Back to preview": "Back to preview",
     "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
-    "Publish Changes": "Publish Changes",
+    "Apply Changes": "Apply Changes",
     "Open Publish Script": "Open Publish Script",
+    "Code Analysis - {0}/{0} is the name of the database project": {
+        "message": "Code Analysis - {0}",
+        "comment": ["{0} is the name of the database project"]
+    },
+    "Loading code analysis rules...": "Loading code analysis rules...",
+    "No code analysis rules available.": "No code analysis rules available.",
+    "{0} rules/{0} is the number of code analysis rules": {
+        "message": "{0} rules",
+        "comment": ["{0} is the number of code analysis rules"]
+    },
+    "Rules": "Rules",
+    "Enable {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Enable all rules in {0}/{0} is the category name, e.g. Design": {
+        "message": "Enable all rules in {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Expand {0}/{0} is the category name, e.g. Design": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Collapse {0}/{0} is the category name, e.g. Design": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the category name, e.g. Design"]
+    },
+    "Severity for {0}/{0} is the rule identifier, e.g. SR0001": {
+        "message": "Severity for {0}",
+        "comment": ["{0} is the rule identifier, e.g. SR0001"]
+    },
+    "Reset": "Reset",
+    "Reset to Defaults?": "Reset to Defaults?",
+    "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?": "This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?",
+    "Unsaved Changes": "Unsaved Changes",
+    "You have unsaved changes. Do you want to save before closing?": "You have unsaved changes. Do you want to save before closing?",
+    "Don't Save": "Don't Save",
+    "Enable Code Analysis on Build": "Enable Code Analysis on Build",
+    "Search rules...": "Search rules...",
+    "Filter by severity": "Filter by severity",
+    "All severities": "All severities",
+    "No rules match the current filter.": "No rules match the current filter.",
+    "{0} of {1} rules/{0} is the filtered count, {1} is the total count": {
+        "message": "{0} of {1} rules",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
+    },
+    "Rule enabled": "Rule enabled",
+    "Rule disabled": "Rule disabled",
     "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
         "message": "Create new firewall rule for {0}",
         "comment": ["{0} is the server name that the firewall rule will be created for"]
@@ -420,9 +474,6 @@
         "comment": ["{0} is the keyboard shortcut for the query plan tab"]
     },
     "Query Plan": "Query Plan",
-    "Select All": "Select All",
-    "Copy with Headers": "Copy with Headers",
-    "Copy Headers": "Copy Headers",
     "Copy As": "Copy As",
     "Copy as CSV": "Copy as CSV",
     "Copy as JSON": "Copy as JSON",
@@ -489,8 +540,10 @@
     },
     "Add new column": "Add new column",
     "Table": "Table",
-    "Save": "Save",
     "Add": "Add",
+    "Cannot delete column because it is used by a foreign key.": "Cannot delete column because it is used by a foreign key.",
+    "Cannot delete column because it is referenced by a foreign key.": "Cannot delete column because it is referenced by a foreign key.",
+    "Cannot delete column because it is part of foreign key relationships.": "Cannot delete column because it is part of foreign key relationships.",
     "Add new foreign key": "Add new foreign key",
     "Foreign Key {0}/{0} is the index of the foreign key": {
         "message": "Foreign Key {0}",
@@ -507,6 +560,14 @@
         "message": "Filter ({0})",
         "comment": ["{0} is the number of selected tables"]
     },
+    "Chat": "Chat",
+    "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
+    "Ask GitHub Copilot to Fix": "Ask GitHub Copilot to Fix",
+    "Open GitHub Copilot Chat to help fix these errors": "Open GitHub Copilot Chat to help fix these errors",
+    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
+    "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
+    "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
+    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -647,23 +708,28 @@
     "Possible Data Loss detected. Please review the changes.": "Possible Data Loss detected. Please review the changes.",
     "Warnings detected. Please review the changes.": "Warnings detected. Please review the changes.",
     "Definition": "Definition",
+    "Show Definition": "Show Definition",
+    "Hide Definition": "Hide Definition",
     "Delete Confirmation": "Delete Confirmation",
     "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
     "Undo": "Undo",
     "Redo": "Redo",
     "Search tables...": "Search tables...",
     "Show table relationships": "Show table relationships",
-    "Schema Designer": "Schema Designer",
-    "DAB": "DAB",
-    "Show Changes ({0})/{0} is the number of schema changes": {
-        "message": "Show Changes ({0})",
-        "comment": ["{0} is the number of schema changes"]
-    },
+    "Visualize and Design Schema": "Visualize and Design Schema",
+    "Build Data API (Preview)": "Build Data API (Preview)",
+    "Show Changes": "Show Changes",
+    "Hide Changes": "Hide Changes",
+    "Copilot Changes": "Copilot Changes",
     "Highlight Changes": "Highlight Changes",
     "Hide Changes Highlight": "Hide Changes Highlight",
     "Changes ({0})/{0} is the number of schema changes": {
         "message": "Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
+    },
+    "Copilot Changes ({0})/{0} is the number of copilot changes": {
+        "message": "Copilot Changes ({0})",
+        "comment": ["{0} is the number of copilot changes"]
     },
     "No changes yet.": "No changes yet.",
     "Edit your schema to see changes here.": "Edit your schema to see changes here.",
@@ -763,13 +829,40 @@
         "message": "{0} change(s)",
         "comment": ["{0} is the number of changes"]
     },
-    "Data API Builder Configuration": "Data API Builder Configuration",
+    "Accept": "Accept",
+    "Accept All": "Accept All",
+    "Undo All": "Undo All",
+    "Undo All Copilot Changes": "Undo All Copilot Changes",
+    "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.": "Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.",
+    "Reject": "Reject",
+    "Reviewing Copilot Change": "Reviewing Copilot Change",
+    "Change {0} of {1}/{0} is the current change number{1} is the total number of changes": {
+        "message": "Change {0} of {1}",
+        "comment": ["{0} is the current change number", "{1} is the total number of changes"]
+    },
+    "Unknown": "Unknown",
+    "Referenced schema": "Referenced schema",
+    "Referenced table": "Referenced table",
+    "Referenced columns": "Referenced columns",
+    "Foreign keys": "Foreign keys",
+    "Data type": "Data type",
+    "Primary key": "Primary key",
+    "Allow null": "Allow null",
+    "{0}, +{1} more/{0} is the first changed property label{1} is the count of additional changed properties": {
+        "message": "{0}, +{1} more",
+        "comment": [
+            "{0} is the first changed property label",
+            "{1} is the count of additional changed properties"
+        ]
+    },
+    "Data API Builder Configuration (Preview)": "Data API Builder Configuration (Preview)",
     "API Type": "API Type",
     "REST API": "REST API",
     "GraphQL": "GraphQL",
     "MCP": "MCP",
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
+    "Filter entities...": "Filter entities...",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
@@ -778,9 +871,11 @@
     "Read": "Read",
     "Update": "Update",
     "Entity name used in API routes": "Entity name used in API routes",
-    "Generate Config": "Generate Config",
+    "View Config": "View Config",
     "Deploy": "Deploy",
+    "Local container deployment is currently only supported for SQL Authentication connections.": "Local container deployment is currently only supported for SQL Authentication connections.",
     "Back to Schema": "Back to Schema",
+    "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
     "Entity Name": "Entity Name",
     "Used in API routes and responses": "Used in API routes and responses",
@@ -794,11 +889,30 @@
     "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
     "Custom GraphQL Type": "Custom GraphQL Type",
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
-    "Apply Changes": "Apply Changes",
     "Source Table": "Source Table",
     "Loading...": "Loading...",
     "Initializing DAB configuration...": "Initializing DAB configuration...",
     "No entities found": "No entities found",
+    "Toggle all entities in {0}/{0} is the schema name": {
+        "message": "Toggle all entities in {0}",
+        "comment": ["{0} is the schema name"]
+    },
+    "Enable {0}/{0} is the entity name": {
+        "message": "Enable {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
+        "message": "{0} action for {1}",
+        "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
+    },
+    "Settings for {0}/{0} is the entity name": {
+        "message": "Settings for {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Select all {0}/{0} is the action name (Create, Read, etc.)": {
+        "message": "Select all {0}",
+        "comment": ["{0} is the action name (Create, Read, etc.)"]
+    },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
     "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.": "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
@@ -816,6 +930,15 @@
     "Deployment Failed": "Deployment Failed",
     "DAB container is running!": "DAB container is running!",
     "Your API is available at:": "Your API is available at:",
+    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
+    "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
+        "message": "Copy {0} URL",
+        "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]
+    },
+    "Add to VS Code": "Add to VS Code",
+    "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
+    "View Swagger": "View Swagger",
+    "Open Nitro": "Open Nitro",
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -848,7 +971,6 @@
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
     "Option Description": "Option Description",
-    "Reset": "Reset",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
@@ -1269,6 +1391,7 @@
     "No customized settings found": "No customized settings found",
     "No customized settings found in Azure Data Studio": "No customized settings found in Azure Data Studio",
     "Looking for Azure Data Studio key bindings, like F5 to execute queries?": "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+    "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.": "Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.",
     "Install the MSSQL Database Management Keymap extension": "Install the MSSQL Database Management Keymap extension",
     "{0} connection group imported/{0} is the number of connection groups imported (singular)": {
         "message": "{0} connection group imported",
@@ -1307,10 +1430,11 @@
     "Select a folder": "Select a folder",
     "Folder is required": "Folder is required",
     "File is required": "File is required",
+    "Please select a file, not a folder.": "Please select a file, not a folder.",
     "Selected Path": "Selected Path",
     "Files of Type": "Files of Type",
-    "Please choose a file": "Please choose a file",
-    "Please choose a folder": "Please choose a folder",
+    "File path": "File path",
+    "Folder path": "Folder path",
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1389,8 +1513,8 @@
     "Stopped": "Stopped",
     "Not Started": "Not Started",
     "Read-Only": "Read-Only",
-    "Profiler (Preview): No session": "Profiler (Preview): No session",
-    "Profiler (Preview) Session Status": "Profiler (Preview) Session Status",
+    "Query Profiler (Preview): No session": "Query Profiler (Preview): No session",
+    "Query Profiler (Preview) Session Status": "Query Profiler (Preview) Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
@@ -1498,6 +1622,8 @@
     "Backup sets to restore": "Backup sets to restore",
     "Advanced restore options": "Advanced restore options",
     "Could not load restore plan": "Could not load restore plan",
+    "Please choose a backup file to load restore plan": "Please choose a backup file to load restore plan",
+    "Please choose a blob to load restore plan": "Please choose a blob to load restore plan",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -1514,9 +1640,9 @@
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
-    "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
+    "Remove": "Remove",
     "Drop Database": "Drop Database",
     "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
@@ -1538,6 +1664,10 @@
             "{1} is the new database name",
             "{2} is the error message"
         ]
+    },
+    "Renaming database '{0}' to '{1}'.../{0} is the current database name{1} is the new database name": {
+        "message": "Renaming database '{0}' to '{1}'...",
+        "comment": ["{0} is the current database name", "{1} is the new database name"]
     },
     "View More": "View More",
     "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
@@ -1576,13 +1706,15 @@
         "comment": ["{0} is the error number", "{1} is the error message"]
     },
     "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
+    "A connection is already being established. Please wait for it to complete before running a query.": "A connection is already being established. Please wait for it to complete before running a query.",
     "Confirm to clear recent connections list": "Confirm to clear recent connections list",
     "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
     "Choose a connection profile from the list below": "Choose a connection profile from the list below",
     "Create Connection Profile": "Create Connection Profile",
+    "Create a new connection profile": "Create a new connection profile",
     "Clear Recent Connections List": "Clear Recent Connections List",
-    "Edit": "Edit",
-    "Remove": "Remove",
+    "Edit an existing connection profile": "Edit an existing connection profile",
+    "Remove a connection profile": "Remove a connection profile",
     "Manage Connection Profiles": "Manage Connection Profiles",
     "{{put-server-name-here}}": "{{put-server-name-here}}",
     "Server name or ADO.NET connection string": "Server name or ADO.NET connection string",
@@ -1615,7 +1747,6 @@
         "message": "Provider '{0}' does not have a Microsoft resource endpoint defined.",
         "comment": ["{0} is the provider"]
     },
-    "Unable to read proxy agent options to get tenants.": "Unable to read proxy agent options to get tenants.",
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.": "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
     "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.": "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.",
     "Authentication failed due to a state mismatch, please close ADS and try again.": "Authentication failed due to a state mismatch, please close ADS and try again.",
@@ -1653,8 +1784,10 @@
     "Failed to save results. ": "Failed to save results. ",
     "Successfully saved results to ": "Successfully saved results to ",
     "Select profile to remove": "Select profile to remove",
+    "Select profile to edit": "Select profile to edit",
     "Confirm to remove this profile.": "Confirm to remove this profile.",
-    "No connection profile to remove.": "No connection profile to remove.",
+    "No connection profiles to remove.": "No connection profiles to remove.",
+    "No connection profiles to edit.": "No connection profiles to edit.",
     "Profile removed successfully": "Profile removed successfully",
     "Profile created successfully": "Profile created successfully",
     "Profile created and connected": "Profile created and connected",
@@ -1870,12 +2003,66 @@
     "Always show in new tab": "Always show in new tab",
     "Keep in query pane": "Keep in query pane",
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold": "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
-    "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})/{0} is a url to learn more about the new features": {
-        "message": "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
-        "comment": ["{0} is a url to learn more about the new features"]
-    },
-    "Enable Experiences & Reload": "Enable Experiences & Reload",
     "New Deployment": "New Deployment",
+    "MSSQL: Click to change connection": "MSSQL: Click to change connection",
+    "MSSQL: Click to change database": "MSSQL: Click to change database",
+    "Connection failed": "Connection failed",
+    "Query execution failed": "Query execution failed",
+    "No active notebook.": "No active notebook.",
+    "No active connection.": "No active connection.",
+    "No connection selected.": "No connection selected.",
+    "({0} row(s) affected)/{0} is the number of rows affected": {
+        "message": "({0} row(s) affected)",
+        "comment": ["{0} is the number of rows affected"]
+    },
+    "(Command completed successfully)": "(Command completed successfully)",
+    "(0 rows)": "(0 rows)",
+    "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded./{0} is the number of rows actually returned{1} is the total number of rows expected": {
+        "message": "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+        "comment": [
+            "{0} is the number of rows actually returned",
+            "{1} is the total number of rows expected"
+        ]
+    },
+    "({0} row)/{0} is the number of rows (singular)": {
+        "message": "({0} row)",
+        "comment": ["{0} is the number of rows (singular)"]
+    },
+    "({0} rows)/{0} is the number of rows (plural)": {
+        "message": "({0} rows)",
+        "comment": ["{0} is the number of rows (plural)"]
+    },
+    "Disconnected.": "Disconnected.",
+    "Connected to {0}/{0} is the connection label": {
+        "message": "Connected to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "Switched to {0}/{0} is the connection label": {
+        "message": "Switched to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "No database selected.": "No database selected.",
+    "Unknown magic command: %%{0}/{0} is the magic command name": {
+        "message": "Unknown magic command: %%{0}",
+        "comment": ["{0} is the magic command name"]
+    },
+    "Select Database": "Select Database",
+    "Choose a database": "Choose a database",
+    "(current)": "(current)",
+    "Click to change connection": "Click to change connection",
+    "Click to change database": "Click to change database",
+    "Connect to SQL Server": "Connect to SQL Server",
+    "MSSQL Notebook connected to {0}/{0} is the connection label": {
+        "message": "MSSQL Notebook connected to {0}",
+        "comment": ["{0} is the connection label"]
+    },
+    "Error: {0}/{0} is the error message": {
+        "message": "Error: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Query execution was canceled.": "Query execution was canceled.",
+    "Execute SQL against SQL Server / Azure SQL": "Execute SQL against SQL Server / Azure SQL",
+    "Not connected": "Not connected",
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -2106,6 +2293,7 @@
         "message": "An error occurred while retrieving rows: {0}",
         "comment": ["{0} is the error message"]
     },
+    "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
     "{0} stopped successfully./{0} stopped successfully.": {
         "message": "{0} stopped successfully.",
         "comment": ["{0} stopped successfully."]
@@ -2240,6 +2428,11 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
+    "Webview '{0}' did not become ready within {1}ms/{0} is the webview name{1} is the timeout in milliseconds": {
+        "message": "Webview '{0}' did not become ready within {1}ms",
+        "comment": ["{0} is the webview name", "{1} is the timeout in milliseconds"]
+    },
+    "Webview was disposed before it became ready": "Webview was disposed before it became ready",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
@@ -2280,6 +2473,11 @@
     "Failed to get connection string: {0}": "Failed to get connection string: {0}",
     "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
+    "Code Analysis": "Code Analysis",
+    "Failed to load code analysis rules": "Failed to load code analysis rules",
+    "Failed to read saved rule overrides from project": "Failed to read saved rule overrides from project",
+    "Failed to save code analysis rules": "Failed to save code analysis rules",
+    "Code analysis rules saved successfully": "Code analysis rules saved successfully",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -2300,12 +2498,25 @@
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
+    "Schema Designer": "Schema Designer",
     "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
     "Generating Report. This may take a while...": "Generating Report. This may take a while...",
     "Failed to generate publish script: '{0}'/{0} is the error message returned from the generate script operation": {
         "message": "Failed to generate publish script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
+    "MCP server added to {0}/{0} is the file path where the MCP server was added": {
+        "message": "MCP server added to {0}",
+        "comment": ["{0} is the file path where the MCP server was added"]
+    },
+    "MCP server is already configured in {0}/{0} is the file path where the MCP server configuration exists": {
+        "message": "MCP server is already configured in {0}",
+        "comment": ["{0} is the file path where the MCP server configuration exists"]
+    },
+    "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    "Config copied to clipboard": "Config copied to clipboard",
+    "URL copied to clipboard": "URL copied to clipboard",
+    "Failed to open URL. The built-in Simple Browser may be disabled.": "Failed to open URL. The built-in Simple Browser may be disabled.",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
@@ -2460,7 +2671,22 @@
         "comment": ["{0} is the connection ID"]
     },
     "Unknown Connection": "Unknown Connection",
-    "Schema visualization opened.": "Schema visualization opened.",
+    "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_schema_designer' and must not be translated{1} is the operation name 'get_overview' and must not be translated{2} is the operation name 'apply_edits' and must not be translated": {
+        "message": "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).",
+        "comment": [
+            "{0} is the command identifier 'mssql_schema_designer' and must not be translated",
+            "{1} is the operation name 'get_overview' and must not be translated",
+            "{2} is the operation name 'apply_edits' and must not be translated"
+        ]
+    },
+    "Data API Builder opened. Continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_dab' and must not be translated{1} is the operation name 'get_state' and must not be translated{2} is the operation name 'apply_changes' and must not be translated": {
+        "message": "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        "comment": [
+            "{0} is the command identifier 'mssql_dab' and must not be translated",
+            "{1} is the operation name 'get_state' and must not be translated",
+            "{2} is the operation name 'apply_changes' and must not be translated"
+        ]
+    },
     "Execute '{0}' operation on the schema designer?/{0} is the operation name": {
         "message": "Execute '{0}' operation on the schema designer?",
         "comment": ["{0} is the operation name"]
@@ -2478,7 +2704,9 @@
         "message": "Executing '{0}' operation on Data API Builder",
         "comment": ["{0} is the operation name"]
     },
-    "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.": "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+    "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
+    "Missing connectionId. Please provide a connectionId to open Data API Builder.": "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+    "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.": "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
     "Table added to schema designer successfully.": "Table added to schema designer successfully.",
@@ -2718,7 +2946,6 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
-    "Unknown": "Unknown",
     "Copied \"{0}\" to clipboard/{0} is the object name": {
         "message": "Copied \"{0}\" to clipboard",
         "comment": ["{0} is the object name"]
@@ -2823,7 +3050,6 @@
     },
     "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
-    "Try it": "Try it",
     "Watch demo": "Watch demo",
     "Learn more": "Learn more",
     "Read docs": "Read docs",
@@ -2832,13 +3058,21 @@
     "Read docs on Microsoft Learn": "Read docs on Microsoft Learn",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
-    "Azure Data Studio Connection Migration Toolkit": "Azure Data Studio Connection Migration Toolkit",
-    "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.": "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+    "Azure Data Studio Migration Toolkit - Now Including Keymap!": "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.": "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     "Edit Data (Preview)": "Edit Data (Preview)",
     "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.": "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    "Global Object Search": "Global Object Search",
+    "Search for database objects — tables, views, stored procedures, and more — across your entire database.": "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    "Backup/Restore Dialogs (Preview)": "Backup/Restore Dialogs (Preview)",
+    "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.": "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    "Database Management Dialogs (Preview)": "Database Management Dialogs (Preview)",
+    "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.": "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    "Query Profiler (Preview)": "Query Profiler (Preview)",
+    "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
     "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
-    "SQL Database Projects – Publish Dialog (Preview)": "SQL Database Projects – Publish Dialog (Preview)",
+    "SQL Database Projects – Publish Dialog": "SQL Database Projects – Publish Dialog",
     "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.": "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     "In case you missed it": "In case you missed it",
     "Previously released features you may not have explored yet.": "Previously released features you may not have explored yet.",
@@ -2892,10 +3126,10 @@
     },
     "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
     "Select a profiler template": "Select a profiler template",
-    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "New Query Profiler (Preview) - Select Template": "New Query Profiler (Preview) - Select Template",
     "Enter a name for the new profiler session": "Enter a name for the new profiler session",
     "MyProfilerSession": "MyProfilerSession",
-    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "New Query Profiler (Preview) - Enter Name": "New Query Profiler (Preview) - Enter Name",
     "Engine: {0}/{0} is the engine type": {
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
@@ -2927,11 +3161,10 @@
         "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
-    "Profiler (Preview): {0}/{0} is the file name or session name": {
-        "message": "Profiler (Preview): {0}",
+    "Query Profiler (Preview): {0}/{0} is the file name or session name": {
+        "message": "Query Profiler (Preview): {0}",
         "comment": ["{0} is the file name or session name"]
     },
-    "Profiler (Preview)": "Profiler (Preview)",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
@@ -2959,13 +3192,13 @@
     "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
-        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
+        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
     },
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
-        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
+        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
     },
     "Backup Database - {0}/{0} is the database name": {
@@ -3031,6 +3264,7 @@
         "message": "Could not connect to database: {0}",
         "comment": ["{0} is the database name"]
     },
+    "Azure SQL Database is not supported for backup.": "Azure SQL Database is not supported for backup.",
     "Starting '{0}'.../{0} is the service name": {
         "message": "Starting '{0}'...",
         "comment": ["{0} is the service name"]
@@ -3088,6 +3322,8 @@
     "Selected backup file does not contain a valid database backup": "Selected backup file does not contain a valid database backup",
     "Cannot generate script without a restore plan": "Cannot generate script without a restore plan",
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
+    "No databases with backups found": "No databases with backups found",
+    "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

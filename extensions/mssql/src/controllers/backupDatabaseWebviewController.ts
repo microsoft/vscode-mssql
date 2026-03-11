@@ -66,6 +66,7 @@ import {
 } from "./sharedDisasterRecoveryUtils";
 import { ConnectionProfile } from "../models/connectionProfile";
 import ConnectionManager from "./connectionManager";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
 
 export class BackupDatabaseWebviewController extends ObjectManagementWebviewController<
     BackupDatabaseFormState,
@@ -106,6 +107,14 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.updateViewModel(backupModel);
 
         backupModel.databaseName = this.databaseName;
+
+        const serverTypes = getServerTypes(this.profile);
+        if (serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql)) {
+            backupModel.loadState = ApiStatus.Error;
+            this.state.errorMessage = LocConstants.BackupDatabase.azureSqlDbNotSupported;
+            this.updateViewModel(backupModel);
+            return;
+        }
 
         try {
             this.state.ownerUri = await this.createBackupConnectionContext(
@@ -263,7 +272,30 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
     private registerBackupRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            return await disasterRecoveryFormAction<BackupDatabaseFormState>(state, payload);
+            if (payload.event.propertyName === "backupName") {
+                (state.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty = true;
+            }
+            const updatedState = await disasterRecoveryFormAction<BackupDatabaseFormState>(
+                state,
+                payload,
+            );
+            // if the backup name is not dirty, ie. the default backup name
+            // and the property changed is backup type, then update the backup name to reflect the backup type change
+            if (
+                payload.event.propertyName === "backupType" &&
+                !(updatedState.viewModel.model as BackupDatabaseViewModel).isBackupNameDirty
+            ) {
+                // this is guaranteed to have more than 1 part because the default backup name is
+                // generated in the format of database_backupType_timestamp.bak
+                //
+                const locBackupType = this.state.formComponents["backupType"].options.find(
+                    (option) => option.value === updatedState.formState.backupType,
+                )?.displayName;
+                const splitBackupName = updatedState.formState.backupName.split("-");
+                splitBackupName[1] = locBackupType;
+                updatedState.formState.backupName = splitBackupName.join("-");
+            }
+            return updatedState;
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
@@ -337,7 +369,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.registerReducer("submitFilePath", async (state, payload) => {
             const backupViewModel = this.backupViewModel(state);
             // Check if an existing file was selected
-            const isExisting = payload.selectedPath.includes(".");
+            const isExisting = !state.fileBrowserState.showFoldersOnly;
 
             // Folder selected, generate default backup name
             if (!isExisting) {
@@ -383,11 +415,11 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
      */
     private getDefaultBackupFileName(state: BackupDatabaseViewModel): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = state.databaseName;
+        let name = `${state.databaseName}-${BackupType.Full}`;
         if (newFiles.length > 0) {
-            name += `_${newFiles.length}`;
+            name += `-${newFiles.length}`;
         }
-        return name + `_${new Date().toISOString().slice(0, 19)}.bak`;
+        return name + `-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.bak`;
     }
 
     /**

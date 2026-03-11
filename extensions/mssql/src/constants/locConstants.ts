@@ -24,6 +24,7 @@ export class Common {
     public static error = l10n.t("Error");
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
+    public static remove = l10n.t("Remove");
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
@@ -69,6 +70,13 @@ export function renameDatabaseError(
             "{1} is the new database name",
             "{2} is the error message",
         ],
+    });
+}
+export function renamingDatabase(databaseName: string, newDatabaseName: string) {
+    return l10n.t({
+        message: "Renaming database '{0}' to '{1}'...",
+        args: [databaseName, newDatabaseName],
+        comment: ["{0} is the current database name", "{1} is the new database name"],
     });
 }
 
@@ -137,16 +145,19 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
     });
 }
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
+export let msgConnectionInProgress = l10n.t(
+    "A connection is already being established. Please wait for it to complete before running a query.",
+);
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
     'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.',
 );
 export let recentConnectionsPlaceholder = l10n.t("Choose a connection profile from the list below");
 export let CreateProfileFromConnectionsListLabel = l10n.t("Create Connection Profile");
-export let CreateProfileLabel = l10n.t("Create");
+export let CreateProfileLabel = l10n.t("Create a new connection profile");
 export let ClearRecentlyUsedLabel = l10n.t("Clear Recent Connections List");
-export let EditProfilesLabel = l10n.t("Edit");
-export let RemoveProfileLabel = l10n.t("Remove");
+export let EditProfilesLabel = l10n.t("Edit an existing connection profile");
+export let RemoveProfileLabel = l10n.t("Remove a connection profile");
 export let ManageProfilesPrompt = l10n.t("Manage Connection Profiles");
 export let SampleServerName = l10n.t("{{put-server-name-here}}");
 export let serverPrompt = l10n.t("Server name or ADO.NET connection string");
@@ -195,9 +206,6 @@ export function azureNoMicrosoftResource(provider: string) {
         comment: ["{0} is the provider"],
     });
 }
-export let unableToGetProxyAgentOptionsToGetTenants = l10n.t(
-    "Unable to read proxy agent options to get tenants.",
-);
 export let azureServerCouldNotStart = l10n.t(
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
 );
@@ -257,8 +265,10 @@ export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
 export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
+export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
-export let msgNoProfilesSaved = l10n.t("No connection profile to remove.");
+export let msgNoProfilesToRemove = l10n.t("No connection profiles to remove.");
+export let msgNoProfilesToEdit = l10n.t("No connection profiles to edit.");
 export let msgProfileRemoved = l10n.t("Profile removed successfully");
 export let msgProfileCreated = l10n.t("Profile created successfully");
 export let msgProfileCreatedAndConnected = l10n.t("Profile created and connected");
@@ -636,16 +646,119 @@ export let inMemoryDataProcessingThresholdExceeded = l10n.t(
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
 );
 
-export function enableRichExperiencesPrompt(learnMoreUrl: string) {
-    return l10n.t({
-        message:
-            "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
-        args: [learnMoreUrl],
-        comment: ["{0} is a url to learn more about the new features"],
-    });
-}
-export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 export let newDeployment = l10n.t("New Deployment");
+
+export class Notebooks {
+    // Status bar
+    public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
+    public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+
+    // Errors
+    public static connectionFailed = l10n.t("Connection failed");
+    public static queryExecutionFailed = l10n.t("Query execution failed");
+    public static noActiveNotebook = l10n.t("No active notebook.");
+    public static noActiveConnection = l10n.t("No active connection.");
+    public static noConnectionSelected = l10n.t("No connection selected.");
+
+    // Execution results
+    public static rowsAffected(count: number) {
+        return l10n.t({
+            message: "({0} row(s) affected)",
+            args: [count],
+            comment: ["{0} is the number of rows affected"],
+        });
+    }
+    public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
+    public static zeroRows = l10n.t("(0 rows)");
+    public static resultSetTruncated(actual: number, expected: number) {
+        return l10n.t({
+            message:
+                "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+            args: [actual, expected],
+            comment: [
+                "{0} is the number of rows actually returned",
+                "{1} is the total number of rows expected",
+            ],
+        });
+    }
+    public static rowCountPlain(count: number) {
+        if (count === 1) {
+            return l10n.t({
+                message: "({0} row)",
+                args: [count],
+                comment: ["{0} is the number of rows (singular)"],
+            });
+        }
+        return l10n.t({
+            message: "({0} rows)",
+            args: [count],
+            comment: ["{0} is the number of rows (plural)"],
+        });
+    }
+
+    // Magic commands
+    public static disconnected = l10n.t("Disconnected.");
+    public static connectedTo(label: string) {
+        return l10n.t({
+            message: "Connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static switchedTo(label: string) {
+        return l10n.t({
+            message: "Switched to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static noDatabaseSelected = l10n.t("No database selected.");
+    public static unknownMagicCommand(cmd: string) {
+        return l10n.t({
+            message: "Unknown magic command: %%{0}",
+            args: [cmd],
+            comment: ["{0} is the magic command name"],
+        });
+    }
+
+    // UI
+    public static selectDatabase = l10n.t("Select Database");
+    public static chooseDatabasePlaceholder = l10n.t("Choose a database");
+    public static currentDatabaseLabel = l10n.t("(current)");
+
+    // Code lens
+    public static codeLensClickToChangeConnection = l10n.t("Click to change connection");
+    public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
+    public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
+
+    // Info
+    public static notebookConnectedTo(label: string) {
+        return l10n.t({
+            message: "MSSQL Notebook connected to {0}",
+            args: [label],
+            comment: ["{0} is the connection label"],
+        });
+    }
+    public static errorPrefix(msg: string) {
+        return l10n.t({
+            message: "Error: {0}",
+            args: [msg],
+            comment: ["{0} is the error message"],
+        });
+    }
+
+    // Cancellation
+    public static executionCanceled = l10n.t("Query execution was canceled.");
+
+    // Controller
+    public static controllerDescription = l10n.t("Execute SQL against SQL Server / Azure SQL");
+
+    // General
+    public static notConnected = l10n.t("Not connected");
+
+    // Renderer
+    public static parseError = l10n.t("Error: Failed to parse query result data.");
+}
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
@@ -1129,6 +1242,9 @@ export class QueryResult {
             args: [error],
             comment: ["{0} is the error message"],
         });
+    public static queryResultPanelFailedToLoad = l10n.t(
+        "The query results panel failed to load. Please try running the query again.",
+    );
 }
 
 export class LocalContainers {
@@ -1382,6 +1498,15 @@ export class Webview {
             comment: ["{0} is the webview name"],
         });
     public static Restore = l10n.t("Restore");
+    public static webviewNotReadyTimeout = (webviewName: string, timeoutMs: number) =>
+        l10n.t({
+            message: "Webview '{0}' did not become ready within {1}ms",
+            args: [webviewName, timeoutMs],
+            comment: ["{0} is the webview name", "{1} is the timeout in milliseconds"],
+        });
+    public static webviewDisposedBeforeReady = l10n.t(
+        "Webview was disposed before it became ready",
+    );
 }
 
 export class TableDesigner {
@@ -1473,6 +1598,16 @@ export class PublishProject {
     public static DacpacPathNotFound = l10n.t(
         "DACPAC path not found. Please build the project first.",
     );
+}
+
+export class CodeAnalysis {
+    public static Title = l10n.t("Code Analysis");
+    public static failedToLoadRules = l10n.t("Failed to load code analysis rules");
+    public static failedToLoadOverrides = l10n.t(
+        "Failed to read saved rule overrides from project",
+    );
+    public static failedToSaveRules = l10n.t("Failed to save code analysis rules");
+    public static rulesSaved = l10n.t("Code analysis rules saved successfully");
 }
 
 export class SchemaCompare {
@@ -1584,6 +1719,29 @@ export class SchemaDesigner {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
+    public static mcpServerAddedToWorkspace = (filePath: string) =>
+        l10n.t({
+            message: "MCP server added to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path where the MCP server was added"],
+        });
+    public static mcpServerAlreadyExists = (filePath: string) =>
+        l10n.t({
+            message: "MCP server is already configured in {0}",
+            args: [filePath],
+            comment: ["{0} is the file path where the MCP server configuration exists"],
+        });
+    public static noWorkspaceOpenForMcp = l10n.t(
+        "No workspace folder is open. Open a folder to add the MCP server configuration.",
+    );
+    public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
+    public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static failedToOpenUrl = l10n.t(
+        "Failed to open URL. The built-in Simple Browser may be disabled.",
+    );
+    public static dabDeploymentNotSupported = l10n.t(
+        "Local container deployment is currently only supported for SQL Authentication connections.",
+    );
 }
 
 export class StatusBar {
@@ -1892,7 +2050,25 @@ export class MssqlChatAgent {
         });
     };
     public static unknownConnection = l10n.t("Unknown Connection");
-    public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
+    public static schemaDesignerToolShowSuccessMessage = l10n.t({
+        message:
+            "Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).",
+        args: ["mssql_schema_designer", "get_overview", "apply_edits"],
+        comment: [
+            "{0} is the command identifier 'mssql_schema_designer' and must not be translated",
+            "{1} is the operation name 'get_overview' and must not be translated",
+            "{2} is the operation name 'apply_edits' and must not be translated",
+        ],
+    });
+    public static dabToolShowSuccessMessage = l10n.t({
+        message: "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        args: ["mssql_dab", "get_state", "apply_changes"],
+        comment: [
+            "{0} is the command identifier 'mssql_dab' and must not be translated",
+            "{1} is the operation name 'get_state' and must not be translated",
+            "{2} is the operation name 'apply_changes' and must not be translated",
+        ],
+    });
     public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
     public static schemaDesignerToolConfirmationMessage = (operation: string) => {
         return l10n.t({
@@ -1923,8 +2099,14 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolNoActiveDesigner = l10n.t(
+        "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+    );
     public static schemaDesignerNoActiveDesigner = l10n.t(
-        "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+        "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",
@@ -2665,13 +2847,31 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
-    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationTitle = l10n.t(
+        "Azure Data Studio Migration Toolkit - Now Including Keymap!",
+    );
     public static adsMigrationDescription = l10n.t(
-        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+        "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
     public static editDataTitle = l10n.t("Edit Data (Preview)");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchDescription = l10n.t(
+        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
+    );
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreDescription = l10n.t(
+        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
+    );
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementDescription = l10n.t(
+        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
+    );
+    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerDescription = l10n.t(
+        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
     public static dacpacTitle = l10n.t(
         "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
@@ -2679,7 +2879,7 @@ export class Changelog {
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
     public static sqlProjPublishDescription = l10n.t(
         "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
@@ -2781,10 +2981,12 @@ export class Profiler {
 
     // Quick pick and input prompts
     public static selectTemplate = l10n.t("Select a profiler template");
-    public static newSessionSelectTemplate = l10n.t("New Profiler Session - Select Template");
+    public static newSessionSelectTemplate = l10n.t(
+        "New Query Profiler (Preview) - Select Template",
+    );
     public static enterSessionName = l10n.t("Enter a name for the new profiler session");
     public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
-    public static newSessionEnterName = l10n.t("New Profiler Session - Enter Name");
+    public static newSessionEnterName = l10n.t("New Query Profiler (Preview) - Enter Name");
     public static engineLabel = (engineType: string) =>
         l10n.t({
             message: "Engine: {0}",
@@ -2838,17 +3040,17 @@ export class Profiler {
         });
 
     // Status bar
-    public static statusBarNoSession = l10n.t("Profiler (Preview): No session");
-    public static statusBarTooltip = l10n.t("Profiler (Preview) Session Status");
+    public static statusBarNoSession = l10n.t("Query Profiler (Preview): No session");
+    public static statusBarTooltip = l10n.t("Query Profiler (Preview) Session Status");
 
     // Panel titles
     public static panelTitleWithSession = (name: string) =>
         l10n.t({
-            message: "Profiler (Preview): {0}",
+            message: "Query Profiler (Preview): {0}",
             args: [name],
             comment: ["{0} is the file name or session name"],
         });
-    public static panelTitleDefault = l10n.t("Profiler (Preview)");
+    public static panelTitleDefault = l10n.t("Query Profiler (Preview)");
     public static stateRunning = l10n.t("Running");
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
@@ -2915,16 +3117,15 @@ export class Profiler {
     public static noDatabasesFound = l10n.t(
         "No databases found on the server. Please check your connection.",
     );
-    public static profilerNotSupportedOnFabric = l10n.t(
-        "Profiler is not supported on Microsoft Fabric SQL databases.",
-    );
 }
 
 export class Proxy {
+    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
+
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
             args: [proxy],
             comment: ["{0} is the proxy URL"],
         });
@@ -2932,7 +3133,7 @@ export class Proxy {
     public static unparseableWarning = (proxy: string, errorMessage: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
             args: [proxy, errorMessage],
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
@@ -3022,6 +3223,9 @@ export class BackupDatabase {
             comment: ["{0} is the database name"],
         });
     };
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for backup.",
+    );
 }
 
 export class FlatFileImport {
@@ -3115,5 +3319,9 @@ export class RestoreDatabase {
     );
     public static pleaseChooseAtLeastOneBackupSetToRestore = l10n.t(
         "Please choose at least one backup set to restore",
+    );
+    public static noDatabasesWithBackups = l10n.t("No databases with backups found");
+    public static azureSqlDbNotSupported = l10n.t(
+        "Azure SQL Database is not supported for restore.",
     );
 }

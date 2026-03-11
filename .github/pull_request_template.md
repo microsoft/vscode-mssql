@@ -1,5 +1,3 @@
-# Pull Request Template – vscode-mssql
-
 ## Description
 
 _Provide a clear, concise summary of the changes in this PR. What problem does it solve? Why is it needed? Link any related issues using [issue closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)._

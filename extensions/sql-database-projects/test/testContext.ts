@@ -5,12 +5,11 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as TypeMoq from "typemoq";
 import * as vscodeMssql from "vscode-mssql";
 
 export interface TestContext {
     context: vscode.ExtensionContext;
-    dacFxService: TypeMoq.IMock<vscodeMssql.IDacFxService>;
+    dacFxService: vscodeMssql.IDacFxService;
     outputChannel: vscode.OutputChannel;
 }
 
@@ -203,7 +202,7 @@ export function createContext(): TestContext {
             extension: undefined as any,
             languageModelAccessInformation: undefined as any,
         },
-        dacFxService: TypeMoq.Mock.ofType(MockDacFxService),
+        dacFxService: new MockDacFxService(),
         outputChannel: {
             name: "",
             append: () => {},

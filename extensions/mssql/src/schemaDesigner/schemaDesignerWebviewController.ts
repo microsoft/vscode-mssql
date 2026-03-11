@@ -14,15 +14,15 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import {
-    configEnableDab,
-    configSchemaDesignerEnableExpandCollapseButtons,
-} from "../constants/constants";
+import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
+import { CopilotChat } from "../sharedInterfaces/copilotChat";
+import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -30,11 +30,23 @@ function isExpandCollapseButtonsEnabled(): boolean {
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
 }
 
-function isDABEnabled(): boolean {
-    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
+function isCopilotChatInstalled(): boolean {
+    return !!vscode.extensions.getExtension("github.copilot-chat");
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+
+function getCopilotChatDiscoveryDismissedState(
+    context: vscode.ExtensionContext,
+): CopilotChat.DiscoveryDismissedState {
+    return {
+        schemaDesigner: context.globalState.get(
+            CopilotChat.getDiscoveryDismissedStateKey("schemaDesigner"),
+            false,
+        ),
+        dab: context.globalState.get(CopilotChat.getDiscoveryDismissedStateKey("dab"), false),
+    };
+}
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
@@ -67,7 +79,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
-                enableDAB: isDABEnabled(),
+                isCopilotChatInstalled: isCopilotChatInstalled(),
+                copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
@@ -77,12 +90,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "designSchema_light.svg",
+                        "applicationQuickStart_light.svg",
                     ),
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "designSchema_dark.svg",
+                        "applicationQuickStart_dark.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false,
@@ -93,7 +106,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
+        this.updateState({
+            ...this.state,
+            isDabDeploymentSupported: this.resolveIsDabDeploymentSupported(),
+        });
+
         this.setupRequestHandlers();
+        this.setupReducers();
         this.setupConfigurationListener();
     }
 
@@ -400,13 +419,37 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
-        this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
-            await vscode.env.clipboard.writeText(payload.configContent);
-            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+        this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
+            const uri = vscode.Uri.parse(payload.url, true);
+            if (uri.scheme !== "http" && uri.scheme !== "https") {
+                return;
+            }
+            try {
+                await vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
+            } catch {
+                void vscode.window.showErrorMessage(LocConstants.SchemaDesigner.failedToOpenUrl);
+            }
+        });
+
+        this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            const message =
+                payload.copyTextType === Dab.CopyTextType.Url
+                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
+                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            await vscode.window.showInformationMessage(message);
         });
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            if (!this.resolveIsDabDeploymentSupported()) {
+                const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
+                void vscode.window.showErrorMessage(message);
+                return {
+                    success: false,
+                    error: message,
+                };
+            }
             return this._dabService.runDeploymentStep(
                 payload.step,
                 payload.params,
@@ -427,6 +470,31 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
             return this._dabService.stopDeployment(payload.containerName);
         });
+
+        this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
+            return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
+        });
+    }
+
+    private setupReducers() {
+        this.registerReducer("dismissCopilotChatDiscovery", async (state, payload) => {
+            if (!payload?.scenario) {
+                return state;
+            }
+
+            await this._context.globalState.update(
+                CopilotChat.getDiscoveryDismissedStateKey(payload.scenario),
+                true,
+            );
+
+            return {
+                ...state,
+                copilotChatDiscoveryDismissed: {
+                    ...state.copilotChatDiscoveryDismissed,
+                    [payload.scenario]: true,
+                },
+            };
+        });
     }
 
     private setupConfigurationListener() {
@@ -435,13 +503,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 const newValue = isExpandCollapseButtonsEnabled();
 
                 this.updateState({
+                    ...this.state,
                     enableExpandCollapseButtons: newValue,
-                });
-            }
-            if (e.affectsConfiguration(configEnableDab)) {
-                const newValue = isDABEnabled();
-                this.updateState({
-                    enableDAB: newValue,
                 });
             }
         });
@@ -503,10 +566,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
     }
 
-    public showDabView(): void {
+    public showView(view: SchemaDesigner.SchemaDesignerActiveView): void {
         this.updateState({
             ...this.state,
-            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+            activeView: view,
         });
     }
 
@@ -532,6 +595,27 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 ?.credentials?.server;
         }
 
+        return undefined;
+    }
+
+    /**
+     * Determines whether the DAB (Data API Builder) feature is supported for this connection.
+     * Currently only SQL Login connections are supported because DAB runs in a local
+     * Docker container that cannot perform interactive Azure AD authentication.
+     */
+    private resolveIsDabDeploymentSupported(): boolean {
+        const authType = this.resolveAuthenticationType();
+        return authType === AuthenticationType.SqlLogin;
+    }
+
+    private resolveAuthenticationType(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.authenticationType;
+        }
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.authenticationType;
+        }
         return undefined;
     }
 

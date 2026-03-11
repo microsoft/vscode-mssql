@@ -298,12 +298,10 @@ suite("Azure Helpers", () => {
             },
         };
 
-        const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
+        const listStub = sandbox.stub(utils, "listAllIterator").callsFake((input) => input as any);
 
         // Stub the class constructor to return your stub instance
-        const storageStub = sinon
-            .stub(armStorage, "StorageManagementClient")
-            .callsFake(() => clientStub);
+        sandbox.stub(armStorage, "StorageManagementClient").callsFake(() => clientStub);
 
         let result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
             mockSubscriptions[0],
@@ -328,9 +326,6 @@ suite("Azure Helpers", () => {
         } catch (e) {
             expect(e.message).to.equal("Test error");
         }
-
-        storageStub.restore();
-        listStub.restore();
     });
 
     test("fetchBlobContainersForStorageAccount", async () => {
@@ -343,11 +338,9 @@ suite("Azure Helpers", () => {
         };
 
         // Stub the class constructor to return your stub instance
-        const storageStub = sinon
-            .stub(armStorage, "StorageManagementClient")
-            .callsFake(() => clientStub);
+        sandbox.stub(armStorage, "StorageManagementClient").callsFake(() => clientStub);
 
-        const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
+        const listStub = sandbox.stub(utils, "listAllIterator").callsFake((input) => input as any);
 
         let result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
             mockSubscriptions[0],
@@ -373,9 +366,6 @@ suite("Azure Helpers", () => {
         } catch (e) {
             expect(e.message).to.equal("Test error");
         }
-
-        storageStub.restore();
-        listStub.restore();
     });
 
     test("getStorageAccountKeys", async () => {
@@ -393,9 +383,7 @@ suite("Azure Helpers", () => {
         };
 
         // Stub the class constructor to return your stub instance
-        const storageStub = sinon
-            .stub(armStorage, "StorageManagementClient")
-            .callsFake(() => clientStub);
+        sandbox.stub(armStorage, "StorageManagementClient").callsFake(() => clientStub);
 
         let result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
             mockSubscriptions[0],
@@ -421,8 +409,6 @@ suite("Azure Helpers", () => {
         } catch (e) {
             expect(e.message).to.equal("Test error");
         }
-
-        storageStub.restore();
     });
 
     test("fetchBlobsForContainer", async () => {
@@ -445,11 +431,9 @@ suite("Azure Helpers", () => {
         };
 
         // Stub the class constructor to return your stub instance
-        const sasKeyStub = sinon
-            .stub(azureHelpers.VsCodeAzureHelper, "getStorageAccountKeys")
-            .resolves({
-                keys: [{ keyName: "key1", value: "value1" }],
-            } as armStorage.StorageAccountsListKeysResponse);
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getStorageAccountKeys").resolves({
+            keys: [{ keyName: "key1", value: "value1" }],
+        } as armStorage.StorageAccountsListKeysResponse);
 
         let result = await azureHelpers.VsCodeAzureHelper.fetchBlobsForContainer(
             mockSubscriptions[0],
@@ -482,7 +466,5 @@ suite("Azure Helpers", () => {
         } catch (e) {
             expect(e).to.equal(testError);
         }
-
-        sasKeyStub.restore();
     });
 });

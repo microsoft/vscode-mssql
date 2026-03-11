@@ -513,15 +513,19 @@ export const AzureDataStudioMigrationPage = () => {
                                 </div>
                                 <Body1 className={classes.summaryText}>
                                     {LocMigration.keymapCallout}{" "}
-                                    <Link
-                                        onClick={() =>
-                                            void extensionRpc.sendNotification(
-                                                OpenKeymapLinkNotification.type,
-                                            )
-                                        }
-                                        inline>
-                                        {LocMigration.keymapCalloutLink}
-                                    </Link>
+                                    <Tooltip
+                                        content={LocMigration.keymapTooltip}
+                                        relationship="label">
+                                        <Link
+                                            onClick={() =>
+                                                void extensionRpc.sendNotification(
+                                                    OpenKeymapLinkNotification.type,
+                                                )
+                                            }
+                                            inline>
+                                            {LocMigration.keymapCalloutLink}
+                                        </Link>
+                                    </Tooltip>
                                 </Body1>
                             </>
                         )}

@@ -4,16 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { DefinitionPanel } from "../../../common/definitionPanel";
 import {
     SchemaDesignerDefinitionPanelTab,
     useSchemaDesignerDefinitionPanelContext,
 } from "./schemaDesignerDefinitionPanelContext";
 import { useSchemaDesignerChangesCustomTab } from "./changes/schemaDesignerChangesTab";
+import { useSchemaDesignerCopilotChangesCustomTab } from "./copilot/schemaDesignerCopilotChangesTab";
 import { useSchemaDesignerScriptTab } from "./schemaDesignerScriptTab";
-import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { useSchemaDesignerChangeContext } from "./changes/schemaDesignerChangeContext";
+import { useCopilotChangesContext } from "./copilot/copilotChangesContext";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const {
@@ -23,21 +24,22 @@ export const SchemaDesignerDefinitionsPanel = () => {
         getDefinition,
         getBaselineDefinition,
     } = useContext(SchemaDesignerContext);
-    const { setShowChangesHighlight } = useSchemaDesignerChangeContext();
+    const { setShowChangesHighlight, setHighlightOverride } = useSchemaDesignerChangeContext();
+    const { copilotHighlightOverride } = useCopilotChangesContext();
     const {
         setCode,
         initializeBaselineDefinition,
         definitionPaneRef,
+        isDefinitionPanelVisible,
+        setIsDefinitionPanelVisible,
         setIsChangesPanelVisible,
         activeTab,
         setActiveTab,
     } = useSchemaDesignerDefinitionPanelContext();
-    const [isDefinitionPanelVisible, setIsDefinitionPanelVisible] = useState<boolean>(true);
-    const enableDAB = useSchemaDesignerSelector((state) => state?.enableDAB);
-    const isDabEnabled = enableDAB ?? false;
     const scriptTab = useSchemaDesignerScriptTab();
     const changesCustomTab = useSchemaDesignerChangesCustomTab();
-    const customTabs = isDabEnabled ? [changesCustomTab] : [];
+    const copilotChangesCustomTab = useSchemaDesignerCopilotChangesCustomTab();
+    const customTabs = [changesCustomTab, copilotChangesCustomTab];
 
     useEffect(() => {
         const isChangesTabActive = activeTab === SchemaDesignerDefinitionPanelTab.Changes;
@@ -90,18 +92,34 @@ export const SchemaDesignerDefinitionsPanel = () => {
             }, 0);
         }
 
-        if (!isPanelVisible || activeTab !== SchemaDesignerDefinitionPanelTab.Changes) {
+        if (!isPanelVisible) {
             setShowChangesHighlight(false);
+            setHighlightOverride(null);
             return;
         }
 
-        setShowChangesHighlight(true);
+        if (activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
+            setHighlightOverride(null);
+            setShowChangesHighlight(true);
+            return;
+        }
+
+        if (activeTab === SchemaDesignerDefinitionPanelTab.CopilotChanges) {
+            setHighlightOverride(copilotHighlightOverride);
+            setShowChangesHighlight(true);
+            return;
+        }
+
+        setShowChangesHighlight(false);
+        setHighlightOverride(null);
     }, [
         activeTab,
+        copilotHighlightOverride,
         definitionPaneRef,
         getDefinition,
         isDefinitionPanelVisible,
         setCode,
+        setHighlightOverride,
         setShowChangesHighlight,
     ]);
 
@@ -116,8 +134,9 @@ export const SchemaDesignerDefinitionsPanel = () => {
             }}
             onPanelVisibilityChange={(isVisible) => {
                 setIsDefinitionPanelVisible(isVisible);
-                if (!isVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes) {
+                if (!isVisible) {
                     setShowChangesHighlight(false);
+                    setHighlightOverride(null);
                 }
             }}
         />

@@ -8,7 +8,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 ## Explore and Learn
 
-[![MSSQL Extension Demo Playlist](https://github.com/Microsoft/vscode-mssql/raw/main/mssql/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
+[![MSSQL Extension Demo Playlist](https://github.com/microsoft/vscode-mssql/raw/main/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
 
 - [Watch the demos](https://aka.ms/vscode-mssql-demos): Explore key features through our YouTube playlist
 - [Read our blog posts](https://aka.ms/vscode-mssql-blogs): Learn from use cases, walkthroughs, and product updates
@@ -108,7 +108,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
     - Preview and Validate – Easily review generated scripts before deployment to ensure accuracy and control.
     - Integrated in VS Code – Manage the full build-and-publish workflow within the SQL Database Projects extension, without switching tools.
 
-![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/mssql/images/mssql-demo.gif)
+![Demo](https://github.com/microsoft/vscode-mssql/raw/main/images/mssql-demo.gif)
 
 ## Resources
 
@@ -161,7 +161,6 @@ Configure the MSSQL extension using these settings. Set them in user preferences
 // General Settings
 {
   "mssql.enableExperimentalFeatures": false,                // Enable experimental features for early testing
-  "mssql.enableRichExperiences": true,                     // Enable rich UI experiences (tables, schema designer)
   "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
   "mssql.messagesDefaultOpen": true,                       // Show messages panel by default after query execution
   "mssql.autoRevealResultsPanel": false,                    // Auto-reveal results panel when queries execute

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as sinon from "sinon";
 import * as mssqlVscode from "vscode-mssql";
 import * as baselines from "./baselines/baselines";
@@ -15,6 +15,8 @@ import * as constants from "../src/common/constants";
 import { UpdateProjectFromDatabaseWithQuickpick } from "../src/dialogs/updateProjectFromDatabaseQuickpick";
 import { UpdateProjectAction } from "../src/models/api/updateProject";
 import { mockDacFxResult } from "./testContext";
+
+let sandbox: sinon.SinonSandbox;
 
 const mockSqlProjectsService = {
     // Read operations
@@ -88,11 +90,12 @@ suite("Update Project From Database Quickpicks", () => {
     });
 
     setup(function (): void {
-        sinon.stub(utils, "getSqlProjectsService").resolves(mockSqlProjectsService);
+        sandbox = sinon.createSandbox();
+        sandbox.stub(utils, "getSqlProjectsService").resolves(mockSqlProjectsService);
     });
 
     teardown(function (): void {
-        sinon.restore();
+        sandbox.restore();
     });
 
     suiteTeardown(async function (): Promise<void> {
@@ -108,7 +111,9 @@ suite("Update Project From Database Quickpicks", () => {
         const projectFilePath = project.projectFilePath.toLowerCase();
 
         // Stub workspace project enumeration to return the created project
-        sinon.stub(utils, "getSqlProjectsInWorkspace").resolves([vscode.Uri.file(projectFilePath)]);
+        sandbox
+            .stub(utils, "getSqlProjectsInWorkspace")
+            .resolves([vscode.Uri.file(projectFilePath)]);
 
         // Stub the vscode-mssql API provider used by the quickpick flow
         const connectionProfile: any = {
@@ -120,16 +125,16 @@ suite("Update Project From Database Quickpicks", () => {
             options: { connectionName: "MockConnection" },
         };
 
-        sinon.stub(utils, "getVscodeMssqlApi").resolves({
-            promptForConnection: sinon.stub().resolves(connectionProfile),
-            connect: sinon.stub().resolves("MockUri"),
-            listDatabases: sinon.stub().resolves([connectionProfile.database]),
+        sandbox.stub(utils, "getVscodeMssqlApi").resolves({
+            promptForConnection: sandbox.stub().resolves(connectionProfile),
+            connect: sandbox.stub().resolves("MockUri"),
+            listDatabases: sandbox.stub().resolves([connectionProfile.database]),
         } as unknown as mssqlVscode.IExtension);
 
         // Stub QuickPick flows:
         // Call 0 -> project selection (workspace project)
         // Call 1 -> action selection (Update)
-        const showQP = sinon.stub(vscode.window, "showQuickPick");
+        const showQP = sandbox.stub(vscode.window, "showQuickPick");
         showQP.onCall(0).resolves(projectFilePath as any);
         showQP.onCall(1).resolves(constants.updateActionRadioButtonLabel as any);
 
@@ -143,23 +148,22 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, undefined, cb);
 
         // Assert
-        should(capturedModel).not.be.undefined();
-        should.equal(
+        expect(capturedModel).to.not.be.undefined;
+        expect(
             capturedModel.sourceEndpointInfo.databaseName,
-            connectionProfile.database,
             "Source database should match selected database",
-        );
-        should.equal(
+        ).to.equal(connectionProfile.database);
+        expect(
             capturedModel.sourceEndpointInfo.serverDisplayName,
-            connectionProfile.server,
             "Source server display name should match connection profile server",
-        );
-        should.equal(
+        ).to.equal(connectionProfile.server);
+        expect(
             capturedModel.targetEndpointInfo.projectFilePath,
-            projectFilePath,
             "Target project file path should be the selected workspace project",
+        ).to.equal(projectFilePath);
+        expect(capturedModel.action, "Action should be Update").to.equal(
+            UpdateProjectAction.Update,
         );
-        should.equal(capturedModel.action, UpdateProjectAction.Update, "Action should be Update");
     });
 
     test("Should not invoke callback when user cancels project selection", async function (): Promise<void> {
@@ -173,26 +177,26 @@ suite("Update Project From Database Quickpicks", () => {
             options: { connectionName: "MockConnection" },
         };
 
-        sinon.stub(utils, "getVscodeMssqlApi").resolves({
-            promptForConnection: sinon.stub().resolves(connectionProfile),
-            connect: sinon.stub().resolves("MockUri"),
-            listDatabases: sinon.stub().resolves([connectionProfile.database]),
+        sandbox.stub(utils, "getVscodeMssqlApi").resolves({
+            promptForConnection: sandbox.stub().resolves(connectionProfile),
+            connect: sandbox.stub().resolves("MockUri"),
+            listDatabases: sandbox.stub().resolves([connectionProfile.database]),
         } as unknown as mssqlVscode.IExtension);
 
         // Workspace may contain projects, but user cancels at project selection
-        sinon.stub(utils, "getSqlProjectsInWorkspace").resolves([]);
+        sandbox.stub(utils, "getSqlProjectsInWorkspace").resolves([]);
 
         // Simulate user cancelling project quickpick
-        const showQP = sinon.stub(vscode.window, "showQuickPick");
+        const showQP = sandbox.stub(vscode.window, "showQuickPick");
         showQP.onCall(0).resolves(undefined); // user cancels at project selection
 
-        const spyCb = sinon.spy();
+        const spyCb = sandbox.spy();
 
         // Act - pass undefined for projectFilePath to trigger prompt
         await UpdateProjectFromDatabaseWithQuickpick(undefined, undefined, spyCb as any);
 
         // Assert - callback should not be called
-        should(spyCb.notCalled).be.true();
+        expect(spyCb.notCalled).to.be.true;
     });
 
     test("Should use provided project file path without prompting when passed as parameter", async function (): Promise<void> {
@@ -213,18 +217,18 @@ suite("Update Project From Database Quickpicks", () => {
             options: { connectionName: "MockConnection" },
         };
 
-        sinon.stub(utils, "getVscodeMssqlApi").resolves({
-            promptForConnection: sinon.stub().resolves(connectionProfile),
-            connect: sinon.stub().resolves("MockUri"),
-            listDatabases: sinon.stub().resolves([connectionProfile.database]),
+        sandbox.stub(utils, "getVscodeMssqlApi").resolves({
+            promptForConnection: sandbox.stub().resolves(connectionProfile),
+            connect: sandbox.stub().resolves("MockUri"),
+            listDatabases: sandbox.stub().resolves([connectionProfile.database]),
         } as unknown as mssqlVscode.IExtension);
 
         // Stub QuickPick - should only be called once for action selection (not for project selection)
-        const showQP = sinon.stub(vscode.window, "showQuickPick");
+        const showQP = sandbox.stub(vscode.window, "showQuickPick");
         showQP.onCall(0).resolves(constants.compareActionRadioButtonLabel as any); // Only action selection
 
         // Spy on getSqlProjectsInWorkspace to ensure it's NOT called when project path is provided
-        const getProjectsSpy = sinon.stub(utils, "getSqlProjectsInWorkspace");
+        const getProjectsSpy = sandbox.stub(utils, "getSqlProjectsInWorkspace");
 
         // Capture the model produced by the callback
         let capturedModel: any;
@@ -236,23 +240,24 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, providedProjectPath, cb);
 
         // Assert
-        should(capturedModel).not.be.undefined();
-        should.equal(
+        expect(capturedModel).to.not.be.undefined;
+        expect(
             capturedModel.targetEndpointInfo.projectFilePath,
-            providedProjectPath,
             "Target project file path should be the provided project path, not prompted",
+        ).to.equal(providedProjectPath);
+        expect(capturedModel.action, "Action should be Compare").to.equal(
+            UpdateProjectAction.Compare,
         );
-        should.equal(capturedModel.action, UpdateProjectAction.Compare, "Action should be Compare");
 
         // Verify that project selection was skipped
-        should(getProjectsSpy.notCalled).be.true(
+        expect(
+            getProjectsSpy.notCalled,
             "getSqlProjectsInWorkspace should not be called when project path is provided",
-        );
-        should.equal(
+        ).to.be.true;
+        expect(
             showQP.callCount,
-            1,
             "QuickPick should only be shown once (for action), not for project selection",
-        );
+        ).to.equal(1);
     });
 
     test("Should prompt for project when no project file path is provided as parameter", async function (): Promise<void> {
@@ -264,7 +269,7 @@ suite("Update Project From Database Quickpicks", () => {
         const workspaceProjectPath = project.projectFilePath.toLowerCase();
 
         // Stub workspace project enumeration to return the created project
-        sinon
+        sandbox
             .stub(utils, "getSqlProjectsInWorkspace")
             .resolves([vscode.Uri.file(workspaceProjectPath)]);
 
@@ -278,14 +283,14 @@ suite("Update Project From Database Quickpicks", () => {
             options: { connectionName: "MockConnection" },
         };
 
-        sinon.stub(utils, "getVscodeMssqlApi").resolves({
-            promptForConnection: sinon.stub().resolves(connectionProfile),
-            connect: sinon.stub().resolves("MockUri"),
-            listDatabases: sinon.stub().resolves([connectionProfile.database]),
+        sandbox.stub(utils, "getVscodeMssqlApi").resolves({
+            promptForConnection: sandbox.stub().resolves(connectionProfile),
+            connect: sandbox.stub().resolves("MockUri"),
+            listDatabases: sandbox.stub().resolves([connectionProfile.database]),
         } as unknown as mssqlVscode.IExtension);
 
         // Stub QuickPick - should be called twice (project selection and action selection)
-        const showQP = sinon.stub(vscode.window, "showQuickPick");
+        const showQP = sandbox.stub(vscode.window, "showQuickPick");
         showQP.onCall(0).resolves(workspaceProjectPath as any); // Project selection
         showQP.onCall(1).resolves(constants.updateActionRadioButtonLabel as any); // Action selection
 
@@ -299,17 +304,17 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, undefined, cb);
 
         // Assert
-        should(capturedModel).not.be.undefined();
-        should.equal(
+        expect(capturedModel).to.not.be.undefined;
+        expect(
             capturedModel.targetEndpointInfo.projectFilePath,
-            workspaceProjectPath,
             "Target project file path should be the selected workspace project",
+        ).to.equal(workspaceProjectPath);
+        expect(capturedModel.action, "Action should be Update").to.equal(
+            UpdateProjectAction.Update,
         );
-        should.equal(capturedModel.action, UpdateProjectAction.Update, "Action should be Update");
-        should.equal(
+        expect(
             showQP.callCount,
-            2,
             "QuickPick should be shown twice (project and action selection)",
-        );
+        ).to.equal(2);
     });
 });

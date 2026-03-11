@@ -10,12 +10,32 @@ import * as utils from "../common/utils";
 import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
-import { HttpClient } from "../common/httpClient";
-import { DBProjectConfigurationKey } from "./netcoreTool";
+import { HttpClient } from "../http/httpClient";
+import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
 const buildDirectory = "BuildDirectory";
+
+/**
+ * Thrown when the nuget package download step fails (e.g. network / proxy issues).
+ */
+export class NugetDownloadError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "NugetDownloadError";
+    }
+}
+
+/**
+ * Thrown when the nuget package extraction (or post-download filesystem) step fails.
+ */
+export class NugetExtractionError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "NugetExtractionError";
+    }
+}
 
 export class BuildHelper {
     private extensionDir: string;
@@ -54,8 +74,6 @@ export class BuildHelper {
 
     public async ensureDacFxDllsPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
         const sdkName = "Microsoft.Build.Sql";
-        const microsoftBuildSqlDefaultVersion = "2.0.0"; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
-
         const dacFxBuildFiles: string[] = [
             "Microsoft.Build.Sql.dll",
             "Microsoft.Data.SqlClient.dll",
@@ -71,15 +89,7 @@ export class BuildHelper {
             "Microsoft.SqlServer.Server.dll",
         ];
 
-        // check if the settings has a version specified for Microsoft.Build.Sql, otherwise use default
-        const microsoftBuildSqlVersionConfig =
-            vscode.workspace.getConfiguration(DBProjectConfigurationKey)[
-                constants.microsoftBuildSqlVersionKey
-            ];
-        const sdkVersion = !!microsoftBuildSqlVersionConfig
-            ? microsoftBuildSqlVersionConfig
-            : microsoftBuildSqlDefaultVersion;
-
+        const sdkVersion = getMicrosoftBuildSqlVersion();
         const microsoftBuildSqlDllLocation = path.join("tools", "net8.0");
         return this.ensureNugetAndFilesPresence(
             sdkName,
@@ -121,28 +131,23 @@ export class BuildHelper {
         nugetFolderWithExpectedfiles: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<boolean> {
-        let missingNuget = false;
-
         const fullNugetName = `${nugetName}.${nugetVersion}`;
         const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
 
-        // check if the correct nuget version has been previously downloaded before checking if the files exist.
-        // TODO: handle when multiple nugets are in the BuildDirectory and a user wants to switch back to an older one - probably should
-        // remove other versions of this nuget when a new one is downloaded
-        if (await utils.exists(fullNugetPath)) {
-            // if it does exist, make sure all the necessary files are also in the BuildDirectory
-            for (const fileName of expectedFiles) {
-                if (!(await utils.exists(path.join(this.extensionBuildDir, fileName)))) {
-                    missingNuget = true;
-                    break;
-                }
+        // Check whether all required files are already present in the BuildDirectory.
+        // This covers both pre-bundled DLLs (shipped in the VSIX) and previously downloaded/extracted files.
+        // We do not require the .nupkg sentinel to be present — the DLLs themselves are the source of truth.
+        // TODO: handle when multiple versions of this nuget are in the BuildDirectory and a user wants to
+        // switch back to an older one - probably should remove other versions when a new one is downloaded.
+        let missingFiles = false;
+        for (const fileName of expectedFiles) {
+            if (!(await utils.exists(path.join(this.extensionBuildDir, fileName)))) {
+                missingFiles = true;
+                break;
             }
-        } else {
-            // if the nuget isn't there, it needs to be downloaded and the build dlls extracted
-            missingNuget = true;
         }
 
-        if (!missingNuget) {
+        if (!missingFiles) {
             return true;
         }
 
@@ -159,7 +164,17 @@ export class BuildHelper {
                 outputChannel,
             );
         } catch (e) {
-            void vscode.window.showErrorMessage(e);
+            const errorMessage = utils.getErrorMessage(e);
+            if (e instanceof NugetDownloadError) {
+                // Network / connectivity failure — show the proxy/offline help text so users can resolve configuration issues.
+                const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
+                outputChannel.appendLine(`${errorMessage}\n${helpMessage}`);
+                void vscode.window.showErrorMessage(helpMessage);
+            } else {
+                // Extraction or filesystem failure — the error itself is actionable;
+                outputChannel.appendLine(errorMessage);
+                void vscode.window.showErrorMessage(errorMessage);
+            }
             return false;
         }
 
@@ -199,13 +214,17 @@ export class BuildHelper {
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
             await httpClient.download(downloadUrl, nugetPath, outputChannel);
         } catch (e) {
-            throw constants.errorDownloading(extractFolderPath, utils.getErrorMessage(e));
+            throw new NugetDownloadError(
+                constants.errorDownloading(downloadUrl, utils.getErrorMessage(e)),
+            );
         }
 
         try {
             await extractZip(nugetPath, { dir: extractFolderPath });
         } catch (e) {
-            throw constants.errorExtracting(nugetPath, utils.getErrorMessage(e));
+            throw new NugetExtractionError(
+                constants.errorExtracting(nugetPath, utils.getErrorMessage(e)),
+            );
         }
     }
 

@@ -347,7 +347,7 @@ export enum WebviewAction {
 /**
  * Keyboard shortcut configuration for webview actions.
  */
-export type WebviewKeyBindingConfiguration = Record<WebviewAction, string>;
+export type WebviewKeyBindingConfiguration = Partial<Record<WebviewAction, string>>;
 
 /**
  * Representation of a key combination for a webview shortcut.

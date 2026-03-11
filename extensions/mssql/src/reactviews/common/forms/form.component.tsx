@@ -6,6 +6,7 @@
 import {
     Button,
     Checkbox,
+    Combobox,
     Dropdown,
     Field,
     FieldProps,
@@ -28,6 +29,7 @@ import {
 import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
+import { EventType, KeyCode } from "../keys";
 
 export const useFormStyles = makeStyles({
     formRoot: {
@@ -372,6 +374,73 @@ export function generateFormComponent<
                         );
                     })}
                 </Dropdown>
+            );
+        case FormItemType.Combobox:
+            if (component.options === undefined) {
+                throw new Error("Combobox component must have options");
+            }
+            // options that sets whether a user can enter a freeform value or must select from the list of options
+            const isFreeform = props && props.freeform;
+            const optionDisplayName =
+                component.options.find(
+                    (option) => option.value === formState[component.propertyName],
+                )?.displayName ?? "";
+            return (
+                <Combobox
+                    size="small"
+                    placeholder={component.placeholder ?? ""}
+                    value={
+                        isFreeform
+                            ? (formState[component.propertyName] as string)
+                            : optionDisplayName
+                    }
+                    selectedOptions={
+                        optionDisplayName !== ""
+                            ? [formState[component.propertyName] as string]
+                            : []
+                    }
+                    autoComplete={isFreeform ? "off" : "on"}
+                    onChange={(event) => {
+                        if (isFreeform) {
+                            if (props.onChange) {
+                                props.onChange(event);
+                            } else {
+                                context?.formAction({
+                                    propertyName: component.propertyName,
+                                    isAction: false,
+                                    value: event.target.value,
+                                });
+                            }
+                        }
+                    }}
+                    onOptionSelect={(event, data) => {
+                        // if user pressed enter after typing a freeform value that doesn't match an option,
+                        // don't trigger onOptionSelect and instead let onChange handle it
+                        if (
+                            isFreeform &&
+                            !optionDisplayName &&
+                            event.type === EventType.Keydown &&
+                            (event as React.KeyboardEvent).key === KeyCode.Enter
+                        ) {
+                            return;
+                        }
+                        if (props && props.onOptionSelect) {
+                            props.onOptionSelect(event, data);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                        }
+                    }}
+                    {...props}>
+                    {component.options.map((option) => (
+                        <Option key={option.value} value={option.value}>
+                            {option.displayName}
+                        </Option>
+                    ))}
+                </Combobox>
             );
         case FormItemType.SearchableDropdown:
             if (component.options === undefined) {

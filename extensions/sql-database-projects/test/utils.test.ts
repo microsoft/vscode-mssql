@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as path from "path";
 import * as os from "os";
 import * as constants from "../src/common/constants";
@@ -16,12 +16,16 @@ suite("Tests to verify utils functions", function (): void {
     test("Should determine existence of files/folders", async () => {
         let testFolderPath = await createDummyFileStructure(undefined);
 
-        should(await utils.exists(testFolderPath)).equal(true);
-        should(await utils.exists(path.join(testFolderPath, "file1.sql"))).equal(true);
-        should(await utils.exists(path.join(testFolderPath, "folder2"))).equal(true);
-        should(await utils.exists(path.join(testFolderPath, "folder4"))).equal(false);
-        should(await utils.exists(path.join(testFolderPath, "folder2", "file4.sql"))).equal(true);
-        should(await utils.exists(path.join(testFolderPath, "folder4", "file2.sql"))).equal(false);
+        expect(await utils.exists(testFolderPath)).to.equal(true);
+        expect(await utils.exists(path.join(testFolderPath, "file1.sql"))).to.equal(true);
+        expect(await utils.exists(path.join(testFolderPath, "folder2"))).to.equal(true);
+        expect(await utils.exists(path.join(testFolderPath, "folder4"))).to.equal(false);
+        expect(await utils.exists(path.join(testFolderPath, "folder2", "file4.sql"))).to.equal(
+            true,
+        );
+        expect(await utils.exists(path.join(testFolderPath, "folder4", "file2.sql"))).to.equal(
+            false,
+        );
 
         await deleteGeneratedTestFolder();
     });
@@ -30,132 +34,132 @@ suite("Tests to verify utils functions", function (): void {
         const root = os.platform() === "win32" ? "Z:\\" : "/";
         let projectUri = Uri.file(path.join(root, "project", "folder", "project.sqlproj"));
         let fileUri = Uri.file(path.join(root, "project", "folder", "file.sql"));
-        should(utils.trimUri(projectUri, fileUri)).equal("file.sql");
+        expect(utils.trimUri(projectUri, fileUri)).to.equal("file.sql");
 
         fileUri = Uri.file(path.join(root, "project", "file.sql"));
         let urifile = utils.trimUri(projectUri, fileUri);
-        should(urifile).equal("../file.sql");
+        expect(urifile).to.equal("../file.sql");
 
         fileUri = Uri.file(path.join(root, "project", "forked", "file.sql"));
-        should(utils.trimUri(projectUri, fileUri)).equal("../forked/file.sql");
+        expect(utils.trimUri(projectUri, fileUri)).to.equal("../forked/file.sql");
 
         fileUri = Uri.file(path.join(root, "forked", "from", "top", "file.sql"));
-        should(utils.trimUri(projectUri, fileUri)).equal("../../forked/from/top/file.sql");
+        expect(utils.trimUri(projectUri, fileUri)).to.equal("../../forked/from/top/file.sql");
     });
 
     test("Should remove $() from sqlcmd variables", () => {
-        should(utils.removeSqlCmdVariableFormatting("$(test)")).equal(
-            "test",
+        expect(
+            utils.removeSqlCmdVariableFormatting("$(test)"),
             "$() surrounding the variable should have been removed",
-        );
-        should(utils.removeSqlCmdVariableFormatting("$(test")).equal(
-            "test",
+        ).to.equal("test");
+        expect(
+            utils.removeSqlCmdVariableFormatting("$(test"),
             "$( at the beginning of the variable should have been removed",
-        );
-        should(utils.removeSqlCmdVariableFormatting("test")).equal(
-            "test",
+        ).to.equal("test");
+        expect(
+            utils.removeSqlCmdVariableFormatting("test"),
             "string should not have been changed because it is not in sqlcmd variable format",
-        );
+        ).to.equal("test");
     });
 
     test("Should make variable be in sqlcmd variable format with $()", () => {
-        should(utils.formatSqlCmdVariable("$(test)")).equal(
-            "$(test)",
+        expect(
+            utils.formatSqlCmdVariable("$(test)"),
             "string should not have been changed because it was already in the correct format",
-        );
-        should(utils.formatSqlCmdVariable("test")).equal(
-            "$(test)",
+        ).to.equal("$(test)");
+        expect(
+            utils.formatSqlCmdVariable("test"),
             "string should have been changed to be in sqlcmd variable format",
-        );
-        should(utils.formatSqlCmdVariable("$(test")).equal(
-            "$(test)",
+        ).to.equal("$(test)");
+        expect(
+            utils.formatSqlCmdVariable("$(test"),
             "string should have been changed to be in sqlcmd variable format",
-        );
-        should(utils.formatSqlCmdVariable("")).equal(
-            "",
+        ).to.equal("$(test)");
+        expect(
+            utils.formatSqlCmdVariable(""),
             "should not do anything to an empty string",
-        );
+        ).to.equal("");
     });
 
     test("Should determine invalid sqlcmd variable names", () => {
         // valid names
-        should(utils.validateSqlCmdVariableName("$(test)")).equal(null);
-        should(utils.validateSqlCmdVariableName("$(test    )")).equal(
-            null,
+        expect(utils.validateSqlCmdVariableName("$(test)")).to.equal(null);
+        expect(
+            utils.validateSqlCmdVariableName("$(test    )"),
             "trailing spaces should be valid because they will be trimmed",
-        );
-        should(utils.validateSqlCmdVariableName("test")).equal(null);
-        should(utils.validateSqlCmdVariableName("test  ")).equal(
-            null,
+        ).to.equal(null);
+        expect(utils.validateSqlCmdVariableName("test")).to.equal(null);
+        expect(
+            utils.validateSqlCmdVariableName("test  "),
             "trailing spaces should be valid because they will be trimmed",
-        );
-        should(utils.validateSqlCmdVariableName("$(test")).equal(null);
-        should(utils.validateSqlCmdVariableName("$(test    ")).equal(
-            null,
+        ).to.equal(null);
+        expect(utils.validateSqlCmdVariableName("$(test")).to.equal(null);
+        expect(
+            utils.validateSqlCmdVariableName("$(test    "),
             "trailing spaces should be valid because they will be trimmed",
-        );
+        ).to.equal(null);
 
         // whitespace
-        should(utils.validateSqlCmdVariableName("")).equal(
+        expect(utils.validateSqlCmdVariableName("")).to.equal(
             constants.sqlcmdVariableNameCannotContainWhitespace(""),
         );
-        should(utils.validateSqlCmdVariableName(" ")).equal(
+        expect(utils.validateSqlCmdVariableName(" ")).to.equal(
             constants.sqlcmdVariableNameCannotContainWhitespace(" "),
         );
-        should(utils.validateSqlCmdVariableName("     ")).equal(
+        expect(utils.validateSqlCmdVariableName("     ")).to.equal(
             constants.sqlcmdVariableNameCannotContainWhitespace("     "),
         );
-        should(utils.validateSqlCmdVariableName("test abc")).equal(
+        expect(utils.validateSqlCmdVariableName("test abc")).to.equal(
             constants.sqlcmdVariableNameCannotContainWhitespace("test abc"),
         );
-        should(utils.validateSqlCmdVariableName("	")).equal(
+        expect(utils.validateSqlCmdVariableName("	")).to.equal(
             constants.sqlcmdVariableNameCannotContainWhitespace("	"),
         );
 
         // invalid characters
-        should(utils.validateSqlCmdVariableName("$($test")).equal(
+        expect(utils.validateSqlCmdVariableName("$($test")).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars("$($test"),
         );
-        should(utils.validateSqlCmdVariableName("$test")).equal(
+        expect(utils.validateSqlCmdVariableName("$test")).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars("$test"),
         );
-        should(utils.validateSqlCmdVariableName("test@")).equal(
+        expect(utils.validateSqlCmdVariableName("test@")).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars("test@"),
         );
-        should(utils.validateSqlCmdVariableName("test#")).equal(
+        expect(utils.validateSqlCmdVariableName("test#")).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars("test#"),
         );
-        should(utils.validateSqlCmdVariableName('test"')).equal(
+        expect(utils.validateSqlCmdVariableName('test"')).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars('test"'),
         );
-        should(utils.validateSqlCmdVariableName("test'")).equal(
+        expect(utils.validateSqlCmdVariableName("test'")).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars("test'"),
         );
-        should(utils.validateSqlCmdVariableName("test-1")).equal(
+        expect(utils.validateSqlCmdVariableName("test-1")).to.equal(
             constants.sqlcmdVariableNameCannotContainIllegalChars("test-1"),
         );
     });
 
     test("Should convert from milliseconds to hr min sec correctly", () => {
-        should(utils.timeConversion(60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000)).equal(
+        expect(utils.timeConversion(60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000)).to.equal(
             "1 hr, 59 min, 59 sec",
         );
-        should(utils.timeConversion(60 * 60 * 1000 + 59 * 60 * 1000)).equal("1 hr, 59 min");
-        should(utils.timeConversion(60 * 60 * 1000)).equal("1 hr");
-        should(utils.timeConversion(60 * 60 * 1000 + 59 * 1000)).equal("1 hr, 59 sec");
-        should(utils.timeConversion(59 * 60 * 1000 + 59 * 1000)).equal("59 min, 59 sec");
-        should(utils.timeConversion(59 * 1000)).equal("59 sec");
-        should(utils.timeConversion(59)).equal("59 msec");
+        expect(utils.timeConversion(60 * 60 * 1000 + 59 * 60 * 1000)).to.equal("1 hr, 59 min");
+        expect(utils.timeConversion(60 * 60 * 1000)).to.equal("1 hr");
+        expect(utils.timeConversion(60 * 60 * 1000 + 59 * 1000)).to.equal("1 hr, 59 sec");
+        expect(utils.timeConversion(59 * 60 * 1000 + 59 * 1000)).to.equal("59 min, 59 sec");
+        expect(utils.timeConversion(59 * 1000)).to.equal("59 sec");
+        expect(utils.timeConversion(59)).to.equal("59 msec");
     });
 
     test("Should correctly detect present commands", async () => {
-        should(await utils.detectCommandInstallation("node")).equal(
-            true,
+        expect(
+            await utils.detectCommandInstallation("node"),
             '"node" should have been detected.',
-        );
-        should(await utils.detectCommandInstallation("bogusFakeCommand")).equal(
-            false,
+        ).to.equal(true);
+        expect(
+            await utils.detectCommandInstallation("bogusFakeCommand"),
             '"bogusFakeCommand" should have been detected.',
-        );
+        ).to.equal(false);
     });
 });

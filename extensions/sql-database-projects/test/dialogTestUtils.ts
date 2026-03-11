@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscodeMssql from "vscode-mssql";
 import { RequestType } from "vscode-languageclient";
 
 export interface TestUtils {
-    vscodeMssqlIExtension: TypeMoq.IMock<vscodeMssql.IExtension>;
+    vscodeMssqlIExtension: vscodeMssql.IExtension;
 }
 
 export class MockVscodeMssqlIExtension implements vscodeMssql.IExtension {
@@ -20,11 +19,11 @@ export class MockVscodeMssqlIExtension implements vscodeMssql.IExtension {
     azureResourceService: vscodeMssql.IAzureResourceService;
 
     constructor() {
-        this.dacFx = TypeMoq.Mock.ofType<vscodeMssql.IDacFxService>().object;
-        this.sqlProjects = TypeMoq.Mock.ofType<vscodeMssql.ISqlProjectsService>().object;
-        this.schemaCompare = TypeMoq.Mock.ofType<vscodeMssql.ISchemaCompareService>().object;
-        this.azureAccountService = TypeMoq.Mock.ofType<vscodeMssql.IAzureAccountService>().object;
-        this.azureResourceService = TypeMoq.Mock.ofType<vscodeMssql.IAzureResourceService>().object;
+        this.dacFx = {} as vscodeMssql.IDacFxService;
+        this.sqlProjects = {} as vscodeMssql.ISqlProjectsService;
+        this.schemaCompare = {} as vscodeMssql.ISchemaCompareService;
+        this.azureAccountService = {} as vscodeMssql.IAzureAccountService;
+        this.azureResourceService = {} as vscodeMssql.IAzureResourceService;
     }
 
     promptForFirewallRule(_: string, __: vscodeMssql.IConnectionInfo): Promise<boolean> {
@@ -62,7 +61,7 @@ export class MockVscodeMssqlIExtension implements vscodeMssql.IExtension {
 
 export function createTestUtils(): TestUtils {
     return {
-        vscodeMssqlIExtension: TypeMoq.Mock.ofType(MockVscodeMssqlIExtension),
+        vscodeMssqlIExtension: new MockVscodeMssqlIExtension(),
     };
 }
 

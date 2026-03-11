@@ -131,7 +131,7 @@ suite("UserSurvey Tests", () => {
                 surveyId: "nps",
                 q1: "answer1",
                 q2: "answer2",
-                modernFeaturesEnabled: true,
+                experimentalFeaturesEnabled: false,
                 surveySource: "testSource",
             },
             {
@@ -217,7 +217,7 @@ suite("UserSurvey Tests", () => {
         test("Should not prompt user if skip version is set", async () => {
             const testCurrentVersion = "1.skip.me";
 
-            sinon.stub(vscode.extensions, "getExtension").returns({
+            sandbox.stub(vscode.extensions, "getExtension").returns({
                 packageJSON: {
                     version: testCurrentVersion,
                 },
