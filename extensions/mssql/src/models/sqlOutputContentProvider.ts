@@ -127,7 +127,33 @@ export class SqlOutputContentProvider {
         );
 
         /**
-         * Command that reveals the query result
+         * Command to toggle the display of the query results panel
+         */
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdToggleQueryResultPanel, () => {
+                const activeEditor = vscode.window.activeTextEditor;
+
+                // Don't do anything if the active editor isn't SQL
+                if (!activeEditor || activeEditor.document.languageId !== Constants.languageId) {
+                    return;
+                }
+
+                const uri = this._vscodeWrapper.activeTextEditorUri;
+                if (!uri) {
+                    return;
+                }
+
+                // If the panel is already visible, hide it. Otherwise, show it.
+                if (this._queryResultWebviewController.isVisible()) {
+                    void vscode.commands.executeCommand("workbench.action.closePanel");
+                } else {
+                    this.revealQueryResult(uri);
+                }
+            }),
+        );
+
+        /**
+         * Command to reveal the query result
          */
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdrevealQueryResult, (uri: vscode.Uri) => {
@@ -934,9 +960,11 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        const isContainedInWebviewView =
-            this._queryResultWebviewController.getQueryResultState(uri);
-        if (isContainedInWebviewView && !this._queryResultWebviewController.hasPanel(uri)) {
+        if (
+            !this._queryResultWebviewController.hasQueryResultState(uri) ||
+            (this._queryResultWebviewController.getQueryResultState(uri) &&
+                !this._queryResultWebviewController.hasPanel(uri))
+        ) {
             vscode.commands.executeCommand("queryResult.focus", {
                 preserveFocus: true,
             });

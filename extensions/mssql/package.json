@@ -995,6 +995,11 @@
                 "icon": "$(table)"
             },
             {
+                "command": "mssql.toggleQueryResultPanel",
+                "title": "Toggle Query Result Panel",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.connect",
                 "title": "%mssql.connect%",
                 "category": "MS SQL",

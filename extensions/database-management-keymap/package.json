@@ -2,7 +2,7 @@
     "name": "mssql-database-management-keymap",
     "displayName": "MSSQL Database Management Keymap",
     "description": "Provides MSSQL database management-oriented default keybindings for the SQL Server (mssql) extension",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "ms-mssql",
     "preview": true,
     "license": "SEE LICENSE IN LICENSE.txt",
@@ -85,8 +85,9 @@
                 "mac": "cmd+shift+d"
             },
             {
-                "command": "queryResult.focus",
-                "key": "ctrl+shift+r"
+                "key": "ctrl+shift+r",
+                "command": "mssql.toggleQueryResultPanel",
+                "when": "editorTextFocus && editorLangId == 'sql'"
             }
         ]
     },
