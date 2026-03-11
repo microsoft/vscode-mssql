@@ -575,6 +575,11 @@
                     "group": "4_MSSQL_discoverAndProfile@2"
                 },
                 {
+                    "command": "mssql.profiler.launchFromDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1a_MSSQL_profiler@1"
+                },
+                {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
                     "group": "2a_MSSQL_databaseDesign@1"
@@ -1444,6 +1449,11 @@
             },
             {
                 "command": "mssql.profiler.launchFromObjectExplorer",
+                "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.profiler.launchFromDatabase",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
             },
