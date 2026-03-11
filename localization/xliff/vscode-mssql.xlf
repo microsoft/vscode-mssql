@@ -1746,6 +1746,9 @@
     <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
       <source xml:lang="en">Define who can access this endpoint</source>
     </trans-unit>
+    <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
+      <source xml:lang="en">Definition</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
       <source xml:lang="en">DefinitionRequestCompleted</source>
     </trans-unit>
@@ -3103,11 +3106,17 @@
     <trans-unit id="++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd">
       <source xml:lang="en">Help us improve by sharing your thoughts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
+      <source xml:lang="en">Hide Changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
       <source xml:lang="en">Hide Changes Highlight</source>
     </trans-unit>
     <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
       <source xml:lang="en">Hide Confirm Password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++594683ed5533aeeab2a537f670f9a1ae7394eef4784dc9398b23309a6b88a965">
+      <source xml:lang="en">Hide Definition</source>
     </trans-unit>
     <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
       <source xml:lang="en">Hide New Password</source>
