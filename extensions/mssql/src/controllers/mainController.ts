@@ -1504,10 +1504,7 @@ export default class MainController implements vscode.Disposable {
                         await vscode.window.withProgress(
                             {
                                 location: vscode.ProgressLocation.Notification,
-                                title: LocalizedConstants.renamingDatabase(
-                                    databaseName,
-                                    newName,
-                                ),
+                                title: LocalizedConstants.renamingDatabase(databaseName, newName),
                             },
                             async () => {
                                 await this.objectManagementService.rename(
