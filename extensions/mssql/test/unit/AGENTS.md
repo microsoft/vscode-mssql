@@ -7,6 +7,23 @@
 - You must use chai's `expect` for assertions; when checking Sinon interactions, use sinon-chai. Avoid `sinon.assert` and Node's `assert` in favor of `expect(...).to.have.been...` helpers.
 - You must avoid Object.defineProperty hacks and (if possible) fake/partial plain objects; use sandbox.createStubInstance(type) and sandbox.stub(obj, 'prop').value(...).
 - You must avoid unnecessary casts, like `myVar as unknown as MyType` when myVar is already a sinon-stubbed instance of MyType.
+- When mocking classes, prefer `sinon.SinonStubbedInstance<T>` typed variables with `sandbox.createStubInstance(ClassName)` over manually constructed mock objects cast via `as unknown as Type`. This maintains type safety and eliminates the need for unsafe casts like `(mockObj.method as sinon.SinonStub).resolves(...)` when configuring stub behavior.
+
+    ```typescript
+    // Avoid:
+    const mockService = {
+        connect: sandbox.stub().resolves(true),
+        disconnect: sandbox.stub().resolves(),
+    } as unknown as MyService;
+    (mockService.connect as sinon.SinonStub).resolves(false); // Unsafe cast
+
+    // Prefer:
+    const service: sinon.SinonStubbedInstance<MyService> = sandbox.createStubInstance(MyService);
+    service.connect.resolves(false); // Type-safe, no cast needed
+    ```
+
+    **Exception:** For external library interfaces (e.g., VS Code's `vscode.WorkspaceConfiguration`, `vscode.Webview`, `vscode.WebviewPanel`), `createStubInstance()` cannot be used since they are interfaces, not classes. In these cases, the `as unknown as Type` cast is acceptable. Stub only the methods actually used by the code under test.
+
 - Use a Sinon sandbox (setup/teardown with sinon.createSandbox()); keep helper closures (e.g., createServer) inside setup where the
   sandbox is created.
 - Add shared Sinon helpers to test/unit/utils.ts when they’ll be reused.

@@ -13,89 +13,72 @@ import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionMan
 import { ProfilerService } from "../../../src/services/profilerService";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
+import { ConnectionStore } from "../../../src/models/connectionStore";
+import { ConnectionUI } from "../../../src/views/connectionUI";
 import { SessionState, SessionType } from "../../../src/profiler/profilerTypes";
 
 chai.use(sinonChai);
 
 /**
- * Creates a mock ProfilerService for testing.
+ * Creates a stubbed ProfilerService for testing.
  */
-function createMockProfilerService(): ProfilerService {
-    return {
-        startProfiling: sinon
-            .stub()
-            .resolves({ uniqueSessionId: "test-unique-id", canPause: true }),
-        stopProfiling: sinon.stub().resolves({}),
-        pauseProfiling: sinon.stub().resolves({ isPaused: true }),
-        disconnectSession: sinon.stub().resolves({}),
-        getXEventSessions: sinon.stub().resolves({ sessions: ["Session1", "Session2"] }),
-        createXEventSession: sinon.stub().resolves({}),
-        onEventsAvailable: sinon.stub().returns(new vscode.Disposable(() => {})),
-        onSessionStopped: sinon.stub().returns(new vscode.Disposable(() => {})),
-        onSessionCreated: sinon.stub().returns(new vscode.Disposable(() => {})),
-        cleanupHandlers: sinon.stub(),
-    } as unknown as ProfilerService;
+function createStubbedProfilerService(
+    sandbox: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<ProfilerService> {
+    const stub = sandbox.createStubInstance(ProfilerService);
+    stub.startProfiling.resolves({ uniqueSessionId: "test-unique-id", canPause: true });
+    stub.stopProfiling.resolves({});
+    stub.pauseProfiling.resolves({ isPaused: true });
+    stub.disconnectSession.resolves({});
+    stub.getXEventSessions.resolves({ sessions: ["Session1", "Session2"] });
+    stub.createXEventSession.resolves({});
+    stub.onEventsAvailable.returns(new vscode.Disposable(() => {}));
+    stub.onSessionStopped.returns(new vscode.Disposable(() => {}));
+    stub.onSessionCreated.returns(new vscode.Disposable(() => {}));
+    return stub;
 }
 
 /**
- * Creates a mock VscodeWrapper for testing.
+ * Creates a stubbed VscodeWrapper for testing.
  */
-function createMockVscodeWrapper(sandbox: sinon.SinonSandbox): VscodeWrapper {
-    return {
-        outputChannel: {
-            appendLine: sandbox.stub(),
-            append: sandbox.stub(),
-            show: sandbox.stub(),
-            clear: sandbox.stub(),
-        },
-        getConfiguration: sandbox.stub().returns({
-            get: sandbox.stub().returns(10000),
-        }),
-        showInformationMessage: sandbox.stub(),
-        showErrorMessage: sandbox.stub(),
-        showWarningMessage: sandbox.stub(),
-        showQuickPick: sandbox.stub(),
-        showInputBox: sandbox.stub(),
-    } as unknown as VscodeWrapper;
+function createStubbedVscodeWrapper(
+    sandbox: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<VscodeWrapper> {
+    const stub = sandbox.createStubInstance(VscodeWrapper);
+    stub.getConfiguration.returns({
+        get: sandbox.stub().returns(10000),
+    } as unknown as vscode.WorkspaceConfiguration);
+    return stub;
 }
 
 /**
- * Creates a mock ConnectionManager for testing.
+ * Creates a stubbed ConnectionManager for testing.
  */
-function createMockConnectionManager(sandbox: sinon.SinonSandbox): ConnectionManager {
-    const connectionStore = {
-        getPickListItems: sandbox.stub().resolves([
-            { label: "Server1", description: "Connection 1" },
-            { label: "Server2", description: "Connection 2" },
-        ]),
-    };
+function createStubbedConnectionManager(
+    sandbox: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<ConnectionManager> {
+    const connectionStore = sandbox.createStubInstance(ConnectionStore);
+    connectionStore.getPickListItems.resolves([]);
 
-    const connectionUI = {
-        promptForConnection: sandbox.stub().resolves({
-            server: "testserver",
-            authenticationType: "SqlLogin",
-            user: "testuser",
-            password: "testpass",
-        }),
-    };
+    const connectionUI = sandbox.createStubInstance(ConnectionUI);
+    connectionUI.promptForConnection.resolves(undefined);
 
-    return {
-        connectionStore,
-        connectionUI,
-        connect: sandbox.stub().resolves(true),
-        disconnect: sandbox.stub().resolves(),
-        getConnectionCredentials: sandbox.stub().returns({}),
-        getServerInfo: sandbox.stub().returns(undefined),
-    } as unknown as ConnectionManager;
+    const stub = sandbox.createStubInstance(ConnectionManager);
+    sandbox.stub(stub, "connectionStore").value(connectionStore);
+    sandbox.stub(stub, "connectionUI").value(connectionUI);
+    stub.connect.resolves(true);
+    stub.disconnect.resolves(true);
+    stub.getServerInfo.returns(undefined);
+    return stub;
 }
 
 suite("ProfilerController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockConnectionManager: ConnectionManager;
-    let mockVscodeWrapper: VscodeWrapper;
-    let mockSessionManager: ProfilerSessionManager;
-    let mockProfilerService: ProfilerService;
+    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let sessionManager: ProfilerSessionManager;
+    let profilerService: sinon.SinonStubbedInstance<ProfilerService>;
     let registerCommandStub: sinon.SinonStub;
     let createWebviewPanelStub: sinon.SinonStub;
     let mockWebview: vscode.Webview;
@@ -167,23 +150,23 @@ suite("ProfilerController Tests", () => {
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
 
-        mockVscodeWrapper = createMockVscodeWrapper(sandbox);
-        mockConnectionManager = createMockConnectionManager(sandbox);
-        mockProfilerService = createMockProfilerService();
-        mockSessionManager = new ProfilerSessionManager(mockProfilerService);
+        vscodeWrapper = createStubbedVscodeWrapper(sandbox);
+        connectionManager = createStubbedConnectionManager(sandbox);
+        profilerService = createStubbedProfilerService(sandbox);
+        sessionManager = new ProfilerSessionManager(profilerService);
     });
 
     teardown(async () => {
-        await mockSessionManager.dispose();
+        await sessionManager.dispose();
         sandbox.restore();
     });
 
     function createController(): ProfilerController {
         return new ProfilerController(
             mockContext,
-            mockConnectionManager,
-            mockVscodeWrapper,
-            mockSessionManager,
+            connectionManager,
+            vscodeWrapper,
+            sessionManager,
         );
     }
 
@@ -234,7 +217,7 @@ suite("ProfilerController Tests", () => {
         };
 
         test("should handle connection failure", async () => {
-            (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
+            connectionManager.connect.resolves(false);
 
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
@@ -250,7 +233,7 @@ suite("ProfilerController Tests", () => {
             (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
             // Set up session created handler to resolve immediately
-            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            profilerService.onSessionCreated.callsFake(
                 (_ownerUri: string, handler: (params: unknown) => void) => {
                     // Simulate session created notification after a short delay
                     setTimeout(() => {
@@ -273,7 +256,7 @@ suite("ProfilerController Tests", () => {
             (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
             // Set up session created handler to resolve immediately
-            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            profilerService.onSessionCreated.callsFake(
                 (_ownerUri: string, handler: (params: unknown) => void) => {
                     setTimeout(() => {
                         handler({ sessionName: "TestSession", templateName: "Standard" });
@@ -282,14 +265,12 @@ suite("ProfilerController Tests", () => {
                 },
             );
 
-            const getXEventSessionsStub = mockProfilerService.getXEventSessions as sinon.SinonStub;
-
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
             await launchCommand!(mockTreeNodeInfo);
 
-            expect(getXEventSessionsStub).to.have.been.called;
+            expect(profilerService.getXEventSessions).to.have.been.called;
         });
 
         test("should show information message when session is created successfully", async () => {
@@ -297,7 +278,7 @@ suite("ProfilerController Tests", () => {
             (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
             // Set up session created handler to resolve immediately
-            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            profilerService.onSessionCreated.callsFake(
                 (_ownerUri: string, handler: (params: unknown) => void) => {
                     setTimeout(() => {
                         handler({ sessionName: "TestSession", templateName: "Standard" });
@@ -315,9 +296,7 @@ suite("ProfilerController Tests", () => {
         });
 
         test("should handle error during launch", async () => {
-            (mockConnectionManager.connect as sinon.SinonStub).rejects(
-                new Error("Connection error"),
-            );
+            connectionManager.connect.rejects(new Error("Connection error"));
 
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
@@ -337,7 +316,7 @@ suite("ProfilerController Tests", () => {
 
             // The webview should NOT be created since user cancelled
             expect(createWebviewPanelStub).to.not.have.been.called;
-            expect(mockConnectionManager.disconnect as sinon.SinonStub).to.have.been.called;
+            expect(connectionManager.disconnect).to.have.been.called;
         });
 
         test("should disconnect when session name input is cancelled", async () => {
@@ -351,7 +330,7 @@ suite("ProfilerController Tests", () => {
 
             // The webview should NOT be created since user cancelled
             expect(createWebviewPanelStub).to.not.have.been.called;
-            expect(mockConnectionManager.disconnect as sinon.SinonStub).to.have.been.called;
+            expect(connectionManager.disconnect).to.have.been.called;
         });
     });
 
@@ -388,7 +367,7 @@ suite("ProfilerController Tests", () => {
             (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
             // Set up session created handler to resolve immediately
-            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            profilerService.onSessionCreated.callsFake(
                 (_ownerUri: string, handler: (params: unknown) => void) => {
                     setTimeout(() => {
                         handler({ sessionName: "TestSession", templateName: "Standard" });
@@ -406,7 +385,7 @@ suite("ProfilerController Tests", () => {
         });
 
         test("should handle connection failure from database node", async () => {
-            (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
+            connectionManager.connect.resolves(false);
 
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromDatabase");
@@ -457,7 +436,7 @@ suite("ProfilerController Tests", () => {
             (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
             // Set up session created handler to resolve immediately
-            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+            profilerService.onSessionCreated.callsFake(
                 (_ownerUri: string, handler: (params: unknown) => void) => {
                     setTimeout(() => {
                         handler({ sessionName: "TestSession", templateName: "Standard" });
@@ -472,8 +451,7 @@ suite("ProfilerController Tests", () => {
             await launchCommand!(mockTreeNodeInfo);
 
             // Verify that startProfiling was called (session was auto-started)
-            const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
-            expect(startProfilingStub).to.have.been.called;
+            expect(profilerService.startProfiling).to.have.been.called;
         });
     });
 
@@ -489,7 +467,7 @@ suite("ProfilerController Tests", () => {
         };
 
         test("should display error message on command error", async () => {
-            (mockConnectionManager.connect as sinon.SinonStub).rejects(new Error("Test error"));
+            connectionManager.connect.rejects(new Error("Test error"));
 
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
@@ -503,8 +481,8 @@ suite("ProfilerController Tests", () => {
 
 suite("ProfilerController Integration Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockSessionManager: ProfilerSessionManager;
-    let mockProfilerService: ProfilerService;
+    let sessionManager: ProfilerSessionManager;
+    let profilerService: sinon.SinonStubbedInstance<ProfilerService>;
     let mockWebview: vscode.Webview;
     let mockPanel: vscode.WebviewPanel;
     let mockStatusBarItem: vscode.StatusBarItem;
@@ -560,18 +538,18 @@ suite("ProfilerController Integration Tests", () => {
                 },
             );
 
-        mockProfilerService = createMockProfilerService();
-        mockSessionManager = new ProfilerSessionManager(mockProfilerService);
+        profilerService = createStubbedProfilerService(sandbox);
+        sessionManager = new ProfilerSessionManager(profilerService);
     });
 
     teardown(async () => {
-        await mockSessionManager.dispose();
+        await sessionManager.dispose();
         sandbox.restore();
     });
 
     test("should integrate session manager with webview controller", async () => {
         // Create a session through the manager
-        const session = mockSessionManager.createSession({
+        const session = sessionManager.createSession({
             id: "test-session",
             ownerUri: "profiler://test",
             sessionName: "Integration Test Session",
@@ -600,10 +578,10 @@ suite("ProfilerController Integration Tests", () => {
 suite("ProfilerController Server Type Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockConnectionManager: ConnectionManager;
-    let mockVscodeWrapper: VscodeWrapper;
-    let mockSessionManager: ProfilerSessionManager;
-    let mockProfilerService: ProfilerService;
+    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let sessionManager: ProfilerSessionManager;
+    let profilerService: sinon.SinonStubbedInstance<ProfilerService>;
     let registeredCommands: Map<string, (...args: unknown[]) => unknown>;
     let showWarningMessageStub: sinon.SinonStub;
     let showQuickPickStub: sinon.SinonStub;
@@ -669,41 +647,24 @@ suite("ProfilerController Server Type Tests", () => {
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
 
-        const connectionStore = {
-            getPickListItems: sandbox.stub().resolves([]),
-        };
-
-        const connectionUI = {
-            promptForConnection: sandbox.stub().resolves(undefined),
-        };
-
-        mockConnectionManager = {
-            connectionStore,
-            connectionUI,
-            connect: sandbox.stub().resolves(true),
-            disconnect: sandbox.stub().resolves(),
-            getConnectionCredentials: sandbox.stub().returns({}),
-            listDatabases: sandbox.stub().resolves(["UserDB1", "UserDB2", "master", "tempdb"]),
-            getServerInfo: sandbox.stub().returns(undefined),
-        } as unknown as ConnectionManager;
-
-        mockVscodeWrapper = createMockVscodeWrapper(sandbox);
-
-        mockProfilerService = createMockProfilerService();
-        mockSessionManager = new ProfilerSessionManager(mockProfilerService);
+        connectionManager = createStubbedConnectionManager(sandbox);
+        connectionManager.listDatabases.resolves(["UserDB1", "UserDB2", "master", "tempdb"]);
+        vscodeWrapper = createStubbedVscodeWrapper(sandbox);
+        profilerService = createStubbedProfilerService(sandbox);
+        sessionManager = new ProfilerSessionManager(profilerService);
     });
 
     teardown(async () => {
-        await mockSessionManager.dispose();
+        await sessionManager.dispose();
         sandbox.restore();
     });
 
     function createController(): ProfilerController {
         return new ProfilerController(
             mockContext,
-            mockConnectionManager,
-            mockVscodeWrapper,
-            mockSessionManager,
+            connectionManager,
+            vscodeWrapper,
+            sessionManager,
         );
     }
 
@@ -728,7 +689,7 @@ suite("ProfilerController Server Type Tests", () => {
         await launchCommand!(mockTreeNodeInfo);
 
         expect(showWarningMessageStub).to.not.have.been.called;
-        expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.true;
+        expect(connectionManager.connect.called).to.be.true;
     });
 
     test("should prompt for database when Azure SQL has no database selected", async () => {
@@ -791,7 +752,7 @@ suite("ProfilerController Server Type Tests", () => {
 
         // Should only call quick pick once for template selection, not for database selection
         // listDatabases should not have been called since user DB is already selected
-        expect((mockConnectionManager.listDatabases as sinon.SinonStub).called).to.be.false;
+        expect(connectionManager.listDatabases.called).to.be.false;
     });
 
     test("should proceed normally for on-prem SQL Server", async () => {
@@ -811,7 +772,7 @@ suite("ProfilerController Server Type Tests", () => {
 
         // Should not show warning and should connect
         expect(showWarningMessageStub).to.not.have.been.called;
-        expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.true;
+        expect(connectionManager.connect.called).to.be.true;
     });
 
     test("should filter out system databases from quick pick for Azure SQL", async () => {
@@ -858,7 +819,7 @@ suite("ProfilerController Server Type Tests", () => {
         await launchCommand!(mockTreeNodeInfo);
 
         // Connect should have been called for temp connection, then disconnect
-        expect((mockConnectionManager.disconnect as sinon.SinonStub).called).to.be.true;
+        expect(connectionManager.disconnect.called).to.be.true;
     });
 
     test("should show error when temp connection fails during database selection for Azure SQL", async () => {
@@ -871,7 +832,7 @@ suite("ProfilerController Server Type Tests", () => {
         };
 
         // First connect call (for temp connection to get database list) fails
-        (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
+        connectionManager.connect.resolves(false);
 
         const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
 
@@ -896,12 +857,7 @@ suite("ProfilerController Server Type Tests", () => {
         };
 
         // Return only system databases
-        (mockConnectionManager.listDatabases as sinon.SinonStub).resolves([
-            "master",
-            "tempdb",
-            "model",
-            "msdb",
-        ]);
+        connectionManager.listDatabases.resolves(["master", "tempdb", "model", "msdb"]);
 
         createController();
         const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
@@ -941,12 +897,9 @@ suite("ProfilerController Server Type Tests", () => {
         (vscode.window.showInputBox as sinon.SinonStub).resolves("ExistingSession");
 
         // Session already exists on server
-        (mockProfilerService.getXEventSessions as sinon.SinonStub).resolves({
+        profilerService.getXEventSessions.resolves({
             sessions: ["ExistingSession", "OtherSession"],
         });
-
-        const createXEventSessionStub = mockProfilerService.createXEventSession as sinon.SinonStub;
-        const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
 
         createController();
         const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
@@ -954,9 +907,9 @@ suite("ProfilerController Server Type Tests", () => {
         await launchCommand!(mockTreeNodeInfo);
 
         // Should NOT call createXEventSession since session exists
-        expect(createXEventSessionStub).to.not.have.been.called;
+        expect(profilerService.createXEventSession).to.not.have.been.called;
         // Should call startProfiling to start the existing session
-        expect(startProfilingStub).to.have.been.called;
+        expect(profilerService.startProfiling).to.have.been.called;
     });
 
     test("should show error and dispose webview when session creation fails", async () => {
@@ -985,14 +938,10 @@ suite("ProfilerController Server Type Tests", () => {
         (vscode.window.showInputBox as sinon.SinonStub).resolves("NewSession");
 
         // Session does not exist
-        (mockProfilerService.getXEventSessions as sinon.SinonStub).resolves({
-            sessions: [],
-        });
+        profilerService.getXEventSessions.resolves({ sessions: [] });
 
         // Session creation fails
-        (mockProfilerService.createXEventSession as sinon.SinonStub).rejects(
-            new Error("Failed to create session"),
-        );
+        profilerService.createXEventSession.rejects(new Error("Failed to create session"));
 
         const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
 
@@ -1004,7 +953,7 @@ suite("ProfilerController Server Type Tests", () => {
         // Should show error message about session creation failure
         expect(showErrorMessageStub).to.have.been.called;
         // Disconnect should be called during webview disposal
-        expect((mockConnectionManager.disconnect as sinon.SinonStub).called).to.be.true;
+        expect(connectionManager.disconnect.called).to.be.true;
     });
 
     test("should not prompt for database when Azure SQL launched from database node", async () => {
@@ -1040,7 +989,7 @@ suite("ProfilerController Server Type Tests", () => {
         (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
         // Set up session created handler to resolve immediately
-        (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+        profilerService.onSessionCreated.callsFake(
             (_ownerUri: string, handler: (params: unknown) => void) => {
                 setTimeout(() => {
                     handler({ sessionName: "TestSession", templateName: "Standard" });
@@ -1055,7 +1004,7 @@ suite("ProfilerController Server Type Tests", () => {
         await launchCommand!(mockDatabaseTreeNodeInfo);
 
         // listDatabases should NOT have been called — database was pre-filled
-        expect((mockConnectionManager.listDatabases as sinon.SinonStub).called).to.be.false;
+        expect(connectionManager.listDatabases.called).to.be.false;
     });
 
     test("should connect with pre-filled database for Azure launched from database node", async () => {
@@ -1089,7 +1038,7 @@ suite("ProfilerController Server Type Tests", () => {
         showQuickPickStub.resolves(mockTemplateItem);
         (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
 
-        (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+        profilerService.onSessionCreated.callsFake(
             (_ownerUri: string, handler: (params: unknown) => void) => {
                 setTimeout(() => {
                     handler({ sessionName: "TestSession", templateName: "Standard" });
@@ -1104,9 +1053,8 @@ suite("ProfilerController Server Type Tests", () => {
         await launchCommand!(mockDatabaseTreeNodeInfo);
 
         // The connect call should use the pre-filled database name "SalesDB"
-        const connectStub = mockConnectionManager.connect as sinon.SinonStub;
-        expect(connectStub).to.have.been.called;
-        const connectArgs = connectStub.getCall(0).args;
+        expect(connectionManager.connect).to.have.been.called;
+        const connectArgs = connectionManager.connect.getCall(0).args;
         const usedProfile = connectArgs[1];
         expect(usedProfile.database).to.equal("SalesDB");
     });
