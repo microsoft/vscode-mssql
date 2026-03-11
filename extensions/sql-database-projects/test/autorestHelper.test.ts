@@ -44,18 +44,16 @@ suite("Autorest tests", function (): void {
         sandbox.stub(window, "showInformationMessage").returns(<any>Promise.resolve(runViaNpx)); // stub a selection in case test runner doesn't have autorest installed
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
-        const dummyFile = path.join(
-            await testUtils.generateTestFolderPath(this.test),
-            "testoutput.log",
-        );
-        sandbox
-            .stub(autorestHelper, "constructAutorestCommand")
-            .returns(`${await autorestHelper.detectInstallation()} --version > ${dummyFile}`);
+        const executable = await autorestHelper.detectInstallation();
+        sandbox.stub(autorestHelper, "constructAutorestCommand").returns({
+            executable: executable!,
+            args: ["--version"],
+        });
 
         try {
             const output = await autorestHelper.generateAutorestFiles("fakespec.yaml", "fakePath");
             const expected = "AutoRest code generation utility";
-            expect(text, `Substring not found. Expected "${expected}" in "${text}"`).to.contain(
+            expect(output, `Substring not found. Expected "${expected}" in "${output}"`).to.contain(
                 expected,
             );
         } catch (err) {
@@ -74,11 +72,14 @@ suite("Autorest tests", function (): void {
             "/some/output/path",
         );
 
-        // depending on whether the machine running the test has autorest installed or just node, the expected output may differ by just the prefix, hence matching against two options
-        expect(
-            constructedCommand,
-            `Constructed autorest command not formatting as expected:\nActual:\n\t${constructedCommand}\nExpected:\n\t${expectedOutput}`,
-        ).to.equal(expectedOutput);
+        expect(result.executable).to.equal("autorest");
+        expect(result.args).to.deep.equal([
+            "--use:autorest-sql-testing@latest",
+            "--input-file=/some/path/test.yaml",
+            "--output-folder=/some/output/path",
+            "--clear-output-folder",
+            "--verbose",
+        ]);
     });
 
     test("Should prompt user for action when autorest not found", async function (): Promise<void> {

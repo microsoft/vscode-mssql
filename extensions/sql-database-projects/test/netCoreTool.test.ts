@@ -18,6 +18,7 @@ import {
 } from "../src/tools/netcoreTool";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
+import * as constants from "../src/common/constants";
 
 let testContext: TestContext;
 let sandbox: sinon.SinonSandbox;
