@@ -441,12 +441,18 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
-            const message =
-                payload.copyTextType === Dab.CopyTextType.Url
-                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
-                    : payload.copyTextType === Dab.CopyTextType.Logs
-                      ? LocConstants.SchemaDesigner.logsCopiedToClipboard
-                      : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            let message = "";
+            switch (payload.copyTextType) {
+                case Dab.CopyTextType.Url:
+                    message = LocConstants.SchemaDesigner.urlCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Logs:
+                    message = LocConstants.SchemaDesigner.logsCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Config:
+                    message = LocConstants.SchemaDesigner.configCopiedToClipboard;
+                    break;
+            }
             await vscode.window.showInformationMessage(message);
         });
 
