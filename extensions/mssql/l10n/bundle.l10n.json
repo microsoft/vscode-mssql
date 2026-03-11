@@ -951,6 +951,7 @@
     "Creating and starting the container": "Creating and starting the container",
     "Checking container readiness": "Checking container readiness",
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
+    "Container logs": "Container logs",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",

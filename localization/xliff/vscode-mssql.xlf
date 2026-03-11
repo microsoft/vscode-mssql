@@ -1375,6 +1375,9 @@
     <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
       <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c2757ee529f77e52b5172ba9b77defdd3f8183a111733beab404d8b47299c09">
+      <source xml:lang="en">Container logs</source>
+    </trans-unit>
     <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
       <source xml:lang="en">Container name and port are required to check container readiness.</source>
     </trans-unit>
