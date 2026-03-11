@@ -442,6 +442,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            if (!this.resolveIsDabDeploymentSupported()) {
+                const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
+                void vscode.window.showErrorMessage(message);
+                return {
+                    success: false,
+                    error: message,
+                };
+            }
             return this._dabService.runDeploymentStep(
                 payload.step,
                 payload.params,

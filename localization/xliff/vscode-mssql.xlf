@@ -3608,6 +3608,9 @@
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
     </trans-unit>
+    <trans-unit id="++CODE++eb21bec7e42a4749e515b2d0288a19e98a6f07ba7d805e7e13f8d65a85745303">
+      <source xml:lang="en">Local container deployment is currently only supported for SQL Authentication connections.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
       <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
     </trans-unit>
