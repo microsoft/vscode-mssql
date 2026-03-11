@@ -26,6 +26,8 @@ interface SchemaDesignerDefinitionPanelContextProps {
     setChangesViewMode: React.Dispatch<React.SetStateAction<SchemaDesignerChangesViewMode>>;
     activeTab: SchemaDesignerDefinitionPanelTab;
     setActiveTab: React.Dispatch<React.SetStateAction<SchemaDesignerDefinitionPanelTab>>;
+    isDefinitionPanelVisible: boolean;
+    setIsDefinitionPanelVisible: React.Dispatch<React.SetStateAction<boolean>>;
     isChangesPanelVisible: boolean;
     setIsChangesPanelVisible: React.Dispatch<React.SetStateAction<boolean>>;
     /**
@@ -58,6 +60,7 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
     const [activeTab, setActiveTab] = useState<SchemaDesignerDefinitionPanelTab>(
         SchemaDesignerDefinitionPanelTab.Script,
     );
+    const [isDefinitionPanelVisible, setIsDefinitionPanelVisible] = useState<boolean>(true);
     const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
     const definitionPaneRef = useRef<DefinitionPanelController | null>(null);
 
@@ -104,6 +107,8 @@ export const SchemaDesignerDefinitionPanelProvider: React.FC<
                 setChangesViewMode,
                 activeTab,
                 setActiveTab,
+                isDefinitionPanelVisible,
+                setIsDefinitionPanelVisible,
                 isChangesPanelVisible,
                 setIsChangesPanelVisible,
                 toggleDefinitionPanel,
