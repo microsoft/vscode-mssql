@@ -32,12 +32,17 @@ const useStyles = makeStyles({
 
 export function ShowChangesButton() {
     const changeContext = useSchemaDesignerChangeContext();
-    const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
+    const { activeTab, isDefinitionPanelVisible, toggleDefinitionPanel } =
+        useSchemaDesignerDefinitionPanelContext();
     const classes = useStyles();
     const isCompact = useIsToolbarCompact();
+    const buttonLabel =
+        isDefinitionPanelVisible && activeTab === SchemaDesignerDefinitionPanelTab.Changes
+            ? locConstants.schemaDesigner.hideChangesButtonLabel
+            : locConstants.schemaDesigner.showChangesButtonLabel;
 
     return (
-        <Tooltip content={locConstants.schemaDesigner.showChangesButtonLabel} relationship="label">
+        <Tooltip content={buttonLabel} relationship="label">
             <span className={classes.container}>
                 <Button
                     appearance="subtle"
@@ -46,7 +51,7 @@ export function ShowChangesButton() {
                         toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Changes);
                     }}
                     icon={<BranchCompareIcon16Regular />}>
-                    {!isCompact && locConstants.schemaDesigner.showChangesButtonLabel}
+                    {!isCompact && buttonLabel}
                 </Button>
                 {changeContext.schemaChangesCount > 0 && (
                     <Badge size="small" className={classes.badge}>
