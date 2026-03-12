@@ -44,10 +44,33 @@ suite("DabTool Tests", () => {
             id,
             schema: schemaName,
             name: tableName,
-            columns: [],
+            columns: [
+                {
+                    id: `${id}-id`,
+                    name: "Id",
+                    dataType: "int",
+                    isPrimaryKey: true,
+                } as SchemaDesigner.Column,
+            ],
             foreignKeys: [],
         };
     };
+
+    const createUnsupportedTable = (
+        id: string,
+        schemaName: string,
+        tableName: string,
+    ): SchemaDesigner.Table => ({
+        ...createTable(id, schemaName, tableName),
+        columns: [
+            {
+                id: `${id}-name`,
+                name: "Name",
+                dataType: "nvarchar",
+                isPrimaryKey: false,
+            } as SchemaDesigner.Column,
+        ],
+    });
 
     const createTables = (count: number): SchemaDesigner.Table[] => {
         return Array.from({ length: count }).map((_, index) =>
@@ -778,6 +801,37 @@ suite("DabTool Tests", () => {
             expect(harness.commitSpy.called).to.equal(false);
         });
 
+        test("get_state revalidates support status and disables entities that become unsupported", async () => {
+            const supportedTable = createTable("t1", "dbo", "Users");
+            const harness = createDabHandlerHarness({
+                tables: [supportedTable],
+                dabConfig: Dab.createDefaultConfig([supportedTable]),
+            });
+
+            harness.setTables([createUnsupportedTable("t1", "dbo", "Users")]);
+            const state = await harness.getState();
+
+            expect(state.returnState).to.equal("full");
+            expect(state.config?.entities[0].isSupported).to.equal(false);
+            expect(state.config?.entities[0].isEnabled).to.equal(false);
+            expect(state.config?.entities[0].unsupportedReasons?.[0].type).to.equal("noPrimaryKey");
+            expect(harness.commitSpy.calledOnce).to.equal(true);
+        });
+
+        test("get_state version changes when schema support status changes", async () => {
+            const supportedTable = createTable("t1", "dbo", "Users");
+            const harness = createDabHandlerHarness({
+                tables: [supportedTable],
+                dabConfig: Dab.createDefaultConfig([supportedTable]),
+            });
+
+            const initialState = await harness.getState();
+            harness.setTables([createUnsupportedTable("t1", "dbo", "Users")]);
+            const updatedState = await harness.getState();
+
+            expect(updatedState.version).to.not.equal(initialState.version);
+        });
+
         test("apply_changes returns internal_error when handlers are not initialized", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
@@ -1275,6 +1329,97 @@ suite("DabTool Tests", () => {
             expect(unsupportedPatchProperty.message).to.include("Unsupported patch property");
         });
 
+        test("apply_changes rejects unsupported entities for enable, action, and settings mutations", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createUnsupportedTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+            harness.commitSpy.resetHistory();
+
+            const enableResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_enabled",
+                        entity: { id: "t1" },
+                        isEnabled: true,
+                    },
+                ],
+            });
+            expect(enableResult.success).to.equal(false);
+            if (enableResult.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(enableResult.reason).to.equal("entity_not_supported");
+            expect(enableResult.message).to.include("dbo.Users");
+            expect(enableResult.message).to.include(
+                locConstants.schemaDesigner.unsupportedNoPrimaryKey,
+            );
+
+            const actionsResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_actions",
+                        entity: { id: "t1" },
+                        enabledActions: [Dab.EntityAction.Read],
+                    },
+                ],
+            });
+            expect(actionsResult.success).to.equal(false);
+            if (actionsResult.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(actionsResult.reason).to.equal("entity_not_supported");
+
+            const settingsResult = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { entityName: "UsersApi" },
+                    },
+                ],
+            });
+            expect(settingsResult.success).to.equal(false);
+            if (settingsResult.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(settingsResult.reason).to.equal("entity_not_supported");
+            expect(harness.commitSpy.callCount).to.equal(3);
+        });
+
+        test("apply_changes allows disabling unsupported entities", async () => {
+            const unsupportedTable = createUnsupportedTable("t1", "dbo", "Users");
+            const config = Dab.createDefaultConfig([unsupportedTable]);
+            config.entities[0].isEnabled = true;
+
+            const harness = createDabHandlerHarness({
+                tables: [unsupportedTable],
+                dabConfig: config,
+            });
+
+            const state = await harness.getState();
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_enabled",
+                        entity: { id: "t1" },
+                        isEnabled: false,
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            expect(result.config?.entities[0].isEnabled).to.equal(false);
+        });
+
         test("apply_changes success path returns appliedChanges = changes.length and commits once", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users"), createTable("t2", "sales", "Orders")],
@@ -1416,6 +1561,65 @@ suite("DabTool Tests", () => {
             expect(enabledEntityIds).to.deep.equal(["t2"]);
             expect(result.summary.enabledEntityCount).to.equal(1);
             expect(harness.commitSpy.calledOnce).to.equal(true);
+        });
+
+        test("apply_changes rejects set_only_enabled_entities when selection includes unsupported entities", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [
+                    createTable("t1", "dbo", "Users"),
+                    createUnsupportedTable("t2", "dbo", "LegacyUsers"),
+                ],
+                dabConfig: null,
+            });
+
+            const currentState = await harness.getState();
+            harness.commitSpy.resetHistory();
+
+            const result = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "set_only_enabled_entities",
+                        entities: [{ id: "t2" }],
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(false);
+            if (result.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(result.reason).to.equal("entity_not_supported");
+            expect(result.failedChangeIndex).to.equal(0);
+            expect(result.appliedChanges).to.equal(0);
+            expect(harness.commitSpy.calledOnce).to.equal(true);
+        });
+
+        test("apply_changes set_all_entities_enabled(true) leaves unsupported entities disabled", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [
+                    createTable("t1", "dbo", "Users"),
+                    createUnsupportedTable("t2", "dbo", "LegacyUsers"),
+                ],
+                dabConfig: null,
+            });
+
+            const currentState = await harness.getState();
+            const result = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [{ type: "set_all_entities_enabled", isEnabled: true }],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+
+            const usersEntity = result.config?.entities.find((entity) => entity.id === "t1");
+            const legacyEntity = result.config?.entities.find((entity) => entity.id === "t2");
+            expect(usersEntity?.isEnabled).to.equal(true);
+            expect(legacyEntity?.isEnabled).to.equal(false);
+            expect(legacyEntity?.isSupported).to.equal(false);
         });
 
         test("apply_changes supports clearing customRestPath/customGraphQLType via null patch values", async () => {
