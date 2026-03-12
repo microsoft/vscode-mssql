@@ -51,10 +51,7 @@ const apiTypeDisplayNames: Record<Dab.ApiType, string> = {
 
 function formatApiTypesList(apiTypes: Dab.ApiType[]): string {
     const names = apiTypes.map((t) => apiTypeDisplayNames[t]);
-    if (names.length <= 1) {
-        return names.join("");
-    }
-    return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    return new Intl.ListFormat(undefined, { style: "long", type: "conjunction" }).format(names);
 }
 
 export const DabDeploymentConfirmation = ({
