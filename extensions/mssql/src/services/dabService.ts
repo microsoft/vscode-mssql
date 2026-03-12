@@ -209,7 +209,10 @@ export class DabService implements Dab.IDabService {
                             apiUrl: `http://localhost:${params.port}`,
                         };
                     } else {
-                        result = containerResult;
+                        result = {
+                            ...containerResult,
+                            containerLogs: containerResult.fullErrorText,
+                        };
                     }
                 } catch (e) {
                     result = {

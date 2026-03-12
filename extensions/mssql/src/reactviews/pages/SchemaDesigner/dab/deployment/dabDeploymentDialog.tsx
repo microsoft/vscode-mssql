@@ -127,9 +127,11 @@ export const DabDeploymentDialog = () => {
                         onNext={() =>
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Complete)
                         }
-                        onRetry={retryDabDeploymentSteps}
-                        onBack={() => {
-                            retryDabDeploymentSteps();
+                        onRetry={async () => {
+                            await retryDabDeploymentSteps();
+                        }}
+                        onBack={async () => {
+                            await retryDabDeploymentSteps();
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.ParameterInput);
                         }}
                         onCancel={handleClose}
@@ -140,8 +142,8 @@ export const DabDeploymentDialog = () => {
                     <DabDeploymentComplete
                         apiUrl={dabDeploymentState.apiUrl}
                         error={dabDeploymentState.error}
-                        onRetry={() => {
-                            retryDabDeploymentSteps();
+                        onRetry={async () => {
+                            await retryDabDeploymentSteps();
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Deployment);
                         }}
                         onFinish={handleClose}

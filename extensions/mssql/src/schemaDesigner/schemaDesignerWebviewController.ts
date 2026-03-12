@@ -419,6 +419,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
+        this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
+            const doc = await vscode.workspace.openTextDocument({
+                content: payload.logsContent,
+                language: "log",
+            });
+            await vscode.window.showTextDocument(doc, { preview: false });
+        });
+
         this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
             const uri = vscode.Uri.parse(payload.url, true);
             if (uri.scheme !== "http" && uri.scheme !== "https") {
@@ -433,10 +441,18 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
-            const message =
-                payload.copyTextType === Dab.CopyTextType.Url
-                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
-                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            let message = "";
+            switch (payload.copyTextType) {
+                case Dab.CopyTextType.Url:
+                    message = LocConstants.SchemaDesigner.urlCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Logs:
+                    message = LocConstants.SchemaDesigner.logsCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Config:
+                    message = LocConstants.SchemaDesigner.configCopiedToClipboard;
+                    break;
+            }
             await vscode.window.showInformationMessage(message);
         });
 
