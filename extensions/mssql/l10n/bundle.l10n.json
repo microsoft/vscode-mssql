@@ -2424,6 +2424,8 @@
     },
     "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!": "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     "Submit an issue": "Submit an issue",
+    "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.": "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    "Write a review": "Write a review",
     "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
