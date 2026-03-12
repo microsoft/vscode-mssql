@@ -4764,9 +4764,6 @@
     <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
       <source xml:lang="en">Read</source>
     </trans-unit>
-    <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
-      <source xml:lang="en">Read docs</source>
-    </trans-unit>
     <trans-unit id="++CODE++c386185bf02fec23ab41b4dbcc29406839df6efd9fd1cb03660aa0c2e5640617">
       <source xml:lang="en">Read docs on Microsoft Learn</source>
     </trans-unit>
