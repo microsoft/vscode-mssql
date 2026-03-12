@@ -1092,7 +1092,7 @@
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
-    "Loading fabric provisioning...": "Loading fabric provisioning...",
+    "Loading Fabric provisioning...": "Loading Fabric provisioning...",
     "SQL database in Fabric": "SQL database in Fabric",
     "Create Database": "Create Database",
     "Loading workspaces": "Loading workspaces",

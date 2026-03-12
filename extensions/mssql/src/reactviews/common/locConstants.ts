@@ -1669,7 +1669,7 @@ export class LocConstants {
 
     public get fabricProvisioning() {
         return {
-            loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
+            loadingFabricProvisioning: l10n.t("Loading Fabric provisioning..."),
             sqlDatabaseInFabric: l10n.t("SQL database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
