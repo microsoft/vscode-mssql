@@ -2180,12 +2180,15 @@ export class LocConstants {
 
     public get changelog() {
         return {
+            pageTitle: l10n.t("MSSQL: What's new"),
+            headerIconAlt: l10n.t("MSSQL extension icon"),
             highlightsSectionTitle: l10n.t("Highlights"),
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(
                 "New to MSSQL extension? Check out our quick-start guide.",
             ),
+            previewBadge: l10n.t("Preview"),
             footerText: (version: string) =>
                 l10n.t({
                     message:

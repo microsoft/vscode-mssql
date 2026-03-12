@@ -575,7 +575,11 @@ export const ChangelogPage = () => {
                 <div className={classes.featureBody}>
                     <div className={classes.featureTitleRow}>
                         <span className={classes.featureTitle}>{entry.title}</span>
-                        {entry.isPreview && <span className={classes.previewChip}>Preview</span>}
+                        {entry.isPreview && (
+                            <span className={classes.previewChip}>
+                                {locConstants.changelog.previewBadge}
+                            </span>
+                        )}
                     </div>
                     <Text className={classes.featureDescription}>
                         {renderDescription(
@@ -626,7 +630,11 @@ export const ChangelogPage = () => {
                     )}
                     <div className={classes.featureTitleRow}>
                         <span className={classes.secondaryTitle}>{entry.title}</span>
-                        {entry.isPreview && <span className={classes.previewChip}>Preview</span>}
+                        {entry.isPreview && (
+                            <span className={classes.previewChip}>
+                                {locConstants.changelog.previewBadge}
+                            </span>
+                        )}
                     </div>
                 </div>
                 <Text className={classes.secondaryCardDescription}>
@@ -658,9 +666,11 @@ export const ChangelogPage = () => {
                                 <img
                                     className={classes.headerIcon}
                                     src={mssqlExtensionIcon}
-                                    alt="MSSQL extension icon"
+                                    alt={locConstants.changelog.headerIconAlt}
                                 />
-                                <h1 className={classes.headerTitle}>MSSQL: What's new</h1>
+                                <h1 className={classes.headerTitle}>
+                                    {locConstants.changelog.pageTitle}
+                                </h1>
                                 <span className={classes.versionBadge}>{`v${version}`}</span>
                             </div>
                         </div>

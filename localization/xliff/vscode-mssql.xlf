@@ -3674,6 +3674,9 @@
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
     </trans-unit>
+    <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
+      <source xml:lang="en">MSSQL extension icon</source>
+    </trans-unit>
     <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
       <source xml:lang="en">MSSQL: Click to change connection</source>
     </trans-unit>
@@ -3682,6 +3685,9 @@
     </trans-unit>
     <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
       <source xml:lang="en">MSSQL: Welcome &amp; What&apos;s New</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
+      <source xml:lang="en">MSSQL: What&apos;s new</source>
     </trans-unit>
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
@@ -4552,6 +4558,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
+      <source xml:lang="en">Preview</source>
     </trans-unit>
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
