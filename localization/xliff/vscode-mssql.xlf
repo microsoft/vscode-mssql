@@ -5649,10 +5649,6 @@
     <trans-unit id="++CODE++21f4e12097fa6a8459168abdff5195a6e91816c15089049ccd0742dd17f28c67">
       <source xml:lang="en">Show unmasked command (reveals sensitive information)</source>
     </trans-unit>
-    <trans-unit id="++CODE++fc68889f109384d5a7775626b59b2a1cede5b2e4d053ef23d7aee2bb04808360">
-      <source xml:lang="en">Showing first {0} characters.</source>
-      <note>{0} is the number of characters shown in the inline log preview</note>
-    </trans-unit>
     <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
       <source xml:lang="en">Showing schema for connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name

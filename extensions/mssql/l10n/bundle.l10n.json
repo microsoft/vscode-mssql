@@ -952,10 +952,6 @@
     "Checking container readiness": "Checking container readiness",
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "Container logs": "Container logs",
-    "Showing first {0} characters./{0} is the number of characters shown in the inline log preview": {
-        "message": "Showing first {0} characters.",
-        "comment": ["{0} is the number of characters shown in the inline log preview"]
-    },
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
