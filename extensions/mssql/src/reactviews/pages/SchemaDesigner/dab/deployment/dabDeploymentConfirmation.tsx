@@ -13,6 +13,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { Info20Regular } from "@fluentui/react-icons";
+import { Dab } from "../../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -37,11 +38,27 @@ const useStyles = makeStyles({
 });
 
 interface DabDeploymentConfirmationProps {
+    apiTypes: Dab.ApiType[];
     onConfirm: () => void;
     onCancel: () => void;
 }
 
+const apiTypeDisplayNames: Record<Dab.ApiType, string> = {
+    [Dab.ApiType.Rest]: "REST",
+    [Dab.ApiType.GraphQL]: "GraphQL",
+    [Dab.ApiType.Mcp]: "MCP",
+};
+
+function formatApiTypesList(apiTypes: Dab.ApiType[]): string {
+    const names = apiTypes.map((t) => apiTypeDisplayNames[t]);
+    if (names.length <= 1) {
+        return names.join("");
+    }
+    return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+}
+
 export const DabDeploymentConfirmation = ({
+    apiTypes,
     onConfirm,
     onCancel,
 }: DabDeploymentConfirmationProps) => {
@@ -58,7 +75,9 @@ export const DabDeploymentConfirmation = ({
                             {locConstants.schemaDesigner.localContainerDeployment}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
-                            {locConstants.schemaDesigner.deployDabContainerDescription}
+                            {locConstants.schemaDesigner.deployDabContainerDescription(
+                                formatApiTypesList(apiTypes),
+                            )}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
                             <strong>{locConstants.schemaDesigner.requirements}</strong>{" "}

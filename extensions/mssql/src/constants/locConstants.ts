@@ -1746,7 +1746,7 @@ export class SchemaDesigner {
         "Failed to open URL. The built-in Simple Browser may be disabled.",
     );
     public static dabDeploymentNotSupported = l10n.t(
-        "Local container deployment is currently only supported for SQL Authentication connections.",
+        "Local container deployment is currently only supported with SQL Authentication connections.",
     );
 }
 
