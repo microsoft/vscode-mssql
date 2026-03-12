@@ -97,19 +97,9 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             return;
         }
 
-        const schema = extractSchema();
-        const currentTableIds = new Set(schema.tables.map((t) => t.id));
-        const existingEntityIds = new Set(dabConfig.entities.map((e) => e.id));
-
-        const newTables = schema.tables.filter((t) => !existingEntityIds.has(t.id));
-        const updatedEntities = dabConfig.entities.filter((e) => currentTableIds.has(e.id));
-        const newEntities = newTables.map((t) => Dab.createDefaultEntityConfig(t));
-
-        if (newEntities.length > 0 || updatedEntities.length !== dabConfig.entities.length) {
-            setDabConfig({
-                ...dabConfig,
-                entities: [...updatedEntities, ...newEntities],
-            });
+        const synced = Dab.syncConfigWithSchema(dabConfig, extractSchema().tables);
+        if (synced.changed) {
+            setDabConfig(synced.config);
         }
     }, [dabConfig, extractSchema]);
 

@@ -81,6 +81,17 @@ export namespace Dab {
          */
         isEnabled: boolean;
         /**
+         * Whether this table is supported by DAB.
+         * Tables without primary keys or with unsupported data types are not supported.
+         */
+        isSupported: boolean;
+        /**
+         * Structured reasons why the table is not supported.
+         * Only set when isSupported is false. Converted to localized
+         * strings in the UI layer.
+         */
+        unsupportedReasons?: DabUnsupportedReason[];
+        /**
          * Enabled CRUD actions for this entity
          */
         enabledActions: EntityAction[];
@@ -280,6 +291,7 @@ export namespace Dab {
               reason:
                   | "stale_state"
                   | "not_found"
+                  | "entity_not_supported"
                   | "invalid_request"
                   | "validation_error"
                   | "internal_error";
@@ -788,14 +800,68 @@ export namespace Dab {
     // ============================================
 
     /**
+     * Structured reason for why a table is not supported by DAB.
+     * Localization is handled in the UI layer.
+     */
+    export type DabUnsupportedReason =
+        | { type: "noPrimaryKey" }
+        | { type: "unsupportedDataTypes"; columns: string };
+
+    /**
+     * SQL Server data types that are not supported by Data API Builder.
+     * Documented at https://learn.microsoft.com/en-us/azure/data-api-builder/feature-availability#unsupported-data-types
+     */
+    export const DAB_UNSUPPORTED_DATA_TYPES = [
+        "sys.geography",
+        "sys.geometry",
+        "sys.hierarchyid",
+        "json",
+        "rowversion",
+        "sql_variant",
+        "vector",
+        "xml",
+    ];
+
+    /**
+     * Validates whether a schema table is supported by DAB.
+     * Runs all checks and collects all reasons for unsupported tables.
+     * @returns An object with isSupported and an optional reason string.
+     */
+    export function validateTableForDab(table: SchemaDesigner.Table): {
+        isSupported: boolean;
+        reasons?: DabUnsupportedReason[];
+    } {
+        const columns = table.columns ?? [];
+        const reasons: DabUnsupportedReason[] = [];
+
+        const hasPrimaryKey = columns.some((c) => c.isPrimaryKey);
+        if (!hasPrimaryKey) {
+            reasons.push({ type: "noPrimaryKey" });
+        }
+
+        const unsupportedColumns = columns.filter(
+            (c) => c.dataType && DAB_UNSUPPORTED_DATA_TYPES.includes(c.dataType.toLowerCase()),
+        );
+        if (unsupportedColumns.length > 0) {
+            const details = unsupportedColumns.map((c) => `${c.name} (${c.dataType})`).join(", ");
+            reasons.push({ type: "unsupportedDataTypes", columns: details });
+        }
+
+        return reasons.length > 0 ? { isSupported: false, reasons } : { isSupported: true };
+    }
+
+    /**
      * Creates default entity configuration from a schema table
      */
     export function createDefaultEntityConfig(table: SchemaDesigner.Table): DabEntityConfig {
+        const { isSupported, reasons } = validateTableForDab(table);
         return {
             id: table.id,
             tableName: table.name,
             schemaName: table.schema,
-            isEnabled: true,
+            isEnabled: isSupported,
+            isSupported,
+            unsupportedReasons: reasons,
             enabledActions: [
                 EntityAction.Create,
                 EntityAction.Read,
@@ -806,6 +872,96 @@ export namespace Dab {
                 entityName: table.name,
                 authorizationRole: AuthorizationRole.Anonymous,
             },
+        };
+    }
+
+    function cloneUnsupportedReasons(
+        reasons: DabUnsupportedReason[] | undefined,
+    ): DabUnsupportedReason[] | undefined {
+        return reasons?.map((reason) => ({ ...reason }));
+    }
+
+    function cloneConfig(config: DabConfig): DabConfig {
+        return {
+            apiTypes: [...config.apiTypes],
+            entities: config.entities.map((entity) => ({
+                ...entity,
+                enabledActions: [...entity.enabledActions],
+                unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
+                advancedSettings: { ...entity.advancedSettings },
+            })),
+        };
+    }
+
+    export function syncEntityConfigWithTable(
+        entity: DabEntityConfig,
+        table: SchemaDesigner.Table,
+    ): DabEntityConfig {
+        const { isSupported, reasons } = validateTableForDab(table);
+        return {
+            ...entity,
+            tableName: table.name,
+            schemaName: table.schema,
+            isSupported,
+            unsupportedReasons: reasons,
+            // Unsupported entities must remain disabled until the schema is fixed.
+            isEnabled: !isSupported ? false : entity.isEnabled,
+        };
+    }
+
+    export function syncConfigWithSchema(
+        currentConfig: DabConfig | null,
+        schemaTables: SchemaDesigner.Table[],
+    ): { config: DabConfig; changed: boolean } {
+        let changed = false;
+        const normalizedConfig = currentConfig
+            ? cloneConfig(currentConfig)
+            : createDefaultConfig(schemaTables);
+        if (!currentConfig) {
+            changed = true;
+        }
+
+        const tablesById = new Map(schemaTables.map((table) => [table.id, table]));
+        const syncedEntities: DabEntityConfig[] = [];
+
+        for (const entity of normalizedConfig.entities) {
+            const table = tablesById.get(entity.id);
+            if (!table) {
+                changed = true;
+                continue;
+            }
+
+            const syncedEntity = syncEntityConfigWithTable(entity, table);
+            if (
+                entity.tableName !== syncedEntity.tableName ||
+                entity.schemaName !== syncedEntity.schemaName ||
+                entity.isSupported !== syncedEntity.isSupported ||
+                JSON.stringify(entity.unsupportedReasons) !==
+                    JSON.stringify(syncedEntity.unsupportedReasons) ||
+                entity.isEnabled !== syncedEntity.isEnabled
+            ) {
+                changed = true;
+            }
+
+            syncedEntities.push(syncedEntity);
+            tablesById.delete(entity.id);
+        }
+
+        for (const table of schemaTables) {
+            if (!tablesById.has(table.id)) {
+                continue;
+            }
+
+            syncedEntities.push(createDefaultEntityConfig(table));
+            changed = true;
+        }
+
+        return {
+            config: {
+                ...normalizedConfig,
+                entities: syncedEntities,
+            },
+            changed,
         };
     }
 

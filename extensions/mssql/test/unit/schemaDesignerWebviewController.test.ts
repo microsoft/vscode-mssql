@@ -718,6 +718,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                     tableName: "Users",
                     schemaName: "dbo",
                     isEnabled: true,
+                    isSupported: true,
                     enabledActions: [
                         Dab.EntityAction.Create,
                         Dab.EntityAction.Read,

@@ -1402,6 +1402,17 @@ export class LocConstants {
             viewSwagger: l10n.t("View Swagger"),
             openNitro: l10n.t("Open Nitro"),
 
+            // DAB Unsupported Reasons
+            unsupportedNoPrimaryKey: l10n.t(
+                "Table must have a primary key to be used with Data API Builder",
+            ),
+            unsupportedDataTypes: (columns: string) =>
+                l10n.t({
+                    message: "Table contains column types not supported by Data API Builder: {0}",
+                    args: [columns],
+                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                }),
+
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
             verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),

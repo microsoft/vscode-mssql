@@ -38,6 +38,7 @@ type DabToolFailureReason =
     | "target_mismatch"
     | "stale_state"
     | "not_found"
+    | "entity_not_supported"
     | "invalid_request"
     | "validation_error"
     | "internal_error";
