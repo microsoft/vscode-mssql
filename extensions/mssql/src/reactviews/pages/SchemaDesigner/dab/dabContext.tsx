@@ -14,7 +14,7 @@ interface DabContextProps {
     isInitialized: boolean;
     isDabDeploymentSupported: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
-    openUrl: (url: string) => void;
+    openUrl: (url: string, apiType?: Dab.ApiType) => void;
     openLogsInNewTab: (logsContent: string) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
@@ -197,8 +197,8 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     );
 
     const openUrl = useCallback(
-        (url: string) => {
-            void extensionRpc.sendNotification(Dab.OpenUrlNotification.type, { url });
+        (url: string, apiType?: Dab.ApiType) => {
+            void extensionRpc.sendNotification(Dab.OpenUrlNotification.type, { url, apiType });
         },
         [extensionRpc],
     );
