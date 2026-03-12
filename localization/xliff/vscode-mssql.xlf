@@ -3185,8 +3185,8 @@
     <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
       <source xml:lang="en">Import Data</source>
     </trans-unit>
-    <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
-      <source xml:lang="en">Import File</source>
+    <trans-unit id="++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c">
+      <source xml:lang="en">Import File (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
       <source xml:lang="en">Import Flat File (Preview)</source>
