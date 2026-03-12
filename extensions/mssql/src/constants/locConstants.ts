@@ -2844,7 +2844,6 @@ export class Changelog {
     public static tryIt = l10n.t("Try it");
     public static watchDemo = l10n.t("Watch demo");
     public static learnMore = l10n.t("Learn more");
-    public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
     public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
@@ -2859,7 +2858,7 @@ export class Changelog {
     public static adsMigrationDescription = l10n.t(
         "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
-    public static editDataTitle = l10n.t("Edit Data (Preview)");
+    public static editDataTitle = l10n.t("Edit Data");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
     );
@@ -2867,21 +2866,19 @@ export class Changelog {
     public static globalObjectSearchDescription = l10n.t(
         "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
     );
-    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs");
     public static backupRestoreDescription = l10n.t(
         "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
     );
-    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs");
     public static databaseManagementDescription = l10n.t(
         "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
     );
-    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerTitle = l10n.t("Query Profiler");
     public static queryProfilerDescription = l10n.t(
         "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
-    public static dacpacTitle = l10n.t(
-        "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
-    );
+    public static dacpacTitle = l10n.t("Data-Tier Application (DACPAC / BACPAC) Import & Export");
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
