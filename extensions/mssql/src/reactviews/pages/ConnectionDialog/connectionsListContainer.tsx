@@ -3,13 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ArrowClockwise16Filled, Delete16Regular, ServerRegular } from "@fluentui/react-icons";
+import {
+    ArrowClockwise16Filled,
+    Copy16Regular,
+    Delete16Regular,
+    ServerRegular,
+} from "@fluentui/react-icons";
 import {
     Button,
     Card,
     CardHeader,
     Slot,
     Text,
+    Tooltip,
     Tree,
     makeStyles,
     tokens,
@@ -159,14 +165,32 @@ export const ConnectionsListContainer = () => {
                             <ConnectionCard
                                 connection={connection}
                                 key={"saved" + index}
-                                actionButton={{
-                                    icon: <Delete16Regular />,
-                                    onClick: (e) => {
-                                        context.deleteSavedConnection(connection);
-                                        e.stopPropagation();
+                                onSelect={() => context.loadConnectionForEdit(connection)}
+                                actionButtons={[
+                                    {
+                                        icon: <Copy16Regular />,
+                                        onClick: (e) => {
+                                            context.loadConnectionAsNewDraft(connection);
+                                            e.stopPropagation();
+                                        },
+                                        tooltip: (displayName) =>
+                                            locConstants.connectionDialog.createCopiedConnection(
+                                                displayName,
+                                            ),
                                     },
-                                    tooltip: locConstants.connectionDialog.deleteSavedConnection,
-                                }}
+                                    {
+                                        icon: <Delete16Regular />,
+                                        onClick: (e) => {
+                                            context.deleteSavedConnection(connection);
+                                            e.stopPropagation();
+                                        },
+                                        tooltip: () =>
+                                            locConstants.connectionDialog.deleteSavedConnection,
+                                    },
+                                ]}
+                                primaryActionTooltip={(displayName) =>
+                                    locConstants.connectionDialog.editConnection(displayName)
+                                }
                             />
                         );
                     })}
@@ -189,14 +213,23 @@ export const ConnectionsListContainer = () => {
                             <ConnectionCard
                                 connection={connection}
                                 key={"mru" + index}
-                                actionButton={{
-                                    icon: <Delete16Regular />,
-                                    onClick: (e) => {
-                                        context.removeRecentConnection(connection);
-                                        e.stopPropagation();
+                                onSelect={() => context.loadConnectionAsNewDraft(connection)}
+                                actionButtons={[
+                                    {
+                                        icon: <Delete16Regular />,
+                                        onClick: (e) => {
+                                            context.removeRecentConnection(connection);
+                                            e.stopPropagation();
+                                        },
+                                        tooltip: () =>
+                                            locConstants.connectionDialog.removeRecentConnection,
                                     },
-                                    tooltip: locConstants.connectionDialog.removeRecentConnection,
-                                }}
+                                ]}
+                                primaryActionTooltip={(displayName) =>
+                                    locConstants.connectionDialog.createCopiedConnection(
+                                        displayName,
+                                    )
+                                }
                             />
                         );
                     })}
@@ -208,14 +241,18 @@ export const ConnectionsListContainer = () => {
 
 export const ConnectionCard = ({
     connection,
-    actionButton,
+    onSelect,
+    actionButtons,
+    primaryActionTooltip,
 }: {
     connection: IConnectionDialogProfile;
-    actionButton?: {
+    onSelect: () => void;
+    actionButtons?: {
         icon: Slot<"span">;
         onClick: MouseEventHandler;
-        tooltip: string;
-    };
+        tooltip: (displayName: string) => string;
+    }[];
+    primaryActionTooltip: (displayName: string) => string;
 }) => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
@@ -248,51 +285,64 @@ export const ConnectionCard = ({
         return undefined;
     }
 
+    const cardTooltip = primaryActionTooltip(displayName);
+
     return (
-        <Card
-            className={styles.connectionContainer}
-            appearance="subtle"
-            tabIndex={0}
-            onClick={() => {
-                context.loadConnection(connection);
-            }}
-            onKeyDown={(e) => {
-                if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
-                    e.preventDefault();
-                    context.loadConnection(connection);
-                }
-            }}
-            title={locConstants.connectionDialog.connectTo(displayName)}
-            role="button"
-            style={{ cursor: "pointer" }}>
-            <CardHeader
-                image={<ServerRegular fontSize={20} />}
-                header={displayName}
-                action={
-                    actionButton && (
-                        <div className={buttonContainer}>
-                            <Button
-                                icon={actionButton.icon}
-                                appearance="subtle"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    actionButton.onClick(e);
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        actionButton.onClick(e as any);
-                                    }
-                                }}
-                                title={actionButton.tooltip}
-                                tabIndex={0}
-                            />
-                        </div>
-                    )
-                }
-            />
-        </Card>
+        <Tooltip content={cardTooltip} relationship="label">
+            <Card
+                className={styles.connectionContainer}
+                appearance="subtle"
+                tabIndex={0}
+                onClick={() => {
+                    onSelect();
+                }}
+                onKeyDown={(e) => {
+                    if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
+                        e.preventDefault();
+                        onSelect();
+                    }
+                }}
+                role="button"
+                style={{ cursor: "pointer" }}>
+                <CardHeader
+                    image={<ServerRegular fontSize={20} />}
+                    header={displayName}
+                    action={
+                        actionButtons && actionButtons.length > 0 ? (
+                            <div className={buttonContainer}>
+                                {actionButtons.map((actionButton, index) => (
+                                    <Tooltip
+                                        key={`${index}-${actionButton.tooltip(displayName)}`}
+                                        content={actionButton.tooltip(displayName)}
+                                        relationship="label">
+                                        <Button
+                                            icon={actionButton.icon}
+                                            appearance="subtle"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                actionButton.onClick(e);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (
+                                                    e.code === KeyCode.Enter ||
+                                                    e.code === KeyCode.Space
+                                                ) {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                    actionButton.onClick(e as any);
+                                                }
+                                            }}
+                                            aria-label={actionButton.tooltip(displayName)}
+                                            tabIndex={0}
+                                        />
+                                    </Tooltip>
+                                ))}
+                            </div>
+                        ) : undefined
+                    }
+                />
+            </Card>
+        </Tooltip>
     );
 };
