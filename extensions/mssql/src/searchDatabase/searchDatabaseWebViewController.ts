@@ -457,6 +457,21 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             });
         }
 
+        // Default sort: schema name, object type, then object name (ascending)
+        results.sort((a, b) => {
+            const schemaCompare = a.schema.localeCompare(b.schema);
+            if (schemaCompare !== 0) {
+                return schemaCompare;
+            }
+
+            const typeCompare = a.typeName.localeCompare(b.typeName);
+            if (typeCompare !== 0) {
+                return typeCompare;
+            }
+
+            return a.name.localeCompare(b.name);
+        });
+
         this.state.searchResults = results;
         this.state.totalResultCount = results.length;
         this.logVerbose(`Search complete: ${results.length} results match current filters`);
