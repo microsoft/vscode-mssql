@@ -13,16 +13,6 @@ export interface ChangelogWebviewState {
     version: string;
 }
 
-export interface ChangelogHero {
-    title: string;
-    description: string;
-    pill?: string;
-    subtext?: string;
-    badgeText?: string;
-    cta?: ChangelogAction;
-    dismissCommandId?: string;
-}
-
 export interface ContentGroup {
     title: string;
     description?: string;
@@ -36,13 +26,6 @@ export interface ContentEntry {
     description: string;
     codeSnippets?: string[];
     actions?: ChangelogAction[];
-}
-
-export interface ChangelogFooterNotice {
-    message: string;
-    actionLabel?: string;
-    actionCommandId?: string;
-    actionArgs?: unknown[];
 }
 
 export interface ChangelogAction {

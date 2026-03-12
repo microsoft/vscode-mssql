@@ -451,8 +451,7 @@ export const ChangelogPage = () => {
         await extensionRpc.sendRequest(ChangelogCommandRequest.type, params);
     };
 
-    const openWalkthrough = async (walkthroughId: string, stepId?: string) => {
-        const args = stepId ? [stepId] : [];
+    const openWalkthrough = async (walkthroughId: string, args: unknown[] = []) => {
         await extensionRpc.sendRequest(ChangelogCommandRequest.type, {
             commandId: "workbench.action.openWalkthrough",
             args: [walkthroughId, ...args],
@@ -538,7 +537,10 @@ export const ChangelogPage = () => {
 
         if (action.type === "walkthrough") {
             return (
-                <Link key={key} className={className} onClick={() => openWalkthrough(action.value)}>
+                <Link
+                    key={key}
+                    className={className}
+                    onClick={() => openWalkthrough(action.value, action.args)}>
                     {content}
                 </Link>
             );
