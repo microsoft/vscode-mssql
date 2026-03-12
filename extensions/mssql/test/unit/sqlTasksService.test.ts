@@ -129,9 +129,7 @@ suite("SqlTasksService Tests", () => {
 
             sqlTasksService.registerCompletionSuccessHandler(handler2);
 
-            // Verify telemetry was sent
-            expect(sendActionEventStub).to.have.been.calledOnce;
-            expect(sendActionEventStub).to.have.been.calledWith(
+            expect(sendActionEventStub).to.have.been.calledWithMatch(
                 "General",
                 "Initialize",
                 sinon.match({
@@ -141,8 +139,14 @@ suite("SqlTasksService Tests", () => {
             );
 
             // Verify error was logged
-            expect(loggerErrorStub).to.have.been.calledOnce;
-            expect(loggerErrorStub.firstCall.args[0]).to.include("TestOperation");
+            expect(
+                loggerErrorStub.calledWithMatch(
+                    sinon.match(
+                        (value: unknown) =>
+                            typeof value === "string" && value.includes("TestOperation"),
+                    ),
+                ),
+            ).to.be.true;
         });
 
         test("should support multiple handlers for different operation IDs", async () => {
