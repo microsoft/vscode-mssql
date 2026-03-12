@@ -939,6 +939,11 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
+    "Table must have a primary key to be used with Data API Builder": "Table must have a primary key to be used with Data API Builder",
+    "Table contains column types not supported by Data API Builder: {0}/{0} is a comma-separated list of column names and their data types": {
+        "message": "Table contains column types not supported by Data API Builder: {0}",
+        "comment": ["{0} is a comma-separated list of column names and their data types"]
+    },
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
