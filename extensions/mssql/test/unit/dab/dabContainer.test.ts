@@ -173,6 +173,42 @@ suite("DAB Container", () => {
         }
     });
 
+    test("startDabDockerContainer: should return full error text when start fails", async () => {
+        const startStub = sandbox.stub().rejects(new Error("Container exited immediately"));
+        const putArchiveStub = sandbox.stub().callsFake((stream: NodeJS.ReadableStream) => {
+            return new Promise<void>((resolve) => {
+                stream.on("end", resolve);
+                stream.on("error", resolve);
+                stream.resume();
+            });
+        });
+        const createContainerStub = sandbox.stub().resolves({
+            start: startStub,
+            putArchive: putArchiveStub,
+        });
+        const dockerClientMock = createDockerClientMock({
+            createContainer: createContainerStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const { configFilePath, tempDir } = createTempFile();
+
+        try {
+            const result = await dabContainer.startDabDockerContainer(
+                "test-dab-container",
+                5000,
+                configFilePath,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.include("Failed to start DAB container");
+            expect(result.fullErrorText).to.equal("Container exited immediately");
+        } finally {
+            fs.unlinkSync(configFilePath);
+            fs.rmdirSync(tempDir);
+        }
+    });
+
     test("checkIfDabContainerIsReady: should return success when container responds", async () => {
         // Mock fetch to return successful response
         const originalFetch = global.fetch;
@@ -201,6 +237,88 @@ suite("DAB Container", () => {
         expect(result.success).to.be.true;
 
         // Restore original fetch
+        global.fetch = originalFetch;
+    });
+
+    test("checkIfDabContainerIsReady: should succeed while buffering streamed logs internally", async () => {
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().resolves({
+            status: 200,
+        } as Response);
+
+        const rawLogsStream = new PassThrough();
+        const logsStub = sandbox.stub().resolves(rawLogsStream);
+        const demuxStreamStub = sandbox
+            .stub()
+            .callsFake(
+                (
+                    _stream: NodeJS.ReadableStream,
+                    stdout: NodeJS.WritableStream,
+                    _stderr: NodeJS.WritableStream,
+                ) => {
+                    const output = stdout as PassThrough;
+                    queueMicrotask(() => {
+                        output.write("startup log");
+                        output.end();
+                    });
+                },
+            );
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().resolves([{ Id: "container-id" }]),
+            getContainer: sandbox.stub().returns({
+                logs: logsStub,
+            }),
+            demuxStream: demuxStreamStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.checkIfDabContainerIsReady("test-dab-container", 5000);
+
+        expect(result.success).to.be.true;
+        expect(result.containerLogs).to.be.undefined;
+
+        global.fetch = originalFetch;
+    });
+
+    test("checkIfDabContainerIsReady: should return timeout with buffered logs", async () => {
+        const clock = sandbox.useFakeTimers();
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().rejects(new Error("Connection refused"));
+
+        const rawLogsStream = new PassThrough();
+        const logsStub = sandbox.stub().resolves(rawLogsStream);
+        const demuxStreamStub = sandbox
+            .stub()
+            .callsFake(
+                (
+                    _stream: NodeJS.ReadableStream,
+                    stdout: NodeJS.WritableStream,
+                    _stderr: NodeJS.WritableStream,
+                ) => {
+                    const output = stdout as PassThrough;
+                    queueMicrotask(() => {
+                        output.write("still starting");
+                    });
+                },
+            );
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().resolves([{ Id: "container-id" }]),
+            getContainer: sandbox.stub().returns({
+                logs: logsStub,
+            }),
+            demuxStream: demuxStreamStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const resultPromise = dabContainer.checkIfDabContainerIsReady("test-dab-container", 5000);
+
+        await clock.tickAsync(61_000);
+        const result = await resultPromise;
+
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("timeout period");
+        expect(result.containerLogs).to.equal("still starting");
+
         global.fetch = originalFetch;
     });
 
