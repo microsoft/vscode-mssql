@@ -814,7 +814,9 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t(
+                "Design Schemas with GitHub Copilot (Preview)",
+            ),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
@@ -1605,7 +1607,7 @@ export class LocConstants {
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric (Preview)"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
@@ -1653,7 +1655,7 @@ export class LocConstants {
     public get fabricProvisioning() {
         return {
             loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
-            sqlDatabaseInFabric: l10n.t("SQL database in Fabric (Preview)"),
+            sqlDatabaseInFabric: l10n.t("SQL database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             errorLoadingWorkspaces: l10n.t(
@@ -1777,7 +1779,7 @@ export class LocConstants {
 
     public get dacpacDialog() {
         return {
-            title: l10n.t("Data-tier Application (Preview)"),
+            title: l10n.t("Data-tier Application"),
             subtitle: l10n.t(
                 "Deploy, extract, import, or export data-tier applications on the selected database",
             ),
@@ -1884,7 +1886,7 @@ export class LocConstants {
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects"),
+            title: l10n.t("Search Database Objects (Preview)"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({

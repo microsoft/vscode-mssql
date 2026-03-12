@@ -564,7 +564,7 @@
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
     "Ask GitHub Copilot to Fix": "Ask GitHub Copilot to Fix",
     "Open GitHub Copilot Chat to help fix these errors": "Open GitHub Copilot Chat to help fix these errors",
-    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
+    "Design Schemas with GitHub Copilot (Preview)": "Design Schemas with GitHub Copilot (Preview)",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
     "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
@@ -1064,7 +1064,7 @@
     "Local SQL Server database container": "Local SQL Server database container",
     "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
     "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
-    "Create a SQL database in Fabric (Preview)": "Create a SQL database in Fabric (Preview)",
+    "Create a SQL database in Fabric": "Create a SQL database in Fabric",
     "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
     "Loading local containers...": "Loading local containers...",
     "Instant Container Setup": "Instant Container Setup",
@@ -1086,7 +1086,7 @@
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Loading fabric provisioning...": "Loading fabric provisioning...",
-    "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
+    "SQL database in Fabric": "SQL database in Fabric",
     "Create Database": "Create Database",
     "Loading workspaces": "Loading workspaces",
     "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
@@ -1156,7 +1156,7 @@
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
-    "Data-tier Application (Preview)": "Data-tier Application (Preview)",
+    "Data-tier Application": "Data-tier Application",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
@@ -1232,7 +1232,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
-    "Search Database Objects": "Search Database Objects",
+    "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
         "message": "Connecting to {0}...",
@@ -2940,8 +2940,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Search Database Objects - {0}/{0} is the server name": {
-        "message": "Search Database Objects - {0}",
+    "Search Database Objects (Preview) - {0}/{0} is the server name": {
+        "message": "Search Database Objects (Preview) - {0}",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
@@ -2966,10 +2966,6 @@
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
     "Row deleted.": "Row deleted.",
-    "{0} (Preview)/{0} is the table name": {
-        "message": "{0} (Preview)",
-        "comment": ["{0} is the table name"]
-    },
     "Failed to save changes: {0}/{0} is the error message": {
         "message": "Failed to save changes: {0}",
         "comment": ["{0} is the error message"]
@@ -3059,9 +3055,8 @@
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
     "Azure Data Studio Migration Toolkit - Now Including Keymap!": "Azure Data Studio Migration Toolkit - Now Including Keymap!",
     "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.": "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
-    "Edit Data (Preview)": "Edit Data (Preview)",
     "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.": "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-    "Global Object Search": "Global Object Search",
+    "Global Object Search (Preview)": "Global Object Search (Preview)",
     "Search for database objects — tables, views, stored procedures, and more — across your entire database.": "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
     "Backup/Restore Dialogs (Preview)": "Backup/Restore Dialogs (Preview)",
     "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.": "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
@@ -3069,7 +3064,7 @@
     "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.": "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
     "Query Profiler (Preview)": "Query Profiler (Preview)",
     "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
-    "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
+    "Data-Tier Application (DACPAC / BACPAC) Import & Export": "Data-Tier Application (DACPAC / BACPAC) Import & Export",
     "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     "SQL Database Projects – Publish Dialog": "SQL Database Projects – Publish Dialog",
     "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.": "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
