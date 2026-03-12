@@ -873,7 +873,8 @@
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",
-    "Local container deployment is currently only supported for SQL Authentication connections.": "Local container deployment is currently only supported for SQL Authentication connections.",
+    "Local container deployment is currently only supported with SQL Authentication connections.": "Local container deployment is currently only supported with SQL Authentication connections.",
+    "At least one API type must be selected.": "At least one API type must be selected.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -915,7 +916,10 @@
     },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
-    "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.": "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+    "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
+        "message": "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+        "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
+    },
     "Requirements:": "Requirements:",
     "Docker Desktop must be installed and running on your machine.": "Docker Desktop must be installed and running on your machine.",
     "Container Settings": "Container Settings",

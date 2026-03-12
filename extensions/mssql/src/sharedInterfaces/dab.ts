@@ -367,6 +367,7 @@ export namespace Dab {
      */
     export interface OpenUrlParams {
         url: string;
+        apiType?: ApiType;
     }
 
     export namespace OpenUrlNotification {

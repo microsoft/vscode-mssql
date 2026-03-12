@@ -416,6 +416,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 content: payload.configContent,
                 language: "json",
             });
+
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                language: "json",
+            });
+
             await vscode.window.showTextDocument(doc);
         });
 
@@ -424,6 +429,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 content: payload.logsContent,
                 language: "log",
             });
+
             await vscode.window.showTextDocument(doc, { preview: false });
         });
 
@@ -432,6 +438,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             if (uri.scheme !== "http" && uri.scheme !== "https") {
                 return;
             }
+
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.OpenDabApiUrl, {
+                apiType: payload.apiType ?? "",
+            });
+
             try {
                 await vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
             } catch {
@@ -453,30 +464,61 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     message = LocConstants.SchemaDesigner.configCopiedToClipboard;
                     break;
             }
+
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.CopyDabText, {
+                copyTextType: payload.copyTextType,
+            });
+
             await vscode.window.showInformationMessage(message);
         });
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            const deploymentStepActivity = startActivity(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.RunDabDeploymentStep,
+                undefined,
+                {
+                    step: payload.step.toString(),
+                },
+            );
             if (!this.resolveIsDabDeploymentSupported()) {
                 const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
                 void vscode.window.showErrorMessage(message);
+                deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
+                    hasContainerLogs: "false",
+                });
                 return {
                     success: false,
                     error: message,
                 };
             }
-            return this._dabService.runDeploymentStep(
-                payload.step,
-                payload.params,
-                payload.config,
-                this.connectionString
-                    ? {
-                          connectionString: this.connectionString,
-                          sqlServerContainerName: this._sqlServerContainerName,
-                      }
-                    : undefined,
-            );
+            try {
+                const result = await this._dabService.runDeploymentStep(
+                    payload.step,
+                    payload.params,
+                    payload.config,
+                    this.connectionString
+                        ? {
+                              connectionString: this.connectionString,
+                              sqlServerContainerName: this._sqlServerContainerName,
+                          }
+                        : undefined,
+                );
+                if (result.success) {
+                    deploymentStepActivity.end(ActivityStatus.Succeeded);
+                } else {
+                    deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
+                        hasContainerLogs: (!!result.containerLogs).toString(),
+                    });
+                }
+                return result;
+            } catch (error) {
+                deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
+                    hasContainerLogs: "false",
+                });
+                throw error;
+            }
         });
 
         this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
@@ -488,6 +530,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.AddDabMcpServer);
+
             return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
     }

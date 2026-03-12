@@ -1303,8 +1303,9 @@ export class LocConstants {
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
             dabDeploymentNotSupported: l10n.t(
-                "Local container deployment is currently only supported for SQL Authentication connections.",
+                "Local container deployment is currently only supported with SQL Authentication connections.",
             ),
+            atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -1363,9 +1364,13 @@ export class LocConstants {
             // DAB Deployment Dialog
             deployDabContainer: l10n.t("Deploy DAB Container"),
             localContainerDeployment: l10n.t("Local Container Deployment"),
-            deployDabContainerDescription: l10n.t(
-                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
-            ),
+            deployDabContainerDescription: (apiTypes: string) =>
+                l10n.t({
+                    message:
+                        "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+                    args: [apiTypes],
+                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
+                }),
             requirements: l10n.t("Requirements:"),
             dockerDesktopRequirement: l10n.t(
                 "Docker Desktop must be installed and running on your machine.",
