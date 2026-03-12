@@ -1145,6 +1145,142 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
+    suite("isDabDeploymentSupported", () => {
+        test("should set isDabDeploymentSupported to true when authenticationType is SqlLogin via treeNode", () => {
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+        });
+
+        test("should set isDabDeploymentSupported to false when authenticationType is AzureMFA via treeNode", () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    }) as any,
+            );
+
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should set isDabDeploymentSupported to false when authenticationType is Integrated via treeNode", () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "localhost",
+                        database: databaseName,
+                        authenticationType: "Integrated",
+                    }) as any,
+            );
+
+            const ctrl = createController();
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should resolve isDabDeploymentSupported from connectionUri when no treeNode", () => {
+            (mockMainController.connectionManager as any).getConnectionInfo = sandbox
+                .stub()
+                .returns({
+                    credentials: {
+                        server: "localhost",
+                        database: databaseName,
+                        authenticationType: "SqlLogin",
+                    },
+                });
+
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                connectionUri,
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+        });
+
+        test("should set isDabDeploymentSupported to false when connectionUri has non-SqlLogin auth", () => {
+            (mockMainController.connectionManager as any).getConnectionInfo = sandbox
+                .stub()
+                .returns({
+                    credentials: {
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    },
+                });
+
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                connectionUri,
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+
+        test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {
+            const ctrl = new SchemaDesignerWebviewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                connectionString,
+                accessToken,
+                databaseName,
+                schemaDesignerCache,
+                undefined, // no treeNode
+                undefined, // no connectionUri
+            );
+
+            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+        });
+    });
+
+    suite("RunDeploymentStepRequest deployment guard", () => {
+        test("should block deployment and return error when isDabDeploymentSupported is false", async () => {
+            sandbox.stub(treeNode, "connectionProfile").get(
+                () =>
+                    ({
+                        server: "myserver.database.windows.net",
+                        database: databaseName,
+                        authenticationType: "AzureMFA",
+                    }) as any,
+            );
+
+            const showErrorStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+            createController();
+
+            const handler = requestHandlers.get(Dab.RunDeploymentStepRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            const payload: Dab.RunDeploymentStepParams = {
+                step: Dab.DabDeploymentStepOrder.dockerInstallation,
+            };
+
+            const result = await handler(payload);
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.be.a("string");
+            expect(showErrorStub).to.have.been.calledOnce;
+        });
+    });
+
     suite("resolveSqlServerContainerName", () => {
         test("should return containerName from treeNode connection profile", () => {
             sandbox.stub(treeNode, "connectionProfile").get(

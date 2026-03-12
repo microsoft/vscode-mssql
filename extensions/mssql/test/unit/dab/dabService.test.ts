@@ -490,6 +490,29 @@ suite("DabService Tests", () => {
             expect(result.error).to.include("required");
         });
 
+        test("should expose startContainer full error text as frontend log content", async () => {
+            sandbox.stub(dabContainer, "startDabDockerContainer").resolves({
+                success: false,
+                error: "Failed to start DAB container. Please check the Docker logs for details.",
+                fullErrorText: "Container exited immediately",
+            });
+
+            const params: Dab.DabDeploymentParams = {
+                containerName: "test-container",
+                port: 5000,
+            };
+
+            const result = await dabService.runDeploymentStep(
+                Dab.DabDeploymentStepOrder.startContainer,
+                params,
+                createTestConfig(),
+                defaultConnectionInfo,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.containerLogs).to.equal("Container exited immediately");
+        });
+
         test("should run checkContainer step successfully", async () => {
             sandbox
                 .stub(dabContainer, "checkIfDabContainerIsReady")
@@ -507,6 +530,31 @@ suite("DabService Tests", () => {
 
             expect(result.success).to.be.true;
             expect(result.apiUrl).to.equal("http://localhost:5000");
+        });
+
+        test("should return failure logs for checkContainer failures", async () => {
+            const checkIfReadyStub = sandbox
+                .stub(dabContainer, "checkIfDabContainerIsReady")
+                .resolves({
+                    success: false,
+                    error: "Unable to launch the Data API builder engine.",
+                    fullErrorText: "fail: startup failed",
+                    containerLogs: "fail: startup failed",
+                });
+
+            const params: Dab.DabDeploymentParams = {
+                containerName: "test-container",
+                port: 5000,
+            };
+
+            const result = await dabService.runDeploymentStep(
+                Dab.DabDeploymentStepOrder.checkContainer,
+                params,
+            );
+
+            expect(result.success).to.be.false;
+            expect(checkIfReadyStub).to.have.been.calledOnce;
+            expect(result.containerLogs).to.equal("fail: startup failed");
         });
 
         test("should return error when checkContainer is called without params", async () => {

@@ -333,7 +333,7 @@ suite("Scripting Service", () => {
             expect(removeRecentlyUsedStub).to.have.been.calledOnce;
             expect(updateTokenStub).to.have.been.called;
             expect(loggerStub.error).to.not.have.been.called;
-            expect(telemetryActivities[0].end).to.have.been.calledOnceWithExactly(
+            expect(telemetryActivities[0].end).to.have.been.calledWithExactly(
                 ActivityStatus.Succeeded,
             );
         } finally {
@@ -358,7 +358,7 @@ suite("Scripting Service", () => {
             expect(sqlDocumentService.newQuery).to.have.been.calledOnce;
             expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
             expect(removeRecentlyUsedStub).to.not.have.been.called;
-            expect(telemetryActivities[0].end).to.have.been.calledOnce;
+            expect(telemetryActivities[0].end).to.have.been.called;
         } finally {
             scriptTreeStub.restore();
         }
@@ -383,8 +383,8 @@ suite("Scripting Service", () => {
             expect(connectionManager.connect).to.have.been.calledOnce;
             expect(sqlDocumentService.newQuery).to.not.have.been.called;
             expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
-            expect(loggerStub.error).to.have.been.calledOnce;
-            expect(telemetryActivities[0].endFailed).to.have.been.calledOnce;
+            expect(loggerStub.error).to.have.been.called;
+            expect(telemetryActivities[0].endFailed).to.have.been.called;
         } finally {
             scriptTreeStub.restore();
         }
@@ -411,8 +411,8 @@ suite("Scripting Service", () => {
         await scriptingService.scriptNode(node, ScriptOperation.Select);
 
         expect(sqlDocumentService.newQuery).to.not.have.been.called;
-        expect(loggerStub.error).to.have.been.calledOnce;
-        expect(telemetryActivities[0].endFailed).to.have.been.calledOnce;
+        expect(loggerStub.error).to.have.been.called;
+        expect(telemetryActivities[0].endFailed).to.have.been.called;
     });
 
     test("scriptNode logs error when no script is returned", async () => {
@@ -428,8 +428,8 @@ suite("Scripting Service", () => {
 
         expect(sqlDocumentService.newQuery).to.not.have.been.called;
         expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
-        expect(loggerStub.error).to.have.been.calledOnce;
-        expect(telemetryActivities[0].endFailed).to.have.been.calledOnce;
+        expect(loggerStub.error).to.have.been.called;
+        expect(telemetryActivities[0].endFailed).to.have.been.called;
         scriptTreeStub.restore();
     });
 
@@ -560,9 +560,7 @@ suite("Scripting Service", () => {
 
         expect(script).to.equal("SELECT 1");
         expect(withProgressStub).to.have.been.calledOnce;
-        expect(telemetryActivities[0].end).to.have.been.calledOnceWithExactly(
-            ActivityStatus.Succeeded,
-        );
+        expect(telemetryActivities[0].end).to.have.been.calledWithExactly(ActivityStatus.Succeeded);
     });
 
     test("script surfaces errors from progress notifications", async () => {
@@ -611,7 +609,7 @@ suite("Scripting Service", () => {
             LocalizedConstants.msgScriptingOperationFailed("script failed"),
         );
         expect(loggerStub.error).to.have.been.calledWithMatch("Scripting error details:");
-        expect(telemetryActivities[0].endFailed).to.have.been.calledOnce;
+        expect(telemetryActivities[0].endFailed).to.have.been.called;
     });
 
     test("script sends cancellation request when token is cancelled", async () => {

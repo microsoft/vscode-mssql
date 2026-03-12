@@ -164,7 +164,7 @@
         "shallow-equal": "^3.1.0",
         "slickgrid-react": "^9.8.0",
         "strip-json-comments": "^5.0.1",
-        "tar": "^7.5.10",
+        "tar": "^7.5.11",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^8.2.1",
@@ -573,6 +573,11 @@
                     "command": "mssql.profiler.launchFromObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "4_MSSQL_discoverAndProfile@2"
+                },
+                {
+                    "command": "mssql.profiler.launchFromDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1a_MSSQL_profiler@1"
                 },
                 {
                     "command": "mssql.schemaDesigner",
@@ -993,6 +998,11 @@
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
                 "icon": "$(table)"
+            },
+            {
+                "command": "mssql.toggleQueryResultPanel",
+                "title": "%mssql.toggleQueryResultPanel%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.connect",
@@ -1444,6 +1454,11 @@
             },
             {
                 "command": "mssql.profiler.launchFromObjectExplorer",
+                "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.profiler.launchFromDatabase",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
             },

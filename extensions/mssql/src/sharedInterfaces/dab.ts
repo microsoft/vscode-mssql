@@ -334,11 +334,23 @@ export namespace Dab {
     }
 
     /**
+     * Notification to open deployment logs in a new tab.
+     */
+    export interface OpenLogsInNewTabParams {
+        logsContent: string;
+    }
+
+    export namespace OpenLogsInNewTabNotification {
+        export const type = new NotificationType<OpenLogsInNewTabParams>("dab/openLogsInNewTab");
+    }
+
+    /**
      * Notification to copy text to clipboard with a context-appropriate toast message
      */
     export enum CopyTextType {
         Config = "config",
         Url = "url",
+        Logs = "logs",
     }
 
     export interface CopyTextParams {
@@ -515,6 +527,10 @@ export namespace Dab {
          */
         step: DabDeploymentStepOrder;
         /**
+         * Filtered container logs for display for this step
+         */
+        containerLogs?: string;
+        /**
          * Full error text for debugging
          */
         fullErrorText?: string;
@@ -587,6 +603,10 @@ export namespace Dab {
          * Full error text for debugging
          */
         fullErrorText?: string;
+        /**
+         * Filtered container logs captured when the readiness check failed.
+         */
+        containerLogs?: string;
         /**
          * Link to documentation for fixing the error
          */

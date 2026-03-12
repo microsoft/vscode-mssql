@@ -1375,6 +1375,9 @@
     <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
       <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c2757ee529f77e52b5172ba9b77defdd3f8183a111733beab404d8b47299c09">
+      <source xml:lang="en">Container logs</source>
+    </trans-unit>
     <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
       <source xml:lang="en">Container name and port are required to check container readiness.</source>
     </trans-unit>
@@ -1619,6 +1622,9 @@
     <trans-unit id="++CODE++4e639b73088f5575d27eeb76cc69d222f4587c494af6bebace73a891c65491a3">
       <source xml:lang="en">DAB container is running!</source>
     </trans-unit>
+    <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
+      <source xml:lang="en">DAB container logs</source>
+    </trans-unit>
     <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
       <source xml:lang="en">DACPAC deployed successfully</source>
     </trans-unit>
@@ -1745,6 +1751,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
       <source xml:lang="en">Define who can access this endpoint</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
+      <source xml:lang="en">Definition</source>
     </trans-unit>
     <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
       <source xml:lang="en">DefinitionRequestCompleted</source>
@@ -3103,11 +3112,17 @@
     <trans-unit id="++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd">
       <source xml:lang="en">Help us improve by sharing your thoughts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
+      <source xml:lang="en">Hide Changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
       <source xml:lang="en">Hide Changes Highlight</source>
     </trans-unit>
     <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
       <source xml:lang="en">Hide Confirm Password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++594683ed5533aeeab2a537f670f9a1ae7394eef4784dc9398b23309a6b88a965">
+      <source xml:lang="en">Hide Definition</source>
     </trans-unit>
     <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
       <source xml:lang="en">Hide New Password</source>
@@ -3608,6 +3623,9 @@
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
     </trans-unit>
+    <trans-unit id="++CODE++eb21bec7e42a4749e515b2d0288a19e98a6f07ba7d805e7e13f8d65a85745303">
+      <source xml:lang="en">Local container deployment is currently only supported for SQL Authentication connections.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
       <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
     </trans-unit>
@@ -3625,6 +3643,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
       <source xml:lang="en">Logical file name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
+      <source xml:lang="en">Logs copied to clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
@@ -6461,6 +6482,9 @@
     <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
       <source xml:lang="en">We couldn&apos;t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
     </trans-unit>
+    <trans-unit id="++CODE++15e1287518c34c5331e35214b9b9874f3e180cd06304170418dcf8e18009f67d">
+      <source xml:lang="en">We&apos;re glad you&apos;re enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.</source>
+    </trans-unit>
     <trans-unit id="++CODE++54d8eabdb1e806a10a7f7185c095b13404226eb5ffa574a62914d06a8e2beee0">
       <source xml:lang="en">Webview &apos;{0}&apos; did not become ready within {1}ms</source>
       <note>{0} is the webview name
@@ -6489,6 +6513,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
       <source xml:lang="en">Workspace is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++136286bc5a894ca127a857f65556676fa503d02c806d035053fe50a4d5678214">
+      <source xml:lang="en">Write a review</source>
     </trans-unit>
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
@@ -7513,6 +7540,9 @@
     </trans-unit>
     <trans-unit id="mssql.toggleActualPlan">
       <source xml:lang="en">Toggle Actual Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.toggleQueryResultPanel">
+      <source xml:lang="en">Toggle Query Result Panel Visibility</source>
     </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>

@@ -10,6 +10,8 @@ import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
 import { locConstants } from "../../common/locConstants";
 import { CodeDefinitionIcon16Regular } from "../../common/icons/fluentIcons";
+import { DesignerResultPaneTabs } from "../../../sharedInterfaces/tableDesigner";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 
 const useStyles = makeStyles({
     separator: {
@@ -21,10 +23,16 @@ const useStyles = makeStyles({
 
 export const DesignerPageRibbon = () => {
     const designerContext = useContext(TableDesignerContext);
+    const resultPaneTab = useTableDesignerSelector((s) => s?.tabStates?.resultPaneTab);
     const classes = useStyles();
     if (!designerContext) {
         return undefined;
     }
+
+    const definitionLabel =
+        designerContext.isDefinitionPaneVisible && resultPaneTab === DesignerResultPaneTabs.Script
+            ? locConstants.schemaDesigner.hideDefinition
+            : locConstants.schemaDesigner.showDefinition;
 
     return (
         <div>
@@ -39,9 +47,9 @@ export const DesignerPageRibbon = () => {
                     size="small"
                     appearance="subtle"
                     icon={<CodeDefinitionIcon16Regular />}
-                    title={locConstants.schemaDesigner.definition}
+                    title={definitionLabel}
                     onClick={() => designerContext.toggleDefinitionPane()}>
-                    {locConstants.schemaDesigner.definition}
+                    {definitionLabel}
                 </Button>
             </Toolbar>
             <Divider className={classes.separator} />

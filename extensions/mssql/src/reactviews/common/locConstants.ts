@@ -1030,7 +1030,9 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
-            definition: l10n.t("Show Definition"),
+            definition: l10n.t("Definition"),
+            showDefinition: l10n.t("Show Definition"),
+            hideDefinition: l10n.t("Hide Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1044,6 +1046,7 @@ export class LocConstants {
             schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
             dabNavLabel: l10n.t("Build Data API (Preview)"),
             showChangesButtonLabel: l10n.t("Show Changes"),
+            hideChangesButtonLabel: l10n.t("Hide Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
@@ -1299,6 +1302,9 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
+            dabDeploymentNotSupported: l10n.t(
+                "Local container deployment is currently only supported for SQL Authentication connections.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -1415,6 +1421,7 @@ export class LocConstants {
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
+            containerLogs: l10n.t("Container logs"),
         };
     }
 

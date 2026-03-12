@@ -16,6 +16,7 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
@@ -104,6 +105,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this._key = `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
+
+        this.updateState({
+            ...this.state,
+            isDabDeploymentSupported: this.resolveIsDabDeploymentSupported(),
+        });
 
         this.setupRequestHandlers();
         this.setupReducers();
@@ -413,6 +419,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.window.showTextDocument(doc);
         });
 
+        this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
+            const doc = await vscode.workspace.openTextDocument({
+                content: payload.logsContent,
+                language: "log",
+            });
+            await vscode.window.showTextDocument(doc, { preview: false });
+        });
+
         this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
             const uri = vscode.Uri.parse(payload.url, true);
             if (uri.scheme !== "http" && uri.scheme !== "https") {
@@ -427,15 +441,31 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
-            const message =
-                payload.copyTextType === Dab.CopyTextType.Url
-                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
-                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            let message = "";
+            switch (payload.copyTextType) {
+                case Dab.CopyTextType.Url:
+                    message = LocConstants.SchemaDesigner.urlCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Logs:
+                    message = LocConstants.SchemaDesigner.logsCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Config:
+                    message = LocConstants.SchemaDesigner.configCopiedToClipboard;
+                    break;
+            }
             await vscode.window.showInformationMessage(message);
         });
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            if (!this.resolveIsDabDeploymentSupported()) {
+                const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
+                void vscode.window.showErrorMessage(message);
+                return {
+                    success: false,
+                    error: message,
+                };
+            }
             return this._dabService.runDeploymentStep(
                 payload.step,
                 payload.params,
@@ -581,6 +611,27 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 ?.credentials?.server;
         }
 
+        return undefined;
+    }
+
+    /**
+     * Determines whether the DAB (Data API Builder) feature is supported for this connection.
+     * Currently only SQL Login connections are supported because DAB runs in a local
+     * Docker container that cannot perform interactive Azure AD authentication.
+     */
+    private resolveIsDabDeploymentSupported(): boolean {
+        const authType = this.resolveAuthenticationType();
+        return authType === AuthenticationType.SqlLogin;
+    }
+
+    private resolveAuthenticationType(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.authenticationType;
+        }
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.authenticationType;
+        }
         return undefined;
     }
 
