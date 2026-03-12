@@ -147,7 +147,7 @@ export class SqlOutputContentProvider {
                 if (this._queryResultWebviewController.isVisible()) {
                     void vscode.commands.executeCommand("workbench.action.closePanel");
                 } else {
-                    this.revealQueryResult(uri);
+                    this.revealQueryResult(uri, "emptyPanel");
                 }
             }),
         );
@@ -156,8 +156,8 @@ export class SqlOutputContentProvider {
          * Command to reveal the query result
          */
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdrevealQueryResult, (uri: vscode.Uri) => {
-                this.revealQueryResult(uri.toString());
+            vscode.commands.registerCommand(Constants.cmdRevealQueryResult, (uri: vscode.Uri) => {
+                this.revealQueryResult(uri.toString(), "throw");
             }),
         );
     }
@@ -527,7 +527,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
+                this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -952,7 +952,7 @@ export class SqlOutputContentProvider {
      * Reveals the results grid in either webview panel or webview view.
      * @param uri
      */
-    public revealQueryResult(uri: string): void {
+    public revealQueryResult(uri: string, notFoundBehavior: "throw" | "emptyPanel"): void {
         const openInNewTabConfig = isOpenQueryResultsInTabByDefaultEnabled();
 
         if (openInNewTabConfig) {
@@ -960,11 +960,17 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        if (
-            !this._queryResultWebviewController.hasQueryResultState(uri) ||
-            (this._queryResultWebviewController.getQueryResultState(uri) &&
-                !this._queryResultWebviewController.hasPanel(uri))
-        ) {
+        const hasState = this._queryResultWebviewController.hasQueryResultState(uri);
+        if (notFoundBehavior === "throw" && !hasState) {
+            // Throw error and emit telemetry when the state is missing.
+            this._queryResultWebviewController.getQueryResultState(uri);
+        }
+
+        const shouldFocus =
+            (notFoundBehavior === "emptyPanel" && !hasState) ||
+            (hasState && !this._queryResultWebviewController.hasPanel(uri));
+
+        if (shouldFocus) {
             vscode.commands.executeCommand("queryResult.focus", {
                 preserveFocus: true,
             });

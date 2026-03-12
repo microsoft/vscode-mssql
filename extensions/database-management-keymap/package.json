@@ -87,7 +87,7 @@
             {
                 "key": "ctrl+shift+r",
                 "command": "mssql.toggleQueryResultPanel",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "(editorLangId == 'sql' && editorTextFocus) || view.queryResult.visible"
             }
         ]
     },
