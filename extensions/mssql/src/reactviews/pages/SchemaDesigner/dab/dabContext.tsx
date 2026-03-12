@@ -15,6 +15,7 @@ interface DabContextProps {
     isDabDeploymentSupported: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     openUrl: (url: string) => void;
+    openLogsInNewTab: (logsContent: string) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
@@ -37,7 +38,7 @@ interface DabContextProps {
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
-    retryDabDeploymentSteps: () => void;
+    retryDabDeploymentSteps: () => Promise<void>;
     addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
 }
 
@@ -221,6 +222,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
+    const openLogsInNewTab = useCallback(
+        (logsContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenLogsInNewTabNotification.type, {
+                logsContent,
+            });
+        },
+        [extensionRpc],
+    );
+
     const openDabDeploymentDialog = useCallback(() => {
         setDabDeploymentState((prev) => ({
             ...prev,
@@ -271,6 +281,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             step: Dab.DabDeploymentStepOrder,
             status: ApiStatus,
             message?: string,
+            containerLogs?: string,
             fullErrorText?: string,
             errorLink?: string,
             errorLinkText?: string,
@@ -279,7 +290,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 ...prev,
                 stepStatuses: prev.stepStatuses.map((s) =>
                     s.step === step
-                        ? { ...s, status, message, fullErrorText, errorLink, errorLinkText }
+                        ? {
+                              ...s,
+                              status,
+                              message,
+                              containerLogs,
+                              fullErrorText,
+                              errorLink,
+                              errorLinkText,
+                          }
                         : s,
                 ),
             }));
@@ -296,6 +315,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     step,
                     ApiStatus.Error,
                     "DAB configuration is not available.",
+                    undefined,
                 );
                 return;
             }
@@ -334,6 +354,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     step,
                     ApiStatus.Error,
                     response.error,
+                    response.containerLogs,
                     response.fullErrorText,
                     response.errorLink,
                     response.errorLinkText,
@@ -347,7 +368,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         setDabDeploymentState(Dab.createDefaultDeploymentState());
     }, []);
 
-    const retryDabDeploymentSteps = useCallback(() => {
+    const retryDabDeploymentSteps = useCallback(async () => {
+        try {
+            await extensionRpc.sendRequest(Dab.StopDeploymentRequest.type, {
+                containerName: dabDeploymentState.params.containerName,
+            });
+        } catch (error) {
+            console.error("Failed to clean up DAB container before retry:", error);
+        }
+
         setDabDeploymentState((prev) => ({
             ...prev,
             currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
@@ -357,6 +386,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                         ...s,
                         status: ApiStatus.NotStarted,
                         message: undefined,
+                        containerLogs: undefined,
                         fullErrorText: undefined,
                         errorLink: undefined,
                         errorLinkText: undefined,
@@ -367,7 +397,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             error: undefined,
             apiUrl: undefined,
         }));
-    }, []);
+    }, [dabDeploymentState.params.containerName, extensionRpc]);
 
     const addDabMcpServer = useCallback(
         async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {
@@ -386,6 +416,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 isDabDeploymentSupported,
                 copyToClipboard,
                 openUrl,
+                openLogsInNewTab,
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
