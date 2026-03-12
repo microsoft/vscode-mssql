@@ -716,7 +716,7 @@
     "Redo": "Redo",
     "Search tables...": "Search tables...",
     "Show table relationships": "Show table relationships",
-    "Visualize and Design Schema": "Visualize and Design Schema",
+    "Visualize and Design Schema (Preview)": "Visualize and Design Schema (Preview)",
     "Build Data API (Preview)": "Build Data API (Preview)",
     "Show Changes": "Show Changes",
     "Hide Changes": "Hide Changes",
@@ -873,6 +873,7 @@
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",
+    "Local container deployment is currently only supported for SQL Authentication connections.": "Local container deployment is currently only supported for SQL Authentication connections.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -938,6 +939,11 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
+    "Table must have a primary key to be used with Data API Builder": "Table must have a primary key to be used with Data API Builder",
+    "Table contains column types not supported by Data API Builder: {0}/{0} is a comma-separated list of column names and their data types": {
+        "message": "Table contains column types not supported by Data API Builder: {0}",
+        "comment": ["{0} is a comma-separated list of column names and their data types"]
+    },
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -950,6 +956,7 @@
     "Creating and starting the container": "Creating and starting the container",
     "Checking container readiness": "Checking container readiness",
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
+    "Container logs": "Container logs",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
@@ -1206,7 +1213,7 @@
     "A database with this name already exists on the server": "A database with this name already exists on the server",
     "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
     "Learn More": "Learn More",
-    "Fabric targets are currently not supported in this preview, and we are working to improve the experience.": "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
+    "Fabric targets are currently not supported, and we are working to improve the experience.": "Fabric targets are currently not supported, and we are working to improve the experience.",
     "Learn more about this issue.": "Learn more about this issue.",
     "Save Changes": "Save Changes",
     "Add Row": "Add Row",
@@ -1434,6 +1441,10 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
+    "Backup Database (Preview) - {0}/{0} is the database name": {
+        "message": "Backup Database (Preview) - {0}",
+        "comment": ["{0} is the database name"]
+    },
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1585,7 +1596,7 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File": "Import File",
+    "Import File (Preview)": "Import File (Preview)",
     "Step 1: Specify Input File": "Step 1: Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
@@ -1604,7 +1615,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database": "Restore Database",
+    "Restore Database (Preview)": "Restore Database (Preview)",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -1642,7 +1653,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
     "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
@@ -2423,6 +2433,8 @@
     },
     "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!": "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     "Submit an issue": "Submit an issue",
+    "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.": "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    "Write a review": "Write a review",
     "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
@@ -2515,6 +2527,8 @@
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
     "Config copied to clipboard": "Config copied to clipboard",
     "URL copied to clipboard": "URL copied to clipboard",
+    "Logs copied to clipboard": "Logs copied to clipboard",
+    "DAB container logs": "DAB container logs",
     "Failed to open URL. The built-in Simple Browser may be disabled.": "Failed to open URL. The built-in Simple Browser may be disabled.",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
@@ -3194,10 +3208,6 @@
     "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
         "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
-    "Backup Database - {0}/{0} is the database name": {
-        "message": "Backup Database - {0}",
-        "comment": ["{0} is the database name"]
     },
     "Backup Name": "Backup Name",
     "Full": "Full",

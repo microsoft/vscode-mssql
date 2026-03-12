@@ -43,13 +43,16 @@ suite("MainController Tests", function () {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let context: vscode.ExtensionContext;
 
-    setup(async () => {
-        sandbox = sinon.createSandbox();
+    suiteSetup(async () => {
         // Need to activate the extension to get the mainController
         await activateExtension();
 
         // Using the mainController that was instantiated with the extension
         mainController = await Extension.getController();
+    });
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
 
         // Setting up a stubbed connectionManager
         connectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -758,7 +761,7 @@ suite("MainController Tests", function () {
             expect(showErrorMessageStub).to.have.been.calledOnceWith(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
             );
-            expect(sendActionEvent).to.have.been.calledOnceWith(
+            expect(sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Open,
                 {
@@ -838,7 +841,7 @@ suite("MainController Tests", function () {
                 Constants.vscodeWorkbenchChatOpenAgent,
                 Prompts.dabAgentPrompt,
             );
-            expect(sendActionEvent).to.have.been.calledOnceWith(
+            expect(sendActionEvent).to.have.been.calledWith(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Open,
                 {

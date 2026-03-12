@@ -21,6 +21,11 @@ import { defaultProfilerConfig } from "./profilerDefaultConfig";
 import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../sharedInterfaces/profiler";
 
 /**
+ * The canonical column/field name used for database-name filtering in profiler views.
+ */
+export const FIELD_DATABASE_NAME = "DatabaseName";
+
+/**
  * Service for managing profiler templates and view configurations.
  * Maps between views and sessions are computed at runtime from the templates'
  * defaultView property to avoid configuration drift.

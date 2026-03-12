@@ -291,7 +291,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                             lineHeight: "60px",
                         }}
                         weight="medium">
-                        {`${locConstants.restoreDatabase.restore} - ${serverName}`}
+                        {`${locConstants.restoreDatabase.restoreDatabase} - ${serverName}`}
                     </Text>
                 </div>
                 {dialog?.type === "fileBrowser" && fileBrowserState && (

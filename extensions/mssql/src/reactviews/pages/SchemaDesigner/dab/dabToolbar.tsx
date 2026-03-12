@@ -11,6 +11,7 @@ import {
     makeStyles,
     Text,
     tokens,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
@@ -88,6 +89,7 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
     const context = useDabContext();
     const {
         dabConfig,
+        isDabDeploymentSupported,
         updateDabApiTypes,
         dabTextFilter,
         setDabTextFilter,
@@ -142,14 +144,29 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: 
                         onClick={onViewConfig}>
                         {locConstants.schemaDesigner.viewConfig}
                     </Button>
-                    <Button
-                        appearance="primary"
-                        icon={<FluentIcons.Play16Filled />}
-                        size="small"
-                        title={locConstants.schemaDesigner.deploy}
-                        onClick={openDabDeploymentDialog}>
-                        {locConstants.schemaDesigner.deploy}
-                    </Button>
+                    {isDabDeploymentSupported ? (
+                        <Button
+                            appearance="primary"
+                            icon={<FluentIcons.Play16Filled />}
+                            size="small"
+                            onClick={openDabDeploymentDialog}>
+                            {locConstants.schemaDesigner.deploy}
+                        </Button>
+                    ) : (
+                        <Tooltip
+                            content={locConstants.schemaDesigner.dabDeploymentNotSupported}
+                            relationship="label">
+                            <span>
+                                <Button
+                                    appearance="primary"
+                                    icon={<FluentIcons.Play16Filled />}
+                                    size="small"
+                                    disabled>
+                                    {locConstants.schemaDesigner.deploy}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    )}
                 </div>
             </div>
 

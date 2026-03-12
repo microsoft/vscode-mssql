@@ -14,6 +14,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
         tableName: "Users",
         schemaName: "dbo",
         isEnabled: true,
+        isSupported: true,
         enabledActions: [
             Dab.EntityAction.Create,
             Dab.EntityAction.Read,
@@ -228,6 +229,35 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 expect(Object.keys(parsed.entities)).to.have.lengthOf(0);
+            });
+
+            test("should exclude unsupported entities even if isEnabled is true", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            id: "1",
+                            advancedSettings: {
+                                entityName: "SupportedEntity",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                            isEnabled: true,
+                            isSupported: true,
+                        }),
+                        createTestEntity({
+                            id: "2",
+                            advancedSettings: {
+                                entityName: "UnsupportedEntity",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                            isEnabled: true,
+                            isSupported: false,
+                        }),
+                    ],
+                });
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                expect(parsed.entities).to.have.property("SupportedEntity");
+                expect(parsed.entities).to.not.have.property("UnsupportedEntity");
             });
         });
 

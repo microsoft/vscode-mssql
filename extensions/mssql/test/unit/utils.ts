@@ -141,7 +141,10 @@ export function stubUserSurvey(
     return userSurvey;
 }
 
-export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.ExtensionContext {
+export function stubExtensionContext(
+    sandbox?: sinon.SinonSandbox,
+    packageJson?: unknown,
+): vscode.ExtensionContext {
     const stubber = sandbox || sinon;
 
     let globalState = {
@@ -151,6 +154,9 @@ export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.Exten
 
     const context = {
         globalState: globalState,
+        extension: {
+            packageJSON: packageJson || {},
+        },
         extensionUri: vscode.Uri.parse("file://testExtensionPath"),
         extensionPath: "testExtensionPath",
         subscriptions: [],

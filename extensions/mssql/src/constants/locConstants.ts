@@ -27,8 +27,8 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
 export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
@@ -1488,6 +1488,10 @@ export class UserSurvey {
         "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     );
     public static submitIssue = l10n.t("Submit an issue");
+    public static mssqlMarketplaceReviewPrompt = l10n.t(
+        "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    );
+    public static writeReview = l10n.t("Write a review");
 }
 
 export class Webview {
@@ -1705,6 +1709,7 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
+    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -1736,8 +1741,13 @@ export class SchemaDesigner {
     );
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");
+    public static dabLogsEditorTitle = l10n.t("DAB container logs");
     public static failedToOpenUrl = l10n.t(
         "Failed to open URL. The built-in Simple Browser may be disabled.",
+    );
+    public static dabDeploymentNotSupported = l10n.t(
+        "Local container deployment is currently only supported for SQL Authentication connections.",
     );
 }
 
@@ -3130,7 +3140,7 @@ export class Proxy {
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
-            message: "Backup Database - {0}",
+            message: "Backup Database (Preview) - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
@@ -3258,7 +3268,7 @@ export class FlatFileImport {
 }
 
 export class RestoreDatabase {
-    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static restoreDatabaseTitle = l10n.t("Restore Database (Preview)");
     public static sourceDatabase = l10n.t("Source Database");
     public static targetDatabase = l10n.t("Target Database");
     public static files = l10n.t("Files");

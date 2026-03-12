@@ -1045,7 +1045,7 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
             dabNavLabel: l10n.t("Build Data API (Preview)"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             hideChangesButtonLabel: l10n.t("Hide Changes"),
@@ -1304,6 +1304,9 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
+            dabDeploymentNotSupported: l10n.t(
+                "Local container deployment is currently only supported for SQL Authentication connections.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -1396,6 +1399,17 @@ export class LocConstants {
             viewSwagger: l10n.t("View Swagger"),
             openNitro: l10n.t("Open Nitro"),
 
+            // DAB Unsupported Reasons
+            unsupportedNoPrimaryKey: l10n.t(
+                "Table must have a primary key to be used with Data API Builder",
+            ),
+            unsupportedDataTypes: (columns: string) =>
+                l10n.t({
+                    message: "Table contains column types not supported by Data API Builder: {0}",
+                    args: [columns],
+                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                }),
+
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
             verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
@@ -1409,6 +1423,7 @@ export class LocConstants {
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
+            containerLogs: l10n.t("Container logs"),
         };
     }
 
@@ -1847,7 +1862,7 @@ export class LocConstants {
             ),
             learnMore: l10n.t("Learn More"),
             fabricWarning: l10n.t(
-                "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
+                "Fabric targets are currently not supported, and we are working to improve the experience.",
             ),
             fabricWarningLearnMore: l10n.t("Learn more about this issue."),
         };
@@ -2212,6 +2227,12 @@ export class LocConstants {
 
     public get backupDatabase() {
         return {
+            backupDatabaseTitle: (databaseName: string) =>
+                l10n.t({
+                    message: "Backup Database (Preview) - {0}",
+                    args: [databaseName],
+                    comment: ["{0} is the database name"],
+                }),
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
             script: l10n.t("Script"),
@@ -2444,7 +2465,7 @@ export class LocConstants {
 
     public get flatFileImport() {
         return {
-            importFile: l10n.t("Import File"),
+            importFile: l10n.t("Import File (Preview)"),
             stepOne: l10n.t("Step 1: Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
@@ -2481,7 +2502,7 @@ export class LocConstants {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),
             restore: l10n.t("Restore"),
-            restoreDatabase: l10n.t("Restore Database"),
+            restoreDatabase: l10n.t("Restore Database (Preview)"),
             database: l10n.t("Database"),
             backupFile: l10n.t("Backup File"),
             url: l10n.t("URL"),
