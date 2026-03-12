@@ -1436,6 +1436,10 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
+    "Backup Database (Preview) - {0}/{0} is the database name": {
+        "message": "Backup Database (Preview) - {0}",
+        "comment": ["{0} is the database name"]
+    },
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1644,7 +1648,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
     "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
@@ -3205,10 +3208,6 @@
     "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
         "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
-    "Backup Database (Preview) - {0}/{0} is the database name": {
-        "message": "Backup Database (Preview) - {0}",
-        "comment": ["{0} is the database name"]
     },
     "Backup Name": "Backup Name",
     "Full": "Full",
