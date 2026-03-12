@@ -31,6 +31,7 @@ export interface ContentGroup {
 
 export interface ContentEntry {
     title: string;
+    isPreview?: boolean;
     icon?: string;
     description: string;
     codeSnippets?: string[];
