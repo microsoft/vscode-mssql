@@ -564,7 +564,7 @@
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
     "Ask GitHub Copilot to Fix": "Ask GitHub Copilot to Fix",
     "Open GitHub Copilot Chat to help fix these errors": "Open GitHub Copilot Chat to help fix these errors",
-    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
+    "Design Schemas with GitHub Copilot (Preview)": "Design Schemas with GitHub Copilot (Preview)",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
     "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
@@ -1096,7 +1096,7 @@
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
-    "Loading fabric provisioning...": "Loading fabric provisioning...",
+    "Loading Fabric provisioning...": "Loading Fabric provisioning...",
     "SQL database in Fabric": "SQL database in Fabric",
     "Create Database": "Create Database",
     "Loading workspaces": "Loading workspaces",
@@ -2987,10 +2987,6 @@
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
     "Row deleted.": "Row deleted.",
-    "{0}/{0} is the table name": {
-        "message": "{0}",
-        "comment": ["{0} is the table name"]
-    },
     "Failed to save changes: {0}/{0} is the error message": {
         "message": "Failed to save changes: {0}",
         "comment": ["{0} is the error message"]
@@ -3080,7 +3076,7 @@
     "Azure Data Studio Migration Toolkit - Now Including Keymap!": "Azure Data Studio Migration Toolkit - Now Including Keymap!",
     "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.": "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.": "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-    "Global Object Search": "Global Object Search",
+    "Global Object Search (Preview)": "Global Object Search (Preview)",
     "Search for database objects — tables, views, stored procedures, and more — across your entire database.": "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
     "Backup/Restore Dialogs": "Backup/Restore Dialogs",
     "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.": "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",

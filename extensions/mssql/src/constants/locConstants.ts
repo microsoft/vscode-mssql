@@ -2672,13 +2672,6 @@ export class TableExplorer {
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
     public static rowDeletedSuccessfully = l10n.t("Row deleted.");
 
-    public static title = (tableName: string) =>
-        l10n.t({
-            message: "{0}",
-            args: [tableName],
-            comment: ["{0} is the table name"],
-        });
-
     public static failedToSaveChanges = (errorMessage: string) =>
         l10n.t({
             message: "Failed to save changes: {0}",
@@ -2863,7 +2856,7 @@ export class Changelog {
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
     );
-    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchTitle = l10n.t("Global Object Search (Preview)");
     public static globalObjectSearchDescription = l10n.t(
         "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
     );

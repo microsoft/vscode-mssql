@@ -814,7 +814,9 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t(
+                "Design Schemas with GitHub Copilot (Preview)",
+            ),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
@@ -1672,7 +1674,7 @@ export class LocConstants {
 
     public get fabricProvisioning() {
         return {
-            loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
+            loadingFabricProvisioning: l10n.t("Loading Fabric provisioning..."),
             sqlDatabaseInFabric: l10n.t("SQL database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),

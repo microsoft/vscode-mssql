@@ -1851,8 +1851,8 @@
     <trans-unit id="++CODE++2a78a6e25a1789173021db2caeb2e463f9aa201b42a974feac5cf5be0a319e95">
       <source xml:lang="en">Design API</source>
     </trans-unit>
-    <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
-      <source xml:lang="en">Design Schemas with GitHub Copilot</source>
+    <trans-unit id="++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838">
+      <source xml:lang="en">Design Schemas with GitHub Copilot (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
       <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
@@ -3074,8 +3074,8 @@
     <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
       <source xml:lang="en">GitHub Copilot survey</source>
     </trans-unit>
-    <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
-      <source xml:lang="en">Global Object Search</source>
+    <trans-unit id="++CODE++475a2713cf8d32b97a932d5a0576c5eab1a58d2865a2d9aea5a0a25654afda3a">
+      <source xml:lang="en">Global Object Search (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
       <source xml:lang="en">Got invalid tool use parameters: &quot;{0}&quot;. ({1})</source>
@@ -3527,6 +3527,9 @@
     <trans-unit id="++CODE++c11efeef9812b5933f66f281e1df758fca0d28ff6c96462aa5caa7a72f0637ed">
       <source xml:lang="en">Loading Fabric Accounts</source>
     </trans-unit>
+    <trans-unit id="++CODE++d17dd48b24fa0afbcf8f22316dfb0f6d0fc0f84209b049d5e9e51875a30290a3">
+      <source xml:lang="en">Loading Fabric provisioning...</source>
+    </trans-unit>
     <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
       <source xml:lang="en">Loading Report</source>
     </trans-unit>
@@ -3564,9 +3567,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
-      <source xml:lang="en">Loading fabric provisioning...</source>
     </trans-unit>
     <trans-unit id="++CODE++2dd2f1e34594bff7a420c8f7f69d7933114f5f4e7efd583f515691dea65b63d8">
       <source xml:lang="en">Loading flat file import...</source>
@@ -6675,10 +6675,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e339e1215a49650aac5020b75e52326749d029c86d3e6be9c1dd313ec0c39d7e">
-      <source xml:lang="en">{0}</source>
-      <note>{0} is the table name</note>
     </trans-unit>
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>
