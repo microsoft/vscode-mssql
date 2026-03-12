@@ -67,6 +67,10 @@ type ActiveTaskInfo = {
     progressCallback: ProgressCallback;
     completionPromise: Deferred<void>;
     lastMessage?: string;
+    /** Script content received from any notification, used as fallback when script arrives out of order */
+    script?: string;
+    /** Stored completion status when a script-mode task completes before its script notification arrives */
+    completedStatus?: TaskProgressInfo;
 };
 type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
@@ -251,7 +255,30 @@ export class SqlTasksService {
             taskInfo.lastMessage = taskProgressInfo.message;
         }
 
+        // Always store script content from any notification that has one.
+        // STS sends script content via a ScriptAdded notification that may arrive
+        // out of order relative to the final StatusChanged notification.
+        if (taskProgressInfo.script) {
+            taskInfo.script = taskProgressInfo.script;
+        }
+
         if (isTaskCompleted(taskProgressInfo.status)) {
+            const scriptContent = taskProgressInfo.script || taskInfo.script;
+
+            // For script-mode tasks, if we don't have a script yet and haven't already
+            // deferred, wait for a subsequent notification that may carry the script.
+            // This handles the race condition where STS sends the final status notification
+            // (without script) before the script notification due to non-FIFO message ordering
+            // in the AsyncLock (SemaphoreSlim) used for parallel message processing.
+            if (
+                taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
+                !scriptContent &&
+                !taskInfo.completedStatus
+            ) {
+                taskInfo.completedStatus = taskProgressInfo;
+                return;
+            }
+
             // Check if there's a custom completion handler registered for this task
             const handler = taskInfo.taskInfo.operationName
                 ? this._completionHandlers.get(taskInfo.taskInfo.operationName)
@@ -317,12 +344,9 @@ export class SqlTasksService {
                 this.showCompletionMessage(taskProgressInfo.status, taskMessage);
             }
 
-            if (
-                taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
-                taskProgressInfo.script
-            ) {
+            if (taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script && scriptContent) {
                 await this._sqlDocumentService.newQuery({
-                    content: taskProgressInfo.script,
+                    content: scriptContent,
                     connectionStrategy: ConnectionStrategy.CopyLastActive,
                 });
             }
