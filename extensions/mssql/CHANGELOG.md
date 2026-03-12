@@ -8,9 +8,13 @@
 ### What's new in 1.41.0
 
 - Added Data API builder (Preview) support, enabling users to create REST, GraphQL, and MCP endpoints for SQL database tables from a visual interface within Visual Studio Code
+- Added GitHub Copilot integration in Data API builder (Preview), allowing users to generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools
 - Added Code Analysis settings dialog (GA) for SQL Database Projects so developers can configure DacFx rules directly to enforce code quality standards in their database development workflow
 - Added SQL Notebooks (Preview) support, allowing users to write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation
 - Added support for Fabric databases to the Query Profiler (Preview)
+- Released View & Edit Data as generally available (GA)
+- Released Data-tier Application (DACPAC) dialog as generally available (GA)
+- Released Microsoft Fabric integration as generally available (GA)
 - Improved Object Explorer context menu organization and usability
 
 ## Version 1.40.0
