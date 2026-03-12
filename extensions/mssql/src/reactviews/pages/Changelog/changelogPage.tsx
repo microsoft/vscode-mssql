@@ -3,20 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Card,
-    Link,
-    Text,
-    Title3,
-    makeStyles,
-    shorthands,
-} from "@fluentui/react-components";
+import { Card, Link, Text, Title3, makeStyles, shorthands } from "@fluentui/react-components";
 import {
     ArrowRight12Regular,
     ChevronDown20Regular,
     ChevronRight20Regular,
-    Dismiss12Filled,
 } from "@fluentui/react-icons";
 import React, { useState, useCallback } from "react";
 
@@ -50,62 +41,6 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         overflow: "hidden",
         minHeight: 0,
-    },
-    bannerContainer: {
-        position: "relative",
-        borderRadius: "8px",
-        maxHeight: "200px",
-        overflowY: "auto",
-        overflowX: "hidden",
-        backgroundColor: "transparent",
-        flexShrink: 0,
-        marginBottom: "16px",
-    },
-    banner: {
-        position: "relative",
-        padding: "15px",
-        display: "grid",
-        gridTemplateColumns: "200px 1fr",
-        gap: "24px",
-        width: "100%",
-        boxSizing: "border-box",
-        backgroundColor: "transparent",
-        "@media (max-width: 900px)": {
-            gridTemplateColumns: "1fr",
-        },
-        "::before": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "var(--vscode-button-background)",
-            opacity: 0.1,
-            zIndex: 0,
-            pointerEvents: "none",
-        },
-    },
-    bannerTitle: {
-        fontSize: "14px",
-        fontWeight: 600,
-        color: "var(--vscode-editor-foreground)",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        zIndex: 1,
-    },
-    bannerDismiss: {
-        position: "absolute",
-        top: "8px",
-        right: "8px",
-        minWidth: 0,
-        zIndex: 1,
-    },
-    bannerDescription: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-        justifyContent: "center",
-        position: "relative",
-        zIndex: 1,
     },
     codeSnippet: {
         backgroundColor: "var(--vscode-editor-background)",
@@ -243,7 +178,6 @@ export const ChangelogPage = () => {
     const sidebarContent = useChangelogSelector((s) => s?.sidebarContent) ?? [];
     const version = useChangelogSelector((s) => s?.version);
 
-    const [showBanner, setShowBanner] = useState(true);
     const [secondaryCollapsed, setSecondaryCollapsed] = useState(true);
     const [secondaryHeaderElement, setSecondaryHeaderElement] = useState<HTMLDivElement>();
     const secondaryHeaderRef = useCallback((element: HTMLDivElement) => {
@@ -268,12 +202,6 @@ export const ChangelogPage = () => {
             commandId: "workbench.action.openWalkthrough",
             args: [walkthroughId, ...args],
         });
-    };
-
-    const isSqlConOver = () => {
-        const sqlConEndDate = new Date("2026-03-21T00:00:00Z");
-        const currentDate = new Date();
-        return currentDate > sqlConEndDate;
     };
 
     const renderDescription = (index: number, description: string, codeSnippets?: string[]) => {
@@ -317,68 +245,6 @@ export const ChangelogPage = () => {
     return (
         <div className={classes.root}>
             <div className={classes.page}>
-                {showBanner && !isSqlConOver() && (
-                    <div className={classes.bannerContainer}>
-                        <div className={classes.banner}>
-                            <div className={classes.bannerTitle}>
-                                <Text
-                                    size={600}
-                                    weight="bold"
-                                    style={{
-                                        backgroundImage:
-                                            "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
-                                        backgroundClip: "text",
-                                        WebkitBackgroundClip: "text",
-                                        color: "transparent",
-                                    }}>
-                                    SQLCON
-                                </Text>
-                                <Text
-                                    size={300}
-                                    weight="semibold"
-                                    style={{
-                                        marginTop: "5px",
-                                    }}>
-                                    Microsoft SQL
-                                </Text>
-                                <Text size={300} weight="semibold">
-                                    COMMUNITY CONFERENCE
-                                </Text>
-                                <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
-                                    March 16-20, 2026 | ATLANTA
-                                </Text>
-                                <Button
-                                    style={{
-                                        marginTop: "10px",
-                                        width: "100px",
-                                    }}
-                                    onClick={() => openLink("https://aka.ms/sqlcon")}
-                                    appearance="primary">
-                                    Register
-                                </Button>
-                            </div>
-                            <div className={classes.bannerDescription}>
-                                <Text>
-                                    Discover how SQL database in Fabric, Azure SQL and SQL Server
-                                    are redefining modern app development.
-                                    <br /> Join engineers and peers pushing the limits of
-                                    performance, Al integration, and developer productivity.
-                                </Text>
-                                <Text>
-                                    Use code <span className={classes.codeSnippet}>VSCODE-200</span>
-                                    to get your exclusive VS Code discount
-                                </Text>
-                            </div>
-                            <Button
-                                appearance="transparent"
-                                icon={<Dismiss12Filled />}
-                                className={classes.bannerDismiss}
-                                onClick={() => {
-                                    setShowBanner(false);
-                                }}></Button>
-                        </div>
-                    </div>
-                )}
                 <div className={classes.contentLayout}>
                     <div className={classes.scrollableContent}>
                         <Title3 as="h2" style={{ margin: "0 0 8px 0" }}>

@@ -2844,7 +2844,6 @@ export class Changelog {
     public static tryIt = l10n.t("Try it");
     public static watchDemo = l10n.t("Watch demo");
     public static learnMore = l10n.t("Learn more");
-    public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
     public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
