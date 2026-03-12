@@ -7507,6 +7507,9 @@
     <trans-unit id="mssql.toggleActualPlan">
       <source xml:lang="en">Toggle Actual Plan</source>
     </trans-unit>
+    <trans-unit id="mssql.toggleQueryResultPanel">
+      <source xml:lang="en">Toggle Query Result Panel Visibility</source>
+    </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
     </trans-unit>

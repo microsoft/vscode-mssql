@@ -996,7 +996,7 @@
             },
             {
                 "command": "mssql.toggleQueryResultPanel",
-                "title": "Toggle Query Result Panel",
+                "title": "%mssql.toggleQueryResultPanel%",
                 "category": "MS SQL"
             },
             {
