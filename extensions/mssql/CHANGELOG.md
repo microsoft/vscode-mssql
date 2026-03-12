@@ -7,9 +7,9 @@
 
 ### What's new in 1.41.0
 
-- Added Data API Builder support (Preview) to Schema Designer, enabling users to quickly and easily generate REST and GraphQL endpoints for your database schema
+- Added Data API builder (Preview) support, enabling users to create REST, GraphQL, and MCP endpoints for SQL database tables from a visual interface within Visual Studio Code
 - Added Code Analysis settings dialog (GA) for SQL Database Projects so developers can configure DacFx rules directly to enforce code quality standards in their database development workflow
-- Added SQL Notebook support (Preview) allowing users to use SQL queries in their Jupyter notebooks
+- Added SQL Notebooks (Preview) support, allowing users to write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation
 - Added support for Fabric databases to the Query Profiler (Preview)
 - Improved Object Explorer context menu organization and usability
 
