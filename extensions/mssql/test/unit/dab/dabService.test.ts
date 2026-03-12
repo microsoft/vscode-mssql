@@ -43,12 +43,6 @@ const defaultConnectionInfo: Dab.DabConnectionInfo = {
     connectionString: "Server=localhost;Database=TestDb;Trusted_Connection=true;",
 };
 
-type DabServiceWithTransform = {
-    transformConnectionInfoForDocker: (
-        connectionInfo: Dab.DabConnectionInfo,
-    ) => Dab.DabConnectionInfo;
-};
-
 suite("DabService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let dabService: DabService;
@@ -90,9 +84,7 @@ suite("DabService Tests", () => {
             connectionString: string,
             sqlServerContainerName?: string,
         ): Dab.DabConnectionInfo {
-            return (
-                dabService as unknown as DabServiceWithTransform
-            ).transformConnectionInfoForDocker({
+            return (dabService as any).transformConnectionInfoForDocker({
                 connectionString,
                 sqlServerContainerName,
             });
@@ -341,9 +333,7 @@ suite("DabService Tests", () => {
                     connectionString: "Server=remote-server;Database=TestDb;",
                     sqlServerContainerName: "some-container",
                 };
-                const result = (
-                    dabService as unknown as DabServiceWithTransform
-                ).transformConnectionInfoForDocker(input);
+                const result = (dabService as any).transformConnectionInfoForDocker(input);
                 expect(result).to.equal(input);
             });
         });
@@ -668,7 +658,7 @@ suite("DabService Tests", () => {
         test("should handle undefined success as false", async () => {
             sandbox
                 .stub(dabContainer, "stopAndRemoveDabContainer")
-                .resolves({ success: undefined as unknown as boolean });
+                .resolves({ success: undefined as any });
 
             const result = await dabService.stopDeployment("test-container");
 

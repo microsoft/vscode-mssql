@@ -20,7 +20,6 @@ import {
 } from "../docker/dockerUtils";
 import {
     checkIfDabContainerIsReady,
-    filterDabContainerLogsForDisplay,
     findAvailableDabPort,
     pullDabContainerImage,
     startDabDockerContainer,
@@ -210,13 +209,9 @@ export class DabService implements Dab.IDabService {
                             apiUrl: `http://localhost:${params.port}`,
                         };
                     } else {
-                        const filteredContainerLogs = filterDabContainerLogsForDisplay(
-                            containerResult.fullErrorText,
-                        );
                         result = {
                             ...containerResult,
-                            fullErrorText: filteredContainerLogs ?? containerResult.fullErrorText,
-                            containerLogs: filteredContainerLogs ?? containerResult.fullErrorText,
+                            containerLogs: containerResult.fullErrorText,
                         };
                     }
                 } catch (e) {

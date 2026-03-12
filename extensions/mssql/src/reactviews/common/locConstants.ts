@@ -1411,12 +1411,6 @@ export class LocConstants {
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
             containerLogs: l10n.t("Container logs"),
-            showingFirstCharacters: (count: number) =>
-                l10n.t({
-                    message: "Showing first {0} characters.",
-                    args: [count],
-                    comment: ["{0} is the number of characters shown in the inline log preview"],
-                }),
         };
     }
 
