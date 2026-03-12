@@ -204,7 +204,7 @@ export const DabDeploymentComplete = ({
                             icon={<Open16Regular />}
                             size="small"
                             className={classes.actionButton}
-                            onClick={() => openUrl(ep.openUrlConfig!.url)}
+                            onClick={() => openUrl(ep.openUrlConfig!.url, ep.type)}
                             aria-label={ep.openUrlConfig.label}
                             title={ep.openUrlConfig.label}>
                             {ep.openUrlConfig.label}
