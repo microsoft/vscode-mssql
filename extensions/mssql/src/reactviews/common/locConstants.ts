@@ -2452,7 +2452,7 @@ export class LocConstants {
 
     public get flatFileImport() {
         return {
-            importFile: l10n.t("Import File"),
+            importFile: l10n.t("Import File (Preview)"),
             stepOne: l10n.t("Step 1: Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
