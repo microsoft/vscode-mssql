@@ -1000,6 +1000,11 @@
                 "icon": "$(table)"
             },
             {
+                "command": "mssql.toggleQueryResultPanel",
+                "title": "%mssql.toggleQueryResultPanel%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.connect",
                 "title": "%mssql.connect%",
                 "category": "MS SQL",
