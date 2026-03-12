@@ -347,6 +347,24 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             // Pre-transform all metadata to SearchResultItems and cache them
             // This avoids re-transforming on every filter change
             const searchResultItems = metadata.map((obj) => this.toSearchResultItem(obj));
+
+            // Sort cached items once by schema, type name, then name (ascending).
+            // Since Array.filter preserves order, subsequent filter operations
+            // in applyFiltersAndSearch will maintain this sort.
+            searchResultItems.sort((a, b) => {
+                const schemaCompare = a.schema.localeCompare(b.schema);
+                if (schemaCompare !== 0) {
+                    return schemaCompare;
+                }
+
+                const typeCompare = a.typeName.localeCompare(b.typeName);
+                if (typeCompare !== 0) {
+                    return typeCompare;
+                }
+
+                return a.name.localeCompare(b.name);
+            });
+
             this._searchResultItemCache.set(cacheKey, searchResultItems);
 
             // Extract unique schemas and sort alphabetically
@@ -456,21 +474,6 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                 return name.includes(searchLower) || schema.includes(searchLower);
             });
         }
-
-        // Default sort: schema name, object type, then object name (ascending)
-        results.sort((a, b) => {
-            const schemaCompare = a.schema.localeCompare(b.schema);
-            if (schemaCompare !== 0) {
-                return schemaCompare;
-            }
-
-            const typeCompare = a.typeName.localeCompare(b.typeName);
-            if (typeCompare !== 0) {
-                return typeCompare;
-            }
-
-            return a.name.localeCompare(b.name);
-        });
 
         this.state.searchResults = results;
         this.state.totalResultCount = results.length;
