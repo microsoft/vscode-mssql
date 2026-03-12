@@ -27,8 +27,8 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
 export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
@@ -1709,6 +1709,7 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
+    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -2550,7 +2551,7 @@ export class ConnectionGroup {
 }
 
 export class DacpacDialog {
-    public static Title = l10n.t("Data-tier Application (Preview)");
+    public static Title = l10n.t("Data-tier Application");
     public static FilePathRequired = l10n.t("File path is required");
     public static FileNotFound = l10n.t("File not found");
     public static InvalidFileExtension = l10n.t(
@@ -2620,7 +2621,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects - {0}",
+            message: "Search Database Objects (Preview) - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -2673,7 +2674,7 @@ export class TableExplorer {
 
     public static title = (tableName: string) =>
         l10n.t({
-            message: "{0} (Preview)",
+            message: "{0}",
             args: [tableName],
             comment: ["{0} is the table name"],
         });
@@ -3145,7 +3146,7 @@ export class Proxy {
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
-            message: "Backup Database - {0}",
+            message: "Backup Database (Preview) - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
@@ -3273,7 +3274,7 @@ export class FlatFileImport {
 }
 
 export class RestoreDatabase {
-    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static restoreDatabaseTitle = l10n.t("Restore Database (Preview)");
     public static sourceDatabase = l10n.t("Source Database");
     public static targetDatabase = l10n.t("Target Database");
     public static files = l10n.t("Files");

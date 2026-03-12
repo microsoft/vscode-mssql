@@ -559,8 +559,8 @@
     <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
       <source xml:lang="en">Backup</source>
     </trans-unit>
-    <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
-      <source xml:lang="en">Backup Database - {0}</source>
+    <trans-unit id="++CODE++131339547c38a888800811c65663ba4a48be297f76a3ffdf6075afd06b591df8">
+      <source xml:lang="en">Backup Database (Preview) - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
@@ -1539,8 +1539,8 @@
     <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
       <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
     </trans-unit>
-    <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
-      <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
+    <trans-unit id="++CODE++09fa1b862a69dc1d82e2cce4c5330d7e9769cdcc2c7521f2927aa20b32a0401c">
+      <source xml:lang="en">Create a SQL database in Fabric</source>
     </trans-unit>
     <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
       <source xml:lang="en">Create a new connection profile</source>
@@ -1685,8 +1685,8 @@
     <trans-unit id="++CODE++8a9889070cc5b808819105a414532c19eb1ace48a6acd6350d5e4aa7576f6ba8">
       <source xml:lang="en">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export</source>
     </trans-unit>
-    <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
-      <source xml:lang="en">Data-tier Application (Preview)</source>
+    <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
+      <source xml:lang="en">Data-tier Application</source>
     </trans-unit>
     <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
       <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -1972,9 +1972,6 @@
       <source xml:lang="en">Drop &apos;{0}&apos; from &apos;{1}&apos;. This action cannot be undone.</source>
       <note>{0} is the database name
 {1} is the server name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
-      <source xml:lang="en">Drop Database</source>
     </trans-unit>
     <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
       <source xml:lang="en">Drop Database (Preview)</source>
@@ -2454,8 +2451,8 @@
       <note>{0} is the error code
 {1} is the error message</note>
     </trans-unit>
-    <trans-unit id="++CODE++c85fb96bbfbe33bde4a67a8e9223c63dc3a3f817428e22ff8357a1ae30f6f4eb">
-      <source xml:lang="en">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</source>
+    <trans-unit id="++CODE++5fc7bd97ddd011e91f597d536094bae35078dba376cd8d7816f6d68b0917b4e8">
+      <source xml:lang="en">Fabric targets are currently not supported, and we are working to improve the experience.</source>
     </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
@@ -3188,8 +3185,8 @@
     <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
       <source xml:lang="en">Import Data</source>
     </trans-unit>
-    <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
-      <source xml:lang="en">Import File</source>
+    <trans-unit id="++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c">
+      <source xml:lang="en">Import File (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
       <source xml:lang="en">Import Flat File (Preview)</source>
@@ -4941,8 +4938,8 @@
       <source xml:lang="en">Restore ({0})</source>
       <note>{0} is the keyboard shortcut for restoring the grid</note>
     </trans-unit>
-    <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
-      <source xml:lang="en">Restore Database</source>
+    <trans-unit id="++CODE++5b7f462ae3c2f088449521a194e6c2b8833bd4acd5c877f6e13f55681d4d931d">
+      <source xml:lang="en">Restore Database (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
       <source xml:lang="en">Restore Panel Size</source>
@@ -5114,8 +5111,8 @@
       <source xml:lang="en">SQL Server {0} - latest</source>
       <note>{0} is the SQL Server version</note>
     </trans-unit>
-    <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
-      <source xml:lang="en">SQL database in Fabric (Preview)</source>
+    <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
+      <source xml:lang="en">SQL database in Fabric</source>
     </trans-unit>
     <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
       <source xml:lang="en">SQLCMD Variables</source>
@@ -5290,11 +5287,11 @@
     <trans-unit id="++CODE++0fa2fcc906f37ba513ba034858611a8ca8efb5bada90e29e0c66b5679dea5b92">
       <source xml:lang="en">Script copied to clipboard.</source>
     </trans-unit>
-    <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
-      <source xml:lang="en">Search Database Objects</source>
+    <trans-unit id="++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804">
+      <source xml:lang="en">Search Database Objects (Preview)</source>
     </trans-unit>
-    <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
-      <source xml:lang="en">Search Database Objects - {0}</source>
+    <trans-unit id="++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3">
+      <source xml:lang="en">Search Database Objects (Preview) - {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
@@ -6466,8 +6463,8 @@
     <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
       <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
     </trans-unit>
-    <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
-      <source xml:lang="en">Visualize and Design Schema</source>
+    <trans-unit id="++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c">
+      <source xml:lang="en">Visualize and Design Schema (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
       <source xml:lang="en">Warning</source>
@@ -6679,13 +6676,13 @@
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++e339e1215a49650aac5020b75e52326749d029c86d3e6be9c1dd313ec0c39d7e">
+      <source xml:lang="en">{0}</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>
       <note>{0} is the account display name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
-      <source xml:lang="en">{0} (Preview)</source>
-      <note>{0} is the table name</note>
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
@@ -7099,7 +7096,7 @@
       <source xml:lang="en">Edit Connection...</source>
     </trans-unit>
     <trans-unit id="mssql.tableExplorer">
-      <source xml:lang="en">Edit Table Data (Preview)...</source>
+      <source xml:lang="en">Edit Table Data...</source>
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan</source>
@@ -7396,7 +7393,7 @@
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
     <trans-unit id="mssql.searchDatabase">
-      <source xml:lang="en">Search Database Objects...</source>
+      <source xml:lang="en">Search Database Objects (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
@@ -7579,7 +7576,7 @@
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>
     <trans-unit id="mssql.schemaDesigner">
-      <source xml:lang="en">Visualize and Design Schema...</source>
+      <source xml:lang="en">Visualize and Design Schema (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.transferActiveEditorConnections.description">
       <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
