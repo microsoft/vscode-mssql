@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Spinner, Card, Button, Text, makeStyles, tokens } from "@fluentui/react-components";
+import {
+    Spinner,
+    Card,
+    Button,
+    Text,
+    makeStyles,
+    tokens,
+    Toolbar,
+} from "@fluentui/react-components";
 import {
     Checkmark20Regular,
     ChevronDown20Regular,
@@ -19,8 +27,6 @@ import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { useDabContext } from "../dabContext";
 import { getDabStepLabels } from "./dabDeploymentUtils";
-
-const LOG_PREVIEW_CHAR_COUNT = 2000;
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -82,15 +88,6 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase200,
         background: tokens.colorNeutralBackground1,
     },
-    logMeta: {
-        padding: "0 8px 8px",
-        color: tokens.colorNeutralForeground3,
-    },
-    logActions: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-    },
 });
 
 interface DabStepCardProps {
@@ -106,9 +103,6 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const isError = stepStatus.status === ApiStatus.Error;
     const isCompleted = stepStatus.status === ApiStatus.Loaded;
     const hasContainerLogs = !!stepStatus.containerLogs?.trim();
-    const logPreview = stepStatus.containerLogs?.slice(0, LOG_PREVIEW_CHAR_COUNT);
-    const areLogsTruncated =
-        !!stepStatus.containerLogs && stepStatus.containerLogs.length > LOG_PREVIEW_CHAR_COUNT;
 
     // Auto-expand on error
     useEffect(() => {
@@ -167,7 +161,7 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
                                 <Text weight="semibold">
                                     {locConstants.schemaDesigner.containerLogs}
                                 </Text>
-                                <div className={classes.logActions}>
+                                <Toolbar size="small">
                                     <Button
                                         size="small"
                                         appearance="subtle"
@@ -193,16 +187,9 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
                                         }>
                                         {locConstants.queryResult.openResultInNewTab}
                                     </Button>
-                                </div>
+                                </Toolbar>
                             </div>
-                            <pre className={classes.logPreview}>{logPreview}</pre>
-                            {areLogsTruncated && (
-                                <Text size={200} className={classes.logMeta}>
-                                    {locConstants.schemaDesigner.showingFirstCharacters(
-                                        LOG_PREVIEW_CHAR_COUNT,
-                                    )}
-                                </Text>
-                            )}
+                            <pre className={classes.logPreview}>{stepStatus.containerLogs}</pre>
                         </div>
                     )}
                 </div>
