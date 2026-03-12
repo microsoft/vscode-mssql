@@ -304,8 +304,12 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
             since: startTimestampSeconds,
             maxBufferLength: readyMessage.length * 2,
         });
-        const isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
-        logMonitor.dispose();
+        let isReady = false;
+        try {
+            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
+        } finally {
+            logMonitor.dispose();
+        }
         if (isReady) {
             dockerLogger.appendLine(`${containerName} is ready for connections!`);
             return { success: true };
