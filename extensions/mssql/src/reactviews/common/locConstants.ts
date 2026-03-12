@@ -1043,7 +1043,7 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
             dabNavLabel: l10n.t("Build Data API (Preview)"),
             showChangesButtonLabel: l10n.t("Show Changes"),
             hideChangesButtonLabel: l10n.t("Hide Changes"),
@@ -1620,7 +1620,7 @@ export class LocConstants {
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric (Preview)"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
@@ -1668,7 +1668,7 @@ export class LocConstants {
     public get fabricProvisioning() {
         return {
             loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
-            sqlDatabaseInFabric: l10n.t("SQL database in Fabric (Preview)"),
+            sqlDatabaseInFabric: l10n.t("SQL database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             errorLoadingWorkspaces: l10n.t(
@@ -1792,7 +1792,7 @@ export class LocConstants {
 
     public get dacpacDialog() {
         return {
-            title: l10n.t("Data-tier Application (Preview)"),
+            title: l10n.t("Data-tier Application"),
             subtitle: l10n.t(
                 "Deploy, extract, import, or export data-tier applications on the selected database",
             ),
@@ -1860,7 +1860,7 @@ export class LocConstants {
             ),
             learnMore: l10n.t("Learn More"),
             fabricWarning: l10n.t(
-                "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
+                "Fabric targets are currently not supported, and we are working to improve the experience.",
             ),
             fabricWarningLearnMore: l10n.t("Learn more about this issue."),
         };
@@ -1899,7 +1899,7 @@ export class LocConstants {
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects"),
+            title: l10n.t("Search Database Objects (Preview)"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
@@ -2225,6 +2225,12 @@ export class LocConstants {
 
     public get backupDatabase() {
         return {
+            backupDatabaseTitle: (databaseName: string) =>
+                l10n.t({
+                    message: "Backup Database (Preview) - {0}",
+                    args: [databaseName],
+                    comment: ["{0} is the database name"],
+                }),
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
             script: l10n.t("Script"),
@@ -2457,7 +2463,7 @@ export class LocConstants {
 
     public get flatFileImport() {
         return {
-            importFile: l10n.t("Import File"),
+            importFile: l10n.t("Import File (Preview)"),
             stepOne: l10n.t("Step 1: Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
@@ -2494,7 +2500,7 @@ export class LocConstants {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),
             restore: l10n.t("Restore"),
-            restoreDatabase: l10n.t("Restore Database"),
+            restoreDatabase: l10n.t("Restore Database (Preview)"),
             database: l10n.t("Database"),
             backupFile: l10n.t("Backup File"),
             url: l10n.t("URL"),

@@ -298,7 +298,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             padding: "10px",
                         }}
                         src={themeKind === ColorThemeKind.Dark ? backupDarkIcon : backupLightIcon}
-                        alt={`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
+                        alt={locConstants.backupDatabase.backupDatabaseTitle(
+                            backupViewModel.databaseName,
+                        )}
                         height={60}
                         width={60}
                     />
@@ -308,7 +310,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             lineHeight: "60px",
                         }}
                         weight="medium">
-                        {`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
+                        {locConstants.backupDatabase.backupDatabaseTitle(
+                            backupViewModel.databaseName,
+                        )}
                     </Text>
                 </div>
                 {dialog?.type === "fileBrowser" && fileBrowserState && (

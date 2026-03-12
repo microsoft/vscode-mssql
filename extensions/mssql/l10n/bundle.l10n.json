@@ -716,7 +716,7 @@
     "Redo": "Redo",
     "Search tables...": "Search tables...",
     "Show table relationships": "Show table relationships",
-    "Visualize and Design Schema": "Visualize and Design Schema",
+    "Visualize and Design Schema (Preview)": "Visualize and Design Schema (Preview)",
     "Build Data API (Preview)": "Build Data API (Preview)",
     "Show Changes": "Show Changes",
     "Hide Changes": "Hide Changes",
@@ -1071,7 +1071,7 @@
     "Local SQL Server database container": "Local SQL Server database container",
     "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
     "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
-    "Create a SQL database in Fabric (Preview)": "Create a SQL database in Fabric (Preview)",
+    "Create a SQL database in Fabric": "Create a SQL database in Fabric",
     "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
     "Loading local containers...": "Loading local containers...",
     "Instant Container Setup": "Instant Container Setup",
@@ -1093,7 +1093,7 @@
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Loading fabric provisioning...": "Loading fabric provisioning...",
-    "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
+    "SQL database in Fabric": "SQL database in Fabric",
     "Create Database": "Create Database",
     "Loading workspaces": "Loading workspaces",
     "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
@@ -1163,7 +1163,7 @@
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
-    "Data-tier Application (Preview)": "Data-tier Application (Preview)",
+    "Data-tier Application": "Data-tier Application",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
@@ -1213,7 +1213,7 @@
     "A database with this name already exists on the server": "A database with this name already exists on the server",
     "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
     "Learn More": "Learn More",
-    "Fabric targets are currently not supported in this preview, and we are working to improve the experience.": "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
+    "Fabric targets are currently not supported, and we are working to improve the experience.": "Fabric targets are currently not supported, and we are working to improve the experience.",
     "Learn more about this issue.": "Learn more about this issue.",
     "Save Changes": "Save Changes",
     "Add Row": "Add Row",
@@ -1239,7 +1239,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
-    "Search Database Objects": "Search Database Objects",
+    "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
         "message": "Connecting to {0}...",
@@ -1441,6 +1441,10 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
+    "Backup Database (Preview) - {0}/{0} is the database name": {
+        "message": "Backup Database (Preview) - {0}",
+        "comment": ["{0} is the database name"]
+    },
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1592,7 +1596,7 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File": "Import File",
+    "Import File (Preview)": "Import File (Preview)",
     "Step 1: Specify Input File": "Step 1: Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
@@ -1611,7 +1615,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database": "Restore Database",
+    "Restore Database (Preview)": "Restore Database (Preview)",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -1649,7 +1653,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
     "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
@@ -2951,8 +2954,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Search Database Objects - {0}/{0} is the server name": {
-        "message": "Search Database Objects - {0}",
+    "Search Database Objects (Preview) - {0}/{0} is the server name": {
+        "message": "Search Database Objects (Preview) - {0}",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
@@ -2977,8 +2980,8 @@
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
     "Row deleted.": "Row deleted.",
-    "{0} (Preview)/{0} is the table name": {
-        "message": "{0} (Preview)",
+    "{0}/{0} is the table name": {
+        "message": "{0}",
         "comment": ["{0} is the table name"]
     },
     "Failed to save changes: {0}/{0} is the error message": {
@@ -3210,10 +3213,6 @@
     "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
         "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
-    "Backup Database - {0}/{0} is the database name": {
-        "message": "Backup Database - {0}",
-        "comment": ["{0} is the database name"]
     },
     "Backup Name": "Backup Name",
     "Full": "Full",
