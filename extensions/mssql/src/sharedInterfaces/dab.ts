@@ -291,6 +291,7 @@ export namespace Dab {
               reason:
                   | "stale_state"
                   | "not_found"
+                  | "entity_not_supported"
                   | "invalid_request"
                   | "validation_error"
                   | "internal_error";
@@ -851,6 +852,96 @@ export namespace Dab {
                 entityName: table.name,
                 authorizationRole: AuthorizationRole.Anonymous,
             },
+        };
+    }
+
+    function cloneUnsupportedReasons(
+        reasons: DabUnsupportedReason[] | undefined,
+    ): DabUnsupportedReason[] | undefined {
+        return reasons?.map((reason) => ({ ...reason }));
+    }
+
+    function cloneConfig(config: DabConfig): DabConfig {
+        return {
+            apiTypes: [...config.apiTypes],
+            entities: config.entities.map((entity) => ({
+                ...entity,
+                enabledActions: [...entity.enabledActions],
+                unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
+                advancedSettings: { ...entity.advancedSettings },
+            })),
+        };
+    }
+
+    export function syncEntityConfigWithTable(
+        entity: DabEntityConfig,
+        table: SchemaDesigner.Table,
+    ): DabEntityConfig {
+        const { isSupported, reasons } = validateTableForDab(table);
+        return {
+            ...entity,
+            tableName: table.name,
+            schemaName: table.schema,
+            isSupported,
+            unsupportedReasons: reasons,
+            // Unsupported entities must remain disabled until the schema is fixed.
+            isEnabled: !isSupported ? false : entity.isEnabled,
+        };
+    }
+
+    export function syncConfigWithSchema(
+        currentConfig: DabConfig | null,
+        schemaTables: SchemaDesigner.Table[],
+    ): { config: DabConfig; changed: boolean } {
+        let changed = false;
+        const normalizedConfig = currentConfig
+            ? cloneConfig(currentConfig)
+            : createDefaultConfig(schemaTables);
+        if (!currentConfig) {
+            changed = true;
+        }
+
+        const tablesById = new Map(schemaTables.map((table) => [table.id, table]));
+        const syncedEntities: DabEntityConfig[] = [];
+
+        for (const entity of normalizedConfig.entities) {
+            const table = tablesById.get(entity.id);
+            if (!table) {
+                changed = true;
+                continue;
+            }
+
+            const syncedEntity = syncEntityConfigWithTable(entity, table);
+            if (
+                entity.tableName !== syncedEntity.tableName ||
+                entity.schemaName !== syncedEntity.schemaName ||
+                entity.isSupported !== syncedEntity.isSupported ||
+                JSON.stringify(entity.unsupportedReasons) !==
+                    JSON.stringify(syncedEntity.unsupportedReasons) ||
+                entity.isEnabled !== syncedEntity.isEnabled
+            ) {
+                changed = true;
+            }
+
+            syncedEntities.push(syncedEntity);
+            tablesById.delete(entity.id);
+        }
+
+        for (const table of schemaTables) {
+            if (!tablesById.has(table.id)) {
+                continue;
+            }
+
+            syncedEntities.push(createDefaultEntityConfig(table));
+            changed = true;
+        }
+
+        return {
+            config: {
+                ...normalizedConfig,
+                entities: syncedEntities,
+            },
+            changed,
         };
     }
 
