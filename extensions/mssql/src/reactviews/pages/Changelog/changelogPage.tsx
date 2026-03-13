@@ -556,7 +556,7 @@ export const ChangelogPage = () => {
 
     const renderHighlightEntry = (entry: ContentEntry, index: number) => {
         const changeIcon = entry.icon ? changelogIcons[entry.icon] : undefined;
-        const iconSize = 48;
+        const iconSize = 40;
 
         return (
             <div

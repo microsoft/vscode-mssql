@@ -2852,7 +2852,7 @@ export class Changelog {
     );
     public static dabTitle = l10n.t("Data API builder");
     public static dabDescription = l10n.t(
-        "View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+        "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
     );
     public static dabCopilotTitle = l10n.t("GitHub Copilot integration in Data API builder");
     public static dabCopilotDescription = l10n.t(
@@ -2884,7 +2884,7 @@ export class Changelog {
     );
     public static editDataTitle = l10n.t("Edit Data");
     public static editDataDescription = l10n.t(
-        "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
+        "View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
     );
     public static fabricIntegrationTitle = l10n.t("Microsoft Fabric integration");
     public static fabricIntegrationDescription = l10n.t(
