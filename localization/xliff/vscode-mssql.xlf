@@ -2454,9 +2454,6 @@
       <note>{0} is the error code
 {1} is the error message</note>
     </trans-unit>
-    <trans-unit id="++CODE++5fc7bd97ddd011e91f597d536094bae35078dba376cd8d7816f6d68b0917b4e8">
-      <source xml:lang="en">Fabric targets are currently not supported, and we are working to improve the experience.</source>
-    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>
@@ -3385,9 +3382,6 @@
     </trans-unit>
     <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
       <source xml:lang="en">Learn more about SQL Server 2025 features</source>
-    </trans-unit>
-    <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
-      <source xml:lang="en">Learn more about this issue.</source>
     </trans-unit>
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>

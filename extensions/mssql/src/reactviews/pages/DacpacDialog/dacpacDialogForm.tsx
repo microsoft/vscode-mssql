@@ -687,7 +687,6 @@ export const DacpacDialogForm = () => {
                     isOperationInProgress={isOperationInProgress}
                     validationMessages={validationMessages}
                     onServerChange={(profileId) => void handleServerChange(profileId)}
-                    isFabric={isFabric}
                 />
 
                 {/* For Extract/Export: Show database selection BEFORE file path */}

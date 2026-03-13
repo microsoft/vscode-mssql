@@ -1875,10 +1875,6 @@ export class LocConstants {
                 "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
             ),
             learnMore: l10n.t("Learn More"),
-            fabricWarning: l10n.t(
-                "Fabric targets are currently not supported, and we are working to improve the experience.",
-            ),
-            fabricWarningLearnMore: l10n.t("Learn more about this issue."),
         };
     }
 
