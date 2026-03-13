@@ -79,17 +79,6 @@ export function getAzureActiveDirectoryConfig(): AzureAuthType {
     }
 }
 
-export function getEnableSqlAuthenticationProviderConfig(): boolean {
-    const config = getConfiguration();
-    if (config) {
-        const val: boolean | undefined = config.get(Constants.sqlAuthProviderSection);
-        if (val !== undefined) {
-            return val;
-        }
-    }
-    return true; // default setting
-}
-
 export function getEnableConnectionPoolingConfig(): boolean {
     const config = getConfiguration();
     if (config) {

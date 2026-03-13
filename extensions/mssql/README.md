@@ -145,7 +145,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
-  "mssql.enableSqlAuthenticationProvider": true,           // Enable SQL authentication support
   "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
 }
 
