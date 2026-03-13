@@ -12,6 +12,7 @@ import {
     Option,
     Radio,
     RadioGroup,
+    Spinner,
 } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 
@@ -30,9 +31,11 @@ interface TargetDatabaseSectionProps {
     setIsNewDatabase: (value: boolean) => void;
     availableDatabases: string[];
     isOperationInProgress: boolean;
+    isLoadingDatabases: boolean;
     ownerUri: string;
     validationMessages: Record<string, ValidationMessage>;
     isFabric?: boolean;
+    onDropdownOpen?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -55,9 +58,11 @@ export const TargetDatabaseSection = ({
     setIsNewDatabase,
     availableDatabases,
     isOperationInProgress,
+    isLoadingDatabases,
     ownerUri,
     validationMessages,
     isFabric = false,
+    onDropdownOpen,
 }: TargetDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -117,14 +122,30 @@ export const TargetDatabaseSection = ({
                         placeholder={locConstants.dacpacDialog.selectDatabase}
                         value={databaseName}
                         selectedOptions={[databaseName]}
-                        onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
+                        onOptionSelect={(_, data) => {
+                            if (!isLoadingDatabases) {
+                                setDatabaseName(data.optionText || "");
+                            }
+                        }}
+                        onOpenChange={(_, data) => {
+                            if (data.open && onDropdownOpen) {
+                                onDropdownOpen();
+                            }
+                        }}
                         disabled={isOperationInProgress || !ownerUri}
                         aria-label={locConstants.dacpacDialog.databaseNameLabel}>
-                        {availableDatabases.map((db) => (
-                            <Option key={db} value={db}>
-                                {db}
+                        {isLoadingDatabases ? (
+                            <Option key="__loading__" value="" text="" disabled>
+                                <Spinner size="extra-tiny" />{" "}
+                                {locConstants.dacpacDialog.loadingDatabases}
                             </Option>
-                        ))}
+                        ) : (
+                            availableDatabases.map((db) => (
+                                <Option key={db} value={db}>
+                                    {db}
+                                </Option>
+                            ))
+                        )}
                     </Dropdown>
                 </Field>
             )}

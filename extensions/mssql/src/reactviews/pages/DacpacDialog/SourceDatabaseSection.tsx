@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dropdown, Field, Input, makeStyles, Option } from "@fluentui/react-components";
+import { Dropdown, Field, Input, makeStyles, Option, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 
 /**
@@ -19,11 +19,13 @@ interface SourceDatabaseSectionProps {
     setDatabaseName: (value: string) => void;
     availableDatabases: string[];
     isOperationInProgress: boolean;
+    isLoadingDatabases: boolean;
     ownerUri: string;
     validationMessages: Record<string, ValidationMessage>;
     showDatabaseSource: boolean;
     showNewDatabase: boolean;
     isFabric?: boolean;
+    onDropdownOpen?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -39,11 +41,13 @@ export const SourceDatabaseSection = ({
     setDatabaseName,
     availableDatabases,
     isOperationInProgress,
+    isLoadingDatabases,
     ownerUri,
     validationMessages,
     showDatabaseSource,
     showNewDatabase,
     isFabric = false,
+    onDropdownOpen,
 }: SourceDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -67,14 +71,30 @@ export const SourceDatabaseSection = ({
                         placeholder={locConstants.dacpacDialog.selectDatabase}
                         value={databaseName}
                         selectedOptions={[databaseName]}
-                        onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
+                        onOptionSelect={(_, data) => {
+                            if (!isLoadingDatabases) {
+                                setDatabaseName(data.optionText || "");
+                            }
+                        }}
+                        onOpenChange={(_, data) => {
+                            if (data.open && onDropdownOpen) {
+                                onDropdownOpen();
+                            }
+                        }}
                         disabled={isOperationInProgress || !ownerUri || isFabric}
                         aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
-                        {availableDatabases.map((db) => (
-                            <Option key={db} value={db}>
-                                {db}
+                        {isLoadingDatabases ? (
+                            <Option key="__loading__" value="" text="" disabled>
+                                <Spinner size="extra-tiny" />{" "}
+                                {locConstants.dacpacDialog.loadingDatabases}
                             </Option>
-                        ))}
+                        ) : (
+                            availableDatabases.map((db) => (
+                                <Option key={db} value={db}>
+                                    {db}
+                                </Option>
+                            ))
+                        )}
                     </Dropdown>
                 </Field>
             ) : (
