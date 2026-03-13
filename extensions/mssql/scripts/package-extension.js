@@ -87,12 +87,16 @@ function packageExtension(packageName = null) {
  */
 async function packageOnline() {
     logger.header("Package extension (Online Mode)");
-    logger.info("Creating extension package for online distribution");
+    logger.info("Creating extension package with portable SQL Tools Service");
     logger.newline();
 
     try {
         // Clean service folder first
         await cleanServiceInstallFolder();
+
+        // Download portable (framework-dependent) SQL Tools Service
+        const platform = require("../out/src/models/platform");
+        await installSqlToolsService(platform.Runtime.Portable);
 
         // Package the extension
         packageExtension();
@@ -122,7 +126,7 @@ async function packageOfflinePlatform(platformConfig, packageName) {
             throw new Error(`Unknown runtime: ${runtime}`);
         }
 
-        // Install service for this platform
+        // Install native (self-contained) service for this platform
         await installSqlToolsService(runtimeValue);
 
         // Package with platform-specific name
@@ -157,15 +161,17 @@ async function packageOffline() {
         // Clean service folder initially
         await cleanServiceInstallFolder();
 
-        // Package for each platform sequentially
+        // Package for each platform sequentially with native (self-contained) service
         for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
-            const platform = OFFLINE_PLATFORMS[i];
-            logger.info(`[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platform.rid}...`);
+            const platformConfig = OFFLINE_PLATFORMS[i];
+            logger.info(
+                `[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platformConfig.rid}...`,
+            );
 
             try {
-                await packageOfflinePlatform(platform, packageName);
+                await packageOfflinePlatform(platformConfig, packageName);
             } catch (error) {
-                logger.warning(`Skipping ${platform.rid}: ${error.message}`);
+                logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
             }
 
             logger.newline();
@@ -189,8 +195,8 @@ Usage:
   node package-extension.js [mode]
 
 Modes:
-  --online     Package for online distribution (downloads service at runtime)
-  --offline    Package for offline distribution (includes service for all platforms). Defaults to online mode if no argument is provided.
+  --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
+  --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
   --help       Show this help message
 
 Examples:

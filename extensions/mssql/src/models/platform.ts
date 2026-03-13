@@ -22,6 +22,8 @@ export enum Runtime {
     // Linux distributions
     Linux = "Linux",
     Linux_ARM64 = "Linux_ARM64",
+    // OS-agnostic (framework-dependent)
+    Portable = "Portable",
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
@@ -35,6 +37,8 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
         case Runtime.Linux:
         case Runtime.Linux_ARM64:
             return "Linux";
+        case Runtime.Portable:
+            return "Portable";
         default:
             return "Unknown";
     }

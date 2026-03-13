@@ -3322,3 +3322,31 @@ export class RestoreDatabase {
         "Azure SQL Database is not supported for restore.",
     );
 }
+
+export class DotnetRuntime {
+    public static acquiredDotnetRuntime = (extensionId: string, dotnetPath: string) =>
+        l10n.t({
+            message: "Acquired .NET runtime via {0}: {1}",
+            args: [extensionId, dotnetPath],
+            comment: ["{0} is the extension ID", "{1} is the resolved dotnet executable path"],
+        });
+    public static failedToAcquireDotnetRuntime = (extensionId: string, error: string) =>
+        l10n.t({
+            message: "Failed to acquire .NET runtime from {0}: {1}",
+            args: [extensionId, error],
+            comment: ["{0} is the extension ID", "{1} is the error message"],
+        });
+    public static runtimeNotFoundError = l10n.t(
+        "Unable to find a .NET runtime to run SQL Tools Service. Please download the offline VSIX which includes a bundled runtime.",
+    );
+    public static runtimeNotFoundThrow = l10n.t(
+        "Unable to find a .NET runtime. Please install the offline VSIX which includes a bundled runtime.",
+    );
+    public static serviceDownloadFailed = l10n.t(
+        "Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.",
+    );
+    public static activationFailed = l10n.t(
+        "The mssql extension could not start because the SQL Tools Service failed to initialize. See the 'MSSQL' output channel for details.",
+    );
+    public static downloadOfflineVsix = l10n.t("Download Offline VSIX");
+}
