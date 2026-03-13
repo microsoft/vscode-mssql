@@ -19,7 +19,7 @@ import {
     getPlatformSafeFileEntryPath,
     systemDatabaseToString,
 } from "../src/common/utils";
-import { Uri, window } from "vscode";
+import { MessageItem, Uri, window } from "vscode";
 import {
     IDacpacReferenceSettings,
     INugetPackageReferenceSettings,
@@ -144,7 +144,7 @@ suite("Project: sqlproj content operations", function (): void {
     test("Should throw warning message while reading Project with more than 1 pre-deploy script from sqlproj", async function (): Promise<void> {
         const stub = sinon
             .stub(window, "showWarningMessage")
-            .returns(<any>Promise.resolve(constants.okString));
+            .resolves(constants.okString as unknown as MessageItem);
 
         const projFilePath = await testUtils.createTestSqlProjFile(
             this.test,
@@ -309,7 +309,7 @@ suite("Project: sqlproj content operations", function (): void {
     });
 
     test("Should show information messages when adding more than one pre/post deployment scripts to sqlproj", async function (): Promise<void> {
-        const stub = sinon.stub(window, "showInformationMessage").returns(<any>Promise.resolve());
+        const stub = sinon.stub(window, "showInformationMessage").resolves();
 
         const project: Project = await testUtils.createTestSqlProject(this.test);
 
@@ -1841,11 +1841,11 @@ suite("Project: properties", function (): void {
     test("Should prompt user when ProjectGuid is missing", async function (): Promise<void> {
         const project = await testUtils.createTestSqlProject(this.test);
         // Simulate a missing or all-zeros GUID, which is what DacFx returns when <ProjectGuid> is absent
-        (project as any)._projectGuid = constants.nullProjectGuid;
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
         const stub = sinon
             .stub(window, "showInformationMessage")
-            .returns(<any>Promise.resolve(constants.noString));
+            .resolves(constants.noString as unknown as MessageItem);
 
         await Project.checkPromptProjectGuidStatus(project);
 
@@ -1860,17 +1860,20 @@ suite("Project: properties", function (): void {
 
     test("Should add a valid ProjectGuid to project when user accepts prompt", async function (): Promise<void> {
         const project = await testUtils.createTestSqlProject(this.test);
-        (project as any)._projectGuid = undefined;
+        Object.assign(project, { _projectGuid: undefined });
 
         // Stub setProjectProperties directly on the existing service instance so
         // prototype methods remain intact and sinon.restore() cleans up properly.
         sinon
-            .stub((project as any).sqlProjService, "setProjectProperties")
+            .stub(
+                (project as unknown as { sqlProjService: Record<string, unknown> }).sqlProjService,
+                "setProjectProperties",
+            )
             .resolves({ success: true });
 
         sinon
             .stub(window, "showInformationMessage")
-            .returns(<any>Promise.resolve(constants.addProjectGuidLabel));
+            .resolves(constants.addProjectGuidLabel as unknown as MessageItem);
 
         await Project.checkPromptProjectGuidStatus(project);
 
@@ -1889,16 +1892,16 @@ suite("Project: properties", function (): void {
 
     test("Should not add ProjectGuid when user rejects prompt", async function (): Promise<void> {
         const project = await testUtils.createTestSqlProject(this.test);
-        (project as any)._projectGuid = constants.nullProjectGuid;
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
         sinon
             .stub(window, "showInformationMessage")
-            .returns(<any>Promise.resolve(constants.noString));
+            .resolves(constants.noString as unknown as MessageItem);
 
         await Project.checkPromptProjectGuidStatus(project);
 
         expect(
-            (project as any)._projectGuid,
+            project.projectGuid,
             "projectGuid should remain unchanged when user rejects the prompt",
         ).to.equal(constants.nullProjectGuid);
 
@@ -1936,7 +1939,9 @@ suite("Project: round trip updates", function (): void {
     });
 
     test("Should not update project and no backup file should be created when prompt to update project is rejected", async function (): Promise<void> {
-        sinon.stub(window, "showWarningMessage").returns(<any>Promise.resolve(constants.noString));
+        sinon
+            .stub(window, "showWarningMessage")
+            .resolves(constants.noString as unknown as MessageItem);
         // setup test files
         const folderPath = await testUtils.generateTestFolderPath(this.test);
         const sqlProjPath = await testUtils.createTestSqlProjFile(

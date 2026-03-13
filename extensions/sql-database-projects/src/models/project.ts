@@ -195,7 +195,7 @@ export class Project implements ISqlProject {
             );
 
             // Prompt the user about missing projectGuid
-            if (!proj._projectGuid || proj._projectGuid === constants.nullProjectGuid) {
+            if (proj.isMissingProjectGuid()) {
                 void Project.checkPromptProjectGuidStatus(proj);
             }
         }
@@ -219,7 +219,7 @@ export class Project implements ISqlProject {
 
         if (result === constants.addProjectGuidLabel) {
             try {
-                await project.addProjectGuidToFile();
+                await project.ensureValidProjectGuid();
             } catch (error) {
                 void window.showErrorMessage(utils.getErrorMessage(error));
             }
@@ -629,14 +629,6 @@ export class Project implements ISqlProject {
             return;
         }
 
-        // Ensure a proper GUID exists before calling the cross-platform update.
-        // The DacFx updateProjectForCrossPlatform operation writes the all-zeros GUID
-        // ({00000000-0000-0000-0000-000000000000}) when no <ProjectGuid> is present.
-        // By adding a real GUID first, we prevent that.
-        if (!this._projectGuid || this._projectGuid === constants.nullProjectGuid) {
-            await this.addProjectGuidToFile();
-        }
-
         TelemetryReporter.sendActionEvent(
             TelemetryViews.ProjectController,
             TelemetryActions.updateProjectForRoundtrip,
@@ -666,11 +658,19 @@ export class Project implements ISqlProject {
     }
 
     /**
-     * Generates a unique GUID and inserts it as <ProjectGuid> into the first <PropertyGroup>
-     * of the project file. Updates the in-memory _projectGuid value.
-     * Does nothing if a <ProjectGuid> is already present.
+     * Returns true when the project is missing a valid GUID —
+     * either because <ProjectGuid> was absent from the file (DacFx returns all-zeros)
+     * or because it was explicitly set to the null GUID.
      */
-    public async addProjectGuidToFile(): Promise<void> {
+    private isMissingProjectGuid(): boolean {
+        return !this._projectGuid || this._projectGuid === constants.nullProjectGuid;
+    }
+
+    /**
+     * Replaces the all-zeros <ProjectGuid> placeholder with a newly generated valid GUID
+     * and updates the in-memory value.
+     */
+    public async ensureValidProjectGuid(): Promise<void> {
         const guid = `{${randomUUID().toUpperCase()}}`;
         const result = await this.sqlProjService.setProjectProperties(this.projectFilePath, {
             ProjectGuid: guid,
