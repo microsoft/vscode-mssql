@@ -956,6 +956,107 @@ suite("ProfilerController Server Type Tests", () => {
         expect(connectionManager.disconnect.called).to.be.true;
     });
 
+    test("should clear database from on-prem profile when default database is set", async () => {
+        // On-prem XEvent sessions use ON SERVER (server-scoped).
+        // If the connection profile has a default (user) database, the database
+        // must be cleared so the STS connects at server level.
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "localhost",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+                database: "MyUserDB", // Default database set in connection
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        showQuickPickStub.resolves(mockTemplateItem);
+        (vscode.window.showInputBox as sinon.SinonStub).resolves("Standard_OnPrem");
+        profilerService.getXEventSessions.resolves({ sessions: [] });
+
+        profilerService.onSessionCreated.callsFake(
+            (_ownerUri: string, handler: (params: unknown) => void) => {
+                setTimeout(() => {
+                    handler({ sessionName: "Standard_OnPrem", templateName: "Standard" });
+                }, 10);
+                return { dispose: sandbox.stub() };
+            },
+        );
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+        await launchCommand!(mockTreeNodeInfo);
+
+        // The connect call should have an empty database (cleared for server-scoped session)
+        expect(connectionManager.connect).to.have.been.called;
+        const connectArgs = connectionManager.connect.getCall(0).args;
+        const usedProfile = connectArgs[1];
+        expect(usedProfile.database).to.equal("");
+    });
+
+    test("should not clear system database from on-prem profile", async () => {
+        // If the on-prem connection is to a system database (e.g. master),
+        // there's no need to clear it — server-scoped sessions work fine from master.
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "localhost",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+                database: "master",
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        showQuickPickStub.resolves(mockTemplateItem);
+        (vscode.window.showInputBox as sinon.SinonStub).resolves("Standard_OnPrem");
+        profilerService.getXEventSessions.resolves({ sessions: [] });
+
+        profilerService.onSessionCreated.callsFake(
+            (_ownerUri: string, handler: (params: unknown) => void) => {
+                setTimeout(() => {
+                    handler({ sessionName: "Standard_OnPrem", templateName: "Standard" });
+                }, 10);
+                return { dispose: sandbox.stub() };
+            },
+        );
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+        await launchCommand!(mockTreeNodeInfo);
+
+        // The connect call should keep the database as "master"
+        expect(connectionManager.connect).to.have.been.called;
+        const connectArgs = connectionManager.connect.getCall(0).args;
+        const usedProfile = connectArgs[1];
+        expect(usedProfile.database).to.equal("master");
+    });
+
     test("should not prompt for database when Azure SQL launched from database node", async () => {
         // When launching from a Database node on Azure, the databaseScopeFilter
         // pre-fills connectionProfile.database so ensureAzureDatabaseSelected
