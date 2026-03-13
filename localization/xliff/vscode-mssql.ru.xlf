@@ -320,7 +320,11 @@
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
         <target state="translated">После</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
+        <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
+        <target state="translated">Разработка SQL при помощи ИИ с генерацией запросов с учетом схемы, поддержка ORM и чат на естественном языке с @mssql в режиме вопросов или режиме агента.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
         <source xml:lang="en">All</source>
         <target state="translated">Все</target>
@@ -722,7 +726,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
         <source xml:lang="en">Back to preview</source>
         <target state="translated">Вернуться к предварительному просмотру</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
+        <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
+        <target state="translated">Создавайте резервные копии баз данных SQL локально или по URL-адресу и легко восстанавливайте их из базы данных, файла BAK или URL-адреса.</target>
+      </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
         <target state="translated">Резервное копирование</target>
@@ -983,7 +991,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">Невозможно отменить изменения: ссылка указывает на удалённую таблицу или столбец</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
+        <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
+        <target state="translated">Записывайте и анализируйте активные сеансы подсистемы расширенных событий SQL Server для мониторинга и анализа производительности базы данных.</target>
+      </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
         <target state="translated">Каскад</target>
@@ -1459,7 +1471,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
         <source xml:lang="en">Compare SQL Server editions</source>
         <target state="translated">Сравнение выпусков SQL Server</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++887138e7ec0b3791877650b8e43bd012cf8d0abd298cbacf5c99ff8c3709c126">
+        <source xml:lang="en">Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.</source>
+        <target state="translated">Сравнивайте схемы баз данных между базами данных, файлами DACPAC или проектами SQL. Анализируйте различия и применяйте изменения или создавайте сценарии развертывания для синхронизации схем.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
         <target state="translated">Сведения о сравнении</target>
@@ -2012,7 +2028,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
         <source xml:lang="en">Create a new profiling session</source>
         <target state="translated">Создать новый сеанс профилирования</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
+        <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
+        <target state="translated">Создавайте локальные контейнеры SQL Server и управляйте ими прямо из VS Code для быстрой и согласованной локальной разработки.</target>
+      </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
         <target state="translated">Создать как сценарий</target>
@@ -2021,7 +2041,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create new firewall rule for {0}</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">Создать новое правило брандмауэра для {0}</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
+        <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
+        <target state="translated">Создавайте, переименовывайте и удаляйте базы данных с помощью новых диалоговых окон управления, которые упрощают для пользователей управление базами данных.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
         <note>{0} is the qualified table name</note>
@@ -2337,7 +2361,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
         <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
         <target state="translated">Разворачивайте и извлекайте файлы DACPAC или импортируйте и экспортируйте пакеты BACPAC с помощью интегрированного и упрощенного рабочего процесса в расширении MSSQL.</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++125abe6c1406f356647c415b8627a84a6d928dca274d3e70c26fff22c7b77580">
+        <source xml:lang="en">Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.</source>
+        <target state="translated">Развертывайте изменения базы данных с помощью интерактивного диалогового окна публикации в проектах базы данных SQL с предварительным просмотром сценариев для баз данных SQL Server и Azure SQL.</target>
+      </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
         <target state="translated">Развернуть в существующей базе данных</target>
@@ -2385,7 +2413,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
         <source xml:lang="en">Design Schemas with GitHub Copilot</source>
         <target state="translated">Разработка схем с помощью GitHub Copilot</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
+        <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
+        <target state="translated">Разрабатывайте, визуализируйте и развивайте схемы баз данных с помощью интерактивной диаграммы с синхронизированной генерацией SQL.</target>
+      </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
         <target state="translated">Сведения</target>
@@ -3973,7 +4005,11 @@ Error:
       <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
         <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
         <target state="translated">GitHub Copilot — пошаговое руководство по VS Code</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++737f47ca3f9975103a99da74b37a986e6a1e97b77817a154b27d53d840a9a599">
+        <source xml:lang="en">GitHub Copilot integration</source>
+        <target state="translated">Интеграция GitHub Copilot</target>
+      </trans-unit>
       <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
         <source xml:lang="en">GitHub Copilot survey</source>
         <target state="translated">Опрос GitHub Copilot</target>
@@ -4676,7 +4712,11 @@ Error:
       <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
         <source xml:lang="en">Local Container Deployment</source>
         <target state="translated">Локальное развертывание контейнера</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++8b40b52b182ad6e53db8c7a2b46b81c4daa05a4737719ec9e7290f3407d9b20d">
+        <source xml:lang="en">Local SQL Server Container</source>
+        <target state="translated">Локальный контейнер SQL Server</target>
+      </trans-unit>
       <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Локальный контейнер базы данных SQL Server</target>
@@ -6595,7 +6635,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
         <source xml:lang="en">SQL Database</source>
         <target state="translated">База данных SQL</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
+        <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
+        <target state="translated">Проекты базы данных SQL — диалоговое окно публикации</target>
+      </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">Вход SQL</target>
@@ -6880,7 +6924,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Поиск групп подключений</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
+        <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
+        <target state="translated">Ищите объекты баз данных (таблицы, представления, хранимые процедуры и т. д.) по всей базе данных.</target>
+      </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
         <target state="translated">Параметры поиска</target>
@@ -8377,7 +8425,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
         <source xml:lang="en">View settings</source>
         <target state="translated">Просмотреть параметры</target>
-      </trans-unit>
+      </trans-unit>
+      <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
+        <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
+        <target state="translated">Просматривайте, редактируйте, добавляйте и удаляйте строки таблиц в интерактивной сетке с проверкой в реальном времени и предварительным просмотром сценариев DML.</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
         <source xml:lang="en">View:</source>
         <target state="translated">Просмотреть:</target>
@@ -10087,66 +10139,6 @@ You can also click the 'Open in New Tab' button to view your query results in th
       <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
         <source xml:lang="en">user</source>
         <target state="translated">пользователь</target>
-      </trans-unit>
-      <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
-        <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
-        <target state="new">Analyze static code with customizable rulesets in SQL Database Projects.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++aaadc23aff35d3da3916780fe2e84c913d08a2d1840d19f3600b2cb75efc1b91">
-        <source xml:lang="en">Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.</source>
-        <target state="new">Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f">
-        <source xml:lang="en">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</source>
-        <target state="new">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
-        <source xml:lang="en">Data API builder</source>
-        <target state="new">Data API builder</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d7cd0dd0ca57b9a1b087c6af78aaedaec67c6c7c792c96b6d2e90ebf8e0a5c5f">
-        <source xml:lang="en">Fabric databases in Query Profiler</source>
-        <target state="new">Fabric databases in Query Profiler</target>
-      </trans-unit>
-      <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
-        <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
-        <target state="new">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++417d51fadd3d0a015407cc0fd8a632098a2fa435bf7dd75a74b2c657b259fbde">
-        <source xml:lang="en">GitHub Copilot integration in Data API builder</source>
-        <target state="new">GitHub Copilot integration in Data API builder</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
-        <source xml:lang="en">Microsoft Fabric integration</source>
-        <target state="new">Microsoft Fabric integration</target>
-      </trans-unit>
-      <trans-unit id="++CODE++0d41159e953416fd1facaa0f44131e65fb6e10e1faf44e6f28283765881c589a">
-        <source xml:lang="en">SQL Database Projects — Code Analysis</source>
-        <target state="new">SQL Database Projects — Code Analysis</target>
-      </trans-unit>
-      <trans-unit id="++CODE++095cedeb21477c41b2a8a4aebb8ada471ae5b60c59b00351c60dc6754a31f482">
-        <source xml:lang="en">SQL Notebooks</source>
-        <target state="new">SQL Notebooks</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a576368432dbd7893c037eb4b0282495ec468ff385db59414d9797a8b0d5c64b">
-        <source xml:lang="en">Schema Designer with GitHub Copilot</source>
-        <target state="new">Schema Designer with GitHub Copilot</target>
-      </trans-unit>
-      <trans-unit id="++CODE++bb45a0685189383ab1a0d7aca84c130097bfedba72727354b24e2b0951ed9aad">
-        <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including TSQL_Azure for lightweight T-SQL profiling.</source>
-        <target state="new">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including TSQL_Azure for lightweight T-SQL profiling.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++cdb483ba4f54715a9c25b4242a24d0bca5ed37f9cd4fc9686a54ad9fd596c4bc">
-        <source xml:lang="en">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts — all reflected live in the visual diagram and T-SQL script.</source>
-        <target state="new">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts — all reflected live in the visual diagram and T-SQL script.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
-        <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
-        <target state="new">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8aa105b901acedb4a843195d9a4f4453b834578064202c08417dd4f405a9a791">
-        <source xml:lang="en">Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.</source>
-        <target state="new">Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.</target>
       </trans-unit>
     </body>
   </file>
