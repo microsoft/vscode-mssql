@@ -444,6 +444,9 @@
     <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
       <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
+      <source xml:lang="en">Authentication not supported</source>
+    </trans-unit>
     <trans-unit id="++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246">
       <source xml:lang="en">Authorization Role</source>
     </trans-unit>
@@ -1656,6 +1659,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5">
       <source xml:lang="en">Data API Builder Configuration (Preview)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++df941906ec2941bf211bd425edf70c1e72202751342b017ce980f945a698b4ed">
+      <source xml:lang="en">Data API Builder local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
       <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -4299,6 +4305,9 @@
       <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
       <note>{0} is the comma separated list of connection display names</note>
     </trans-unit>
+    <trans-unit id="++CODE++e4804a2a45a91be3c254ff2f70d2a9671dca74a105d61d66a8aa2569a974ead3">
+      <source xml:lang="en">One or more of your entities contains column types that Data API Builder does not currently support and cannot be selected for deployment.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
     </trans-unit>
@@ -6322,6 +6331,9 @@
     <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
       <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
       <note>{0} is the authentication type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
+      <source xml:lang="en">Unsupported data types detected</source>
     </trans-unit>
     <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
       <source xml:lang="en">Unsupported platform for Docker: {0}</source>

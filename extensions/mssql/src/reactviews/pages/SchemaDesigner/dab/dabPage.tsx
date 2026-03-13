@@ -3,22 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    makeStyles,
-    Link,
-    MessageBar,
-    MessageBarBody,
-    MessageBarTitle,
-    MessageBarActions,
-    Button,
-    Spinner,
-    Text,
-} from "@fluentui/react-components";
-import { DismissRegular } from "@fluentui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { useEffect, useRef } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
+import { DabInfoBanner } from "./dabInfoBanner";
 import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
@@ -65,8 +55,13 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
         isInitialized,
         isDabDeploymentSupported,
     } = useDabContext();
-    const [showDeploymentWarning, setShowDeploymentWarning] = useState(true);
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
+    const hasUnsupportedDataTypes =
+        dabConfig?.entities.some(
+            (e) =>
+                !e.isSupported &&
+                e.unsupportedReasons?.some((r) => r.type === "unsupportedDataTypes"),
+        ) ?? false;
     const canShowDiscovery = isDabTabActive && isInitialized && dabConfig != null;
     const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(null);
 
@@ -112,29 +107,19 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     return (
         <div className={classes.root}>
             <DabDeploymentDialog />
-            {!isDabDeploymentSupported && showDeploymentWarning && (
-                <MessageBar intent="warning">
-                    <MessageBarBody>
-                        <MessageBarTitle>
-                            {locConstants.schemaDesigner.authenticationNotSupported}
-                        </MessageBarTitle>
-                        {locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}{" "}
-                        <Link
-                            href="https://github.com/Azure/data-api-builder/issues/3246"
-                            target="_blank"
-                            rel="noopener noreferrer">
-                            {locConstants.common.learnMore}
-                        </Link>
-                    </MessageBarBody>
-                    <MessageBarActions>
-                        <Button
-                            appearance="transparent"
-                            icon={<DismissRegular />}
-                            size="small"
-                            onClick={() => setShowDeploymentWarning(false)}
-                        />
-                    </MessageBarActions>
-                </MessageBar>
+            {!isDabDeploymentSupported && (
+                <DabInfoBanner
+                    title={locConstants.schemaDesigner.authenticationNotSupported}
+                    message={locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}
+                    learnMoreUrl="https://github.com/Azure/data-api-builder/issues/3246"
+                />
+            )}
+            {hasUnsupportedDataTypes && (
+                <DabInfoBanner
+                    title={locConstants.schemaDesigner.unsupportedDataTypesDetected}
+                    message={locConstants.schemaDesigner.dabUnsupportedDataTypesBanner}
+                    learnMoreUrl="https://github.com/Azure/data-api-builder/issues/3181"
+                />
             )}
             <PanelGroup direction="vertical">
                 <Panel defaultSize={100}>
