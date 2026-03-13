@@ -301,7 +301,7 @@ export const AddFirewallRuleDialog = ({
                         </RadioGroup>
                     </Field>
                     <div className={formStyles.formComponentDiv + " " + styles.fromToRow}>
-                        <Label>{Loc.firewallRules.fromLabel}</Label>
+                        <Label htmlFor="startIpInput">{Loc.firewallRules.fromLabel}</Label>
                         <Input
                             value={startIp}
                             onChange={(_ev, data) => {
@@ -311,7 +311,7 @@ export const AddFirewallRuleDialog = ({
                             disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
                             className={styles.ipInputBox}
                         />
-                        <Label>{Loc.firewallRules.toLabel}</Label>
+                        <Label htmlFor="endIpInput">{Loc.firewallRules.toLabel}</Label>
                         <Input
                             value={endIp}
                             onChange={(_ev, data) => {

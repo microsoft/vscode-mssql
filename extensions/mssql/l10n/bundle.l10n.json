@@ -1179,11 +1179,6 @@
     "-": "-",
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
-    "Drop {0} from {1}. This action/{0} is the database name{1} is the server name": {
-        "message": "Drop {0} from {1}. This action",
-        "comment": ["{0} is the database name", "{1} is the server name"]
-    },
-    "cannot be undone.": "cannot be undone.",
     "I understand this action is permanent and irreversible": "I understand this action is permanent and irreversible",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
