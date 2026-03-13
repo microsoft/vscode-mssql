@@ -27,8 +27,8 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
 export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
@@ -1488,6 +1488,10 @@ export class UserSurvey {
         "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     );
     public static submitIssue = l10n.t("Submit an issue");
+    public static mssqlMarketplaceReviewPrompt = l10n.t(
+        "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    );
+    public static writeReview = l10n.t("Write a review");
 }
 
 export class Webview {
@@ -1705,6 +1709,7 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
+    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -1736,11 +1741,13 @@ export class SchemaDesigner {
     );
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");
+    public static dabLogsEditorTitle = l10n.t("DAB container logs");
     public static failedToOpenUrl = l10n.t(
         "Failed to open URL. The built-in Simple Browser may be disabled.",
     );
     public static dabDeploymentNotSupported = l10n.t(
-        "Local container deployment is currently only supported for SQL Authentication connections.",
+        "Local container deployment is currently only supported with SQL Authentication connections.",
     );
 }
 
@@ -2544,7 +2551,7 @@ export class ConnectionGroup {
 }
 
 export class DacpacDialog {
-    public static Title = l10n.t("Data-tier Application (Preview)");
+    public static Title = l10n.t("Data-tier Application");
     public static FilePathRequired = l10n.t("File path is required");
     public static FileNotFound = l10n.t("File not found");
     public static InvalidFileExtension = l10n.t(
@@ -2614,7 +2621,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects - {0}",
+            message: "Search Database Objects (Preview) - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -2664,13 +2671,6 @@ export class TableExplorer {
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
     public static rowDeletedSuccessfully = l10n.t("Row deleted.");
-
-    public static title = (tableName: string) =>
-        l10n.t({
-            message: "{0} (Preview)",
-            args: [tableName],
-            comment: ["{0} is the table name"],
-        });
 
     public static failedToSaveChanges = (errorMessage: string) =>
         l10n.t({
@@ -2838,7 +2838,6 @@ export class Changelog {
     public static tryIt = l10n.t("Try it");
     public static watchDemo = l10n.t("Watch demo");
     public static learnMore = l10n.t("Learn more");
-    public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
     public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
@@ -2853,29 +2852,27 @@ export class Changelog {
     public static adsMigrationDescription = l10n.t(
         "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
-    public static editDataTitle = l10n.t("Edit Data (Preview)");
+    public static editDataTitle = l10n.t("Edit Data");
     public static editDataDescription = l10n.t(
         "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
     );
-    public static globalObjectSearchTitle = l10n.t("Global Object Search");
+    public static globalObjectSearchTitle = l10n.t("Global Object Search (Preview)");
     public static globalObjectSearchDescription = l10n.t(
         "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
     );
-    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
+    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs");
     public static backupRestoreDescription = l10n.t(
         "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
     );
-    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
+    public static databaseManagementTitle = l10n.t("Database Management Dialogs");
     public static databaseManagementDescription = l10n.t(
         "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
     );
-    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
+    public static queryProfilerTitle = l10n.t("Query Profiler");
     public static queryProfilerDescription = l10n.t(
         "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
     );
-    public static dacpacTitle = l10n.t(
-        "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
-    );
+    public static dacpacTitle = l10n.t("Data-Tier Application (DACPAC / BACPAC) Import & Export");
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     );
@@ -3142,7 +3139,7 @@ export class Proxy {
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
-            message: "Backup Database - {0}",
+            message: "Backup Database (Preview) - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
@@ -3270,7 +3267,7 @@ export class FlatFileImport {
 }
 
 export class RestoreDatabase {
-    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static restoreDatabaseTitle = l10n.t("Restore Database (Preview)");
     public static sourceDatabase = l10n.t("Source Database");
     public static targetDatabase = l10n.t("Target Database");
     public static files = l10n.t("Files");

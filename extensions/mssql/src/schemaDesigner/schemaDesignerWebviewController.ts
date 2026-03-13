@@ -84,7 +84,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
-                title: databaseName,
+                title: `${LocConstants.SchemaDesigner.PanelTitle} - ${databaseName}`,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
@@ -416,7 +416,21 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 content: payload.configContent,
                 language: "json",
             });
+
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                language: "json",
+            });
+
             await vscode.window.showTextDocument(doc);
+        });
+
+        this.onNotification(Dab.OpenLogsInNewTabNotification.type, async (payload) => {
+            const doc = await vscode.workspace.openTextDocument({
+                content: payload.logsContent,
+                language: "log",
+            });
+
+            await vscode.window.showTextDocument(doc, { preview: false });
         });
 
         this.onNotification(Dab.OpenUrlNotification.type, async (payload) => {
@@ -424,6 +438,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             if (uri.scheme !== "http" && uri.scheme !== "https") {
                 return;
             }
+
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.OpenDabApiUrl, {
+                apiType: payload.apiType ?? "",
+            });
+
             try {
                 await vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
             } catch {
@@ -433,34 +452,73 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.onNotification(Dab.CopyTextNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
-            const message =
-                payload.copyTextType === Dab.CopyTextType.Url
-                    ? LocConstants.SchemaDesigner.urlCopiedToClipboard
-                    : LocConstants.SchemaDesigner.configCopiedToClipboard;
+            let message = "";
+            switch (payload.copyTextType) {
+                case Dab.CopyTextType.Url:
+                    message = LocConstants.SchemaDesigner.urlCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Logs:
+                    message = LocConstants.SchemaDesigner.logsCopiedToClipboard;
+                    break;
+                case Dab.CopyTextType.Config:
+                    message = LocConstants.SchemaDesigner.configCopiedToClipboard;
+                    break;
+            }
+
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.CopyDabText, {
+                copyTextType: payload.copyTextType,
+            });
+
             await vscode.window.showInformationMessage(message);
         });
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            const deploymentStepActivity = startActivity(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.RunDabDeploymentStep,
+                undefined,
+                {
+                    step: payload.step.toString(),
+                },
+            );
             if (!this.resolveIsDabDeploymentSupported()) {
                 const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
                 void vscode.window.showErrorMessage(message);
+                deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
+                    hasContainerLogs: "false",
+                });
                 return {
                     success: false,
                     error: message,
                 };
             }
-            return this._dabService.runDeploymentStep(
-                payload.step,
-                payload.params,
-                payload.config,
-                this.connectionString
-                    ? {
-                          connectionString: this.connectionString,
-                          sqlServerContainerName: this._sqlServerContainerName,
-                      }
-                    : undefined,
-            );
+            try {
+                const result = await this._dabService.runDeploymentStep(
+                    payload.step,
+                    payload.params,
+                    payload.config,
+                    this.connectionString
+                        ? {
+                              connectionString: this.connectionString,
+                              sqlServerContainerName: this._sqlServerContainerName,
+                          }
+                        : undefined,
+                );
+                if (result.success) {
+                    deploymentStepActivity.end(ActivityStatus.Succeeded);
+                } else {
+                    deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
+                        hasContainerLogs: (!!result.containerLogs).toString(),
+                    });
+                }
+                return result;
+            } catch (error) {
+                deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
+                    hasContainerLogs: "false",
+                });
+                throw error;
+            }
         });
 
         this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
@@ -472,6 +530,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.AddDabMcpServer);
+
             return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
     }

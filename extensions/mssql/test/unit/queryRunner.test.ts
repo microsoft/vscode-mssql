@@ -736,6 +736,52 @@ suite("Query Runner tests", () => {
             expect(testVscodeWrapper.clipboardWriteText).to.not.have.been.called;
         });
 
+        test("copyResults preserves non-monotonic selection order in the backend request", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 1, toRow: 1, fromCell: 0, toCell: 0 },
+                { fromRow: 3, toRow: 3, fromCell: 0, toCell: 0 },
+                { fromRow: 5, toRow: 5, fromCell: 0, toCell: 0 },
+                { fromRow: 7, toRow: 7, fromCell: 0, toCell: 0 },
+                { fromRow: 0, toRow: 0, fromCell: 0, toCell: 0 },
+                { fromRow: 2, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 },
+                { fromRow: 6, toRow: 6, fromCell: 0, toCell: 0 },
+            ];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "copied" });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnceWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    selections: [
+                        { fromRow: 1, toRow: 1, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 3, toRow: 3, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 5, toRow: 5, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 7, toRow: 7, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 0, toRow: 0, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 2, toRow: 2, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 4, toRow: 4, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 6, toRow: 6, fromColumn: 0, toColumn: 0 },
+                    ],
+                }),
+            );
+            expect(selection).to.deep.equal([
+                { fromRow: 1, toRow: 1, fromCell: 0, toCell: 0 },
+                { fromRow: 3, toRow: 3, fromCell: 0, toCell: 0 },
+                { fromRow: 5, toRow: 5, fromCell: 0, toCell: 0 },
+                { fromRow: 7, toRow: 7, fromCell: 0, toCell: 0 },
+                { fromRow: 0, toRow: 0, fromCell: 0, toCell: 0 },
+                { fromRow: 2, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 },
+                { fromRow: 6, toRow: 6, fromCell: 0, toCell: 0 },
+            ]);
+        });
+
         test("copyResultsAsCsv calls copyResults2 with CSV CopyType", async () => {
             const queryRunner = createQueryRunner();
             const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];

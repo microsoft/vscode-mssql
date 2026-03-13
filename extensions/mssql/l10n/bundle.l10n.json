@@ -123,6 +123,7 @@
     "General": "General",
     "Previous": "Previous",
     "OK": "OK",
+    "Learn more": "Learn more",
     "Clear All": "Clear All",
     "And": "And",
     "Contains": "Contains",
@@ -564,7 +565,7 @@
     "Open in GitHub Copilot Chat": "Open in GitHub Copilot Chat",
     "Ask GitHub Copilot to Fix": "Ask GitHub Copilot to Fix",
     "Open GitHub Copilot Chat to help fix these errors": "Open GitHub Copilot Chat to help fix these errors",
-    "Design Schemas with GitHub Copilot": "Design Schemas with GitHub Copilot",
+    "Design Schemas with GitHub Copilot (Preview)": "Design Schemas with GitHub Copilot (Preview)",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
     "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
@@ -716,7 +717,7 @@
     "Redo": "Redo",
     "Search tables...": "Search tables...",
     "Show table relationships": "Show table relationships",
-    "Visualize and Design Schema": "Visualize and Design Schema",
+    "Visualize and Design Schema (Preview)": "Visualize and Design Schema (Preview)",
     "Build Data API (Preview)": "Build Data API (Preview)",
     "Show Changes": "Show Changes",
     "Hide Changes": "Hide Changes",
@@ -873,7 +874,12 @@
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "Deploy": "Deploy",
-    "Local container deployment is currently only supported for SQL Authentication connections.": "Local container deployment is currently only supported for SQL Authentication connections.",
+    "Local container deployment is currently only supported with SQL Authentication connections.": "Local container deployment is currently only supported with SQL Authentication connections.",
+    "At least one API type must be selected.": "At least one API type must be selected.",
+    "Authentication not supported": "Authentication not supported",
+    "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+    "Unsupported data types detected": "Unsupported data types detected",
+    "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -915,7 +921,10 @@
     },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
-    "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.": "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+    "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
+        "message": "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+        "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
+    },
     "Requirements:": "Requirements:",
     "Docker Desktop must be installed and running on your machine.": "Docker Desktop must be installed and running on your machine.",
     "Container Settings": "Container Settings",
@@ -939,6 +948,11 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
+    "Table must have a primary key to be used with Data API Builder": "Table must have a primary key to be used with Data API Builder",
+    "Table contains column types not supported by Data API Builder: {0}/{0} is a comma-separated list of column names and their data types": {
+        "message": "Table contains column types not supported by Data API Builder: {0}",
+        "comment": ["{0} is a comma-separated list of column names and their data types"]
+    },
     "Checking Docker installation": "Checking Docker installation",
     "Verifying Docker is installed on your system": "Verifying Docker is installed on your system",
     "Starting Docker Desktop": "Starting Docker Desktop",
@@ -951,6 +965,7 @@
     "Creating and starting the container": "Creating and starting the container",
     "Checking container readiness": "Checking container readiness",
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
+    "Container logs": "Container logs",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
@@ -1065,7 +1080,7 @@
     "Local SQL Server database container": "Local SQL Server database container",
     "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
     "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
-    "Create a SQL database in Fabric (Preview)": "Create a SQL database in Fabric (Preview)",
+    "Create a SQL database in Fabric": "Create a SQL database in Fabric",
     "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
     "Loading local containers...": "Loading local containers...",
     "Instant Container Setup": "Instant Container Setup",
@@ -1086,8 +1101,8 @@
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
-    "Loading fabric provisioning...": "Loading fabric provisioning...",
-    "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
+    "Loading Fabric provisioning...": "Loading Fabric provisioning...",
+    "SQL database in Fabric": "SQL database in Fabric",
     "Create Database": "Create Database",
     "Loading workspaces": "Loading workspaces",
     "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
@@ -1157,7 +1172,7 @@
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
-    "Data-tier Application (Preview)": "Data-tier Application (Preview)",
+    "Data-tier Application": "Data-tier Application",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
@@ -1231,7 +1246,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
-    "Search Database Objects": "Search Database Objects",
+    "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
         "message": "Connecting to {0}...",
@@ -1415,10 +1430,13 @@
         "message": "{0} settings imported",
         "comment": ["{0} is the number of settings imported (plural)"]
     },
+    "MSSQL: What's new": "MSSQL: What's new",
+    "MSSQL extension icon": "MSSQL extension icon",
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
     "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",
+    "Preview": "Preview",
     "You are seeing this message because you updated the MSSQL extension to version {0}./{0} is the version number of the MSSQL extension": {
         "message": "You are seeing this message because you updated the MSSQL extension to version {0}.",
         "comment": ["{0} is the version number of the MSSQL extension"]
@@ -1433,6 +1451,10 @@
     "Files of Type": "Files of Type",
     "File path": "File path",
     "Folder path": "Folder path",
+    "Backup Database (Preview) - {0}/{0} is the database name": {
+        "message": "Backup Database (Preview) - {0}",
+        "comment": ["{0} is the database name"]
+    },
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1584,7 +1606,7 @@
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "profiler_events": "profiler_events",
-    "Import File": "Import File",
+    "Import File (Preview)": "Import File (Preview)",
     "Step 1: Specify Input File": "Step 1: Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
     "Loading table preview...": "Loading table preview...",
@@ -1603,7 +1625,7 @@
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Loading restore database...": "Loading restore database...",
-    "Restore Database": "Restore Database",
+    "Restore Database (Preview)": "Restore Database (Preview)",
     "Backup File": "Backup File",
     "URL": "URL",
     "Browse files": "Browse files",
@@ -1641,7 +1663,6 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
-    "Drop Database": "Drop Database",
     "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
@@ -2422,6 +2443,8 @@
     },
     "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!": "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     "Submit an issue": "Submit an issue",
+    "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.": "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    "Write a review": "Write a review",
     "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
@@ -2514,6 +2537,8 @@
     "No workspace folder is open. Open a folder to add the MCP server configuration.": "No workspace folder is open. Open a folder to add the MCP server configuration.",
     "Config copied to clipboard": "Config copied to clipboard",
     "URL copied to clipboard": "URL copied to clipboard",
+    "Logs copied to clipboard": "Logs copied to clipboard",
+    "DAB container logs": "DAB container logs",
     "Failed to open URL. The built-in Simple Browser may be disabled.": "Failed to open URL. The built-in Simple Browser may be disabled.",
     "Connect to MSSQL": "Connect to MSSQL",
     "Click to connect to a database": "Click to connect to a database",
@@ -2939,8 +2964,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Search Database Objects - {0}/{0} is the server name": {
-        "message": "Search Database Objects - {0}",
+    "Search Database Objects (Preview) - {0}/{0} is the server name": {
+        "message": "Search Database Objects (Preview) - {0}",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
@@ -2965,10 +2990,6 @@
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
     "Row deleted.": "Row deleted.",
-    "{0} (Preview)/{0} is the table name": {
-        "message": "{0} (Preview)",
-        "comment": ["{0} is the table name"]
-    },
     "Failed to save changes: {0}/{0} is the error message": {
         "message": "Failed to save changes: {0}",
         "comment": ["{0} is the error message"]
@@ -3049,8 +3070,6 @@
     "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Watch demo": "Watch demo",
-    "Learn more": "Learn more",
-    "Read docs": "Read docs",
     "Watch demos on YouTube": "Watch demos on YouTube",
     "View roadmap": "View roadmap",
     "Read docs on Microsoft Learn": "Read docs on Microsoft Learn",
@@ -3058,17 +3077,16 @@
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
     "Azure Data Studio Migration Toolkit - Now Including Keymap!": "Azure Data Studio Migration Toolkit - Now Including Keymap!",
     "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.": "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
-    "Edit Data (Preview)": "Edit Data (Preview)",
     "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.": "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-    "Global Object Search": "Global Object Search",
+    "Global Object Search (Preview)": "Global Object Search (Preview)",
     "Search for database objects — tables, views, stored procedures, and more — across your entire database.": "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
-    "Backup/Restore Dialogs (Preview)": "Backup/Restore Dialogs (Preview)",
+    "Backup/Restore Dialogs": "Backup/Restore Dialogs",
     "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.": "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
-    "Database Management Dialogs (Preview)": "Database Management Dialogs (Preview)",
+    "Database Management Dialogs": "Database Management Dialogs",
     "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.": "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
-    "Query Profiler (Preview)": "Query Profiler (Preview)",
+    "Query Profiler": "Query Profiler",
     "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.": "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
-    "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
+    "Data-Tier Application (DACPAC / BACPAC) Import & Export": "Data-Tier Application (DACPAC / BACPAC) Import & Export",
     "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
     "SQL Database Projects – Publish Dialog": "SQL Database Projects – Publish Dialog",
     "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.": "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
@@ -3163,6 +3181,7 @@
         "message": "Query Profiler (Preview): {0}",
         "comment": ["{0} is the file name or session name"]
     },
+    "Query Profiler (Preview)": "Query Profiler (Preview)",
     "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
@@ -3198,10 +3217,6 @@
     "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
         "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
-    "Backup Database - {0}/{0} is the database name": {
-        "message": "Backup Database - {0}",
-        "comment": ["{0} is the database name"]
     },
     "Backup Name": "Backup Name",
     "Full": "Full",
