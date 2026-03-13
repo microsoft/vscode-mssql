@@ -292,7 +292,15 @@ export class LocConstants {
                     args: [ipAddress],
                     comment: ["{0} is the IP address of the client"],
                 }),
-            addMySubnetRange: "Add my subnet IP range",
+            addMySubnetRange: l10n.t("Add my subnet IP range"),
+            fromLabel: l10n.t({
+                message: "From",
+                comment: ["Label for the start IP address in the firewall rule IP range"],
+            }),
+            toLabel: l10n.t({
+                message: "To",
+                comment: ["Label for the end IP address in the firewall rule IP range"],
+            }),
         };
     }
 
