@@ -115,8 +115,6 @@ export class MsalAzureController extends AzureController {
         this.initialized.resolve();
     }
 
-    public init(): void {}
-
     public async loadTokenCache(): Promise<void> {
         await this.clearOldCacheIfExists();
 

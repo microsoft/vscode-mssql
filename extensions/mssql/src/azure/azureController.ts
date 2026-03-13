@@ -53,8 +53,6 @@ export abstract class AzureController {
         });
     }
 
-    public abstract init(): void;
-
     public abstract loadTokenCache(): Promise<void>;
 
     public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
