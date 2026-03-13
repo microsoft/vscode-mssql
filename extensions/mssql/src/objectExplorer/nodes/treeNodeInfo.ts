@@ -162,10 +162,6 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         return this._loadingLabel;
     }
 
-    public get originalLabel(): string {
-        return this._originalLabel;
-    }
-
     /**
      * Returns a **copy** of the node's connection information.
      *

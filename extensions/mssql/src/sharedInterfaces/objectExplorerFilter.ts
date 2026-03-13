@@ -10,7 +10,6 @@ export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
     existingFilters: vscodeMssql.NodeFilter[];
     nodePath?: string;
-    breadcrumbSegments?: string[];
 }
 
 export interface ObjectExplorerReducers {

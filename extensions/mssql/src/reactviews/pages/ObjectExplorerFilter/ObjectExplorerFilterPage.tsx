@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, tokens } from "@fluentui/react-components";
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Button } from "@fluentui/react-components";
+import { useContext, useEffect, useState } from "react";
 import { ObjectExplorerFilterContext } from "./ObjectExplorerFilterStateProvider";
 import { useObjectExplorerFilterSelector } from "./objectExplorerFilterSelector";
 import * as vscodeMssql from "vscode-mssql";
@@ -18,38 +18,11 @@ import { DialogPageShell } from "../../common/dialogPageShell";
 import { FilterFunnelIcon16Regular } from "../../common/icons/filterFunnel";
 import { ObjectExplorerFilterContent } from "./ObjectExplorerFilterContent";
 
-const useStyles = makeStyles({
-    breadcrumb: {
-        display: "flex",
-        alignItems: "center",
-        flexWrap: "wrap",
-        columnGap: "8px",
-        rowGap: "4px",
-        minWidth: 0,
-    },
-    breadcrumbSegment: {
-        color: "var(--vscode-descriptionForeground)",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    },
-    breadcrumbCurrent: {
-        color: "var(--vscode-foreground)",
-    },
-    breadcrumbSeparator: {
-        color: "var(--vscode-breadcrumb-foreground, var(--vscode-descriptionForeground))",
-        fontSize: tokens.fontSizeBase300,
-        lineHeight: tokens.lineHeightBase300,
-    },
-});
-
 export const ObjectExplorerFilterPage = () => {
-    const styles = useStyles();
     const context = useContext(ObjectExplorerFilterContext);
     const filterProperties = useObjectExplorerFilterSelector((s) => s?.filterProperties);
     const existingFilters = useObjectExplorerFilterSelector((s) => s?.existingFilters);
     const nodePath = useObjectExplorerFilterSelector((s) => s?.nodePath);
-    const breadcrumbSegments = useObjectExplorerFilterSelector((s) => s?.breadcrumbSegments);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
@@ -217,32 +190,6 @@ export const ObjectExplorerFilterPage = () => {
     if (!context || !filterProperties) {
         return undefined;
     }
-
-    const breadcrumb =
-        breadcrumbSegments && breadcrumbSegments.length > 0 ? (
-            <div className={styles.breadcrumb}>
-                {breadcrumbSegments.map((segment, index) => {
-                    const isLast = index === breadcrumbSegments.length - 1;
-                    return (
-                        <Fragment key={`${segment}-${index}`}>
-                            <span
-                                className={`${styles.breadcrumbSegment} ${
-                                    isLast ? styles.breadcrumbCurrent : ""
-                                }`}>
-                                {segment}
-                            </span>
-                            {!isLast && (
-                                <span className={styles.breadcrumbSeparator} aria-hidden="true">
-                                    &gt;
-                                </span>
-                            )}
-                        </Fragment>
-                    );
-                })}
-            </div>
-        ) : nodePath ? (
-            locConstants.objectExplorerFiltering.path(nodePath)
-        ) : undefined;
 
     const clearAllFilters = () => {
         for (const filters of uiFilters) {
@@ -421,7 +368,7 @@ export const ObjectExplorerFilterPage = () => {
         <DialogPageShell
             icon={<FilterFunnelIcon16Regular />}
             title={locConstants.objectExplorerFiltering.filterSettings}
-            subtitle={breadcrumb}
+            subtitle={nodePath ? locConstants.objectExplorerFiltering.path(nodePath) : undefined}
             errorMessage={errorMessage}
             maxContentWidth="medium"
             footerStart={
