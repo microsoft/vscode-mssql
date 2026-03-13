@@ -1298,6 +1298,9 @@
     <trans-unit id="++CODE++e4ce453aa184d4cd0a2051dfb91ab491ba8b19c756bd9f113b7a1ce1e807b02e">
       <source xml:lang="en">Connection Timeout</source>
     </trans-unit>
+    <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
+      <source xml:lang="en">Connection actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
     </trans-unit>
@@ -1347,6 +1350,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
+      <source xml:lang="en">Connection test succeeded</source>
     </trans-unit>
     <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
       <source xml:lang="en">Connection with ID &quot;{0}&quot; not found. Please verify the connection ID exists.</source>
@@ -5196,6 +5202,9 @@
     <trans-unit id="++CODE++27f768bff5493669f3ea47f271ac8cbc1f64712b84067a3d52598d5fed8fc55e">
       <source xml:lang="en">Save to URL</source>
     </trans-unit>
+    <trans-unit id="++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06">
+      <source xml:lang="en">Save without connecting</source>
+    </trans-unit>
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
     </trans-unit>
@@ -6032,11 +6041,14 @@
     <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
       <source xml:lang="en">Terms &amp; Conditions</source>
     </trans-unit>
-    <trans-unit id="++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9">
-      <source xml:lang="en">Test Connection</source>
+    <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
+      <source xml:lang="en">Test connection</source>
     </trans-unit>
     <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
       <source xml:lang="en">Testing connection profile...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c02a28421f8ad91e91756cb731bb47993bf529101135966b80128548a16d5b1">
+      <source xml:lang="en">Testing...</source>
     </trans-unit>
     <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
       <source xml:lang="en">Text</source>
