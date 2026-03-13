@@ -2848,7 +2848,7 @@ export class Changelog {
     public static mainContentTitle = l10n.t("Highlights");
     public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
     public static schemaDesignerCopilotDescription = l10n.t(
-        "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts — all reflected live in the visual diagram and T-SQL script.",
+        "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
     );
     public static dabTitle = l10n.t("Data API builder");
     public static dabDescription = l10n.t(
@@ -2864,7 +2864,7 @@ export class Changelog {
     );
     public static fabricQueryProfilerTitle = l10n.t("Fabric databases in Query Profiler");
     public static fabricQueryProfilerDescription = l10n.t(
-        "The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including TSQL_Azure for lightweight T-SQL profiling.",
+        "The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.",
     );
     public static adsMigrationTitle = l10n.t(
         "Azure Data Studio Migration Toolkit - Now Including Keymap!",

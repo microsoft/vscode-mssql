@@ -54,6 +54,11 @@ export const changelogConfig: ChangelogWebviewState = {
                 description: locConstants.Changelog.sqlNotebooksDescription,
                 actions: [
                     {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdNotebooksCreate,
+                    },
+                    {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-sql-notebooks",
@@ -64,6 +69,7 @@ export const changelogConfig: ChangelogWebviewState = {
                 title: locConstants.Changelog.fabricQueryProfilerTitle,
                 isPreview: true,
                 description: locConstants.Changelog.fabricQueryProfilerDescription,
+                codeSnippets: ["TSQL_Azure"],
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,

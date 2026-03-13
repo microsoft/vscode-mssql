@@ -156,13 +156,6 @@ const useStyles = makeStyles({
         borderRadius: "10px",
         border: "1px solid var(--vscode-editorWidget-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
-        transitionProperty: "background-color, border-color",
-        transitionDuration: "120ms",
-        transitionTimingFunction: "ease",
-        ":hover": {
-            backgroundColor: "var(--vscode-list-hoverBackground)",
-            border: "1px solid var(--vscode-editorWidget-border)",
-        },
     },
     featureIconWrap: {
         width: "20px",
@@ -563,7 +556,7 @@ export const ChangelogPage = () => {
 
     const renderHighlightEntry = (entry: ContentEntry, index: number) => {
         const changeIcon = entry.icon ? changelogIcons[entry.icon] : undefined;
-        const iconSize = entry.icon === "azureDataStudio.svg" ? 32 : 20;
+        const iconSize = 48;
 
         return (
             <div
