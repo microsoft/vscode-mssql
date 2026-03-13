@@ -175,6 +175,14 @@ export function updatedToSdkStyleError(projectName: string) {
     );
 }
 export const enterNewName = l10n.t("Enter new name");
+export const addProjectGuidLabel = l10n.t("Add ProjectGuid");
+export const nullProjectGuid = "{00000000-0000-0000-0000-000000000000}";
+export function missingProjectGuid(projectName: string): string {
+    return l10n.t(
+        "Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?",
+        projectName,
+    );
+}
 //#endregion
 
 export const illegalSqlCmdChars = ["$", "@", "#", '"', "'", "-"];
