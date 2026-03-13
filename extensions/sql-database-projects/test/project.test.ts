@@ -1862,11 +1862,11 @@ suite("Project: properties", function (): void {
         const project = await testUtils.createTestSqlProject(this.test);
         (project as any)._projectGuid = undefined;
 
-        // Stub the service so addProjectGuidToFile does not require a live STS connection
-        (project as any).sqlProjService = {
-            ...(project as any).sqlProjService,
-            setProjectProperties: sinon.stub().resolves({ success: true }),
-        };
+        // Stub setProjectProperties directly on the existing service instance so
+        // prototype methods remain intact and sinon.restore() cleans up properly.
+        sinon
+            .stub((project as any).sqlProjService, "setProjectProperties")
+            .resolves({ success: true });
 
         sinon
             .stub(window, "showInformationMessage")

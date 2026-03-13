@@ -633,7 +633,7 @@ export class Project implements ISqlProject {
         // The DacFx updateProjectForCrossPlatform operation writes the all-zeros GUID
         // ({00000000-0000-0000-0000-000000000000}) when no <ProjectGuid> is present.
         // By adding a real GUID first, we prevent that.
-        if (!this._projectGuid) {
+        if (!this._projectGuid || this._projectGuid === constants.nullProjectGuid) {
             await this.addProjectGuidToFile();
         }
 
