@@ -23,6 +23,7 @@ import { ChangePasswordResult } from "../../../sharedInterfaces/changePassword";
 import { locConstants } from "../../common/locConstants";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import { ChangePasswordIcon } from "../../common/icons/changePassword";
+import { ConnectionSubDialogDisplayType } from "../../../sharedInterfaces/connectionDialog";
 
 const useStyles = makeStyles({
     root: {
@@ -61,20 +62,18 @@ const useStyles = makeStyles({
     },
 });
 
-export type ChangePasswordDialogMode = "shell" | "modal";
-
 export const ChangePasswordDialog = ({
     onClose,
     onSubmit,
     serverName,
     userName,
-    mode = "shell",
+    mode = "standalone",
 }: {
     onClose?: () => void;
     onSubmit?: (password: string) => Promise<ChangePasswordResult | undefined>;
     serverName?: string;
     userName?: string;
-    mode?: ChangePasswordDialogMode;
+    mode?: ConnectionSubDialogDisplayType;
 }) => {
     const styles = useStyles();
     const [showPassword, setShowPassword] = useState(false);
@@ -218,7 +217,7 @@ export const ChangePasswordDialog = ({
         );
     };
 
-    if (mode === "shell") {
+    if (mode === "standalone") {
         return (
             <DialogPageShell
                 icon={<ChangePasswordIcon aria-label={locConstants.changePasswordDialog.title} />}

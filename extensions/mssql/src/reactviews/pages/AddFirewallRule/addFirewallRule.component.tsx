@@ -37,6 +37,7 @@ import { IMssqlAzureTenant } from "../../../sharedInterfaces/azureAccountManagem
 import { addNewMicrosoftAccount } from "../../common/constants";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import { AddFirewallRuleIcon } from "../../common/icons/addFirewallRule";
+import { ConnectionSubDialogDisplayType } from "../../../sharedInterfaces/connectionDialog";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",
@@ -62,20 +63,18 @@ const useStyles = makeStyles({
     },
 });
 
-export type AddFirewallRuleDialogMode = "shell" | "modal";
-
 export const AddFirewallRuleDialog = ({
     state,
     addFirewallRule,
     closeDialog,
     signIntoAzure,
-    mode = "shell",
+    mode = "standalone",
 }: {
     state: AddFirewallRuleState;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     closeDialog: () => void;
     signIntoAzure: () => void;
-    mode?: AddFirewallRuleDialogMode;
+    mode?: ConnectionSubDialogDisplayType;
 }) => {
     const styles = useStyles();
     const formStyles = useFormStyles();
@@ -328,7 +327,7 @@ export const AddFirewallRuleDialog = ({
         </div>
     );
 
-    if (mode === "shell") {
+    if (mode === "standalone") {
         return (
             <DialogPageShell
                 icon={<AddFirewallRuleIcon aria-label={dialogTitle} />}

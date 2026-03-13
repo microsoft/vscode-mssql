@@ -28,7 +28,7 @@ export const AddFirewallRulePage = () => {
 
     return (
         <AddFirewallRuleDialog
-            mode="shell"
+            mode="standalone"
             state={{
                 serverName,
                 message: message!,

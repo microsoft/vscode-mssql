@@ -37,6 +37,7 @@ import {
 import { useState } from "react";
 import { KeyCode } from "../../common/keys";
 import { DialogPageShell } from "../../common/dialogPageShell";
+import { ConnectionSubDialogDisplayType } from "../../../sharedInterfaces/connectionDialog";
 
 const useStyles = makeStyles({
     previewColor: {
@@ -86,12 +87,12 @@ export const ConnectionGroupDialog = ({
     state,
     saveConnectionGroup,
     closeDialog,
-    mode = "shell",
+    mode = "standalone",
 }: {
     state: ConnectionGroupState;
     saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
     closeDialog: () => void;
-    mode?: ConnectionGroupDialogMode;
+    mode?: ConnectionSubDialogDisplayType;
 }) => {
     const formStyles = useFormStyles();
     const styles = useStyles();
@@ -250,7 +251,7 @@ export const ConnectionGroupDialog = ({
         </form>
     );
 
-    if (mode === "shell") {
+    if (mode === "standalone") {
         return (
             <DialogPageShell
                 icon={<FolderAdd24Regular aria-label={dialogTitle} />}
@@ -280,5 +281,3 @@ export const ConnectionGroupDialog = ({
         </Dialog>
     );
 };
-
-export type ConnectionGroupDialogMode = "shell" | "modal";

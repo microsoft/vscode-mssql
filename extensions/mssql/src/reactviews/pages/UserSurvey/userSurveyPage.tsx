@@ -57,6 +57,11 @@ const useStyles = makeStyles({
         gap: "10px",
         alignItems: "flex-start",
     },
+    privacyContent: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+    },
     privacyIcon: {
         color: "var(--vscode-descriptionForeground)",
         flexShrink: 0,
@@ -65,10 +70,6 @@ const useStyles = makeStyles({
     privacySummary: {
         color: "var(--vscode-descriptionForeground)",
         lineHeight: "1.5",
-    },
-    privacyDivider: {
-        marginTop: "12px",
-        marginBottom: "12px",
     },
     privacyExpandedText: {
         color: "var(--vscode-descriptionForeground)",
@@ -86,7 +87,6 @@ export const UserSurveyPage = () => {
     const cancelButtonText = useUserSurveySelector((s) => s?.cancelButtonText);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
     const [userAnswers, setUserAnswers] = useState<Answers>({});
-    const [isPrivacyExpanded, setIsPrivacyExpanded] = useState(false);
 
     const updateSubmitButtonState = () => {
         for (let i = 0; i < questions!.length; i++) {
@@ -172,36 +172,23 @@ export const UserSurveyPage = () => {
                     <div className={classes.privacyNoticeCard}>
                         <div className={classes.privacyHeader}>
                             <Shield20Regular className={classes.privacyIcon} />
-                            <Text className={classes.privacySummary}>
-                                <Text weight="semibold">
-                                    {locConstants.userFeedback.privacyNotice}
-                                </Text>{" "}
-                                - {locConstants.userFeedback.feedbackStatementShort}{" "}
+                            <div className={classes.privacyContent}>
+                                <Text className={classes.privacySummary}>
+                                    <Text weight="semibold">
+                                        {locConstants.userFeedback.privacyNotice}
+                                    </Text>
+                                </Text>
+                                <Text className={classes.privacyExpandedText}>
+                                    {locConstants.userFeedback.feedbackStatementLong}
+                                </Text>
                                 <Link
                                     onClick={() => {
-                                        setIsPrivacyExpanded((current) => !current);
+                                        context.openPrivacyStatement();
                                     }}>
-                                    {isPrivacyExpanded
-                                        ? `${locConstants.userFeedback.hideFullStatement} \u2191`
-                                        : `${locConstants.userFeedback.readFullStatement} \u2193`}
+                                    {locConstants.userFeedback.privacyStatement}
                                 </Link>
-                            </Text>
+                            </div>
                         </div>
-
-                        {isPrivacyExpanded && (
-                            <>
-                                <Divider className={classes.privacyDivider} />
-                                <Text className={classes.privacyExpandedText}>
-                                    {locConstants.userFeedback.feedbackStatementLong}{" "}
-                                    <Link
-                                        onClick={() => {
-                                            context.openPrivacyStatement();
-                                        }}>
-                                        {locConstants.userFeedback.privacyStatement}
-                                    </Link>
-                                </Text>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>
