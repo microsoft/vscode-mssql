@@ -3335,6 +3335,19 @@
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
     "No databases with backups found": "No databases with backups found",
     "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
+    "Acquired .NET runtime via {0}: {1}/{0} is the extension ID{1} is the resolved dotnet executable path": {
+        "message": "Acquired .NET runtime via {0}: {1}",
+        "comment": ["{0} is the extension ID", "{1} is the resolved dotnet executable path"]
+    },
+    "Failed to acquire .NET runtime from {0}: {1}/{0} is the extension ID{1} is the error message": {
+        "message": "Failed to acquire .NET runtime from {0}: {1}",
+        "comment": ["{0} is the extension ID", "{1} is the error message"]
+    },
+    "Unable to find a .NET runtime to run SQL Tools Service. Please download the offline VSIX which includes a bundled runtime.": "Unable to find a .NET runtime to run SQL Tools Service. Please download the offline VSIX which includes a bundled runtime.",
+    "Unable to find a .NET runtime. Please install the offline VSIX which includes a bundled runtime.": "Unable to find a .NET runtime. Please install the offline VSIX which includes a bundled runtime.",
+    "Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.": "Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.",
+    "The mssql extension could not start because the SQL Tools Service failed to initialize. See the 'MSSQL' output channel for details.": "The mssql extension could not start because the SQL Tools Service failed to initialize. See the 'MSSQL' output channel for details.",
+    "Download Offline VSIX": "Download Offline VSIX",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

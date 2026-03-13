@@ -134,6 +134,11 @@
     <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
       <source xml:lang="en">Account not found</source>
     </trans-unit>
+    <trans-unit id="++CODE++e1243c18a11aae6422b94a248ec39cc22fb5209530a12f23d54dc28656304a49">
+      <source xml:lang="en">Acquired .NET runtime via {0}: {1}</source>
+      <note>{0} is the extension ID
+{1} is the resolved dotnet executable path</note>
+    </trans-unit>
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
     </trans-unit>
@@ -1959,6 +1964,9 @@
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0bc2e7b8d5d900226fa1ada66859fe900386a7a07112ef81b2bf296bfc75b79">
+      <source xml:lang="en">Download Offline VSIX</source>
+    </trans-unit>
     <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
       <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
     </trans-unit>
@@ -2460,6 +2468,11 @@
     <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
       <source xml:lang="en">Failed disposing query: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++becc4d34c331c6517703a64358bd4f8501992dbfacc3dda974c607a266f9e229">
+      <source xml:lang="en">Failed to acquire .NET runtime from {0}: {1}</source>
+      <note>{0} is the extension ID
+{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
       <source xml:lang="en">Failed to add table to schema designer.</source>
@@ -6108,6 +6121,9 @@
     <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
       <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
     </trans-unit>
+    <trans-unit id="++CODE++58f2b9ce9285d04e24aad705daa7ada65125f3c47ddab84b24ec9c2bedf436ba">
+      <source xml:lang="en">The mssql extension could not start because the SQL Tools Service failed to initialize. See the &apos;MSSQL&apos; output channel for details.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c368a965891e9479b44218cb42c8cddde404740e364b53367e897dcb17ef1d6b">
       <source xml:lang="en">The name of the check constraint.</source>
     </trans-unit>
@@ -6243,11 +6259,20 @@
     <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
       <source xml:lang="en">URL copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++256aff4fe0e7334c7b9295deaa52e2ea8c44dea6ee9aff7a4a81692f6f630c57">
+      <source xml:lang="en">Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
     </trans-unit>
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f46a376555ee48691cb3cefe60ac93d445c4fd0c4d91b6da6a98e83d710c8506">
+      <source xml:lang="en">Unable to find a .NET runtime to run SQL Tools Service. Please download the offline VSIX which includes a bundled runtime.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2b431dbcad876738ca9c9232682f6877371f12b8d4ad11d70608579898cf0eed">
+      <source xml:lang="en">Unable to find a .NET runtime. Please install the offline VSIX which includes a bundled runtime.</source>
     </trans-unit>
     <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
       <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
