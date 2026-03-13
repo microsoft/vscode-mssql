@@ -52,27 +52,33 @@ const useStyles = makeStyles({
         padding: "16px 18px",
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
     },
-    privacyTitleRow: {
-        display: "flex",
-        gap: "10px",
-        alignItems: "center",
-    },
     privacyContent: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        columnGap: "10px",
+        rowGap: "8px",
+        alignItems: "start",
     },
     privacyIcon: {
         color: "var(--vscode-descriptionForeground)",
         flexShrink: 0,
+        gridColumn: "1",
+        gridRow: "1",
+        alignSelf: "center",
     },
     privacySummary: {
         color: "var(--vscode-descriptionForeground)",
         lineHeight: "1.5",
+        gridColumn: "2",
     },
     privacyExpandedText: {
         color: "var(--vscode-descriptionForeground)",
         lineHeight: "1.5",
+        gridColumn: "2",
+    },
+    privacyLink: {
+        gridColumn: "2",
+        width: "fit-content",
     },
 });
 
@@ -170,18 +176,17 @@ export const UserSurveyPage = () => {
                 <div className={classes.privacyDisclaimer}>
                     <div className={classes.privacyNoticeCard}>
                         <div className={classes.privacyContent}>
-                            <div className={classes.privacyTitleRow}>
-                                <Shield20Regular className={classes.privacyIcon} />
-                                <Text className={classes.privacySummary}>
-                                    <Text weight="semibold">
-                                        {locConstants.userFeedback.privacyNotice}
-                                    </Text>
+                            <Shield20Regular className={classes.privacyIcon} />
+                            <Text className={classes.privacySummary}>
+                                <Text weight="semibold">
+                                    {locConstants.userFeedback.privacyNotice}
                                 </Text>
-                            </div>
+                            </Text>
                             <Text className={classes.privacyExpandedText}>
                                 {locConstants.userFeedback.feedbackStatementLong}
                             </Text>
                             <Link
+                                className={classes.privacyLink}
                                 onClick={() => {
                                     context.openPrivacyStatement();
                                 }}>
