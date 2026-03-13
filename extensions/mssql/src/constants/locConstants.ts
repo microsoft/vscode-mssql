@@ -2846,39 +2846,35 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
+    public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
+    public static schemaDesignerCopilotDescription = l10n.t(
+        "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts — all reflected live in the visual diagram and T-SQL script.",
+    );
+    public static dabTitle = l10n.t("Data API builder");
+    public static dabDescription = l10n.t(
+        "View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static dabCopilotTitle = l10n.t("GitHub Copilot integration in Data API builder");
+    public static dabCopilotDescription = l10n.t(
+        "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.",
+    );
+    public static sqlNotebooksTitle = l10n.t("SQL Notebooks");
+    public static sqlNotebooksDescription = l10n.t(
+        "Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.",
+    );
+    public static fabricQueryProfilerTitle = l10n.t("Fabric databases in Query Profiler");
+    public static fabricQueryProfilerDescription = l10n.t(
+        "The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including TSQL_Azure for lightweight T-SQL profiling.",
+    );
     public static adsMigrationTitle = l10n.t(
         "Azure Data Studio Migration Toolkit - Now Including Keymap!",
     );
     public static adsMigrationDescription = l10n.t(
         "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
-    public static editDataTitle = l10n.t("Edit Data");
-    public static editDataDescription = l10n.t(
-        "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-    );
-    public static globalObjectSearchTitle = l10n.t("Global Object Search (Preview)");
-    public static globalObjectSearchDescription = l10n.t(
-        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
-    );
-    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs");
-    public static backupRestoreDescription = l10n.t(
-        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
-    );
-    public static databaseManagementTitle = l10n.t("Database Management Dialogs");
-    public static databaseManagementDescription = l10n.t(
-        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
-    );
-    public static queryProfilerTitle = l10n.t("Query Profiler");
-    public static queryProfilerDescription = l10n.t(
-        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
-    );
     public static dacpacTitle = l10n.t("Data-Tier Application (DACPAC / BACPAC) Import & Export");
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
-    );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
-    public static sqlProjPublishDescription = l10n.t(
-        "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
 
     // Secondary content
@@ -2886,21 +2882,17 @@ export class Changelog {
     public static secondaryContentDescription = l10n.t(
         "Previously released features you may not have explored yet.",
     );
-    public static schemaDesignerTitle = l10n.t("Schema Designer");
-    public static schemaDesignerDescription = l10n.t(
-        "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+    public static editDataTitle = l10n.t("Edit Data");
+    public static editDataDescription = l10n.t(
+        "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
     );
-    public static schemaCompareTitle = l10n.t("Schema Compare");
-    public static schemaCompareDescription = l10n.t(
-        "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+    public static fabricIntegrationTitle = l10n.t("Microsoft Fabric integration");
+    public static fabricIntegrationDescription = l10n.t(
+        "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.",
     );
-    public static localContainerTitle = l10n.t("Local SQL Server Container");
-    public static localContainerDescription = l10n.t(
-        "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
-    );
-    public static copilotIntegrationTitle = l10n.t("GitHub Copilot integration");
-    public static copilotIntegrationDescription = l10n.t(
-        "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+    public static sqlProjCodeAnalysisTitle = l10n.t("SQL Database Projects — Code Analysis");
+    public static sqlProjCodeAnalysisDescription = l10n.t(
+        "Analyze static code with customizable rulesets in SQL Database Projects.",
     );
 
     // Sidebar content
