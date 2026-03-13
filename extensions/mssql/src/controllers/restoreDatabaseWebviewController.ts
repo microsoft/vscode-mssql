@@ -104,9 +104,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             return;
         }
 
-        // Default restore type
-        restoreViewModel.type = DisasterRecoveryType.Database;
-        restoreViewModel.serverName = this.profile.server || "";
         this.state.ownerUri = this.ownerUri;
 
         // Get restore config info
@@ -172,9 +169,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         this.state.formState.targetDatabaseName =
             this.state.formState.sourceDatabaseName ?? databases[0];
 
-        // Set Azure related defaults
-        restoreViewModel.azureComponentStatuses["blob"] = ApiStatus.NotStarted;
-
         // Set initial form state
         this.state.formState = {
             ...this.state.formState,
@@ -191,10 +185,14 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             logFileFolder: restoreConfigInfo.logFileFolder,
         };
 
+        // Set restoreViewModel defaults
+        restoreViewModel.type = DisasterRecoveryType.Database;
+        restoreViewModel.serverName = this.profile.server || "";
+        restoreViewModel.azureComponentStatuses["blob"] = ApiStatus.NotStarted;
+
         void this.getRestorePlan(false)
             .then((state) => {
                 restoreViewModel = this.setDefaultFormValuesFromPlan(state);
-                this.updateViewModel(restoreViewModel, state);
             })
             .catch((error) => {
                 sendErrorEvent(
@@ -206,9 +204,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             });
 
         this.registerRestoreRpcHandlers();
-        restoreViewModel.loadState = ApiStatus.Loaded;
 
-        this.updateState();
+        restoreViewModel.loadState = ApiStatus.Loaded;
+        this.updateViewModel(restoreViewModel);
 
         sendActionEvent(TelemetryViews.Restore, TelemetryActions.InitializeRestore);
     }
