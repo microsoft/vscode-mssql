@@ -70,6 +70,7 @@ export class LocConstants {
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            learnMore: l10n.t("Learn more"),
         };
     }
 
@@ -1308,6 +1309,10 @@ export class LocConstants {
                 "Local container deployment is currently only supported with SQL Authentication connections.",
             ),
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
+            authenticationNotSupported: l10n.t("Authentication not supported"),
+            dabDeploymentNotSupportedBanner: l10n.t(
+                "Data API Builder container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog

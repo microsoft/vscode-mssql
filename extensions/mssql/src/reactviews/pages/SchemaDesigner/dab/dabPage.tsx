@@ -3,8 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { useEffect, useRef } from "react";
+import {
+    makeStyles,
+    Link,
+    MessageBar,
+    MessageBarBody,
+    MessageBarTitle,
+    MessageBarActions,
+    Button,
+    Spinner,
+    Text,
+} from "@fluentui/react-components";
+import { DismissRegular } from "@fluentui/react-icons";
+import { useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
@@ -47,8 +58,14 @@ interface DabPageProps {
 
 export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
-    const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
-        useDabContext();
+    const {
+        dabConfig,
+        initializeDabConfig,
+        syncDabConfigWithSchema,
+        isInitialized,
+        isDabDeploymentSupported,
+    } = useDabContext();
+    const [showDeploymentWarning, setShowDeploymentWarning] = useState(true);
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
     const canShowDiscovery = isDabTabActive && isInitialized && dabConfig != null;
     const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(null);
@@ -95,6 +112,30 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     return (
         <div className={classes.root}>
             <DabDeploymentDialog />
+            {!isDabDeploymentSupported && showDeploymentWarning && (
+                <MessageBar intent="warning">
+                    <MessageBarBody>
+                        <MessageBarTitle>
+                            {locConstants.schemaDesigner.authenticationNotSupported}
+                        </MessageBarTitle>
+                        {locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}{" "}
+                        <Link
+                            href="https://github.com/Azure/data-api-builder/issues/3246"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {locConstants.common.learnMore}
+                        </Link>
+                    </MessageBarBody>
+                    <MessageBarActions>
+                        <Button
+                            appearance="transparent"
+                            icon={<DismissRegular />}
+                            size="small"
+                            onClick={() => setShowDeploymentWarning(false)}
+                        />
+                    </MessageBarActions>
+                </MessageBar>
+            )}
             <PanelGroup direction="vertical">
                 <Panel defaultSize={100}>
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
