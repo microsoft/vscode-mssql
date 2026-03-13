@@ -19,7 +19,7 @@ import {
     getPlatformSafeFileEntryPath,
     systemDatabaseToString,
 } from "../src/common/utils";
-import { MessageItem, Uri, window } from "vscode";
+import { Uri, window } from "vscode";
 import {
     IDacpacReferenceSettings,
     INugetPackageReferenceSettings,
@@ -142,9 +142,8 @@ suite("Project: sqlproj content operations", function (): void {
     });
 
     test("Should throw warning message while reading Project with more than 1 pre-deploy script from sqlproj", async function (): Promise<void> {
-        const stub = sinon
-            .stub(window, "showWarningMessage")
-            .resolves(constants.okString as unknown as MessageItem);
+        const stub = sinon.stub(window, "showWarningMessage") as sinon.SinonStub;
+        stub.resolves(constants.okString);
 
         const projFilePath = await testUtils.createTestSqlProjFile(
             this.test,
@@ -1844,9 +1843,8 @@ suite("Project: properties", function (): void {
         // Simulate a missing or all-zeros GUID, which is what DacFx returns when <ProjectGuid> is absent
         Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
-        const stub = sinon
-            .stub(window, "showInformationMessage")
-            .resolves(constants.noString as unknown as MessageItem);
+        const stub = sinon.stub(window, "showInformationMessage") as sinon.SinonStub;
+        stub.resolves(constants.noString);
 
         await Project.checkPromptProjectGuidStatus(project);
 
@@ -1865,16 +1863,16 @@ suite("Project: properties", function (): void {
 
         // Stub setProjectProperties directly on the existing service instance so
         // prototype methods remain intact and sinon.restore() cleans up properly.
-        sinon
+        const setProjectPropertiesStub = sinon
             .stub(
                 (project as unknown as { sqlProjService: Record<string, unknown> }).sqlProjService,
                 "setProjectProperties",
             )
             .resolves({ success: true });
 
-        sinon
-            .stub(window, "showInformationMessage")
-            .resolves(constants.addProjectGuidLabel as unknown as MessageItem);
+        (sinon.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            constants.addProjectGuidLabel,
+        );
 
         await Project.checkPromptProjectGuidStatus(project);
 
@@ -1887,6 +1885,17 @@ suite("Project: properties", function (): void {
         expect(project.projectGuid).to.match(
             /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
         );
+        // Verify the service was called to persist the GUID
+        expect(
+            setProjectPropertiesStub.calledOnce,
+            "setProjectProperties should be called once to persist the new GUID",
+        ).to.be.true;
+        expect(
+            setProjectPropertiesStub.calledWith(project.projectFilePath, {
+                ProjectGuid: project.projectGuid,
+            }),
+            `setProjectProperties not called with expected args. Actual: ${JSON.stringify(setProjectPropertiesStub.firstCall?.args)}`,
+        ).to.be.true;
 
         sinon.restore();
     });
@@ -1895,9 +1904,9 @@ suite("Project: properties", function (): void {
         const project = await testUtils.createTestSqlProject(this.test);
         Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
-        sinon
-            .stub(window, "showInformationMessage")
-            .resolves(constants.noString as unknown as MessageItem);
+        (sinon.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            constants.noString,
+        );
 
         await Project.checkPromptProjectGuidStatus(project);
 
@@ -1940,9 +1949,7 @@ suite("Project: round trip updates", function (): void {
     });
 
     test("Should not update project and no backup file should be created when prompt to update project is rejected", async function (): Promise<void> {
-        sinon
-            .stub(window, "showWarningMessage")
-            .resolves(constants.noString as unknown as MessageItem);
+        (sinon.stub(window, "showWarningMessage") as sinon.SinonStub).resolves(constants.noString);
         // setup test files
         const folderPath = await testUtils.generateTestFolderPath(this.test);
         const sqlProjPath = await testUtils.createTestSqlProjFile(
