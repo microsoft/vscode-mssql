@@ -1674,6 +1674,7 @@ suite("Project: publish profiles", function (): void {
 suite("Project: properties", function (): void {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
+        await templates.loadTemplates(testUtils.getTemplatesRootPath());
     });
 
     suiteTeardown(async function (): Promise<void> {
