@@ -55,8 +55,16 @@ export class ConnectionGroupWebviewController extends ReactWebviewPanelControlle
                     : Loc.ConnectionGroup.createNewGroup,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionGroup_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionGroup_dark.svg",
+                    ),
                 },
             },
         );

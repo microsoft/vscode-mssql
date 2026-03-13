@@ -19,7 +19,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "16px",
-        maxWidth: "640px",
         width: "100%",
     },
     containerGroup: {

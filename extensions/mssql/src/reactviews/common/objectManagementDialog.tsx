@@ -3,83 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    makeStyles,
-    MessageBar,
-    MessageBarBody,
-    Spinner,
-} from "@fluentui/react-components";
+import { Button } from "@fluentui/react-components";
 import { ReactNode } from "react";
-
-const useStyles = makeStyles({
-    page: {
-        height: "100vh",
-        overflowY: "auto",
-        overflowX: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "var(--vscode-editor-background)",
-        color: "var(--vscode-editor-foreground)",
-    },
-    content: {
-        flex: "1 1 auto",
-        width: "100%",
-        maxWidth: "min(720px, 100%)",
-        padding: "28px 24px 96px",
-        margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-        boxSizing: "border-box",
-    },
-    header: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-    },
-    title: {
-        fontSize: "20px",
-        fontWeight: "600",
-    },
-    description: {
-        fontSize: "14px",
-        color: "var(--vscode-descriptionForeground)",
-        lineHeight: "20px",
-    },
-    loadingMessageBody: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-    },
-    footer: {
-        position: "sticky",
-        bottom: 0,
-        backgroundColor: "var(--vscode-editor-background)",
-        borderTop: "1px solid var(--vscode-editorGroup-border)",
-        padding: "12px 24px",
-        zIndex: 1,
-    },
-    footerInner: {
-        maxWidth: "min(720px, 100%)",
-        margin: "0 auto",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "8px",
-        boxSizing: "border-box",
-    },
-    footerGroup: {
-        display: "flex",
-        gap: "8px",
-    },
-});
+import { DialogPageShell, DialogPageShellContentWidth } from "./dialogPageShell";
+import { Info16Regular, Code16Regular } from "@fluentui/react-icons";
 
 export interface ObjectManagementDialogProps {
+    icon?: ReactNode;
     title?: string;
+    subtitle?: string;
     description?: string;
     errorMessage?: string;
     loadingMessage?: string;
+    maxContentWidth?: DialogPageShellContentWidth;
     primaryLabel: string;
     cancelLabel: string;
     helpLabel?: string;
@@ -94,10 +30,13 @@ export interface ObjectManagementDialogProps {
 }
 
 export const ObjectManagementDialog = ({
+    icon,
     title,
+    subtitle,
     description,
     errorMessage,
     loadingMessage,
+    maxContentWidth,
     primaryLabel,
     cancelLabel,
     helpLabel,
@@ -110,70 +49,53 @@ export const ObjectManagementDialog = ({
     onScript,
     children,
 }: ObjectManagementDialogProps) => {
-    const styles = useStyles();
-
     return (
-        <div className={styles.page} aria-label={title}>
-            <div className={styles.content}>
-                {title || description ? (
-                    <div className={styles.header}>
-                        {title && <div className={styles.title}>{title}</div>}
-                        {description && <div className={styles.description}>{description}</div>}
-                    </div>
-                ) : null}
-                {errorMessage && (
-                    <MessageBar intent={"error"}>
-                        <MessageBarBody>{errorMessage}</MessageBarBody>
-                    </MessageBar>
-                )}
-                {loadingMessage && (
-                    <MessageBar intent={"info"}>
-                        <MessageBarBody>
-                            <div className={styles.loadingMessageBody}>
-                                <Spinner size="tiny" />
-                                <span>{loadingMessage}</span>
-                            </div>
-                        </MessageBarBody>
-                    </MessageBar>
-                )}
-                {children}
-            </div>
-            <div className={styles.footer}>
-                <div className={styles.footerInner}>
-                    <div className={styles.footerGroup}>
-                        {helpLabel && (
-                            <Button
-                                size="medium"
-                                appearance="secondary"
-                                disabled={!onHelp}
-                                onClick={() => onHelp?.()}>
-                                {helpLabel}
-                            </Button>
-                        )}
-                        {scriptLabel && (
-                            <Button
-                                size="medium"
-                                appearance="secondary"
-                                disabled={!onScript || scriptDisabled}
-                                onClick={() => onScript?.()}>
-                                {scriptLabel}
-                            </Button>
-                        )}
-                    </div>
-                    <div className={styles.footerGroup}>
-                        <Button size="medium" appearance="secondary" onClick={() => onCancel?.()}>
-                            {cancelLabel}
-                        </Button>
+        <DialogPageShell
+            icon={icon}
+            title={title}
+            subtitle={subtitle ?? description}
+            errorMessage={errorMessage}
+            loadingMessage={loadingMessage}
+            maxContentWidth={maxContentWidth ?? "medium"}
+            footerStart={
+                <>
+                    {helpLabel && (
                         <Button
                             size="medium"
-                            appearance="primary"
-                            disabled={primaryDisabled}
-                            onClick={() => onPrimary?.()}>
-                            {primaryLabel}
+                            appearance="secondary"
+                            icon={<Info16Regular />}
+                            disabled={!onHelp}
+                            onClick={() => onHelp?.()}>
+                            {helpLabel}
                         </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    )}
+                    {scriptLabel && (
+                        <Button
+                            size="medium"
+                            appearance="secondary"
+                            icon={<Code16Regular />}
+                            disabled={!onScript || scriptDisabled}
+                            onClick={() => onScript?.()}>
+                            {scriptLabel}
+                        </Button>
+                    )}
+                </>
+            }
+            footerEnd={
+                <>
+                    <Button size="medium" appearance="secondary" onClick={() => onCancel?.()}>
+                        {cancelLabel}
+                    </Button>
+                    <Button
+                        size="medium"
+                        appearance="primary"
+                        disabled={primaryDisabled}
+                        onClick={() => onPrimary?.()}>
+                        {primaryLabel}
+                    </Button>
+                </>
+            }>
+            {children}
+        </DialogPageShell>
     );
 };

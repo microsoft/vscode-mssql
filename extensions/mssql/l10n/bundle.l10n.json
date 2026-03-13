@@ -78,7 +78,6 @@
     "Delete": "Delete",
     "Expand": "Expand",
     "Collapse": "Collapse",
-    "Filter Settings": "Filter Settings",
     "Select All": "Select All",
     "Copy": "Copy",
     "Copy with Headers": "Copy with Headers",
@@ -124,6 +123,7 @@
     "Previous": "Previous",
     "OK": "OK",
     "Learn more": "Learn more",
+    "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
     "And": "And",
     "Contains": "Contains",
@@ -259,6 +259,15 @@
     "Add my client IP ({0})/{0} is the IP address of the client": {
         "message": "Add my client IP ({0})",
         "comment": ["{0} is the IP address of the client"]
+    },
+    "Add my subnet IP range": "Add my subnet IP range",
+    "From/Label for the start IP address in the firewall rule IP range": {
+        "message": "From",
+        "comment": ["Label for the start IP address in the firewall rule IP range"]
+    },
+    "To/Label for the end IP address in the firewall rule IP range": {
+        "message": "To",
+        "comment": ["Label for the end IP address in the firewall rule IP range"]
     },
     "Search workspaces...": "Search workspaces...",
     "Loading Fabric Accounts": "Loading Fabric Accounts",
@@ -414,8 +423,8 @@
     "Submit": "Submit",
     "Not likely at all": "Not likely at all",
     "Extremely likely": "Extremely likely",
+    "Privacy notice": "Privacy notice",
     "Privacy Statement": "Privacy Statement",
-    "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
     "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
     "Results ({0})/{0} is the keyboard shortcut for the results tab": {
         "message": "Results ({0})",
@@ -1170,6 +1179,7 @@
     "-": "-",
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
+    "I understand this action is permanent and irreversible": "I understand this action is permanent and irreversible",
     "Drop": "Drop",
     "Dropping database": "Dropping database",
     "Data-tier Application": "Data-tier Application",

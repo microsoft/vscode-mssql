@@ -14,7 +14,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "8px",
-        maxWidth: "640px",
         width: "100%",
     },
     linkWrapper: {
