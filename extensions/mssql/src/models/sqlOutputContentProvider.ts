@@ -127,11 +127,37 @@ export class SqlOutputContentProvider {
         );
 
         /**
-         * Command that reveals the query result
+         * Command to toggle the display of the query results panel
          */
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdrevealQueryResult, (uri: vscode.Uri) => {
-                this.revealQueryResult(uri.toString());
+            vscode.commands.registerCommand(Constants.cmdToggleQueryResultPanel, () => {
+                const activeEditor = vscode.window.activeTextEditor;
+
+                // Don't do anything if the active editor isn't SQL
+                if (!activeEditor || activeEditor.document.languageId !== Constants.languageId) {
+                    return;
+                }
+
+                const uri = this._vscodeWrapper.activeTextEditorUri;
+                if (!uri) {
+                    return;
+                }
+
+                // If the panel is already visible, hide it. Otherwise, show it.
+                if (this._queryResultWebviewController.isVisible()) {
+                    void vscode.commands.executeCommand("workbench.action.closePanel");
+                } else {
+                    this.revealQueryResult(uri, "emptyPanel");
+                }
+            }),
+        );
+
+        /**
+         * Command to reveal the query result
+         */
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdRevealQueryResult, (uri: vscode.Uri) => {
+                this.revealQueryResult(uri.toString(), "throw");
             }),
         );
     }
@@ -501,7 +527,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
+                this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -926,7 +952,7 @@ export class SqlOutputContentProvider {
      * Reveals the results grid in either webview panel or webview view.
      * @param uri
      */
-    public revealQueryResult(uri: string): void {
+    public revealQueryResult(uri: string, notFoundBehavior: "throw" | "emptyPanel"): void {
         const openInNewTabConfig = isOpenQueryResultsInTabByDefaultEnabled();
 
         if (openInNewTabConfig) {
@@ -934,9 +960,17 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        const isContainedInWebviewView =
+        const hasState = this._queryResultWebviewController.hasQueryResultState(uri);
+        if (notFoundBehavior === "throw" && !hasState) {
+            // Throw error and emit telemetry when the state is missing.
             this._queryResultWebviewController.getQueryResultState(uri);
-        if (isContainedInWebviewView && !this._queryResultWebviewController.hasPanel(uri)) {
+        }
+
+        const shouldFocus =
+            (notFoundBehavior === "emptyPanel" && !hasState) ||
+            (hasState && !this._queryResultWebviewController.hasPanel(uri));
+
+        if (shouldFocus) {
             vscode.commands.executeCommand("queryResult.focus", {
                 preserveFocus: true,
             });

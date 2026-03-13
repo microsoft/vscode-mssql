@@ -36,6 +36,7 @@ export const changelogConfig: ChangelogWebviewState = {
             },
             {
                 title: locConstants.Changelog.queryProfilerTitle,
+                isPreview: true,
                 description: locConstants.Changelog.queryProfilerDescription,
                 actions: [
                     {
@@ -68,6 +69,7 @@ export const changelogConfig: ChangelogWebviewState = {
             },
             {
                 title: locConstants.Changelog.backupRestoreTitle,
+                isPreview: true,
                 description: locConstants.Changelog.backupRestoreDescription,
                 actions: [
                     {
@@ -84,6 +86,7 @@ export const changelogConfig: ChangelogWebviewState = {
             },
             {
                 title: locConstants.Changelog.databaseManagementTitle,
+                isPreview: true,
                 description: locConstants.Changelog.databaseManagementDescription,
                 actions: [
                     {

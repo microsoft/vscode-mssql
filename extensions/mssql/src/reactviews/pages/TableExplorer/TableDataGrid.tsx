@@ -444,8 +444,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         enableAutoResize: true,
                         autoResize: {
                             container: "#grid-container",
-                            bottomPadding: 50, // Reserve space for custom pagination
-                            minHeight: 250, // Minimum height to prevent unnecessary scrollbar
+                            calculateAvailableSizeBy: "container",
+                            resizeDetection: "container",
+                            autoHeight: false,
+                            bottomPadding: 10,
+                            minHeight: 180,
                         },
                         forceFitColumns: false, // Allow horizontal scrolling for many columns
 

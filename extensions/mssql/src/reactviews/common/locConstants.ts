@@ -814,7 +814,9 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t(
+                "Design Schemas with GitHub Copilot (Preview)",
+            ),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
@@ -1030,7 +1032,9 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
-            definition: l10n.t("Show Definition"),
+            definition: l10n.t("Definition"),
+            showDefinition: l10n.t("Show Definition"),
+            hideDefinition: l10n.t("Hide Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1041,9 +1045,10 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Schema Designer"),
-            dabNavLabel: l10n.t("DAB"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
+            dabNavLabel: l10n.t("Build Data API (Preview)"),
             showChangesButtonLabel: l10n.t("Show Changes"),
+            hideChangesButtonLabel: l10n.t("Hide Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
@@ -1275,7 +1280,7 @@ export class LocConstants {
                 }),
 
             // DAB (Data API Builder) strings
-            dabTitle: l10n.t("Data API Builder Configuration"),
+            dabTitle: l10n.t("Data API Builder Configuration (Preview)"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1299,6 +1304,10 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
+            dabDeploymentNotSupported: l10n.t(
+                "Local container deployment is currently only supported with SQL Authentication connections.",
+            ),
+            atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -1357,9 +1366,13 @@ export class LocConstants {
             // DAB Deployment Dialog
             deployDabContainer: l10n.t("Deploy DAB Container"),
             localContainerDeployment: l10n.t("Local Container Deployment"),
-            deployDabContainerDescription: l10n.t(
-                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
-            ),
+            deployDabContainerDescription: (apiTypes: string) =>
+                l10n.t({
+                    message:
+                        "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+                    args: [apiTypes],
+                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
+                }),
             requirements: l10n.t("Requirements:"),
             dockerDesktopRequirement: l10n.t(
                 "Docker Desktop must be installed and running on your machine.",
@@ -1388,6 +1401,19 @@ export class LocConstants {
             addToVSCode: l10n.t("Add to VS Code"),
             addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
             mcpServerAdded: l10n.t("Added"),
+            viewSwagger: l10n.t("View Swagger"),
+            openNitro: l10n.t("Open Nitro"),
+
+            // DAB Unsupported Reasons
+            unsupportedNoPrimaryKey: l10n.t(
+                "Table must have a primary key to be used with Data API Builder",
+            ),
+            unsupportedDataTypes: (columns: string) =>
+                l10n.t({
+                    message: "Table contains column types not supported by Data API Builder: {0}",
+                    args: [columns],
+                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                }),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
@@ -1402,6 +1428,7 @@ export class LocConstants {
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
+            containerLogs: l10n.t("Container logs"),
         };
     }
 
@@ -1600,7 +1627,7 @@ export class LocConstants {
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric (Preview)"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
@@ -1647,8 +1674,8 @@ export class LocConstants {
 
     public get fabricProvisioning() {
         return {
-            loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
-            sqlDatabaseInFabric: l10n.t("SQL database in Fabric (Preview)"),
+            loadingFabricProvisioning: l10n.t("Loading Fabric provisioning..."),
+            sqlDatabaseInFabric: l10n.t("SQL database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             errorLoadingWorkspaces: l10n.t(
@@ -1772,7 +1799,7 @@ export class LocConstants {
 
     public get dacpacDialog() {
         return {
-            title: l10n.t("Data-tier Application (Preview)"),
+            title: l10n.t("Data-tier Application"),
             subtitle: l10n.t(
                 "Deploy, extract, import, or export data-tier applications on the selected database",
             ),
@@ -1840,7 +1867,7 @@ export class LocConstants {
             ),
             learnMore: l10n.t("Learn More"),
             fabricWarning: l10n.t(
-                "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
+                "Fabric targets are currently not supported, and we are working to improve the experience.",
             ),
             fabricWarningLearnMore: l10n.t("Learn more about this issue."),
         };
@@ -1879,7 +1906,7 @@ export class LocConstants {
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects"),
+            title: l10n.t("Search Database Objects (Preview)"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
@@ -2171,12 +2198,15 @@ export class LocConstants {
 
     public get changelog() {
         return {
+            pageTitle: l10n.t("MSSQL: What's new"),
+            headerIconAlt: l10n.t("MSSQL extension icon"),
             highlightsSectionTitle: l10n.t("Highlights"),
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(
                 "New to MSSQL extension? Check out our quick-start guide.",
             ),
+            previewBadge: l10n.t("Preview"),
             footerText: (version: string) =>
                 l10n.t({
                     message:
@@ -2205,6 +2235,12 @@ export class LocConstants {
 
     public get backupDatabase() {
         return {
+            backupDatabaseTitle: (databaseName: string) =>
+                l10n.t({
+                    message: "Backup Database (Preview) - {0}",
+                    args: [databaseName],
+                    comment: ["{0} is the database name"],
+                }),
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
             script: l10n.t("Script"),
@@ -2437,7 +2473,7 @@ export class LocConstants {
 
     public get flatFileImport() {
         return {
-            importFile: l10n.t("Import File"),
+            importFile: l10n.t("Import File (Preview)"),
             stepOne: l10n.t("Step 1: Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
@@ -2474,7 +2510,7 @@ export class LocConstants {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),
             restore: l10n.t("Restore"),
-            restoreDatabase: l10n.t("Restore Database"),
+            restoreDatabase: l10n.t("Restore Database (Preview)"),
             database: l10n.t("Database"),
             backupFile: l10n.t("Backup File"),
             url: l10n.t("URL"),

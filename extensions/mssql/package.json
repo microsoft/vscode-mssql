@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.41.0",
+    "version": "1.42.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -164,7 +164,7 @@
         "shallow-equal": "^3.1.0",
         "slickgrid-react": "^9.8.0",
         "strip-json-comments": "^5.0.1",
-        "tar": "^7.5.10",
+        "tar": "^7.5.11",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^8.2.1",
@@ -469,16 +469,12 @@
             ],
             "mssql.sqlScriptsSubmenu": [
                 {
-                    "command": "mssql.scriptSelect",
+                    "command": "mssql.scriptCreate",
                     "group": "1_scripts@1"
                 },
                 {
-                    "command": "mssql.scriptCreate",
-                    "group": "1_scripts@2"
-                },
-                {
                     "command": "mssql.scriptDelete",
-                    "group": "1_scripts@3"
+                    "group": "1_scripts@2"
                 }
             ],
             "view/title": [
@@ -551,122 +547,132 @@
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@1"
+                    "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@2"
+                    "group": "3_MSSQL_instanceDatabaseActions@1"
                 },
                 {
                     "command": "mssql.editConnection",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@2"
+                    "group": "2_MSSQL_connection@1"
                 },
                 {
                     "command": "mssql.disconnectObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@3"
+                    "group": "2_MSSQL_connection@2"
                 },
                 {
                     "command": "mssql.removeObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@4"
+                    "group": "2_MSSQL_connection@3"
                 },
                 {
                     "command": "mssql.profiler.launchFromObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1a_MSSQL_profiler@1"
+                    "group": "4_MSSQL_discoverAndProfile@2"
                 },
                 {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@1"
+                    "group": "2a_MSSQL_databaseDesign@1"
                 },
                 {
                     "command": "mssql.buildDataApi",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@2"
+                    "group": "2a_MSSQL_databaseDesign@2"
                 },
                 {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "7_MSSQL_compareAndDacpac@1"
                 },
                 {
                     "command": "mssql.searchDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@4"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "4_MSSQL_discoverAndProfile@1"
+                },
+                {
+                    "command": "mssql.searchDatabase",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@1"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@5"
+                    "group": "7_MSSQL_compareAndDacpac@2"
                 },
                 {
                     "command": "mssql.renameDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@6"
+                    "group": "4_MSSQL_databaseMaintenance@1"
                 },
                 {
                     "command": "mssql.dropDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@7"
+                    "group": "4_MSSQL_databaseMaintenance@5"
                 },
                 {
                     "command": "mssql.backupDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@8"
+                    "group": "4_MSSQL_databaseMaintenance@2"
                 },
                 {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b(?!.*\\bsubType=(Database|DockerContainerDatabase)\\b)/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "3_MSSQL_instanceDatabaseActions@1"
                 },
                 {
                     "command": "mssql.restoreDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "3_MSSQL_instanceDatabaseActions@3"
                 },
                 {
                     "command": "mssql.restoreDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "4_MSSQL_databaseMaintenance@3"
                 },
                 {
                     "command": "mssql.flatFileImport",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "group": "3_MSSQL_instanceDatabaseActions@4"
                 },
                 {
                     "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "2_MSSQL_serverDbActions@9"
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "4_MSSQL_databaseMaintenance@4"
                 },
                 {
                     "command": "mssql.notebooks.createNotebook",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "sqlnotebooks@1"
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "3_MSSQL_newQuery@1"
+                    "group": "1_MSSQL_primary@1"
+                },
+                {
+                    "command": "mssql.scriptSelect",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "1_MSSQL_primary@2"
                 },
                 {
                     "command": "mssql.tableExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableActions@1"
+                    "group": "2b_MSSQL_tableActions@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableActions@2"
+                    "group": "2b_MSSQL_tableActions@2"
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "5_MSSQL_tableScripts@1"
+                    "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -716,27 +722,32 @@
                 {
                     "command": "mssql.copyObjectName",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
-                    "group": "5_MSSQL_tree@4"
+                    "group": "1_MSSQL_primary@95"
                 },
                 {
                     "command": "mssql.copyConnectionString",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
-                    "group": "5_MSSQL_tree@5"
+                    "group": "2_MSSQL_connection@4"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
-                    "group": "5_MSSQL_tree@9999"
+                    "group": "1_MSSQL_primary@90"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "MS_SQL@11"
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "MS_SQL@12"
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "group": "6_MSSQL_copilot@2"
+                },
+                {
+                    "command": "mssql.profiler.launchFromDatabase",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@2"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
@@ -816,15 +827,18 @@
                 },
                 {
                     "command": "mssql.stopContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/",
+                    "group": "9_MSSQL_container@1"
                 },
                 {
                     "command": "mssql.deleteContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "group": "9_MSSQL_container@2"
                 },
                 {
                     "command": "mssql.startContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "group": "9_MSSQL_container@3"
                 }
             ],
             "commandPalette": [
@@ -979,6 +993,11 @@
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
                 "icon": "$(table)"
+            },
+            {
+                "command": "mssql.toggleQueryResultPanel",
+                "title": "%mssql.toggleQueryResultPanel%",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.connect",
@@ -1430,6 +1449,11 @@
             },
             {
                 "command": "mssql.profiler.launchFromObjectExplorer",
+                "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.profiler.launchFromDatabase",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
             },
@@ -3530,7 +3554,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Inspect and update Data API Builder (DAB) state for the active schema designer. Operations: 'get_state' (no payload) and 'apply_changes'. For apply_changes, use { operation: 'apply_changes', payload: { expectedVersion, changes }, options? }; expectedVersion is required inside payload. Entity refs are either { id } or { schemaName, tableName }. Compact change shapes: set_api_types { type, apiTypes[] }; set_entity_enabled { type, entity, isEnabled }; set_entity_actions { type, entity, actions[] }; patch_entity_settings { type, entity, set{ entityName?, authorizationRole?, customRestPath?, customGraphQLType? } }; set_only_enabled_entities { type, entities[] }; set_all_entities_enabled { type, isEnabled }.",
+                "modelDescription": "Work with the Data API Builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API Builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3619,250 +3643,246 @@
                             "additionalProperties": false
                         }
                     },
-                    "oneOf": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "operation": {
-                                    "type": "string",
-                                    "enum": [
-                                        "get_state"
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "operation"
-                            ],
-                            "additionalProperties": false
+                    "properties": {
+                        "operation": {
+                            "description": "The operation to perform on Data API Builder. Supported values: 'get_state', 'apply_changes', 'show'.",
+                            "title": "Operation",
+                            "type": "string",
+                            "enum": [
+                                "get_state",
+                                "apply_changes",
+                                "show"
+                            ]
                         },
-                        {
+                        "connectionId": {
+                            "description": "Connection ID to use when opening Data API Builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
+                            "title": "Connection ID",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "payload": {
+                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, set_entity_enabled { entity, isEnabled }, set_entity_actions { entity, enabledActions }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
+                            "title": "Payload",
                             "type": "object",
                             "properties": {
-                                "operation": {
+                                "expectedVersion": {
+                                    "description": "Required for apply_changes. Must match the version returned by the most recent get_state.",
                                     "type": "string",
-                                    "enum": [
-                                        "apply_changes"
-                                    ]
+                                    "minLength": 1
                                 },
-                                "payload": {
+                                "targetHint": {
+                                    "description": "Optional server+database hint for apply_changes. If provided and it does not match the active designer, the tool fails with reason 'target_mismatch' and applies no changes.",
                                     "type": "object",
                                     "properties": {
-                                        "expectedVersion": {
+                                        "server": {
                                             "type": "string",
                                             "minLength": 1
                                         },
-                                        "targetHint": {
-                                            "type": "object",
-                                            "properties": {
-                                                "server": {
-                                                    "type": "string",
-                                                    "minLength": 1
-                                                },
-                                                "database": {
-                                                    "type": "string",
-                                                    "minLength": 1
-                                                }
-                                            },
-                                            "required": [
-                                                "server",
-                                                "database"
-                                            ],
-                                            "additionalProperties": false
-                                        },
-                                        "changes": {
-                                            "type": "array",
-                                            "minItems": 1,
-                                            "items": {
-                                                "oneOf": [
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "type": {
-                                                                "type": "string",
-                                                                "enum": [
-                                                                    "set_api_types"
-                                                                ]
-                                                            },
-                                                            "apiTypes": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "type": "string",
-                                                                    "enum": [
-                                                                        "rest",
-                                                                        "graphql",
-                                                                        "mcp"
-                                                                    ]
-                                                                },
-                                                                "minItems": 1,
-                                                                "uniqueItems": true
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "type",
-                                                            "apiTypes"
-                                                        ],
-                                                        "additionalProperties": false
-                                                    },
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "type": {
-                                                                "type": "string",
-                                                                "enum": [
-                                                                    "set_entity_enabled"
-                                                                ]
-                                                            },
-                                                            "entity": {
-                                                                "$ref": "#/$defs/entityRef"
-                                                            },
-                                                            "isEnabled": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "type",
-                                                            "entity",
-                                                            "isEnabled"
-                                                        ],
-                                                        "additionalProperties": false
-                                                    },
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "type": {
-                                                                "type": "string",
-                                                                "enum": [
-                                                                    "set_entity_actions"
-                                                                ]
-                                                            },
-                                                            "entity": {
-                                                                "$ref": "#/$defs/entityRef"
-                                                            },
-                                                            "actions": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "type": "string",
-                                                                    "enum": [
-                                                                        "create",
-                                                                        "read",
-                                                                        "update",
-                                                                        "delete"
-                                                                    ]
-                                                                },
-                                                                "minItems": 1,
-                                                                "uniqueItems": true
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "type",
-                                                            "entity",
-                                                            "actions"
-                                                        ],
-                                                        "additionalProperties": false
-                                                    },
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "type": {
-                                                                "type": "string",
-                                                                "enum": [
-                                                                    "patch_entity_settings"
-                                                                ]
-                                                            },
-                                                            "entity": {
-                                                                "$ref": "#/$defs/entityRef"
-                                                            },
-                                                            "set": {
-                                                                "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', customRestPath: 't_41', customGraphQLType: null }.",
-                                                                "$ref": "#/$defs/advancedSettingsPatch"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "type",
-                                                            "entity",
-                                                            "set"
-                                                        ],
-                                                        "additionalProperties": false
-                                                    },
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "type": {
-                                                                "type": "string",
-                                                                "enum": [
-                                                                    "set_only_enabled_entities"
-                                                                ]
-                                                            },
-                                                            "entities": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "$ref": "#/$defs/entityRef"
-                                                                },
-                                                                "minItems": 1
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "type",
-                                                            "entities"
-                                                        ],
-                                                        "additionalProperties": false
-                                                    },
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "type": {
-                                                                "type": "string",
-                                                                "enum": [
-                                                                    "set_all_entities_enabled"
-                                                                ]
-                                                            },
-                                                            "isEnabled": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "type",
-                                                            "isEnabled"
-                                                        ],
-                                                        "additionalProperties": false
-                                                    }
-                                                ]
-                                            }
+                                        "database": {
+                                            "type": "string",
+                                            "minLength": 1
                                         }
                                     },
                                     "required": [
-                                        "expectedVersion",
-                                        "changes"
+                                        "server",
+                                        "database"
                                     ],
                                     "additionalProperties": false
                                 },
-                                "options": {
-                                    "type": "object",
-                                    "properties": {
-                                        "returnState": {
-                                            "type": "string",
-                                            "enum": [
-                                                "full",
-                                                "summary",
-                                                "none"
-                                            ]
-                                        }
-                                    },
-                                    "additionalProperties": false
+                                "changes": {
+                                    "description": "Sequential list of DAB changes for apply_changes.",
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "items": {
+                                        "oneOf": [
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_api_types"
+                                                        ]
+                                                    },
+                                                    "apiTypes": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "rest",
+                                                                "graphql",
+                                                                "mcp"
+                                                            ]
+                                                        },
+                                                        "minItems": 1,
+                                                        "uniqueItems": true
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "apiTypes"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_entity_enabled"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "isEnabled": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "isEnabled"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_entity_actions"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "enabledActions": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "create",
+                                                                "read",
+                                                                "update",
+                                                                "delete"
+                                                            ]
+                                                        },
+                                                        "minItems": 1,
+                                                        "uniqueItems": true
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "enabledActions"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "patch_entity_settings"
+                                                        ]
+                                                    },
+                                                    "entity": {
+                                                        "$ref": "#/$defs/entityRef"
+                                                    },
+                                                    "set": {
+                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', customRestPath: 't_41', customGraphQLType: null }.",
+                                                        "$ref": "#/$defs/advancedSettingsPatch"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entity",
+                                                    "set"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_only_enabled_entities"
+                                                        ]
+                                                    },
+                                                    "entities": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "$ref": "#/$defs/entityRef"
+                                                        },
+                                                        "minItems": 1
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "entities"
+                                                ],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_all_entities_enabled"
+                                                        ]
+                                                    },
+                                                    "isEnabled": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "isEnabled"
+                                                ],
+                                                "additionalProperties": false
+                                            }
+                                        ]
+                                    }
                                 }
                             },
                             "required": [
-                                "operation",
-                                "payload"
+                                "expectedVersion",
+                                "changes"
                             ],
                             "additionalProperties": false
+                        },
+                        "options": {
+                            "description": "Optional operation settings. apply_changes: { returnState }.",
+                            "title": "Options",
+                            "type": "object",
+                            "properties": {
+                                "returnState": {
+                                    "type": "string",
+                                    "enum": [
+                                        "full",
+                                        "summary",
+                                        "none"
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
                         }
-                    ]
+                    },
+                    "required": [
+                        "operation"
+                    ],
+                    "additionalProperties": false
                 },
                 "canBeReferencedInPrompt": true,
                 "displayName": "Data API Builder",
                 "toolReferenceName": "mssql_dab",
-                "userDescription": "Inspect or update Data API Builder settings for the active schema designer.",
+                "userDescription": "Open or manage Data API Builder settings for a connection or the active designer.",
                 "icon": "$(database)"
             },
             {

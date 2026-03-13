@@ -13,11 +13,16 @@ import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
 import { CodeDefinitionIcon16Regular } from "../../../common/icons/fluentIcons";
 
 export function ViewDefinitionsButton() {
-    const { toggleDefinitionPanel } = useSchemaDesignerDefinitionPanelContext();
+    const { activeTab, isDefinitionPanelVisible, toggleDefinitionPanel } =
+        useSchemaDesignerDefinitionPanelContext();
     const isCompact = useIsToolbarCompact();
+    const definitionLabel =
+        isDefinitionPanelVisible && activeTab === SchemaDesignerDefinitionPanelTab.Script
+            ? locConstants.schemaDesigner.hideDefinition
+            : locConstants.schemaDesigner.showDefinition;
 
     return (
-        <Tooltip content={locConstants.schemaDesigner.definition} relationship="label">
+        <Tooltip content={definitionLabel} relationship="label">
             <Button
                 appearance="subtle"
                 size="small"
@@ -25,7 +30,7 @@ export function ViewDefinitionsButton() {
                 onClick={() => {
                     toggleDefinitionPanel(SchemaDesignerDefinitionPanelTab.Script);
                 }}>
-                {!isCompact && locConstants.schemaDesigner.definition}
+                {!isCompact && definitionLabel}
             </Button>
         </Tooltip>
     );

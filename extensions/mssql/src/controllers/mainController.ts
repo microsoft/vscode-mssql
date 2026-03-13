@@ -856,7 +856,14 @@ export default class MainController implements vscode.Disposable {
 
         // Register mssql_dab tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
+            vscode.lm.registerTool(
+                Constants.copilotDabToolName,
+                new DabTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) =>
+                        this.openDabDesigner(connectionUri, database),
+                ),
+            ),
         );
     }
 
@@ -871,6 +878,21 @@ export default class MainController implements vscode.Disposable {
             connectionUri,
         );
         designer.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+        designer.revealToForeground();
+        return designer;
+    }
+
+    private async openDabDesigner(connectionUri: string, database: string) {
+        const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+            this._context,
+            this._vscodeWrapper,
+            this,
+            this.schemaDesignerService,
+            database,
+            undefined,
+            connectionUri,
+        );
+        designer.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
         designer.revealToForeground();
         return designer;
     }
@@ -1527,11 +1549,19 @@ export default class MainController implements vscode.Disposable {
                         `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
 
                     try {
-                        await this.objectManagementService.rename(
-                            connectionUri,
-                            Constants.databaseString,
-                            objectUrn,
-                            newName,
+                        await vscode.window.withProgress(
+                            {
+                                location: vscode.ProgressLocation.Notification,
+                                title: LocalizedConstants.renamingDatabase(databaseName, newName),
+                            },
+                            async () => {
+                                await this.objectManagementService.rename(
+                                    connectionUri,
+                                    Constants.databaseString,
+                                    objectUrn,
+                                    newName,
+                                );
+                            },
                         );
                         await refreshNodeChildren(targetNode.parentNode);
                     } catch (error) {
@@ -1756,13 +1786,26 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdEditConnection,
-                async (node: TreeNodeInfo) => {
+                async (nodeOrProfile: TreeNodeInfo | IConnectionProfile) => {
+                    const connectionProfile =
+                        nodeOrProfile instanceof TreeNodeInfo
+                            ? nodeOrProfile.connectionProfile
+                            : (nodeOrProfile as IConnectionProfile);
+
+                    if (!connectionProfile) {
+                        this._logger.error(
+                            `Unhandled input for ${Constants.cmdEditConnection}: ${JSON.stringify(nodeOrProfile)}`,
+                        );
+
+                        return;
+                    }
+
                     const connDialog = new ConnectionDialogWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this,
                         this._objectExplorerProvider,
-                        node.connectionProfile,
+                        connectionProfile,
                     );
                     connDialog.revealToForeground();
                 },

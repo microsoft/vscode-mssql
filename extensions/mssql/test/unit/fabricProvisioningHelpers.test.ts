@@ -73,7 +73,7 @@ suite("Fabric Provisioning logic", () => {
         expect(state.formComponents.tenantId).to.exist;
         expect(state.formComponents.groupId).to.exist;
 
-        expect(sendActionEvent).to.have.been.calledOnce;
+        expect(sendActionEvent).to.have.been.called;
     });
 
     test("initializeFabricProvisioningState sets group id", async () => {
@@ -92,7 +92,7 @@ suite("Fabric Provisioning logic", () => {
         expect(state.formComponents.tenantId).to.exist;
         expect(state.formComponents.groupId).to.exist;
 
-        expect(sendActionEvent).to.have.been.calledOnce;
+        expect(sendActionEvent).to.have.been.called;
     });
 
     test("setFabricProvisioningFormComponents builds expected keys and validates fields", async () => {

@@ -369,6 +369,88 @@ suite("SqlNotebookController", () => {
 
             expect(mockExecution.end).to.have.been.calledWith(false, sinon.match.number);
         });
+
+        test("shows truncation warning when result set is incomplete", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary(),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("id", "int")],
+                                    rows: [
+                                        [{ displayValue: "1", isNull: false }],
+                                        [{ displayValue: "2", isNull: false }],
+                                    ],
+                                    rowCount: 1000, // More rows exist than were returned
+                                },
+                            ],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT * FROM LargeTable" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            expect(mockExecution.replaceOutput).to.have.been.calledOnce;
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(2);
+
+            // First output should be the truncation warning
+            const warningOutput = outputs[0];
+            expect(warningOutput.items[0].mime).to.equal("text/plain");
+            const warningText = new TextDecoder().decode(warningOutput.items[0].data);
+            expect(warningText).to.include("Warning: Result set is incomplete");
+            expect(warningText).to.include("2"); // Actual rows returned
+            expect(warningText).to.include("1000"); // Total rows available
+
+            expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
+        });
+
+        test("does not show truncation warning when result set is complete", async () => {
+            mockNotebookConnMgr.executeQueryString.resolves(
+                makeQueryResult({
+                    batches: [
+                        {
+                            batchSummary: makeBatchSummary(),
+                            messages: [],
+                            resultSets: [
+                                {
+                                    columnInfo: [makeColumn("id", "int")],
+                                    rows: [
+                                        [{ displayValue: "1", isNull: false }],
+                                        [{ displayValue: "2", isNull: false }],
+                                    ],
+                                    rowCount: 2, // Counts match - no truncation
+                                },
+                            ],
+                            hasError: false,
+                        },
+                    ],
+                }),
+            );
+
+            const notebook = makeNotebook([{ text: "SELECT * FROM SmallTable" }]);
+            const cells = notebook.getCells();
+
+            await mockController.executeHandler(cells, notebook, mockController);
+
+            expect(mockExecution.replaceOutput).to.have.been.calledOnce;
+            const outputs = mockExecution.replaceOutput.firstCall.args[0];
+            expect(outputs).to.have.lengthOf(1); // Only the result set output, no warning
+
+            // The output should be the result set, not a warning
+            const resultOutput = outputs[0];
+            expect(resultOutput.items[0].mime).to.equal("application/vnd.mssql.query-result");
+
+            expect(mockExecution.end).to.have.been.calledWith(true, sinon.match.number);
+        });
     });
 
     suite("executeCell — magic commands", () => {

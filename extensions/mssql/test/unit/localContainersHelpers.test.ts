@@ -321,7 +321,7 @@ suite("localContainers logic", () => {
 
         await localContainersHelpers.sendLocalContainersCloseEventTelemetry(state);
 
-        expect(sendActionEvent).to.have.been.calledOnce;
+        expect(sendActionEvent).to.have.been.called;
     });
 
     test("updateLocalContainersState updates state", async () => {

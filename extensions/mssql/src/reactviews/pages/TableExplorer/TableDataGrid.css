@@ -12,6 +12,15 @@
     flex-direction: column;
 }
 
+/* SlickgridReact wrapper — propagate flex layout so the grid fills
+   available space and the pagination stays anchored at the bottom. */
+.table-explorer-grid-container > .grid-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
 /* Grid base styles - map SlickGrid CSS custom properties to VS Code theme variables.
  * Setting these on the #id selector (specificity 1-0-0) overrides
  * .slick-dark-mode defaults (specificity 0-1-0) automatically. */
