@@ -69,7 +69,10 @@ type ActiveTaskInfo = {
     lastMessage?: string;
     /** Script content received from any notification, used as fallback when script arrives out of order */
     script?: string;
-    /** Stored completion status when a script-mode task completes before its script notification arrives */
+    /**
+     * Stored completion status when a script-mode task completes before its script notification arrives.
+     * When a subsequent notification delivers the script, this stored status is replayed to finish the task.
+     */
     completedStatus?: TaskProgressInfo;
 };
 type ProgressCallback = (value: { message?: string; increment?: number }) => void;
@@ -258,12 +261,12 @@ export class SqlTasksService {
         // Always store script content from any notification that has one.
         // STS sends script content via a ScriptAdded notification that may arrive
         // out of order relative to the final StatusChanged notification.
-        if (taskProgressInfo.script) {
+        if (taskProgressInfo.script !== undefined) {
             taskInfo.script = taskProgressInfo.script;
         }
 
         if (isTaskCompleted(taskProgressInfo.status)) {
-            const scriptContent = taskProgressInfo.script || taskInfo.script;
+            const scriptContent = taskProgressInfo.script ?? taskInfo.script;
 
             // For script-mode tasks, if we don't have a script yet and haven't already
             // deferred, wait for a subsequent notification that may carry the script.
@@ -272,7 +275,7 @@ export class SqlTasksService {
             // in the AsyncLock (SemaphoreSlim) used for parallel message processing.
             if (
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
-                !scriptContent &&
+                scriptContent === undefined &&
                 !taskInfo.completedStatus
             ) {
                 taskInfo.completedStatus = taskProgressInfo;
@@ -344,15 +347,21 @@ export class SqlTasksService {
                 this.showCompletionMessage(taskProgressInfo.status, taskMessage);
             }
 
-            if (taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script && scriptContent) {
+            if (
+                taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
+                scriptContent !== undefined
+            ) {
                 await this._sqlDocumentService.newQuery({
                     content: scriptContent,
                     connectionStrategy: ConnectionStrategy.CopyLastActive,
                 });
             }
+        } else if (taskInfo.completedStatus && taskInfo.script !== undefined) {
+            // A non-completed notification delivered the script we were waiting for.
+            // Re-process the deferred completion now that the script is available.
+            await this.handleTaskChangedNotification(taskInfo.completedStatus);
         } else {
-            // Task is still ongoing so just update the progress notification with the latest status
-
+            // Task is still ongoing so just update the progress notification
             // The progress notification already has the name, so we just need to update the message with the latest status info.
             // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
             // notifications include this string as the message

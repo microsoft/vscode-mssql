@@ -870,6 +870,38 @@ suite("SqlTasksService Tests", () => {
             });
         });
 
+        test("should complete deferred task when script arrives on a non-completed notification", async () => {
+            taskCreatedHandler(scriptTaskInfo);
+
+            // Completion arrives first without script — deferred
+            const completionWithoutScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+            };
+            await taskStatusChangedHandler(completionWithoutScript);
+
+            // Script should NOT have been opened yet — task is deferred
+            expect(sqlDocumentServiceStub.newQuery).to.not.have.been.called;
+            expect(showInformationMessageStub).to.not.have.been.called;
+
+            // An InProgress notification arrives carrying the script
+            const inProgressWithScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.InProgress,
+                message: "Generating...",
+                script: "CREATE PROCEDURE [dbo].[MyProc] AS BEGIN SELECT 1 END;",
+            };
+            await taskStatusChangedHandler(inProgressWithScript);
+
+            // Now the deferred task should be completed and script opened
+            expect(sqlDocumentServiceStub.newQuery).to.have.been.calledOnce;
+            expect(sqlDocumentServiceStub.newQuery.firstCall.args[0]).to.deep.include({
+                content: "CREATE PROCEDURE [dbo].[MyProc] AS BEGIN SELECT 1 END;",
+            });
+            expect(showInformationMessageStub).to.have.been.calledOnce;
+        });
+
         test("should complete without opening script when second completion arrives without script (fallback)", async () => {
             taskCreatedHandler(scriptTaskInfo);
 
