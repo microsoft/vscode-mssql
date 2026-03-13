@@ -65,6 +65,8 @@ yarn lint src/ test/
 
 #### Unit Tests
 
+See [test/unit/AGENTS.md](test/unit/AGENTS.md) for unit testing conventions and patterns.
+
 ```bash
 # Unit tests require VS Code download and cannot run in sandboxed environments
 # This is expected behavior - tests work in CI with proper VS Code setup

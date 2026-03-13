@@ -28,7 +28,7 @@ import { locConstants } from "../../common/locConstants";
 /** Maximum character length for text filter inputs */
 const MAX_TEXT_INPUT_LENGTH = 1000;
 
-// ─── Operator lists ──────────────────────────────────────────────────────────
+// Operator lists
 
 /**
  * Operators for text (long string) columns
@@ -94,7 +94,7 @@ function getOperatorLabel(operator: FilterOperator): string {
     }
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 
 export interface ColumnFilterPopoverProps {
     /** The column being filtered */
@@ -134,7 +134,7 @@ export function getFilterType(column: ProfilerColumnDef): FilterType {
     return FilterType.Text;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// Component
 
 /**
  * Inline filter popover anchored to a column header's funnel icon.
@@ -155,7 +155,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
     const popoverRef = useRef<HTMLDivElement>(null);
     const filterType = getFilterType(column);
 
-    // ── Local state ──────────────────────────────────────────────────────────
+    // Local state
 
     // Text / numeric / date operator + value
     const [operator, setOperator] = useState<FilterOperator>(FilterOperator.Contains);
@@ -168,12 +168,21 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
 
     const loc = locConstants.profiler;
 
-    /** All categorical values including the empty string for the "(empty)" option */
+    /** All categorical values including the empty string for the "(empty)" option.
+     *  Also merges any pre-set values from the current filter clause so they always
+     *  appear in the checkbox list (e.g. a database name filter set before events arrive). */
     const allCategoricalValues = useMemo(() => {
-        return ["", ...distinctValues];
-    }, [distinctValues]);
+        const base = new Set(distinctValues);
+        // Merge values from active clause so pre-set filters are always visible
+        if (currentClause?.operator === FilterOperator.In && currentClause.values) {
+            for (const v of currentClause.values) {
+                base.add(v);
+            }
+        }
+        return ["", ...Array.from(base)];
+    }, [distinctValues, currentClause]);
 
-    // ── Initialize from currentClause when popover opens ─────────────────────
+    // Initialize from currentClause when popover opens
 
     useEffect(() => {
         if (!isOpen) {
@@ -210,7 +219,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         setValidationError(undefined);
     }, [isOpen, currentClause, filterType, distinctValues]);
 
-    // ── Close on click outside ──────────────────────────────────────────────
+    // Close on click outside
 
     useEffect(() => {
         if (!isOpen) {
@@ -237,7 +246,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         };
     }, [isOpen, onClose]);
 
-    // ── Auto-position ────────────────────────────────────────────────────────
+    // Auto-position
 
     const popoverStyle = useMemo((): React.CSSProperties => {
         if (!anchorRect) {
@@ -270,7 +279,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         };
     }, [anchorRect]);
 
-    // ── Validation ───────────────────────────────────────────────────────────
+    // Validation
 
     /** Regex for YYYY-MM-DD HH:mm:ss or YYYY-MM-DD HH:mm:ss.SSS */
     const DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2}:\d{2}(\.\d{1,3})?$/;
@@ -320,7 +329,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         return true;
     }, [filterType, inputValue, validateDateTimeFormat]);
 
-    // ── Apply handler ────────────────────────────────────────────────────────
+    // Apply handler
 
     const handleApply = useCallback(() => {
         if (filterType === FilterType.Categorical) {
@@ -369,15 +378,24 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         onClear,
     ]);
 
-    // ── Categorical helpers ──────────────────────────────────────────────────
+    // Categorical helpers
 
+    /** Distinct values including any pre-set clause values, filtered by search term */
     const filteredDistinctValues = useMemo(() => {
+        // Start with distinct values from data, then merge any pre-set clause values
+        const merged = new Set(distinctValues);
+        if (currentClause?.operator === FilterOperator.In && currentClause.values) {
+            for (const v of currentClause.values) {
+                merged.add(v);
+            }
+        }
+        const values = Array.from(merged);
         if (!searchTerm.trim()) {
-            return distinctValues;
+            return values;
         }
         const term = searchTerm.toLowerCase();
-        return distinctValues.filter((v) => v.toLowerCase().includes(term));
-    }, [distinctValues, searchTerm]);
+        return values.filter((v) => v.toLowerCase().includes(term));
+    }, [distinctValues, currentClause, searchTerm]);
 
     const toggleValue = useCallback((value: string) => {
         setSelectedValues((prev) => {
@@ -399,14 +417,14 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         setSelectedValues(new Set());
     }, []);
 
-    // ── Render nothing if closed ──────────────────────────────────────────────
+    // Render nothing if closed
 
     if (!isOpen) {
         // eslint-disable-next-line no-restricted-syntax -- React components return null to render nothing
         return null;
     }
 
-    // ── Determine which operator list to show ───────────────────────────────
+    // Determine which operator list to show
 
     const operators =
         filterType === FilterType.Numeric
@@ -415,7 +433,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
               ? DATETIME_OPERATORS
               : TEXT_OPERATORS;
 
-    // ── Placeholder / hint ──────────────────────────────────────────────────
+    // Placeholder / hint
 
     const inputPlaceholder =
         filterType === FilterType.Numeric
@@ -462,7 +480,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
             {/* Filter content */}
             <div className={classes.content}>
                 {filterType === FilterType.Categorical ? (
-                    /* ── Categorical: searchable checkbox list ─────────────── */
+                    /* Categorical: searchable checkbox list */
                     <>
                         <Input
                             className={classes.searchInput}
@@ -513,7 +531,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
                         </div>
                     </>
                 ) : (
-                    /* ── Numeric / Text / Date: operator + value ──────────── */
+                    /* Numeric / Text / Date: operator + value */
                     <>
                         <Select
                             className={classes.operatorSelect}
@@ -579,7 +597,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
     );
 };
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+// Styles
 
 const useStyles = makeStyles({
     popover: {

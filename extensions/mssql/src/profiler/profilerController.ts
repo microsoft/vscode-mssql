@@ -20,8 +20,9 @@ import { Logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IConnectionProfile } from "../models/interfaces";
-import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -59,42 +60,71 @@ export class ProfilerController {
      * Launches the profiler UI with a provided connection profile (from Object Explorer).
      * This is the main entry point - profiler can only be launched via right-click context menu.
      * @param connectionProfile - The connection profile to use for profiling
+     * @param databaseScopeFilter - If provided, pre-populates a DatabaseName filter in the profiler UI
      */
     public async launchProfilerWithConnection(
         connectionProfile: IConnectionProfile,
+        databaseScopeFilter?: string,
     ): Promise<void> {
         this._logger.verbose(
             `Launching profiler with connection to ${connectionProfile.server}...`,
         );
 
         try {
-            // Check server type and handle accordingly
-            const serverTypes = getServerTypes(connectionProfile);
-            this._logger.verbose(`Server types detected: ${serverTypes.join(", ")}`);
+            // Determine if this is an Azure/Fabric server.
+            // Prefer serverInfo from the existing Object Explorer connection over DNS-based heuristic.
+            const serverInfo = this._connectionManager.getServerInfo(connectionProfile);
+            const isAzureOrFabric = serverInfo
+                ? serverInfo.isCloud
+                : isAzureSqlDbCompatible(getServerTypes(connectionProfile));
+            this._logger.verbose(
+                serverInfo
+                    ? `Server info: engineEditionId=${serverInfo.engineEditionId}, isCloud=${serverInfo.isCloud}`
+                    : `Server types detected: ${getServerTypes(connectionProfile).join(", ")}`,
+            );
 
             // Determine engine type based on server type
-            this._currentEngineType = serverTypes.includes(ServerType.Azure)
+            // Fabric SQL databases use the same Azure SQL profiles
+            this._currentEngineType = isAzureOrFabric
                 ? EngineType.AzureSQLDB
                 : EngineType.Standalone;
             this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
 
-            // Block Fabric connections - profiler is not supported
-            if (serverTypes.includes(ServerType.Fabric)) {
-                this._logger.verbose("Profiler not supported on Fabric");
-                vscode.window.showWarningMessage(LocProfiler.profilerNotSupportedOnFabric);
-                return;
-            }
-
-            // For Azure SQL, we need to ensure a user database is selected
+            // For Azure SQL and Fabric, we need to ensure a user database is selected
             let profileToUse = connectionProfile;
-            if (serverTypes.includes(ServerType.Azure)) {
-                const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
+            if (isAzureOrFabric) {
+                // When launched from a Database node, pre-fill the database so
+                // the user is not prompted to select one again.
+                if (databaseScopeFilter) {
+                    profileToUse = { ...connectionProfile, database: databaseScopeFilter };
+                }
+
+                const updatedProfile = await this.ensureAzureDatabaseSelected(profileToUse);
                 if (!updatedProfile) {
                     // User cancelled database selection
                     this._logger.verbose("User cancelled database selection");
                     return;
                 }
                 profileToUse = updatedProfile;
+
+                // Azure sessions are already database-scoped via ON DATABASE,
+                // so skip the client-side DatabaseName filter entirely.
+                databaseScopeFilter = undefined;
+            } else {
+                // On-prem XEvent sessions use ON SERVER (server-scoped).
+                // If the connection profile has a specific database, clear it so the STS
+                // connects at server level; otherwise the STS may look for the session
+                // in the database scope and fail with "session not found".
+                // Preserve the database as a client-side filter if one isn't already set.
+                if (profileToUse.database && !this.isSystemDatabase(profileToUse.database)) {
+                    if (!databaseScopeFilter) {
+                        databaseScopeFilter = profileToUse.database;
+                    }
+                    profileToUse = { ...profileToUse, database: "" };
+                    this._logger.verbose(
+                        `Cleared database from on-prem profile to ensure server-scoped session (filter: ${databaseScopeFilter})`,
+                    );
+                }
             }
 
             // Generate a unique URI for this profiler connection
@@ -116,7 +146,7 @@ export class ProfilerController {
             this._profilerEngineTypes.set(profilerUri, this._currentEngineType);
 
             // Use the common setup method - pass engine type to avoid race condition
-            await this.setupProfilerUI(profilerUri, this._currentEngineType);
+            await this.setupProfilerUI(profilerUri, this._currentEngineType, databaseScopeFilter);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(getErrorMessage(e)));
@@ -233,6 +263,31 @@ export class ProfilerController {
                     try {
                         const connectionProfile = treeNodeInfo.connectionProfile;
                         await this.launchProfilerWithConnection(connectionProfile);
+                    } catch (e) {
+                        this._logger.error(`Command error: ${e}`);
+                        vscode.window.showErrorMessage(
+                            LocProfiler.failedToLaunchProfiler(getErrorMessage(e)),
+                        );
+                    }
+                },
+            ),
+        );
+
+        // Launch Profiler from a Database node in Object Explorer (pre-filters by database)
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.profiler.launchFromDatabase",
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    try {
+                        const connectionProfile = treeNodeInfo.connectionProfile;
+                        // Use ObjectExplorerUtils.getDatabaseName to reliably get the database name.
+                        // connectionProfile.database is often empty for Database nodes because they
+                        // inherit the parent Server node's connection profile unchanged.
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                        this._logger.verbose(
+                            `Launching profiler from database node: ${databaseName}`,
+                        );
+                        await this.launchProfilerWithConnection(connectionProfile, databaseName);
                     } catch (e) {
                         this._logger.error(`Command error: ${e}`);
                         vscode.window.showErrorMessage(
@@ -522,8 +577,13 @@ export class ProfilerController {
      * and auto-starts profiling.
      * @param profilerUri - The URI of the established profiler connection
      * @param engineType - The engine type for filtering templates
+     * @param databaseScopeFilter - If provided, pre-populates a DatabaseName filter in the profiler UI
      */
-    private async setupProfilerUI(profilerUri: string, engineType: EngineType): Promise<void> {
+    private async setupProfilerUI(
+        profilerUri: string,
+        engineType: EngineType,
+        databaseScopeFilter?: string,
+    ): Promise<void> {
         this._profilerUri = profilerUri;
 
         // Step 1: Show template selection quick pick (filtered by engine type)
@@ -613,6 +673,11 @@ export class ProfilerController {
             sessionName, // Set the initial session name
             selectedTemplate.template.id,
         );
+
+        // If launched from a database node, set the initial database filter
+        if (databaseScopeFilter) {
+            webviewController.setInitialDatabaseFilter(databaseScopeFilter);
+        }
 
         // Track this webview controller along with its profiler URI for cleanup
         const webviewId = uuid();

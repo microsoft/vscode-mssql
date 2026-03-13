@@ -1015,6 +1015,7 @@ function cloneDabConfig(config: Dab.DabConfig): Dab.DabConfig {
         entities: config.entities.map((entity) => ({
             ...entity,
             enabledActions: [...entity.enabledActions],
+            unsupportedReasons: entity.unsupportedReasons?.map((reason) => ({ ...reason })),
             advancedSettings: { ...entity.advancedSettings },
         })),
     };
@@ -1093,6 +1094,18 @@ function normalizeDabConfigForVersion(config: Dab.DabConfig) {
                 tableName: normalizeIdentifier(entity.tableName),
                 schemaName: normalizeIdentifier(entity.schemaName),
                 isEnabled: entity.isEnabled,
+                isSupported: entity.isSupported,
+                unsupportedReasons: (entity.unsupportedReasons ?? []).map((reason) => {
+                    switch (reason.type) {
+                        case "noPrimaryKey":
+                            return { type: reason.type };
+                        case "unsupportedDataTypes":
+                            return {
+                                type: reason.type,
+                                columns: reason.columns,
+                            };
+                    }
+                }),
                 enabledActions: [...entity.enabledActions]
                     .map(normalizeIdentifier)
                     .sort((a, b) => a.localeCompare(b)),
@@ -1133,57 +1146,6 @@ async function computeDabVersion(config: Dab.DabConfig): Promise<string> {
         .join("")
         .toLowerCase();
     return `dabcfg_${hash}`;
-}
-
-function ensureInitializedAndSyncedDabConfig(
-    currentConfig: Dab.DabConfig | null,
-    schemaTables: SchemaDesigner.Table[],
-): { config: Dab.DabConfig; changed: boolean } {
-    let changed = false;
-    const normalizedConfig = currentConfig
-        ? cloneDabConfig(currentConfig)
-        : Dab.createDefaultConfig(schemaTables);
-    if (!currentConfig) {
-        changed = true;
-    }
-
-    const tablesById = new Map(schemaTables.map((table) => [table.id, table]));
-    const syncedEntities: Dab.DabEntityConfig[] = [];
-
-    for (const entity of normalizedConfig.entities) {
-        const table = tablesById.get(entity.id);
-        if (!table) {
-            changed = true;
-            continue;
-        }
-
-        if (entity.tableName !== table.name || entity.schemaName !== table.schema) {
-            changed = true;
-        }
-
-        syncedEntities.push({
-            ...entity,
-            tableName: table.name,
-            schemaName: table.schema,
-        });
-        tablesById.delete(entity.id);
-    }
-
-    for (const table of schemaTables) {
-        if (!tablesById.has(table.id)) {
-            continue;
-        }
-        syncedEntities.push(Dab.createDefaultEntityConfig(table));
-        changed = true;
-    }
-
-    return {
-        config: {
-            ...normalizedConfig,
-            entities: syncedEntities,
-        },
-        changed,
-    };
 }
 
 function getDuplicateEntityName(config: Dab.DabConfig): string | undefined {
@@ -1266,6 +1228,65 @@ function resolveEntityRef(
     };
 }
 
+function createDabValidationError(message: string): {
+    success: false;
+    reason: DabApplyFailureReason;
+    message: string;
+} {
+    return {
+        success: false,
+        reason: "validation_error",
+        message,
+    };
+}
+
+function formatUnsupportedEntityReasons(reasons: Dab.DabUnsupportedReason[] | undefined): string {
+    if (!reasons || reasons.length === 0) {
+        return "Unsupported by Data API Builder.";
+    }
+
+    return reasons
+        .map((reason) => {
+            switch (reason.type) {
+                case "noPrimaryKey":
+                    return "Table must have a primary key to be used with Data API Builder";
+                case "unsupportedDataTypes":
+                    return `Table contains column types not supported by Data API Builder: ${reason.columns}`;
+            }
+        })
+        .join("; ");
+}
+
+function createEntityNotSupportedError(entity: Dab.DabEntityConfig): {
+    success: false;
+    reason: DabApplyFailureReason;
+    message: string;
+} {
+    return {
+        success: false,
+        reason: "entity_not_supported",
+        message:
+            `Entity '${entity.schemaName}.${entity.tableName}' is not supported by Data API Builder. ` +
+            formatUnsupportedEntityReasons(entity.unsupportedReasons),
+    };
+}
+
+function validateSupportedEntityForMutation(
+    entity: Dab.DabEntityConfig,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    return entity.isSupported ? { success: true } : createEntityNotSupportedError(entity);
+}
+
+function createEntityWithEnabledActions(
+    entity: Dab.DabEntityConfig,
+    enabledActions: Dab.EntityAction[],
+): Dab.DabEntityConfig {
+    return {
+        ...entity,
+        enabledActions: [...enabledActions],
+    };
+}
+
 function applyDabToolChange(
     config: Dab.DabConfig,
     change: Dab.DabToolChange,
@@ -1306,6 +1327,12 @@ function applyDabToolChange(
             if (resolvedEntity.success === false) {
                 return resolvedEntity;
             }
+            if (change.isEnabled) {
+                const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+                if (supportValidation.success === false) {
+                    return supportValidation;
+                }
+            }
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
                 isEnabled: change.isEnabled,
@@ -1318,34 +1345,26 @@ function applyDabToolChange(
             if (resolvedEntity.success === false) {
                 return resolvedEntity;
             }
-
-            if (!Array.isArray(change.actions) || change.actions.length === 0) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "actions must be a non-empty array.",
-                };
-            }
-            const uniqueActions = new Set(change.actions);
-            if (uniqueActions.size !== change.actions.length) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "actions must be unique.",
-                };
-            }
-            if (change.actions.some((action) => !allowedActions.has(action))) {
-                return {
-                    success: false,
-                    reason: "validation_error",
-                    message: "actions contains unsupported values.",
-                };
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
             }
 
-            config.entities[resolvedEntity.index] = {
-                ...resolvedEntity.entity,
-                enabledActions: [...change.actions],
-            };
+            if (!Array.isArray(change.enabledActions) || change.enabledActions.length === 0) {
+                return createDabValidationError("enabledActions must be a non-empty array.");
+            }
+            const uniqueActions = new Set(change.enabledActions);
+            if (uniqueActions.size !== change.enabledActions.length) {
+                return createDabValidationError("enabledActions must be unique.");
+            }
+            if (change.enabledActions.some((action) => !allowedActions.has(action))) {
+                return createDabValidationError("enabledActions contains unsupported values.");
+            }
+
+            config.entities[resolvedEntity.index] = createEntityWithEnabledActions(
+                resolvedEntity.entity,
+                change.enabledActions,
+            );
             return { success: true };
         }
 
@@ -1353,6 +1372,10 @@ function applyDabToolChange(
             const resolvedEntity = resolveEntityRef(config, change.entity);
             if (resolvedEntity.success === false) {
                 return resolvedEntity;
+            }
+            const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+            if (supportValidation.success === false) {
+                return supportValidation;
             }
 
             const patch = change.set ?? {};
@@ -1479,6 +1502,10 @@ function applyDabToolChange(
                 if (resolvedEntity.success === false) {
                     return resolvedEntity;
                 }
+                const supportValidation = validateSupportedEntityForMutation(resolvedEntity.entity);
+                if (supportValidation.success === false) {
+                    return supportValidation;
+                }
                 selectedEntityIds.add(resolvedEntity.entity.id);
             }
 
@@ -1492,7 +1519,7 @@ function applyDabToolChange(
         case "set_all_entities_enabled": {
             config.entities = config.entities.map((entity) => ({
                 ...entity,
-                isEnabled: change.isEnabled,
+                isEnabled: change.isEnabled ? entity.isSupported : false,
             }));
             return { success: true };
         }
@@ -1509,6 +1536,7 @@ function applyDabToolChange(
 export function registerSchemaDesignerDabToolHandlers(params: {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     getCurrentDabConfig: () => Dab.DabConfig | null;
     getCurrentSchemaTables: () => SchemaDesigner.Table[];
     commitDabConfig: (config: Dab.DabConfig) => void;
@@ -1516,6 +1544,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
     const {
         extensionRpc,
         isInitializedRef,
+        waitForInitialization,
         getCurrentDabConfig,
         getCurrentSchemaTables,
         commitDabConfig,
@@ -1523,12 +1552,15 @@ export function registerSchemaDesignerDabToolHandlers(params: {
 
     const handleGetState = async (): Promise<Dab.GetDabToolStateResponse> => {
         if (!isInitializedRef.current) {
-            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            const initialized = await waitForInitialization();
+            if (!initialized || !isInitializedRef.current) {
+                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+            }
         }
 
         const baseSnapshot = getCurrentDabConfig();
         const schemaTables = getCurrentSchemaTables();
-        const syncedSnapshot = ensureInitializedAndSyncedDabConfig(baseSnapshot, schemaTables);
+        const syncedSnapshot = Dab.syncConfigWithSchema(baseSnapshot, schemaTables);
 
         if (syncedSnapshot.changed) {
             commitDabConfig(syncedSnapshot.config);
@@ -1594,7 +1626,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
             };
         }
 
-        const baseSnapshot = ensureInitializedAndSyncedDabConfig(
+        const baseSnapshot = Dab.syncConfigWithSchema(
             getCurrentDabConfig(),
             getCurrentSchemaTables(),
         ).config;

@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
-import { DiffEditor } from "@monaco-editor/react";
 import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
-import { resolveVscodeThemeType } from "../../../../common/utils";
 import { useSchemaDesignerDefinitionPanelContext } from "../schemaDesignerDefinitionPanelContext";
+import { VscodeDiffEditor } from "../../../../common/vscodeMonaco";
 
 const useStyles = makeStyles({
     diffContainer: {
@@ -29,12 +28,12 @@ export const SchemaDesignerChangesDiffView = () => {
 
     return (
         <div className={classes.diffContainer}>
-            <DiffEditor
+            <VscodeDiffEditor
                 height="100%"
                 language="sql"
                 original={baselineDefinition}
                 modified={code}
-                theme={resolveVscodeThemeType(themeKind)}
+                themeKind={themeKind}
                 options={{
                     readOnly: true,
                     renderSideBySide: true,

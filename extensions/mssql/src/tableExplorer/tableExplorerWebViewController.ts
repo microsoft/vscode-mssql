@@ -67,7 +67,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
             },
             {
-                title: LocConstants.TableExplorer.title(qualifiedTableName),
+                title: qualifiedTableName,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(

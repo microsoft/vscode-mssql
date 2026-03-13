@@ -317,10 +317,7 @@ export class UserSurveyWebviewController extends ReactWebviewPanelController<
 
             this.panel.dispose();
 
-            if (
-                (payload.answers.nps as number) < 7 /* NPS detractor */ ||
-                (payload.answers.nsat as number) < 2 /* NSAT dissatisfied */
-            ) {
+            if ((payload.answers.nps as number) < 7 /* NPS detractor */) {
                 const response = await vscode.window.showInformationMessage(
                     Loc.UserSurvey.fileAnIssuePrompt,
                     Loc.UserSurvey.submitIssue,
@@ -343,6 +340,22 @@ export class UserSurveyWebviewController extends ReactWebviewPanelController<
                     );
                     const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?labels=User-filed,Triage:%20Needed&body=${encodedIssueBody}`;
                     vscode.env.openExternal(vscode.Uri.parse(issueUrl));
+                }
+            } else {
+                const response = await vscode.window.showInformationMessage(
+                    Loc.UserSurvey.mssqlMarketplaceReviewPrompt,
+                    Loc.UserSurvey.writeReview,
+                    Loc.Common.cancel,
+                );
+
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SubmitReview, {
+                    response:
+                        response === Loc.UserSurvey.writeReview ? "submitted" : "not submitted",
+                });
+
+                if (response === Loc.UserSurvey.writeReview) {
+                    const reviewUrl = `https://marketplace.visualstudio.com/items?itemName=${constants.extensionId}&ssr=false#review-details`;
+                    vscode.env.openExternal(vscode.Uri.parse(reviewUrl));
                 }
             }
 
