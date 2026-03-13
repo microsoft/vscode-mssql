@@ -111,14 +111,14 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                 <DabInfoBanner
                     title={locConstants.schemaDesigner.authenticationNotSupported}
                     message={locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}
-                    learnMoreUrl="https://github.com/Azure/data-api-builder/issues/3246"
+                    learnMoreUrl="https://aka.ms/dab-dep-limitation"
                 />
             )}
             {hasUnsupportedDataTypes && (
                 <DabInfoBanner
                     title={locConstants.schemaDesigner.unsupportedDataTypesDetected}
                     message={locConstants.schemaDesigner.dabUnsupportedDataTypesBanner}
-                    learnMoreUrl="https://github.com/Azure/data-api-builder/issues/3181"
+                    learnMoreUrl="https://aka.ms/dab-datatype-limitation"
                 />
             )}
             <PanelGroup direction="vertical">

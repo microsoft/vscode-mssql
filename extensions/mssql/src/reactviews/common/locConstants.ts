@@ -1311,11 +1311,11 @@ export class LocConstants {
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
-                "Data API Builder local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(
-                "One or more of your entities contain column types that Data API Builder does not currently support and cannot be selected for deployment.",
+                "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
             ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
