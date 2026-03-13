@@ -31,7 +31,7 @@ export const DropDatabaseIcon = Object.assign(
                     />
                 </g>
                 <defs>
-                    <clipPath id="dropDatabaseIconClip">
+                    <clipPath>
                         <rect width="16" height="16" fill="white" />
                     </clipPath>
                 </defs>

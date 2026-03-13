@@ -181,14 +181,22 @@ export const DialogPageShell = ({
                   height: headerIconSizePx,
               })
             : icon;
+    const hasHeaderIcon = headerIcon !== undefined && headerIcon !== null && headerIcon !== false;
 
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.scrollRegion}>
                 <div className={styles.container}>
                     {(icon || title || subtitle) && (
-                        <div className={styles.header} style={contentWidthStyle}>
-                            <div className={styles.iconContainer}>{headerIcon}</div>
+                        <div
+                            className={styles.header}
+                            style={{
+                                ...contentWidthStyle,
+                                gridTemplateColumns: hasHeaderIcon ? "auto 1fr" : "1fr",
+                            }}>
+                            {hasHeaderIcon && (
+                                <div className={styles.iconContainer}>{headerIcon}</div>
+                            )}
                             <div className={styles.headerText}>
                                 {title && <div className={styles.title}>{title}</div>}
                                 {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
