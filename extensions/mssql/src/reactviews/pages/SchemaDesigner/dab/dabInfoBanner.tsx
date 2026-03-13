@@ -42,6 +42,7 @@ export function DabInfoBanner({ title, message, learnMoreUrl }: DabInfoBannerPro
                     appearance="transparent"
                     icon={<DismissRegular />}
                     size="small"
+                    aria-label={locConstants.common.dismiss}
                     onClick={() => setDismissed(true)}
                 />
             </MessageBarActions>

@@ -1315,7 +1315,7 @@ export class LocConstants {
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(
-                "One or more of your entities contains column types that Data API Builder does not currently support and cannot be selected for deployment.",
+                "One or more of your entities contain column types that Data API Builder does not currently support and cannot be selected for deployment.",
             ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),

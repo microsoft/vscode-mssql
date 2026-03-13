@@ -4305,8 +4305,8 @@
       <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
       <note>{0} is the comma separated list of connection display names</note>
     </trans-unit>
-    <trans-unit id="++CODE++e4804a2a45a91be3c254ff2f70d2a9671dca74a105d61d66a8aa2569a974ead3">
-      <source xml:lang="en">One or more of your entities contains column types that Data API Builder does not currently support and cannot be selected for deployment.</source>
+    <trans-unit id="++CODE++2735c799587500b3d4e86b3d62d33267d048ebfb00da6ee02d2bd13e4428b36f">
+      <source xml:lang="en">One or more of your entities contain column types that Data API Builder does not currently support and cannot be selected for deployment.</source>
     </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>

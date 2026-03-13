@@ -879,7 +879,7 @@
     "Authentication not supported": "Authentication not supported",
     "Data API Builder local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "Data API Builder local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
     "Unsupported data types detected": "Unsupported data types detected",
-    "One or more of your entities contains column types that Data API Builder does not currently support and cannot be selected for deployment.": "One or more of your entities contains column types that Data API Builder does not currently support and cannot be selected for deployment.",
+    "One or more of your entities contain column types that Data API Builder does not currently support and cannot be selected for deployment.": "One or more of your entities contain column types that Data API Builder does not currently support and cannot be selected for deployment.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
