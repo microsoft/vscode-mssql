@@ -9,6 +9,10 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
+import {
+    ConnectionUriChangedNotification,
+    ConnectionUriChangedParams,
+} from "../models/contracts/languageService";
 import { removeUndefinedProperties, getUriKey, uuid } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
@@ -607,6 +611,18 @@ export default class SqlDocumentService implements vscode.Disposable {
     private async updateUri(oldUri: string, newUri: string) {
         // Transfer the connection to the new URI
         await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
+
+        // Notify sqltoolsservice that the URI has changed so it can atomically transfer
+        // IntelliSense/language-service state (ScriptParseInfo) from oldUri to newUri.
+        // This must happen after transferConnectionToFile so that ConnectionInfo for newUri
+        // already exists in sqltoolsservice when the handler looks it up.
+        const uriChangedParams = new ConnectionUriChangedParams();
+        uriChangedParams.ownerUri = oldUri;
+        uriChangedParams.newOwnerUri = newUri;
+        SqlToolsServerClient.instance.sendNotification(
+            ConnectionUriChangedNotification.type,
+            uriChangedParams,
+        );
 
         // Update the URI in the output content provider, which will transfer query runner and webview state to the new URI
         await this._outputContentProvider?.updateQueryRunnerUri(oldUri, newUri);

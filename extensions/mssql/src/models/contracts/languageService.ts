@@ -100,6 +100,31 @@ export namespace NonTSqlNotification {
 
 // ------------------------------- </ Non T-Sql Event > ----------------------------------
 
+// ------------------------------- < Connection URI Changed Notification > ------------------------------------
+
+/**
+ * Parameters for the connection/uriChanged notification.
+ * Sent by the client when a document is saved (untitled → file path) or renamed.
+ */
+export class ConnectionUriChangedParams {
+    /** The old URI of the document (e.g. "untitled:Untitled-1"). */
+    public ownerUri: string;
+    /** The new URI of the document (e.g. "file:///path/to/test.sql"). */
+    public newOwnerUri: string;
+}
+
+/**
+ * Notification sent to sqltoolsservice when a document's URI changes due to a save or rename,
+ * so that language-service state can be transferred atomically to the new URI.
+ */
+export namespace ConnectionUriChangedNotification {
+    export const type = new NotificationType<ConnectionUriChangedParams, void>(
+        "connection/uriChanged",
+    );
+}
+
+// ------------------------------- </ Connection URI Changed Notification > ----------------------------------
+
 // ------------------------------- < Language Flavor Changed Event > ------------------------------------
 /**
  * Language flavor change event parameters
