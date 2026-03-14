@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs");
+const path = require("path");
 const { execSync } = require("child_process");
 const { promisify } = require("util");
 const del = require("del");
@@ -22,6 +23,37 @@ const OFFLINE_PLATFORMS = [
     { rid: "linux-x64", runtime: "Linux" },
     { rid: "linux-arm64", runtime: "Linux_ARM64" },
 ];
+
+const RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+const PACKAGE_JSON_PATH = path.resolve(__dirname, "..", "package.json");
+
+function readPackageJson() {
+    return JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8"));
+}
+
+function writePackageJson(packageJson) {
+    fs.writeFileSync(PACKAGE_JSON_PATH, `${JSON.stringify(packageJson, null, 4)}\n`, "utf8");
+}
+
+async function withOfflinePackageManifest(action) {
+    const originalPackageJson = fs.readFileSync(PACKAGE_JSON_PATH, "utf8");
+    const packageJson = JSON.parse(originalPackageJson);
+
+    packageJson.extensionDependencies = (packageJson.extensionDependencies || []).filter(
+        (extensionId) => extensionId !== RUNTIME_EXTENSION_ID,
+    );
+    packageJson.extensionPack = (packageJson.extensionPack || []).filter(
+        (extensionId) => extensionId !== RUNTIME_EXTENSION_ID,
+    );
+
+    writePackageJson(packageJson);
+
+    try {
+        return await action();
+    } finally {
+        fs.writeFileSync(PACKAGE_JSON_PATH, originalPackageJson, "utf8");
+    }
+}
 
 /**
  * Install SQL Tools Service for a specific platform
@@ -151,31 +183,33 @@ async function packageOffline() {
 
     try {
         // Read package.json for name and version
-        const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+        const packageJson = readPackageJson();
         const packageName = `${packageJson.name}-${packageJson.version}`;
 
         logger.info(`Creating offline packages for: ${packageJson.name} v${packageJson.version}`);
         logger.info(`Total platforms: ${OFFLINE_PLATFORMS.length}`);
         logger.newline();
 
-        // Clean service folder initially
-        await cleanServiceInstallFolder();
+        await withOfflinePackageManifest(async () => {
+            // Clean service folder initially
+            await cleanServiceInstallFolder();
 
-        // Package for each platform sequentially with native (self-contained) service
-        for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
-            const platformConfig = OFFLINE_PLATFORMS[i];
-            logger.info(
-                `[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platformConfig.rid}...`,
-            );
+            // Package for each platform sequentially with native (self-contained) service
+            for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
+                const platformConfig = OFFLINE_PLATFORMS[i];
+                logger.info(
+                    `[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platformConfig.rid}...`,
+                );
 
-            try {
-                await packageOfflinePlatform(platformConfig, packageName);
-            } catch (error) {
-                logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
+                try {
+                    await packageOfflinePlatform(platformConfig, packageName);
+                } catch (error) {
+                    logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
+                }
+
+                logger.newline();
             }
-
-            logger.newline();
-        }
+        });
 
         logger.success("Offline packaging completed for all platforms!");
     } catch (error) {
