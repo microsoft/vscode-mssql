@@ -25,7 +25,9 @@ import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
 import DownloadHelper from "./downloadHelper";
 import ExtConfig from "../configurations/extConfig";
-import { PlatformInformation } from "../models/platform";
+import DotnetRuntimeProvider from "./dotnetRuntimeProvider";
+import { PlatformInformation, Runtime } from "../models/platform";
+import { DotnetRuntime } from "../constants/locConstants";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -153,6 +155,7 @@ export default class SqlToolsServiceClient {
         private _logger: Logger,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
+        private _dotnetRuntimeProvider: DotnetRuntimeProvider,
     ) {}
 
     // gets or creates the singleton SQL Tools service client instance
@@ -176,12 +179,14 @@ export default class SqlToolsServiceClient {
             );
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);
+            let dotnetRuntimeProvider = new DotnetRuntimeProvider(logger);
             SqlToolsServiceClient._instance = new SqlToolsServiceClient(
                 config,
                 serviceProvider,
                 logger,
                 statusView,
                 vscodeWrapper,
+                dotnetRuntimeProvider,
             );
         }
         return SqlToolsServiceClient._instance;
@@ -223,12 +228,17 @@ export default class SqlToolsServiceClient {
                     .getServerPath(platformInfo.runtimeId)
                     .then(async (serverPath) => {
                         if (serverPath === undefined) {
+                            this.logger.logDebug(
+                                `No SQL Tools Service found for ${platformInfo.getRuntimeDisplayName()}. Downloading portable build...`,
+                            );
                             // Check if the service already installed and if not open the output channel to show the logs
                             if (this._vscodeWrapper !== undefined) {
                                 this._vscodeWrapper.outputChannel.show();
                             }
+                            // Download the portable (framework-dependent) build — it will be
+                            // launched with dotnet from the ms-dotnettools extension at runtime.
                             let installedServerPath = await this._server.downloadServerFiles(
-                                platformInfo.runtimeId,
+                                Runtime.Portable,
                             );
                             this._sqlToolsServicePath = path.dirname(installedServerPath);
                             await this.initializeLanguageClient(
@@ -251,10 +261,27 @@ export default class SqlToolsServiceClient {
                             resolve(new ServerInitializationResult(false, true, serverPath));
                         }
                     })
-                    .catch((err) => {
+                    .catch(async (err) => {
                         this.logger.logDebug(Constants.serviceLoadingFailed + " " + err);
-                        Utils.showErrorMsg(Constants.serviceLoadingFailed);
-                        reject(err);
+                        // Determine if this is a download failure or a runtime acquisition failure
+                        const isDownloadError =
+                            err instanceof Error &&
+                            /\b(404|403|5\d{2}|ENOTFOUND|ECONNREFUSED|ETIMEDOUT|network)\b/i.test(
+                                err.message,
+                            );
+                        const errorMessage = isDownloadError
+                            ? DotnetRuntime.serviceDownloadFailed
+                            : DotnetRuntime.runtimeNotFoundError;
+                        const action = await vscode.window.showErrorMessage(
+                            errorMessage,
+                            DotnetRuntime.downloadOfflineVsix,
+                        );
+                        if (action === DotnetRuntime.downloadOfflineVsix) {
+                            void vscode.env.openExternal(
+                                vscode.Uri.parse(Constants.offlineVsixUrl),
+                            );
+                        }
+                        reject(new Error(DotnetRuntime.activationFailed));
                     });
             }
         });
@@ -348,13 +375,20 @@ export default class SqlToolsServiceClient {
                 // Fall back to config if something unexpected happens here
             }
             // Use the override path if we have one, otherwise just use the original serverPath passed in
-            let serverOptions: ServerOptions = this.createServiceLayerServerOptions(
+            let serverOptions: ServerOptions = await this.createServiceLayerServerOptions(
                 overridePath || serverPath,
             );
             this.client = this.createLanguageClient(serverOptions);
-            let executablePath = isWindows
-                ? Constants.windowsResourceClientPath
-                : Constants.unixResourceClientPath;
+            const effectiveServerPath = overridePath || serverPath;
+            let executablePath: string;
+            if (effectiveServerPath.endsWith(".dll")) {
+                // Portable build: resource client is also a .dll
+                executablePath = "SqlToolsResourceProviderService.dll";
+            } else {
+                executablePath = isWindows
+                    ? Constants.windowsResourceClientPath
+                    : Constants.unixResourceClientPath;
+            }
             let resourcePath = path.join(path.dirname(serverPath), executablePath);
             // See if the override path exists and has the resource client as well, and if so use that instead
 
@@ -369,7 +403,7 @@ export default class SqlToolsServiceClient {
                     resourcePath = resourceOverridePath;
                 }
             }
-            this._resourceClient = this.createResourceClient(resourcePath);
+            this._resourceClient = await this.createResourceClient(resourcePath);
 
             if (context !== undefined) {
                 // Create the language client and start the client.
@@ -416,22 +450,37 @@ export default class SqlToolsServiceClient {
         return client;
     }
 
-    private generateResourceServiceServerOptions(executablePath: string): ServerOptions {
+    private async generateResourceServiceServerOptions(
+        executablePath: string,
+    ): Promise<ServerOptions> {
+        let serverCommand: string = executablePath;
+        let serverArgs: string[] = [];
+        if (executablePath.endsWith(".dll")) {
+            serverCommand = await this._dotnetRuntimeProvider.acquireDotnetRuntime();
+            serverArgs = [executablePath];
+            this.logger.logDebug(
+                `Launching Resource Provider Service (portable/framework-dependent):\n  dotnet: ${serverCommand}\n  assembly: ${executablePath}`,
+            );
+        } else {
+            this.logger.logDebug(
+                `Launching Resource Provider Service (self-contained):\n  executable: ${executablePath}`,
+            );
+        }
         let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(
             executablePath,
             this._logPath,
             "resourceprovider.log",
         );
         return {
-            command: executablePath,
-            args: launchArgs,
+            command: serverCommand,
+            args: serverArgs.concat(launchArgs),
             transport: TransportKind.stdio,
         };
     }
 
-    private createResourceClient(resourcePath: string): LanguageClient {
+    private async createResourceClient(resourcePath: string): Promise<LanguageClient> {
         // add resource provider path here
-        let serverOptions = this.generateResourceServiceServerOptions(resourcePath);
+        let serverOptions = await this.generateResourceServiceServerOptions(resourcePath);
         // client options are undefined since we don't want to send language events to the
         // server, since it's handled by the main client
         let client = new LanguageClient(Constants.resourceServiceName, serverOptions, undefined);
@@ -447,12 +496,19 @@ export default class SqlToolsServiceClient {
         };
     }
 
-    private createServiceLayerServerOptions(servicePath: string): ServerOptions {
+    private async createServiceLayerServerOptions(servicePath: string): Promise<ServerOptions> {
         let serverArgs = [];
         let serverCommand: string = servicePath;
         if (servicePath.endsWith(".dll")) {
             serverArgs = [servicePath];
-            serverCommand = "dotnet";
+            serverCommand = await this._dotnetRuntimeProvider.acquireDotnetRuntime();
+            this.logger.logDebug(
+                `Launching SQL Tools Service (portable/framework-dependent):\n  dotnet: ${serverCommand}\n  assembly: ${servicePath}`,
+            );
+        } else {
+            this.logger.logDebug(
+                `Launching SQL Tools Service (self-contained):\n  executable: ${servicePath}`,
+            );
         }
         // Get the extenion's configuration
         let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
