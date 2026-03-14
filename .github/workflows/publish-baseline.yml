@@ -52,22 +52,22 @@ jobs:
       - name: MSSQL - Package extension
         run: |
           cd extensions/mssql
-          vsce package
+          yarn package
 
       - name: SqlProj - Package extension
         run: |
           cd extensions/sql-database-projects
-          vsce package
+          yarn package
 
       - name: Data Workspace - Package extension
         run: |
           cd extensions/data-workspace
-          vsce package
+          yarn package
 
       - name: Keymap - Package extension
         run: |
           cd extensions/database-management-keymap
-          vsce package
+          yarn package
 
       - name: Calculate and save sizes
         run: |
