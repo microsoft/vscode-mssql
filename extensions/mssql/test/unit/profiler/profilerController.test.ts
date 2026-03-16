@@ -1062,7 +1062,7 @@ suite("ProfilerController Server Type Tests", () => {
 
     test("should not prompt for database when Azure SQL launched from database node", async () => {
         // When launching from a Database node on Azure, the databaseScopeFilter
-        // pre-fills connectionProfile.database so ensureUserDatabaseSelected
+        // pre-fills connectionProfile.database so ensureAzureDatabaseSelected
         // sees a user database and skips the prompt entirely.
         const mockDatabaseTreeNodeInfo = {
             connectionProfile: {
