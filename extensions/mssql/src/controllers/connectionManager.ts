@@ -1034,11 +1034,6 @@ export default class ConnectionManager {
             return;
         }
 
-        // if (this.azureController.isSqlAuthProviderEnabled()) {
-        //     // STS handles token management when SQL Authentication Provider is enabled
-        //     return;
-        // }
-
         if (
             AzureController.isTokenValid(connectionInfo.azureAccountToken, connectionInfo.expiresOn)
         ) {
