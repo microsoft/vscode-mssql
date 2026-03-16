@@ -35,6 +35,11 @@ function writePackageJson(packageJson) {
     fs.writeFileSync(PACKAGE_JSON_PATH, `${JSON.stringify(packageJson, null, 4)}\n`, "utf8");
 }
 
+/**
+ * For offline packaging, we need to remove dependancy on the runtime extension since we are including the self-contained STS.
+ * This is done as users might not have access to the marketplace to download the runtime extension when they install the vsix,
+ * so we need to make sure the extension can work without it. We will restore the original package.json after packaging is done.
+ */
 async function withOfflinePackageManifest(action) {
     const originalPackageJson = fs.readFileSync(PACKAGE_JSON_PATH, "utf8");
     const packageJson = JSON.parse(originalPackageJson);
