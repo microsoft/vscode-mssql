@@ -1254,10 +1254,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("editColumn", async (state, payload) => {
-            this.logger.info(
-                `Opening Table Designer for column: ${payload.columnName} - OperationId: ${this.operationId}`,
-            );
+        this.registerReducer("editColumn", async (state, _payload) => {
+            this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1267,7 +1265,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
-                    columnName: payload.columnName,
                 },
             );
 
@@ -1275,13 +1272,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 await vscode.commands.executeCommand(Constants.cmdEditTable, this._targetNode);
 
                 this.logger.info(
-                    `Table Designer opened successfully for column: ${payload.columnName} - OperationId: ${this.operationId}`,
+                    `Table Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
-                    columnName: payload.columnName,
                 });
             } catch (error) {
                 this.logger.error(

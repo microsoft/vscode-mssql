@@ -46,7 +46,7 @@ interface TableDataGridProps {
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
-    onEditColumn?: (columnName: string) => void;
+    onEditColumn?: () => void;
 }
 
 export interface TableDataGridRef {
@@ -864,7 +864,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const editGridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
                     const editColumn = editGridColumns[editCellIndex];
                     if (editColumn && onEditColumn) {
-                        onEditColumn(editColumn.name?.toString() || "");
+                        onEditColumn();
                     }
                     break;
             }

@@ -1133,9 +1133,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             executeCommandStub.resetHistory();
 
             // Act
-            await controller["_reducerHandlers"].get("editColumn")(controller.state, {
-                columnName: "firstName",
-            });
+            await controller["_reducerHandlers"].get("editColumn")(controller.state, {});
 
             // Assert
             expect(executeCommandStub.calledOnce).to.be.true;
@@ -1149,9 +1147,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             showErrorMessageStub.resetHistory();
 
             // Act
-            await controller["_reducerHandlers"].get("editColumn")(controller.state, {
-                columnName: "lastName",
-            });
+            await controller["_reducerHandlers"].get("editColumn")(controller.state, {});
 
             // Assert
             expect(executeCommandStub.calledOnce).to.be.true;
@@ -1165,9 +1161,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             showErrorMessageStub.resetHistory();
 
             // Act
-            await controller["_reducerHandlers"].get("editColumn")(controller.state, {
-                columnName: "firstName",
-            });
+            await controller["_reducerHandlers"].get("editColumn")(controller.state, {});
 
             // Assert
             expect(showErrorMessageStub.calledOnce).to.be.true;
@@ -1184,7 +1178,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Act
             const resultState = await controller["_reducerHandlers"].get("editColumn")(
                 controller.state,
-                { columnName: "firstName" },
+                {},
             );
 
             // Assert
