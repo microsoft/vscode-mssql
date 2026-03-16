@@ -2777,6 +2777,13 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToEditColumn = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open column in Table Designer: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class AzureDataStudioMigration {
