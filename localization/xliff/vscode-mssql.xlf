@@ -1976,6 +1976,9 @@
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
+    <trans-unit id="++CODE++c99a252d61f18eed46eb65b319baeff3f778f92be2837f5c89a01a0bb5700b46">
+      <source xml:lang="en">Edit Column</source>
+    </trans-unit>
     <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
       <source xml:lang="en">Edit Connection Group - {0}</source>
       <note>{0} is the connection group name</note>
@@ -2616,6 +2619,10 @@
     </trans-unit>
     <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
       <source xml:lang="en">Failed to open XEL file: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++41009a6519d215b2c086c5c7181239e457499acb5e70fb728b2568a315c966e0">
+      <source xml:lang="en">Failed to open column in Table Designer: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">

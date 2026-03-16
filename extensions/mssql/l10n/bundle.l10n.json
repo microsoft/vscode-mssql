@@ -1256,6 +1256,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
+    "Edit Column": "Edit Column",
     "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -3049,6 +3050,10 @@
     },
     "Failed to export results: {0}/{0} is the error message": {
         "message": "Failed to export results: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open column in Table Designer: {0}/{0} is the error message": {
+        "message": "Failed to open column in Table Designer: {0}",
         "comment": ["{0} is the error message"]
     },
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
