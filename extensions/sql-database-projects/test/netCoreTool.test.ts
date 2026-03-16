@@ -16,10 +16,9 @@ import {
     FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
     getMicrosoftBuildSqlVersion,
 } from "../src/tools/netcoreTool";
-import { getQuotedPath } from "../src/common/utils";
-import * as constants from "../src/common/constants";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
+import * as constants from "../src/common/constants";
 
 let testContext: TestContext;
 let sandbox: sinon.SinonSandbox;
@@ -92,7 +91,8 @@ suite("NetCoreTool: Net core tests", function (): void {
 
         try {
             await netcoreTool.runStreamedCommand(
-                "echo test > " + getQuotedPath(dummyFile),
+                process.execPath,
+                ["-e", `require("fs").writeFileSync(${JSON.stringify(dummyFile)}, "test")`],
                 undefined,
             );
             const text = await fs.promises.readFile(dummyFile);
