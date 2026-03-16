@@ -1256,7 +1256,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
-    "Edit Column": "Edit Column",
+    "Modify Table": "Modify Table",
     "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -1292,7 +1292,6 @@
     "Script as Alter": "Script as Alter",
     "Script as Execute": "Script as Execute",
     "Edit Data": "Edit Data",
-    "Modify Table": "Modify Table",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
@@ -3052,8 +3051,8 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Failed to open column in Table Designer: {0}/{0} is the error message": {
-        "message": "Failed to open column in Table Designer: {0}",
+    "Failed to open Table Designer: {0}/{0} is the error message": {
+        "message": "Failed to open Table Designer: {0}",
         "comment": ["{0} is the error message"]
     },
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
