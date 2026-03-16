@@ -26,7 +26,6 @@ import { LocConstants } from "../../../common/locConstants";
 const useStyles = makeStyles({
     tableContainer: {
         width: "100%",
-        maxWidth: "640px",
         maxHeight: "368px",
         overflowY: "auto",
         border: "1px solid var(--vscode-panel-border)",

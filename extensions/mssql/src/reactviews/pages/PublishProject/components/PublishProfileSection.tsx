@@ -17,7 +17,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "stretch",
         gap: "8px",
-        maxWidth: "640px",
         width: "100%",
     },
     buttons: {

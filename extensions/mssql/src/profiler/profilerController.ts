@@ -110,6 +110,21 @@ export class ProfilerController {
                 // Azure sessions are already database-scoped via ON DATABASE,
                 // so skip the client-side DatabaseName filter entirely.
                 databaseScopeFilter = undefined;
+            } else {
+                // On-prem XEvent sessions use ON SERVER (server-scoped).
+                // If the connection profile has a specific database, clear it so the STS
+                // connects at server level; otherwise the STS may look for the session
+                // in the database scope and fail with "session not found".
+                // Preserve the database as a client-side filter if one isn't already set.
+                if (profileToUse.database && !this.isSystemDatabase(profileToUse.database)) {
+                    if (!databaseScopeFilter) {
+                        databaseScopeFilter = profileToUse.database;
+                    }
+                    profileToUse = { ...profileToUse, database: "" };
+                    this._logger.verbose(
+                        `Cleared database from on-prem profile to ensure server-scoped session (filter: ${databaseScopeFilter})`,
+                    );
+                }
             }
 
             // Generate a unique URI for this profiler connection

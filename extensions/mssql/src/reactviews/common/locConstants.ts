@@ -70,11 +70,13 @@ export class LocConstants {
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            learnMore: l10n.t("Learn more"),
         };
     }
 
     public get objectExplorerFiltering() {
         return {
+            filterSettings: l10n.t("Filter Settings"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),
@@ -291,7 +293,15 @@ export class LocConstants {
                     args: [ipAddress],
                     comment: ["{0} is the IP address of the client"],
                 }),
-            addMySubnetRange: "Add my subnet IP range",
+            addMySubnetRange: l10n.t("Add my subnet IP range"),
+            fromLabel: l10n.t({
+                message: "From",
+                comment: ["Label for the start IP address in the firewall rule IP range"],
+            }),
+            toLabel: l10n.t({
+                message: "To",
+                comment: ["Label for the end IP address in the firewall rule IP range"],
+            }),
         };
     }
 
@@ -518,10 +528,8 @@ export class LocConstants {
             submit: l10n.t("Submit"),
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),
+            privacyNotice: l10n.t("Privacy notice"),
             privacyStatement: l10n.t("Privacy Statement"),
-            feedbackStatementShort: l10n.t(
-                "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
-            ),
             feedbackStatementLong: l10n.t(
                 "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
             ),
@@ -1308,6 +1316,14 @@ export class LocConstants {
                 "Local container deployment is currently only supported with SQL Authentication connections.",
             ),
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
+            authenticationNotSupported: l10n.t("Authentication not supported"),
+            dabDeploymentNotSupportedBanner: l10n.t(
+                "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+            ),
+            unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
+            dabUnsupportedDataTypesBanner: l10n.t(
+                "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -1789,6 +1805,7 @@ export class LocConstants {
             valueUnknown: l10n.t("-"),
             dropConnections: l10n.t("Drop active connections"),
             deleteBackupHistory: l10n.t("Delete backup and restore history"),
+            confirmationLabel: l10n.t("I understand this action is permanent and irreversible"),
             helpButton: l10n.t("Help"),
             scriptButton: l10n.t("Script"),
             dropButton: l10n.t("Drop"),
@@ -1866,10 +1883,6 @@ export class LocConstants {
                 "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
             ),
             learnMore: l10n.t("Learn More"),
-            fabricWarning: l10n.t(
-                "Fabric targets are currently not supported, and we are working to improve the experience.",
-            ),
-            fabricWarningLearnMore: l10n.t("Learn more about this issue."),
         };
     }
 

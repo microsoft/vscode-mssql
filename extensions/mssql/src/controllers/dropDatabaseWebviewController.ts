@@ -44,6 +44,10 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             ObjectManagementDialogType.DropDatabase,
             dialogTitle ?? LocConstants.dropDatabaseDialogTitle,
             webviewTitle ?? LocConstants.dropDatabaseWebviewTitle,
+            {
+                light: "dropDatabase_light.svg",
+                dark: "dropDatabase_dark.svg",
+            },
             "dropDatabaseDialog",
             connectionUri,
             serverName,

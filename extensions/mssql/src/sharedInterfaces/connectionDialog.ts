@@ -301,3 +301,5 @@ export namespace GetSqlAnalyticsEndpointUriFromFabricRequest {
         "getSqlAnalyticsEndpointUriFromFabric",
     );
 }
+
+export type ConnectionSubDialogDisplayType = "standalone" | "modal";
