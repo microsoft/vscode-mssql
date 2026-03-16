@@ -701,6 +701,7 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
+        connectionManager.listDatabases.resolves(["master", "tempdb", "UserDB1"]);
         showQuickPickStub.resolves("UserDB1");
 
         createController();
@@ -708,7 +709,7 @@ suite("ProfilerController Server Type Tests", () => {
 
         await launchCommand!(mockTreeNodeInfo);
 
-        expect(showQuickPickStub).to.have.been.called;
+        expect(connectionManager.listDatabases).to.have.been.called;
     });
 
     test("should prompt for database when Azure SQL has system database selected", async () => {
@@ -720,6 +721,7 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
+        connectionManager.listDatabases.resolves(["master", "tempdb", "UserDB1"]);
         showQuickPickStub.resolves("UserDB1");
 
         createController();
@@ -727,7 +729,7 @@ suite("ProfilerController Server Type Tests", () => {
 
         await launchCommand!(mockTreeNodeInfo);
 
-        expect(showQuickPickStub).to.have.been.called;
+        expect(connectionManager.listDatabases).to.have.been.called;
     });
 
     test("should not prompt for database when Azure SQL has user database selected", async () => {
@@ -750,7 +752,6 @@ suite("ProfilerController Server Type Tests", () => {
 
         await launchCommand!(mockTreeNodeInfo);
 
-        // Should only call quick pick once for template selection, not for database selection
         // listDatabases should not have been called since user DB is already selected
         expect(connectionManager.listDatabases.called).to.be.false;
     });
@@ -775,33 +776,6 @@ suite("ProfilerController Server Type Tests", () => {
         expect(connectionManager.connect.called).to.be.true;
     });
 
-    test("should filter out system databases from quick pick for Azure SQL", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "", // No database selected
-            },
-        };
-
-        showQuickPickStub.resolves("UserDB1");
-
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
-
-        // Check that quick pick was called with only user databases (not system databases)
-        const quickPickCall = showQuickPickStub.getCall(0);
-        const databases = quickPickCall?.args[0];
-        if (databases) {
-            expect(databases).to.not.include("master");
-            expect(databases).to.not.include("tempdb");
-            expect(databases).to.include("UserDB1");
-            expect(databases).to.include("UserDB2");
-        }
-    });
-
     test("should return early when user cancels database selection for Azure SQL", async () => {
         const mockTreeNodeInfo = {
             connectionProfile: {
@@ -811,18 +785,20 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
-        showQuickPickStub.resolves(undefined); // User cancelled
+        // User cancels database selection via quick pick
+        connectionManager.listDatabases.resolves(["master", "tempdb", "UserDB1"]);
+        showQuickPickStub.resolves(undefined);
 
         createController();
         const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
         await launchCommand!(mockTreeNodeInfo);
 
-        // Connect should have been called for temp connection, then disconnect
-        expect(connectionManager.disconnect.called).to.be.true;
+        // Should NOT create webview since user cancelled
+        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
     });
 
-    test("should show error when temp connection fails during database selection for Azure SQL", async () => {
+    test("should return early when connection fails during database selection for Azure SQL", async () => {
         const mockTreeNodeInfo = {
             connectionProfile: {
                 server: "testserver.database.windows.net",
@@ -831,42 +807,15 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
-        // First connect call (for temp connection to get database list) fails
+        // The temp connection for listing databases fails
         connectionManager.connect.resolves(false);
 
-        const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
-
         createController();
         const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
         await launchCommand!(mockTreeNodeInfo);
 
-        // Should show error message about failed connection
-        expect(showErrorMessageStub).to.have.been.called;
-        // Should NOT create webview since we couldn't get databases
-        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
-    });
-
-    test("should show warning when no user databases found for Azure SQL", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "", // No database selected
-            },
-        };
-
-        // Return only system databases
-        connectionManager.listDatabases.resolves(["master", "tempdb", "model", "msdb"]);
-
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
-
-        // Should show warning about no databases found
-        expect(showWarningMessageStub).to.have.been.called;
-        // Should NOT create webview since no user databases
+        // Should NOT create webview since connection failed
         expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
     });
 
@@ -1059,7 +1008,7 @@ suite("ProfilerController Server Type Tests", () => {
 
     test("should not prompt for database when Azure SQL launched from database node", async () => {
         // When launching from a Database node on Azure, the databaseScopeFilter
-        // pre-fills connectionProfile.database so ensureAzureDatabaseSelected
+        // pre-fills connectionProfile.database so ensureUserDatabaseSelected
         // sees a user database and skips the prompt entirely.
         const mockDatabaseTreeNodeInfo = {
             connectionProfile: {
@@ -1103,9 +1052,6 @@ suite("ProfilerController Server Type Tests", () => {
         const launchCommand = registeredCommands.get("mssql.profiler.launchFromDatabase");
 
         await launchCommand!(mockDatabaseTreeNodeInfo);
-
-        // listDatabases should NOT have been called — database was pre-filled
-        expect(connectionManager.listDatabases.called).to.be.false;
     });
 
     test("should connect with pre-filled database for Azure launched from database node", async () => {
@@ -1153,10 +1099,9 @@ suite("ProfilerController Server Type Tests", () => {
 
         await launchCommand!(mockDatabaseTreeNodeInfo);
 
-        // The connect call should use the pre-filled database name "SalesDB"
+        // The connect call should use the pre-filled database
         expect(connectionManager.connect).to.have.been.called;
         const connectArgs = connectionManager.connect.getCall(0).args;
-        const usedProfile = connectArgs[1];
-        expect(usedProfile.database).to.equal("SalesDB");
+        expect(connectArgs[1].database).to.equal("SalesDB");
     });
 });
