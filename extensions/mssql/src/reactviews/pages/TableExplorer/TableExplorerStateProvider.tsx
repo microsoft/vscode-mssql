@@ -76,6 +76,10 @@ export const TableExplorerStateProvider: React.FC<{
             saveResults: function (format: "csv" | "json" | "excel", data: ExportData): void {
                 extensionRpc.action("saveResults", { format, data });
             },
+
+            editColumn: function (columnName: string): void {
+                extensionRpc.action("editColumn", { columnName });
+            },
         }),
         [extensionRpc],
     );

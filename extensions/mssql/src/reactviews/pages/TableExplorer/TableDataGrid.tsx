@@ -46,6 +46,7 @@ interface TableDataGridProps {
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
+    onEditColumn?: (columnName: string) => void;
 }
 
 export interface TableDataGridRef {
@@ -73,6 +74,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onDeletionCountChanged,
             onSelectedRowsChanged,
             onSaveResults,
+            onEditColumn,
         },
         ref,
     ) => {
@@ -856,6 +858,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeletionCountChanged(deletedRowsRef.current.size);
                     }
                     break;
+
+                case "edit-column":
+                    const editCellIndex = args.cell;
+                    const editGridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+                    const editColumn = editGridColumns[editCellIndex];
+                    if (editColumn && onEditColumn) {
+                        onEditColumn(editColumn.name?.toString() || "");
+                    }
+                    break;
             }
         }
 
@@ -1185,6 +1196,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: loc.tableExplorer.revertRow,
                         iconCssClass: "mdi mdi-undo",
                         positionOrder: 11,
+                    },
+                    // Divider before navigation commands
+                    { divider: true, command: "", positionOrder: 12 },
+                    // Navigation commands
+                    {
+                        command: "edit-column",
+                        title: loc.tableExplorer.editColumn,
+                        iconCssClass: "mdi mdi-table-edit",
+                        positionOrder: 13,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),

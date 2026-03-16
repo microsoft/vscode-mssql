@@ -144,6 +144,7 @@ export const TableExplorerPage: React.FC = () => {
                                             onCellChangeCountChanged={handleCellChangeCountChanged}
                                             onDeletionCountChanged={handleDeletionCountChanged}
                                             onSaveResults={context?.saveResults}
+                                            onEditColumn={context?.editColumn}
                                         />
                                     )}
                                 </div>
