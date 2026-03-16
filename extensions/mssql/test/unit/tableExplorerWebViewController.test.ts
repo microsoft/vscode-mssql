@@ -1127,13 +1127,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
         });
     });
 
-    suite("editColumn reducer", () => {
+    suite("modifyTable reducer", () => {
         test("should open Table Designer via executeCommand with the target node", async () => {
             // Arrange
             executeCommandStub.resetHistory();
 
             // Act
-            await controller["_reducerHandlers"].get("editColumn")(controller.state, {});
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
 
             // Assert
             expect(executeCommandStub.calledOnce).to.be.true;
@@ -1147,7 +1147,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             showErrorMessageStub.resetHistory();
 
             // Act
-            await controller["_reducerHandlers"].get("editColumn")(controller.state, {});
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
 
             // Assert
             expect(executeCommandStub.calledOnce).to.be.true;
@@ -1161,7 +1161,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             showErrorMessageStub.resetHistory();
 
             // Act
-            await controller["_reducerHandlers"].get("editColumn")(controller.state, {});
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
 
             // Assert
             expect(showErrorMessageStub.calledOnce).to.be.true;
@@ -1176,7 +1176,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.tableName = "TestTable";
 
             // Act
-            const resultState = await controller["_reducerHandlers"].get("editColumn")(
+            const resultState = await controller["_reducerHandlers"].get("modifyTable")(
                 controller.state,
                 {},
             );

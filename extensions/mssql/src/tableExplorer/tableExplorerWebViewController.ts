@@ -1254,13 +1254,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("editColumn", async (state, _payload) => {
+        this.registerReducer("modifyTable", async (state, _payload) => {
             this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
-                TelemetryActions.EditColumn,
+                TelemetryActions.ModifyTable,
                 uuid(),
                 {
                     startTime: startTime.toString(),
@@ -1296,7 +1296,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToEditColumn(getErrorMessage(error)),
+                    LocConstants.TableExplorer.failedToModifyTable(getErrorMessage(error)),
                 );
             }
 

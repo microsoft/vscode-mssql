@@ -46,7 +46,7 @@ interface TableDataGridProps {
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
-    onEditColumn?: () => void;
+    onModifyTable?: () => void;
 }
 
 export interface TableDataGridRef {
@@ -74,7 +74,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onDeletionCountChanged,
             onSelectedRowsChanged,
             onSaveResults,
-            onEditColumn,
+            onModifyTable,
         },
         ref,
     ) => {
@@ -859,12 +859,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
                     break;
 
-                case "edit-column":
+                case "modify-table":
                     const editCellIndex = args.cell;
                     const editGridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
                     const editColumn = editGridColumns[editCellIndex];
-                    if (editColumn && onEditColumn) {
-                        onEditColumn();
+                    if (editColumn && onModifyTable) {
+                        onModifyTable();
                     }
                     break;
             }
@@ -1201,8 +1201,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     { divider: true, command: "", positionOrder: 12 },
                     // Navigation commands
                     {
-                        command: "edit-column",
-                        title: loc.tableExplorer.editColumn,
+                        command: "modify-table",
+                        title: loc.tableExplorer.modifyTable,
                         iconCssClass: "mdi mdi-table-edit",
                         positionOrder: 13,
                     },

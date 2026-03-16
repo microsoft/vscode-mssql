@@ -1913,7 +1913,7 @@ export class LocConstants {
             noDataAvailable: l10n.t("No data available"),
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
             closeScriptPane: l10n.t("Close Script Pane"),
-            editColumn: l10n.t("Edit Column"),
+            modifyTable: l10n.t("Modify Table"),
         };
     }
 

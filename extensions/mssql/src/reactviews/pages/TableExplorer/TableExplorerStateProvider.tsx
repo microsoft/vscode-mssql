@@ -77,8 +77,8 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("saveResults", { format, data });
             },
 
-            editColumn: function (): void {
-                extensionRpc.action("editColumn", {});
+            modifyTable: function (): void {
+                extensionRpc.action("modifyTable", {});
             },
         }),
         [extensionRpc],

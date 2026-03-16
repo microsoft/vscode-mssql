@@ -2778,9 +2778,9 @@ export class TableExplorer {
             comment: ["{0} is the error message"],
         });
 
-    public static failedToEditColumn = (errorMessage: string) =>
+    public static failedToModifyTable = (errorMessage: string) =>
         l10n.t({
-            message: "Failed to open column in Table Designer: {0}",
+            message: "Failed to open Table Designer: {0}",
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
