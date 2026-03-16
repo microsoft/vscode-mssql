@@ -414,6 +414,9 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                 required: true,
             },
             {
+                type: "divider",
+            },
+            {
                 id: "nsat",
                 label: featureName
                     ? Loc.UserSurvey.overallHowStatisfiedAreYouWithFeature(featureName)

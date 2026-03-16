@@ -100,6 +100,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
+                        mode="modal"
                         state={(dialog as AddFirewallRuleDialogProps).props}
                         addFirewallRule={context.addFirewallRule}
                         closeDialog={context.closeDialog}
@@ -108,6 +109,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "changePassword" && (
                     <ChangePasswordDialog
+                        mode="modal"
                         serverName={changePasswordDialogState?.server}
                         userName={changePasswordDialogState?.userName}
                         onSubmit={context.changePassword}
@@ -119,6 +121,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "createConnectionGroup" && (
                     <ConnectionGroupDialog
+                        mode="modal"
                         state={(dialog as CreateConnectionGroupDialogProps).props}
                         saveConnectionGroup={context.createConnectionGroup}
                         closeDialog={context.closeDialog}

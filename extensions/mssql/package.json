@@ -172,7 +172,7 @@
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.0"
+        "yauzl": "^3.2.1"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -2000,11 +2000,6 @@
                     "description": "%mssql.preventAutoExecuteScript%",
                     "default": false,
                     "scope": "resource"
-                },
-                "mssql.enableSqlAuthenticationProvider": {
-                    "type": "boolean",
-                    "description": "%mssql.enableSqlAuthenticationProvider%",
-                    "default": true
                 },
                 "mssql.enableConnectionPooling": {
                     "type": "boolean",

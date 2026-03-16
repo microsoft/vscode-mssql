@@ -60,8 +60,8 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             title: LocConstants.DacpacDialog.Title,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
-                dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
-                light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
+                dark: vscode.Uri.joinPath(context.extensionUri, "media", "dacpacDialog_dark.svg"),
+                light: vscode.Uri.joinPath(context.extensionUri, "media", "dacpacDialog_light.svg"),
             },
             preserveFocus: true,
         });

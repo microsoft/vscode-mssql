@@ -57,8 +57,16 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                     : Loc.FirewallRule.addFirewallRule,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "addFirewallRule_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "addFirewallRule_dark.svg",
+                    ),
                 },
             },
         );

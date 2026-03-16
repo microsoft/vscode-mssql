@@ -13,6 +13,72 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.schemaDesignerCopilotTitle,
+                isPreview: true,
+                description: locConstants.Changelog.schemaDesignerCopilotDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.dabTitle,
+                isPreview: true,
+                description: locConstants.Changelog.dabDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dab-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.dabCopilotTitle,
+                isPreview: true,
+                description: locConstants.Changelog.dabCopilotDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dab-copilot",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.sqlNotebooksTitle,
+                isPreview: true,
+                description: locConstants.Changelog.sqlNotebooksDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdNotebooksCreate,
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-sql-notebooks",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.fabricQueryProfilerTitle,
+                isPreview: true,
+                description: locConstants.Changelog.fabricQueryProfilerDescription,
+                codeSnippets: ["TSQL_Azure"],
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-query-profiler-docs#create-a-profiling-session",
+                    },
+                ],
+            },
+            {
                 title: locConstants.Changelog.adsMigrationTitle,
                 description: locConstants.Changelog.adsMigrationDescription,
                 icon: "azureDataStudio.svg",
@@ -30,74 +96,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-february2026",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.queryProfilerTitle,
-                isPreview: true,
-                description: locConstants.Changelog.queryProfilerDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-query-profiler-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-query-profiler",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.globalObjectSearchTitle,
-                description: locConstants.Changelog.globalObjectSearchDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-object-search-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-object-search",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.backupRestoreTitle,
-                isPreview: true,
-                description: locConstants.Changelog.backupRestoreDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-backup-restore-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-backup-restore",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.databaseManagementTitle,
-                isPreview: true,
-                description: locConstants.Changelog.databaseManagementDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-database-management-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-database-management",
+                        value: "https://aka.ms/vscode-mssql-ads-migration",
                     },
                 ],
             },
@@ -124,22 +123,6 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: locConstants.Changelog.sqlProjPublishTitle,
-                description: locConstants.Changelog.sqlProjPublishDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-docs",
-                    },
-                ],
-            },
-            {
                 title: locConstants.Changelog.dacpacTitle,
                 description: locConstants.Changelog.dacpacDescription,
                 actions: [
@@ -151,92 +134,39 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.watchDemo,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-dacpac-demo",
+                        value: "https://youtu.be/JhyBSthgFys?si=Koe1HSYZXJxfVHZY&t=736",
                     },
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-dacpac-docs",
+                        value: "https://aka.ms/vscode-mssql-dacpac",
                     },
                 ],
             },
             {
-                title: locConstants.Changelog.schemaDesignerTitle,
-                description: locConstants.Changelog.schemaDesignerDescription,
+                title: locConstants.Changelog.fabricIntegrationTitle,
+                description: locConstants.Changelog.fabricIntegrationDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.watchDemo,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-schema-designer-demo",
+                        value: "https://aka.ms/vscode-mssql-fabric-db-demo",
                     },
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-schema-designer",
+                        value: "https://aka.ms/vscode-mssql-fabric-docs",
                     },
                 ],
             },
             {
-                title: locConstants.Changelog.schemaCompareTitle,
-                description: locConstants.Changelog.schemaCompareDescription,
+                title: locConstants.Changelog.sqlProjCodeAnalysisTitle,
+                description: locConstants.Changelog.sqlProjCodeAnalysisDescription,
                 actions: [
-                    {
-                        label: locConstants.Changelog.tryIt,
-                        type: "command",
-                        value: constants.cmdSchemaCompareOpenFromCommandPalette,
-                    },
                     {
                         label: locConstants.Changelog.watchDemo,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-schema-compare-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-docs/schema-compare",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.localContainerTitle,
-                description: locConstants.Changelog.localContainerDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.tryIt,
-                        type: "command",
-                        value: constants.cmdDeployNewDatabase,
-                    },
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-container-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-containers",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.copilotIntegrationTitle,
-                description: locConstants.Changelog.copilotIntegrationDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.tryIt,
-                        type: "command",
-                        value: constants.cmdOpenGithubChat,
-                        args: [`@${constants.mssqlChatParticipantName} Hello!`],
-                    },
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-copilot-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-november2025",
+                        value: "https://youtu.be/UEW9DQX8FlA",
                     },
                 ],
             },

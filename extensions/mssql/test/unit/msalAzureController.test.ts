@@ -206,32 +206,6 @@ suite("MsalAzureController Tests", () => {
         expect(controller).to.exist;
     });
 
-    test("init should enable SQL authentication provider only if config is true", () => {
-        // Arrange
-        const getEnableSqlAuthProviderConfigStub = sandbox
-            .stub(azureUtils, "getEnableSqlAuthenticationProviderConfig")
-            .returns(false);
-
-        const controller = new MsalAzureController(
-            mockContext,
-            mockPrompter,
-            mockCredentialStore,
-            mockSubscriptionClientFactory,
-        );
-
-        // Act
-        controller.init();
-
-        expect(controller["_isSqlAuthProviderEnabled"]).to.be.false;
-
-        getEnableSqlAuthProviderConfigStub.reset();
-        getEnableSqlAuthProviderConfigStub.returns(true);
-
-        controller.init();
-
-        expect(controller["_isSqlAuthProviderEnabled"]).to.be.true;
-    });
-
     test("clearTokenCache should clear cache for all cloud auth mappings", async () => {
         // Arrange
         const controller = new MsalAzureController(

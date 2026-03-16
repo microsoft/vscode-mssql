@@ -136,6 +136,7 @@ export const LocalContainersInputForm: React.FC = () => {
                 <div className={classes.formDiv}>
                     {dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
+                            mode="modal"
                             state={(dialog as CreateConnectionGroupDialogProps).props}
                             saveConnectionGroup={context.createConnectionGroup}
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog

@@ -53,6 +53,10 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
             ObjectManagementDialogType.CreateDatabase,
             dialogTitle ?? LocConstants.createDatabaseDialogTitle,
             webviewTitle ?? LocConstants.createDatabaseWebviewTitle,
+            {
+                light: "createDatabase_light.svg",
+                dark: "createDatabase_dark.svg",
+            },
             "createDatabaseDialog",
             connectionUri,
             serverName,

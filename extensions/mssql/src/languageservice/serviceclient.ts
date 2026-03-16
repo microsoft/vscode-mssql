@@ -34,11 +34,7 @@ import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { DownloadType, IConfigUtils } from "./interfaces";
 import { exists } from "../utils/utils";
 import { env } from "process";
-import {
-    getAppDataPath,
-    getEnableConnectionPoolingConfig,
-    getEnableSqlAuthenticationProviderConfig,
-} from "../azure/utils";
+import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
 import { serviceName } from "../azure/constants";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
@@ -548,10 +544,7 @@ export default class SqlToolsServiceClient {
             }
 
             // Enable SQL Auth Provider registration for Azure MFA Authentication
-            const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
-            if (enableSqlAuthenticationProvider) {
-                serverArgs.push("--enable-sql-authentication-provider");
-            }
+            serverArgs.push("--enable-sql-authentication-provider");
 
             // Enable Connection pooling to improve connection performance
             const enableConnectionPooling = getEnableConnectionPoolingConfig();

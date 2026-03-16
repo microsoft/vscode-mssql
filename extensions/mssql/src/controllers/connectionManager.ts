@@ -195,8 +195,6 @@ export default class ConnectionManager {
                 prompter,
                 this._credentialStore,
             );
-
-            this.azureController.init();
         }
 
         // Initiate the firewall service

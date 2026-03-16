@@ -3034,7 +3034,6 @@ export default class MainController implements vscode.Disposable {
 
         // Prompt to reload VS Code when any of these settings are updated.
         const configSettingsRequiringReload = [
-            Constants.enableSqlAuthenticationProvider,
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
             Constants.configSovereignCloudEnvironment,

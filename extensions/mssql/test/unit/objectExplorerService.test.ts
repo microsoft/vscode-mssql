@@ -2220,7 +2220,6 @@ suite("OE Service Tests", () => {
             sandbox.stub(mockConnectionManager, "accountStore").get(() => mockAccountStore);
             mockAzureController = sandbox.createStubInstance(AzureController);
             mockAzureController.isAccountInCache = sandbox.stub();
-            mockAzureController.isSqlAuthProviderEnabled = sandbox.stub();
             mockAzureController.refreshAccessToken = sandbox.stub();
             mockAzureController.populateAccountProperties = sandbox.stub();
             mockConnectionManager.azureController = mockAzureController;
