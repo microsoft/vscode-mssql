@@ -102,6 +102,9 @@
     <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
       <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
+      <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
@@ -1457,6 +1460,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
       <source xml:lang="en">Copy connection string to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
+      <source xml:lang="en">Copy link</source>
     </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
@@ -3409,6 +3415,9 @@
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
+      <source xml:lang="en">Link copied to clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
       <source xml:lang="en">List Connections</source>
@@ -6051,6 +6060,10 @@
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
+      <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
@@ -6111,9 +6124,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
       <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++58f2b9ce9285d04e24aad705daa7ada65125f3c47ddab84b24ec9c2bedf436ba">
-      <source xml:lang="en">The mssql extension could not start because the SQL Tools Service failed to initialize. See the &apos;MSSQL&apos; output channel for details.</source>
     </trans-unit>
     <trans-unit id="++CODE++c368a965891e9479b44218cb42c8cddde404740e364b53367e897dcb17ef1d6b">
       <source xml:lang="en">The name of the check constraint.</source>
@@ -6254,17 +6264,11 @@
     <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
       <source xml:lang="en">URL copied to clipboard</source>
     </trans-unit>
-    <trans-unit id="++CODE++256aff4fe0e7334c7b9295deaa52e2ea8c44dea6ee9aff7a4a81692f6f630c57">
-      <source xml:lang="en">Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.</source>
-    </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
     </trans-unit>
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1a56fd8ecfd5dc838b2be5030ba3edeaa43ae80c321daf32ac908310a43ae529">
-      <source xml:lang="en">Unable to find a .NET runtime to run SQL Tools Service.</source>
     </trans-unit>
     <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
       <source xml:lang="en">Unable to load backup configuration. Please try again.</source>

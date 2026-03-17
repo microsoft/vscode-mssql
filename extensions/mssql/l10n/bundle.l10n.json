@@ -3345,10 +3345,14 @@
     "Please choose at least one backup set to restore": "Please choose at least one backup set to restore",
     "No databases with backups found": "No databases with backups found",
     "Azure SQL Database is not supported for restore.": "Azure SQL Database is not supported for restore.",
-    "Unable to find a .NET runtime to run SQL Tools Service.": "Unable to find a .NET runtime to run SQL Tools Service.",
-    "Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.": "Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.",
-    "The mssql extension could not start because the SQL Tools Service failed to initialize. See the 'MSSQL' output channel for details.": "The mssql extension could not start because the SQL Tools Service failed to initialize. See the 'MSSQL' output channel for details.",
+    "A required .NET runtime could not be found or installed.": "A required .NET runtime could not be found or installed.",
+    "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}/{0} is the error message": {
+        "message": "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Download Offline VSIX": "Download Offline VSIX",
+    "Copy link": "Copy link",
+    "Link copied to clipboard": "Link copied to clipboard",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
