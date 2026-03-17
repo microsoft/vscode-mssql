@@ -95,42 +95,4 @@ suite("DotnetRuntimeProvider tests", () => {
             }
         });
     });
-
-    suite("Priority 2: Error with guidance", () => {
-        function setupExtensionFails(): void {
-            executeCommandStub.rejects(new Error("No extension"));
-        }
-
-        test("should show error message when no runtime is found", async () => {
-            setupExtensionFails();
-            showErrorMessageStub.resolves(undefined);
-
-            const provider = createProvider();
-
-            try {
-                await provider.acquireDotnetRuntime();
-                expect.fail("Expected acquireDotnetRuntime to throw");
-            } catch {
-                expect(showErrorMessageStub).to.have.been.calledOnce;
-                expect(showErrorMessageStub.firstCall.args[0]).to.include(
-                    "Unable to find a .NET runtime",
-                );
-            }
-        });
-
-        test("should open offline VSIX URL when user clicks download button", async () => {
-            setupExtensionFails();
-            showErrorMessageStub.resolves("Download Offline VSIX");
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal");
-
-            const provider = createProvider();
-
-            try {
-                await provider.acquireDotnetRuntime();
-                expect.fail("Expected acquireDotnetRuntime to throw");
-            } catch {
-                expect(openExternalStub).to.have.been.calledOnce;
-            }
-        });
-    });
 });

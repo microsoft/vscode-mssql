@@ -51,20 +51,6 @@ export default class DotnetRuntimeProvider {
                 ),
             );
         }
-
-        // 2. No runtime available — show error with action button
-        await this.showRuntimeNotFoundError();
         throw new Error(DotnetRuntime.runtimeNotFoundThrow);
-    }
-
-    private async showRuntimeNotFoundError(): Promise<void> {
-        const action = await vscode.window.showErrorMessage(
-            DotnetRuntime.runtimeNotFoundError,
-            DotnetRuntime.downloadOfflineVsix,
-        );
-
-        if (action === DotnetRuntime.downloadOfflineVsix) {
-            void vscode.env.openExternal(vscode.Uri.parse(Constants.offlineVsixUrl));
-        }
     }
 }
