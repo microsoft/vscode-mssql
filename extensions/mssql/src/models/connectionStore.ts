@@ -689,13 +689,15 @@ export class ConnectionStore {
             connResults = connResults.concat(recentConnections);
         }
 
-        // Deduplicate connections by ID
+        // Deduplicate connections by ID and profile source.
         const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
         let dupeCount = 0;
 
         for (const conn of connResults) {
-            if (!uniqueConnections.has(conn.id)) {
-                uniqueConnections.set(conn.id, conn);
+            const key = conn.id + "-" + conn.profileSource; // Use both ID and source as key to allow same profile in both lists
+            const storedConn = uniqueConnections.get(key);
+            if (storedConn === undefined || storedConn?.profileSource !== conn.profileSource) {
+                uniqueConnections.set(key, conn);
             } else {
                 dupeCount++;
                 this._logger.verbose(
