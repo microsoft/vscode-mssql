@@ -860,10 +860,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "modify-table":
-                    const editCellIndex = args.cell;
-                    const editGridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
-                    const editColumn = editGridColumns[editCellIndex];
-                    if (editColumn && onModifyTable) {
+                    if (onModifyTable) {
                         onModifyTable();
                     }
                     break;
