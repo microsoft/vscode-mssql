@@ -12,7 +12,7 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
-const headerIconSizePx = 24;
+const headerIconSizePx = 32;
 
 const contentWidthPresets = {
     medium: "720px",
