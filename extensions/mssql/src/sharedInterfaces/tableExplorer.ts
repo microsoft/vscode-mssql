@@ -209,6 +209,7 @@ export interface TableExplorerContextProps {
     toggleScriptPane: () => void;
     setCurrentPage: (pageNumber: number) => void;
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
+    modifyTable: () => void;
 }
 
 export interface TableExplorerReducers {
@@ -225,6 +226,7 @@ export interface TableExplorerReducers {
     toggleScriptPane: {};
     setCurrentPage: { pageNumber: number };
     saveResults: { format: SupportedSaveFormats; data: ExportData };
+    modifyTable: {};
 }
 
 export interface ExportData {

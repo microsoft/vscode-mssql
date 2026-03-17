@@ -45,6 +45,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
     let writeTextStub: sinon.SinonStub;
     let showSaveDialogStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
 
     const mockConnectionProfile: IConnectionProfile = {
         server: "test-server",
@@ -99,6 +100,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
         sandbox.stub(vscode.workspace, "fs").value({
             writeFile: writeFileStub,
         });
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
         // Setup mock webview and panel
         mockWebview = {
@@ -1122,6 +1124,65 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(callArgs[1]).to.equal("excel");
             expect(callArgs[2]).to.deep.equal(mockHeaders);
             expect(callArgs[3]).to.deep.equal(mockRows);
+        });
+    });
+
+    suite("modifyTable reducer", () => {
+        test("should open Table Designer via executeCommand with the target node", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
+
+            // Assert
+            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(executeCommandStub.firstCall.args[0]).to.equal("mssql.editTable");
+            expect(executeCommandStub.firstCall.args[1]).to.equal(controller["_targetNode"]);
+        });
+
+        test("should not show an error message when Table Designer opens successfully", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            showErrorMessageStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
+
+            // Assert
+            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.called).to.be.false;
+        });
+
+        test("should show error message when executeCommand throws", async () => {
+            // Arrange
+            const error = new Error("Table Designer failed to open");
+            executeCommandStub.rejects(error);
+            showErrorMessageStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
+
+            // Assert
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include(
+                "Table Designer failed to open",
+            );
+        });
+
+        test("should return state unchanged after successful open", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            controller.state.tableName = "TestTable";
+
+            // Act
+            const resultState = await controller["_reducerHandlers"].get("modifyTable")(
+                controller.state,
+                {},
+            );
+
+            // Assert
+            expect(resultState.tableName).to.equal("TestTable");
         });
     });
 });
