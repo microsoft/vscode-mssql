@@ -243,6 +243,7 @@ export function FilterTablesButton() {
                 initialFilterConsumedRef.current = true;
                 initialFilterJustAppliedRef.current = true;
                 setSelectedTables([...initialFilterTables]);
+                setShowTableRelationships(true);
                 context.resetView();
             } else {
                 requestAnimationFrame(applyFilter);
