@@ -3430,6 +3430,11 @@ Fehler:
         <note>{0} is the error message</note>
         <target state="translated">Fehler beim Öffnen der Tabelle zum Ändern: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++f8bdabb0046a85c7425f45c252b0b3e8bb407660e28ad5844369a7176f7763b9">
+        <source xml:lang="en">Failed to open Schema Designer: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Schema Designer: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3">
         <source xml:lang="en">Failed to open Table Designer: {0}</source>
         <note>{0} is the error message</note>
@@ -8498,6 +8503,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1">
         <source xml:lang="en">View Swagger</source>
         <target state="translated">Swagger anzeigen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
+        <source xml:lang="en">View Table Diagram</source>
+        <target state="new">View Table Diagram</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
