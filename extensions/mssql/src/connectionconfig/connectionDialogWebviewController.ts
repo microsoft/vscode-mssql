@@ -1176,8 +1176,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
     ): Promise<boolean> {
+        const tempConnectionUri = uuid();
+
         try {
-            const tempConnectionUri = uuid();
             const result = await this._mainController.connectionManager.connect(
                 tempConnectionUri,
                 connection,
@@ -1225,6 +1226,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
 
             return false;
+        } finally {
+            try {
+                await this._mainController.connectionManager.disconnect(tempConnectionUri);
+            } catch (err) {
+                this.logger.error(
+                    `Error disconnecting after connection test: ${getErrorMessage(err)}`,
+                );
+            }
         }
     }
 
