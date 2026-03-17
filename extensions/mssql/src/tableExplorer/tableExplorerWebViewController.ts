@@ -1319,8 +1319,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             try {
                 const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
-                const schemaName = this.state.schemaName || "";
-                const tableName = this.state.tableName;
+                const schemaName = state.schemaName || this._targetNode.metadata.schema || "";
+                const tableName = state.tableName;
                 const filterTable = schemaName ? `${schemaName}.${tableName}` : tableName;
 
                 await vscode.commands.executeCommand(

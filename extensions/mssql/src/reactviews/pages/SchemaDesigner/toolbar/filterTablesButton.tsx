@@ -234,6 +234,8 @@ export function FilterTablesButton() {
         initialFilterConsumedRef.current = false;
 
         let cancelled = false;
+        let retries = 0;
+        const MAX_RETRIES = 300;
         const applyFilter = () => {
             if (cancelled) {
                 return;
@@ -245,8 +247,12 @@ export function FilterTablesButton() {
                 setSelectedTables([...initialFilterTables]);
                 setShowTableRelationships(true);
                 context.resetView();
-            } else {
+            } else if (retries < MAX_RETRIES) {
+                retries++;
                 requestAnimationFrame(applyFilter);
+            } else {
+                // Max retries reached; mark filter as consumed so loadTables() can proceed
+                initialFilterConsumedRef.current = true;
             }
         };
         requestAnimationFrame(applyFilter);
