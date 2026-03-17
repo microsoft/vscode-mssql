@@ -694,9 +694,8 @@ export class ConnectionStore {
         let dupeCount = 0;
 
         for (const conn of connResults) {
-            const key = conn.id + "-" + conn.profileSource; // Use both ID and source as key to allow same profile in both lists
-            const storedConn = uniqueConnections.get(key);
-            if (storedConn === undefined || storedConn?.profileSource !== conn.profileSource) {
+            const key = `${conn.id}-${conn.profileSource}`; // Use both ID and source as key to allow same profile in both lists
+            if (!uniqueConnections.has(key)) {
                 uniqueConnections.set(key, conn);
             } else {
                 dupeCount++;

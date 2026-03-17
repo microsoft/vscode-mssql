@@ -159,7 +159,7 @@ export const ConnectionsListContainer = () => {
                         return (
                             <ConnectionCard
                                 connection={connection}
-                                key={"mru" + index}
+                                key={"mru" + connection.id}
                                 actionButton={{
                                     icon: <Delete16Regular />,
                                     onClick: (e) => {
@@ -188,7 +188,7 @@ export const ConnectionsListContainer = () => {
                         return (
                             <ConnectionCard
                                 connection={connection}
-                                key={"saved" + index}
+                                key={"saved" + connection.id}
                                 actionButton={{
                                     icon: <Delete16Regular />,
                                     onClick: (e) => {
