@@ -32,7 +32,7 @@ import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { DownloadType, IConfigUtils } from "./interfaces";
-import { exists } from "../utils/utils";
+import { exists, getErrorMessage } from "../utils/utils";
 import { env } from "process";
 import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
 import { serviceName } from "../azure/constants";
@@ -262,26 +262,27 @@ export default class SqlToolsServiceClient {
                         }
                     })
                     .catch(async (err) => {
-                        this.logger.logDebug(Constants.serviceLoadingFailed + " " + err);
+                        this.logger.error(Constants.serviceLoadingFailed, getErrorMessage(err));
+                        const displayError = ServiceClient.unableToStartService(
+                            getErrorMessage(err),
+                        );
                         // Determine if this is a download failure or a runtime acquisition failure
-                        const isDownloadError =
-                            err instanceof Error &&
-                            /\b(404|403|5\d{2}|ENOTFOUND|ECONNREFUSED|ETIMEDOUT|network)\b/i.test(
-                                err.message,
-                            );
-                        const errorMessage = isDownloadError
-                            ? ServiceClient.serviceDownloadFailed
-                            : ServiceClient.runtimeNotFoundError;
                         const action = await vscode.window.showErrorMessage(
-                            errorMessage,
+                            displayError,
                             ServiceClient.downloadOfflineVsix,
+                            ServiceClient.copyLinkToClipboard,
                         );
                         if (action === ServiceClient.downloadOfflineVsix) {
                             void vscode.env.openExternal(
                                 vscode.Uri.parse(Constants.offlineVsixUrl),
                             );
+                        } else if (action === ServiceClient.copyLinkToClipboard) {
+                            await vscode.env.clipboard.writeText(Constants.offlineVsixUrl);
+                            void vscode.window.showInformationMessage(
+                                ServiceClient.linkCopiedToClipboard,
+                            );
                         }
-                        reject(new Error(ServiceClient.activationFailed));
+                        reject(new Error(displayError));
                     });
             }
         });

@@ -3317,13 +3317,16 @@ export class RestoreDatabase {
 
 export class ServiceClient {
     public static runtimeNotFoundError = l10n.t(
-        "Unable to find a .NET runtime to run SQL Tools Service.",
+        "A required .NET runtime could not be found or installed.",
     );
-    public static serviceDownloadFailed = l10n.t(
-        "Unable to download the SQL Tools Service required to run this extension. Please check your network connection, or download the offline VSIX which includes the service.",
-    );
-    public static activationFailed = l10n.t(
-        "The mssql extension could not start because the SQL Tools Service failed to initialize. See the 'MSSQL' output channel for details.",
-    );
+    public static unableToStartService = (errorMessage: string) =>
+        l10n.t({
+            message:
+                "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
     public static downloadOfflineVsix = l10n.t("Download Offline VSIX");
+    public static copyLinkToClipboard = l10n.t("Copy link");
+    public static linkCopiedToClipboard = l10n.t("Link copied to clipboard");
 }
