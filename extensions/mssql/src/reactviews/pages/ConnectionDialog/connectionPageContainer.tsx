@@ -81,6 +81,7 @@ export const ConnectionInfoFormContainer = () => {
 
     return (
         <form id="connectionForm" onSubmit={handleConnect}>
+            <button type="submit" style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
             {formMessage && (
                 <DialogMessage
                     message={formMessage}

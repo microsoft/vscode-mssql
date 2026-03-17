@@ -301,9 +301,14 @@
     "No databases found in the selected workspace.": "No databases found in the selected workspace.",
     "Database list": "Database list",
     "Connect": "Connect",
+    "Connection actions": "Connection actions",
     "Advanced Connection Settings": "Advanced Connection Settings",
     "Advanced": "Advanced",
-    "Test Connection": "Test Connection",
+    "Test connection": "Test connection",
+    "Connection test succeeded": "Connection test succeeded",
+    "Testing...": "Testing...",
+    "Connecting...": "Connecting...",
+    "Save without connecting": "Save without connecting",
     "Connect to Database": "Connect to Database",
     "Connect to {0}/{0} is the name of the connection profile": {
         "message": "Connect to {0}",
@@ -1256,6 +1261,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
+    "Modify Table": "Modify Table",
     "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -1291,7 +1297,6 @@
     "Script as Alter": "Script as Alter",
     "Script as Execute": "Script as Execute",
     "Edit Data": "Edit Data",
-    "Modify Table": "Modify Table",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
@@ -2096,7 +2101,6 @@
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
     "Edit Connection Profile": "Edit Connection Profile",
-    "Connecting...": "Connecting...",
     "Are you sure you want to remove {0}?/{0} is the node label": {
         "message": "Are you sure you want to remove {0}?",
         "comment": ["{0} is the node label"]
@@ -3049,6 +3053,10 @@
     },
     "Failed to export results: {0}/{0} is the error message": {
         "message": "Failed to export results: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Table Designer: {0}/{0} is the error message": {
+        "message": "Failed to open Table Designer: {0}",
         "comment": ["{0} is the error message"]
     },
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",

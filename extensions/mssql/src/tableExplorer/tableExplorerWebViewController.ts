@@ -20,6 +20,7 @@ import { EditSessionReadyNotification } from "../models/contracts/tableExplorer"
 import { NotificationHandler } from "vscode-languageclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
+import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -1247,6 +1248,55 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.exportFailed(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+
+        this.registerReducer("modifyTable", async (state, _payload) => {
+            this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.ModifyTable,
+                uuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            try {
+                await vscode.commands.executeCommand(Constants.cmdEditTable, this._targetNode);
+
+                this.logger.info(
+                    `Table Designer opened successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening Table Designer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error("Failed to open Table Designer for column"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenTableDesigner(getErrorMessage(error)),
                 );
             }
 

@@ -3422,6 +3422,11 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">未能打开修改表: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3">
+        <source xml:lang="en">Failed to open Table Designer: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Table Designer: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
         <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
         <target state="translated">未能打开 URL。内置的简单浏览器可能被禁用。</target>

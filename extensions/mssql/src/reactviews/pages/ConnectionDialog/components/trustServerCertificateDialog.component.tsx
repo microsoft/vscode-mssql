@@ -83,7 +83,7 @@ export const TrustServerCertificateDialog = ({
                                     value: true,
                                     isAction: false,
                                 });
-                                context.connect();
+                                context.retryLastSubmitAction();
                             }}>
                             {locConstants.connectionDialog.enableTrustServerCertificateButton}
                         </Button>
