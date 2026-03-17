@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Divider, makeStyles, shorthands } from "@fluentui/react-components";
-import { DatabaseRegular } from "@fluentui/react-icons";
+import { Database32Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 import { ResizableBox } from "react-resizable";
 import { ConnectionsListContainer } from "./connectionsListContainer";
@@ -52,7 +52,7 @@ export const ConnectionPage = () => {
         <div className={classes.root}>
             <div className={classes.mainContainer}>
                 <DialogPageShell
-                    icon={<DatabaseRegular />}
+                    icon={<Database32Regular />}
                     title={locConstants.connectionDialog.connectToDatabase}
                     footerStart={
                         <Button
