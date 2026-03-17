@@ -7,7 +7,8 @@ import * as vscode from "vscode";
 import { ILogger } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import { config } from "../configurations/config";
-import { DotnetRuntime } from "../constants/locConstants";
+import { ServiceClient } from "../constants/locConstants";
+import { getErrorMessage } from "../utils/utils";
 
 /**
  * Resolves a .NET runtime path for running framework-dependent SQL Tools Service binaries.
@@ -35,22 +36,13 @@ export default class DotnetRuntimeProvider {
                 },
             );
             if (result?.dotnetPath) {
-                this._logger.appendLine(
-                    DotnetRuntime.acquiredDotnetRuntime(
-                        Constants.dotnetRuntimeExtensionId,
-                        result.dotnetPath,
-                    ),
-                );
+                this._logger.verbose("Acquired .NET runtime via command: " + result.dotnetPath);
                 return result.dotnetPath;
             }
         } catch (err) {
-            this._logger.appendLine(
-                DotnetRuntime.failedToAcquireDotnetRuntime(
-                    Constants.dotnetRuntimeExtensionId,
-                    String(err),
-                ),
-            );
+            this._logger.error("Error acquiring .NET runtime", getErrorMessage(err));
         }
-        throw new Error(DotnetRuntime.runtimeNotFoundThrow);
+        this._logger.error("No .NET runtime found");
+        throw new Error(ServiceClient.runtimeNotFoundError);
     }
 }

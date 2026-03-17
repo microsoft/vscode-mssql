@@ -27,7 +27,7 @@ import DownloadHelper from "./downloadHelper";
 import ExtConfig from "../configurations/extConfig";
 import DotnetRuntimeProvider from "./dotnetRuntimeProvider";
 import { PlatformInformation, Runtime } from "../models/platform";
-import { DotnetRuntime } from "../constants/locConstants";
+import { ServiceClient } from "../constants/locConstants";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -270,18 +270,18 @@ export default class SqlToolsServiceClient {
                                 err.message,
                             );
                         const errorMessage = isDownloadError
-                            ? DotnetRuntime.serviceDownloadFailed
-                            : DotnetRuntime.runtimeNotFoundError;
+                            ? ServiceClient.serviceDownloadFailed
+                            : ServiceClient.runtimeNotFoundError;
                         const action = await vscode.window.showErrorMessage(
                             errorMessage,
-                            DotnetRuntime.downloadOfflineVsix,
+                            ServiceClient.downloadOfflineVsix,
                         );
-                        if (action === DotnetRuntime.downloadOfflineVsix) {
+                        if (action === ServiceClient.downloadOfflineVsix) {
                             void vscode.env.openExternal(
                                 vscode.Uri.parse(Constants.offlineVsixUrl),
                             );
                         }
-                        reject(new Error(DotnetRuntime.activationFailed));
+                        reject(new Error(ServiceClient.activationFailed));
                     });
             }
         });
