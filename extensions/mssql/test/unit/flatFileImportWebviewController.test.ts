@@ -13,7 +13,12 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FlatFileImportWebviewController } from "../../src/controllers/flatFileImportWebviewController";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as Loc from "../../src/constants/locConstants";
-import { FlatFileProvider } from "../../src/models/contracts/flatFile";
+import {
+    ChangeColumnSettingsRequest,
+    DisposeSessionRequest,
+    InsertDataRequest,
+    ProseDiscoveryRequest,
+} from "../../src/models/contracts/flatFile";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { defaultSchema } from "../../src/constants/constants";
@@ -33,7 +38,6 @@ suite("FlatFileImportWebviewController", () => {
 
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockProvider: FlatFileProvider;
     let mockConnectionProfile: ConnectionProfile;
 
     let sendActionEvent: sinon.SinonStub;
@@ -56,12 +60,6 @@ suite("FlatFileImportWebviewController", () => {
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockConnectionManager.listDatabases.resolves(databases);
 
-        mockProvider = {
-            sendProseDiscoveryRequest: sandbox.stub(),
-            sendChangeColumnSettingsRequest: sandbox.stub(),
-            sendInsertDataRequest: sandbox.stub(),
-        } as FlatFileProvider;
-
         mockConnectionProfile = {
             server: "testServer",
             database: "db1",
@@ -78,7 +76,6 @@ suite("FlatFileImportWebviewController", () => {
             vscodeWrapper,
             mockClient,
             mockConnectionManager,
-            mockProvider,
             mockConnectionProfile,
             "ownerUri",
             databases[0], // pass initial database name
@@ -178,9 +175,20 @@ suite("FlatFileImportWebviewController", () => {
     });
 
     test("getTablePreview reducer success", async () => {
-        (mockProvider.sendProseDiscoveryRequest as sinon.SinonStub).resolves({
-            columns: [],
-        } as any);
+        const operationId = controller["operationId"];
+        mockClient.sendRequest
+            .withArgs(
+                ProseDiscoveryRequest.type,
+                sinon.match({
+                    operationId,
+                    filePath: "file.csv",
+                    tableName: "table",
+                    schemaName: "dbo",
+                }),
+            )
+            .resolves({
+                columns: [],
+            } as any);
 
         const state = await (controller["_reducerHandlers"] as any).get("getTablePreview")(
             controller.state,
@@ -195,7 +203,18 @@ suite("FlatFileImportWebviewController", () => {
     });
 
     test("getTablePreview reducer failure", async () => {
-        (mockProvider.sendProseDiscoveryRequest as sinon.SinonStub).rejects(new Error("fail"));
+        const operationId = controller["operationId"];
+        mockClient.sendRequest
+            .withArgs(
+                ProseDiscoveryRequest.type,
+                sinon.match({
+                    operationId,
+                    filePath: "file.csv",
+                    tableName: "table",
+                    schemaName: "dbo",
+                }),
+            )
+            .rejects(new Error("fail"));
 
         const state = await (controller["_reducerHandlers"] as any).get("getTablePreview")(
             controller.state,
@@ -212,16 +231,32 @@ suite("FlatFileImportWebviewController", () => {
 
     test("importData reducer success path", async () => {
         controller.state.columnChanges = [{ id: 1 } as any];
+        const operationId = controller["operationId"];
 
-        mockConnectionManager.createConnectionDetails.returns({} as any);
-        mockConnectionManager.getConnectionString.resolves("connString");
-
-        (mockProvider.sendChangeColumnSettingsRequest as sinon.SinonStub).resolves({
-            result: { success: true },
-        } as any);
-        (mockProvider.sendInsertDataRequest as sinon.SinonStub).resolves({
-            result: { success: true },
-        } as any);
+        mockClient.sendRequest
+            .withArgs(
+                ChangeColumnSettingsRequest.type,
+                sinon.match({
+                    id: 1,
+                    operationId,
+                }),
+            )
+            .resolves({
+                result: { success: true },
+            } as any);
+        mockClient.sendRequest
+            .withArgs(
+                InsertDataRequest.type,
+                sinon.match({
+                    operationId,
+                    ownerUri: "ownerUri",
+                    databaseName: "db1",
+                    batchSize: 1000,
+                }),
+            )
+            .resolves({
+                result: { success: true },
+            } as any);
 
         const state = await (controller["_reducerHandlers"] as any).get("importData")(
             controller.state,
@@ -237,9 +272,19 @@ suite("FlatFileImportWebviewController", () => {
 
     test("importData reducer failure path", async () => {
         controller.state.columnChanges = [];
+        const operationId = controller["operationId"];
 
-        mockConnectionManager.createConnectionDetails.returns({} as any);
-        mockConnectionManager.getConnectionString.rejects(new Error("fail"));
+        mockClient.sendRequest
+            .withArgs(
+                InsertDataRequest.type,
+                sinon.match({
+                    operationId,
+                    ownerUri: "ownerUri",
+                    databaseName: "db1",
+                    batchSize: 1000,
+                }),
+            )
+            .rejects(new Error("fail"));
 
         const state = await (controller["_reducerHandlers"] as any).get("importData")(
             controller.state,
@@ -299,6 +344,15 @@ suite("FlatFileImportWebviewController", () => {
     test("dispose reducer disposes controller", async () => {
         // Stub controller dispose
         const disposeStub = sandbox.stub(controller, "dispose");
+        const operationId = controller["operationId"];
+        mockClient.sendRequest
+            .withArgs(
+                DisposeSessionRequest.type,
+                sinon.match({
+                    operationId,
+                }),
+            )
+            .resolves({ result: { success: true } } as any);
 
         const state = { ...controller.state };
 
