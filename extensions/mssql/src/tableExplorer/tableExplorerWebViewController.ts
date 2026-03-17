@@ -1296,7 +1296,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToModifyTable(getErrorMessage(error)),
+                    LocConstants.TableExplorer.failedToOpenTableDesigner(getErrorMessage(error)),
                 );
             }
 
