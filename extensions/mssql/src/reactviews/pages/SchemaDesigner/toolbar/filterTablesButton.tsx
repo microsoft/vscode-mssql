@@ -17,8 +17,9 @@ import {
     Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
@@ -51,6 +52,7 @@ export function FilterTablesButton() {
     const classes = useStyles();
     const reactFlow = useReactFlow();
     const isCompact = useIsToolbarCompact();
+    const initialFilterTables = useSchemaDesignerSelector((s) => s?.initialFilterTables);
     if (!context) {
         return undefined;
     }
@@ -61,8 +63,31 @@ export function FilterTablesButton() {
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
     const filterLabel = locConstants.schemaDesigner.filter(selectedTables.length);
+    const initialFilterConsumedRef = useRef(false);
+    const initialFilterJustAppliedRef = useRef(false);
 
     function loadTables() {
+        // When an initial filter from the extension host is pending (e.g., navigating
+        // from Table Explorer), skip normal table loading so we don't clear the filter
+        // that will be applied by the initialFilterTables effect.
+        if (
+            initialFilterTables &&
+            initialFilterTables.length > 0 &&
+            !initialFilterConsumedRef.current
+        ) {
+            setFilterText("");
+            return;
+        }
+
+        // When the initial filter was just applied in the same animation frame,
+        // skip normal loading to prevent clearing the filter before React
+        // re-renders and applies the node visibility changes.
+        if (initialFilterJustAppliedRef.current) {
+            initialFilterJustAppliedRef.current = false;
+            setFilterText("");
+            return;
+        }
+
         // When loading tables (e.g., when filter button is clicked), we should maintain
         // the current explicitly selected tables, not include related tables as selected
         const nodes = reactFlow.getNodes();
@@ -194,6 +219,41 @@ export function FilterTablesButton() {
             cancelAnimationFrame(rafId);
         };
     }, [context.schemaRevision]);
+
+    // Apply initial filter tables from extension host (e.g., when navigating from Table Explorer).
+    // Uses requestAnimationFrame polling because when isInitialized becomes true, the nodes
+    // may not yet be set on the ReactFlow instance (they're set by the caller after init).
+    // The initialFilterConsumedRef prevents loadTables() from clearing the filter before
+    // this effect has a chance to apply it.
+    useEffect(() => {
+        if (!initialFilterTables || initialFilterTables.length === 0 || !context.isInitialized) {
+            return;
+        }
+
+        // Reset consumed flag so loadTables() defers to this effect
+        initialFilterConsumedRef.current = false;
+
+        let cancelled = false;
+        const applyFilter = () => {
+            if (cancelled) {
+                return;
+            }
+            const nodes = reactFlow.getNodes();
+            if (nodes.length > 0) {
+                initialFilterConsumedRef.current = true;
+                initialFilterJustAppliedRef.current = true;
+                setSelectedTables([...initialFilterTables]);
+                context.resetView();
+            } else {
+                requestAnimationFrame(applyFilter);
+            }
+        };
+        requestAnimationFrame(applyFilter);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [initialFilterTables, context.isInitialized]);
 
     // Function to highlight text based on search
     const highlightText = (text: string, searchText: string) => {
