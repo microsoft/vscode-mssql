@@ -5,7 +5,13 @@
 
 import React from "react";
 import { Toolbar, ToolbarButton, Combobox, Option, Button } from "@fluentui/react-components";
-import { SaveRegular, AddRegular, CodeRegular, ArrowSyncRegular } from "@fluentui/react-icons";
+import {
+    SaveRegular,
+    AddRegular,
+    CodeRegular,
+    ArrowSyncRegular,
+    OrganizationRegular,
+} from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
@@ -122,6 +128,14 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 }}
                 disabled={isLoading}>
                 {showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
+            </ToolbarButton>
+            <ToolbarButton
+                aria-label={loc.tableExplorer.viewTableDiagram}
+                title={loc.tableExplorer.viewTableDiagram}
+                icon={<OrganizationRegular />}
+                onClick={() => context.viewTableDiagram()}
+                disabled={isLoading}>
+                {loc.tableExplorer.viewTableDiagram}
             </ToolbarButton>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "auto" }}>
                 <span style={{ fontSize: "12px" }}>{loc.tableExplorer.totalRowsToFetch}</span>
