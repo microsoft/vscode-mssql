@@ -134,11 +134,6 @@
     <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
       <source xml:lang="en">Account not found</source>
     </trans-unit>
-    <trans-unit id="++CODE++e1243c18a11aae6422b94a248ec39cc22fb5209530a12f23d54dc28656304a49">
-      <source xml:lang="en">Acquired .NET runtime via {0}: {1}</source>
-      <note>{0} is the extension ID
-{1} is the resolved dotnet executable path</note>
-    </trans-unit>
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
     </trans-unit>
@@ -2456,11 +2451,6 @@
     <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
       <source xml:lang="en">Failed disposing query: {0}</source>
       <note>{0} is the error message</note>
-    </trans-unit>
-    <trans-unit id="++CODE++becc4d34c331c6517703a64358bd4f8501992dbfacc3dda974c607a266f9e229">
-      <source xml:lang="en">Failed to acquire .NET runtime from {0}: {1}</source>
-      <note>{0} is the extension ID
-{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
       <source xml:lang="en">Failed to add table to schema designer.</source>
@@ -6273,11 +6263,8 @@
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f46a376555ee48691cb3cefe60ac93d445c4fd0c4d91b6da6a98e83d710c8506">
-      <source xml:lang="en">Unable to find a .NET runtime to run SQL Tools Service. Please download the offline VSIX which includes a bundled runtime.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2b431dbcad876738ca9c9232682f6877371f12b8d4ad11d70608579898cf0eed">
-      <source xml:lang="en">Unable to find a .NET runtime. Please install the offline VSIX which includes a bundled runtime.</source>
+    <trans-unit id="++CODE++1a56fd8ecfd5dc838b2be5030ba3edeaa43ae80c321daf32ac908310a43ae529">
+      <source xml:lang="en">Unable to find a .NET runtime to run SQL Tools Service.</source>
     </trans-unit>
     <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
       <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
