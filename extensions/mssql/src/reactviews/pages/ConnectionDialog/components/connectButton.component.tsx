@@ -15,9 +15,11 @@ export const ConnectButtonId = "connectButton";
 export const ConnectButton = ({
     style,
     className,
+    form,
 }: {
     style?: CSSProperties;
     className?: string;
+    form?: string;
 }) => {
     const context = useContext(ConnectionDialogContext);
     const connectionStatus = useConnectionDialogSelector((s) => s.connectionStatus);
@@ -31,6 +33,7 @@ export const ConnectButton = ({
         <Button
             id={ConnectButtonId}
             type="submit"
+            form={form}
             appearance="primary"
             disabled={connectionStatus === ApiStatus.Loading || !readyToConnect}
             className={className}
