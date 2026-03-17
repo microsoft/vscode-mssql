@@ -1914,6 +1914,7 @@ export class LocConstants {
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
             closeScriptPane: l10n.t("Close Script Pane"),
             modifyTable: l10n.t("Modify Table"),
+            viewTableDiagram: l10n.t("View Table Diagram"),
         };
     }
 
