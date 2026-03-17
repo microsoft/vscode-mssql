@@ -1281,6 +1281,48 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
+    suite("setInitialFilterTables", () => {
+        test("should update state with initial filter tables", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables(["dbo.Users", "dbo.Orders"]);
+
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Users", "dbo.Orders"]);
+        });
+
+        test("should update state with a single table", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables(["dbo.Students"]);
+
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Students"]);
+        });
+
+        test("should update state with empty array", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables([]);
+
+            expect(ctrl.state.initialFilterTables).to.deep.equal([]);
+        });
+
+        test("should overwrite previous filter tables when called again", () => {
+            const ctrl = createController();
+
+            ctrl.setInitialFilterTables(["dbo.Users"]);
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Users"]);
+
+            ctrl.setInitialFilterTables(["dbo.Orders", "dbo.Products"]);
+            expect(ctrl.state.initialFilterTables).to.deep.equal(["dbo.Orders", "dbo.Products"]);
+        });
+
+        test("should not have initialFilterTables in state before setInitialFilterTables is called", () => {
+            const ctrl = createController();
+
+            expect(ctrl.state.initialFilterTables).to.be.undefined;
+        });
+    });
+
     suite("resolveSqlServerContainerName", () => {
         test("should return containerName from treeNode connection profile", () => {
             sandbox.stub(treeNode, "connectionProfile").get(

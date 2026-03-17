@@ -1262,6 +1262,7 @@
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
     "Modify Table": "Modify Table",
+    "View Table Diagram": "View Table Diagram",
     "Search Database Objects (Preview)": "Search Database Objects (Preview)",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -3057,6 +3058,10 @@
     },
     "Failed to open Table Designer: {0}/{0} is the error message": {
         "message": "Failed to open Table Designer: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Schema Designer: {0}/{0} is the error message": {
+        "message": "Failed to open Schema Designer: {0}",
         "comment": ["{0} is the error message"]
     },
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",

@@ -2784,6 +2784,13 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToOpenSchemaDesigner = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Schema Designer: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class AzureDataStudioMigration {
