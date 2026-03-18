@@ -2151,6 +2151,38 @@
                     "description": "%mssql.resultsGrid.inMemoryDataProcessingThreshold%",
                     "minimum": 1
                 },
+                "mssql.resultsGrid.alternatingRowColors": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.alternatingRowColors%"
+                },
+                "mssql.resultsGrid.showGridLines": {
+                    "type": "string",
+                    "default": "both",
+                    "enum": [
+                        "both",
+                        "horizontal",
+                        "vertical",
+                        "none"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.resultsGrid.showGridLines.both%",
+                        "%mssql.resultsGrid.showGridLines.horizontal%",
+                        "%mssql.resultsGrid.showGridLines.vertical%",
+                        "%mssql.resultsGrid.showGridLines.none%"
+                    ],
+                    "description": "%mssql.resultsGrid.showGridLines%"
+                },
+                "mssql.resultsGrid.rowPadding": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "default": null,
+                    "minimum": 0,
+                    "maximum": 10,
+                    "description": "%mssql.resultsGrid.rowPadding%"
+                },
                 "mssql.query.displayBitAsNumber": {
                     "type": "boolean",
                     "default": true,

@@ -69,6 +69,58 @@ suite("QueryResult Utils Tests", () => {
         });
     });
 
+    suite("getGridSettings constants", () => {
+        test("alternatingRowColors config key has correct mssql-prefixed path", () => {
+            expect(Constants.configResultsGridAlternatingRowColors).to.equal(
+                "resultsGrid.alternatingRowColors",
+            );
+        });
+
+        test("showGridLines config key has correct path", () => {
+            expect(Constants.configResultsGridShowGridLines).to.equal("resultsGrid.showGridLines");
+        });
+
+        test("rowPadding config key has correct path", () => {
+            expect(Constants.configResultsGridRowPadding).to.equal("resultsGrid.rowPadding");
+        });
+
+        test("default gridSettings returns alternatingRowColors=false when config is undefined", () => {
+            const mockConfig = {
+                get: sandbox.stub().returns(undefined),
+            } as unknown as vscode.WorkspaceConfiguration;
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
+
+            const alternatingRowColors =
+                (mockConfig.get(Constants.configResultsGridAlternatingRowColors) as boolean) ??
+                false;
+            expect(alternatingRowColors).to.equal(false);
+        });
+
+        test("default gridSettings returns showGridLines='both' when config is undefined", () => {
+            const mockConfig = {
+                get: sandbox.stub().returns(undefined),
+            } as unknown as vscode.WorkspaceConfiguration;
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
+
+            const showGridLines =
+                (mockConfig.get(Constants.configResultsGridShowGridLines) as string) ?? "both";
+            expect(showGridLines).to.equal("both");
+        });
+
+        test("default gridSettings returns rowPadding=null when config is undefined", () => {
+            const mockConfig = {
+                get: sandbox.stub().returns(undefined),
+            } as unknown as vscode.WorkspaceConfiguration;
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
+
+            const rowPadding = mockConfig.get(Constants.configResultsGridRowPadding) ?? null;
+            expect(rowPadding).to.equal(null);
+        });
+    });
+
     suite("bucketizeRowCount", () => {
         const testCases: { value: number; expected: number }[] = [
             { value: 0, expected: 50 },

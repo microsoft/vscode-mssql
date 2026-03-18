@@ -67,6 +67,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             (state) => state.inMemoryDataProcessingThreshold,
         ) ?? 5000;
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
+    const gridSettings = useQueryResultSelector((state) => state.gridSettings);
     const autoSizeColumnsMode =
         useQueryResultSelector((state) => state.autoSizeColumnsMode) ??
         qr.ResultsGridAutoSizeStyle.HeadersAndData;
@@ -164,6 +165,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         disposeAllTables();
     }, [uri]);
 
+    // When rowPadding changes, dispose the existing table so it is recreated with the new row height
+    useEffect(() => {
+        if (tableRef.current) {
+            tableRef.current.dispose();
+            tableRef.current = null;
+            isTableCreated.current = false;
+        }
+    }, [gridSettings?.rowPadding]);
+
     // On Column Info change, create the table. Ideally this should run only once.
     useEffect(() => {
         const createTable = async () => {
@@ -175,8 +185,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 
             // Setting up dimensions based on font settings
             const DEFAULT_FONT_SIZE = 12;
-            const ROW_HEIGHT = fontSettings.fontSize! + 12; // 12 px is the padding
-            const COLUMN_WIDTH = Math.max((fontSettings.fontSize! / DEFAULT_FONT_SIZE) * 120, 120); // Scale width with font size, but keep a minimum of 120px
+            const fontSize = fontSettings?.fontSize ?? DEFAULT_FONT_SIZE;
+            const rowPadding = gridSettings?.rowPadding ?? 0;
+            const ROW_HEIGHT = fontSize + 12 + rowPadding * 2; // 12 px base padding, plus extra row padding on each side
+            const COLUMN_WIDTH = Math.max((fontSize / DEFAULT_FONT_SIZE) * 120, 120); // Scale width with font size, but keep a minimum of 120px
 
             let columns: Slick.Column<Slick.SlickData>[] = columnInfo?.map((col, index) => {
                 return {
@@ -306,7 +318,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         } else {
             void createTable();
         }
-    }, [resultSetSummary]);
+    }, [resultSetSummary, gridSettings?.rowPadding]);
 
     // Update key bindings on slickgrid when key bindings change
     useEffect(() => {
