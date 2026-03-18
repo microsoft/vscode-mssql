@@ -104,9 +104,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     stateChanged = true;
                 }
                 if (e.affectsConfiguration("mssql.resultsGrid.inMemoryDataProcessingThreshold")) {
-                    const newValue = this.vscodeWrapper
-                        .getConfiguration(Constants.extensionName)
-                        .get(Constants.configInMemoryDataProcessingThreshold) as number;
+                    const newValue = getInMemoryGridDataProcessingThreshold();
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.inMemoryDataProcessingThreshold = newValue;
                         this._queryResultStateMap.set(uri, state);
@@ -394,12 +392,17 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public getGridSettingsConfig(): qr.GridSettings {
         const config = this.vscodeWrapper.getConfiguration(Constants.extensionName);
+        const validGridLineModes: qr.GridLinesMode[] = ["both", "horizontal", "vertical", "none"];
+        const gridLinesValue = config.get(Constants.configResultsGridShowGridLines) as string;
+        const showGridLines: qr.GridLinesMode = validGridLineModes.includes(
+            gridLinesValue as qr.GridLinesMode,
+        )
+            ? (gridLinesValue as qr.GridLinesMode)
+            : "both";
         return {
             alternatingRowColors:
                 (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
-            showGridLines:
-                (config.get(Constants.configResultsGridShowGridLines) as qr.GridLinesMode) ??
-                "both",
+            showGridLines,
             rowPadding: config.get(Constants.configResultsGridRowPadding) as number | null,
         };
     }

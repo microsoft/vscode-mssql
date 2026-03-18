@@ -214,13 +214,16 @@
 }
 
 /* ── Results grid: alternating row colors ── */
-.results-grid--alternating .slick-row:nth-child(even) {
+/* SlickGrid adds .even/.odd classes by data row index, so striping stays stable
+   when scrolling in the virtualized grid (unlike :nth-child which uses DOM order). */
+.results-grid--alternating .slick-row.even {
     background-color: var(--vscode-list-alternatingBackground, rgba(128, 128, 128, 0.05));
 }
 
 /* ── Results grid: grid line visibility ── */
-/* Default (both) — existing silver borders are already correct; these classes
-   override only when the user selects a different mode. */
+/* All four modes apply an explicit class. "both" overrides the default silver
+   borders with VS Code theme colors; other modes additionally clear borders
+   for the suppressed direction. */
 .results-grid--gridlines-horizontal .slick-cell {
     border-right-color: transparent;
     border-bottom-color: var(--vscode-panel-border, silver);

@@ -165,14 +165,16 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         disposeAllTables();
     }, [uri]);
 
-    // When rowPadding changes, dispose the existing table so it is recreated with the new row height
+    // When row-height-affecting settings change, dispose the existing table so it is recreated
+    // with the correct dimensions. This covers both rowPadding and fontSize, both of which
+    // feed into the ROW_HEIGHT and COLUMN_WIDTH calculations inside createTable.
     useEffect(() => {
         if (tableRef.current) {
             tableRef.current.dispose();
             tableRef.current = null;
             isTableCreated.current = false;
         }
-    }, [gridSettings?.rowPadding]);
+    }, [gridSettings?.rowPadding, fontSettings?.fontSize]);
 
     // On Column Info change, create the table. Ideally this should run only once.
     useEffect(() => {
@@ -318,7 +320,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         } else {
             void createTable();
         }
-    }, [resultSetSummary, gridSettings?.rowPadding]);
+    }, [resultSetSummary, gridSettings?.rowPadding, fontSettings?.fontSize]);
 
     // Update key bindings on slickgrid when key bindings change
     useEffect(() => {
