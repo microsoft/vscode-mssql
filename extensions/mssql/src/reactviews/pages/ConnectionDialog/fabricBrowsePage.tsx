@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { ConnectButton } from "./components/connectButton.component";
-import { Button, Label, makeStyles } from "@fluentui/react-components";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { Label, makeStyles } from "@fluentui/react-components";
+import { FormField } from "../../common/forms/form.component";
 import {
     AuthenticationType,
     ConnectionDialogContextProps,
@@ -22,7 +21,6 @@ import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../sharedInterfaces/fabric";
-import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
@@ -44,9 +42,6 @@ export const FabricBrowsePage = () => {
     }
 
     const styles = useStyles();
-    const formStyles = useFormStyles();
-
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     useEffect(() => {
         if (
@@ -176,23 +171,6 @@ export const FabricBrowsePage = () => {
                             </div>
                         </>
                     )}
-
-                    <AdvancedOptionsDrawer
-                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                    />
-                    <div className={formStyles.formNavTray}>
-                        <Button
-                            onClick={(_event) => {
-                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                            }}
-                            className={formStyles.formNavTrayButton}>
-                            {Loc.connectionDialog.advancedSettings}
-                        </Button>
-                        <div className={formStyles.formNavTrayRight}>
-                            <ConnectButton className={formStyles.formNavTrayButton} />
-                        </div>
-                    </div>
                 </>
             )}
         </div>

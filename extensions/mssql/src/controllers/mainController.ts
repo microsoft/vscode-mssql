@@ -1823,6 +1823,27 @@ export default class MainController implements vscode.Disposable {
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
+                Constants.cmdDesignSchemaForTable,
+                async (node: TreeNodeInfo, databaseName: string, filterTable: string) => {
+                    const schemaDesigner =
+                        await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                            this._context,
+                            this._vscodeWrapper,
+                            this,
+                            this.schemaDesignerService,
+                            databaseName,
+                            node,
+                        );
+
+                    schemaDesigner.setInitialFilterTables([filterTable]);
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+                    schemaDesigner.revealToForeground();
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
                 Constants.cmdBuildDataApi,
                 async (node: TreeNodeInfo) => {
                     const schemaDesigner =

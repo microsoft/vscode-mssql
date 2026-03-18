@@ -80,6 +80,10 @@ export const TableExplorerStateProvider: React.FC<{
             modifyTable: function (): void {
                 extensionRpc.action("modifyTable", {});
             },
+
+            viewTableDiagram: function (): void {
+                extensionRpc.action("viewTableDiagram", {});
+            },
         }),
         [extensionRpc],
     );
