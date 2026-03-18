@@ -26,9 +26,11 @@ export const ConnectButtonId = "connectButton";
 export const ConnectButton = ({
     style,
     className,
+    form,
 }: {
     style?: CSSProperties;
     className?: string;
+    form?: string;
 }) => {
     const context = useContext(ConnectionDialogContext);
     const connectionStatus = useConnectionDialogSelector((s) => s.connectionStatus);
@@ -89,10 +91,14 @@ export const ConnectButton = ({
                         }}
                         primaryActionButton={{
                             id: ConnectButtonId,
+                            type: form ? "submit" : "button",
+                            form,
                             onClick: (event: MouseEvent<HTMLButtonElement>) => {
                                 event.stopPropagation();
                                 setIsMenuOpen(false);
-                                context.connect();
+                                if (!form) {
+                                    context.connect();
+                                }
                             },
                         }}>
                         {buttonText}

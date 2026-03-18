@@ -29,7 +29,6 @@ import { AzureBrowsePage } from "./azureBrowsePage";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { ConnectionFormPage } from "./connectionFormPage";
-import { ConnectionHeader } from "./components/connectionHeader.component";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
@@ -60,6 +59,11 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
     },
+    formContent: {
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "0 16px",
+    },
 });
 
 export const ConnectionInfoFormContainer = () => {
@@ -81,11 +85,9 @@ export const ConnectionInfoFormContainer = () => {
     }
 
     return (
-        <form onSubmit={handleConnect} className={formStyles.formRoot}>
+        <form id="connectionForm" onSubmit={handleConnect}>
             <button type="submit" style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
-            <ConnectionHeader />
-
-            <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+            <div className={styles.formContent}>
                 {formMessage && (
                     <DialogMessage
                         message={formMessage}

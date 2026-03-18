@@ -6,7 +6,6 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { ConnectButton } from "./components/connectButton.component";
 import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -17,7 +16,6 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
@@ -53,8 +51,6 @@ export const AzureBrowsePage = () => {
     }
 
     const formStyles = useFormStyles();
-
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     const [subscriptions, setSubscriptions] = useState<string[]>([]);
     const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
@@ -523,23 +519,6 @@ export const AzureBrowsePage = () => {
                                 })}
                         </>
                     )}
-
-                    <AdvancedOptionsDrawer
-                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                    />
-                    <div className={formStyles.formNavTray}>
-                        <Button
-                            onClick={(_event) => {
-                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                            }}
-                            className={formStyles.formNavTrayButton}>
-                            {Loc.connectionDialog.advancedSettings}
-                        </Button>
-                        <div className={formStyles.formNavTrayRight}>
-                            <ConnectButton className={formStyles.formNavTrayButton} />
-                        </div>
-                    </div>
                 </>
             )}
         </div>
