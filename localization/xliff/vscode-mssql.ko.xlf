@@ -9894,8 +9894,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">쿼리 기록 캡처 시작</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="translated">SQLContainer 시작</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">SQL Container 시작</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

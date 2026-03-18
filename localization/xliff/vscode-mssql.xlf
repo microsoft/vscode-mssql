@@ -7528,7 +7528,7 @@
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
     <trans-unit id="mssql.startContainer">
-      <source xml:lang="en">Start SQLContainer</source>
+      <source xml:lang="en">Start SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.stopContainer">
       <source xml:lang="en">Stop SQL Container</source>

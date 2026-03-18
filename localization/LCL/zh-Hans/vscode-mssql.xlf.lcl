@@ -21435,9 +21435,9 @@
       </Item>
       <Item ItemId=";package.mssql.startContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start SQLContainer]]></Val>
+          <Val><![CDATA[Start SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启动 SQLContainer]]></Val>
+            <Val><![CDATA[启动 SQL Container]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Start Container]]></Val>

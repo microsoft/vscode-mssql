@@ -9894,8 +9894,8 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <target state="translated">Démarrer la capture de l'historique des requêtes</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="translated">Démarrer SQLContainer</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">Démarrer SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

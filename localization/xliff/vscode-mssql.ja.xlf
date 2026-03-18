@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file original="bundle" source-language="en" datatype="plaintext" target-language="ja">
     <body>
@@ -9894,8 +9894,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">クエリ履歴キャプチャの開始</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="translated">SQLContainer の開始</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">SQL Container の開始</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

@@ -9894,8 +9894,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">开始查询历史记录捕获</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="translated">启动 SQLContainer</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">启动 SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

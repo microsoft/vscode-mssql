@@ -230,7 +230,7 @@
     "mssql.newDeployment": "New Deployment",
     "mssql.stopContainer": "Stop SQL Container",
     "mssql.deleteContainer": "Delete SQL Container",
-    "mssql.startContainer": "Start SQLContainer",
+    "mssql.startContainer": "Start SQL Container",
     "mssql.walkthroughs.getStarted.title": "Get Started with MSSQL for Visual Studio Code",
     "mssql.walkthroughs.getStarted.description": "Your first steps for connecting to and developing with a SQL database",
     "mssql.walkthroughs.getStarted.connectToDatabase.title": "Connect to a SQL Database",
