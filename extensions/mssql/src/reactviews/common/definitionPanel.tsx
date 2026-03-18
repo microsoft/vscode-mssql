@@ -86,6 +86,7 @@ export interface ScriptTabProps {
     value: string;
     themeKind: ColorThemeKind;
     language?: string;
+    label?: string;
     openInEditor: (script: string) => void;
     copyToClipboard: (script: string) => void;
 }
@@ -105,7 +106,7 @@ function getScriptTab(
 ): DefinitionPanelCustomTab<DefinitionBuiltInTabIdentifier> {
     return {
         id: SCRIPT_TAB_ID,
-        label: locConstants.schemaDesigner.definition,
+        label: props.label ?? locConstants.schemaDesigner.definition,
         content: (
             <div className={scriptPaneClassName}>
                 <VscodeEditor
