@@ -24,11 +24,9 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
+import { isSystemDatabase } from "../utils/databaseUtils";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-
-/** System databases that cannot be used for Azure SQL profiling */
-const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
 
 /**
  * Controller for the profiler feature.
@@ -116,7 +114,7 @@ export class ProfilerController {
                 // connects at server level; otherwise the STS may look for the session
                 // in the database scope and fail with "session not found".
                 // Preserve the database as a client-side filter if one isn't already set.
-                if (profileToUse.database && !this.isSystemDatabase(profileToUse.database)) {
+                if (profileToUse.database && !isSystemDatabase(profileToUse.database)) {
                     if (!databaseScopeFilter) {
                         databaseScopeFilter = profileToUse.database;
                     }
@@ -174,18 +172,6 @@ export class ProfilerController {
     // ============================================================
 
     /**
-     * Checks if a database is a system database.
-     * @param databaseName - The name of the database to check
-     * @returns true if the database is a system database
-     */
-    private isSystemDatabase(databaseName: string | undefined): boolean {
-        if (!databaseName) {
-            return true; // No database selected is treated as system database for this purpose
-        }
-        return SYSTEM_DATABASES.includes(databaseName.toLowerCase());
-    }
-
-    /**
      * Ensures a user database is selected for Azure SQL connections.
      * If no database or a system database is selected, prompts the user to select one.
      * @param connectionProfile - The connection profile to check/update
@@ -195,7 +181,7 @@ export class ProfilerController {
         connectionProfile: IConnectionProfile,
     ): Promise<IConnectionProfile | undefined> {
         // Check if a user database is already selected
-        if (!this.isSystemDatabase(connectionProfile.database)) {
+        if (!isSystemDatabase(connectionProfile.database)) {
             this._logger.verbose(`User database already selected: ${connectionProfile.database}`);
             return connectionProfile;
         }
@@ -218,7 +204,7 @@ export class ProfilerController {
             const databases = await this._connectionManager.listDatabases(tempUri);
 
             // Filter out system databases
-            const userDatabases = databases.filter((db) => !this.isSystemDatabase(db));
+            const userDatabases = databases.filter((db) => !isSystemDatabase(db));
 
             if (userDatabases.length === 0) {
                 this._logger.verbose("No user databases found");

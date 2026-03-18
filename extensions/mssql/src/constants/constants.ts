@@ -162,6 +162,7 @@ export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";
 export const defaultDatabase = "master";
+export const systemDatabases = ["master", "tempdb", "model", "msdb"];
 export const defaultSchema = "dbo";
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
@@ -275,6 +276,9 @@ export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
 export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
 export const configInMemoryDataProcessingThreshold =
     "mssql.resultsGrid.inMemoryDataProcessingThreshold";
+export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRowColors";
+export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
+export const configResultsGridRowPadding = "resultsGrid.rowPadding";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
@@ -308,18 +312,12 @@ export const serviceInstallationFailed = "Failed to install Sql Tools Service";
 export const sqlToolsServiceCrashMessage = "SQL Tools Service component could not start.";
 export const sqlToolsServiceCrashButton = "View Known Issues";
 export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
-export const flatFileServiceInitializing =
-    "Initializing Flat File service for the mssql extension.";
 export const commandsNotAvailableWhileInstallingTheService =
     "Note: mssql commands will be available after installing the service.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
-export const flatFileServiceLoadingFailed = "Failed to load Flat File Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
-export const invalidFlatFileServiceFilePath = "Invalid file path for Flat File Service";
 export const sqlToolsServiceName = "SQLToolsService";
-export const flatFileServiceName = "FlatFileService";
-export const flatFileProvider = "FlatFileProvider";
 export const resourceServiceName = "AzureResourceProvider";
 export const resourceProviderId = "azurePublicCloud";
 export const sqlToolsServiceConfigKey = "service";

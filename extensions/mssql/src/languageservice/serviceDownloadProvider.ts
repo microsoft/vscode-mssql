@@ -12,7 +12,6 @@ import {
     IPackage,
     PackageError,
     IDecompressProvider,
-    DownloadType,
 } from "./interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
@@ -20,7 +19,7 @@ import { ILogger } from "../models/interfaces";
 import DownloadHelper from "./downloadHelper";
 
 /*
- * Service Download Provider class which handles downloading the SQL tools or Flat File service.
+ * Service Download Provider class which handles downloading the SQL tools service.
  */
 export default class ServiceDownloadProvider {
     constructor(
@@ -29,30 +28,16 @@ export default class ServiceDownloadProvider {
         private _statusView: IStatusView,
         private _downloadHelper: DownloadHelper,
         private _decompressProvider: IDecompressProvider,
-        private _downloadType: DownloadType,
     ) {
         // Ensure our temp files get cleaned up in case of error.
         tmp.setGracefulCleanup();
-    }
-
-    public type(): DownloadType {
-        return this._downloadType;
     }
 
     /**
      * Returns the download url for given platform
      */
     public getDownloadFileName(platform: Runtime): string {
-        let fileNamesJson: any;
-        if (this._downloadType === DownloadType.SqlToolsService) {
-            fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames");
-        } else if (this._downloadType === DownloadType.FlatFileService) {
-            fileNamesJson = this._config.getFlatFileConfigValue("downloadFileNames");
-        } else {
-            const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
-            throw new Error(errorMessage);
-        }
+        let fileNamesJson: any = this._config.getSqlToolsConfigValue("downloadFileNames");
 
         let fileName = fileNamesJson[platform.toString()];
 
@@ -68,21 +53,12 @@ export default class ServiceDownloadProvider {
     }
 
     /**
-     * Returns SQL tools or Flat File service installed folder, creating it if it doesn't exist.
+     * Returns SQL tools service installed folder, creating it if it doesn't exist.
      */
     public async getOrMakeInstallDirectory(platform: Runtime): Promise<string> {
         let basePath = this.getInstallDirectoryRoot();
 
-        let versionFromConfig: string;
-        if (this._downloadType === DownloadType.SqlToolsService) {
-            versionFromConfig = this._config.getSqlToolsPackageVersion();
-        } else if (this._downloadType === DownloadType.FlatFileService) {
-            versionFromConfig = this._config.getFlatFilePackageVersion();
-        } else {
-            const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
-            throw new Error(errorMessage);
-        }
+        let versionFromConfig: string = this._config.getSqlToolsPackageVersion();
 
         basePath = basePath.replace("{#version#}", versionFromConfig);
         basePath = basePath.replace("{#platform#}", getRuntimeDisplayName(platform));
@@ -96,19 +72,10 @@ export default class ServiceDownloadProvider {
     }
 
     /**
-     * Returns SQL tools or Flat File service installed folder root.
+     * Returns SQL tools service installed folder root.
      */
     public getInstallDirectoryRoot(): string {
-        let installDirFromConfig: string;
-        if (this._downloadType === DownloadType.SqlToolsService) {
-            installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        } else if (this._downloadType === DownloadType.FlatFileService) {
-            installDirFromConfig = this._config.getFlatFileInstallDirectory();
-        } else {
-            const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
-            throw new Error(errorMessage);
-        }
+        let installDirFromConfig: string = this._config.getSqlToolsInstallDirectory();
 
         let basePath: string;
         if (path.isAbsolute(installDirFromConfig)) {
@@ -121,19 +88,8 @@ export default class ServiceDownloadProvider {
     }
 
     private getGetDownloadUrl(fileName: string): string {
-        let baseDownloadUrl: string;
-        let version: string;
-        if (this._downloadType === DownloadType.SqlToolsService) {
-            baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
-            version = this._config.getSqlToolsPackageVersion();
-        } else if (this._downloadType === DownloadType.FlatFileService) {
-            baseDownloadUrl = this._config.getFlatFileServiceDownloadUrl();
-            version = this._config.getFlatFilePackageVersion();
-        } else {
-            const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
-            throw new Error(errorMessage);
-        }
+        let baseDownloadUrl: string = this._config.getSqlToolsServiceDownloadUrl();
+        let version: string = this._config.getSqlToolsPackageVersion();
 
         baseDownloadUrl = baseDownloadUrl.replace("{#version#}", version);
         baseDownloadUrl = baseDownloadUrl.replace("{#fileName#}", fileName);
@@ -141,7 +97,7 @@ export default class ServiceDownloadProvider {
     }
 
     /**
-     * Downloads the SQL tools or Flat File service and decompress it in the install folder.
+     * Downloads the SQL tools service and decompresses it in the install folder.
      */
     public async installService(platform: Runtime): Promise<boolean> {
         const fileName = this.getDownloadFileName(platform);

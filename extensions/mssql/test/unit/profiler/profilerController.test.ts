@@ -701,6 +701,7 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
+        connectionManager.listDatabases.resolves(["master", "tempdb", "UserDB1"]);
         showQuickPickStub.resolves("UserDB1");
 
         createController();
@@ -720,6 +721,7 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
+        connectionManager.listDatabases.resolves(["master", "tempdb", "UserDB1"]);
         showQuickPickStub.resolves("UserDB1");
 
         createController();
@@ -811,6 +813,7 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
+        // User cancels database selection via quick pick
         showQuickPickStub.resolves(undefined); // User cancelled
 
         createController();
@@ -831,7 +834,7 @@ suite("ProfilerController Server Type Tests", () => {
             },
         };
 
-        // First connect call (for temp connection to get database list) fails
+        // The temp connection for listing databases fails
         connectionManager.connect.resolves(false);
 
         const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;

@@ -7050,6 +7050,9 @@
     <trans-unit id="extension.connections">
       <source xml:lang="en">Connections</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines">
+      <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
@@ -7200,6 +7203,9 @@
     <trans-unit id="mssql.query.xactAbortOn">
       <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.alternatingRowColors">
+      <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
+    </trans-unit>
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
@@ -7227,6 +7233,9 @@
     <trans-unit id="mssql.dacpacDialog.export">
       <source xml:lang="en">Export BACPAC</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.rowPadding">
+      <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
+    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.extract">
       <source xml:lang="en">Extract DACPAC</source>
     </trans-unit>
@@ -7247,6 +7256,9 @@
     </trans-unit>
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.none">
+      <source xml:lang="en">Hide all grid lines</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
@@ -7482,8 +7494,17 @@
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.both">
+      <source xml:lang="en">Show both horizontal and vertical grid lines</source>
+    </trans-unit>
     <trans-unit id="mssql.showChangelogOnUpdate">
       <source xml:lang="en">Show changelog after extension updates</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
+      <source xml:lang="en">Show only horizontal grid lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
+      <source xml:lang="en">Show only vertical grid lines</source>
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>

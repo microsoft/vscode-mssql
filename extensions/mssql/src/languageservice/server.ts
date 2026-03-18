@@ -6,7 +6,7 @@
 import * as path from "path";
 import { Runtime } from "../models/platform";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
-import { DownloadType, IConfigUtils, IStatusView } from "./interfaces";
+import { IConfigUtils, IStatusView } from "./interfaces";
 import * as fs from "fs/promises";
 
 /*
@@ -31,12 +31,7 @@ export default class ServerProvider {
 
         // Otherwise, search the specified folder.
         if (this._config !== undefined) {
-            let executableFiles: string[];
-            if (this._downloadProvider.type() === DownloadType.SqlToolsService) {
-                executableFiles = this._config.getSqlToolsExecutableFiles();
-            } else {
-                executableFiles = this._config.getFlatFileExecutableFiles();
-            }
+            let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
 
             for (const executableFile of executableFiles) {
                 const executablePath = path.join(filePath, executableFile);
