@@ -29,7 +29,7 @@ import { PlatformInformation } from "../models/platform";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { DownloadType, IConfigUtils } from "./interfaces";
+import { IConfigUtils } from "./interfaces";
 import { exists } from "../utils/utils";
 import { env } from "process";
 import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
@@ -172,7 +172,6 @@ export default class SqlToolsServiceClient {
                 serverStatusView,
                 downloadHelper,
                 decompressProvider,
-                DownloadType.SqlToolsService,
             );
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);

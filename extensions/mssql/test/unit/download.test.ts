@@ -6,7 +6,7 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import { DownloadType, IStatusView } from "../../src/languageservice/interfaces";
+import { IStatusView } from "../../src/languageservice/interfaces";
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import DownloadHelper from "../../src/languageservice/downloadHelper";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
@@ -60,7 +60,6 @@ suite("ServiceDownloadProvider Tests", () => {
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
         const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
@@ -78,7 +77,6 @@ suite("ServiceDownloadProvider Tests", () => {
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
         const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
@@ -97,7 +95,6 @@ suite("ServiceDownloadProvider Tests", () => {
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
         const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
@@ -113,7 +110,6 @@ suite("ServiceDownloadProvider Tests", () => {
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
         const actual = downloadProvider.getDownloadFileName(Runtime.Windows_64);
         expect(actual).to.equal(expectedName);
@@ -151,7 +147,6 @@ suite("ServiceDownloadProvider Tests", () => {
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
         fixture.downloadUrl = downloadUrl;
         fixture.downloadProvider = downloadProvider;
