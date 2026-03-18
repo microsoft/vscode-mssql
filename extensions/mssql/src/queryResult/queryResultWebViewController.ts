@@ -403,7 +403,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             alternatingRowColors:
                 (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
             showGridLines,
-            rowPadding: config.get(Constants.configResultsGridRowPadding) as number | null,
+            rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
         };
     }
 

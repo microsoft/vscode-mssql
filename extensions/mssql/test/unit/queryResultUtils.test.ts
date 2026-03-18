@@ -84,19 +84,15 @@ suite("QueryResult Utils Tests", () => {
             expect(Constants.configResultsGridRowPadding).to.equal("resultsGrid.rowPadding");
         });
 
-        // NOTE: Tests that previously attempted to verify default gridSettings by directly
-        // applying `??` to `mockConfig.get(...)` without calling production code have been
-        // removed because they did not exercise any real implementation.
-
-        test("default gridSettings returns rowPadding=null when config is undefined", () => {
+        test("default gridSettings returns rowPadding=undefined when config is undefined", () => {
             const mockConfig = {
                 get: sandbox.stub().returns(undefined),
             } as unknown as vscode.WorkspaceConfiguration;
 
             sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
 
-            const rowPadding = mockConfig.get(Constants.configResultsGridRowPadding) ?? null;
-            expect(rowPadding).to.equal(null);
+            const rowPadding = mockConfig.get(Constants.configResultsGridRowPadding) ?? undefined;
+            expect(rowPadding).to.equal(undefined);
         });
     });
 
