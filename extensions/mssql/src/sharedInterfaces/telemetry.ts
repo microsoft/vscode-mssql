@@ -227,6 +227,7 @@ export enum TelemetryActions {
     SetDatabase = "SetDatabase",
     EditData = "EditData",
     ModifyTable = "ModifyTable",
+    ViewTableDiagram = "ViewTableDiagram",
     CopyObjectName = "CopyObjectName",
     RefreshResults = "RefreshResults",
     Search = "Search",

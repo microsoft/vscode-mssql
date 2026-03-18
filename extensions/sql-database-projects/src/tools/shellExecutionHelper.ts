@@ -18,17 +18,20 @@ export class ShellExecutionHelper {
     constructor(protected _outputChannel: vscode.OutputChannel) {}
 
     /**
-     * spawns the shell command with arguments and redirects the error and output to ADS output channel
+     * Spawns a process with the given executable and arguments, redirecting output to the output channel.
+     * Uses shell: false to prevent OS command injection via unsanitized arguments.
      */
     public async runStreamedCommand(
-        command: string,
+        executable: string,
+        args: string[],
         options?: ShellCommandOptions,
         sensitiveData: string[] = [],
         timeout: number = 5 * 60 * 1000,
     ): Promise<string> {
         const stdoutData: string[] = [];
 
-        let cmdOutputMessage = command;
+        const fullCommand = [executable, ...args].join(" ");
+        let cmdOutputMessage = fullCommand;
         sensitiveData.forEach((element) => {
             cmdOutputMessage = cmdOutputMessage.replace(element, "***");
         });
@@ -40,14 +43,14 @@ export class ShellExecutionHelper {
             env: Object.assign({}, process.env, options && options.additionalEnvironmentVariables),
             encoding: "utf8",
             maxBuffer: 10 * 1024 * 1024, // 10 Mb of output can be captured.
-            shell: true,
+            shell: false,
             detached: false,
             windowsHide: true,
             timeout: timeout,
         };
 
         try {
-            const child = cp.spawn(command, [], spawnOptions);
+            const child = cp.spawn(executable, args, spawnOptions);
             this._outputChannel.show();
 
             // Add listeners to print stdout and stderr and exit code
@@ -85,10 +88,16 @@ export class ShellExecutionHelper {
             return stdoutData.join("");
         } catch (err) {
             // removing sensitive data from the exception
-            sensitiveData.forEach((element) => {
-                err.cmd = err.cmd?.replace(element, "***");
-                err.message = err.message?.replace(element, "***");
-            });
+            if (err && typeof err === "object") {
+                sensitiveData.forEach((element) => {
+                    if ("cmd" in err && typeof err.cmd === "string") {
+                        err.cmd = err.cmd.replace(element, "***");
+                    }
+                    if ("message" in err && typeof err.message === "string") {
+                        err.message = err.message.replace(element, "***");
+                    }
+                });
+            }
 
             throw err;
         }

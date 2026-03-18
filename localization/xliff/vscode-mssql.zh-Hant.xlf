@@ -259,6 +259,10 @@
         <note>{0} is the IP address of the client</note>
         <target state="translated">加入我的用戶端 IP ({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++119f58d6a58b3f47f5c837a12f2f47a5201453288fc7ec0267e5886c2deba6e9">
+        <source xml:lang="en">Add my subnet IP range</source>
+        <target state="translated">加入我的子網路 IP 範圍</target>
+      </trans-unit>
       <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
         <source xml:lang="en">Add new column</source>
         <target state="translated">新增新資料行</target>
@@ -320,10 +324,6 @@
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
         <target state="translated">之後</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
-        <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
-        <target state="translated">AI 輔助的 SQL 開發，具備感知結構描述查詢產生、ORM 支援，以及在 Ask 或 Agent 模式下與 @mssql 進行自然語言聊天。</target>
       </trans-unit>
       <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
         <source xml:lang="en">All</source>
@@ -436,6 +436,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Analytics-ready by default</source>
         <target state="translated">預設為分析就緒</target>
       </trans-unit>
+      <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
+        <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
+        <target state="translated">使用 SQL Database 專案中可自訂的規則集分析靜態程式碼。</target>
+      </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
         <target state="translated">和</target>
@@ -539,11 +543,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
         <source xml:lang="en">Ask GitHub Copilot to Fix</source>
-        <target state="new">Ask GitHub Copilot to Fix</target>
+        <target state="translated">要求 GitHub Copilot 修正</target>
       </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
         <target state="translated">在聊天中提問或提出結構描述變更建議，GitHub Copilot 會立即在圖表中更新結構描述。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
+        <source xml:lang="en">At least one API type must be selected.</source>
+        <target state="translated">至少必須選取一個 API 類型。</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -582,6 +590,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
         <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
         <target state="translated">因為狀態不相符，導致驗證失敗，請關閉 ADS，然後再試一次。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
+        <source xml:lang="en">Authentication not supported</source>
+        <target state="translated">不支援驗證</target>
       </trans-unit>
       <trans-unit id="++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246">
         <source xml:lang="en">Authorization Role</source>
@@ -727,18 +739,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Back to preview</source>
         <target state="translated">返回預覽</target>
       </trans-unit>
-      <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
-        <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
-        <target state="translated">將 SQL 資料庫備份到本機或 URL，並能輕鬆從資料庫、.BAK 檔案或 URL 還原。</target>
-      </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
         <target state="translated">備份</target>
       </trans-unit>
-      <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
-        <source xml:lang="en">Backup Database - {0}</source>
+      <trans-unit id="++CODE++131339547c38a888800811c65663ba4a48be297f76a3ffdf6075afd06b591df8">
+        <source xml:lang="en">Backup Database (Preview) - {0}</source>
         <note>{0} is the database name</note>
-        <target state="translated">備份資料庫 - {0}</target>
+        <target state="translated">備份資料庫 (預覽) - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
@@ -775,10 +783,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
         <source xml:lang="en">Backup to a new media set</source>
         <target state="translated">備份到新媒體集</target>
-      </trans-unit>
-      <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
-        <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
-        <target state="translated">備份/還原對話方塊 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -845,6 +849,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Browse Fabric</source>
         <target state="translated">瀏覽 Fabric</target>
       </trans-unit>
+      <trans-unit id="++CODE++aaadc23aff35d3da3916780fe2e84c913d08a2d1840d19f3600b2cb75efc1b91">
+        <source xml:lang="en">Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.</source>
+        <target state="translated">瀏覽 Fabric 工作區，以及在 Fabric 中佈建 SQL 資料庫，而不需要離開 VS Code。</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8bb105f01017ced7bd39ba3dd2e7a2d276f16f202f5c29a2c2e51ff0eb31fc3">
         <source xml:lang="en">Browse files</source>
         <target state="translated">瀏覽檔案</target>
@@ -865,9 +873,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">使用 GitHub Copilot 組建 API</target>
       </trans-unit>
-      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
-        <source xml:lang="en">Build Data API</source>
-        <target state="new">Build Data API</target>
+      <trans-unit id="++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033">
+        <source xml:lang="en">Build Data API (Preview)</source>
+        <target state="translated">建置資料 API (預覽)...</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -991,10 +999,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">無法還原: 所參考的資料表或資料行已遭刪除</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
-        <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
-        <target state="translated">擷取並分析即時 SQL Server 擴充事件工作階段，以監控並分析資料庫效能。</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1283,6 +1287,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Click to cancel loading summary</source>
         <target state="translated">按一下以取消載入摘要</target>
       </trans-unit>
+      <trans-unit id="++CODE++2bbd3f4d1c961e88f378b374bc1ce96b67f857965c2fa26ae0898d38a6caab94">
+        <source xml:lang="en">Click to change connection</source>
+        <target state="translated">按一下以變更連線</target>
+      </trans-unit>
       <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
         <source xml:lang="en">Click to change database</source>
         <target state="translated">按一下以變更資料庫</target>
@@ -1471,10 +1479,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
         <source xml:lang="en">Compare SQL Server editions</source>
         <target state="translated">比較 SQL Server 版本</target>
-      </trans-unit>
-      <trans-unit id="++CODE++887138e7ec0b3791877650b8e43bd012cf8d0abd298cbacf5c99ff8c3709c126">
-        <source xml:lang="en">Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.</source>
-        <target state="translated">比較不同資料庫、DACPAC 檔案或 SQL 專案的資料庫結構描述。檢閱差異並套用變更或產生部署指令碼，以保持結構描述同步。</target>
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
@@ -1697,6 +1701,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection Timeout</source>
         <target state="translated">連線逾時</target>
       </trans-unit>
+      <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
+        <source xml:lang="en">Connection actions</source>
+        <target state="new">Connection actions</target>
+      </trans-unit>
       <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
         <source xml:lang="en">Connection error</source>
         <target state="translated">連線錯誤</target>
@@ -1761,6 +1769,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">需要有連接字串</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
+        <source xml:lang="en">Connection test succeeded</source>
+        <target state="new">Connection test succeeded</target>
+      </trans-unit>
       <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
         <note>{0} is the connection ID</note>
@@ -1799,6 +1811,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
         <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
         <target state="translated">容器未能在逾時期間內啟動。請稍候幾分鐘，然後再試一次。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c2757ee529f77e52b5172ba9b77defdd3f8183a111733beab404d8b47299c09">
+        <source xml:lang="en">Container logs</source>
+        <target state="translated">容器記錄</target>
       </trans-unit>
       <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
         <source xml:lang="en">Container name and port are required to check container readiness.</source>
@@ -2000,6 +2016,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create New Connection Group</source>
         <target state="translated">建立新連線群組</target>
       </trans-unit>
+      <trans-unit id="++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f">
+        <source xml:lang="en">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</source>
+        <target state="translated">從 Visual Studio Code 內的視覺介面，為 SQL 資料庫表格建立 REST、GraphQL 和 MCP 端點。設定實體、權限和部署設定，然後使用 Docker 在本機部署。</target>
+      </trans-unit>
       <trans-unit id="++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47">
         <source xml:lang="en">Create a Local Docker SQL Server</source>
         <target state="translated">建立本地 Docker SQL Server</target>
@@ -2008,13 +2028,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
         <target state="translated">在幾秒鐘內建立 SQL Server 容器——無需手動步驟。您可以輕鬆地從 MSSQL 延伸模組中管理它，而無需離開 VS Code。</target>
       </trans-unit>
-      <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
-        <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
-        <target state="translated">在 Fabric 中建立 SQL 資料庫 (預覽)</target>
+      <trans-unit id="++CODE++09fa1b862a69dc1d82e2cce4c5330d7e9769cdcc2c7521f2927aa20b32a0401c">
+        <source xml:lang="en">Create a SQL database in Fabric</source>
+        <target state="translated">在 Fabric 中建立 SQL 資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
         <source xml:lang="en">Create a new connection profile</source>
-        <target state="new">Create a new connection profile</target>
+        <target state="translated">建立新的連線設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++4c4e11ad9f72c183a2ea2cdf1ed42c358aee2b87c96cad4d22d7d22b967dd3b8">
         <source xml:lang="en">Create a new database on '{0}'.</source>
@@ -2029,10 +2049,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a new profiling session</source>
         <target state="translated">建立新的分析工作階段</target>
       </trans-unit>
-      <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
-        <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
-        <target state="translated">直接從 VS Code 建立並管理本機 SQL Server 容器，實現快速且一致的本機開發。</target>
-      </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
         <target state="translated">建立為指令碼</target>
@@ -2041,10 +2057,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create new firewall rule for {0}</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">建立 {0} 的新防火牆規則</target>
-      </trans-unit>
-      <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
-        <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
-        <target state="translated">使用新的管理對話方塊建立、重新命名及刪除資料庫，讓使用者輕鬆管理資料庫。</target>
       </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
@@ -2121,6 +2133,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">DAB container is running!</source>
         <target state="translated">DAB 容器正在執行!</target>
       </trans-unit>
+      <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
+        <source xml:lang="en">DAB container logs</source>
+        <target state="translated">DAB 容器記錄</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="translated">已成功部署 DACPAC</target>
@@ -2155,16 +2171,20 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Data API Builder</source>
         <target state="translated">資料 API 建立器</target>
       </trans-unit>
-      <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
-        <source xml:lang="en">Data API Builder Configuration</source>
-        <target state="translated">資料 API 建立器設定</target>
+      <trans-unit id="++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5">
+        <source xml:lang="en">Data API Builder Configuration (Preview)</source>
+        <target state="translated">資料 API 建立器設定 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
         <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
         <note>{0} is the command identifier 'mssql_dab' and must not be translated
 {1} is the operation name 'get_state' and must not be translated
 {2} is the operation name 'apply_changes' and must not be translated</note>
-        <target state="new">Data API Builder opened. Continue with {0} operations ({1}/{2}).</target>
+        <target state="translated">資料 API 建立器已開啟。繼續進行 {0} 作業 ({1}/{2})。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
+        <source xml:lang="en">Data API builder</source>
+        <target state="translated">資料 API 建立器</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2190,13 +2210,13 @@ Select "{0}" to establish a connection.</source>
 {3} is target column</note>
         <target state="translated">資料類型不符: 資料行 '{1}' 中的 '{0}' 與 '{3}' 中的 '{2}' 不相容</target>
       </trans-unit>
-      <trans-unit id="++CODE++7e986cf4465d2b2d98f423377f2fbd7e7a3b4d6e4a44023ca39027c3a0229fe0">
-        <source xml:lang="en">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export (Preview)</source>
-        <target state="translated">資料層應用程式 (DACPAC / BACPAC) 匯入與匯出 (預覽)</target>
+      <trans-unit id="++CODE++8a9889070cc5b808819105a414532c19eb1ace48a6acd6350d5e4aa7576f6ba8">
+        <source xml:lang="en">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export</source>
+        <target state="translated">資料層應用程式 (DACPAC / BACPAC) 匯入和匯出</target>
       </trans-unit>
-      <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
-        <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="translated">資料層應用程式 (預覽)</target>
+      <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
+        <source xml:lang="en">Data-tier Application</source>
+        <target state="translated">資料層應用程式</target>
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -2218,10 +2238,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
         <source xml:lang="en">Database Details</source>
         <target state="translated">資料庫詳細資料</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
-        <source xml:lang="en">Database Management Dialogs (Preview)</source>
-        <target state="translated">資料庫管理對話方塊 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -2286,6 +2302,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">定義可存取此端點的人員</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
+        <source xml:lang="en">Definition</source>
+        <target state="translated">定義</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
@@ -2362,10 +2382,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
         <target state="translated">在 MSSQL 延伸模組中，透過整合且簡化的工作流程部署與解壓縮 .dacpac 檔案，或匯入/匯出 .bacpac 套件。</target>
       </trans-unit>
-      <trans-unit id="++CODE++125abe6c1406f356647c415b8627a84a6d928dca274d3e70c26fff22c7b77580">
-        <source xml:lang="en">Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.</source>
-        <target state="translated">在 SQL Database 專案中，透過引導式 [發佈對話方塊] 部署資料庫變更，並提供 SQL Server 與 Azure SQL 資料庫的指令碼預覽。</target>
-      </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
         <target state="translated">部署至現有的資料庫</target>
@@ -2410,13 +2426,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Design API</source>
         <target state="translated">設計 API</target>
       </trans-unit>
-      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
-        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
-        <target state="translated">使用 GitHub Copilot 設計結構描述</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
-        <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
-        <target state="translated">使用互動式圖表設計、視覺化呈現並演進資料庫結構描述，並同步產生 SQL。</target>
+      <trans-unit id="++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838">
+        <source xml:lang="en">Design Schemas with GitHub Copilot (Preview)</source>
+        <target state="translated">使用 GitHub Copilot (預覽) 設計結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -2570,10 +2582,6 @@ Select "{0}" to establish a connection.</source>
 {1} is the server name</note>
         <target state="translated">從 '{1}' 中卸除資料庫 '{0}'。此動作無法復原。</target>
       </trans-unit>
-      <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
-        <source xml:lang="en">Drop Database</source>
-        <target state="translated">卸除資料庫</target>
-      </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">刪除資料庫 (預覽)</target>
@@ -2612,17 +2620,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Edit Data</source>
         <target state="translated">編輯資料</target>
       </trans-unit>
-      <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
-        <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="translated">編輯資料 (預覽)</target>
-      </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">編輯資料表</target>
       </trans-unit>
       <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
         <source xml:lang="en">Edit an existing connection profile</source>
-        <target state="new">Edit an existing connection profile</target>
+        <target state="translated">編輯現有的連線設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -3195,6 +3199,10 @@ Error:
         <source xml:lang="en">Fabric Workspaces</source>
         <target state="translated">Fabric 工作區</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7cd0dd0ca57b9a1b087c6af78aaedaec67c6c7c792c96b6d2e90ebf8e0a5c5f">
+        <source xml:lang="en">Fabric databases in Query Profiler</source>
+        <target state="translated">Query Profiler 中的網狀架構資料庫</target>
+      </trans-unit>
       <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
         <note>{0} is the cloud name
@@ -3206,10 +3214,6 @@ Error:
         <note>{0} is the error code
 {1} is the error message</note>
         <target state="translated">Fabric 長時間執行的 API 錯誤，錯誤碼為 '{0}': {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c85fb96bbfbe33bde4a67a8e9223c63dc3a3f817428e22ff8357a1ae30f6f4eb">
-        <source xml:lang="en">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</source>
-        <target state="translated">本預覽版目前不支援 Fabric 目標，我們正努力改善體驗。</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -3426,9 +3430,19 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">無法開啟修改資料表: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++f8bdabb0046a85c7425f45c252b0b3e8bb407660e28ad5844369a7176f7763b9">
+        <source xml:lang="en">Failed to open Schema Designer: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Schema Designer: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3">
+        <source xml:lang="en">Failed to open Table Designer: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Table Designer: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
         <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
-        <target state="new">Failed to open URL. The built-in Simple Browser may be disabled.</target>
+        <target state="translated">無法開啟 URL。內建的簡易瀏覽器可能會停用。</target>
       </trans-unit>
       <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
         <source xml:lang="en">Failed to open XEL file: {0}</source>
@@ -3893,6 +3907,11 @@ Error:
         <source xml:lang="en">Freeze columns</source>
         <target state="translated">凍結資料行</target>
       </trans-unit>
+      <trans-unit id="++CODE++589c6d8e7bd5cc5626c229ddacca440a0d228fd6c50c856d46b86b002a9ac8dd">
+        <source xml:lang="en">From</source>
+        <note>Label for the start IP address in the firewall rule IP range</note>
+        <target state="translated">從</target>
+      </trans-unit>
       <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
         <source xml:lang="en">Full</source>
         <target state="translated">已滿</target>
@@ -3912,6 +3931,10 @@ Error:
       <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
         <source xml:lang="en">General Options</source>
         <target state="translated">一般選項</target>
+      </trans-unit>
+      <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
+        <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
+        <target state="translated">透過 GitHub Copilot 聊天和代理程式工具，使用自然語言產生資料 API 建立器設定。描述您的 API 需求，讓 GitHub Copilot 協助您進行設定。</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -4006,17 +4029,13 @@ Error:
         <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
         <target state="translated">GitHub Copilot - VS Code 逐步解說</target>
       </trans-unit>
-      <trans-unit id="++CODE++737f47ca3f9975103a99da74b37a986e6a1e97b77817a154b27d53d840a9a599">
-        <source xml:lang="en">GitHub Copilot integration</source>
-        <target state="translated">GitHub Copilot 整合</target>
+      <trans-unit id="++CODE++417d51fadd3d0a015407cc0fd8a632098a2fa435bf7dd75a74b2c657b259fbde">
+        <source xml:lang="en">GitHub Copilot integration in Data API builder</source>
+        <target state="translated">資料 API 建立器中的 GitHub Copilot 整合</target>
       </trans-unit>
       <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
         <source xml:lang="en">GitHub Copilot survey</source>
         <target state="translated">GitHub Copilot 問卷</target>
-      </trans-unit>
-      <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
-        <source xml:lang="en">Global Object Search</source>
-        <target state="translated">全域物件搜尋</target>
       </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
@@ -4060,6 +4079,10 @@ Error:
         <source xml:lang="en">Help us improve by sharing your thoughts.</source>
         <target state="translated">分享您的想法，以協助我們改進。</target>
       </trans-unit>
+      <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
+        <source xml:lang="en">Hide Changes</source>
+        <target state="translated">隱藏變更</target>
+      </trans-unit>
       <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
         <source xml:lang="en">Hide Changes Highlight</source>
         <target state="translated">隱藏變更醒目提示</target>
@@ -4067,6 +4090,10 @@ Error:
       <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
         <source xml:lang="en">Hide Confirm Password</source>
         <target state="translated">隱藏確認密碼</target>
+      </trans-unit>
+      <trans-unit id="++CODE++594683ed5533aeeab2a537f670f9a1ae7394eef4784dc9398b23309a6b88a965">
+        <source xml:lang="en">Hide Definition</source>
+        <target state="translated">隱藏定義</target>
       </trans-unit>
       <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
         <source xml:lang="en">Hide New Password</source>
@@ -4129,6 +4156,10 @@ Error:
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
         <target state="translated">我已閱讀摘要並瞭解潛在風險。</target>
       </trans-unit>
+      <trans-unit id="++CODE++cec4c1fded759957b61fa5bace2234953f9645b8a10f1ac56cdd67e89cb7c118">
+        <source xml:lang="en">I understand this action is permanent and irreversible</source>
+        <target state="translated">我了解此動作是永久性且無法恢復的</target>
+      </trans-unit>
       <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">很抱歉，我只能協助處理 SQL 相關問題。</target>
@@ -4153,9 +4184,9 @@ Error:
         <source xml:lang="en">Import Data</source>
         <target state="translated">匯入資料</target>
       </trans-unit>
-      <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
-        <source xml:lang="en">Import File</source>
-        <target state="translated">匯入檔案</target>
+      <trans-unit id="++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c">
+        <source xml:lang="en">Import File (Preview)</source>
+        <target state="translated">匯出檔案 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
         <source xml:lang="en">Import Flat File (Preview)</source>
@@ -4233,6 +4264,10 @@ Error:
       <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
         <source xml:lang="en">In progress</source>
         <target state="translated">進行中</target>
+      </trans-unit>
+      <trans-unit id="++CODE++713772940f735da4b9d051c4f91c4e707ef5389f0014209b9cdd119407ee776c">
+        <source xml:lang="en">In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+        <target state="translated">在資料 API 建立器 (預覽) 體驗中，只有使用 SQL 驗證的連線可以使用本機容器部署。不支援您目前的連線類型。</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -4411,10 +4446,6 @@ Error:
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
         <target state="translated">深入了解 SQL Server 2025 功能</target>
-      </trans-unit>
-      <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
-        <source xml:lang="en">Learn more about this issue.</source>
-        <target state="translated">深入了解此問題。</target>
       </trans-unit>
       <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
         <source xml:lang="en">Leave the source database in the restoring state</source>
@@ -4598,6 +4629,10 @@ Error:
         <source xml:lang="en">Loading Fabric Accounts</source>
         <target state="translated">載入 Fabric 帳戶</target>
       </trans-unit>
+      <trans-unit id="++CODE++d17dd48b24fa0afbcf8f22316dfb0f6d0fc0f84209b049d5e9e51875a30290a3">
+        <source xml:lang="en">Loading Fabric provisioning...</source>
+        <target state="translated">正在載入 Fabric 佈建...</target>
+      </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
         <target state="translated">正在載入報告</target>
@@ -4647,10 +4682,6 @@ Error:
       <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">正在載入執行計畫...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
-        <source xml:lang="en">Loading fabric provisioning...</source>
-        <target state="translated">正在載入 Fabric 佈建...</target>
       </trans-unit>
       <trans-unit id="++CODE++2dd2f1e34594bff7a420c8f7f69d7933114f5f4e7efd583f515691dea65b63d8">
         <source xml:lang="en">Loading flat file import...</source>
@@ -4713,13 +4744,13 @@ Error:
         <source xml:lang="en">Local Container Deployment</source>
         <target state="translated">本機容器部署</target>
       </trans-unit>
-      <trans-unit id="++CODE++8b40b52b182ad6e53db8c7a2b46b81c4daa05a4737719ec9e7290f3407d9b20d">
-        <source xml:lang="en">Local SQL Server Container</source>
-        <target state="translated">本機 SQL Server 容器</target>
-      </trans-unit>
       <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">本機 SQL Server 資料庫容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
+        <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
+        <target state="translated">目前只有 SQL 驗證連線才支援本機容器部署。</target>
       </trans-unit>
       <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
         <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
@@ -4744,6 +4775,10 @@ Error:
       <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
         <source xml:lang="en">Logical file name</source>
         <target state="translated">邏輯檔案名稱</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
+        <source xml:lang="en">Logs copied to clipboard</source>
+        <target state="translated">記錄已複製到剪貼簿</target>
       </trans-unit>
       <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
         <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
@@ -4784,6 +4819,14 @@ Error:
         <note>{0} is the connection label</note>
         <target state="translated">MSSQL 筆記本已連結到 {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
+        <source xml:lang="en">MSSQL extension icon</source>
+        <target state="translated">MSSQL 延伸模組圖示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
+        <source xml:lang="en">MSSQL: Click to change connection</source>
+        <target state="translated">MSSQL: 按一下以變更連線</target>
+      </trans-unit>
       <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
         <source xml:lang="en">MSSQL: Click to change database</source>
         <target state="translated">MSSQL: 按一下以變更資料庫</target>
@@ -4791,6 +4834,10 @@ Error:
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
         <target state="translated">MSSQL: 歡迎使用與新增功能</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
+        <source xml:lang="en">MSSQL: What's new</source>
+        <target state="translated">MSSQL: 新增功能</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -4900,6 +4947,10 @@ Error:
         <note>{0} is the account name</note>
         <target state="translated">已成功新增 Microsoft Entra 帳戶 {0}。</target>
       </trans-unit>
+      <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
+        <source xml:lang="en">Microsoft Fabric integration</source>
+        <target state="translated">Microsoft Fabric 整合</target>
+      </trans-unit>
       <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
         <source xml:lang="en">Microsoft SQL Server License Agreement</source>
         <target state="translated">Microsoft SQL Server 授權合約</target>
@@ -4911,10 +4962,6 @@ Error:
       <trans-unit id="++CODE++1f5c209a4ee7cb85322b1d1fbde63de014d0871930fa88895405ebaea926535d">
         <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.</source>
         <target state="translated">Microsoft 會根據您組織的指示處理您提交的意見反應，以改進您和您組織對此產品的體驗。如果您對於使用意見反應資料有任何疑問，請連絡您的租用戶系統管理員。意見反應資料的處理會受貴組織與 Microsoft 之間的 Microsoft 產品與服務資料保護增補合約的規範，而您提交的意見反應即會被視為適用於該增補合約的個人資料。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++87a43e5185b677199f2369f90cd8518b8b1d7702edff307ed9e79883f43aaaaa">
-        <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...</source>
-        <target state="translated">Microsoft 會根據您組織的指示處理您提交的意見反應，以改進您和您組織對此產品的體驗。若有任何疑問...</target>
       </trans-unit>
       <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
         <source xml:lang="en">Microsoft would like your feedback</source>
@@ -4931,7 +4978,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
-        <target state="new">Missing connectionId. Please provide a connectionId to open Data API Builder.</target>
+        <target state="translated">遺漏 connectionId。請提供 connectionId 以開啟資料 API 建立器。</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
@@ -5193,11 +5240,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
         <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</source>
-        <target state="new">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</target>
+        <target state="translated">找不到使用中的結構描述設計工具。請先使用 mssql_dab 搭配作業 'show' 或從 UI 開啟資料 API 建立器。</target>
       </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
-        <target state="new">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</target>
+        <target state="translated">找不到使用中的結構描述設計工具。請先使用作業 'show' 的 mssql_schema_designer 或從使用者介面開啟一個。</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
@@ -5254,11 +5301,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338">
         <source xml:lang="en">No connection profiles to edit.</source>
-        <target state="new">No connection profiles to edit.</target>
+        <target state="translated">沒有可編輯的連線設定檔。</target>
       </trans-unit>
       <trans-unit id="++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e">
         <source xml:lang="en">No connection profiles to remove.</source>
-        <target state="new">No connection profiles to remove.</target>
+        <target state="translated">沒有可移除的連線設定檔。</target>
       </trans-unit>
       <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
         <source xml:lang="en">No connection selected.</source>
@@ -5598,6 +5645,10 @@ Error:
         <note>{0} is the comma separated list of connection display names</note>
         <target state="translated">一個或多個連線參考了不存在且已被忽略的群組: {0}。請更新您的連線設定以修正這些項目。</target>
       </trans-unit>
+      <trans-unit id="++CODE++71219533fa80ed5eeb848c111ee5ebb32cb091945385aeba0c8685617390b694">
+        <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.</source>
+        <target state="translated">您的一或多個實體包含資料 API 建立器目前不支援的資料行類型。無法選取這些實體進行部署。</target>
+      </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
         <target state="translated">開啟</target>
@@ -5616,11 +5667,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
         <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
-        <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
+        <target state="translated">開啟 GitHub Copilot Chat 以協助修正這些錯誤</target>
       </trans-unit>
       <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
         <source xml:lang="en">Open Nitro</source>
-        <target state="new">Open Nitro</target>
+        <target state="translated">開啟 Nitro</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -5942,6 +5993,10 @@ Error:
         <source xml:lang="en">Preserve the replication settings</source>
         <target state="translated">保留複寫設定</target>
       </trans-unit>
+      <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
+        <source xml:lang="en">Preview</source>
+        <target state="translated">預覽</target>
+      </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
         <target state="translated">預覽資料庫更新</target>
@@ -5988,6 +6043,10 @@ Error:
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">隱私權聲明</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c385c344080699844442bf2dd893618a4702d5d3a3e11ed632dfad839fa2b8c4">
+        <source xml:lang="en">Privacy notice</source>
+        <target state="translated">隱私權注意事項</target>
       </trans-unit>
       <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
         <source xml:lang="en">Private</source>
@@ -6037,10 +6096,6 @@ Error:
         <note>{0} is the file name</note>
         <target state="translated">Profiler 在 XEL 檔案 '{0}' 中處於唯讀且離線模式，無法在沒有資料庫連結的情況下啟動或建立即時工作階段。</target>
       </trans-unit>
-      <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
-        <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
-        <target state="translated">Microsoft Fabric SQL 資料庫不支援 Profiler。</target>
-      </trans-unit>
       <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
         <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
         <target state="translated">Profiler 已就緒。請從下拉式功能表選取工作階段，然後點擊 [開始] 以啟動分析。</target>
@@ -6076,12 +6131,12 @@ Error:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">找到 Proxy 設定，但解析 URL 時遇到錯誤: '{0}'。您在使用 MSSQL 延伸模組時可能會遇到連線問題。 錯誤: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">找到 Proxy 設定，但缺少通訊協定 (例如 http://): '{0}'。您在使用 MSSQL 延伸模組時可能會遇到連線問題。</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -6217,10 +6272,6 @@ Error:
         <source xml:lang="en">Read</source>
         <target state="translated">讀取</target>
       </trans-unit>
-      <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
-        <source xml:lang="en">Read docs</source>
-        <target state="translated">閱讀文件</target>
-      </trans-unit>
       <trans-unit id="++CODE++c386185bf02fec23ab41b4dbcc29406839df6efd9fd1cb03660aa0c2e5640617">
         <source xml:lang="en">Read docs on Microsoft Learn</source>
         <target state="translated">閱讀 Microsoft Learn 上的文件</target>
@@ -6346,7 +6397,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
         <source xml:lang="en">Remove a connection profile</source>
-        <target state="new">Remove a connection profile</target>
+        <target state="translated">移除連線設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
         <source xml:lang="en">Remove file</source>
@@ -6382,7 +6433,7 @@ Error:
         <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
         <note>{0} is the current database name
 {1} is the new database name</note>
-        <target state="new">Renaming database '{0}' to '{1}'...</target>
+        <target state="translated">正在將資料庫 '{0}' 重新命名為 '{1}'...</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -6438,9 +6489,9 @@ Error:
         <note>{0} is the keyboard shortcut for restoring the grid</note>
         <target state="translated">還原 ({0})</target>
       </trans-unit>
-      <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
-        <source xml:lang="en">Restore Database</source>
-        <target state="translated">還原資料庫</target>
+      <trans-unit id="++CODE++5b7f462ae3c2f088449521a194e6c2b8833bd4acd5c877f6e13f55681d4d931d">
+        <source xml:lang="en">Restore Database (Preview)</source>
+        <target state="translated">還原資料庫 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
@@ -6636,13 +6687,17 @@ Query: {2}</source>
         <source xml:lang="en">SQL Database</source>
         <target state="translated">Microsoft Azure SQL Database</target>
       </trans-unit>
-      <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
-        <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
-        <target state="translated">SQL Database 專案 - 發佈對話方塊</target>
+      <trans-unit id="++CODE++0d41159e953416fd1facaa0f44131e65fb6e10e1faf44e6f28283765881c589a">
+        <source xml:lang="en">SQL Database Projects — Code Analysis</source>
+        <target state="translated">SQL Database 專案 - Code Analysis</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL 登入</target>
+      </trans-unit>
+      <trans-unit id="++CODE++095cedeb21477c41b2a8a4aebb8ada471ae5b60c59b00351c60dc6754a31f482">
+        <source xml:lang="en">SQL Notebooks</source>
+        <target state="translated">SQL 筆記本</target>
       </trans-unit>
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
@@ -6669,9 +6724,9 @@ Query: {2}</source>
         <note>{0} is the SQL Server version</note>
         <target state="translated">SQL Server {0} - 最新</target>
       </trans-unit>
-      <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
-        <source xml:lang="en">SQL database in Fabric (Preview)</source>
-        <target state="translated">Fabric 中的 SQL 資料庫 (預覽)</target>
+      <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
+        <source xml:lang="en">SQL database in Fabric</source>
+        <target state="translated">Fabric 中的 SQL 資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
@@ -6781,6 +6836,10 @@ Query: {2}</source>
         <source xml:lang="en">Save to URL</source>
         <target state="translated">儲存至 URL</target>
       </trans-unit>
+      <trans-unit id="++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06">
+        <source xml:lang="en">Save without connecting</source>
+        <target state="new">Save without connecting</target>
+      </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">已儲存的連線</target>
@@ -6833,6 +6892,10 @@ Query: {2}</source>
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">結構描述設計工具模型已就緒。現在可以發佈變更。</target>
       </trans-unit>
+      <trans-unit id="++CODE++a576368432dbd7893c037eb4b0282495ec468ff385db59414d9797a8b0d5c64b">
+        <source xml:lang="en">Schema Designer with GitHub Copilot</source>
+        <target state="translated">使用 GitHub Copilot 的結構描述設計工具</target>
+      </trans-unit>
       <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
         <source xml:lang="en">Schema Diff</source>
         <target state="translated">結構描述差異</target>
@@ -6846,7 +6909,7 @@ Query: {2}</source>
         <note>{0} is the command identifier 'mssql_schema_designer' and must not be translated
 {1} is the operation name 'get_overview' and must not be translated
 {2} is the operation name 'apply_edits' and must not be translated</note>
-        <target state="new">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</target>
+        <target state="translated">結構描述設計工具已開啟。對於結構描述變更，請繼續執行 {0} 作業 ({1}/{2})。</target>
       </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
@@ -6900,14 +6963,14 @@ Query: {2}</source>
         <source xml:lang="en">Script copied to clipboard.</source>
         <target state="translated">指令碼已複製到剪貼簿。</target>
       </trans-unit>
-      <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
-        <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">搜尋資料庫物件</target>
+      <trans-unit id="++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804">
+        <source xml:lang="en">Search Database Objects (Preview)</source>
+        <target state="translated">搜尋資料庫物件 (預覽)</target>
       </trans-unit>
-      <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
-        <source xml:lang="en">Search Database Objects - {0}</source>
+      <trans-unit id="++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3">
+        <source xml:lang="en">Search Database Objects (Preview) - {0}</source>
         <note>{0} is the server name</note>
-        <target state="translated">搜尋資料庫物件 - {0}</target>
+        <target state="translated">搜尋資料庫物件 (預覽) - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -6924,10 +6987,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">搜尋連線群組</target>
-      </trans-unit>
-      <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
-        <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
-        <target state="translated">在整個資料庫中搜尋資料庫物件——資料表、檢視表、儲存程序等。</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -7160,7 +7219,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730">
         <source xml:lang="en">Select profile to edit</source>
-        <target state="new">Select profile to edit</target>
+        <target state="translated">選取要編輯的設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -7789,6 +7848,11 @@ Query: {2}</source>
         <source xml:lang="en">Table added to schema designer successfully.</source>
         <target state="translated">已成功將資料表新增至結構描述設計工具。</target>
       </trans-unit>
+      <trans-unit id="++CODE++993e47be6175800df73275ac1ed9110d48278de2832d3dbc9a07f1c35f58876f">
+        <source xml:lang="en">Table contains column types not supported by Data API Builder: {0}</source>
+        <note>{0} is a comma-separated list of column names and their data types</note>
+        <target state="translated">表格包含資料 API 建立器不支援的資料行類型: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
         <source xml:lang="en">Table deleted from schema designer successfully.</source>
         <target state="translated">已成功從結構描述設計工具刪除資料表。</target>
@@ -7796,6 +7860,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
         <source xml:lang="en">Table id already exists.</source>
         <target state="translated">資料表識別碼已存在。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3b61e80e8a8149fcc5bcb2dc5d9c4f20589057596ae7592a6e165c0cfc71b05">
+        <source xml:lang="en">Table must have a primary key to be used with Data API Builder</source>
+        <target state="translated">資料表必須有主索引鍵，以用於資料 API 建立器</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
         <source xml:lang="en">Table must include at least one column.</source>
@@ -7873,13 +7941,17 @@ Query: {2}</source>
         <source xml:lang="en">Terms &amp; Conditions</source>
         <target state="translated">條款及條件</target>
       </trans-unit>
-      <trans-unit id="++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9">
-        <source xml:lang="en">Test Connection</source>
-        <target state="translated">測試連線</target>
+      <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
+        <source xml:lang="en">Test connection</source>
+        <target state="new">Test connection</target>
       </trans-unit>
       <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">正在測試連線設定檔...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6c02a28421f8ad91e91756cb731bb47993bf529101135966b80128548a16d5b1">
+        <source xml:lang="en">Testing...</source>
+        <target state="new">Testing...</target>
       </trans-unit>
       <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
         <source xml:lang="en">Text</source>
@@ -7892,6 +7964,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">文字索引標籤 - 顯示 SQL 文字資料</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
+        <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
+        <target state="translated">Query Profiler 現在支援 Microsoft Fabric 連線中的 SQL 資料庫，具有新的 Azure SQL Database 範本，包括適用於輕量型 T-SQL 分析的 {code-snippet-0}。</target>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
@@ -8050,9 +8126,10 @@ Query: {2}</source>
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
         <target state="translated">此值未在 Azure Data Studio 設定檔中提供。</target>
       </trans-unit>
-      <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
-        <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
-        <target state="translated">這將使用 Docker 在本機部署資料 API 建立器容器。容器會根據您的設定提供 REST 與 GraphQL API。</target>
+      <trans-unit id="++CODE++9140e5e357804946d2f6bec667449fd4ab6fd6060174b5cf3c36e1ccb3ff9b01">
+        <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
+        <note>{0} is a list of API types, e.g. 'REST and GraphQL'</note>
+        <target state="translated">這將使用 Docker 在本機部署資料 API 建立器容器。容器會根據您的設定公開 {0} API。</target>
       </trans-unit>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
@@ -8061,6 +8138,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">時間戳記</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f0579d320976e14e7280ec17e960103c91dc619a776e8469b47aeab90278fad">
+        <source xml:lang="en">To</source>
+        <note>Label for the end IP address in the firewall rule IP range</note>
+        <target state="translated">到</target>
       </trans-unit>
       <trans-unit id="++CODE++94843fe76f0c666e2bce801eb3dbfa672cd6517a14f968c8e41669c580b60cb3">
         <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
@@ -8257,6 +8339,10 @@ Query: {2}</source>
         <note>{0} is the authentication type</note>
         <target state="translated">連接字串中不支援的認證類型: {0}。僅支援 SQL 登入、整合式認證及 Azure 多重驗證。</target>
       </trans-unit>
+      <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
+        <source xml:lang="en">Unsupported data types detected</source>
+        <target state="translated">偵測到不支援的資料類型</target>
+      </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
         <note>{0} is the platform name of the machine</note>
@@ -8293,6 +8379,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++db3264529da0968f55cf4d37e71f355fcda342a20fe7cbb114d534807215f634">
         <source xml:lang="en">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</source>
         <target state="translated">格式使用: YYYY-MM-DD HH:mm:ss[.SSS]</target>
+      </trans-unit>
+      <trans-unit id="++CODE++50564b2fb586a6f8ee172cd303c720768a52904367132b2cafb6d7a4eb9de5dd">
+        <source xml:lang="en">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.</source>
+        <target state="translated">使用自然語言直接在視覺化結構描述設計工具內設計資料庫結構描述。從頭開始建立結構描述、發展現有設計、透過差異檢視來檢閱變更，以及匯出外部成品，這一切都會即時反映在視覺化圖表和 T-SQL 指令碼中。</target>
       </trans-unit>
       <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
         <source xml:lang="en">Use the default server setting</source>
@@ -8412,7 +8502,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1">
         <source xml:lang="en">View Swagger</source>
-        <target state="new">View Swagger</target>
+        <target state="translated">檢視 Swagger</target>
+      </trans-unit>
+      <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
+        <source xml:lang="en">View Table Diagram</source>
+        <target state="new">View Table Diagram</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
@@ -8426,9 +8520,9 @@ Query: {2}</source>
         <source xml:lang="en">View settings</source>
         <target state="translated">檢視設定</target>
       </trans-unit>
-      <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
-        <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
-        <target state="translated">在互動式網格中檢視、編輯、新增及刪除表格資料列，並進行即時驗證及即時 DML 指令碼預覽。</target>
+      <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
+        <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
+        <target state="translated">在互動式網格中檢視、新增、編輯及刪除表格資料列，並進行即時驗證及即時 DML 指令碼預覽。</target>
       </trans-unit>
       <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
         <source xml:lang="en">View:</source>
@@ -8442,9 +8536,9 @@ Query: {2}</source>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">必須重新啟動 Visual Studio Code，此設定才會生效。請重新載入 Visual Studio Code。</target>
       </trans-unit>
-      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
-        <source xml:lang="en">Visualize and Design Schema</source>
-        <target state="new">Visualize and Design Schema</target>
+      <trans-unit id="++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c">
+        <source xml:lang="en">Visualize and Design Schema (Preview)</source>
+        <target state="translated">視覺化與設計結構描述 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -8454,7 +8548,7 @@ Query: {2}</source>
         <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
         <note>{0} is the number of rows actually returned
 {1} is the total number of rows expected</note>
-        <target state="new">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</target>
+        <target state="translated">警告: 結果集不完整。正在顯示 {0} 個資料列 (共 {1} 個)。無法載入完整結果集。</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -8475,6 +8569,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
         <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
         <target state="translated">無法使用目前的連線資訊進行連接。您想要重試連線或編輯連線設定檔？</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15e1287518c34c5331e35214b9b9874f3e180cd06304170418dcf8e18009f67d">
+        <source xml:lang="en">We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.</source>
+        <target state="translated">我們很高興您喜歡適用於 VS Code 的 MSSQL! 請考慮在 VS Code Marketplace 上快速檢閱。</target>
       </trans-unit>
       <trans-unit id="++CODE++54d8eabdb1e806a10a7f7185c095b13404226eb5ffa574a62914d06a8e2beee0">
         <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
@@ -8513,6 +8611,14 @@ Query: {2}</source>
       <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
         <source xml:lang="en">Workspace is required</source>
         <target state="translated">需要工作區</target>
+      </trans-unit>
+      <trans-unit id="++CODE++136286bc5a894ca127a857f65556676fa503d02c806d035053fe50a4d5678214">
+        <source xml:lang="en">Write a review</source>
+        <target state="translated">撰寫評論</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8aa105b901acedb4a843195d9a4f4453b834578064202c08417dd4f405a9a791">
+        <source xml:lang="en">Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.</source>
+        <target state="translated">在原生 Visual Studio Code Jupyter 筆記本中撰寫及執行 SQL 查詢，並包含互動式結果、排序、篩選和 Markdown 文件。</target>
       </trans-unit>
       <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
         <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
@@ -8718,11 +8824,6 @@ Query: {2}</source>
         <source xml:lang="en">{0} (Current Account)</source>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (目前的帳戶)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the table name</note>
-        <target state="translated">{0} (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
@@ -9050,11 +9151,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database (Preview)...</source>
-        <target state="new">Backup Database (Preview)...</target>
+        <target state="translated">備份資料庫 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
-        <target state="new">Build Data API (Preview)...</target>
+        <target state="translated">建置資料 API (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
@@ -9118,7 +9219,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Compare Schemas...</source>
-        <target state="new">Compare Schemas...</target>
+        <target state="translated">比較結構描述...</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
@@ -9158,7 +9259,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.copyConnectionString">
         <source xml:lang="en">Copy Connection String</source>
-        <target state="new">Copy Connection String</target>
+        <target state="translated">複製連線字串</target>
       </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
@@ -9169,8 +9270,8 @@ Query: {2}</source>
         <target state="translated">使用 SQL 繫結建立 Azure 函數</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook</source>
-        <target state="translated">建立 SQL 筆記本</target>
+        <source xml:lang="en">Create SQL Notebook (Preview)</source>
+        <target state="translated">建立 SQL 筆記本 (預覽)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
@@ -9184,7 +9285,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
         <source xml:lang="en">DACPAC/BACPAC Operations...</source>
-        <target state="new">DACPAC/BACPAC Operations...</target>
+        <target state="translated">DACPAC/BACPAC 作業...</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -9200,7 +9301,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.deleteContainer">
         <source xml:lang="en">Delete SQL Container</source>
-        <target state="new">Delete SQL Container</target>
+        <target state="translated">刪除 SQL 容器</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
@@ -9240,7 +9341,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)...</source>
-        <target state="new">Drop Database (Preview)...</target>
+        <target state="translated">刪除資料庫 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9252,11 +9353,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection...</source>
-        <target state="new">Edit Connection...</target>
+        <target state="translated">編輯連線...</target>
       </trans-unit>
       <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">Edit Table Data (Preview)...</source>
-        <target state="new">Edit Table Data (Preview)...</target>
+        <source xml:lang="en">Edit Table Data...</source>
+        <target state="translated">編輯表格資料...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -9366,10 +9467,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">在 MSSQL 延伸模組中啟用實驗性功能。功能尚未就緒，可能會發生錯誤或問題。變更此設定後重新啟動 Visual Studio Code。</target>
       </trans-unit>
-      <trans-unit id="mssql.enableSqlAuthenticationProvider">
-        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
-        <target state="translated">當使用者選取 'AzureMFA' 驗證，則會針對 [Microsoft Entra ID 互動] 驗證模式啟用使用 SQL 驗證提供者。這會在擷取存取權杖時啟用伺服器端資源端點整合。此選項僅支援 'MSAL' 驗證程式庫。請在變更此選項後重新啟動 Visual Studio Code。</target>
-      </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
         <target state="translated">預估計劃</target>
@@ -9408,7 +9505,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">Generate Script</source>
-        <target state="new">Generate Script</target>
+        <target state="translated">產生指令碼</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
@@ -9424,11 +9521,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
         <source xml:lang="en">Import Data (Preview)...</source>
-        <target state="new">Import Data (Preview)...</target>
+        <target state="translated">匯入資料 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler (Preview)...</source>
-        <target state="new">Launch Query Profiler (Preview)...</target>
+        <target state="translated">啟動 Query Profiler (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9480,11 +9577,11 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Modify Table Structure...</source>
-        <target state="new">Modify Table Structure...</target>
+        <target state="translated">修改資料表結構...</target>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
         <source xml:lang="en">New Database (Preview)...</source>
-        <target state="new">New Database (Preview)...</target>
+        <target state="translated">新資料庫 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9550,11 +9647,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in GitHub Copilot Agent</source>
-        <target state="new">Open in GitHub Copilot Agent</target>
+        <target state="translated">在 GitHub Copilot Agent 中開啟</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
-        <target state="new">Open in GitHub Copilot Chat</target>
+        <target state="translated">在 GitHub Copilot Chat 中開啟</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -9594,7 +9691,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.removeObjectExplorerNode">
         <source xml:lang="en">Remove Connection</source>
-        <target state="new">Remove Connection</target>
+        <target state="translated">移除連線</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
@@ -9602,7 +9699,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
         <source xml:lang="en">Rename Database (Preview)...</source>
-        <target state="new">Rename Database (Preview)...</target>
+        <target state="translated">重新命名資料庫 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
@@ -9610,7 +9707,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
         <source xml:lang="en">Restore Database (Preview)...</source>
-        <target state="new">Restore Database (Preview)...</target>
+        <target state="translated">還原資料庫 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -9657,8 +9754,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">執行指令碼</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects...</source>
-        <target state="new">Search Database Objects...</target>
+        <source xml:lang="en">Search Database Objects (Preview)...</source>
+        <target state="translated">搜尋資料庫物件 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -9797,12 +9894,12 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">開始查詢記錄擷取</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="new">Start SQLContainer</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">啟動 SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>
-        <target state="new">Stop SQL Container</target>
+        <target state="translated">停止 SQL 容器</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -9864,6 +9961,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Toggle Actual Plan</source>
         <target state="translated">切換實際計劃</target>
       </trans-unit>
+      <trans-unit id="mssql.toggleQueryResultPanel">
+        <source xml:lang="en">Toggle Query Result Panel Visibility</source>
+        <target state="translated">切換查詢結果面板可見度</target>
+      </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
         <target state="translated">切換 SQLCMD 模式</target>
@@ -9899,8 +10000,8 @@ See the estimated plan without running the query, or view the actual query plan 
         <target state="translated">將查詢計劃視覺化</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Visualize and Design Schema...</source>
-        <target state="new">Visualize and Design Schema...</target>
+        <source xml:lang="en">Visualize and Design Schema (Preview)...</source>
+        <target state="translated">視覺化與設計結構描述 (預覽)...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
