@@ -70,7 +70,7 @@ suite("QueryResult Utils Tests", () => {
     });
 
     suite("getGridSettings constants", () => {
-        test("alternatingRowColors config key has correct mssql-prefixed path", () => {
+        test("alternatingRowColors config key has correct section-relative path", () => {
             expect(Constants.configResultsGridAlternatingRowColors).to.equal(
                 "resultsGrid.alternatingRowColors",
             );
