@@ -9249,6 +9249,10 @@ Query: {2}</source>
         <source xml:lang="en">Connections</source>
         <target state="translated">连接</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines">
+        <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
+        <target state="new">Control which grid lines are visible in the results grid.</target>
+      </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">控制允许在内存中进行筛选和排序的最大行数。如果超过最大行数，则将禁用排序和筛选。警告: 增加此值可能会影响性能。</target>
@@ -9451,6 +9455,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">启用 SET XACT_ABORT ON 选项</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.alternatingRowColors">
+        <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
+        <target state="new">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</target>
+      </trans-unit>
       <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">当表超过 10 列时，在架构设计器表节点中启用“展开/折叠”按钮</target>
@@ -9487,6 +9495,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Export BACPAC</source>
         <target state="translated">导出 BACPAC</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.rowPadding">
+        <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
+        <target state="new">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</target>
+      </trans-unit>
       <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
         <target state="translated">提取 DACPAC</target>
@@ -9514,6 +9526,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">入门指南</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.none">
+        <source xml:lang="en">Hide all grid lines</source>
+        <target state="new">Hide all grid lines</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
@@ -9833,9 +9849,21 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">select 语句中的对象引用是否应分为不同行?例如，在“SELECT C1, C2 FROM T1”中，C1 和 C2 将位于不同行</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.both">
+        <source xml:lang="en">Show both horizontal and vertical grid lines</source>
+        <target state="new">Show both horizontal and vertical grid lines</target>
+      </trans-unit>
       <trans-unit id="mssql.showChangelogOnUpdate">
         <source xml:lang="en">Show changelog after extension updates</source>
         <target state="translated">在扩展更新后显示更改日志</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
+        <source xml:lang="en">Show only horizontal grid lines</source>
+        <target state="new">Show only horizontal grid lines</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
+        <source xml:lang="en">Show only vertical grid lines</source>
+        <target state="new">Show only vertical grid lines</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
