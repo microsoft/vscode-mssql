@@ -12,7 +12,7 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
-const headerIconSizePx = 24;
+const headerIconSizePx = 32;
 
 const contentWidthPresets = {
     medium: "720px",
@@ -58,13 +58,15 @@ const useStyles = makeStyles({
         padding: "16px 0 32px",
         boxSizing: "border-box",
     },
+    headerOuter: {
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        paddingBottom: "16px",
+    },
     header: {
         display: "grid",
         gridTemplateColumns: "auto 1fr",
         gap: "16px",
         alignItems: "center",
-        paddingBottom: "16px",
-        borderBottom: "1px solid var(--vscode-editorGroup-border)",
     },
     iconContainer: {
         width: `${headerIconSizePx}px`,
@@ -115,7 +117,7 @@ const useStyles = makeStyles({
         flexShrink: 0,
         borderTop: "1px solid var(--vscode-editorGroup-border)",
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
-        padding: "12px 0",
+        padding: "12px 16px",
     },
     footerInner: {
         width: "100%",
@@ -188,18 +190,20 @@ export const DialogPageShell = ({
             <div className={styles.scrollRegion}>
                 <div className={styles.container}>
                     {(icon || title || subtitle) && (
-                        <div
-                            className={styles.header}
-                            style={{
-                                ...contentWidthStyle,
-                                gridTemplateColumns: hasHeaderIcon ? "auto 1fr" : "1fr",
-                            }}>
-                            {hasHeaderIcon && (
-                                <div className={styles.iconContainer}>{headerIcon}</div>
-                            )}
-                            <div className={styles.headerText}>
-                                {title && <div className={styles.title}>{title}</div>}
-                                {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+                        <div className={styles.headerOuter}>
+                            <div
+                                className={styles.header}
+                                style={{
+                                    ...contentWidthStyle,
+                                    gridTemplateColumns: hasHeaderIcon ? "auto 1fr" : "1fr",
+                                }}>
+                                {hasHeaderIcon && (
+                                    <div className={styles.iconContainer}>{headerIcon}</div>
+                                )}
+                                <div className={styles.headerText}>
+                                    {title && <div className={styles.title}>{title}</div>}
+                                    {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+                                </div>
                             </div>
                         </div>
                     )}

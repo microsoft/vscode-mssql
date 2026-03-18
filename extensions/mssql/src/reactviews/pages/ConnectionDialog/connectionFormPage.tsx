@@ -3,28 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
-import { Button } from "@fluentui/react-components";
+import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormField } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import { ConnectButton } from "./components/connectButton.component";
-import { locConstants } from "../../common/locConstants";
-import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 
 export const ConnectionFormPage = () => {
     const context = useContext(ConnectionDialogContext);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     const formState = useConnectionDialogSelector((s) => s.formState);
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-    const formStyles = useFormStyles();
 
     if (context === undefined) {
         return undefined;
@@ -54,22 +48,6 @@ export const ConnectionFormPage = () => {
                     />
                 );
             })}
-            <AdvancedOptionsDrawer
-                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-            />
-            <div className={formStyles.formNavTray}>
-                <Button
-                    onClick={(_event) => {
-                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                    }}
-                    className={formStyles.formNavTrayButton}>
-                    {locConstants.connectionDialog.advancedSettings}
-                </Button>
-                <div className={formStyles.formNavTrayRight}>
-                    <ConnectButton className={formStyles.formNavTrayButton} />
-                </div>
-            </div>
         </div>
     );
 };

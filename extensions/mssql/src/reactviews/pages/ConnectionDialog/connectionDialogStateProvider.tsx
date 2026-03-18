@@ -56,6 +56,15 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
             connect: function (): void {
                 extensionRpc.action("connect");
             },
+            testConnection: function (): void {
+                extensionRpc.action("testConnection");
+            },
+            saveWithoutConnecting: function (): void {
+                extensionRpc.action("saveWithoutConnecting");
+            },
+            retryLastSubmitAction: function (): void {
+                extensionRpc.action("retryLastSubmitAction");
+            },
             loadAzureServers: function (subscriptionId: string): void {
                 extensionRpc.action("loadAzureServers", {
                     subscriptionId: subscriptionId,
