@@ -453,7 +453,7 @@ suite("QueryHistoryProvider persistence", () => {
         });
     });
 
-    test("caps persisted node count and query length", async () => {
+    test("uses configured query history limit without truncating query length", async () => {
         provider = createProvider();
         await waitForPersistedStorageWork();
 
@@ -477,8 +477,8 @@ suite("QueryHistoryProvider persistence", () => {
         await queryHistoryProvider.persistQueryHistory();
 
         const payload = await getPersistedHistoryPayload();
-        expect(payload.nodes).to.have.lengthOf(250);
-        expect(payload.nodes[0].queryString.length).to.equal(20000);
+        expect(payload.nodes).to.have.lengthOf(10);
+        expect(payload.nodes[0].queryString).to.equal(longQuery);
     });
 
     test("clears persisted file when no history nodes remain", async () => {

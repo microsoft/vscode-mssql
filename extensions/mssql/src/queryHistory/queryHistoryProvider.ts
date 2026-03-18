@@ -44,14 +44,6 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
      * Version number for the persisted query history. Increment this if there are breaking changes to the persisted format to ensure old formats are not loaded.
      */
     private static readonly _queryHistoryStorageVersion = 1;
-    /**
-     * Maximum length of a query string to persist. This is to prevent extremely long queries from taking up too much storage space. This limit does not affect the queries that are stored in memory and shown in the UI, only the ones that are persisted and restored.
-     */
-    private static readonly _maxPersistedQueryLength = 20000;
-    /**
-     * Maximum number of query history entries to persist. This is to prevent the persisted query history from taking up too much storage space. This limit does not affect the number of queries that are stored in memory and shown in the UI, only the ones that are persisted and restored.
-     */
-    private static readonly _maxPersistedNodes = 250;
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -348,10 +340,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
             return undefined;
         }
 
-        const safeQuery = node.queryString.slice(0, QueryHistoryProvider._maxPersistedQueryLength);
-        const label = this.createPersistedHistoryNodeLabel(safeQuery, node.connectionLabel);
+        const label = this.createPersistedHistoryNodeLabel(node.queryString, node.connectionLabel);
         const tooltip = this.createPersistedHistoryNodeTooltip(
-            safeQuery,
+            node.queryString,
             node.connectionLabel,
             restoredTimestamp.toLocaleString(),
         );
@@ -359,7 +350,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
         return new QueryHistoryNode(
             label,
             tooltip,
-            safeQuery,
+            node.queryString,
             node.ownerUri ?? "",
             node.credentials,
             restoredTimestamp,
@@ -378,14 +369,10 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
             return;
         }
 
-        const boundedNodes = historyNodes.slice(0, QueryHistoryProvider._maxPersistedNodes);
         const payload: PersistedQueryHistory = {
             version: QueryHistoryProvider._queryHistoryStorageVersion,
-            nodes: boundedNodes.map((node) => ({
-                queryString: node.queryString.slice(
-                    0,
-                    QueryHistoryProvider._maxPersistedQueryLength,
-                ),
+            nodes: historyNodes.slice(0, this._queryHistoryLimit).map((node) => ({
+                queryString: node.queryString,
                 ownerUri: node.ownerUri,
                 credentials: this.sanitizeCredentialsForPersistence(node.credentials),
                 timeStamp: node.timeStamp.getTime(),
