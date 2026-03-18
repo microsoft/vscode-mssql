@@ -269,7 +269,9 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
                         />
                     </Toolbar>
                 </div>
-                <div className={classes.tabContent}>{activeTabDefinition?.content}</div>
+                <div className={classes.tabContent} key={selectedTab}>
+                    {activeTabDefinition?.content}
+                </div>
             </div>
         </Panel>
     );
