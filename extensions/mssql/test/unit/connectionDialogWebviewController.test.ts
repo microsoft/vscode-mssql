@@ -323,6 +323,19 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
         });
+
+        test("should show optional user and hide password fields for ActiveDirectoryDefault", async () => {
+            controller.state.connectionProfile.authenticationType =
+                AuthenticationType.ActiveDirectoryDefault;
+
+            await controller.updateItemVisibility();
+
+            expect(controller.state.formComponents.user.hidden).to.not.be.true;
+            expect(controller.state.formComponents.password.hidden).to.be.true;
+            expect(controller.state.formComponents.savePassword.hidden).to.be.true;
+            expect(controller.state.formComponents.accountId.hidden).to.be.true;
+            expect(controller.state.formComponents.tenantId.hidden).to.be.true;
+        });
     });
 
     suite("Reducers", () => {
@@ -841,6 +854,25 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.connectionProfile.database).to.equal("myDB");
                 expect(controller.state.connectionProfile.authenticationType).to.equal(
                     AuthenticationType.AzureMFA,
+                );
+                expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
+            });
+
+            test("should load connection details from connection string with ActiveDirectoryDefault", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        authenticationType: AuthenticationType.ActiveDirectoryDefault,
+                    },
+                } as ConnectionDetails;
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile.server).to.equal("myServer");
+                expect(controller.state.connectionProfile.database).to.equal("myDB");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.ActiveDirectoryDefault,
                 );
                 expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
             });

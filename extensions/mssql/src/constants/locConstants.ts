@@ -176,6 +176,7 @@ export let authTypeName = l10n.t("authenticationType");
 export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
+export let authTypeAzureActiveDirectoryDefault = l10n.t("Microsoft Entra Id - Default");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
@@ -884,7 +885,7 @@ export class ConnectionDialog {
     public static unsupportedAuthType(authenticationType: string) {
         return l10n.t({
             message:
-                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, Azure MFA, and Active Directory Default authentication are supported.",
             args: [authenticationType],
             comment: ["{0} is the authentication type"],
         });
