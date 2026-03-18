@@ -211,7 +211,7 @@ export class Project implements ISqlProject {
      * Third case: a real GUID is already present — this method is never called in that case.
      */
     public static async checkPromptProjectGuidStatus(project: Project): Promise<void> {
-        const result = await vscode.window.showInformationMessage(
+        const result = await window.showInformationMessage(
             constants.missingProjectGuid(project.projectFileName),
             constants.addProjectGuidLabel,
             constants.noString,
@@ -673,7 +673,7 @@ export class Project implements ISqlProject {
     public async ensureValidProjectGuid(): Promise<void> {
         const guid = `{${randomUUID().toUpperCase()}}`;
         const result = await this.sqlProjService.setProjectProperties(this.projectFilePath, {
-            ProjectGuid: guid,
+            [constants.ProjectGuid]: guid,
         });
         utils.throwIfFailed(result);
         this._projectGuid = guid;

@@ -1671,9 +1671,19 @@ suite("Project: publish profiles", function (): void {
 });
 
 suite("Project: properties", function (): void {
+    let sandbox: sinon.SinonSandbox;
+
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
         await templates.loadTemplates(testUtils.getTemplatesRootPath());
+    });
+
+    setup(function (): void {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(function (): void {
+        sandbox.restore();
     });
 
     suiteTeardown(async function (): Promise<void> {
@@ -1843,7 +1853,7 @@ suite("Project: properties", function (): void {
         // Simulate a missing or all-zeros GUID, which is what DacFx returns when <ProjectGuid> is absent
         Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
-        const stub = sinon.stub(window, "showInformationMessage") as sinon.SinonStub;
+        const stub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
         stub.resolves(constants.noString);
 
         await Project.checkPromptProjectGuidStatus(project);
@@ -1853,24 +1863,24 @@ suite("Project: properties", function (): void {
             stub.calledWith(constants.missingProjectGuid(project.projectFileName)),
             `showInformationMessage not called with expected message. Actual: "${stub.firstCall.args[0]}"`,
         ).to.be.true;
-
-        sinon.restore();
     });
 
     test("Should add a valid ProjectGuid to project when user accepts prompt", async function (): Promise<void> {
         const project = await testUtils.createTestSqlProject(this.test);
         Object.assign(project, { _projectGuid: undefined });
 
-        // Stub setProjectProperties directly on the existing service instance so
-        // prototype methods remain intact and sinon.restore() cleans up properly.
-        const setProjectPropertiesStub = sinon
-            .stub(
-                (project as unknown as { sqlProjService: Record<string, unknown> }).sqlProjService,
-                "setProjectProperties",
-            )
+        // In the test environment the mssql extension API returns a proxy/object that may not
+        // expose setProjectProperties as an own or prototype property, which prevents sinon from
+        // stubbing it. Assign a no-op placeholder first so sinon can replace it with a proper stub.
+        type ServiceHost = { sqlProjService: Record<string, unknown> };
+        const svc = (project as unknown as ServiceHost).sqlProjService;
+        svc["setProjectProperties"] = async () => ({ success: true });
+
+        const setProjectPropertiesStub = sandbox
+            .stub(svc, "setProjectProperties")
             .resolves({ success: true });
 
-        (sinon.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
             constants.addProjectGuidLabel,
         );
 
@@ -1896,15 +1906,13 @@ suite("Project: properties", function (): void {
             }),
             `setProjectProperties not called with expected args. Actual: ${JSON.stringify(setProjectPropertiesStub.firstCall?.args)}`,
         ).to.be.true;
-
-        sinon.restore();
     });
 
     test("Should not add ProjectGuid when user rejects prompt", async function (): Promise<void> {
         const project = await testUtils.createTestSqlProject(this.test);
         Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
-        (sinon.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
             constants.noString,
         );
 
@@ -1914,8 +1922,6 @@ suite("Project: properties", function (): void {
             project.projectGuid,
             "projectGuid should remain unchanged when user rejects the prompt",
         ).to.equal(constants.nullProjectGuid);
-
-        sinon.restore();
     });
 });
 
