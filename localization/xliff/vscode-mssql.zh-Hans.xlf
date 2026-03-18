@@ -261,7 +261,7 @@
       </trans-unit>
       <trans-unit id="++CODE++119f58d6a58b3f47f5c837a12f2f47a5201453288fc7ec0267e5886c2deba6e9">
         <source xml:lang="en">Add my subnet IP range</source>
-        <target state="new">Add my subnet IP range</target>
+        <target state="translated">添加我的子网 IP 范围</target>
       </trans-unit>
       <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
         <source xml:lang="en">Add new column</source>
@@ -2216,7 +2216,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
         <source xml:lang="en">Data-tier Application</source>
-        <target state="new">Data-tier Application</target>
+        <target state="translated">数据层应用程序</target>
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -2305,7 +2305,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
         <source xml:lang="en">Definition</source>
-        <target state="new">Definition</target>
+        <target state="translated">定义</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
@@ -5995,7 +5995,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
         <source xml:lang="en">Preview</source>
-        <target state="new">Preview</target>
+        <target state="translated">预览</target>
       </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
@@ -6726,7 +6726,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
         <source xml:lang="en">SQL database in Fabric</source>
-        <target state="new">SQL database in Fabric</target>
+        <target state="translated">Fabric 中的 SQL 数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
