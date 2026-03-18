@@ -9894,8 +9894,8 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
         <target state="translated">Iniciar a Captura de Histórico de Consultas</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="translated">Iniciar SQLContainer</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">Iniciar SQL Container</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

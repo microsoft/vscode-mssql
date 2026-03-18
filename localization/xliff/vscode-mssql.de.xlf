@@ -9894,8 +9894,8 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <target state="translated">Abfrageverlauf-Capture starten</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
-        <target state="translated">SQLContainer starten</target>
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">SQL Container starten</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

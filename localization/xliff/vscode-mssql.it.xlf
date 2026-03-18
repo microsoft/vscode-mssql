@@ -9894,7 +9894,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Avvia acquisizione cronologia delle query</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start SQLContainer</source>
+        <source xml:lang="en">Start SQL Container</source>
         <target state="translated">Avvia contenitore SQL</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
