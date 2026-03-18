@@ -166,7 +166,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("importData", async (state, _payload) => {
-            if (state.importDataStatus !== ApiStatus.NotStarted) return;
+            if (state.importDataStatus !== ApiStatus.NotStarted) return state;
 
             state.importDataStatus = ApiStatus.Loading;
             this.updateState();
@@ -306,7 +306,6 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 operationId: this.operationId,
             });
             this.panel.dispose();
-            this.dispose();
             return state;
         });
     }
