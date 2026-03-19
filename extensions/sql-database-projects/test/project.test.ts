@@ -1930,14 +1930,21 @@ suite("Project: properties", function (): void {
         Object.assign(project1, { _projectGuid: constants.nullProjectGuid });
         Object.assign(project2, { _projectGuid: undefined });
 
-        // Stub setProjectProperties on both service instances
+        // Stub setProjectProperties on both service instances.
+        // In the test environment both projects may share the same sqlProjService
+        // proxy, so guard against double-wrapping the same method.
         type ServiceHost = { sqlProjService: Record<string, unknown> };
         const svc1 = (project1 as unknown as ServiceHost).sqlProjService;
         const svc2 = (project2 as unknown as ServiceHost).sqlProjService;
+        const sharedService = svc1 === svc2;
         svc1["setProjectProperties"] = async () => ({ success: true });
-        svc2["setProjectProperties"] = async () => ({ success: true });
+        if (!sharedService) {
+            svc2["setProjectProperties"] = async () => ({ success: true });
+        }
         const stub1 = sandbox.stub(svc1, "setProjectProperties").resolves({ success: true });
-        const stub2 = sandbox.stub(svc2, "setProjectProperties").resolves({ success: true });
+        const stub2 = sharedService
+            ? stub1
+            : sandbox.stub(svc2, "setProjectProperties").resolves({ success: true });
 
         const showInfoStub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
         showInfoStub.resolves(constants.addProjectGuidLabel);
@@ -1964,10 +1971,18 @@ suite("Project: properties", function (): void {
         expect(project2.projectGuid, "project2 should have a valid GUID").to.match(
             /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
         );
-        expect(stub1.calledOnce, "setProjectProperties should be called once for project1").to.be
-            .true;
-        expect(stub2.calledOnce, "setProjectProperties should be called once for project2").to.be
-            .true;
+        if (sharedService) {
+            // Both projects use the same service instance; the stub is called twice in total.
+            expect(
+                stub1.calledTwice,
+                "setProjectProperties should be called twice (once per project via shared service)",
+            ).to.be.true;
+        } else {
+            expect(stub1.calledOnce, "setProjectProperties should be called once for project1").to
+                .be.true;
+            expect(stub2.calledOnce, "setProjectProperties should be called once for project2").to
+                .be.true;
+        }
     });
 });
 
