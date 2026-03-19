@@ -1328,6 +1328,34 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            // Validate input before tearing down the session
+            if (!payload.queryString || !payload.queryString.trim()) {
+                this.logger.info("Empty query string provided, skipping custom query");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                });
+                return state;
+            }
+
+            if (!state.ownerUri) {
+                this.logger.error(
+                    "Cannot run custom query without an active session (missing ownerUri)",
+                );
+                endActivity.endFailed(
+                    new Error("No active session"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+                return state;
+            }
+
             // Check for pending changes and warn the user
             const hasPendingChanges =
                 state.newRows.length > 0 ||

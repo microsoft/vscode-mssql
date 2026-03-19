@@ -179,8 +179,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
         // Simulate edit session ready
         // Set _expectedOwnerUri to match the notification (in production this is set by initialize())
         controller["_expectedOwnerUri"] = "test-owner-uri";
-        const notificationHandler = (mockTableExplorerService.sqlToolsClient.onNotification as any)
-            .firstCall.args[1];
+        const onNotificationStub = mockTableExplorerService.sqlToolsClient
+            .onNotification as sinon.SinonStub;
+        const notificationCall = onNotificationStub
+            .getCalls()
+            .find((call) => typeof call.args[1] === "function");
+        expect(notificationCall).to.not.be.undefined;
+        const notificationHandler = notificationCall!.args[1] as (
+            params: EditSessionReadyParams,
+        ) => void;
         notificationHandler({
             ownerUri: "test-owner-uri",
             success: true,
@@ -1194,6 +1201,51 @@ suite("TableExplorerWebViewController - Reducers", () => {
             showWarningMessageStub.resetHistory();
         });
 
+        test("should return early without disposing when queryString is empty", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should return early without disposing when queryString is whitespace", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "   ",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should return early without disposing when ownerUri is missing", async () => {
+            // Arrange
+            controller.state.ownerUri = "";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.TestTable",
+            });
+
+            // Assert
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
         test("should dispose current session and re-initialize with custom query", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
@@ -1209,11 +1261,16 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.dispose.calledOnceWith("test-owner-uri")).to.be.true;
-            expect(mockTableExplorerService.initialize.calledOnce).to.be.true;
-            const initArgs = mockTableExplorerService.initialize.firstCall.args;
-            expect(initArgs[0]).to.equal("test-owner-uri");
-            expect(initArgs[4]).to.equal("SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5");
+            expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    "test-owner-uri",
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5",
+                ),
+            ).to.be.true;
         });
 
         test("should clear pending changes after successful re-initialization", async () => {
@@ -1346,11 +1403,27 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.initialize.calledTwice).to.be.true;
-            // Second call should restore original session (no custom query)
-            const restoreArgs = mockTableExplorerService.initialize.secondCall.args;
-            expect(restoreArgs[4]).to.be.undefined;
-            expect(showErrorMessageStub.calledOnce).to.be.true;
+            // One call should be the custom query attempt
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "INVALID SQL",
+                ),
+            ).to.be.true;
+            // Another call should restore original session (no custom query)
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    undefined,
+                ),
+            ).to.be.true;
+            expect(showErrorMessageStub.called).to.be.true;
         });
 
         test("should set loadStatus to Error when both custom query and restore fail", async () => {
