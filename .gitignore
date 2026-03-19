@@ -55,4 +55,4 @@ src/constants/localizedConstants.ts
 .nyc_output
 *.tsbuildinfo
 samples/connection-sharing-sample/dist
-.claude
+.claude/
