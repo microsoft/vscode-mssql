@@ -45,6 +45,7 @@ export interface WizardPageDefinition {
     onNext?: (context: WizardPageRenderContext) => void | boolean | Promise<void | boolean>;
     onPrevious?: (context: WizardPageRenderContext) => void | boolean | Promise<void | boolean>;
     onEnter?: (context: WizardPageRenderContext) => void | Promise<void>;
+    showCancel?: boolean | ((context: WizardPageRenderContext) => boolean);
     extraFooterActions?: ReactNode | ((context: WizardPageRenderContext) => ReactNode);
 }
 
@@ -153,6 +154,11 @@ export const Wizard = ({
         void currentPage.onEnter?.(pageContext);
     }, [currentPage]);
 
+    const showCancel =
+        typeof currentPage.showCancel === "function"
+            ? currentPage.showCancel(pageContext)
+            : (currentPage.showCancel ?? true);
+
     const extraFooterActions =
         typeof currentPage.extraFooterActions === "function"
             ? currentPage.extraFooterActions(pageContext)
@@ -189,9 +195,11 @@ export const Wizard = ({
                             {currentIndex < totalPages - 1 && <ArrowRight20Regular />}
                         </span>
                     </Button>
-                    <Button appearance="secondary" onClick={onCancel}>
-                        {locConstants.common.cancel}
-                    </Button>
+                    {showCancel && (
+                        <Button appearance="secondary" onClick={onCancel}>
+                            {locConstants.common.cancel}
+                        </Button>
+                    )}
                 </div>
             }>
             {currentPage.render(pageContext)}

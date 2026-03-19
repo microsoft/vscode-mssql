@@ -111,6 +111,7 @@ export const FlatFileWizard = () => {
                 nextLabel: locConstants.common.finish,
                 isPageValid: importDataStatus === ApiStatus.Loaded,
                 canGoBack: importDataStatus !== ApiStatus.Loaded,
+                showCancel: importDataStatus !== ApiStatus.Loaded,
                 onNext: async () => {
                     context.dispose();
                     return false;
