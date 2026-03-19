@@ -958,6 +958,9 @@
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
+    <trans-unit id="++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de">
+      <source xml:lang="en">{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?&#10;&#10;Projects:&#10;{1}</source>
+    </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
     <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
