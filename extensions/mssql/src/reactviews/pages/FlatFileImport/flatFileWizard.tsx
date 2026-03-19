@@ -122,12 +122,13 @@ export const FlatFileWizard = () => {
                         context.resetState(FlatFileStepType.ImportData);
                     }
                 },
-                extraFooterActions: (
+                extraFooterActions: (pageContext) => (
                     <Button
                         appearance="secondary"
                         onClick={() => {
                             setColumnChanges([]);
                             context.resetState(FlatFileStepType.Form);
+                            pageContext.goToPage(FlatFileStepType.Form);
                         }}>
                         {locConstants.flatFileImport.importNewFile}
                     </Button>
