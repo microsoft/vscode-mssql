@@ -13,7 +13,7 @@ import ServerProvider from "../../src/languageservice/server";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
 import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
-import { DownloadType, IConfigUtils, IStatusView } from "../../src/languageservice/interfaces";
+import { IConfigUtils, IStatusView } from "../../src/languageservice/interfaces";
 
 chai.use(sinonChai);
 
@@ -45,8 +45,6 @@ suite("Server tests", () => {
             }
             return true;
         });
-        downloadProvider.type.returns(DownloadType.SqlToolsService);
-
         return new ServerProvider(downloadProvider, configUtils, statusView);
     }
 
