@@ -15,6 +15,7 @@ import {
     MenuList,
     MenuPopover,
     MenuTrigger,
+    SplitButton,
 } from "@fluentui/react-components";
 import {
     SaveRegular,
@@ -125,9 +126,18 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
             </ToolbarButton>
             <Menu>
                 <MenuTrigger disableButtonEnhancement>
-                    <ToolbarButton icon={<CodeRegular />} disabled={isLoading}>
-                        {loc.tableExplorer.showSqlPane}
-                    </ToolbarButton>
+                    <SplitButton
+                        icon={<CodeRegular />}
+                        disabled={isLoading}
+                        size="small"
+                        menuButton={{
+                            "aria-label": loc.tableExplorer.showSqlPane,
+                        }}
+                        primaryActionButton={{
+                            onClick: () => context.generateScript(),
+                        }}>
+                        {loc.tableExplorer.scriptChanges}
+                    </SplitButton>
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>

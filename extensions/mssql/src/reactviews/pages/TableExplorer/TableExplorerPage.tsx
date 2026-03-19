@@ -144,32 +144,31 @@ export const TableExplorerPage: React.FC = () => {
                             />
                             {resultSet ? (
                                 <div className={classes.dataGridContainer}>
-                                    {isLoading ? (
-                                        <div className={classes.loadingContainer}>
+                                    {isLoading && (
+                                        <div className={classes.loadingOverlay}>
                                             <Spinner
                                                 label={loc.tableExplorer.loadingTableData}
                                                 labelPosition="below"
                                             />
                                         </div>
-                                    ) : (
-                                        <TableDataGrid
-                                            ref={gridRef}
-                                            resultSet={resultSet}
-                                            themeKind={themeKind}
-                                            currentRowCount={currentRowCount}
-                                            failedCells={failedCells}
-                                            deletedRows={deletedRows}
-                                            onDeleteRow={context?.deleteRow}
-                                            onUpdateCell={context?.updateCell}
-                                            onRevertCell={context?.revertCell}
-                                            onRevertRow={context?.revertRow}
-                                            onLoadSubset={context?.loadSubset}
-                                            onCellChangeCountChanged={handleCellChangeCountChanged}
-                                            onDeletionCountChanged={handleDeletionCountChanged}
-                                            onSaveResults={context?.saveResults}
-                                            onModifyTable={context?.modifyTable}
-                                        />
                                     )}
+                                    <TableDataGrid
+                                        ref={gridRef}
+                                        resultSet={resultSet}
+                                        themeKind={themeKind}
+                                        currentRowCount={currentRowCount}
+                                        failedCells={failedCells}
+                                        deletedRows={deletedRows}
+                                        onDeleteRow={context?.deleteRow}
+                                        onUpdateCell={context?.updateCell}
+                                        onRevertCell={context?.revertCell}
+                                        onRevertRow={context?.revertRow}
+                                        onLoadSubset={context?.loadSubset}
+                                        onCellChangeCountChanged={handleCellChangeCountChanged}
+                                        onDeletionCountChanged={handleDeletionCountChanged}
+                                        onSaveResults={context?.saveResults}
+                                        onModifyTable={context?.modifyTable}
+                                    />
                                 </div>
                             ) : (
                                 <p>{loc.tableExplorer.noDataAvailable}</p>

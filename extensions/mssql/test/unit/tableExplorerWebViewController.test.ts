@@ -177,6 +177,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
         );
 
         // Simulate edit session ready
+        // Set _expectedOwnerUri to match the notification (in production this is set by initialize())
+        controller["_expectedOwnerUri"] = "test-owner-uri";
         const notificationHandler = (mockTableExplorerService.sqlToolsClient.onNotification as any)
             .firstCall.args[1];
         notificationHandler({

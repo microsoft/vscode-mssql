@@ -32,6 +32,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
+    private _expectedOwnerUri: string = "";
 
     constructor(
         context: vscode.ExtensionContext,
@@ -151,6 +152,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
+            // Track the expected ownerUri up-front so the notification handler can filter
+            // against it even before the first notification sets state.ownerUri.
+            this._expectedOwnerUri = ownerUri;
+
             let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
             const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
 
@@ -207,8 +212,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
         const self = this;
         return (result: EditSessionReadyParams): void => {
-            // Only handle notifications matching this controller's ownerUri (or initial empty state)
-            if (self.state.ownerUri && result.ownerUri !== self.state.ownerUri) {
+            // Only handle notifications matching this controller's expected ownerUri
+            if (result.ownerUri !== self._expectedOwnerUri) {
                 return;
             }
 
