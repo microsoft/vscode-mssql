@@ -1619,9 +1619,6 @@
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
     </trans-unit>
-    <trans-unit id="++CODE++4707f011871f022248eeb6b0c65524a1855d32936830000d7cf0595b73639938">
-      <source xml:lang="en">Custom query executed successfully.</source>
-    </trans-unit>
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
