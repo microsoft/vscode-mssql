@@ -132,11 +132,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                         size="small"
                         menuButton={{
                             "aria-label": loc.tableExplorer.showSqlPane,
-                        }}
-                        primaryActionButton={{
-                            onClick: () => context.generateScript(),
                         }}>
-                        {loc.tableExplorer.scriptChanges}
+                        {loc.tableExplorer.showSqlPane}
                     </SplitButton>
                 </MenuTrigger>
                 <MenuPopover>
