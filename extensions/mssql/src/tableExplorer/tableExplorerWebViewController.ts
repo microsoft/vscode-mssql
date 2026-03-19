@@ -1416,8 +1416,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 endActivity.endFailed(
-                    error instanceof Error ? error : new Error(getErrorMessage(error)),
-                    true /* includeErrorMessage */,
+                    new Error("Failed to run custom table query"),
+                    false /* includeErrorMessage */,
                     undefined /* errorCode */,
                     undefined /* errorType */,
                     {
