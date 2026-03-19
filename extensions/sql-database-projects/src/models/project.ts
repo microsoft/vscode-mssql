@@ -219,6 +219,14 @@ export class Project implements ISqlProject {
      * only a single notification appears per workspace load.
      */
     private static scheduleGuidPrompt(project: Project): void {
+        // De-duplicate by file path so that reopening or reloading the same project
+        // within the debounce window does not produce duplicate names in the prompt
+        // or trigger multiple ensureValidProjectGuid calls for the same file.
+        if (
+            Project._pendingGuidProjects.some((p) => p.projectFilePath === project.projectFilePath)
+        ) {
+            return;
+        }
         Project._pendingGuidProjects.push(project);
         if (Project._guidPromptTimer !== undefined) {
             clearTimeout(Project._guidPromptTimer);
@@ -238,12 +246,19 @@ export class Project implements ISqlProject {
      * - <ProjectGuid> is present but explicitly set to all-zeros
      */
     public static async checkPromptProjectGuidStatus(projects: Project[]): Promise<void> {
-        if (projects.length === 0) {
+        // De-duplicate by projectFilePath in case the same project was queued
+        // multiple times or this method is called directly with duplicates.
+        const uniqueProjects = projects.filter(
+            (p, index, self) =>
+                self.findIndex((q) => q.projectFilePath === p.projectFilePath) === index,
+        );
+
+        if (uniqueProjects.length === 0) {
             return;
         }
 
-        const projectNames = projects.map((p) => `'${p.projectFileName}'`);
-        const message = constants.missingProjectGuids(projects.length, projectNames);
+        const projectNames = uniqueProjects.map((p) => p.projectFileName);
+        const message = constants.missingProjectGuids(uniqueProjects.length, projectNames);
 
         const result = await window.showInformationMessage(
             message,
@@ -252,7 +267,13 @@ export class Project implements ISqlProject {
         );
 
         if (result === constants.addProjectGuidLabel) {
-            for (const project of projects) {
+            for (const project of uniqueProjects) {
+                // Re-check at fix time: a project may have received a valid GUID between
+                // when the prompt was queued and when the user accepted (e.g. a reload
+                // or a second openProject call). Only touch projects that are still missing.
+                if (!project.isMissingProjectGuid()) {
+                    continue;
+                }
                 try {
                     await project.ensureValidProjectGuid();
                 } catch (error) {
@@ -704,9 +725,14 @@ export class Project implements ISqlProject {
 
     /**
      * Replaces the all-zeros <ProjectGuid> placeholder with a newly generated valid GUID
-     * and updates the in-memory value.
+     * and updates the in-memory value.  Idempotent: does nothing if a valid GUID is
+     * already present so repeated calls (e.g. from duplicate prompt scheduling) cannot
+     * overwrite an existing GUID and break cross-project references.
      */
     public async ensureValidProjectGuid(): Promise<void> {
+        if (!this.isMissingProjectGuid()) {
+            return;
+        }
         const guid = `{${randomUUID().toUpperCase()}}`;
         const result = await this.sqlProjService.setProjectProperties(this.projectFilePath, {
             [constants.ProjectGuid]: guid,

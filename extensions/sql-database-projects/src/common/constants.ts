@@ -187,7 +187,7 @@ export function missingProjectGuids(count: number, projectNames: string[]): stri
     return l10n.t(
         "{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?\n\nProjects:\n{1}",
         count,
-        projectNames.join(", "),
+        projectNames.map((n) => `'${n}'`).join(", "),
     );
 }
 //#endregion

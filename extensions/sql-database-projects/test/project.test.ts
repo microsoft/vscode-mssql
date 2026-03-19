@@ -1868,8 +1868,8 @@ suite("Project: properties", function (): void {
         expect(
             showInfoStub.calledWith(
                 constants.missingProjectGuids(2, [
-                    `'${project1.projectFileName}'`,
-                    `'${project2.projectFileName}'`,
+                    project1.projectFileName,
+                    project2.projectFileName,
                 ]),
             ),
             `showInformationMessage not called with expected message. Actual: "${showInfoStub.firstCall.args[0]}"`,
