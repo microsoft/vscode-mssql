@@ -12,8 +12,6 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
-const headerIconSizePx = 32;
-
 const contentWidthPresets = {
     medium: "720px",
     wide: "800px",
@@ -58,6 +56,10 @@ const useStyles = makeStyles({
         padding: "16px 0 32px",
         boxSizing: "border-box",
     },
+    headerOuter: {
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        paddingBottom: "16px",
+    },
     header: {
         display: "grid",
         gridTemplateColumns: "auto 1fr",
@@ -65,8 +67,6 @@ const useStyles = makeStyles({
         alignItems: "center",
     },
     iconContainer: {
-        width: `${headerIconSizePx}px`,
-        height: `${headerIconSizePx}px`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -137,6 +137,7 @@ export interface DialogPageShellProps {
     subtitle?: ReactNode;
     headerEnd?: ReactNode;
     headerBottom?: ReactNode;
+    showHeaderDivider?: boolean;
     errorMessage?: string;
     loadingMessage?: string;
     maxContentWidth?: DialogPageShellContentWidth;
@@ -151,6 +152,7 @@ export const DialogPageShell = ({
     subtitle,
     headerEnd,
     headerBottom,
+    showHeaderDivider = true,
     errorMessage,
     loadingMessage,
     maxContentWidth,
@@ -178,38 +180,61 @@ export const DialogPageShell = ({
     const headerIcon =
         icon && isValidElement(icon)
             ? cloneElement(icon as ReactElement, {
-                  width: headerIconSizePx,
-                  height: headerIconSizePx,
+                  width: 32,
+                  height: 32,
               })
             : icon;
     const hasHeaderIcon = headerIcon !== undefined && headerIcon !== null && headerIcon !== false;
+    const hasHeaderContent =
+        icon !== undefined ||
+        title !== undefined ||
+        subtitle !== undefined ||
+        headerEnd !== undefined;
 
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.scrollRegion}>
                 <div className={styles.container}>
-                    {(icon || title || subtitle || headerEnd || headerBottom) && (
+                    {hasHeaderContent && (
                         <div
-                            className={styles.header}
-                            style={{
-                                ...contentWidthStyle,
-                                gridTemplateColumns:
-                                    hasHeaderIcon && headerEnd
-                                        ? "auto minmax(0, 1fr) auto"
-                                        : hasHeaderIcon
-                                          ? "auto 1fr"
-                                          : headerEnd
-                                            ? "minmax(0, 1fr) auto"
-                                            : "1fr",
-                            }}>
-                            {hasHeaderIcon && (
-                                <div className={styles.iconContainer}>{headerIcon}</div>
-                            )}
-                            <div className={styles.headerText}>
-                                {title && <div className={styles.title}>{title}</div>}
-                                {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+                            className={styles.headerOuter}
+                            style={
+                                showHeaderDivider
+                                    ? undefined
+                                    : {
+                                          borderBottom: "none",
+                                          paddingBottom: "16px",
+                                      }
+                            }>
+                            <div
+                                className={styles.header}
+                                style={{
+                                    ...contentWidthStyle,
+                                    gridTemplateColumns:
+                                        hasHeaderIcon && headerEnd
+                                            ? "auto minmax(0, 1fr) auto"
+                                            : hasHeaderIcon
+                                              ? "auto 1fr"
+                                              : headerEnd
+                                                ? "minmax(0, 1fr) auto"
+                                                : "1fr",
+                                }}>
+                                {hasHeaderIcon && (
+                                    <div
+                                        className={styles.iconContainer}
+                                        style={{
+                                            width: "32px",
+                                            height: "32px",
+                                        }}>
+                                        {headerIcon}
+                                    </div>
+                                )}
+                                <div className={styles.headerText}>
+                                    {title && <div className={styles.title}>{title}</div>}
+                                    {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+                                </div>
+                                {headerEnd}
                             </div>
-                            {headerEnd}
                         </div>
                     )}
                     {headerBottom && <div style={contentWidthStyle}>{headerBottom}</div>}

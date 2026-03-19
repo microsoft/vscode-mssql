@@ -64,6 +64,7 @@ export const WizardPageShell = ({
             icon={icon}
             title={title}
             subtitle={subtitle}
+            showHeaderDivider={false}
             maxContentWidth={maxContentWidth}
             headerEnd={
                 <div className={classes.headerEnd}>

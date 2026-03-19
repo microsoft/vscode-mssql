@@ -5,12 +5,7 @@
 
 import { useContext, useMemo, useState } from "react";
 import { Button, makeStyles, Spinner, Text } from "@fluentui/react-components";
-import {
-    ArrowLeft20Regular,
-    ArrowRight20Regular,
-    DocumentArrowDown20Regular,
-    ErrorCircleRegular,
-} from "@fluentui/react-icons";
+import { ArrowLeft20Regular, ArrowRight20Regular, ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
@@ -21,6 +16,7 @@ import { FlatFilePreviewTablePage } from "./flatFilePreviewTable";
 import { FlatFileSummary } from "./flatFileSummary";
 import { useFlatFileSelector } from "./flatFileSelector";
 import { WizardPageShell } from "../../common/wizardPageShell";
+import { FlatFileImportIcon } from "../../common/icons/flatFileImport";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -294,7 +290,7 @@ export const FlatFileImportPage = () => {
 
     return (
         <WizardPageShell
-            icon={<DocumentArrowDown20Regular />}
+            icon={<FlatFileImportIcon />}
             title={locConstants.flatFileImport.importFile}
             subtitle={stepLabel}
             currentStep={stepNumber}
