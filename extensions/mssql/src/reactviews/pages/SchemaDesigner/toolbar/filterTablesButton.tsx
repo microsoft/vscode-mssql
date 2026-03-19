@@ -44,6 +44,10 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         pointerEvents: "none",
     },
+    treeDiv: {
+        maxHeight: "300px",
+        overflowY: "auto",
+    },
 });
 
 export function FilterTablesButton() {
@@ -63,6 +67,14 @@ export function FilterTablesButton() {
     const [openItems, setOpenItems] = useState<string[] | undefined>(undefined);
     const [checkedItems, setCheckedItems] = useState<string[]>([]);
     const filterLabel = locConstants.schemaDesigner.filter(selectedTables.length);
+
+    useEffect(() => {
+        const nodes = reactFlow.getNodes();
+        if (!openItems && nodes.length > 0) {
+            const schemas = Array.from(new Set(nodes.map((node) => `${node.data.schema}`)));
+            setOpenItems(schemas);
+        }
+    }, [reactFlow.getNodes()]);
 
     function loadTables() {
         // When loading tables (e.g., when filter button is clicked), we should maintain
@@ -113,33 +125,89 @@ export function FilterTablesButton() {
         return Array.from(relatedTables);
     }
 
+    const handleCheckedChange = (
+        checkedValue: string,
+        checked: boolean,
+        schemas: string[],
+        tablesBySchema: Record<string, string[]>,
+    ) => {
+        const isSchema = schemas.includes(checkedValue);
+        let updatedCheckedItems = [...checkedItems];
+        let updatedSelectedTables = [...selectedTables];
+
+        if (checked) {
+            updatedCheckedItems.push(checkedValue);
+            if (isSchema) {
+                // if it's a schema, add all tables under that schema to selected tables
+                const tablesToAdd = tablesBySchema[checkedValue].map(
+                    (table) => `${checkedValue}.${table}`,
+                );
+                for (const table of tablesToAdd) {
+                    if (!updatedSelectedTables.includes(table)) {
+                        updatedSelectedTables.push(table);
+                    }
+                    if (!updatedCheckedItems.includes(table)) {
+                        updatedCheckedItems.push(table);
+                    }
+                }
+            } else {
+                // if it's a table, just add that table to selected tables
+                if (!updatedSelectedTables.includes(checkedValue)) {
+                    updatedSelectedTables.push(checkedValue);
+                }
+                const tableSchema = checkedValue.split(".")[0];
+                // if all the tables under the same schema are checked, also check the schema
+                const allTablesChecked = tablesBySchema[tableSchema].every((table) =>
+                    updatedCheckedItems.includes(`${tableSchema}.${table}`),
+                );
+                if (allTablesChecked) {
+                    updatedCheckedItems.push(tableSchema);
+                }
+            }
+        } else {
+            updatedCheckedItems = updatedCheckedItems.filter((item) => item !== checkedValue);
+            if (isSchema) {
+                // if it's a schema, remove all tables under that schema from selected tables
+                const tablesToRemove = tablesBySchema[checkedValue].map(
+                    (table) => `${checkedValue}.${table}`,
+                );
+                updatedSelectedTables = updatedSelectedTables.filter(
+                    (table) => !tablesToRemove.includes(table),
+                );
+                updatedCheckedItems = updatedCheckedItems.filter(
+                    (item) => item !== checkedValue && !tablesToRemove.includes(item),
+                );
+            } else {
+                // if it's a table, just remove that table from selected tables
+                updatedSelectedTables = updatedSelectedTables.filter(
+                    (table) => table !== checkedValue,
+                );
+                const tableSchema = checkedValue.split(".")[0];
+                // if the table's schema is checked, remove that
+                updatedCheckedItems = updatedCheckedItems.filter((item) => item !== tableSchema);
+            }
+        }
+        setCheckedItems(updatedCheckedItems);
+        setSelectedTables(updatedSelectedTables);
+        context.resetView();
+    };
+
     function renderTree(): JSX.Element {
         const nodes = reactFlow.getNodes();
+        const lowerFilterText = filterText.toLowerCase();
         const tablesBySchema = nodes.reduce(
             (acc, node) => {
                 const schema = `${node.data.schema}`;
                 const table = `${node.data.name}`;
 
-                if (!filterText) {
-                    // No filter: include everything
-                    if (!acc[schema]) acc[schema] = [];
-                    acc[schema].push(table);
-                    return acc;
-                }
+                const schemaMatches = schema.toLowerCase().includes(lowerFilterText);
+                const tableMatches = table.toLowerCase().includes(lowerFilterText);
 
-                const schemaMatches = schema.toLowerCase().includes(filterText.toLowerCase());
-                const tableMatches = table.toLowerCase().includes(filterText.toLowerCase());
-
-                if (schemaMatches) {
-                    // Schema name matches: show ALL tables under it
-                    if (!acc[schema]) acc[schema] = [];
-                    acc[schema].push(table);
-                } else if (tableMatches) {
-                    // Table name matches but schema doesn't: still show this table
+                if (!filterText || schemaMatches || tableMatches) {
+                    // No filter or matches: include everything
                     if (!acc[schema]) acc[schema] = [];
                     acc[schema].push(table);
                 }
-
                 return acc;
             },
             {} as Record<string, string[]>,
@@ -152,82 +220,23 @@ export function FilterTablesButton() {
             tablesBySchema[schema].sort();
         });
 
-        if (!openItems && nodes.length > 0) {
-            setOpenItems(schemas);
-        }
-
         return (
             <Tree
+                className={classes.treeDiv}
                 openItems={openItems}
                 checkedItems={checkedItems}
                 selectionMode="multiselect"
                 onCheckedChange={(_event, data) => {
-                    const checkedValue = data.value.toString();
-                    const isSchema = schemas.includes(checkedValue);
-                    let updatedCheckedItems = [...checkedItems];
-                    let updatedSelectedTables = [...selectedTables];
-
-                    if (data.checked) {
-                        updatedCheckedItems.push(checkedValue);
-                        if (isSchema) {
-                            // if it's a schema, add all tables under that schema to selected tables
-                            const tablesToAdd = tablesBySchema[checkedValue].map(
-                                (table) => `${checkedValue}.${table}`,
-                            );
-                            for (const table of tablesToAdd) {
-                                if (!updatedSelectedTables.includes(table)) {
-                                    updatedSelectedTables.push(table);
-                                }
-                                if (!updatedCheckedItems.includes(table)) {
-                                    updatedCheckedItems.push(table);
-                                }
-                            }
-                        } else {
-                            // if it's a table, just add that table to selected tables
-                            if (!updatedSelectedTables.includes(checkedValue)) {
-                                updatedSelectedTables.push(checkedValue);
-                            }
-                            const tableSchema = checkedValue.split(".")[0];
-                            // if all the tables under the same schema are checked, also check the schema
-                            const allTablesChecked = tablesBySchema[tableSchema].every((table) =>
-                                updatedCheckedItems.includes(`${tableSchema}.${table}`),
-                            );
-                            if (allTablesChecked) {
-                                updatedCheckedItems.push(tableSchema);
-                            }
-                        }
-                    } else {
-                        updatedCheckedItems = updatedCheckedItems.filter(
-                            (item) => item !== checkedValue,
-                        );
-                        if (isSchema) {
-                            // if it's a schema, remove all tables under that schema from selected tables
-                            const tablesToRemove = tablesBySchema[checkedValue].map(
-                                (table) => `${checkedValue}.${table}`,
-                            );
-                            updatedSelectedTables = updatedSelectedTables.filter(
-                                (table) => !tablesToRemove.includes(table),
-                            );
-                            updatedCheckedItems = updatedCheckedItems.filter(
-                                (item) => item !== checkedValue && !tablesToRemove.includes(item),
-                            );
-                        } else {
-                            // if it's a table, just remove that table from selected tables
-                            updatedSelectedTables = updatedSelectedTables.filter(
-                                (table) => table !== checkedValue,
-                            );
-                            const tableSchema = checkedValue.split(".")[0];
-                            // if the table's schema is checked, remove that
-                            updatedCheckedItems = updatedCheckedItems.filter(
-                                (item) => item !== tableSchema,
-                            );
-                        }
-                    }
-                    setCheckedItems(updatedCheckedItems);
-                    setSelectedTables(updatedSelectedTables);
+                    handleCheckedChange(
+                        data.value.toString(),
+                        data.checked as boolean,
+                        schemas,
+                        tablesBySchema,
+                    );
                 }}>
                 {Object.entries(tablesBySchema).map(([schema, tables]) => (
                     <TreeItem
+                        key={schema}
                         value={schema}
                         itemType="branch"
                         onOpenChange={(_event, data) => {
@@ -244,7 +253,10 @@ export function FilterTablesButton() {
                         <TreeItemLayout>{highlightText(schema, filterText)}</TreeItemLayout>
                         <Tree>
                             {tables.map((table) => (
-                                <TreeItem value={`${schema}.${table}`} itemType="leaf">
+                                <TreeItem
+                                    key={`${schema}.${table}`}
+                                    value={`${schema}.${table}`}
+                                    itemType="leaf">
                                     <TreeItemLayout>
                                         {highlightText(table, filterText)}
                                     </TreeItemLayout>
