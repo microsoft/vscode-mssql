@@ -91,7 +91,6 @@ const useStyles = makeStyles({
     subtitle: {
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
-        color: "var(--vscode-descriptionForeground)",
         wordBreak: "break-word",
     },
     messageStack: {

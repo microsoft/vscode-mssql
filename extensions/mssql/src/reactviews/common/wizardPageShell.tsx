@@ -12,8 +12,6 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
         fontWeight: tokens.fontWeightSemibold,
-        letterSpacing: "0.08em",
-        color: "var(--vscode-descriptionForeground)",
         alignSelf: "center",
         whiteSpace: "nowrap",
     },
