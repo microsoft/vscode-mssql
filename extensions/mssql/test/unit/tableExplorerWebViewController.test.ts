@@ -1150,51 +1150,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
         });
 
-        test("should keep showScriptPane true when already open in ScriptChanges mode", async () => {
-            // Arrange
-            controller.state.showScriptPane = true;
-            controller.state.sqlPaneMode = SqlPaneMode.ScriptChanges;
-
-            // Act
-            await controller["_reducerHandlers"].get("showTableQuery")(controller.state, {});
-
-            // Assert
-            expect(controller.state.showScriptPane).to.be.true;
-            expect(controller.state.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
-        });
-
-        test("should return state unchanged aside from pane properties", async () => {
-            // Arrange
-            controller.state.tableName = "TestTable";
-            controller.state.showScriptPane = false;
-
-            // Act
-            const resultState = await controller["_reducerHandlers"].get("showTableQuery")(
-                controller.state,
-                {},
-            );
-
-            // Assert
-            expect(resultState.tableName).to.equal("TestTable");
-            expect(resultState.showScriptPane).to.be.true;
-            expect(resultState.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
-        });
-    });
-
-    suite("showTableQuery reducer", () => {
-        test("should set showScriptPane to true and sqlPaneMode to TableQuery", async () => {
-            // Arrange
-            controller.state.showScriptPane = false;
-            controller.state.sqlPaneMode = SqlPaneMode.ScriptChanges;
-
-            // Act
-            await controller["_reducerHandlers"].get("showTableQuery")(controller.state, {});
-
-            // Assert
-            expect(controller.state.showScriptPane).to.be.true;
-            expect(controller.state.sqlPaneMode).to.equal(SqlPaneMode.TableQuery);
-        });
-
         test("should switch from ScriptChanges mode to TableQuery mode when pane is already open", async () => {
             // Arrange
             controller.state.showScriptPane = true;
