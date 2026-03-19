@@ -1302,6 +1302,65 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             return state;
         });
+
+        this.registerReducer("viewTableDiagram", async (state, _payload) => {
+            this.logger.info(`Opening Schema Designer - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.ViewTableDiagram,
+                uuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            try {
+                const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
+                const schemaName = state.schemaName || this._targetNode.metadata.schema || "";
+                const tableName = state.tableName;
+                const filterTable = schemaName ? `${schemaName}.${tableName}` : tableName;
+
+                await vscode.commands.executeCommand(
+                    Constants.cmdDesignSchemaForTable,
+                    this._targetNode,
+                    databaseName,
+                    filterTable,
+                );
+
+                this.logger.info(
+                    `Schema Designer opened successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening Schema Designer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error("Failed to open Schema Designer"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenSchemaDesigner(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
     }
 
     /**

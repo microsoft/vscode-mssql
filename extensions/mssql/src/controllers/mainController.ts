@@ -116,10 +116,7 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
-import { FlatFileClient } from "../flatFile/flatFileClient";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
-import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
-import { FlatFileProvider } from "../models/contracts/flatFile";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 
@@ -163,8 +160,6 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
-    public flatFileClient: FlatFileClient;
-    public flatFileProvider: FlatFileProvider;
     public sqlNotebookController: SqlNotebookController;
 
     /**
@@ -1003,11 +998,6 @@ export default class MainController implements vscode.Disposable {
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
-        // Initialize flat file client
-        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
-            this.flatFileProvider = provider;
-        });
-
         /**
          * TODO: aaskhan
          * Good candidate for dependency injection.
@@ -1658,7 +1648,6 @@ export default class MainController implements vscode.Disposable {
                         this._vscodeWrapper,
                         SqlToolsServerClient.instance,
                         this.connectionManager,
-                        this.flatFileProvider,
                         node.connectionProfile,
                         node.sessionId,
                         database,
@@ -1826,6 +1815,27 @@ export default class MainController implements vscode.Disposable {
                             node,
                         );
 
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+                    schemaDesigner.revealToForeground();
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDesignSchemaForTable,
+                async (node: TreeNodeInfo, databaseName: string, filterTable: string) => {
+                    const schemaDesigner =
+                        await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                            this._context,
+                            this._vscodeWrapper,
+                            this,
+                            this.schemaDesignerService,
+                            databaseName,
+                            node,
+                        );
+
+                    schemaDesigner.setInitialFilterTables([filterTable]);
                     schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
                     schemaDesigner.revealToForeground();
                 },
@@ -2243,6 +2253,7 @@ export default class MainController implements vscode.Disposable {
                 this._sqlDocumentService,
                 this._statusview,
                 this._prompter,
+                this._context,
             );
 
             this._context.subscriptions.push(

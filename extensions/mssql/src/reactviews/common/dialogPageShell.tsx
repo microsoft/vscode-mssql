@@ -12,7 +12,7 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
-const headerIconSizePx = 24;
+const headerIconSizePx = 32;
 
 const contentWidthPresets = {
     medium: "720px",
@@ -63,8 +63,6 @@ const useStyles = makeStyles({
         gridTemplateColumns: "auto 1fr",
         gap: "16px",
         alignItems: "center",
-        paddingBottom: "16px",
-        borderBottom: "1px solid var(--vscode-editorGroup-border)",
     },
     iconContainer: {
         width: `${headerIconSizePx}px`,
@@ -114,7 +112,7 @@ const useStyles = makeStyles({
         flexShrink: 0,
         borderTop: "1px solid var(--vscode-editorGroup-border)",
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
-        padding: "12px 0",
+        padding: "12px 16px",
     },
     footerInner: {
         width: "100%",

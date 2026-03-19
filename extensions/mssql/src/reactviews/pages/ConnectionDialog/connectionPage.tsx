@@ -3,10 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Divider, makeStyles, shorthands } from "@fluentui/react-components";
+import { Button, Divider, makeStyles, shorthands } from "@fluentui/react-components";
+import { Database32Regular } from "@fluentui/react-icons";
+import { useState } from "react";
 import { ResizableBox } from "react-resizable";
 import { ConnectionsListContainer } from "./connectionsListContainer";
 import { ConnectionInfoFormContainer } from "./connectionPageContainer";
+import { DialogPageShell } from "../../common/dialogPageShell";
+import { ConnectButton } from "./components/connectButton.component";
+import { locConstants } from "../../common/locConstants";
+import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 
 export const useStyles = makeStyles({
     root: {
@@ -40,10 +46,30 @@ export const useStyles = makeStyles({
 
 export const ConnectionPage = () => {
     const classes = useStyles();
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+
     return (
         <div className={classes.root}>
             <div className={classes.mainContainer}>
-                <ConnectionInfoFormContainer />
+                <DialogPageShell
+                    icon={<Database32Regular />}
+                    title={locConstants.connectionDialog.connectToDatabase}
+                    footerStart={
+                        <Button
+                            onClick={() => {
+                                setIsAdvancedDrawerOpen((prev) => !prev);
+                            }}>
+                            {locConstants.connectionDialog.advancedSettings}
+                        </Button>
+                    }
+                    maxContentWidth={"medium"}
+                    footerEnd={<ConnectButton form="connectionForm" />}>
+                    <ConnectionInfoFormContainer />
+                    <AdvancedOptionsDrawer
+                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+                    />
+                </DialogPageShell>
             </div>
             <Divider
                 style={{

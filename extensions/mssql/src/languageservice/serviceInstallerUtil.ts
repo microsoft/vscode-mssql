@@ -9,7 +9,7 @@ import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
 import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
-import { DownloadType, IStatusView } from "./interfaces";
+import { IStatusView } from "./interfaces";
 import { ILogger } from "../models/interfaces";
 
 export class StubStatusView implements IStatusView {
@@ -86,7 +86,6 @@ let downloadProvider = new ServiceDownloadProvider(
     statusView,
     downloadHelper,
     decompressProvider,
-    DownloadType.SqlToolsService,
 );
 let serverProvider = new ServerProvider(downloadProvider, config, statusView);
 

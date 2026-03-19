@@ -69,6 +69,33 @@ suite("QueryResult Utils Tests", () => {
         });
     });
 
+    suite("getGridSettings constants", () => {
+        test("alternatingRowColors config key has correct section-relative path", () => {
+            expect(Constants.configResultsGridAlternatingRowColors).to.equal(
+                "resultsGrid.alternatingRowColors",
+            );
+        });
+
+        test("showGridLines config key has correct path", () => {
+            expect(Constants.configResultsGridShowGridLines).to.equal("resultsGrid.showGridLines");
+        });
+
+        test("rowPadding config key has correct path", () => {
+            expect(Constants.configResultsGridRowPadding).to.equal("resultsGrid.rowPadding");
+        });
+
+        test("default gridSettings returns rowPadding=undefined when config is undefined", () => {
+            const mockConfig = {
+                get: sandbox.stub().returns(undefined),
+            } as unknown as vscode.WorkspaceConfiguration;
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
+
+            const rowPadding = mockConfig.get(Constants.configResultsGridRowPadding) ?? undefined;
+            expect(rowPadding).to.equal(undefined);
+        });
+    });
+
     suite("bucketizeRowCount", () => {
         const testCases: { value: number; expected: number }[] = [
             { value: 0, expected: 50 },

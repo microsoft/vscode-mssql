@@ -116,6 +116,18 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.setupConfigurationListener();
     }
 
+    /**
+     * Sets the initial filter tables for the Schema Designer.
+     * When set, the FilterTablesButton will apply this filter after initialization.
+     * @param tables Array of fully qualified table names (e.g., ["dbo.Students"])
+     */
+    public setInitialFilterTables(tables: string[]): void {
+        this.updateState({
+            ...this.state,
+            initialFilterTables: tables,
+        });
+    }
+
     private setupRequestHandlers() {
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
             const schemaDesignerInitActivity = startActivity(
