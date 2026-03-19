@@ -170,15 +170,15 @@ type FlatFileTableCell = {
     type: string;
 };
 
-interface FlatFileColumnSettingsProps {
+interface FlatFileColumnSettingsPageProps {
     initialColumnChanges?: ColumnChanges[];
     onColumnChangesChanged?: (columnChanges: ColumnChanges[]) => void;
 }
 
-export const FlatFileColumnSettings = ({
+export const FlatFileColumnSettingsPage = ({
     initialColumnChanges,
     onColumnChangesChanged,
-}: FlatFileColumnSettingsProps = {}) => {
+}: FlatFileColumnSettingsPageProps = {}) => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
 

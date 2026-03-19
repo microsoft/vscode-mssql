@@ -47,7 +47,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const FlatFileForm: React.FC = () => {
+export const FlatFileFormPage: React.FC = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
 

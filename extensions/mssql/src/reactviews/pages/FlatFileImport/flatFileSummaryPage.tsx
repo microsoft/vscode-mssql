@@ -100,7 +100,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const FlatFileSummary = () => {
+export const FlatFileSummaryPage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
 
