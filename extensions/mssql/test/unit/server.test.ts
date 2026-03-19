@@ -137,7 +137,6 @@ suite("Server tests", () => {
             downloadProvider.getOrMakeInstallDirectory
                 .withArgs(Runtime.Portable)
                 .resolves(portableDir);
-            downloadProvider.type.returns(DownloadType.SqlToolsService);
 
             const server = new ServerProvider(downloadProvider, configUtils, statusView);
             const result = await server.getServerPath(Runtime.Windows_64);
@@ -160,7 +159,6 @@ suite("Server tests", () => {
             downloadProvider.getOrMakeInstallDirectory
                 .withArgs(Runtime.Portable)
                 .resolves(portableDir);
-            downloadProvider.type.returns(DownloadType.SqlToolsService);
 
             const server = new ServerProvider(downloadProvider, configUtils, statusView);
             const result = await server.getServerPath(Runtime.Linux);
@@ -179,7 +177,6 @@ suite("Server tests", () => {
             downloadProvider.getOrMakeInstallDirectory
                 .withArgs(Runtime.Portable)
                 .resolves(portableDir);
-            downloadProvider.type.returns(DownloadType.SqlToolsService);
 
             const server = new ServerProvider(downloadProvider, configUtils, statusView);
             const result = await server.getServerPath(Runtime.Portable);
@@ -199,7 +196,6 @@ suite("Server tests", () => {
             downloadProvider.getOrMakeInstallDirectory
                 .withArgs(Runtime.Portable)
                 .resolves(portableDir);
-            downloadProvider.type.returns(DownloadType.SqlToolsService);
 
             const server = new ServerProvider(downloadProvider, configUtils, statusView);
             const result = await server.getServerPath(Runtime.Windows_64);
@@ -219,7 +215,6 @@ suite("Server tests", () => {
             downloadProvider.getOrMakeInstallDirectory
                 .withArgs(Runtime.Portable)
                 .resolves(portableDir);
-            downloadProvider.type.returns(DownloadType.SqlToolsService);
             downloadProvider.installService.resolves(true);
 
             const server = new ServerProvider(downloadProvider, configUtils, statusView);
