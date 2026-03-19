@@ -31,6 +31,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerReducers
 > {
     private operationId: string;
+    private _preserveTableQuery = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -229,7 +230,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         );
         this.state.resultSet = subsetResult;
         this.state.loadStatus = ApiStatus.Loaded;
-        this.state.tableQuery = this.buildDefaultSelectQuery();
+
+        if (this._preserveTableQuery) {
+            this._preserveTableQuery = false;
+        } else {
+            this.state.tableQuery = this.buildDefaultSelectQuery();
+        }
 
         this.updateState();
     }
@@ -244,10 +250,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             return "";
         }
 
-        const columnList = columns.map((col) => `[${col.name}]`).join(", ");
+        const columnList = columns.map((col) => `[${col.name.replace(/\]/g, "]]")}]`).join(", ");
         const schemaName = this.state.schemaName;
         const tableName = this.state.tableName;
-        const qualifiedName = schemaName ? `[${schemaName}].[${tableName}]` : `[${tableName}]`;
+        const escapedTable = `[${tableName.replace(/\]/g, "]]")}]`;
+        const qualifiedName = schemaName
+            ? `[${schemaName.replace(/\]/g, "]]")}].${escapedTable}`
+            : escapedTable;
 
         return `SELECT TOP ${this.state.currentRowCount} ${columnList}\nFROM ${qualifiedName}`;
     }
@@ -1345,8 +1354,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Dispose the current edit session
                 await this._tableExplorerService.dispose(state.ownerUri);
 
-                const objectName = this.state.tableName;
-                const schemaName = this.state.schemaName;
+                const objectName = state.tableName;
+                const schemaName = state.schemaName;
                 const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
                 // Re-initialize with the custom query
@@ -1357,6 +1366,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     objectType,
                     payload.queryString,
                 );
+
+                // Persist the custom query so loadResultSet won't overwrite it with the default
+                state.tableQuery = payload.queryString;
+                this._preserveTableQuery = true;
 
                 // Clear pending changes — handleEditSessionReadyNotification will load the result set
                 state.newRows = [];
@@ -1381,8 +1394,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Attempt to restore original session
                 try {
-                    const objectName = this.state.tableName;
-                    const schemaName = this.state.schemaName;
+                    const objectName = state.tableName;
+                    const schemaName = state.schemaName;
                     const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
                     await this._tableExplorerService.initialize(
@@ -1403,7 +1416,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 endActivity.endFailed(
-                    new Error("Failed to run custom table query"),
+                    error instanceof Error ? error : new Error(getErrorMessage(error)),
                     true /* includeErrorMessage */,
                     undefined /* errorCode */,
                     undefined /* errorType */,

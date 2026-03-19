@@ -1373,6 +1373,66 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
             expect(showErrorMessageStub.calledOnce).to.be.true;
         });
+
+        test("should persist custom query string in state.tableQuery after successful run", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            controller.state.tableQuery =
+                "SELECT TOP 100 [id], [firstName], [lastName]\nFROM [dbo].[TestTable]";
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            const customQuery = "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5";
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: customQuery,
+            });
+
+            // Assert
+            expect(controller.state.tableQuery).to.equal(customQuery);
+        });
+
+        test("should preserve custom query through loadResultSet after re-initialization", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+            mockTableExplorerService.subset.resolves(createMockSubsetResult());
+
+            const customQuery = "SELECT TOP 10 * FROM dbo.TestTable WHERE id > 5";
+
+            // Act - run the custom query
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: customQuery,
+            });
+
+            // Simulate the loadResultSet that happens after handleEditSessionReadyNotification
+            await controller["loadResultSet"]();
+
+            // Assert - custom query should be preserved, not overwritten by default
+            expect(controller.state.tableQuery).to.equal(customQuery);
+        });
+
+        test("should generate default query in loadResultSet when no custom query was run", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult();
+            mockTableExplorerService.subset.resolves(createMockSubsetResult());
+
+            // Act - call loadResultSet directly (as happens during normal initialization)
+            await controller["loadResultSet"]();
+
+            // Assert - should have generated a default SELECT query
+            expect(controller.state.tableQuery).to.include("SELECT TOP");
+            expect(controller.state.tableQuery).to.include("FROM");
+        });
     });
 
     suite("modifyTable reducer", () => {
