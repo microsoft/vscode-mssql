@@ -3,21 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { StepCard } from "./stepCard";
-import { Button } from "@fluentui/react-components";
-import { LocalContainersInputForm } from "./localContainersInputForm";
-import {
-    checkStepErrored,
-    isLastStepLoaded,
-    runDockerStep,
-} from "./localContainersDeploymentUtils";
+import { runDockerStep } from "./localContainersDeploymentUtils";
 import {
     DockerStepOrder,
     LocalContainersState,
 } from "../../../../sharedInterfaces/localContainers";
 import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment";
-import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
@@ -29,82 +22,35 @@ export const LocalContainersPrereqPage: React.FC = () => {
     const localContainersState = useDeploymentSelector(
         (s) => s.deploymentTypeState,
     ) as LocalContainersState;
-    const [showNext, setShowNext] = useState(false);
-    const [stepsLoaded, setStepsLoaded] = useState(false);
-    const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.checkDockerEngine;
 
-    // If this passes, container deployment state is guaranteed
-    // to be defined, so we can reference it as non-null
-    if (!context || !localContainersState) {
-        return undefined;
-    }
-
     useEffect(() => {
+        if (!context || !localContainersState) return;
         const wrappedState = {
             deploymentTypeState: localContainersState,
         } as DeploymentWebviewState;
         void runDockerStep(context, wrappedState, lastStep);
-        setStepsLoaded(isLastStepLoaded(wrappedState, lastStep));
-        setStepsErrored(checkStepErrored(wrappedState));
     }, [localContainersState]);
 
-    const handleRetry = async () => {
-        // reset step states
-        await context.resetDockerStepState();
-    };
+    if (!context || !localContainersState?.dockerSteps) {
+        return undefined;
+    }
 
-    return showNext ? (
-        <LocalContainersInputForm />
-    ) : (
-        <div>
-            <LocalContainersHeader
-                headerText={locConstants.localContainers.sqlServerContainerHeader}
-            />
-            <div className={classes.outerDiv}>
-                <div className={classes.stepsDiv}>
-                    <div className={classes.stepsHeader}>
-                        {locConstants.localContainers.gettingDockerReady}
-                    </div>
-                    <div className={classes.stepsSubheader}>
-                        {locConstants.localContainers.checkingPrerequisites}
-                    </div>
-                    <StepCard
-                        step={localContainersState.dockerSteps[DockerStepOrder.dockerInstallation]}
-                    />
-                    <StepCard
-                        step={localContainersState.dockerSteps[DockerStepOrder.startDockerDesktop]}
-                    />
-                    <StepCard
-                        step={localContainersState.dockerSteps[DockerStepOrder.checkDockerEngine]}
-                    />
-                    <div className={classes.buttonDiv}>
-                        {stepsErrored && (
-                            <Button
-                                className={classes.button}
-                                onClick={handleRetry}
-                                appearance="primary">
-                                {locConstants.common.retry}
-                            </Button>
-                        )}
-                        {stepsLoaded ? (
-                            <Button
-                                className={classes.button}
-                                onClick={() => setShowNext(true)}
-                                appearance="primary">
-                                {locConstants.common.next}
-                            </Button>
-                        ) : (
-                            <Button
-                                className={classes.button}
-                                onClick={() => {
-                                    context.dispose();
-                                }}>
-                                {locConstants.common.cancel}
-                            </Button>
-                        )}
-                    </div>
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.stepsDiv}>
+                <div className={classes.stepsSubheader}>
+                    {locConstants.localContainers.checkingPrerequisites}
                 </div>
+                <StepCard
+                    step={localContainersState.dockerSteps[DockerStepOrder.dockerInstallation]}
+                />
+                <StepCard
+                    step={localContainersState.dockerSteps[DockerStepOrder.startDockerDesktop]}
+                />
+                <StepCard
+                    step={localContainersState.dockerSteps[DockerStepOrder.checkDockerEngine]}
+                />
             </div>
         </div>
     );

@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { useContext, useState } from "react";
+import { Checkbox, Link, makeStyles } from "@fluentui/react-components";
 import { FormField } from "../../../common/forms/form.component";
-import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
 import {
     LocalContainersContextProps,
     LocalContainersFormItemSpec,
@@ -14,7 +13,6 @@ import {
     DockerConnectionProfile,
 } from "../../../../sharedInterfaces/localContainers";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import {
@@ -25,7 +23,6 @@ import {
     renderColorSwatch,
     SearchableDropdownOptions,
 } from "../../../common/searchableDropdown.component";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 
@@ -33,33 +30,41 @@ const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
-        marginLeft: "5px",
-        marginRight: "5px",
-        padding: "8px",
-        width: "500px",
-        whiteSpace: "nowrap",
-        minWidth: "800px",
-        height: "80vh",
-    },
-    button: {
-        height: "32px",
-        width: "160px",
-    },
-    advancedOptionsDiv: {
-        marginLeft: "24px",
-    },
-    bottomDiv: {
-        bottom: 0,
-        paddingBottom: "50px",
+        width: "100%",
+        minWidth: 0,
     },
     formDiv: {
-        flexGrow: 1,
-    },
-    buttonContent: {
         display: "flex",
-        flexDirection: "row",
-        gap: "0.5rem",
+        flexDirection: "column",
+        width: "100%",
+    },
+    advancedCard: {
+        border: `1px solid var(--vscode-editorGroup-border)`,
+        borderRadius: "7px",
+        overflow: "hidden",
+        marginBottom: "16px",
+    },
+    advancedToggle: {
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: "10px 14px",
+        color: "var(--vscode-foreground)",
+    },
+    advancedContent: {
+        padding: "4px 14px 14px",
+        borderTop: `1px solid var(--vscode-editorGroup-border)`,
+    },
+    eulaCard: {
+        background: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        border: `1px solid var(--vscode-editorGroup-border)`,
+        borderRadius: "7px",
+        padding: "6px 8px",
+        marginTop: "8px",
     },
 });
 
@@ -70,171 +75,134 @@ export const LocalContainersInputForm: React.FC = () => {
     const localContainersState = useDeploymentSelector(
         (s) => s.deploymentTypeState,
     ) as LocalContainersState;
-    const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
     if (!context || !localContainersState) return undefined;
 
     const { formComponents } = localContainersState;
-    const eulaComponent = Object.values(formComponents).find(
-        (component) => component.propertyName === "acceptEula",
-    )!;
 
-    const renderFormFields = (isAdvanced: boolean) =>
-        Object.values(formComponents)
-            .filter(
-                (component) =>
-                    component.isAdvancedOption === isAdvanced &&
-                    component.propertyName !== "acceptEula" &&
-                    component.propertyName !== "groupId",
-            )
-            .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
-                    <FormField<
-                        DockerConnectionProfile,
-                        LocalContainersState,
-                        LocalContainersFormItemSpec,
-                        LocalContainersContextProps
-                    >
-                        context={context}
-                        formState={localContainersState.formState}
-                        component={component}
-                        idx={index}
-                    />
-                </div>
-            ));
-
-    const handleSubmit = async () => {
-        await context.checkDockerProfile();
+    const renderFormField = (propertyName: string) => {
+        const component = formComponents[
+            propertyName as keyof typeof formComponents
+        ] as LocalContainersFormItemSpec;
+        if (!component) return undefined;
+        return (
+            <FormField<
+                DockerConnectionProfile,
+                LocalContainersState,
+                LocalContainersFormItemSpec,
+                LocalContainersContextProps
+            >
+                context={context}
+                formState={localContainersState.formState}
+                component={component}
+                idx={0}
+            />
+        );
     };
 
-    useEffect(() => {
-        setShowNext(localContainersState.isDockerProfileValid);
-    }, [localContainersState.isDockerProfileValid]);
+    const renderAdvancedFields = () =>
+        Object.values(formComponents)
+            .filter((component) => component.isAdvancedOption)
+            .map((component, index) => (
+                <FormField<
+                    DockerConnectionProfile,
+                    LocalContainersState,
+                    LocalContainersFormItemSpec,
+                    LocalContainersContextProps
+                >
+                    key={index}
+                    context={context}
+                    formState={localContainersState.formState}
+                    component={component}
+                    idx={index}
+                />
+            ));
 
-    return showNext ? (
-        <LocalContainersSetupStepsPage />
-    ) : (
-        <div>
-            <LocalContainersHeader
-                headerText={locConstants.localContainers.sqlServerContainerHeader}
-                paddingLeft="20px"
-            />
-            <div className={classes.outerDiv}>
-                <div className={classes.formDiv}>
-                    {dialog?.type === "createConnectionGroup" && (
-                        <ConnectionGroupDialog
-                            mode="modal"
-                            state={(dialog as CreateConnectionGroupDialogProps).props}
-                            saveConnectionGroup={context.createConnectionGroup}
-                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
-                        />
-                    )}
-                    {renderFormFields(false)}
-                    <FormField<
-                        DockerConnectionProfile,
-                        LocalContainersState,
-                        LocalContainersFormItemSpec,
-                        LocalContainersContextProps
-                    >
-                        context={context}
-                        formState={localContainersState.formState}
-                        component={
-                            localContainersState.formComponents[
-                                "groupId"
-                            ] as LocalContainersFormItemSpec
-                        }
-                        idx={0}
-                        componentProps={{
-                            onSelect: (option: SearchableDropdownOptions) => {
-                                if (option.value === CREATE_NEW_GROUP_ID) {
-                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
-                                } else {
-                                    context.formAction({
-                                        propertyName: "groupId",
-                                        isAction: false,
-                                        value: option.value,
-                                    });
-                                }
-                            },
-                            renderDecoration: (option: SearchableDropdownOptions) => {
-                                return renderColorSwatch(option.color);
-                            },
-                        }}
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.formDiv}>
+                {dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        mode="modal"
+                        state={(dialog as CreateConnectionGroupDialogProps).props}
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={() => context.setConnectionGroupDialogState(false)}
                     />
-                    <div>
-                        <Button
-                            icon={
-                                showAdvancedOptions ? (
-                                    <ChevronDown20Regular />
-                                ) : (
-                                    <ChevronRight20Regular />
-                                )
-                            }
-                            appearance="subtle"
-                            onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                        />
-                        {locConstants.connectionDialog.advancedOptions}
-                    </div>
+                )}
 
+                {renderFormField("version")}
+                {renderFormField("password")}
+                {renderFormField("savePassword")}
+
+                {renderFormField("profileName")}
+                <FormField<
+                    DockerConnectionProfile,
+                    LocalContainersState,
+                    LocalContainersFormItemSpec,
+                    LocalContainersContextProps
+                >
+                    context={context}
+                    formState={localContainersState.formState}
+                    component={
+                        localContainersState.formComponents[
+                            "groupId"
+                        ] as LocalContainersFormItemSpec
+                    }
+                    idx={0}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.setConnectionGroupDialogState(true);
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
+                            }
+                        },
+                        renderDecoration: (option: SearchableDropdownOptions) => {
+                            return renderColorSwatch(option.color);
+                        },
+                    }}
+                />
+
+                <div className={classes.advancedCard}>
+                    <button
+                        className={classes.advancedToggle}
+                        onClick={() => setShowAdvanced(!showAdvancedOptions)}>
+                        <span>{locConstants.connectionDialog.advancedOptions}</span>
+                        {showAdvancedOptions ? <ChevronDown20Regular /> : <ChevronRight20Regular />}
+                    </button>
                     {showAdvancedOptions && (
-                        <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                        <div className={classes.advancedContent}>{renderAdvancedFields()}</div>
                     )}
                 </div>
-                <div className={classes.bottomDiv}>
-                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                    <div
-                        style={{
-                            ...(eulaComponent.componentWidth && {
-                                width: eulaComponent.componentWidth,
-                            }),
-                            marginTop: "10px",
-                        }}>
-                        <FormField<
-                            DockerConnectionProfile,
-                            LocalContainersState,
-                            LocalContainersFormItemSpec,
-                            LocalContainersContextProps
-                        >
-                            key={eulaComponent.propertyName}
-                            context={context}
-                            formState={localContainersState.formState}
-                            component={eulaComponent}
-                            idx={0}
-                        />
-                    </div>
-                    {localContainersState.formValidationLoadState === ApiStatus.Loading ? (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            appearance="secondary"
-                            disabled>
-                            <div className={classes.buttonContent}>
-                                <Spinner size="extra-tiny" />
-                                {locConstants.localContainers.createContainer}
-                            </div>
-                        </Button>
-                    ) : (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            onClick={() => handleSubmit()}
-                            appearance="primary">
-                            {locConstants.localContainers.createContainer}
-                        </Button>
-                    )}
+
+                <div className={classes.eulaCard}>
+                    <Checkbox
+                        checked={localContainersState.formState.acceptEula ?? false}
+                        onChange={(_ev, data) =>
+                            context.formAction({
+                                propertyName: "acceptEula",
+                                isAction: false,
+                                value: data.checked,
+                            })
+                        }
+                        label={
+                            <span>
+                                {locConstants.localContainers.iAcceptThe}{" "}
+                                <Link
+                                    href="https://go.microsoft.com/fwlink/?LinkId=746388"
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+                                    {locConstants.localContainers.termsAndConditions}
+                                </Link>
+                                <span style={{ color: "#e05252", marginLeft: 3 }}>*</span>
+                            </span>
+                        }
+                    />
                 </div>
             </div>
         </div>

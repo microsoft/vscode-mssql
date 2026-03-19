@@ -1690,6 +1690,8 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
+            iAcceptThe: l10n.t("I accept the"),
+            termsAndConditions: l10n.t("Microsoft SQL Server Terms and Conditions"),
         };
     }
 

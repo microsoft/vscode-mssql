@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../../common/forms/form.component";
 import {
@@ -12,7 +12,6 @@ import {
     FabricProvisioningState,
     FabricProvisioningFormState,
 } from "../../../../sharedInterfaces/fabricProvisioning";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import {
     ChevronDown20Regular,
     ChevronRight20Regular,
@@ -29,8 +28,6 @@ import {
 } from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../../sharedInterfaces/form";
-import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
-import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 
@@ -80,7 +77,6 @@ export const FabricProvisioningInputForm: React.FC = () => {
     const fabricComponents = ["accountId", "workspace", "tenantId"];
     const { formComponents } = fabricProvisioningState;
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
-    const [showNext, setShowNext] = useState(false);
 
     const renderFormFields = (isAdvanced: boolean) =>
         Object.values(formComponents)
@@ -118,32 +114,81 @@ export const FabricProvisioningInputForm: React.FC = () => {
                 </div>
             ));
 
-    const handleSubmit = async () => {
-        await context.createDatabase();
-    };
-
-    useEffect(() => {
-        setShowNext(fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded);
-    }, [fabricProvisioningState.formValidationLoadState]);
-
-    return showNext ? (
-        <ProvisionFabricDatabasePage />
-    ) : (
-        <div>
-            <FabricProvisioningHeader paddingLeft="20px" />
-            <div className={classes.outerDiv}>
-                <div className={classes.formDiv}>
-                    {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
-                        <ConnectionGroupDialog
-                            mode="modal"
-                            state={
-                                (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
-                                    .props
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.formDiv}>
+                {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        mode="modal"
+                        state={
+                            (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
+                                .props
+                        }
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={() => context.setConnectionGroupDialogState(false)}
+                    />
+                )}
+                <FormField<
+                    FabricProvisioningFormState,
+                    FabricProvisioningState,
+                    FabricProvisioningFormItemSpec,
+                    FabricProvisioningContextProps
+                >
+                    context={context}
+                    formState={fabricProvisioningState.formState}
+                    component={
+                        fabricProvisioningState.formComponents[
+                            "accountId"
+                        ] as FabricProvisioningFormItemSpec
+                    }
+                    idx={0}
+                    componentProps={{
+                        onOptionSelect: (
+                            _event: { type: string },
+                            data: { optionValue?: string },
+                        ) => {
+                            context.formAction({
+                                propertyName: "accountId",
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                            context.reloadFabricEnvironment();
+                        },
+                    }}
+                />
+                {renderFormFields(false)}
+                <FormField<
+                    FabricProvisioningFormState,
+                    FabricProvisioningState,
+                    FabricProvisioningFormItemSpec,
+                    FabricProvisioningContextProps
+                >
+                    context={context}
+                    formState={fabricProvisioningState.formState}
+                    component={
+                        fabricProvisioningState.formComponents[
+                            "groupId"
+                        ] as FabricProvisioningFormItemSpec
+                    }
+                    idx={0}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.setConnectionGroupDialogState(true);
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
                             }
-                            saveConnectionGroup={context.createConnectionGroup}
-                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
-                        />
-                    )}
+                        },
+                        renderDecoration: (option: SearchableDropdownOptions) => {
+                            return renderColorSwatch(option.color);
+                        },
+                    }}
+                />
+                {fabricProvisioningState.formState.accountId && (
                     <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
@@ -154,7 +199,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         formState={fabricProvisioningState.formState}
                         component={
                             fabricProvisioningState.formComponents[
-                                "accountId"
+                                "tenantId"
                             ] as FabricProvisioningFormItemSpec
                         }
                         idx={0}
@@ -164,47 +209,17 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                 data: { optionValue?: string },
                             ) => {
                                 context.formAction({
-                                    propertyName: "accountId",
+                                    propertyName: "tenantId",
                                     isAction: false,
                                     value: data.optionValue as string,
                                 });
-                                context.reloadFabricEnvironment();
+                                context.reloadFabricEnvironment(data.optionValue as string);
                             },
                         }}
                     />
-                    {renderFormFields(false)}
-                    <FormField<
-                        FabricProvisioningFormState,
-                        FabricProvisioningState,
-                        FabricProvisioningFormItemSpec,
-                        FabricProvisioningContextProps
-                    >
-                        context={context}
-                        formState={fabricProvisioningState.formState}
-                        component={
-                            fabricProvisioningState.formComponents[
-                                "groupId"
-                            ] as FabricProvisioningFormItemSpec
-                        }
-                        idx={0}
-                        componentProps={{
-                            onSelect: (option: SearchableDropdownOptions) => {
-                                if (option.value === CREATE_NEW_GROUP_ID) {
-                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
-                                } else {
-                                    context.formAction({
-                                        propertyName: "groupId",
-                                        isAction: false,
-                                        value: option.value,
-                                    });
-                                }
-                            },
-                            renderDecoration: (option: SearchableDropdownOptions) => {
-                                return renderColorSwatch(option.color);
-                            },
-                        }}
-                    />
-                    {fabricProvisioningState.formState.accountId && (
+                )}
+                {fabricProvisioningState.formState.accountId &&
+                    (fabricProvisioningState.workspaces.length > 0 ? (
                         <FormField<
                             FabricProvisioningFormState,
                             FabricProvisioningState,
@@ -215,107 +230,49 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             formState={fabricProvisioningState.formState}
                             component={
                                 fabricProvisioningState.formComponents[
-                                    "tenantId"
+                                    "workspace"
                                 ] as FabricProvisioningFormItemSpec
                             }
                             idx={0}
                             componentProps={{
-                                onOptionSelect: (
-                                    _event: { type: string },
-                                    data: { optionValue?: string },
-                                ) => {
-                                    context.formAction({
-                                        propertyName: "tenantId",
-                                        isAction: false,
-                                        value: data.optionValue as string,
-                                    });
-                                    context.reloadFabricEnvironment(data.optionValue as string);
+                                onSelect: async (option: FormItemOptions) => {
+                                    await context.handleWorkspaceFormAction(option.value);
                                 },
                             }}
                         />
-                    )}
-                    {fabricProvisioningState.formState.accountId &&
-                        (fabricProvisioningState.workspaces.length > 0 ? (
-                            <FormField<
-                                FabricProvisioningFormState,
-                                FabricProvisioningState,
-                                FabricProvisioningFormItemSpec,
-                                FabricProvisioningContextProps
-                            >
-                                context={context}
-                                formState={fabricProvisioningState.formState}
-                                component={
-                                    fabricProvisioningState.formComponents[
-                                        "workspace"
-                                    ] as FabricProvisioningFormItemSpec
-                                }
-                                idx={0}
-                                componentProps={{
-                                    onSelect: async (option: FormItemOptions) => {
-                                        await context.handleWorkspaceFormAction(option.value);
-                                    },
-                                }}
-                            />
-                        ) : fabricProvisioningState.isWorkspacesErrored ? (
-                            <div
-                                className={classes.buttonContent}
-                                style={{ marginTop: "20px", marginBottom: "20px" }}>
-                                <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
-                                {locConstants.fabricProvisioning.errorLoadingWorkspaces}
-                            </div>
-                        ) : (
-                            <div
-                                className={classes.buttonContent}
-                                style={{ marginTop: "20px", marginBottom: "20px" }}>
-                                <Spinner size="tiny" />
-                                {locConstants.fabricProvisioning.loadingWorkspaces}...
-                            </div>
-                        ))}
-
-                    <div>
-                        <Button
-                            icon={
-                                showAdvancedOptions ? (
-                                    <ChevronDown20Regular />
-                                ) : (
-                                    <ChevronRight20Regular />
-                                )
-                            }
-                            appearance="subtle"
-                            onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                        />
-                        {locConstants.connectionDialog.advancedOptions}
-                    </div>
-
-                    {showAdvancedOptions && (
-                        <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
-                    )}
-                </div>
-                <div className={classes.bottomDiv}>
-                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                    {fabricProvisioningState.formValidationLoadState === ApiStatus.Loading ? (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            appearance="secondary"
-                            disabled>
-                            <div className={classes.buttonContent}>
-                                <Spinner
-                                    size="extra-tiny"
-                                    label={locConstants.fabricProvisioning.createDatabase}
-                                />
-                            </div>
-                        </Button>
+                    ) : fabricProvisioningState.isWorkspacesErrored ? (
+                        <div
+                            className={classes.buttonContent}
+                            style={{ marginTop: "20px", marginBottom: "20px" }}>
+                            <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
+                            {locConstants.fabricProvisioning.errorLoadingWorkspaces}
+                        </div>
                     ) : (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            onClick={() => handleSubmit()}
-                            appearance="primary">
-                            {locConstants.fabricProvisioning.createDatabase}
-                        </Button>
-                    )}
+                        <div
+                            className={classes.buttonContent}
+                            style={{ marginTop: "20px", marginBottom: "20px" }}>
+                            <Spinner size="tiny" />
+                            {locConstants.fabricProvisioning.loadingWorkspaces}...
+                        </div>
+                    ))}
+                <div>
+                    <Button
+                        icon={
+                            showAdvancedOptions ? (
+                                <ChevronDown20Regular />
+                            ) : (
+                                <ChevronRight20Regular />
+                            )
+                        }
+                        appearance="subtle"
+                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                    />
+                    {locConstants.connectionDialog.advancedOptions}
                 </div>
+
+                {showAdvancedOptions && (
+                    <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                )}
             </div>
         </div>
     );

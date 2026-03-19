@@ -100,7 +100,7 @@ export const Wizard = ({
     };
 
     const canGoBack =
-        currentIndex > 0 &&
+        (currentIndex > 0 || currentPage.onPrevious !== undefined) &&
         (typeof currentPage.canGoBack === "function"
             ? currentPage.canGoBack(pageContext)
             : (currentPage.canGoBack ?? true));
@@ -175,7 +175,7 @@ export const Wizard = ({
             footer={
                 <div className={classes.footer}>
                     {extraFooterActions}
-                    {currentIndex > 0 && (
+                    {(currentIndex > 0 || currentPage.onPrevious !== undefined) && (
                         <Button
                             appearance="secondary"
                             disabled={!canGoBack}
