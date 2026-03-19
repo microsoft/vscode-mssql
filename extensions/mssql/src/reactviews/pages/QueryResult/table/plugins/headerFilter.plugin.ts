@@ -174,6 +174,9 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     onSubmit: (newWidth: number) => this.resizeColumn(column.id!, newWidth),
                 });
                 break;
+            case HeaderContextMenuAction.CopyColumnName:
+                await navigator.clipboard.writeText(column.name ?? "");
+                break;
         }
     }
 

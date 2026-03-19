@@ -20,6 +20,7 @@ export enum HeaderContextMenuAction {
     ToggleSort = "toggleSort",
     Filter = "filter",
     Resize = "resize",
+    CopyColumnName = "copyColumnName",
 }
 
 export interface HeaderContextMenuProps {
@@ -98,6 +99,11 @@ export const HeaderContextMenu: React.FC<HeaderContextMenuProps> = ({
                             }
                             onClick={() => onAction(HeaderContextMenuAction.Resize)}>
                             {locConstants.queryResult.resize}
+                        </MenuItem>
+                        <MenuItem
+                            className={styles.menuItem}
+                            onClick={() => onAction(HeaderContextMenuAction.CopyColumnName)}>
+                            {locConstants.queryResult.copyColumnName}
                         </MenuItem>
                     </MenuList>
                 </MenuPopover>
