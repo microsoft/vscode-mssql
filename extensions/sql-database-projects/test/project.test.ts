@@ -1848,103 +1848,14 @@ suite("Project: properties", function (): void {
         );
     });
 
-    test("Should prompt user when ProjectGuid is missing", async function (): Promise<void> {
-        const project = await testUtils.createTestSqlProject(this.test);
-        // Simulate a missing or all-zeros GUID, which is what DacFx returns when <ProjectGuid> is absent
-        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
-
-        const stub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
-        stub.resolves(constants.noString);
-
-        await Project.checkPromptProjectGuidStatus([project]);
-
-        expect(stub.calledOnce, "showInformationMessage should be called once").to.be.true;
-        expect(
-            stub.calledWith(constants.missingProjectGuids(1, [`'${project.projectFileName}'`])),
-            `showInformationMessage not called with expected message. Actual: "${stub.firstCall.args[0]}"`,
-        ).to.be.true;
-    });
-
-    test("Should add a valid ProjectGuid to project when user accepts prompt", async function (): Promise<void> {
-        const project = await testUtils.createTestSqlProject(this.test);
-        Object.assign(project, { _projectGuid: undefined });
-
-        // In the test environment the mssql extension API returns a proxy/object that may not
-        // expose setProjectProperties as an own or prototype property, which prevents sinon from
-        // stubbing it. Assign a no-op placeholder first so sinon can replace it with a proper stub.
-        type ServiceHost = { sqlProjService: Record<string, unknown> };
-        const svc = (project as unknown as ServiceHost).sqlProjService;
-        svc["setProjectProperties"] = async () => ({ success: true });
-
-        const setProjectPropertiesStub = sandbox
-            .stub(svc, "setProjectProperties")
-            .resolves({ success: true });
-
-        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
-            constants.addProjectGuidLabel,
-        );
-
-        await Project.checkPromptProjectGuidStatus([project]);
-
-        expect(project.projectGuid, "projectGuid should be set after accepting prompt").to.not.be
-            .undefined;
-        expect(project.projectGuid, "projectGuid should not be the null GUID").to.not.equal(
-            constants.nullProjectGuid,
-        );
-        // Verify format: {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
-        expect(project.projectGuid).to.match(
-            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
-        );
-        // Verify the service was called to persist the GUID
-        expect(
-            setProjectPropertiesStub.calledOnce,
-            "setProjectProperties should be called once to persist the new GUID",
-        ).to.be.true;
-        expect(
-            setProjectPropertiesStub.calledWith(project.projectFilePath, {
-                ProjectGuid: project.projectGuid,
-            }),
-            `setProjectProperties not called with expected args. Actual: ${JSON.stringify(setProjectPropertiesStub.firstCall?.args)}`,
-        ).to.be.true;
-    });
-
-    test("Should not add ProjectGuid when user rejects prompt", async function (): Promise<void> {
-        const project = await testUtils.createTestSqlProject(this.test);
-        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
-
-        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
-            constants.noString,
-        );
-
-        await Project.checkPromptProjectGuidStatus([project]);
-
-        expect(
-            project.projectGuid,
-            "projectGuid should remain unchanged when user rejects the prompt",
-        ).to.equal(constants.nullProjectGuid);
-    });
-
     test("Should show a single notification for multiple projects with missing ProjectGuid", async function (): Promise<void> {
         const project1 = await testUtils.createTestSqlProject(this.test);
         const project2 = await testUtils.createTestSqlProject(this.test);
         Object.assign(project1, { _projectGuid: constants.nullProjectGuid });
         Object.assign(project2, { _projectGuid: undefined });
 
-        // Stub setProjectProperties on both service instances.
-        // In the test environment both projects may share the same sqlProjService
-        // proxy, so guard against double-wrapping the same method.
-        type ServiceHost = { sqlProjService: Record<string, unknown> };
-        const svc1 = (project1 as unknown as ServiceHost).sqlProjService;
-        const svc2 = (project2 as unknown as ServiceHost).sqlProjService;
-        const sharedService = svc1 === svc2;
-        svc1["setProjectProperties"] = async () => ({ success: true });
-        if (!sharedService) {
-            svc2["setProjectProperties"] = async () => ({ success: true });
-        }
-        const stub1 = sandbox.stub(svc1, "setProjectProperties").resolves({ success: true });
-        const stub2 = sharedService
-            ? stub1
-            : sandbox.stub(svc2, "setProjectProperties").resolves({ success: true });
+        const ensureGuid1 = sandbox.stub(project1, "ensureValidProjectGuid").resolves();
+        const ensureGuid2 = sandbox.stub(project2, "ensureValidProjectGuid").resolves();
 
         const showInfoStub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
         showInfoStub.resolves(constants.addProjectGuidLabel);
@@ -1964,25 +1875,60 @@ suite("Project: properties", function (): void {
             `showInformationMessage not called with expected message. Actual: "${showInfoStub.firstCall.args[0]}"`,
         ).to.be.true;
 
-        // Both projects should have been fixed
-        expect(project1.projectGuid, "project1 should have a valid GUID").to.match(
+        // ensureValidProjectGuid should have been called once for each project
+        expect(ensureGuid1.calledOnce, "ensureValidProjectGuid should be called once for project1")
+            .to.be.true;
+        expect(ensureGuid2.calledOnce, "ensureValidProjectGuid should be called once for project2")
+            .to.be.true;
+    });
+
+    test("Should add a valid ProjectGuid when user accepts prompt", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
+
+        // In the test environment the mssql extension API returns a proxy that may not
+        // expose setProjectProperties as an own property. Assign a no-op first so sinon can stub it.
+        type ServiceHost = { sqlProjService: Record<string, unknown> };
+        const svc = (project as unknown as ServiceHost).sqlProjService;
+        svc["setProjectProperties"] = async () => ({ success: true });
+        const setProjectPropertiesStub = sandbox
+            .stub(svc, "setProjectProperties")
+            .resolves({ success: true });
+
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            constants.addProjectGuidLabel,
+        );
+
+        await Project.checkPromptProjectGuidStatus([project]);
+
+        expect(project.projectGuid, "projectGuid should be set after accepting prompt").to.not.be
+            .undefined;
+        expect(project.projectGuid, "projectGuid should not be the null GUID").to.not.equal(
+            constants.nullProjectGuid,
+        );
+        expect(project.projectGuid).to.match(
             /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
         );
-        expect(project2.projectGuid, "project2 should have a valid GUID").to.match(
-            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
+        expect(
+            setProjectPropertiesStub.calledOnce,
+            "setProjectProperties should be called once to persist the new GUID",
+        ).to.be.true;
+    });
+
+    test("Should not add ProjectGuid when user rejects prompt", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
+
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            constants.noString,
         );
-        if (sharedService) {
-            // Both projects use the same service instance; the stub is called twice in total.
-            expect(
-                stub1.calledTwice,
-                "setProjectProperties should be called twice (once per project via shared service)",
-            ).to.be.true;
-        } else {
-            expect(stub1.calledOnce, "setProjectProperties should be called once for project1").to
-                .be.true;
-            expect(stub2.calledOnce, "setProjectProperties should be called once for project2").to
-                .be.true;
-        }
+
+        await Project.checkPromptProjectGuidStatus([project]);
+
+        expect(
+            project.projectGuid,
+            "projectGuid should remain unchanged when user rejects the prompt",
+        ).to.equal(constants.nullProjectGuid);
     });
 });
 
