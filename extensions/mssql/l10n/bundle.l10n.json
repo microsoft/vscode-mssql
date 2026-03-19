@@ -1118,6 +1118,8 @@
     "Hide full error message": "Hide full error message",
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
+    "I accept the": "I accept the",
+    "Microsoft SQL Server Terms and Conditions": "Microsoft SQL Server Terms and Conditions",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Loading Fabric provisioning...": "Loading Fabric provisioning...",
     "SQL database in Fabric": "SQL database in Fabric",
