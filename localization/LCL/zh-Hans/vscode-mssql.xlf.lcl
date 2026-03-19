@@ -436,6 +436,9 @@
       <Item ItemId=";bundle.++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search Database Objects (Preview) - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[搜索数据库对象(预览版)- {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -775,6 +778,9 @@
       <Item ItemId=";bundle.++CODE++095cedeb21477c41b2a8a4aebb8ada471ae5b60c59b00351c60dc6754a31f482" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Notebooks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 笔记本]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -826,6 +832,9 @@
       <Item ItemId=";bundle.++CODE++09fa1b862a69dc1d82e2cce4c5330d7e9769cdcc2c7521f2927aa20b32a0401c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a SQL database in Fabric]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 Fabric 中创建 SQL 数据库]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -967,6 +976,9 @@
       <Item ItemId=";bundle.++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Build Data API (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[生成数据 API (预览版)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1090,6 +1102,9 @@
       <Item ItemId=";bundle.++CODE++0d41159e953416fd1facaa0f44131e65fb6e10e1faf44e6f28283765881c589a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Database Projects — Code Analysis]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 数据库项目 - Code Analysis]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1555,6 +1570,9 @@
       <Item ItemId=";bundle.++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[从 Visual Studio Code 中的可视界面为 SQL 数据库表创建 REST、GraphQL 和 MCP 终结点。配置实体、权限和部署设置 ， 然后使用 Docker 在本地部署。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1570,6 +1588,9 @@
       <Item ItemId=";bundle.++CODE++131339547c38a888800811c65663ba4a48be297f76a3ffdf6075afd06b591df8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Backup Database (Preview) - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[备份数据库(预览版) - {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1603,6 +1624,9 @@
       <Item ItemId=";bundle.++CODE++136286bc5a894ca127a857f65556676fa503d02c806d035053fe50a4d5678214" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Write a review]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[撰写评价]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1852,6 +1876,9 @@
       <Item ItemId=";bundle.++CODE++15e1287518c34c5331e35214b9b9874f3e180cd06304170418dcf8e18009f67d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[很高兴你喜欢 MSSQL for VS Code! 请考虑在 VS Code 商城留下简短评价。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2436,6 +2463,15 @@
           <Val><![CDATA[Next]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[下一步]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Table Diagram]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查看表格关系图]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3397,6 +3433,9 @@
       <Item ItemId=";bundle.++CODE++2bbd3f4d1c961e88f378b374bc1ce96b67f857965c2fa26ae0898d38a6caab94" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Click to change connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[单击以更改连接]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3925,6 +3964,9 @@
       <Item ItemId=";bundle.++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用实时验证和实时 DML 脚本预览在交互式网格中查看、添加、编辑和删除表行。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5029,6 +5071,9 @@
       <Item ItemId=";bundle.++CODE++417d51fadd3d0a015407cc0fd8a632098a2fa435bf7dd75a74b2c657b259fbde" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[GitHub Copilot integration in Data API builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据 API 生成器中的 GitHub Copilot 集成]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5260,6 +5305,9 @@
       <Item ItemId=";bundle.++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Analyze static code with customizable rulesets in SQL Database Projects.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 SQL 数据库项目中的可自定义规则集分析静态代码。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5734,6 +5782,9 @@
       <Item ItemId=";bundle.++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Visualize and Design Schema (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可视化和设计架构(预览版)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6352,6 +6403,9 @@
       <Item ItemId=";bundle.++CODE++50564b2fb586a6f8ee172cd303c720768a52904367132b2cafb6d7a4eb9de5dd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用自然语言直接在可视化架构设计器中设计数据库架构。从头开始创建架构，改进现有设计，通过差异视图查看更改，并导入外部项目 - 所有这些都反映在可视图和 T-SQL 脚本中。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6898,6 +6952,9 @@
       <Item ItemId=";bundle.++CODE++589c6d8e7bd5cc5626c229ddacca440a0d228fd6c50c856d46b86b002a9ac8dd" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[From]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[从]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6940,6 +6997,9 @@
       <Item ItemId=";bundle.++CODE++594683ed5533aeeab2a537f670f9a1ae7394eef4784dc9398b23309a6b88a965" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide Definition]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[隐藏定义]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6955,6 +7015,9 @@
       <Item ItemId=";bundle.++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unsupported data types detected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[检测到不受支持的数据类型]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7123,6 +7186,18 @@
       <Item ItemId=";bundle.++CODE++5b7f462ae3c2f088449521a194e6c2b8833bd4acd5c877f6e13f55681d4d931d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Restore Database (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[还原数据库(预览版)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[测试连接]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7165,6 +7240,9 @@
       <Item ItemId=";bundle.++CODE++5c2757ee529f77e52b5172ba9b77defdd3f8183a111733beab404d8b47299c09" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container logs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[容器日志]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8179,6 +8257,9 @@
       <Item ItemId=";bundle.++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[At least one API type must be selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[必须至少选择一个 API 类型。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8302,6 +8383,18 @@
       <Item ItemId=";bundle.++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search Database Objects (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[搜索数据库对象(预览版)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6c02a28421f8ad91e91756cb731bb47993bf529101135966b80128548a16d5b1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在测试...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8650,6 +8743,9 @@
       <Item ItemId=";bundle.++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import File (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[导入文件(预览)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8674,12 +8770,18 @@
       <Item ItemId=";bundle.++CODE++71219533fa80ed5eeb848c111ee5ebb32cb091945385aeba0c8685617390b694" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[一个或多个实体包含当前不受 数据 API Builder 支持的列类型。无法选择这些实体进行部署。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++713772940f735da4b9d051c4f91c4e707ef5389f0014209b9cdd119407ee776c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在数据 API 生成器(预览版)体验中，本地容器部署仅适用于使用 SQL 身份验证的连接。不支持当前连接类型。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9073,6 +9175,9 @@
       <Item ItemId=";bundle.++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[通过 GitHub Copilot 聊天和代理工具使用自然语言生成数据 API生成器配置。描述 API 要求，并让 GitHub Copilot 为你搭建配置基架。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9454,6 +9559,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to open Table Designer: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能打开表设计器: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7aeae1412484f6378e5877b660a41baa6a521988eb8b2620ca3223b05e2ff20c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Password is required]]></Val>
@@ -9556,6 +9670,9 @@
       <Item ItemId=";bundle.++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Logs copied to clipboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[复制到剪贴板的日志]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9751,6 +9868,9 @@
       <Item ItemId=";bundle.++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication not supported]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不支持身份验证]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9775,6 +9895,9 @@
       <Item ItemId=";bundle.++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API Builder Configuration (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据 API 生成器配置(预览版)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10564,6 +10687,9 @@
       <Item ItemId=";bundle.++CODE++8a9889070cc5b808819105a414532c19eb1ace48a6acd6350d5e4aa7576f6ba8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data-Tier Application (DACPAC / BACPAC) Import & Export]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据层应用程序 (DACPAC/BACPAC) 导入和导出]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10579,6 +10705,9 @@
       <Item ItemId=";bundle.++CODE++8aa105b901acedb4a843195d9a4f4453b834578064202c08417dd4f405a9a791" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用交互式结果、排序、筛选和 Markdown 文档在本机 Visual Studio Code Jupyter 笔记本中编写和运行 SQL 查询。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11089,6 +11218,9 @@
       <Item ItemId=";bundle.++CODE++9140e5e357804946d2f6bec667449fd4ab6fd6060174b5cf3c36e1ccb3ff9b01" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[这将使用 Docker 在本地部署数据 API 生成器容器。容器将根据配置公开 {0} API。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11590,6 +11722,9 @@
       <Item ItemId=";bundle.++CODE++993e47be6175800df73275ac1ed9110d48278de2832d3dbc9a07f1c35f58876f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Table contains column types not supported by Data API Builder: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[表包含生成器不支持的列类型数据 API: {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11935,6 +12070,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[连接操作]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server name not set.]]></Val>
@@ -11992,6 +12136,9 @@
       <Item ItemId=";bundle.++CODE++9f0579d320976e14e7280ec17e960103c91dc619a776e8469b47aeab90278fad" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[至]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12556,6 +12703,9 @@
       <Item ItemId=";bundle.++CODE++a576368432dbd7893c037eb4b0282495ec468ff385db59414d9797a8b0d5c64b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Schema Designer with GitHub Copilot]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 GitHub Copilot 的架构设计器]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12760,6 +12910,9 @@
       <Item ItemId=";bundle.++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MSSQL: Click to change connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL: 单击以更改连接]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12883,6 +13036,9 @@
       <Item ItemId=";bundle.++CODE++aaadc23aff35d3da3916780fe2e84c913d08a2d1840d19f3600b2cb75efc1b91" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[浏览 Fabric 工作区并在 Fabric 中预配 SQL 数据库，而无需离开 VS Code。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13282,6 +13438,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save without connecting]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[保存但不连接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connections in groups that are not selected will be moved under the root.]]></Val>
@@ -13312,6 +13477,9 @@
       <Item ItemId=";bundle.++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查询探查器现在支持 Microsoft Fabric 连接中的 SQL 数据库，新 Azure SQL 数据库模板包括用于轻型 T-SQL 分析的 {code-snippet-0}。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13336,6 +13504,9 @@
       <Item ItemId=";bundle.++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Design Schemas with GitHub Copilot (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 GitHub Copilot (预览版)设计架构]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13657,6 +13828,9 @@
       <Item ItemId=";bundle.++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Local container deployment is currently only supported with SQL Authentication connections.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[当前仅 SQL 身份验证连接支持本地容器部署。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14176,6 +14350,9 @@
       <Item ItemId=";bundle.++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MSSQL: What's new]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL: 新增功能]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14422,15 +14599,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test Connection]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[测试连接]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy connection string to clipboard]]></Val>
@@ -14614,6 +14782,9 @@
       <Item ItemId=";bundle.++CODE++c385c344080699844442bf2dd893618a4702d5d3a3e11ed632dfad839fa2b8c4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Privacy notice]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[隐私声明]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14647,6 +14818,9 @@
       <Item ItemId=";bundle.++CODE++c3b61e80e8a8149fcc5bcb2dc5d9c4f20589057596ae7592a6e165c0cfc71b05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Table must have a primary key to be used with Data API Builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[表必须具有要与数据 API 生成器一起使用的主键]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15409,6 +15583,9 @@
       <Item ItemId=";bundle.++CODE++cec4c1fded759957b61fa5bace2234953f9645b8a10f1ac56cdd67e89cb7c118" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[I understand this action is permanent and irreversible]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[我了解此操作是永久且不可逆的]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15451,6 +15628,9 @@
       <Item ItemId=";bundle.++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[隐藏更改]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15592,6 +15772,9 @@
       <Item ItemId=";bundle.++CODE++d17dd48b24fa0afbcf8f22316dfb0f6d0fc0f84209b049d5e9e51875a30290a3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Fabric provisioning...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在加载 Fabric 预配...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16084,6 +16267,9 @@
       <Item ItemId=";bundle.++CODE++d7cd0dd0ca57b9a1b087c6af78aaedaec67c6c7c792c96b6d2e90ebf8e0a5c5f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Fabric databases in Query Profiler]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查询探查器中的 Fabric 数据库]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16513,6 +16699,9 @@
       <Item ItemId=";bundle.++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[数据 API 生成器]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17293,6 +17482,9 @@
       <Item ItemId=";bundle.++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Fabric integration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Fabric 集成]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17875,6 +18067,9 @@
       <Item ItemId=";bundle.++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[DAB container logs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB 容器日志]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18547,6 +18742,9 @@
       <Item ItemId=";bundle.++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MSSQL extension icon]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL 扩展图标]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18564,6 +18762,15 @@
           <Val><![CDATA[Entity Endpoints]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[实体终结点]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f8bdabb0046a85c7425f45c252b0b3e8bb407660e28ad5844369a7176f7763b9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to open Schema Designer: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能打开架构设计器: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18735,6 +18942,15 @@
           <Val><![CDATA[Loading Schema Designer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在加载架构设计器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection test succeeded]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[连接测试成功]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20428,8 +20644,8 @@
       <Item ItemId=";package.mssql.notebooks.createNotebook" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create SQL Notebook (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[创建 SQL 笔记本]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建 SQL 笔记本(预览版)]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Create SQL Notebook]]></Val>
@@ -21283,8 +21499,8 @@
       <Item ItemId=";package.mssql.schemaDesigner" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Visualize and Design Schema (Preview)...]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[可视化和设计架构...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可视化和设计架构(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Visualize and Design Schema...]]></Val>
@@ -21349,8 +21565,8 @@
       <Item ItemId=";package.mssql.searchDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search Database Objects (Preview)...]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[搜索数据库对象...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[搜索数据库对象(预览版)...]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Search Database Objects...]]></Val>
@@ -21435,9 +21651,9 @@
       </Item>
       <Item ItemId=";package.mssql.startContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start SQL Container]]></Val>
+          <Val><![CDATA[Start SQLContainer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启动 SQL Container]]></Val>
+            <Val><![CDATA[启动 SQLContainer]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Start Container]]></Val>
@@ -21487,8 +21703,8 @@
       <Item ItemId=";package.mssql.tableExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit Table Data...]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[编辑表数据(预览版)...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[编辑表数据...]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Edit Table Data (Preview)...]]></Val>
@@ -21508,6 +21724,9 @@
       <Item ItemId=";package.mssql.toggleQueryResultPanel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Query Result Panel Visibility]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[切换查询结果面板可见性]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
