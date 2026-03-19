@@ -138,6 +138,8 @@ export interface DialogPageShellProps {
     icon?: ReactNode;
     title?: string;
     subtitle?: ReactNode;
+    headerEnd?: ReactNode;
+    headerBottom?: ReactNode;
     errorMessage?: string;
     loadingMessage?: string;
     maxContentWidth?: DialogPageShellContentWidth;
@@ -150,6 +152,8 @@ export const DialogPageShell = ({
     icon,
     title,
     subtitle,
+    headerEnd,
+    headerBottom,
     errorMessage,
     loadingMessage,
     maxContentWidth,
@@ -187,12 +191,19 @@ export const DialogPageShell = ({
         <div className={styles.page} aria-label={title}>
             <div className={styles.scrollRegion}>
                 <div className={styles.container}>
-                    {(icon || title || subtitle) && (
+                    {(icon || title || subtitle || headerEnd || headerBottom) && (
                         <div
                             className={styles.header}
                             style={{
                                 ...contentWidthStyle,
-                                gridTemplateColumns: hasHeaderIcon ? "auto 1fr" : "1fr",
+                                gridTemplateColumns:
+                                    hasHeaderIcon && headerEnd
+                                        ? "auto minmax(0, 1fr) auto"
+                                        : hasHeaderIcon
+                                          ? "auto 1fr"
+                                          : headerEnd
+                                            ? "minmax(0, 1fr) auto"
+                                            : "1fr",
                             }}>
                             {hasHeaderIcon && (
                                 <div className={styles.iconContainer}>{headerIcon}</div>
@@ -201,8 +212,10 @@ export const DialogPageShell = ({
                                 {title && <div className={styles.title}>{title}</div>}
                                 {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
                             </div>
+                            {headerEnd}
                         </div>
                     )}
+                    {headerBottom && <div style={contentWidthStyle}>{headerBottom}</div>}
                     {(errorMessage || loadingMessage) && (
                         <div className={styles.messageStack} style={contentWidthStyle}>
                             {errorMessage && (

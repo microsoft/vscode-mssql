@@ -5,7 +5,6 @@
 
 import { useContext, useMemo } from "react";
 import {
-    Button,
     createTableColumn,
     makeStyles,
     Spinner,
@@ -27,8 +26,6 @@ import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
-import { FlatFileHeader } from "./flatFileHeader";
-import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
 import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
@@ -58,22 +55,8 @@ const useStyles = makeStyles({
         opacity: 0.5,
     },
 
-    button: {
-        height: "30px",
-        minWidth: "100px",
-        marginRight: "8px",
-    },
-
-    bottomDiv: {
-        paddingTop: "12px",
-        marginLeft: "10px",
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "8px",
-    },
-
     tableDiv: {
-        maxWidth: "90vw",
+        maxWidth: "100%",
         maxHeight: "60vh",
         overflow: "auto",
         minWidth: "150px",
@@ -235,11 +218,6 @@ export const FlatFilePreviewTable = () => {
 
     return (
         <div>
-            <FlatFileHeader
-                headerText={locConstants.flatFileImport.importFile}
-                stepText={locConstants.flatFileImport.stepTwo}
-            />
-
             <Text className={classes.operationText}>
                 {locConstants.flatFileImport.operationPreviewText}
             </Text>
@@ -281,32 +259,6 @@ export const FlatFilePreviewTable = () => {
                         ))}
                     </TableBody>
                 </Table>
-            </div>
-
-            <div className={classes.bottomDiv}>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => {
-                        context.resetState(FlatFileStepType.TablePreview);
-                    }}
-                    appearance="secondary">
-                    {locConstants.common.previous}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => context.setStep(FlatFileStepType.ColumnChanges)}
-                    appearance="primary">
-                    {locConstants.common.next}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => context.dispose()}
-                    appearance="secondary">
-                    {locConstants.common.cancel}
-                </Button>
             </div>
         </div>
     );
