@@ -8,6 +8,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { ArrowLeft20Regular, ArrowRight20Regular } from "@fluentui/react-icons";
 import { DialogPageShellContentWidth } from "./dialogPageShell";
 import { WizardPageShell } from "./wizardPageShell";
+import { locConstants } from "./locConstants";
 
 const useStyles = makeStyles({
     footer: {
@@ -116,7 +117,10 @@ export const Wizard = ({
     const nextLabel =
         typeof currentPage.nextLabel === "function"
             ? currentPage.nextLabel(pageContext)
-            : (currentPage.nextLabel ?? (currentIndex === totalPages - 1 ? "Finish" : "Next"));
+            : (currentPage.nextLabel ??
+              (currentIndex === totalPages - 1
+                  ? locConstants.common.finish
+                  : locConstants.common.next));
 
     const goNext = async () => {
         const result = await currentPage.onNext?.(pageContext);
@@ -172,7 +176,7 @@ export const Wizard = ({
                             onClick={() => void goPrevious()}>
                             <span className={classes.footerButtonContent}>
                                 <ArrowLeft20Regular />
-                                <span>Previous</span>
+                                <span>{locConstants.common.previous}</span>
                             </span>
                         </Button>
                     )}
@@ -186,7 +190,7 @@ export const Wizard = ({
                         </span>
                     </Button>
                     <Button appearance="secondary" onClick={onCancel}>
-                        Cancel
+                        {locConstants.common.cancel}
                     </Button>
                 </div>
             }>

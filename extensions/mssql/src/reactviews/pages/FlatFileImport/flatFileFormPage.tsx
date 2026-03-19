@@ -88,7 +88,7 @@ export const FlatFileFormPage: React.FC = () => {
                 <div className={classes.browseRow}>
                     <Button
                         className={classes.browseButton}
-                        type="submit"
+                        type="button"
                         onClick={() => context.openVSCodeFileBrowser()}
                         appearance="secondary">
                         {locConstants.flatFileImport.browse}

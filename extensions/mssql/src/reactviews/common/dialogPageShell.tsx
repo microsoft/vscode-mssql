@@ -12,6 +12,8 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
+const headerIconSizePx = 32;
+
 const contentWidthPresets = {
     medium: "720px",
     wide: "800px",
@@ -180,8 +182,8 @@ export const DialogPageShell = ({
     const headerIcon =
         icon && isValidElement(icon)
             ? cloneElement(icon as ReactElement, {
-                  width: 32,
-                  height: 32,
+                  width: headerIconSizePx,
+                  height: headerIconSizePx,
               })
             : icon;
     const hasHeaderIcon = headerIcon !== undefined && headerIcon !== null && headerIcon !== false;
@@ -223,8 +225,8 @@ export const DialogPageShell = ({
                                     <div
                                         className={styles.iconContainer}
                                         style={{
-                                            width: "32px",
-                                            height: "32px",
+                                            width: `${headerIconSizePx}px`,
+                                            height: `${headerIconSizePx}px`,
                                         }}>
                                         {headerIcon}
                                     </div>

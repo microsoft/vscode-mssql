@@ -127,11 +127,11 @@ type FlatFileTableCell = {
 export const FlatFilePreviewTablePage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
     if (!context) return null;
 
     const loadState = useFlatFileSelector((s) => s.tablePreviewStatus);
+    const errorMessage = useFlatFileSelector((s) => s.errorMessage);
 
     const renderMainContent = () => {
         switch (loadState) {
@@ -150,7 +150,7 @@ export const FlatFilePreviewTablePage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{state?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }

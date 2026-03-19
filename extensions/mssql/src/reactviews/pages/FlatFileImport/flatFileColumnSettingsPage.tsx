@@ -178,7 +178,7 @@ interface FlatFileColumnSettingsPageProps {
 export const FlatFileColumnSettingsPage = ({
     initialColumnChanges,
     onColumnChangesChanged,
-}: FlatFileColumnSettingsPageProps = {}) => {
+}: FlatFileColumnSettingsPageProps) => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
 

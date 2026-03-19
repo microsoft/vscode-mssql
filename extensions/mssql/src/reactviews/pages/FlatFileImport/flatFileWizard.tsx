@@ -41,8 +41,6 @@ const useStyles = makeStyles({
     },
 });
 
-const stripStepPrefix = (label: string) => label.replace(/^Step\s+\d+:\s*/i, "");
-
 export const FlatFileWizard = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
@@ -67,7 +65,7 @@ export const FlatFileWizard = () => {
         () => [
             {
                 id: FlatFileStepType.Form,
-                title: stripStepPrefix(locConstants.flatFileImport.stepOne),
+                title: locConstants.flatFileImport.stepOne,
                 render: () => <FlatFileFormPage />,
                 isPageValid: canContinueFromForm,
                 onNext: async () => {
@@ -81,7 +79,7 @@ export const FlatFileWizard = () => {
             },
             {
                 id: FlatFileStepType.TablePreview,
-                title: stripStepPrefix(locConstants.flatFileImport.stepTwo),
+                title: locConstants.flatFileImport.stepTwo,
                 render: () => <FlatFilePreviewTablePage />,
                 onPrevious: async () => {
                     setColumnChanges([]);
@@ -90,7 +88,7 @@ export const FlatFileWizard = () => {
             },
             {
                 id: FlatFileStepType.ColumnChanges,
-                title: stripStepPrefix(locConstants.flatFileImport.stepThree),
+                title: locConstants.flatFileImport.stepThree,
                 render: () => (
                     <FlatFileColumnSettingsPage
                         initialColumnChanges={columnChanges}
@@ -108,7 +106,7 @@ export const FlatFileWizard = () => {
             },
             {
                 id: FlatFileStepType.ImportData,
-                title: stripStepPrefix(locConstants.flatFileImport.stepFour),
+                title: locConstants.flatFileImport.stepFour,
                 render: () => <FlatFileSummaryPage />,
                 nextLabel: locConstants.common.finish,
                 isPageValid: importDataStatus === ApiStatus.Loaded,

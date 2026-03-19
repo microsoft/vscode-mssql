@@ -6,6 +6,7 @@
 import { makeStyles, tokens } from "@fluentui/react-components";
 import { ReactNode } from "react";
 import { DialogPageShell, DialogPageShellContentWidth } from "./dialogPageShell";
+import { locConstants } from "./locConstants";
 
 const useStyles = makeStyles({
     headerEnd: {
@@ -68,7 +69,7 @@ export const WizardPageShell = ({
             maxContentWidth={maxContentWidth}
             headerEnd={
                 <div className={classes.headerEnd}>
-                    Step {currentStep} of {totalSteps}
+                    {locConstants.common.stepOf(currentStep, totalSteps)}
                 </div>
             }
             headerBottom={
