@@ -1856,11 +1856,11 @@ suite("Project: properties", function (): void {
         const stub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
         stub.resolves(constants.noString);
 
-        await Project.checkPromptProjectGuidStatus(project);
+        await Project.checkPromptProjectGuidStatus([project]);
 
         expect(stub.calledOnce, "showInformationMessage should be called once").to.be.true;
         expect(
-            stub.calledWith(constants.missingProjectGuid(project.projectFileName)),
+            stub.calledWith(constants.missingProjectGuids(1, [`'${project.projectFileName}'`])),
             `showInformationMessage not called with expected message. Actual: "${stub.firstCall.args[0]}"`,
         ).to.be.true;
     });
@@ -1884,7 +1884,7 @@ suite("Project: properties", function (): void {
             constants.addProjectGuidLabel,
         );
 
-        await Project.checkPromptProjectGuidStatus(project);
+        await Project.checkPromptProjectGuidStatus([project]);
 
         expect(project.projectGuid, "projectGuid should be set after accepting prompt").to.not.be
             .undefined;
@@ -1916,12 +1916,58 @@ suite("Project: properties", function (): void {
             constants.noString,
         );
 
-        await Project.checkPromptProjectGuidStatus(project);
+        await Project.checkPromptProjectGuidStatus([project]);
 
         expect(
             project.projectGuid,
             "projectGuid should remain unchanged when user rejects the prompt",
         ).to.equal(constants.nullProjectGuid);
+    });
+
+    test("Should show a single notification for multiple projects with missing ProjectGuid", async function (): Promise<void> {
+        const project1 = await testUtils.createTestSqlProject(this.test);
+        const project2 = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project1, { _projectGuid: constants.nullProjectGuid });
+        Object.assign(project2, { _projectGuid: undefined });
+
+        // Stub setProjectProperties on both service instances
+        type ServiceHost = { sqlProjService: Record<string, unknown> };
+        const svc1 = (project1 as unknown as ServiceHost).sqlProjService;
+        const svc2 = (project2 as unknown as ServiceHost).sqlProjService;
+        svc1["setProjectProperties"] = async () => ({ success: true });
+        svc2["setProjectProperties"] = async () => ({ success: true });
+        const stub1 = sandbox.stub(svc1, "setProjectProperties").resolves({ success: true });
+        const stub2 = sandbox.stub(svc2, "setProjectProperties").resolves({ success: true });
+
+        const showInfoStub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
+        showInfoStub.resolves(constants.addProjectGuidLabel);
+
+        await Project.checkPromptProjectGuidStatus([project1, project2]);
+
+        // Only one notification should have been shown for both projects
+        expect(showInfoStub.calledOnce, "showInformationMessage should be called exactly once").to
+            .be.true;
+        expect(
+            showInfoStub.calledWith(
+                constants.missingProjectGuids(2, [
+                    `'${project1.projectFileName}'`,
+                    `'${project2.projectFileName}'`,
+                ]),
+            ),
+            `showInformationMessage not called with expected message. Actual: "${showInfoStub.firstCall.args[0]}"`,
+        ).to.be.true;
+
+        // Both projects should have been fixed
+        expect(project1.projectGuid, "project1 should have a valid GUID").to.match(
+            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
+        );
+        expect(project2.projectGuid, "project2 should have a valid GUID").to.match(
+            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
+        );
+        expect(stub1.calledOnce, "setProjectProperties should be called once for project1").to.be
+            .true;
+        expect(stub2.calledOnce, "setProjectProperties should be called once for project2").to.be
+            .true;
     });
 });
 

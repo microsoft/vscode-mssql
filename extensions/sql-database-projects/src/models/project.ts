@@ -55,6 +55,13 @@ enum Configuration {
 export class Project implements ISqlProject {
     private sqlProjService!: utils.ISqlProjectsService;
 
+    // Collects projects whose missing-GUID prompt is deferred until
+    // after all workspace projects have finished loading, so a single
+    // consolidated notification is shown instead of one per project.
+    private static _pendingGuidProjects: Project[] = [];
+    private static _guidPromptTimer: ReturnType<typeof setTimeout> | undefined;
+    private static readonly _guidPromptDebounceMs = 500;
+
     private _projectFilePath: string;
     private _projectFileName: string;
     private _projectGuid: string | undefined;
@@ -194,9 +201,11 @@ export class Project implements ISqlProject {
                 false /* don't block the thread until the  prompt*/,
             );
 
-            // Prompt the user about missing projectGuid
+            // Queue this project for the consolidated missing-GUID prompt.
+            // All projects added within the debounce window are batched into
+            // a single notification rather than showing one popup per project.
             if (proj.isMissingProjectGuid()) {
-                void Project.checkPromptProjectGuidStatus(proj);
+                Project.scheduleGuidPrompt(proj);
             }
         }
 
@@ -204,24 +213,51 @@ export class Project implements ISqlProject {
     }
 
     /**
-     * Prompts the user to add a ProjectGuid if one is not present or valid.
-     * Two cases trigger this prompt:
-     * - Case 1: <ProjectGuid> element is absent from the .sqlproj file (DacFx returns all-zeros)
-     * - Case 2: <ProjectGuid> is present but explicitly set to all-zeros
-     * Third case: a real GUID is already present — this method is never called in that case.
+     * Queues a project for the batched missing-GUID notification.  All
+     * projects pushed within `_guidPromptDebounceMs` milliseconds are
+     * collected and passed together to `checkPromptProjectGuidStatus` so
+     * only a single notification appears per workspace load.
      */
-    public static async checkPromptProjectGuidStatus(project: Project): Promise<void> {
+    private static scheduleGuidPrompt(project: Project): void {
+        Project._pendingGuidProjects.push(project);
+        if (Project._guidPromptTimer !== undefined) {
+            clearTimeout(Project._guidPromptTimer);
+        }
+        Project._guidPromptTimer = setTimeout(() => {
+            Project._guidPromptTimer = undefined;
+            const projects = Project._pendingGuidProjects.splice(0);
+            void Project.checkPromptProjectGuidStatus(projects);
+        }, Project._guidPromptDebounceMs);
+    }
+
+    /**
+     * Shows a single consolidated notification for all projects that are
+     * missing a valid ProjectGuid, then fixes each one if the user accepts.
+     * Handles two cases:
+     * - <ProjectGuid> element is absent from the .sqlproj (DacFx returns all-zeros)
+     * - <ProjectGuid> is present but explicitly set to all-zeros
+     */
+    public static async checkPromptProjectGuidStatus(projects: Project[]): Promise<void> {
+        if (projects.length === 0) {
+            return;
+        }
+
+        const projectNames = projects.map((p) => `'${p.projectFileName}'`);
+        const message = constants.missingProjectGuids(projects.length, projectNames);
+
         const result = await window.showInformationMessage(
-            constants.missingProjectGuid(project.projectFileName),
+            message,
             constants.addProjectGuidLabel,
             constants.noString,
         );
 
         if (result === constants.addProjectGuidLabel) {
-            try {
-                await project.ensureValidProjectGuid();
-            } catch (error) {
-                void window.showErrorMessage(utils.getErrorMessage(error));
+            for (const project of projects) {
+                try {
+                    await project.ensureValidProjectGuid();
+                } catch (error) {
+                    void window.showErrorMessage(utils.getErrorMessage(error));
+                }
             }
         }
     }
