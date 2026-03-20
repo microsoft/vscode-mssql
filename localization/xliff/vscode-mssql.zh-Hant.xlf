@@ -9251,7 +9251,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines">
         <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
-        <target state="new">Control which grid lines are visible in the results grid.</target>
+        <target state="translated">控制結果網格中可見的格線。</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
@@ -9457,7 +9457,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.alternatingRowColors">
         <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
-        <target state="new">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</target>
+        <target state="translated">在結果網格中啟用交替行背景色 (斑馬線條)。顏色取自目前的 VS Code 主題。</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
@@ -9497,7 +9497,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.rowPadding">
         <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
-        <target state="new">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</target>
+        <target state="translated">為結果網格中的每一列額外增加的垂直內距 (以像素為單位)，用於控制列的密度。有效範圍: 0-10。</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
@@ -9529,7 +9529,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.none">
         <source xml:lang="en">Hide all grid lines</source>
-        <target state="new">Hide all grid lines</target>
+        <target state="translated">隱藏所有格線</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
@@ -9851,7 +9851,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.both">
         <source xml:lang="en">Show both horizontal and vertical grid lines</source>
-        <target state="new">Show both horizontal and vertical grid lines</target>
+        <target state="translated">同時顯示水平與垂直格線</target>
       </trans-unit>
       <trans-unit id="mssql.showChangelogOnUpdate">
         <source xml:lang="en">Show changelog after extension updates</source>
@@ -9859,11 +9859,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
         <source xml:lang="en">Show only horizontal grid lines</source>
-        <target state="new">Show only horizontal grid lines</target>
+        <target state="translated">僅顯示水平格線</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
         <source xml:lang="en">Show only vertical grid lines</source>
-        <target state="new">Show only vertical grid lines</target>
+        <target state="translated">僅顯示垂直格線</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
@@ -9923,7 +9923,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start SQL Container</source>
-        <target state="new">Start SQL Container</target>
+        <target state="translated">啟動 SQL 容器</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>
