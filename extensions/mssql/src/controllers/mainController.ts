@@ -730,8 +730,13 @@ export default class MainController implements vscode.Disposable {
             // Register a virtual document provider once during extension activation
             vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
                 provideTextDocumentContent: (uri) => {
-                    // The content is stored in the URI fragment
-                    return decodeURIComponent(uri.fragment);
+                    // Attempt to decode the URI fragment
+                    try {
+                        return decodeURIComponent(uri.fragment);
+                    } catch {
+                        // If decoding fails, return the raw fragment as a fallback.  Some characters (like '%') can cause decodeURIComponent to throw an error.
+                        return uri.fragment;
+                    }
                 },
             });
 
