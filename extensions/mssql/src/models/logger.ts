@@ -192,7 +192,7 @@ export class Logger implements ILogger {
  * @param objOrArray The object to sanitize for output logging
  * @returns The stringified version of the sanitized object
  */
-function sanitize(objOrArray: any): string {
+export function sanitize(objOrArray: any): string {
     if (Array.isArray(objOrArray)) {
         return JSON.stringify(objOrArray.map((o) => sanitizeImpl(o)));
     } else {
@@ -230,7 +230,7 @@ function shortenIfExists(obj: any, property: string): void {
  * @param str The string to shorten
  * @returns Shortened string in the form 'xxx...xxx'
  */
-function shorten(str?: string): string | undefined {
+export function shorten(str?: string): string | undefined {
     // Don't shorten if adding the ... wouldn't make the string shorter
     if (!str || str.length < 10) {
         return str;
