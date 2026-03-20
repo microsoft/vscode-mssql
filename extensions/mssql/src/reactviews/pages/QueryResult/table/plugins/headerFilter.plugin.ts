@@ -174,9 +174,19 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     onSubmit: (newWidth: number) => this.resizeColumn(column.id!, newWidth),
                 });
                 break;
-            case HeaderContextMenuAction.CopyColumnName:
-                await navigator.clipboard.writeText(column.name ?? "");
+            case HeaderContextMenuAction.CopyColumnName: {
+                const toolTip =
+                    typeof column.toolTip === "string" && column.toolTip.length > 0
+                        ? column.toolTip
+                        : undefined;
+                const textToCopy = toolTip ?? column.name ?? "";
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                } catch {
+                    // Swallow clipboard errors to avoid breaking context menu flow.
+                }
                 break;
+            }
         }
     }
 
