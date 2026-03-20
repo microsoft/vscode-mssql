@@ -144,35 +144,6 @@ export const ConnectionsListContainer = () => {
             <div className={styles.listScrollArea}>
                 <div className={styles.paneTitle}>
                     <Text weight="semibold" className={styles.paneTitle}>
-                        {locConstants.connectionDialog.savedConnections}
-                    </Text>
-                    <Button
-                        icon={<ArrowClockwise16Filled />}
-                        appearance="subtle"
-                        onClick={context.refreshConnectionsList}
-                        title={locConstants.common.refresh}
-                    />
-                </div>
-                <div className={styles.main}>
-                    {savedConnections?.map((connection, index) => {
-                        return (
-                            <ConnectionCard
-                                connection={connection}
-                                key={"saved" + index}
-                                actionButton={{
-                                    icon: <Delete16Regular />,
-                                    onClick: (e) => {
-                                        context.deleteSavedConnection(connection);
-                                        e.stopPropagation();
-                                    },
-                                    tooltip: locConstants.connectionDialog.deleteSavedConnection,
-                                }}
-                            />
-                        );
-                    })}
-                </div>
-                <div className={styles.paneTitle}>
-                    <Text weight="semibold" className={styles.paneTitle}>
                         {locConstants.connectionDialog.recentConnections}
                     </Text>
                     <Button
@@ -184,11 +155,11 @@ export const ConnectionsListContainer = () => {
                 </div>
                 <Tree>
                     {// state may not be initialized yet due to async loading of context
-                    recentConnections?.map((connection, index) => {
+                    recentConnections?.map((connection) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
-                                key={"mru" + index}
+                                key={"mru" + connection.id}
                                 actionButton={{
                                     icon: <Delete16Regular />,
                                     onClick: (e) => {
@@ -201,6 +172,35 @@ export const ConnectionsListContainer = () => {
                         );
                     })}
                 </Tree>
+                <div className={styles.paneTitle}>
+                    <Text weight="semibold" className={styles.paneTitle}>
+                        {locConstants.connectionDialog.savedConnections}
+                    </Text>
+                    <Button
+                        icon={<ArrowClockwise16Filled />}
+                        appearance="subtle"
+                        onClick={context.refreshConnectionsList}
+                        title={locConstants.common.refresh}
+                    />
+                </div>
+                <div className={styles.main}>
+                    {savedConnections?.map((connection) => {
+                        return (
+                            <ConnectionCard
+                                connection={connection}
+                                key={"saved" + connection.id}
+                                actionButton={{
+                                    icon: <Delete16Regular />,
+                                    onClick: (e) => {
+                                        context.deleteSavedConnection(connection);
+                                        e.stopPropagation();
+                                    },
+                                    tooltip: locConstants.connectionDialog.deleteSavedConnection,
+                                }}
+                            />
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

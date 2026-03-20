@@ -11,7 +11,11 @@ import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { Logger } from "../../src/models/logger";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
+import {
+    CredentialsQuickPickItemType,
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+} from "../../src/models/interfaces";
 import { MatchScore } from "../../src/models/utils";
 import { Deferred } from "../../src/protocol";
 import { azureAuthConn, sqlAuthConn, connStringConn } from "./utils.test";
@@ -36,7 +40,7 @@ suite("ConnectionStore Tests", () => {
         mockLogger = sandbox.createStubInstance(Logger);
 
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
-        mockCredentialStore.readCredential.resolves(undefined as any);
+        mockCredentialStore.readCredential.resolves(undefined);
         mockCredentialStore.saveCredential.resolves(true);
         mockCredentialStore.deleteCredential.resolves();
 
@@ -137,5 +141,40 @@ suite("ConnectionStore Tests", () => {
             profile: undefined,
             score: MatchScore.NotMatch,
         });
+    });
+
+    test("readAllConnections preserves saved and recent entries that share the same id", async () => {
+        const sharedId = "shared-connection-id";
+        const savedConnection = {
+            id: sharedId,
+            profileSource: CredentialsQuickPickItemType.Profile,
+            server: "saved-server",
+            database: "saved-db",
+        } as IConnectionProfileWithSource;
+        const recentConnection = {
+            id: sharedId,
+            profileSource: CredentialsQuickPickItemType.Mru,
+            server: "recent-server",
+            database: "recent-db",
+        } as IConnectionProfileWithSource;
+
+        mockConnectionConfig.getConnections.resolves([savedConnection]);
+
+        connectionStore = new ConnectionStore(
+            mockContext,
+            mockCredentialStore,
+            mockLogger,
+            mockConnectionConfig,
+            mockVscodeWrapper,
+        );
+
+        await connectionStore.initialized;
+        sandbox.stub(connectionStore, "getRecentlyUsedConnections").returns([recentConnection]);
+
+        const connections = await connectionStore.readAllConnections(true);
+
+        expect(connections).to.have.lengthOf(2);
+        expect(connections).to.deep.include(savedConnection);
+        expect(connections).to.deep.include(recentConnection);
     });
 });
