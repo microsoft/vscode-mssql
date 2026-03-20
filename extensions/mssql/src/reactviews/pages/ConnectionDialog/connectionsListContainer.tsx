@@ -155,7 +155,7 @@ export const ConnectionsListContainer = () => {
                 </div>
                 <Tree>
                     {// state may not be initialized yet due to async loading of context
-                    recentConnections?.map((connection, index) => {
+                    recentConnections?.map((connection) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
@@ -184,7 +184,7 @@ export const ConnectionsListContainer = () => {
                     />
                 </div>
                 <div className={styles.main}>
-                    {savedConnections?.map((connection, index) => {
+                    {savedConnections?.map((connection) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
