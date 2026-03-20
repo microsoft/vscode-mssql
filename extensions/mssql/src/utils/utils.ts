@@ -220,3 +220,15 @@ export function getExpirationDateForSas(): string {
     const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
     return nextYear.toUTCString();
 }
+
+/**
+ * Helper to decode a URI fragment from a query result link.  Some characters (like '%') can cause decodeURIComponent to throw an error, so if decoding fails we return the raw fragment as a fallback.
+ */
+export function decodeQueryResultLinkFragment(fragment: string): string {
+    try {
+        return decodeURIComponent(fragment);
+    } catch {
+        // If decoding fails, return the raw fragment as a fallback.  Some characters (like '%') can cause decodeURIComponent to throw an error.
+        return fragment;
+    }
+}
