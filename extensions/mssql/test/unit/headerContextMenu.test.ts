@@ -7,7 +7,7 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import { HeaderContextMenuAction } from "../../src/reactviews/pages/QueryResult/table/plugins/HeaderContextMenu";
+import { HeaderContextMenuAction } from "../../src/reactviews/pages/QueryResult/table/plugins/headerContextMenuTypes";
 import { locConstants } from "../../src/reactviews/common/locConstants";
 
 chai.use(sinonChai);

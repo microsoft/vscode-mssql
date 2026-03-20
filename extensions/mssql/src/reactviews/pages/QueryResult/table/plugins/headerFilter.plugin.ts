@@ -13,7 +13,7 @@ import { locConstants } from "../../../../common/locConstants";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { EventManager } from "../../../../common/eventManager";
 import type { ColumnMenuPopupAnchorRect, FilterListItem, FilterValue } from "./ColumnMenuPopup";
-import { HeaderContextMenuAction } from "./HeaderContextMenu";
+import { HeaderContextMenuAction } from "./headerContextMenuTypes";
 
 import {
     ColumnFilterMap,
