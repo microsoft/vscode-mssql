@@ -1388,6 +1388,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Dispose the current edit session
                 await this._tableExplorerService.dispose(state.ownerUri);
 
+                // Clear pending changes immediately after dispose — the backend session
+                // is gone so these are stale regardless of whether re-initialize succeeds
+                state.newRows = [];
+                state.deletedRows = [];
+                state.failedCells = [];
+                state.originalCellValues?.clear();
+                state.updateScript = undefined;
+                this.showRestorePromptAfterClose = false;
+
                 const objectName = state.tableName;
                 const schemaName = state.schemaName;
                 const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
@@ -1404,14 +1413,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Persist the custom query so loadResultSet won't overwrite it with the default
                 state.tableQuery = payload.queryString;
                 this._preserveTableQuery = true;
-
-                // Clear pending changes — handleEditSessionReadyNotification will load the result set
-                state.newRows = [];
-                state.deletedRows = [];
-                state.failedCells = [];
-                state.originalCellValues?.clear();
-                state.updateScript = undefined;
-                this.showRestorePromptAfterClose = false;
 
                 this.logger.info(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
