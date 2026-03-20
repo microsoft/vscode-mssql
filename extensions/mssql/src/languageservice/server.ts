@@ -23,7 +23,12 @@ export default class ServerProvider {
      * Given a file path, returns the path to the SQL Tools service file.
      */
     public async findServerPath(filePath: string): Promise<string | undefined> {
-        const stats = await fs.lstat(filePath);
+        let stats;
+        try {
+            stats = await fs.lstat(filePath);
+        } catch {
+            return undefined;
+        }
         // If a file path was passed, assume its the launch file.
         if (stats.isFile()) {
             return filePath;
@@ -50,6 +55,10 @@ export default class ServerProvider {
 
     /**
      * Download the service if doesn't exist and returns the file path.
+     * Checks the platform-specific install directory first, then the portable directory,
+     * Downloads the service for the given runtime if not already present.
+     * At runtime, this downloads the portable (framework-dependent) package.
+     * During offline packaging, a platform-specific runtime is passed directly.
      */
     public async getOrDownloadServer(runtime: Runtime): Promise<string> {
         // Attempt to find launch file path first from options, and then from the default install location.
@@ -64,11 +73,26 @@ export default class ServerProvider {
     }
 
     /**
-     * Returns the path of the installed service if it exists, or undefined if not
+     * Returns the path of the installed service if it exists, or undefined if not.
+     * Checks the platform-specific directory first (offline VSIX with built-in runtime),
+     * then falls back to the portable (framework-dependent) directory.
      */
     public async getServerPath(runtime: Runtime): Promise<string | undefined> {
-        const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
-        return this.findServerPath(installDirectory);
+        // Check platform-specific directory first (self-contained builds include their own dotnet)
+        if (runtime !== Runtime.Portable) {
+            const installDirectory =
+                await this._downloadProvider.getOrMakeInstallDirectory(runtime);
+            const platformPath = await this.findServerPath(installDirectory);
+            if (platformPath) {
+                return platformPath;
+            }
+        }
+
+        // Fall back to portable (framework-dependent) directory
+        const portableDirectory = await this._downloadProvider.getOrMakeInstallDirectory(
+            Runtime.Portable,
+        );
+        return this.findServerPath(portableDirectory);
     }
 
     /**

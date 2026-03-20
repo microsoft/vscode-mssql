@@ -113,25 +113,25 @@ jobs:
         continue-on-error: true
         run: |
           cd extensions/mssql
-          vsce package
+          yarn package
 
       - name: SqlProj - Package extension
         continue-on-error: true
         run: |
           cd extensions/sql-database-projects
-          vsce package
+          yarn package
 
       - name: DataWorkspace - Package extension
         continue-on-error: true
         run: |
           cd extensions/data-workspace
-          vsce package
+          yarn package
 
       - name: Keymap - Package extension
         continue-on-error: true
         run: |
           cd extensions/database-management-keymap
-          vsce package
+          yarn package
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
@@ -284,6 +284,46 @@ jobs:
             echo "dataworkspace_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
           fi
 
+      - name: Keymap - Calculate vsix file sizes
+        if: env.should_compare_baseline == 'true'
+        run: |
+          # Get baseline size from downloaded artifact or default to 0
+          if [ -f ./baseline/baseline-sizes.json ]; then
+            target_size=$(jq -r '.keymap.vsix_kb' ./baseline/baseline-sizes.json)
+          else
+            echo "⚠️ No baseline found, using 0 for comparison"
+            target_size=0
+          fi
+
+          pr_vsix=$(find ./extensions/database-management-keymap -name "*.vsix")
+          pr_size=$(stat -c%s "$pr_vsix")
+          pr_size=$((pr_size / 1024))
+
+          size_diff=$((pr_size - target_size))
+
+          if [ "$target_size" -gt 0 ]; then
+            percentage_change=$((100 * size_diff / target_size))
+          else
+            percentage_change=0
+          fi
+
+          echo "Baseline keymap VSIX size: $target_size KB"
+          echo "PR branch keymap VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "keymap_target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "keymap_pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "keymap_vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "keymap_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "keymap_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "keymap_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "keymap_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
+
       - name: MSSQL - Run unit tests
         continue-on-error: true
         run: |
@@ -412,6 +452,7 @@ jobs:
           echo "| vscode-mssql VSIX            | ${{ env.mssql_target_vsix_size }} KB | ${{ env.mssql_pr_vsix_size }} KB | ${{ env.mssql_vsix_change_icon }} ${{ env.mssql_vsix_size_diff }} KB ( ${{ env.mssql_vsix_percentage_change }}% ) |" >> results.md
           echo "| sql-database-projects VSIX   | ${{ env.sqlproj_target_vsix_size }} KB | ${{ env.sqlproj_pr_vsix_size }} KB | ${{ env.sqlproj_vsix_change_icon }} ${{ env.sqlproj_vsix_size_diff }} KB ( ${{ env.sqlproj_vsix_percentage_change }}% ) |" >> results.md
           echo "| data-workspace VSIX          | ${{ env.dataworkspace_target_vsix_size }} KB | ${{ env.dataworkspace_pr_vsix_size }} KB | ${{ env.dataworkspace_vsix_change_icon }} ${{ env.dataworkspace_vsix_size_diff }} KB ( ${{ env.dataworkspace_vsix_percentage_change }}% ) |" >> results.md
+          echo "| keymap VSIX                 | ${{ env.keymap_target_vsix_size }} KB | ${{ env.keymap_pr_vsix_size }} KB | ${{ env.keymap_vsix_change_icon }} ${{ env.keymap_vsix_size_diff }} KB ( ${{ env.keymap_vsix_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3

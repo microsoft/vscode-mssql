@@ -205,6 +205,9 @@ export const restoreDatabaseHelpLink =
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
+export const dotnetRuntimeExtensionId = "ms-dotnettools.vscode-dotnet-runtime";
+export const dotnetAcquireCommand = "dotnet.acquire";
+export const offlineVsixUrl = "https://github.com/microsoft/vscode-mssql/releases/latest";
 export const databaseString = "Database";
 export const localizedTexts = "localizedTexts";
 export const ipAddressRegex =

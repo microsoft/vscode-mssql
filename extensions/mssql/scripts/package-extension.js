@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs");
+const path = require("path");
 const { execSync } = require("child_process");
 const { promisify } = require("util");
 const del = require("del");
@@ -22,6 +23,42 @@ const OFFLINE_PLATFORMS = [
     { rid: "linux-x64", runtime: "Linux" },
     { rid: "linux-arm64", runtime: "Linux_ARM64" },
 ];
+
+const RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+const PACKAGE_JSON_PATH = path.resolve(__dirname, "..", "package.json");
+
+function readPackageJson() {
+    return JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8"));
+}
+
+function writePackageJson(packageJson) {
+    fs.writeFileSync(PACKAGE_JSON_PATH, `${JSON.stringify(packageJson, null, 4)}\n`, "utf8");
+}
+
+/**
+ * For offline packaging, we need to remove dependency on the runtime extension since we are including the self-contained STS.
+ * This is done as users might not have access to the marketplace to download the runtime extension when they install the vsix,
+ * so we need to make sure the extension can work without it. We will restore the original package.json after packaging is done.
+ */
+async function withOfflinePackageManifest(action) {
+    const originalPackageJson = fs.readFileSync(PACKAGE_JSON_PATH, "utf8");
+    const packageJson = JSON.parse(originalPackageJson);
+
+    packageJson.extensionDependencies = (packageJson.extensionDependencies || []).filter(
+        (extensionId) => extensionId !== RUNTIME_EXTENSION_ID,
+    );
+    packageJson.extensionPack = (packageJson.extensionPack || []).filter(
+        (extensionId) => extensionId !== RUNTIME_EXTENSION_ID,
+    );
+
+    writePackageJson(packageJson);
+
+    try {
+        return await action();
+    } finally {
+        fs.writeFileSync(PACKAGE_JSON_PATH, originalPackageJson, "utf8");
+    }
+}
 
 /**
  * Install SQL Tools Service for a specific platform
@@ -87,12 +124,16 @@ function packageExtension(packageName = null) {
  */
 async function packageOnline() {
     logger.header("Package extension (Online Mode)");
-    logger.info("Creating extension package for online distribution");
+    logger.info("Creating extension package with portable SQL Tools Service");
     logger.newline();
 
     try {
         // Clean service folder first
         await cleanServiceInstallFolder();
+
+        // Download portable (framework-dependent) SQL Tools Service
+        const platform = require("../out/src/models/platform");
+        await installSqlToolsService(platform.Runtime.Portable);
 
         // Package the extension
         packageExtension();
@@ -122,7 +163,7 @@ async function packageOfflinePlatform(platformConfig, packageName) {
             throw new Error(`Unknown runtime: ${runtime}`);
         }
 
-        // Install service for this platform
+        // Install native (self-contained) service for this platform
         await installSqlToolsService(runtimeValue);
 
         // Package with platform-specific name
@@ -147,29 +188,33 @@ async function packageOffline() {
 
     try {
         // Read package.json for name and version
-        const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+        const packageJson = readPackageJson();
         const packageName = `${packageJson.name}-${packageJson.version}`;
 
         logger.info(`Creating offline packages for: ${packageJson.name} v${packageJson.version}`);
         logger.info(`Total platforms: ${OFFLINE_PLATFORMS.length}`);
         logger.newline();
 
-        // Clean service folder initially
-        await cleanServiceInstallFolder();
+        await withOfflinePackageManifest(async () => {
+            // Clean service folder initially
+            await cleanServiceInstallFolder();
 
-        // Package for each platform sequentially
-        for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
-            const platform = OFFLINE_PLATFORMS[i];
-            logger.info(`[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platform.rid}...`);
+            // Package for each platform sequentially with native (self-contained) service
+            for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
+                const platformConfig = OFFLINE_PLATFORMS[i];
+                logger.info(
+                    `[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platformConfig.rid}...`,
+                );
 
-            try {
-                await packageOfflinePlatform(platform, packageName);
-            } catch (error) {
-                logger.warning(`Skipping ${platform.rid}: ${error.message}`);
+                try {
+                    await packageOfflinePlatform(platformConfig, packageName);
+                } catch (error) {
+                    logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
+                }
+
+                logger.newline();
             }
-
-            logger.newline();
-        }
+        });
 
         logger.success("Offline packaging completed for all platforms!");
     } catch (error) {
@@ -189,8 +234,8 @@ Usage:
   node package-extension.js [mode]
 
 Modes:
-  --online     Package for online distribution (downloads service at runtime)
-  --offline    Package for offline distribution (includes service for all platforms). Defaults to online mode if no argument is provided.
+  --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
+  --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
   --help       Show this help message
 
 Examples:

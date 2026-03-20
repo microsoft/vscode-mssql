@@ -9,6 +9,7 @@ import * as chai from "chai";
 import { expect } from "chai";
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import { Logger, LogLevel } from "../../src/models/logger";
 import { PlatformInformation } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
@@ -32,6 +33,7 @@ suite("Service Client tests", () => {
     const logger = new Logger((text) => console.log(text), LogLevel.Verbose, false);
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -39,6 +41,7 @@ suite("Service Client tests", () => {
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
         testStatusView = sandbox.createStubInstance(StatusView);
         vscodeWrapper = stubVscodeWrapper(sandbox);
+        dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
     });
 
     teardown(() => {
@@ -52,6 +55,7 @@ suite("Service Client tests", () => {
             logger,
             testStatusView,
             vscodeWrapper,
+            dotnetRuntimeProvider,
         );
     }
 

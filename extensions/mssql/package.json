@@ -43,7 +43,8 @@
     "main": "./dist/extension",
     "l10n": "./l10n",
     "extensionDependencies": [
-        "vscode.sql"
+        "vscode.sql",
+        "ms-dotnettools.vscode-dotnet-runtime"
     ],
     "extensionPack": [
         "ms-mssql.data-workspace-vscode",
