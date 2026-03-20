@@ -3974,8 +3974,14 @@
     <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
       <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
     </trans-unit>
+    <trans-unit id="++CODE++af1601657378936e800656c0030e71aacaa43910937bccb0752de222a5f88535">
+      <source xml:lang="en">No Microsoft Entra tenant is available for the selected VS Code account. Sign into the tenant in VS Code or disable &apos;{0}&apos;.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18ede2850587ba4d17995728a04a70103ddb7564f935e701ea6d3a5f0cdbfb88">
+      <source xml:lang="en">No SQL resource is configured for the current cloud.</source>
     </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
@@ -6158,6 +6164,9 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++a99c7f70d018adcd71722a44a936e359dfb418faceaf55d258a98885b3211bd1">
+      <source xml:lang="en">The selected Microsoft Entra account is not available through VS Code sign-in. Sign into VS Code with that account or disable &apos;{0}&apos;.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
       <source xml:lang="en">The selected file is not a valid XEL file.</source>
     </trans-unit>
@@ -6267,6 +6276,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
       <source xml:lang="en">URL copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++06487c0e2d226f528bc290fc5f3014a308561fe8a3efc042d2737d1e3e1a1c04">
+      <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account.</source>
     </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -7622,6 +7634,9 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
+    </trans-unit>
+    <trans-unit id="mssql.entraMfa.useVscodeAccounts.description">
+      <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA SQL authentication instead of the MSSQL extension&apos;s built-in account cache. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

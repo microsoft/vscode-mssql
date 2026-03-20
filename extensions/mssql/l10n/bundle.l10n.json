@@ -3363,5 +3363,9 @@
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases."
+    "Error loading Azure databases.": "Error loading Azure databases.",
+    "The selected Microsoft Entra account is not available through VS Code sign-in. Sign into VS Code with that account or disable '{0}'.": "The selected Microsoft Entra account is not available through VS Code sign-in. Sign into VS Code with that account or disable '{0}'.",
+    "No Microsoft Entra tenant is available for the selected VS Code account. Sign into the tenant in VS Code or disable '{0}'.": "No Microsoft Entra tenant is available for the selected VS Code account. Sign into the tenant in VS Code or disable '{0}'.",
+    "No SQL resource is configured for the current cloud.": "No SQL resource is configured for the current cloud.",
+    "Unable to acquire a Microsoft Entra token from VS Code for the selected account.": "Unable to acquire a Microsoft Entra token from VS Code for the selected account."
 }
