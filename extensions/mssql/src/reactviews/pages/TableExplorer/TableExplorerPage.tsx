@@ -112,6 +112,11 @@ export const TableExplorerPage: React.FC = () => {
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
 
+    // Clear cell highlights when the query changes (pending changes are stale)
+    useEffect(() => {
+        gridRef.current?.clearAllChangeTracking();
+    }, [tableQuery]);
+
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
         gridRef.current?.clearAllChangeTracking();
