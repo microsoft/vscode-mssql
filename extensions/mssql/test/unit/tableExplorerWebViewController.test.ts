@@ -20,6 +20,7 @@ import {
     EditRevertRowResult,
     EditScriptResult,
     EditSessionReadyParams,
+    EditInitializeResult,
     DbCellValue,
     SqlPaneMode,
 } from "../../src/sharedInterfaces/tableExplorer";
@@ -1412,7 +1413,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 if (queryString === "INVALID SQL") {
                     return Promise.reject(new Error("Invalid query"));
                 }
-                return Promise.resolve();
+                return Promise.resolve({} as EditInitializeResult);
             });
 
             // Act
@@ -1524,7 +1525,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 if (queryString === "INVALID SQL") {
                     return Promise.reject(new Error("Invalid query"));
                 }
-                return Promise.resolve();
+                return Promise.resolve({} as EditInitializeResult);
             });
 
             // Act
