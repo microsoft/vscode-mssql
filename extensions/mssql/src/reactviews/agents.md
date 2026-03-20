@@ -10,4 +10,4 @@
 8. Use targeted selector to select from webview state. This keeps the re-renders scoped to targeted state.
 9. Avoid spamming the webviewRPC channel. Use lodash's debounce to debounce requests. For throttling use lodash's throttle.
 10. Avoid using `setTimeout(..., 0)` to sync stuff. Usually `setTimeout` calls are delayed for a minimum of 1 second during webview initialization and a series of them could stall the webview rendering. Use requestAnimationFrame or queueMicrotask if possible.
-11. Avoid using gray colors on dark theme. It doesn't have good enough contrast for visibility. Strongly prefer readability and contrast of style.
+11. Avoid using gray colors on dark theme. It doesn't have good enough contrast for visibility. Strongly prefer readability and contrast over style.
