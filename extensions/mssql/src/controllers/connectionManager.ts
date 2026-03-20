@@ -1044,6 +1044,9 @@ export default class ConnectionManager {
         if (
             AzureController.isTokenValid(connectionInfo.azureAccountToken, connectionInfo.expiresOn)
         ) {
+            this._logger?.verbose(
+                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
+            );
             return;
         }
 
@@ -1066,6 +1069,9 @@ export default class ConnectionManager {
         }
 
         if (!account) {
+            this._logger?.verbose(
+                `No account found in account store for accountId ${connectionInfo.accountId}. Cannot refresh Entra token.`,
+            );
             throw new Error(LocalizedConstants.msgAccountNotFound);
         }
 
@@ -1081,12 +1087,23 @@ export default class ConnectionManager {
         );
         const cachedToken = this._entraSqlTokenCache.get(cacheKey);
 
+        this._logger?.verbose(
+            `Cached token ${cachedToken ? "found" : "not found"} for cache key ${cacheKey}.`,
+        );
+
         if (cachedToken) {
             // If there's a cached token, use it if still valid, or remove it from cache if expired
             if (AzureController.isTokenValid(cachedToken.token, cachedToken.expiresOn)) {
                 this.applyEntraToken(connectionInfo, cachedToken);
+                this._logger?.verbose(
+                    `Using cached Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Cached token expires on ${cachedToken.expiresOn}. (currently ${Date.now() / 1000})`,
+                );
+
                 return;
             } else {
+                this._logger?.verbose(
+                    `Cached token for cache key ${cacheKey} is expired. Removing from cache. (currently ${Date.now() / 1000})`,
+                );
                 this._entraSqlTokenCache.delete(cacheKey);
             }
         }
@@ -1125,12 +1142,18 @@ export default class ConnectionManager {
                         });
                         try {
                             const refreshedToken = await refreshTask();
+                            this._logger?.verbose(
+                                `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}; now expires on ${refreshedToken.expiresOn} (currently ${Date.now() / 1000}).`,
+                            );
                             resolve(refreshedToken);
                         } catch (error) {
                             const refreshErrorStatus: Status = {
                                 status: ApiStatus.Error,
                                 message: getErrorMessage(error),
                             };
+                            this._logger?.error(
+                                `Error refreshing Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}: ${refreshErrorStatus.message}`,
+                            );
                             reject(refreshErrorStatus);
                         }
                     },
@@ -1146,7 +1169,13 @@ export default class ConnectionManager {
             this.applyEntraToken(connectionInfo, azureAccountToken);
             // Save refreshed token so other connections for the same account+tenant can reuse it.
             this._entraSqlTokenCache.set(cacheKey, azureAccountToken);
+            this._logger?.verbose(
+                `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Cached token for future use with cache key ${cacheKey}.`,
+            );
         } catch (error) {
+            this._logger?.verbose(
+                `Failed to refresh Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Error: ${getErrorMessage(error)}`,
+            );
             if (isStatus(error)) {
                 if (error.status === ApiStatus.Cancelled) {
                     this._logger.verbose("Refresh cancelled: " + error.message);
