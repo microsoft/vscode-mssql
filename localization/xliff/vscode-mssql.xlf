@@ -7671,6 +7671,9 @@
     <trans-unit id="mssql.saveAsCsv.delimiter">
       <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
     </trans-unit>
+    <trans-unit id="mssql.disableSignatureVerification">
+      <source xml:lang="en">[Optional] Disable Authenticode signature verification of downloaded SQL Tools Service binaries.</source>
+    </trans-unit>
     <trans-unit id="mssql.ignorePlatformWarning">
       <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
     </trans-unit>
