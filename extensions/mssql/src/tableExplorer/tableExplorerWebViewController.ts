@@ -21,6 +21,7 @@ import { EditSessionReadyNotification } from "../models/contracts/tableExplorer"
 import { NotificationHandler } from "vscode-languageclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
+import { bracketEscapeSqlIdentifier } from "../models/utils";
 import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -255,12 +256,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             return "";
         }
 
-        const columnList = columns.map((col) => `[${col.name.replace(/\]/g, "]]")}]`).join(", ");
+        const columnList = columns.map((col) => bracketEscapeSqlIdentifier(col.name)).join(", ");
         const schemaName = this.state.schemaName;
         const tableName = this.state.tableName;
-        const escapedTable = `[${tableName.replace(/\]/g, "]]")}]`;
+        const escapedTable = bracketEscapeSqlIdentifier(tableName);
         const qualifiedName = schemaName
-            ? `[${schemaName.replace(/\]/g, "]]")}].${escapedTable}`
+            ? `${bracketEscapeSqlIdentifier(schemaName)}.${escapedTable}`
             : escapedTable;
 
         return `SELECT TOP ${this.state.currentRowCount} ${columnList}\nFROM ${qualifiedName}`;
