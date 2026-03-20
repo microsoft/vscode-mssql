@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "./utils";
 import { sanitize, shorten } from "./logger";
 
-export const logger2OutputChannelName = "MSSQL - Logger2";
+export const logger2OutputChannelName = "MSSQL - Enhanced Logs";
 
 /**
  * VS Code log-channel-style logger with support for MSSQL tracing and PII settings.
