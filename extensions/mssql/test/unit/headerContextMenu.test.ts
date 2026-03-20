@@ -39,9 +39,17 @@ suite("Copy Column Name - Header Context Menu (#21632)", () => {
         // These tests verify the exact expression used in handleHeaderContextMenuAction for
         // CopyColumnName: `await navigator.clipboard.writeText(column.name ?? "")`
 
+        function mockNavigatorClipboard(writeText: sinon.SinonStub): void {
+            Object.defineProperty(global, "navigator", {
+                value: { clipboard: { writeText } },
+                writable: true,
+                configurable: true,
+            });
+        }
+
         test("writes column name to clipboard for a named column", async () => {
             const writeText = sandbox.stub().resolves();
-            (global as any).navigator = { clipboard: { writeText } };
+            mockNavigatorClipboard(writeText);
 
             const column: { name?: string } = { name: "OrderDate" };
             await navigator.clipboard.writeText(column.name ?? "");
@@ -51,7 +59,7 @@ suite("Copy Column Name - Header Context Menu (#21632)", () => {
 
         test("writes empty string to clipboard when column name is undefined", async () => {
             const writeText = sandbox.stub().resolves();
-            (global as any).navigator = { clipboard: { writeText } };
+            mockNavigatorClipboard(writeText);
 
             const column: { name?: string } = { name: undefined };
             await navigator.clipboard.writeText(column.name ?? "");
@@ -61,7 +69,7 @@ suite("Copy Column Name - Header Context Menu (#21632)", () => {
 
         test("writes column name verbatim without brackets or formatting", async () => {
             const writeText = sandbox.stub().resolves();
-            (global as any).navigator = { clipboard: { writeText } };
+            mockNavigatorClipboard(writeText);
 
             const rawName = "my column with spaces";
             const column: { name?: string } = { name: rawName };
