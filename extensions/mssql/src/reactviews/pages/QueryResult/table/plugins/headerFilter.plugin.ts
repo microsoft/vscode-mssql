@@ -18,6 +18,7 @@ import { HeaderContextMenuAction } from "./HeaderContextMenu";
 import {
     ColumnFilterMap,
     ColumnFilterState,
+    CopyColumnNameRequest,
     GetFiltersRequest,
     SetColumnWidthsRequest,
     SetFiltersRequest,
@@ -179,12 +180,11 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     typeof column.toolTip === "string" && column.toolTip.length > 0
                         ? column.toolTip
                         : undefined;
-                const textToCopy = toolTip ?? column.name ?? "";
-                try {
-                    await navigator.clipboard.writeText(textToCopy);
-                } catch {
-                    // Swallow clipboard errors to avoid breaking context menu flow.
-                }
+                const rawName = toolTip ?? column.name ?? "";
+                const columnName = `[${rawName.replace(/\]/g, "]]")}]`;
+                await this.queryResultContext.extensionRpc.sendRequest(CopyColumnNameRequest.type, {
+                    columnName,
+                });
                 break;
             }
         }
