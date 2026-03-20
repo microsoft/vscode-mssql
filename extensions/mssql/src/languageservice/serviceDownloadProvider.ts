@@ -5,6 +5,7 @@
 
 import * as path from "path";
 import * as tmp from "tmp";
+import * as vscode from "vscode";
 import { Runtime, getRuntimeDisplayName } from "../models/platform";
 import {
     IConfigUtils,
@@ -17,6 +18,7 @@ import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 import { ILogger } from "../models/interfaces";
 import DownloadHelper from "./downloadHelper";
+import { validateExtractedBinaries } from "./signatureVerifier";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools service.
@@ -127,6 +129,37 @@ export default class ServiceDownloadProvider {
             this._logger.appendLine(`[ERROR] ${err}`);
             throw err;
         }
+
+        const verificationDisabled = vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .get<boolean>(Constants.configDisableSignatureVerification, false);
+
+        if (verificationDisabled) {
+            this._logger.appendLine(
+                "[WARN] Signature verification is disabled by configuration " +
+                    `(${Constants.extensionConfigSectionName}.${Constants.configDisableSignatureVerification}). ` +
+                    "Skipping binary signature checks.",
+            );
+            return true;
+        }
+
+        try {
+            await validateExtractedBinaries(installDirectory, platform, this._logger);
+        } catch (err) {
+            this._logger.appendLine(`[ERROR] ${err}`);
+            try {
+                await fs.rm(installDirectory, { recursive: true, force: true });
+            } catch (cleanupErr) {
+                this._logger.appendLine(
+                    `[ERROR] Failed to remove install directory after signature validation failure: ${cleanupErr}`,
+                );
+            }
+            throw new Error(
+                "SQL Tools Service installation failed because one or more downloaded binaries " +
+                    "did not pass Microsoft signature validation. The downloaded files were removed for safety.",
+            );
+        }
+
         return true;
     }
 

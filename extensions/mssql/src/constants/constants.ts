@@ -246,6 +246,7 @@ export const copilotDabToolName = "mssql_dab";
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
 export const configLogDebugInfo = "logDebugInfo";
+export const configDisableSignatureVerification = "disableSignatureVerification";
 export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
