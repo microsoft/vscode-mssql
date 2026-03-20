@@ -67,6 +67,10 @@ interface Logger2ChannelState {
 }
 
 let defaultChannel: vscode.LogOutputChannel | undefined;
+const defaultChannelState: Logger2ChannelState = {
+    createChannel: getDefaultChannel,
+    ownsChannel: false,
+};
 
 /**
  * Returns the shared MSSQL log channel, creating it on first use.
@@ -118,13 +122,7 @@ export class Logger2 implements ILogger2 {
      * Creates a logger backed by the shared MSSQL output channel.
      */
     public static global(prefix?: string): Logger2 {
-        return new Logger2(
-            {
-                createChannel: getDefaultChannel,
-                ownsChannel: false,
-            },
-            prefix,
-        );
+        return new Logger2(defaultChannelState, prefix);
     }
 
     /**
@@ -273,4 +271,5 @@ export default logger2;
 export function resetLogger2DefaultChannelForTest(): void {
     defaultChannel?.dispose();
     defaultChannel = undefined;
+    defaultChannelState.cachedChannel = undefined;
 }
