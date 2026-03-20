@@ -1442,6 +1442,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
 
             state.loadStatus = ApiStatus.Loading;
+            // Clear the stale result set so the frontend transitions from undefined → new data,
+            // guaranteeing a full grid re-initialization (Scenario 1) rather than an incremental
+            // update (Scenario 3) when the new result set arrives via loadResultSet().
+            state.resultSet = undefined;
             this.updateState();
 
             try {

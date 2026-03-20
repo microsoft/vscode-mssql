@@ -175,6 +175,7 @@ export const TableExplorerPage: React.FC = () => {
                                         currentRowCount={currentRowCount}
                                         failedCells={failedCells}
                                         deletedRows={deletedRows}
+                                        tableQuery={tableQuery}
                                         onDeleteRow={context?.deleteRow}
                                         onUpdateCell={context?.updateCell}
                                         onRevertCell={context?.revertCell}
