@@ -55,7 +55,7 @@ export class AutorestHelper extends ShellExecutionHelper {
 
             if (response === constants.installGlobally) {
                 this._outputChannel.appendLine(constants.userSelectionInstallGlobally);
-                await this.runStreamedCommand("npm install autorest -g");
+                await this.runStreamedCommand("npm", ["install", "autorest", "-g"]);
                 return autorestCommand;
             } else if (response === constants.runViaNpx) {
                 this._outputChannel.appendLine(constants.userSelectionRunNpx);
@@ -116,8 +116,12 @@ export class AutorestHelper extends ShellExecutionHelper {
             return;
         }
 
-        const command = this.constructAutorestCommand(commandExecutable, specPath, outputFolder);
-        const output = await this.runStreamedCommand(command);
+        const { executable, args } = this.constructAutorestCommand(
+            commandExecutable,
+            specPath,
+            outputFolder,
+        );
+        const output = await this.runStreamedCommand(executable, args);
 
         return output;
     }
@@ -133,8 +137,17 @@ export class AutorestHelper extends ShellExecutionHelper {
         executable: string,
         specPath: string,
         outputFolder: string,
-    ): string {
+    ): { executable: string; args: string[] } {
         // TODO: should --clear-output-folder be included? We should always be writing to a folder created just for this, but potentially risky
-        return `${executable} --use:${autorestPackageName}@${this.autorestSqlPackageVersion} --input-file="${specPath}" --output-folder="${outputFolder}" --clear-output-folder --verbose`;
+        return {
+            executable,
+            args: [
+                `--use:${autorestPackageName}@${this.autorestSqlPackageVersion}`,
+                `--input-file=${specPath}`,
+                `--output-folder=${outputFolder}`,
+                "--clear-output-folder",
+                "--verbose",
+            ],
+        };
     }
 }

@@ -16,5 +16,6 @@ export interface Icons {
     ClipboardBulletList16Regular: FluentIcon;
     GithubCopilot16Regular: FluentIcon;
     Lightbulb16Regular: FluentIcon;
+    Schema16Regular: FluentIcon;
     VideoClip16Filled: FluentIcon;
 }

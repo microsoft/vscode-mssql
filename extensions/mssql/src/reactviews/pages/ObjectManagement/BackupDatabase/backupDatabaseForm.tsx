@@ -8,7 +8,6 @@ import {
     Button,
     Dropdown,
     Field,
-    Image,
     makeStyles,
     Radio,
     RadioGroup,
@@ -30,39 +29,30 @@ import { Save20Regular } from "@fluentui/react-icons";
 import { url } from "../../../common/constants";
 import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
 import { BackupFileCard } from "./backupFileCard";
-import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import {
     DisasterRecoveryType,
     ObjectManagementFormItemSpec,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
-        marginLeft: "5px",
-        marginRight: "5px",
-        padding: "8px",
-        whiteSpace: "nowrap",
-        width: "650px",
-        overflow: "auto",
+        gap: "16px",
+        width: "100%",
+        maxWidth: "680px",
     },
     button: {
         height: "32px",
-        width: "120px",
+        minWidth: "120px",
+        whiteSpace: "nowrap",
     },
     bottomDiv: {
         marginTop: "auto",
-        paddingBottom: "50px",
-    },
-    header: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
+        paddingBottom: "8px",
     },
     saveOption: {
         display: "flex",
@@ -79,11 +69,6 @@ const useStyles = makeStyles({
         flexDirection: "row",
         gap: "8px",
         marginLeft: "10px",
-    },
-    advancedButtonDiv: {
-        display: "flex",
-        alignItems: "center",
-        marginTop: "20px",
     },
     icon: {
         width: "75px",
@@ -109,12 +94,9 @@ const useStyles = makeStyles({
         gap: "8px",
     },
     field: {
-        width: "400px",
+        width: "min(100%, 420px)",
     },
 });
-
-const backupLightIcon = require("../../../../../media/backup_light.svg");
-const backupDarkIcon = require("../../../../../media/backup_dark.svg");
 
 export interface BackupFormProps {
     fileErrors: number[];
@@ -134,14 +116,12 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
         (s) => s.defaultFileBrowserExpandPath,
     );
     const fileFilterOptions = useBackupDatabaseSelector((s) => s.fileFilterOptions);
-    const { themeKind } = useVscodeWebview();
 
     if (!context || !viewModel) {
         return null;
     }
 
     const backupViewModel = viewModel.model as BackupDatabaseViewModel;
-
     const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
@@ -214,7 +194,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         />
                     </div>
                 ) : (
-                    <div style={{ marginLeft: "6px", marginBottom: "2px" }} key={index}>
+                    <div style={{ marginBottom: "2px" }} key={index}>
                         <Field
                             key={index}
                             label={
@@ -229,11 +209,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             <Dropdown
                                 size="small"
                                 placeholder={locConstants.backupDatabase.loading}
-                                style={{
-                                    marginTop: 0,
-                                    marginLeft: "5px",
-                                    width: "630px",
-                                }}
+                                style={{ marginTop: 0, width: "min(100%, 630px)" }}
                             />
                         </Field>
                     </div>
@@ -251,8 +227,8 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             ? {
                                   width: component.componentWidth,
                                   maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
+                                  whiteSpace: "normal",
+                                  overflowWrap: "break-word",
                                   wordBreak: "break-word",
                               }
                             : {}
@@ -270,8 +246,11 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                     />
                 </div>
             ));
+
     const handleLoadAzureComponents = () => {
-        if (!context || !backupViewModel) return;
+        if (!context || !backupViewModel) {
+            return;
+        }
 
         const azureComponents = Object.keys(backupViewModel.azureComponentStatuses);
         const azureComponentToLoad = azureComponents.find(
@@ -291,160 +270,132 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
 
     return (
         <div className={classes.outerDiv}>
-            <div>
-                <div className={classes.header}>
-                    <Image
-                        style={{
-                            padding: "10px",
+            {dialog?.type === "fileBrowser" && fileBrowserState && (
+                <FileBrowserDialog
+                    ownerUri={ownerUri}
+                    defaultFileBrowserExpandPath={defaultFileBrowserExpandPath}
+                    fileTree={fileBrowserState.fileTree}
+                    showFoldersOnly={fileBrowserState.showFoldersOnly}
+                    provider={context as FileBrowserProvider}
+                    fileTypeOptions={fileFilterOptions}
+                    closeDialog={() => context.toggleFileBrowserDialog(false, false)}
+                    defaultSelectedPath={
+                        fileBrowserState.showFoldersOnly ? defaultFileBrowserExpandPath : undefined
+                    }
+                />
+            )}
+            {renderFormFields()}
+            <div className={formStyles.formComponentDiv}>
+                <Field
+                    label={locConstants.backupDatabase.backupLocation}
+                    className={classes.field}
+                    orientation="horizontal">
+                    <RadioGroup
+                        onChange={(_, data) => {
+                            const isSaveToUrl = data.value === DisasterRecoveryType.Url;
+                            context.setType(
+                                isSaveToUrl
+                                    ? DisasterRecoveryType.Url
+                                    : DisasterRecoveryType.BackupFile,
+                            );
+                            if (isSaveToUrl) {
+                                context.loadAzureComponent("accountId");
+                            }
                         }}
-                        src={themeKind === ColorThemeKind.Dark ? backupDarkIcon : backupLightIcon}
-                        alt={`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
-                        height={60}
-                        width={60}
-                    />
-                    <Text
-                        size={500}
-                        style={{
-                            lineHeight: "60px",
-                        }}
-                        weight="medium">
-                        {`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
-                    </Text>
-                </div>
-                {dialog?.type === "fileBrowser" && fileBrowserState && (
-                    <FileBrowserDialog
-                        ownerUri={ownerUri}
-                        defaultFileBrowserExpandPath={defaultFileBrowserExpandPath}
-                        fileTree={fileBrowserState.fileTree}
-                        showFoldersOnly={fileBrowserState.showFoldersOnly}
-                        provider={context as FileBrowserProvider}
-                        fileTypeOptions={fileFilterOptions}
-                        closeDialog={() => context.toggleFileBrowserDialog(false, false)}
-                        defaultSelectedPath={
-                            fileBrowserState.showFoldersOnly
-                                ? defaultFileBrowserExpandPath
-                                : undefined
-                        }
-                    />
-                )}
-                {renderFormFields()}
-                <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
+                        value={backupViewModel.type}>
+                        <Radio
+                            value={DisasterRecoveryType.BackupFile}
+                            label={
+                                <div className={classes.saveOption}>
+                                    <Save20Regular style={{ marginRight: "8px" }} />
+                                    {locConstants.backupDatabase.saveToDisk}
+                                </div>
+                            }
+                        />
+                        <Radio
+                            value={DisasterRecoveryType.Url}
+                            label={
+                                <div className={classes.saveOption}>
+                                    <AzureIcon20 style={{ marginRight: "8px" }} />
+                                    {locConstants.backupDatabase.saveToUrl}
+                                </div>
+                            }
+                        />
+                    </RadioGroup>
+                </Field>
+            </div>
+            {backupViewModel.type === DisasterRecoveryType.Url ? (
+                backupViewModel.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
+                    renderBackupSaveToUrlFields()
+                ) : (
+                    <div className={classes.azureLoadingContainer}>
+                        <img
+                            className={classes.icon}
+                            src={azureLogoColor()}
+                            alt={locConstants.azure.loadingAzureAccounts}
+                        />
+                        <div>{locConstants.azure.loadingAzureAccounts}</div>
+                        <Spinner size="large" style={{ marginTop: "10px" }} />
+                    </div>
+                )
+            ) : (
+                <div className={formStyles.formComponentDiv}>
                     <Field
-                        label={locConstants.backupDatabase.backupLocation}
+                        label={locConstants.backupDatabase.backupFiles}
+                        validationMessage={getFileValidationMessage()}
+                        required={true}
+                        validationState={getFileValidationMessage() === "" ? "none" : "error"}
                         className={classes.field}
                         orientation="horizontal">
-                        <RadioGroup
-                            onChange={(_, data) => {
-                                const isSaveToUrl = data.value === DisasterRecoveryType.Url;
-                                context.setType(
-                                    isSaveToUrl
-                                        ? DisasterRecoveryType.Url
-                                        : DisasterRecoveryType.BackupFile,
-                                );
-                                if (isSaveToUrl) {
-                                    // Start loading the first Azure component (Account) when switching to Save to URL
-                                    context.loadAzureComponent("accountId");
-                                }
-                            }}
-                            value={backupViewModel.type}>
-                            <Radio
-                                value={DisasterRecoveryType.BackupFile}
-                                label={
-                                    <div className={classes.saveOption}>
-                                        <Save20Regular style={{ marginRight: "8px" }} />
-                                        {locConstants.backupDatabase.saveToDisk}
-                                    </div>
-                                }
-                            />
-                            <Radio
-                                value={DisasterRecoveryType.Url}
-                                label={
-                                    <div className={classes.saveOption}>
-                                        <AzureIcon20 style={{ marginRight: "8px" }} />
-                                        {locConstants.backupDatabase.saveToUrl}
-                                    </div>
-                                }
-                            />
-                        </RadioGroup>
-                    </Field>
-                </div>
-                {backupViewModel.type === DisasterRecoveryType.Url ? (
-                    backupViewModel.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
-                        renderBackupSaveToUrlFields()
-                    ) : (
-                        <div className={classes.azureLoadingContainer}>
-                            <img
-                                className={classes.icon}
-                                src={azureLogoColor()}
-                                alt={locConstants.azure.loadingAzureAccounts}
-                            />
-                            <div>{locConstants.azure.loadingAzureAccounts}</div>
-                            <Spinner size="large" style={{ marginTop: "10px" }} />
-                        </div>
-                    )
-                ) : (
-                    <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
-                        <Field
-                            label={locConstants.backupDatabase.backupFiles}
-                            validationMessage={getFileValidationMessage()}
-                            required={true}
-                            validationState={getFileValidationMessage() === "" ? "none" : "error"}
-                            className={classes.field}
-                            orientation="horizontal">
-                            <div className={classes.fileDiv}>
-                                <div className={classes.fileList}>
-                                    {backupViewModel.backupFiles.map((file, index) => (
-                                        <BackupFileCard
-                                            key={file.filePath}
-                                            backupFiles={backupViewModel.backupFiles}
-                                            file={file}
-                                            index={index}
-                                            fileErrors={fileErrors}
-                                            setFileErrors={setFileErrors}
-                                            removeBackupFile={context.removeBackupFile}
-                                            handleFileChange={context.handleFileChange}
-                                        />
-                                    ))}
-                                </div>
-                                <div className={classes.fileButtons}>
-                                    <Button
-                                        className={classes.button}
-                                        type="submit"
-                                        appearance="secondary"
-                                        onClick={() => context.toggleFileBrowserDialog(true, true)}>
-                                        {locConstants.backupDatabase.createNew}
-                                    </Button>
-                                    <Button
-                                        className={classes.button}
-                                        type="submit"
-                                        appearance="secondary"
-                                        onClick={() =>
-                                            context.toggleFileBrowserDialog(false, true)
-                                        }>
-                                        {locConstants.backupDatabase.chooseExisting}
-                                    </Button>
-                                </div>
+                        <div className={classes.fileDiv}>
+                            <div className={classes.fileList}>
+                                {backupViewModel.backupFiles.map((file, index) => (
+                                    <BackupFileCard
+                                        key={file.filePath}
+                                        backupFiles={backupViewModel.backupFiles}
+                                        file={file}
+                                        index={index}
+                                        fileErrors={fileErrors}
+                                        setFileErrors={setFileErrors}
+                                        removeBackupFile={context.removeBackupFile}
+                                        handleFileChange={context.handleFileChange}
+                                    />
+                                ))}
                             </div>
-                        </Field>
-                        {!formComponents["mediaSet"]?.isAdvancedOption && renderMediaFields()}
-                    </div>
-                )}
-            </div>
+                            <div className={classes.fileButtons}>
+                                <Button
+                                    className={classes.button}
+                                    type="submit"
+                                    appearance="secondary"
+                                    onClick={() => context.toggleFileBrowserDialog(true, true)}>
+                                    {locConstants.backupDatabase.createNew}
+                                </Button>
+                                <Button
+                                    className={classes.button}
+                                    type="submit"
+                                    appearance="secondary"
+                                    onClick={() => context.toggleFileBrowserDialog(false, true)}>
+                                    {locConstants.backupDatabase.chooseExisting}
+                                </Button>
+                            </div>
+                        </div>
+                    </Field>
+                    {!formComponents["mediaSet"]?.isAdvancedOption && renderMediaFields()}
+                </div>
+            )}
             <AdvancedOptionsDrawer
                 isAdvancedDrawerOpen={isAdvancedDrawerOpen}
                 setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
             />
             <div className={classes.bottomDiv}>
-                <div className={classes.advancedButtonDiv}>
-                    <Button
-                        className={classes.button}
-                        appearance="secondary"
-                        onClick={(_event) => {
-                            setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                        }}>
-                        {locConstants.backupDatabase.advanced}
-                    </Button>
-                </div>
+                <Button
+                    className={classes.button}
+                    appearance="secondary"
+                    onClick={() => {
+                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                    }}>
+                    {locConstants.backupDatabase.advanced}
+                </Button>
             </div>
         </div>
     );

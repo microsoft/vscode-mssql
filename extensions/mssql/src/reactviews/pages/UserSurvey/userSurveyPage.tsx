@@ -20,50 +20,65 @@ import {
     Text,
     Textarea,
     makeStyles,
-    Popover,
-    PopoverTrigger,
-    PopoverSurface,
 } from "@fluentui/react-components";
+import { Shield20Regular } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 
 import { UserSurveyContext } from "./userSurveryStateProvider";
 import { useUserSurveySelector } from "./userSurveySelector";
 import { locConstants } from "../../common/locConstants";
+import { DialogPageShell } from "../../common/dialogPageShell";
+import { FeedbackIcon } from "../../common/icons/feedback";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        maxHeight: "100vh",
-        overflowY: "auto",
-        padding: "10px",
-    },
     formContainer: {
         display: "flex",
         flexDirection: "column",
-        width: "800px",
-        maxWidth: "calc(100% - 20px)",
+        width: "100%",
         "> *": {
             marginBottom: "15px",
         },
     },
-    title: {
-        marginBottom: "30px",
-    },
-    footer: {
+    footerButtons: {
         display: "flex",
-        justifyContent: "space-between",
-    },
-    buttonsContainer: {
-        display: "flex",
-        "> *": {
-            marginRight: "10px",
-        },
+        gap: "8px",
     },
     privacyDisclaimer: {
-        marginTop: "30px",
-        marginLeft: "auto",
+        marginTop: "10px",
+    },
+    privacyNoticeCard: {
+        border: "1px solid var(--vscode-editorWidget-border, var(--vscode-editorGroup-border))",
+        borderRadius: "12px",
+        padding: "16px 18px",
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+    },
+    privacyContent: {
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        columnGap: "10px",
+        rowGap: "8px",
+        alignItems: "start",
+    },
+    privacyIcon: {
+        color: "var(--vscode-descriptionForeground)",
+        flexShrink: 0,
+        gridColumn: "1",
+        gridRow: "1",
+        alignSelf: "center",
+    },
+    privacySummary: {
+        color: "var(--vscode-descriptionForeground)",
+        lineHeight: "1.5",
+        gridColumn: "2",
+    },
+    privacyExpandedText: {
+        color: "var(--vscode-descriptionForeground)",
+        lineHeight: "1.5",
+        gridColumn: "2",
+    },
+    privacyLink: {
+        gridColumn: "2",
+        width: "fit-content",
     },
 });
 
@@ -107,16 +122,25 @@ export const UserSurveyPage = () => {
     }
 
     return (
-        <div className={classes.root}>
+        <DialogPageShell
+            icon={<FeedbackIcon />}
+            title={title ?? locConstants.userFeedback.microsoftWouldLikeYourFeedback}
+            subtitle={subtitle}
+            maxContentWidth="medium"
+            footerEnd={
+                <div className={classes.footerButtons}>
+                    <Button appearance="secondary" onClick={() => context.cancel()}>
+                        {cancelButtonText ?? locConstants.common.cancel}
+                    </Button>
+                    <Button
+                        appearance="primary"
+                        disabled={isSubmitDisabled}
+                        onClick={() => context.submit(userAnswers)}>
+                        {submitButtonText ?? locConstants.userFeedback.submit}
+                    </Button>
+                </div>
+            }>
             <div className={classes.formContainer}>
-                <h2
-                    style={{
-                        marginBottom: "30px",
-                    }}>
-                    {title ?? locConstants.userFeedback.microsoftWouldLikeYourFeedback}
-                </h2>
-                {subtitle && <p>{subtitle}</p>}
-
                 {questions.map((question, index) => {
                     switch (question.type) {
                         case "nsat":
@@ -149,39 +173,30 @@ export const UserSurveyPage = () => {
                             return undefined;
                     }
                 })}
-                <div className={classes.footer}>
-                    <div className={classes.buttonsContainer}>
-                        <Button
-                            appearance="primary"
-                            disabled={isSubmitDisabled}
-                            onClick={() => context.submit(userAnswers)}>
-                            {submitButtonText ?? locConstants.userFeedback.submit}
-                        </Button>
-                        <Button onClick={() => context.cancel()}>
-                            {cancelButtonText ?? locConstants.common.cancel}
-                        </Button>
+                <div className={classes.privacyDisclaimer}>
+                    <div className={classes.privacyNoticeCard}>
+                        <div className={classes.privacyContent}>
+                            <Shield20Regular className={classes.privacyIcon} />
+                            <Text className={classes.privacySummary}>
+                                <Text weight="semibold">
+                                    {locConstants.userFeedback.privacyNotice}
+                                </Text>
+                            </Text>
+                            <Text className={classes.privacyExpandedText}>
+                                {locConstants.userFeedback.feedbackStatementLong}
+                            </Text>
+                            <Link
+                                className={classes.privacyLink}
+                                onClick={() => {
+                                    context.openPrivacyStatement();
+                                }}>
+                                {locConstants.userFeedback.privacyStatement}
+                            </Link>
+                        </div>
                     </div>
                 </div>
-                <div className={classes.privacyDisclaimer}>
-                    <Popover inline openOnHover positioning={{ coverTarget: true }}>
-                        <PopoverTrigger>
-                            <p>{locConstants.userFeedback.feedbackStatementShort}</p>
-                        </PopoverTrigger>
-                        <PopoverSurface>
-                            <div style={{ width: "600px" }}>
-                                {locConstants.userFeedback.feedbackStatementLong}
-                            </div>
-                        </PopoverSurface>
-                    </Popover>
-                    <Link
-                        onClick={() => {
-                            context.openPrivacyStatement();
-                        }}>
-                        {locConstants.userFeedback.privacyStatement}
-                    </Link>
-                </div>
             </div>
-        </div>
+        </DialogPageShell>
     );
 };
 

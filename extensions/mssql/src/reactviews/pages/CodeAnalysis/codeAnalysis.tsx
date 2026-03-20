@@ -8,6 +8,7 @@ import {
     Button,
     Checkbox,
     Dropdown,
+    Input,
     Option,
     Spinner,
     Table,
@@ -27,10 +28,17 @@ import {
     SqlCodeAnalysisRule,
     CodeAnalysisRuleSeverity,
 } from "../../../sharedInterfaces/codeAnalysis";
-import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
+import {
+    ChevronDown20Regular,
+    ChevronRight20Regular,
+    Search20Regular,
+    Checkmark20Regular,
+} from "@fluentui/react-icons";
 import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
 import { ConfirmationDialog } from "../../common/confirmationDialog";
+import { allSeverities } from "../../common/constants";
+import { filterRules } from "./codeAnalysisUtils";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
@@ -108,6 +116,14 @@ const useStyles = makeStyles({
         gap: "8px",
         paddingLeft: "56px",
     },
+    checkmarkContainer: {
+        width: "20px",
+        height: "20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+    },
 
     // --- States ---
     spinnerContainer: {
@@ -150,6 +166,21 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
     },
+
+    // --- Filter bar ---
+    filterBar: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: "8px",
+        flexShrink: 0,
+    },
+    searchInput: {
+        flexGrow: 1,
+    },
+    severityFilterDropdown: {
+        minWidth: "160px",
+    },
 });
 
 export const CodeAnalysisDialog = () => {
@@ -178,6 +209,8 @@ export const CodeAnalysisDialog = () => {
     const [categoryPreviousSeverities, setCategoryPreviousSeverities] = useState<
         Map<string, Map<string, string>>
     >(new Map());
+    const [searchText, setSearchText] = useState("");
+    const [severityFilter, setSeverityFilter] = useState(allSeverities);
 
     useEffect(() => {
         // Sync localRules only when the authoritative rules change (initial load or
@@ -212,16 +245,21 @@ export const CodeAnalysisDialog = () => {
         });
     }, [localRules, rules, localEnableCodeAnalysisOnBuild, enableCodeAnalysisOnBuild]);
 
-    // --- Grouping ---
+    // --- Filtering + Grouping ---
+    const filteredRules = useMemo(
+        () => filterRules(localRules, searchText, severityFilter),
+        [localRules, searchText, severityFilter],
+    );
+
     const groupedRuleEntries = useMemo(() => {
         const groupedRules = new Map<string, SqlCodeAnalysisRule[]>();
-        localRules.forEach((rule) => {
+        filteredRules.forEach((rule) => {
             const bucket = groupedRules.get(rule.category) ?? [];
             bucket.push(rule);
             groupedRules.set(rule.category, bucket);
         });
         return Array.from(groupedRules.entries()).sort(([a], [b]) => a.localeCompare(b));
-    }, [localRules]);
+    }, [filteredRules]);
 
     // --- Handlers ---
     /**
@@ -343,12 +381,47 @@ export const CodeAnalysisDialog = () => {
                 />
             </div>
 
+            {/* Search + severity filter bar */}
+            {!isLoading && localRules.length > 0 && (
+                <div className={styles.filterBar}>
+                    <Input
+                        className={styles.searchInput}
+                        placeholder={loc.searchRules}
+                        value={searchText}
+                        contentBefore={<Search20Regular />}
+                        onChange={(_e, data) => setSearchText(data.value)}
+                        aria-label={loc.searchRules}
+                    />
+                    <Dropdown
+                        className={styles.severityFilterDropdown}
+                        aria-label={loc.filterBySeverity}
+                        value={
+                            severityFilter === allSeverities ? loc.allSeverities : severityFilter
+                        }
+                        selectedOptions={[severityFilter]}
+                        onOptionSelect={(_e, data) =>
+                            setSeverityFilter(data.optionValue ?? allSeverities)
+                        }>
+                        <Option key={allSeverities} value={allSeverities}>
+                            {loc.allSeverities}
+                        </Option>
+                        {SEVERITY_OPTIONS.map((severity) => (
+                            <Option key={severity} value={severity}>
+                                {severity}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                </div>
+            )}
+
             {/* Rules table */}
             <div className={styles.rulesContainer}>
                 {isLoading ? (
                     loadingSpinner
                 ) : localRules.length === 0 ? (
                     <div className={styles.emptyState}>{loc.noCodeAnalysisRulesAvailable}</div>
+                ) : filteredRules.length === 0 ? (
+                    <div className={styles.emptyState}>{loc.noRulesMatchFilter}</div>
                 ) : (
                     <Table className={styles.table}>
                         <colgroup>
@@ -423,13 +496,20 @@ export const CodeAnalysisDialog = () => {
                                                 <TableRow key={rule.ruleId}>
                                                     <TableCell className={styles.tableCell}>
                                                         <div className={styles.childRuleContent}>
-                                                            <Checkbox
-                                                                aria-hidden={true}
-                                                                checked={rule.enabled}
-                                                                disabled={!rule.enabled}
-                                                                style={{ pointerEvents: "none" }}
-                                                                tabIndex={-1}
-                                                            />
+                                                            <div
+                                                                className={
+                                                                    styles.checkmarkContainer
+                                                                }
+                                                                role="img"
+                                                                aria-label={
+                                                                    rule.enabled
+                                                                        ? loc.ruleEnabled
+                                                                        : loc.ruleDisabled
+                                                                }>
+                                                                {rule.enabled && (
+                                                                    <Checkmark20Regular aria-hidden="true" />
+                                                                )}
+                                                            </div>
                                                             <Text>
                                                                 {rule.shortRuleId}:{" "}
                                                                 {rule.displayName}
@@ -471,7 +551,11 @@ export const CodeAnalysisDialog = () => {
 
             {/* Footer */}
             <div className={styles.footer}>
-                <Text className={styles.statusText}>{loc.rulesCount(localRules?.length ?? 0)}</Text>
+                <Text className={styles.statusText}>
+                    {filteredRules.length < localRules.length
+                        ? loc.filteredRulesCount(filteredRules.length, localRules.length)
+                        : loc.rulesCount(localRules?.length ?? 0)}
+                </Text>
                 <div className={styles.footerButtons}>
                     {/* Reset button */}
                     <Button

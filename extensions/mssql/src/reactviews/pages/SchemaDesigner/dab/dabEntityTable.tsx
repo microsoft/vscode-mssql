@@ -14,6 +14,7 @@ import {
     DataGridRow,
     TableColumnDefinition,
     TableColumnSizingOptions,
+    Tooltip,
     createTableColumn,
     makeStyles,
     Text,
@@ -23,7 +24,10 @@ import {
     ChevronDown16Regular,
     ChevronRight16Regular,
     Settings16Regular,
+    Table16Regular,
+    Warning16Regular,
 } from "@fluentui/react-icons";
+import { Schema16Regular } from "../../../common/icons/fluentIcons";
 import { useCallback, useMemo, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
@@ -83,22 +87,46 @@ const useStyles = makeStyles({
     entityCellDisabled: {
         opacity: 0.6,
     },
+    entityCellUnsupported: {
+        opacity: 0.4,
+    },
+    entityNameCell: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        minWidth: 0,
+        overflow: "hidden",
+    },
     entityName: {
         fontWeight: 600,
         fontSize: "13px",
+        minWidth: 0,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
     },
+    sourceCell: {
+        minWidth: 0,
+        overflow: "hidden",
+    },
     sourceText: {
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
+        minWidth: 0,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
     },
     settingsButton: {
         minWidth: "auto",
+    },
+    warningIconWrapper: {
+        display: "flex",
+        alignItems: "center",
+        flexShrink: 0,
+    },
+    warningIcon: {
+        color: tokens.colorPaletteYellowForeground2,
     },
     emptyState: {
         display: "flex",
@@ -109,6 +137,19 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
 });
+
+function formatUnsupportedReasons(reasons: Dab.DabUnsupportedReason[]): string {
+    return reasons
+        .map((r) => {
+            switch (r.type) {
+                case "noPrimaryKey":
+                    return locConstants.schemaDesigner.unsupportedNoPrimaryKey;
+                case "unsupportedDataTypes":
+                    return locConstants.schemaDesigner.unsupportedDataTypes(r.columns);
+            }
+        })
+        .join("; ");
+}
 
 export const DabEntityTable = () => {
     const classes = useStyles();
@@ -156,7 +197,7 @@ export const DabEntityTable = () => {
         });
     }, [dabConfig, dabTextFilter]);
 
-    // Group filtered entities by schema
+    // Group filtered entities by schema, with unsupported entities sorted to the bottom
     const entitiesBySchema = useMemo(() => {
         const groups: Record<string, typeof filteredEntities> = {};
         for (const entity of filteredEntities) {
@@ -165,7 +206,17 @@ export const DabEntityTable = () => {
             }
             groups[entity.schemaName].push(entity);
         }
-        return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+        return Object.entries(groups)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(
+                ([schemaName, entities]) =>
+                    [
+                        schemaName,
+                        [...entities].sort(
+                            (a, b) => Number(!a.isSupported) - Number(!b.isSupported),
+                        ),
+                    ] as [string, typeof filteredEntities],
+            );
     }, [filteredEntities]);
 
     // Build flattened row list for DataGrid
@@ -226,7 +277,7 @@ export const DabEntityTable = () => {
 
     const renderActionHeaderCell = useCallback(
         (action: Dab.EntityAction) => {
-            const enabledEntities = filteredEntities.filter((e) => e.isEnabled);
+            const enabledEntities = filteredEntities.filter((e) => e.isSupported && e.isEnabled);
             const withAction = enabledEntities.filter((e) => e.enabledActions.includes(action));
             const allHave =
                 enabledEntities.length > 0 && withAction.length === enabledEntities.length;
@@ -269,8 +320,10 @@ export const DabEntityTable = () => {
 
     const renderSchemaRow = useCallback(
         (rowId: string | number, schemaName: string, entities: Dab.DabEntityConfig[]) => {
-            const enabledCount = entities.filter((e) => e.isEnabled).length;
-            const allChecked = enabledCount === entities.length;
+            const supportedEntities = entities.filter((e) => e.isSupported);
+            const enabledCount = supportedEntities.filter((e) => e.isEnabled).length;
+            const allChecked =
+                supportedEntities.length > 0 && enabledCount === supportedEntities.length;
             const noneChecked = enabledCount === 0;
             const isCollapsed = collapsedSchemas.has(schemaName);
             return (
@@ -289,6 +342,7 @@ export const DabEntityTable = () => {
                                 {isCollapsed ? <ChevronRight16Regular /> : <ChevronDown16Regular />}
                                 <Checkbox
                                     checked={allChecked ? true : noneChecked ? false : "mixed"}
+                                    disabled={supportedEntities.length === 0}
                                     aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
                                         schemaName,
                                     )}
@@ -296,11 +350,12 @@ export const DabEntityTable = () => {
                                     onChange={(_, data) => {
                                         const enable =
                                             data.checked === true || data.checked === "mixed";
-                                        for (const entity of entities) {
+                                        for (const entity of supportedEntities) {
                                             toggleDabEntity(entity.id, enable);
                                         }
                                     }}
                                 />
+                                <Schema16Regular />
                                 <Text className={classes.schemaLabel}>{schemaName}</Text>
                                 <Text className={classes.schemaCount}>
                                     {enabledCount}/{entities.length}
@@ -328,6 +383,7 @@ export const DabEntityTable = () => {
                         <div className={classes.entityCheckboxCell}>
                             <Checkbox
                                 checked={item.entity.isEnabled}
+                                disabled={!item.entity.isSupported}
                                 aria-label={locConstants.schemaDesigner.enableEntity(
                                     item.entity.advancedSettings.entityName,
                                 )}
@@ -346,12 +402,28 @@ export const DabEntityTable = () => {
                     if (item.type !== "entity") {
                         return null;
                     }
-                    const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
+                    const disabledClass = !item.entity.isSupported
+                        ? classes.entityCellUnsupported
+                        : !item.entity.isEnabled
+                          ? classes.entityCellDisabled
+                          : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={`${classes.entityNameCell} ${disabledClass}`}>
+                            <Table16Regular />
                             <Text className={classes.entityName}>
                                 {item.entity.advancedSettings.entityName}
                             </Text>
+                            {!item.entity.isSupported && item.entity.unsupportedReasons && (
+                                <Tooltip
+                                    content={formatUnsupportedReasons(
+                                        item.entity.unsupportedReasons,
+                                    )}
+                                    relationship="description">
+                                    <span className={classes.warningIconWrapper}>
+                                        <Warning16Regular className={classes.warningIcon} />
+                                    </span>
+                                </Tooltip>
+                            )}
                         </div>
                     );
                 },
@@ -363,9 +435,13 @@ export const DabEntityTable = () => {
                     if (item.type !== "entity") {
                         return null;
                     }
-                    const disabledClass = !item.entity.isEnabled ? classes.entityCellDisabled : "";
+                    const disabledClass = !item.entity.isSupported
+                        ? classes.entityCellUnsupported
+                        : !item.entity.isEnabled
+                          ? classes.entityCellDisabled
+                          : "";
                     return (
-                        <div className={disabledClass}>
+                        <div className={`${classes.sourceCell} ${disabledClass}`}>
                             <Text className={classes.sourceText}>
                                 {item.entity.schemaName}.{item.entity.tableName}
                             </Text>
@@ -381,9 +457,11 @@ export const DabEntityTable = () => {
                         if (item.type !== "entity") {
                             return null;
                         }
-                        const disabledClass = !item.entity.isEnabled
-                            ? classes.entityCellDisabled
-                            : "";
+                        const disabledClass = !item.entity.isSupported
+                            ? classes.entityCellUnsupported
+                            : !item.entity.isEnabled
+                              ? classes.entityCellDisabled
+                              : "";
                         return (
                             <div className={disabledClass}>
                                 {renderActionCell(item.entity, action)}

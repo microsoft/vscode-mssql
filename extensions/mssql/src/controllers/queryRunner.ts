@@ -1398,8 +1398,6 @@ export default class QueryRunner {
     }
 
     private getTotalSelectedRows(selections: ISlickRange[]): number {
-        // Keep copy order deterministic
-        selections.sort((a, b) => a.fromRow - b.fromRow);
         let totalRows = 0;
         for (let range of selections) {
             totalRows += range.toRow - range.fromRow + 1;

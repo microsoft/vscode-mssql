@@ -4,18 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import type { IConnectionInfo, ConnectionDetails, SimpleExecuteResult } from "vscode-mssql";
+import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
 import { ConnectionRequest, ConnectParams } from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
+import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
 
 /**
  * Manages the active database connection for a notebook.
- * One connection per notebook — matches ADS behavior.
+ * One connection per notebook — each notebook maintains its own isolated session.
  *
  * NOTE: The MSSQL extension's connectionSharing.getActiveEditorConnectionId()
  * uses vscode.window.activeTextEditor, which is undefined for notebook editors.
@@ -35,25 +38,49 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private connectionInfo: IConnectionInfo | undefined;
     private connectionLabel: string = "";
     private log: vscode.LogOutputChannel;
+    private readonly queryExecutor: NotebookQueryExecutor;
+
+    /**
+     * Saved reconnection context from notebook metadata.
+     * Used to restore the database when the user picks a server-level
+     * profile (no explicit database) during reconnection.
+     */
+    private _savedServer: string | undefined;
+    private _savedDatabase: string | undefined;
 
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
         log: vscode.LogOutputChannel,
+        client?: SqlToolsServiceClient,
+        notificationHandler?: QueryNotificationHandler,
     ) {
         this.log = log;
+        this.queryExecutor = new NotebookQueryExecutor(
+            client ?? SqlToolsServiceClient.instance,
+            notificationHandler ?? QueryNotificationHandler.instance,
+        );
     }
 
     /**
-     * Query the actual database name from the server via SELECT DB_NAME().
-     * Used to verify we're connected to the expected database.
+     * Set the reconnection context from persisted notebook metadata.
+     * Called when recreating the manager after a VS Code restart so that
+     * promptAndConnect() can restore the correct database instead of
+     * defaulting to master.
      */
-    private async queryActualDatabase(uri: string): Promise<string> {
-        const result = await this.connectionSharingService.executeSimpleQuery(
-            uri,
-            "SELECT DB_NAME() AS [current_database]",
-        );
-        return result.rows?.[0]?.[0]?.displayValue ?? "(unknown)";
+    setReconnectionContext(server: string, database: string): void {
+        this._savedServer = server;
+        this._savedDatabase = database;
+    }
+
+    /**
+     * Get the actual database name from the connection manager.
+     * After connect() succeeds, STS populates the credentials with the real
+     * database name from the server's ConnectionCompleteParams.connectionSummary.
+     */
+    private getActualDatabase(uri: string): string | undefined {
+        const info = this.connectionMgr.getConnectionInfoFromUri(uri);
+        return info?.database;
     }
 
     /**
@@ -86,6 +113,20 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionLabel = "";
         }
 
+        // Try reconnecting with stored connection info (within-session stale connection)
+        if (this.connectionInfo) {
+            this.log.info("[ensureConnection] Attempting reconnect with stored connection info");
+            try {
+                const uri = await this.connectInternal(this.connectionInfo);
+                this.connectionUri = uri;
+                const actualDb = this.getActualDatabase(uri);
+                this.connectionLabel = formatConnectionLabel(this.connectionInfo.server, actualDb);
+                return uri;
+            } catch (err: any) {
+                this.log.warn(`[ensureConnection] Reconnect failed: ${err.message}, will prompt`);
+            }
+        }
+
         // No alive connection — prompt the user
         this.log.info("[ensureConnection] No connection, prompting user");
         return this.promptAndConnect();
@@ -104,10 +145,24 @@ export class NotebookConnectionManager implements vscode.Disposable {
         );
         try {
             const pickListItems = await this.connectionMgr.connectionStore.getPickListItems();
-            const connectionInfo =
+            let connectionInfo =
                 await this.connectionMgr.connectionUI.promptForConnection(pickListItems);
             if (!connectionInfo) {
                 throw new Error(LocalizedConstants.Notebooks.noConnectionSelected);
+            }
+
+            // If the notebook has a saved database context and the user picked a
+            // server-level profile (no explicit database), restore the saved database
+            // so the notebook reconnects to its original database instead of master.
+            const savedDb = this.connectionInfo?.database || this._savedDatabase;
+            const savedServer = this.connectionInfo?.server || this._savedServer;
+            if (
+                savedDb &&
+                !connectionInfo.database &&
+                savedServer?.toLowerCase() === connectionInfo.server.toLowerCase()
+            ) {
+                this.log.info(`[promptAndConnect] Restoring saved database context: ${savedDb}`);
+                connectionInfo = { ...connectionInfo, database: savedDb };
             }
 
             this.log.info(
@@ -116,17 +171,9 @@ export class NotebookConnectionManager implements vscode.Disposable {
             const uri = await this.connectInternal(connectionInfo);
             this.log.info(`[promptAndConnect] connect() → URI=${uri}`);
 
-            // Verify the actual database
-            try {
-                const actualDb = await this.queryActualDatabase(uri);
-                this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
-                this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
-            } catch {
-                this.connectionLabel = formatConnectionLabel(
-                    connectionInfo.server,
-                    connectionInfo.database,
-                );
-            }
+            const actualDb = this.getActualDatabase(uri);
+            this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
+            this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
 
             this.connectionUri = uri;
             this.connectionInfo = connectionInfo;
@@ -140,8 +187,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     /**
      * Connect with a specific connection profile (from Object Explorer context menu).
-     * After connecting, verifies the database via SELECT DB_NAME() and switches
-     * with USE [database] if needed.
+     * The caller sets `connectionInfo.database` to the OE node's database.
      */
     async connectWith(connectionInfo: IConnectionInfo): Promise<string> {
         const activity = startActivity(
@@ -158,45 +204,12 @@ export class NotebookConnectionManager implements vscode.Disposable {
             const uri = await this.connectInternal(connectionInfo);
             this.log.info(`[connectWith] connect() → URI=${uri}`);
 
-            // Verify we're on the correct database.
-            let actualDb = "(unknown)";
-            try {
-                actualDb = await this.queryActualDatabase(uri);
-                this.log.info(
-                    `[connectWith] Actual DB: ${actualDb}, Expected: ${database || "(none)"}`,
-                );
-
-                if (
-                    database &&
-                    actualDb.toLowerCase() !== database.toLowerCase() &&
-                    actualDb !== "(unknown)"
-                ) {
-                    // Wrong database — disconnect and reconnect with correct DB
-                    this.log.info(
-                        `[connectWith] Database mismatch! Reconnecting with [${database}]`,
-                    );
-                    this.connectionSharingService.disconnect(uri);
-                    const fixedInfo = { ...connectionInfo, database };
-                    const newUri = await this.connectInternal(fixedInfo);
-                    actualDb = await this.queryActualDatabase(newUri);
-                    this.log.info(`[connectWith] After reconnect: ${actualDb}, URI=${newUri}`);
-                    this.connectionUri = newUri;
-                    this.connectionInfo = { ...connectionInfo, database: actualDb };
-                    this.connectionLabel = formatConnectionLabel(server, actualDb);
-                    activity.end(ActivityStatus.Succeeded);
-                    return newUri;
-                }
-            } catch (err: any) {
-                this.log.info(`[connectWith] DB verification failed: ${err.message}`);
-                if (database) {
-                    actualDb = database;
-                }
-            }
+            const actualDb = this.getActualDatabase(uri);
+            this.log.info(`[connectWith] Connected to database: ${actualDb}`);
 
             this.connectionUri = uri;
-            this.connectionInfo = { ...connectionInfo, database: actualDb };
-            // Use the VERIFIED database name, not the possibly-stale profile value
-            this.connectionLabel = formatConnectionLabel(server, actualDb);
+            this.connectionInfo = { ...connectionInfo, database: actualDb || database };
+            this.connectionLabel = formatConnectionLabel(server, actualDb || database);
             activity.end(ActivityStatus.Succeeded);
             return uri;
         } catch (err) {
@@ -238,8 +251,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const uri = await this.connectInternal(newInfo);
         this.log.info(`[changeDatabase] Reconnected → URI=${uri}`);
 
-        // Verify
-        const actualDb = await this.queryActualDatabase(uri);
+        // Get the actual database name from the connection info that STS populated
+        const actualDb = this.getActualDatabase(uri);
         this.log.info(`[changeDatabase] Verified: ${actualDb}`);
 
         this.connectionUri = uri;
@@ -247,19 +260,18 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionLabel = formatConnectionLabel(newInfo.server, actualDb);
     }
 
-    /**
-     * Get the current database name from the connection label.
-     */
     getCurrentDatabase(): string {
-        const parts = this.connectionLabel.split(" / ");
-        return parts.length > 1 ? parts[1] : "";
+        return this.connectionInfo?.database || "";
     }
 
-    async executeQuery(sql: string): Promise<SimpleExecuteResult> {
+    async executeQueryString(
+        sql: string,
+        cancellationToken?: vscode.CancellationToken,
+    ): Promise<NotebookQueryResult> {
         if (!this.connectionUri) {
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
-        return this.connectionSharingService.executeSimpleQuery(this.connectionUri, sql);
+        return this.queryExecutor.execute(this.connectionUri, sql, cancellationToken);
     }
 
     isConnected(): boolean {
@@ -280,6 +292,16 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionLabel = "";
     }
 
+    /**
+     * Disconnect a specific URI from the connection sharing service without
+     * clearing the manager's current state. Used to clean up a previous
+     * connection after a new one has been established.
+     */
+    disconnectUri(uri: string): void {
+        this.log.info(`[disconnectUri] URI=${uri}`);
+        this.connectionSharingService.disconnect(uri);
+    }
+
     getConnectionLabel(): string {
         return this.connectionLabel || LocalizedConstants.Notebooks.notConnected;
     }
@@ -290,20 +312,6 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     getConnectionUri(): string | undefined {
         return this.connectionUri;
-    }
-
-    /**
-     * Best-effort cancellation: sends QueryCancelRequest to STS.
-     * SimpleExecuteRequest may not support cancellation, so this is best-effort.
-     */
-    async cancelExecution(): Promise<void> {
-        if (this.connectionUri) {
-            try {
-                await this.connectionSharingService.cancelQuery(this.connectionUri);
-            } catch (err: any) {
-                this.log.warn(`[cancelExecution] Cancel request failed: ${err.message}`);
-            }
-        }
     }
 
     /**

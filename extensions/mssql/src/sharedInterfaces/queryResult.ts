@@ -61,6 +61,14 @@ export interface FontSettings {
     fontFamily?: string;
 }
 
+export type GridLinesMode = "both" | "horizontal" | "vertical" | "none";
+
+export interface GridSettings {
+    alternatingRowColors?: boolean;
+    showGridLines?: GridLinesMode;
+    rowPadding?: number | null;
+}
+
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     uri?: string;
     title?: string;
@@ -71,6 +79,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
+    gridSettings?: GridSettings;
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;

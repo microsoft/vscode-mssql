@@ -4,14 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Tooltip } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import eventBus from "../schemaDesignerEvents";
+import { useIsToolbarCompact } from "./schemaDesignerToolbarContext";
+import { AddTableIcon16Regular } from "../../../common/icons/addTable";
 
 export function AddTableButton() {
     const context = useContext(SchemaDesignerContext);
+    const isCompact = useIsToolbarCompact();
     if (!context) {
         return undefined;
     }
@@ -21,11 +23,11 @@ export function AddTableButton() {
             <Button
                 appearance="subtle"
                 size="small"
-                icon={<FluentIcons.TableAdd16Regular />}
+                icon={<AddTableIcon16Regular />}
                 onClick={() => {
                     eventBus.emit("newTable", context.extractSchema());
                 }}>
-                {locConstants.schemaDesigner.addTable}
+                {!isCompact && locConstants.schemaDesigner.addTable}
             </Button>
         </Tooltip>
     );

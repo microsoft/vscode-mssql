@@ -141,13 +141,22 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                     state.message = { message: errorMsg, intent: "error" } as DialogMessageSpec;
                     return state;
                 }
+                const additionalProps: Record<string, string> = {
+                    operationId: this._operationId,
+                    ruleCount: overrides.length.toString(),
+                };
+                // Only include rule IDs when code analysis is enabled on build —
+                // Sent as a semicolon-separated string and query the enabled rules
+                if (payload.enableCodeAnalysisOnBuild) {
+                    additionalProps.enabledRuleIds = payload.rules
+                        .filter((r) => r.severity !== CodeAnalysisRuleSeverity.Disabled)
+                        .map((r) => r.shortRuleId)
+                        .join(";");
+                }
                 sendActionEvent(
                     TelemetryViews.SqlProjects,
                     TelemetryActions.CodeAnalysisRulesSaved,
-                    {
-                        operationId: this._operationId,
-                        ruleCount: overrides.length.toString(),
-                    },
+                    additionalProps,
                 );
                 if (payload.enableCodeAnalysisOnBuild !== state.enableCodeAnalysisOnBuild) {
                     sendActionEvent(
@@ -160,7 +169,6 @@ export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
                 }
                 if (payload.closeAfterSave) {
                     this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
-                    this.vscodeWrapper.outputChannel.show();
                     this.panel.dispose();
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty

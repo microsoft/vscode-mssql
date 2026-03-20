@@ -9,6 +9,7 @@ import { DabService } from "../../../src/services/dabService";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 import * as dockerUtils from "../../../src/docker/dockerUtils";
 import * as dabContainer from "../../../src/dab/dabContainer";
+import { DefaultSqlPortNumber } from "../../../src/constants/constants";
 
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
     return {
@@ -16,6 +17,7 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
         tableName: "Users",
         schemaName: "dbo",
         isEnabled: true,
+        isSupported: true,
         enabledActions: [
             Dab.EntityAction.Create,
             Dab.EntityAction.Read,
@@ -253,6 +255,56 @@ suite("DabService Tests", () => {
             });
         });
 
+        // --- Default port injection ---
+
+        suite("should add default SQL Server port when port is missing", () => {
+            test("localhost without port gets default port", () => {
+                const result = transform("Server=localhost;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal,${DefaultSqlPortNumber}`,
+                );
+            });
+
+            test("127.0.0.1 without port gets default port", () => {
+                const result = transform("Server=127.0.0.1;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal,${DefaultSqlPortNumber}`,
+                );
+            });
+
+            test("localhost with instance name but no port gets default port", () => {
+                const result = transform("Server=localhost\\SQLEXPRESS;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal\\SQLEXPRESS,${DefaultSqlPortNumber}`,
+                );
+            });
+
+            test("localhost with container name but no port gets default port", () => {
+                const result = transform("Server=localhost;Database=TestDb;", "my-sql-container");
+                expect(result.connectionString).to.include(
+                    `Server=host.docker.internal\\my-sql-container,${DefaultSqlPortNumber}`,
+                );
+            });
+
+            test("Data Source without port gets default port", () => {
+                const result = transform("data source=127.0.0.1;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    `host.docker.internal,${DefaultSqlPortNumber}`,
+                );
+            });
+
+            test("should not add default port when port is already specified", () => {
+                const result = transform("Server=localhost,1434;Database=TestDb;");
+                expect(result.connectionString).to.include("Server=host.docker.internal,1434");
+                expect(result.connectionString).to.not.include(`,${DefaultSqlPortNumber}`);
+            });
+
+            test("should not add default port for non-localhost addresses", () => {
+                const result = transform("Server=remote-server;Database=TestDb;");
+                expect(result.connectionString).to.not.include(`,${DefaultSqlPortNumber}`);
+            });
+        });
+
         // --- Edge cases ---
 
         suite("edge cases", () => {
@@ -438,6 +490,29 @@ suite("DabService Tests", () => {
             expect(result.error).to.include("required");
         });
 
+        test("should expose startContainer full error text as frontend log content", async () => {
+            sandbox.stub(dabContainer, "startDabDockerContainer").resolves({
+                success: false,
+                error: "Failed to start DAB container. Please check the Docker logs for details.",
+                fullErrorText: "Container exited immediately",
+            });
+
+            const params: Dab.DabDeploymentParams = {
+                containerName: "test-container",
+                port: 5000,
+            };
+
+            const result = await dabService.runDeploymentStep(
+                Dab.DabDeploymentStepOrder.startContainer,
+                params,
+                createTestConfig(),
+                defaultConnectionInfo,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.containerLogs).to.equal("Container exited immediately");
+        });
+
         test("should run checkContainer step successfully", async () => {
             sandbox
                 .stub(dabContainer, "checkIfDabContainerIsReady")
@@ -455,6 +530,31 @@ suite("DabService Tests", () => {
 
             expect(result.success).to.be.true;
             expect(result.apiUrl).to.equal("http://localhost:5000");
+        });
+
+        test("should return failure logs for checkContainer failures", async () => {
+            const checkIfReadyStub = sandbox
+                .stub(dabContainer, "checkIfDabContainerIsReady")
+                .resolves({
+                    success: false,
+                    error: "Unable to launch the Data API builder engine.",
+                    fullErrorText: "fail: startup failed",
+                    containerLogs: "fail: startup failed",
+                });
+
+            const params: Dab.DabDeploymentParams = {
+                containerName: "test-container",
+                port: 5000,
+            };
+
+            const result = await dabService.runDeploymentStep(
+                Dab.DabDeploymentStepOrder.checkContainer,
+                params,
+            );
+
+            expect(result.success).to.be.false;
+            expect(checkIfReadyStub).to.have.been.calledOnce;
+            expect(result.containerLogs).to.equal("fail: startup failed");
         });
 
         test("should return error when checkContainer is called without params", async () => {

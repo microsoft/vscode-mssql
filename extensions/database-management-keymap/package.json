@@ -2,7 +2,7 @@
     "name": "mssql-database-management-keymap",
     "displayName": "MSSQL Database Management Keymap",
     "description": "Provides MSSQL database management-oriented default keybindings for the SQL Server (mssql) extension",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "ms-mssql",
     "preview": true,
     "license": "SEE LICENSE IN LICENSE.txt",
@@ -39,7 +39,13 @@
                 "command": "mssql.runQuery",
                 "key": "f5",
                 "mac": "f5",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
+            },
+            {
+                "command": "notebook.cell.execute",
+                "key": "f5",
+                "mac": "f5",
+                "when": "notebookCellListFocused && notebookType == 'sql'"
             },
             {
                 "command": "mssql.runCurrentStatement",
@@ -79,8 +85,9 @@
                 "mac": "cmd+shift+d"
             },
             {
-                "command": "queryResult.focus",
-                "key": "ctrl+shift+r"
+                "key": "ctrl+shift+r",
+                "command": "mssql.toggleQueryResultPanel",
+                "when": "(editorLangId == 'sql' && editorTextFocus) || view.queryResult.visible"
             }
         ]
     },

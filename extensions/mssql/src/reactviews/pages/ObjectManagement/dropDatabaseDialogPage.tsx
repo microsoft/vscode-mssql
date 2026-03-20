@@ -16,6 +16,7 @@ import {
 } from "../../../sharedInterfaces/objectManagement";
 import { locConstants } from "../../common/locConstants";
 import { getErrorMessage } from "../../common/utils";
+import { DropDatabaseIcon } from "../../common/icons/dropDatabase";
 import { ObjectManagementDialog } from "../../common/objectManagementDialog";
 import { ObjectManagementContext } from "./objectManagementStateProvider";
 import { DropDatabaseForm, DropDatabaseFormState } from "./dropDatabaseForm";
@@ -29,6 +30,13 @@ const useStyles = makeStyles({
         width: "100%",
         flexDirection: "column",
         backgroundColor: "var(--vscode-editor-background)",
+    },
+    content: {
+        width: "100%",
+        maxWidth: "560px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
     },
 });
 
@@ -49,6 +57,7 @@ export const DropDatabaseDialogPage = ({
     const context = useContext(ObjectManagementContext);
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isConfirmed, setIsConfirmed] = useState(false);
     const [dropForm, setDropForm] = useState<DropDatabaseFormState>({
         dropConnections: false,
         deleteBackupHistory: false,
@@ -64,8 +73,9 @@ export const DropDatabaseDialogPage = ({
 
     return (
         <ObjectManagementDialog
+            icon={<DropDatabaseIcon />}
             title={dialogTitle ?? locConstants.dropDatabase.title}
-            description={
+            subtitle={
                 model
                     ? locConstants.dropDatabase.description(model.databaseName, model.serverName)
                     : undefined
@@ -76,7 +86,7 @@ export const DropDatabaseDialogPage = ({
             cancelLabel={locConstants.dropDatabase.cancelButton}
             helpLabel={locConstants.dropDatabase.helpButton}
             scriptLabel={locConstants.dropDatabase.scriptButton}
-            primaryDisabled={isSubmitting}
+            primaryDisabled={isSubmitting || !isConfirmed}
             scriptDisabled={isSubmitting}
             onPrimary={async () => {
                 const params: DropDatabaseParams = {
@@ -123,11 +133,15 @@ export const DropDatabaseDialogPage = ({
                 );
             }}>
             {model && (
-                <DropDatabaseForm
-                    value={dropForm}
-                    viewModel={model}
-                    onChange={(next) => setDropForm(next)}
-                />
+                <div className={styles.content}>
+                    <DropDatabaseForm
+                        value={dropForm}
+                        viewModel={model}
+                        isConfirmed={isConfirmed}
+                        onChange={(next) => setDropForm(next)}
+                        onConfirmationChange={setIsConfirmed}
+                    />
+                </div>
             )}
         </ObjectManagementDialog>
     );
