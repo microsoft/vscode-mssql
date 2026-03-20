@@ -1,6 +1,6 @@
 # AGENTS
 
-1. Long lists of any kind in react view should be virtualized. Use @tanstack/react-virtual to implement it. For fluent data grid based virtualization use "@fluentui-contrib/react-data-grid-react-window". While implementing such lists please make sure they are screen reader friendly by adding aria props and make sure they are keyboard navigation friendly (arrow keys).
+1. Long lists of any kind in reactviews should be virtualized. Use @tanstack/react-virtual to implement it. For fluent data grid based virtualization use "@fluentui-contrib/react-data-grid-react-window". While implementing such lists please make sure they are screen reader friendly by adding aria props and make sure they are keyboard navigation friendly (arrow keys).
 2. Please avoid creating one-off components in the UI. Try to use fluent components and if not present create a generic common component in "common" folder first.
 3. Make sure all components created in "common" folder are accessible by both screen readers and keyboard.
 4. Please localize all the display strings. If the display string has parameters, please use parameterized localized strings instead of breaking them.
