@@ -3137,6 +3137,9 @@
     <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
       <source xml:lang="en">Hide New Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++82504e524f0fff2954a2fe00d8fa93299502a613d6de6b0264fc1ee72af3db88">
+      <source xml:lang="en">Hide SQL Pane</source>
+    </trans-unit>
     <trans-unit id="++CODE++f499a7a9c57676d65af8383d5a0f6c5d6b649bb599235e6e20900f73a55968bd">
       <source xml:lang="en">Hide Script</source>
     </trans-unit>
