@@ -110,7 +110,16 @@ export function azureAuthTypeToString(value: AzureAuthType): string {
 }
 
 export function escapeClosingBrackets(str: string): string {
-    return str.replace("]", "]]");
+    return str.replace(/\]/g, "]]");
+}
+
+/**
+ * Escapes a SQL identifier by wrapping it in square brackets and escaping any
+ * closing brackets within the name.
+ * Example: `my]table` becomes `[my]]table]`
+ */
+export function bracketEscapeSqlIdentifier(name: string): string {
+    return `[${escapeClosingBrackets(name)}]`;
 }
 
 /**

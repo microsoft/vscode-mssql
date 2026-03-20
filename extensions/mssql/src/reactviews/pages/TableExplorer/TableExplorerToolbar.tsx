@@ -4,7 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React from "react";
-import { Toolbar, ToolbarButton, Combobox, Option, Button } from "@fluentui/react-components";
+import {
+    Toolbar,
+    ToolbarButton,
+    Combobox,
+    Option,
+    Button,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    SplitButton,
+} from "@fluentui/react-components";
 import {
     SaveRegular,
     AddRegular,
@@ -38,7 +50,6 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     const RADIX_DECIMAL = 10;
 
     // Use selectors to access state
-    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const isLoading = loadStatus === ApiStatus.Loading;
 
@@ -87,6 +98,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         }
     }, [currentRowCount]);
 
+    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
+
     // Total changes includes both cell edits and row deletions
     const changeCount = cellChangeCount + deletionCount;
 
@@ -113,22 +126,36 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 disabled={isLoading}>
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
-            <ToolbarButton
-                aria-label={
-                    showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript
-                }
-                title={showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
-                icon={<CodeRegular />}
-                onClick={() => {
-                    if (showScriptPane) {
-                        context.toggleScriptPane();
-                    } else {
-                        context.generateScript();
-                    }
-                }}
-                disabled={isLoading}>
-                {showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
-            </ToolbarButton>
+            <Menu>
+                <MenuTrigger disableButtonEnhancement>
+                    <SplitButton
+                        icon={<CodeRegular />}
+                        disabled={isLoading}
+                        size="small"
+                        primaryActionButton={{
+                            onClick: showScriptPane ? () => context.toggleScriptPane() : undefined,
+                        }}
+                        menuButton={{
+                            "aria-label": showScriptPane
+                                ? loc.tableExplorer.hideSqlPane
+                                : loc.tableExplorer.showSqlPane,
+                        }}>
+                        {showScriptPane
+                            ? loc.tableExplorer.hideSqlPane
+                            : loc.tableExplorer.showSqlPane}
+                    </SplitButton>
+                </MenuTrigger>
+                <MenuPopover>
+                    <MenuList>
+                        <MenuItem onClick={() => context.generateScript()}>
+                            {loc.tableExplorer.scriptChanges}
+                        </MenuItem>
+                        <MenuItem onClick={() => context.showTableQuery()}>
+                            {loc.tableExplorer.tableQuery}
+                        </MenuItem>
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
             <ToolbarButton
                 aria-label={loc.tableExplorer.viewTableDiagram}
                 title={loc.tableExplorer.viewTableDiagram}

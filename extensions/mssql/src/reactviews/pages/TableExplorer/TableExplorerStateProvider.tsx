@@ -77,6 +77,14 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("saveResults", { format, data });
             },
 
+            showTableQuery: function (): void {
+                extensionRpc.action("showTableQuery", {});
+            },
+
+            runTableQuery: function (queryString: string): void {
+                extensionRpc.action("runTableQuery", { queryString });
+            },
+
             modifyTable: function (): void {
                 extensionRpc.action("modifyTable", {});
             },

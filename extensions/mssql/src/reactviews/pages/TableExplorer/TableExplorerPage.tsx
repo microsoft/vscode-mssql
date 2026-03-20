@@ -3,17 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
-import { DefinitionPanel, DesignerDefinitionTabs } from "../../common/definitionPanel";
-import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
+import {
+    DefinitionPanel,
+    DefinitionPanelCustomTab,
+    DesignerDefinitionTabs,
+} from "../../common/definitionPanel";
+import { Button, makeStyles, shorthands, Spinner } from "@fluentui/react-components";
+import { PlayRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { SqlPaneMode } from "../../../sharedInterfaces/tableExplorer";
+import { VscodeEditor } from "../../common/vscodeMonaco";
 
 const useStyles = makeStyles({
     root: {
@@ -53,6 +60,11 @@ const useStyles = makeStyles({
         width: "100%",
         flexDirection: "column",
     },
+    editorPane: {
+        width: "100%",
+        height: "100%",
+        position: "relative",
+    },
     loadingOverlay: {
         position: "absolute",
         top: 0,
@@ -82,12 +94,28 @@ export const TableExplorerPage: React.FC = () => {
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
+    const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
+    const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
 
     const isLoading = loadStatus === ApiStatus.Loading;
+
+    const [editableQuery, setEditableQuery] = useState("");
+
+    // Sync editableQuery when tableQuery from state changes
+    useEffect(() => {
+        if (tableQuery !== undefined) {
+            setEditableQuery(tableQuery);
+        }
+    }, [tableQuery]);
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
+
+    // Clear cell highlights when the query changes (pending changes are stale)
+    useEffect(() => {
+        gridRef.current?.clearAllChangeTracking();
+    }, [tableQuery]);
 
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
@@ -121,32 +149,31 @@ export const TableExplorerPage: React.FC = () => {
                             />
                             {resultSet ? (
                                 <div className={classes.dataGridContainer}>
-                                    {isLoading ? (
-                                        <div className={classes.loadingContainer}>
+                                    {isLoading && (
+                                        <div className={classes.loadingOverlay}>
                                             <Spinner
                                                 label={loc.tableExplorer.loadingTableData}
                                                 labelPosition="below"
                                             />
                                         </div>
-                                    ) : (
-                                        <TableDataGrid
-                                            ref={gridRef}
-                                            resultSet={resultSet}
-                                            themeKind={themeKind}
-                                            currentRowCount={currentRowCount}
-                                            failedCells={failedCells}
-                                            deletedRows={deletedRows}
-                                            onDeleteRow={context?.deleteRow}
-                                            onUpdateCell={context?.updateCell}
-                                            onRevertCell={context?.revertCell}
-                                            onRevertRow={context?.revertRow}
-                                            onLoadSubset={context?.loadSubset}
-                                            onCellChangeCountChanged={handleCellChangeCountChanged}
-                                            onDeletionCountChanged={handleDeletionCountChanged}
-                                            onSaveResults={context?.saveResults}
-                                            onModifyTable={context?.modifyTable}
-                                        />
                                     )}
+                                    <TableDataGrid
+                                        ref={gridRef}
+                                        resultSet={resultSet}
+                                        themeKind={themeKind}
+                                        currentRowCount={currentRowCount}
+                                        failedCells={failedCells}
+                                        deletedRows={deletedRows}
+                                        onDeleteRow={context?.deleteRow}
+                                        onUpdateCell={context?.updateCell}
+                                        onRevertCell={context?.revertCell}
+                                        onRevertRow={context?.revertRow}
+                                        onLoadSubset={context?.loadSubset}
+                                        onCellChangeCountChanged={handleCellChangeCountChanged}
+                                        onDeletionCountChanged={handleDeletionCountChanged}
+                                        onSaveResults={context?.saveResults}
+                                        onModifyTable={context?.modifyTable}
+                                    />
                                 </div>
                             ) : (
                                 <p>{loc.tableExplorer.noDataAvailable}</p>
@@ -156,16 +183,61 @@ export const TableExplorerPage: React.FC = () => {
                     {showScriptPane && (
                         <>
                             <PanelResizeHandle className={classes.resizeHandle} />
-                            <DefinitionPanel
+                            <DefinitionPanel<"tableQuery">
                                 scriptTab={{
                                     value:
                                         updateScript || `-- ${loc.tableExplorer.noPendingChanges}`,
                                     themeKind,
                                     language: "sql",
+                                    label: loc.tableExplorer.scriptChanges,
                                     openInEditor: () => context.openScriptInEditor(),
                                     copyToClipboard: () => context.copyScriptToClipboard(),
                                 }}
-                                activeTab={DesignerDefinitionTabs.Script}
+                                customTabs={[
+                                    {
+                                        id: "tableQuery" as const,
+                                        label: loc.tableExplorer.tableQuery,
+                                        content: (
+                                            <div className={classes.editorPane}>
+                                                <VscodeEditor
+                                                    height={"100%"}
+                                                    width={"100%"}
+                                                    language="sql"
+                                                    themeKind={themeKind}
+                                                    value={editableQuery}
+                                                    options={{
+                                                        readOnly: false,
+                                                    }}
+                                                    onChange={(value) =>
+                                                        setEditableQuery(value ?? "")
+                                                    }
+                                                />
+                                            </div>
+                                        ),
+                                        headerActions: (
+                                            <Button
+                                                size="small"
+                                                appearance="primary"
+                                                icon={<PlayRegular />}
+                                                onClick={() => context.runTableQuery(editableQuery)}
+                                                disabled={!editableQuery.trim() || isLoading}>
+                                                {loc.tableExplorer.runQuery}
+                                            </Button>
+                                        ),
+                                    } satisfies DefinitionPanelCustomTab<"tableQuery">,
+                                ]}
+                                activeTab={
+                                    sqlPaneMode === SqlPaneMode.TableQuery
+                                        ? "tableQuery"
+                                        : DesignerDefinitionTabs.Script
+                                }
+                                setActiveTab={(tab) => {
+                                    if (tab === "tableQuery") {
+                                        context.showTableQuery();
+                                    } else {
+                                        context.generateScript();
+                                    }
+                                }}
                                 onClose={() => context.toggleScriptPane()}
                             />
                         </>
