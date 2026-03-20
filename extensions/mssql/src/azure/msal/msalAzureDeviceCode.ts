@@ -34,6 +34,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {
+        this.logger.verbose("Starting login with Device Code flow");
         let authCompleteDeferred: IDeferred<void, Error>;
         let authCompletePromise = new Promise<void>(
             (resolve, reject) => (authCompleteDeferred = { resolve, reject }),

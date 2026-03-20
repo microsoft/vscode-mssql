@@ -30,7 +30,7 @@ export class MsalCachePluginProvider {
             this._serviceName,
         );
         this._logger.verbose(
-            `MsalCachePluginProvider: Using cache path ${_msalFilePath} and serviceName ${_serviceName}`,
+            `MsalCachePluginProvider: Using cache path '${this._msalFilePath}' and serviceName '${this._serviceName}'`,
         );
     }
 

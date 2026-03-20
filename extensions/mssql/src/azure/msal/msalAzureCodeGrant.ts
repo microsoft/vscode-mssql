@@ -63,6 +63,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         response: AuthenticationResult;
         authComplete: IDeferred<void, Error>;
     }> {
+        this.logger.verbose("Starting login with Auth Code Grant flow");
         let authCompleteDeferred: IDeferred<void, Error>;
         let authCompletePromise = new Promise<void>(
             (resolve, reject) => (authCompleteDeferred = { resolve, reject }),

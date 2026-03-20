@@ -151,6 +151,9 @@ export abstract class MsalAzureAuth {
         let accountInfo: AccountInfo | null;
         try {
             accountInfo = await this.getAccountFromMsalCache(account.key.id);
+            this.logger.verbose(
+                `Account info retrieved from MSAL cache for account ${account.displayInfo.displayName} (${account.key.id})`,
+            );
         } catch (ex) {
             this.logger.error(
                 `Error: Could not fetch account from MSAL cache, re-authentication needed: ${getErrorMessage(ex)}`,
@@ -200,6 +203,12 @@ export abstract class MsalAzureAuth {
         } catch (e) {
             this.logger.error("Failed to acquireTokenSilent", e);
             if (e instanceof AuthError && this.accountNeedsRefresh(e)) {
+                if (this.shouldClearAccountFromCache(e)) {
+                    this.logger.verbose(
+                        `Clearing cached MSAL tokens for account ${account.displayInfo.displayName} (${account.key.id}) before interactive reauthentication.`,
+                    );
+                    await this.clearCredentials(account);
+                }
                 // build refresh token request
                 const tenant: ITenant = {
                     id: tenantId,
@@ -227,6 +236,17 @@ export abstract class MsalAzureAuth {
             error instanceof InteractionRequiredAuthError ||
             error.errorMessage.includes(Constants.AADSTS70043) ||
             error.errorMessage.includes(Constants.AADSTS50020) ||
+            error.errorMessage.includes(Constants.AADSTS50173)
+        );
+    }
+
+    /**
+     * Some server-side refresh token failures leave a stale account/token entry behind in the MSAL cache.
+     * Remove only the affected account so the next interactive auth writes a fresh token set.
+     */
+    private shouldClearAccountFromCache(error: AuthError): boolean {
+        return (
+            error.errorMessage.includes(Constants.AADSTS70043) ||
             error.errorMessage.includes(Constants.AADSTS50173)
         );
     }
