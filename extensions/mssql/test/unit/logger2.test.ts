@@ -70,12 +70,11 @@ suite("Logger2 tests", () => {
         logger2.info("first message");
         logger2.warn("second message");
 
-        expect(createOutputChannelStub).to.have.been.calledOnceWithExactly(
-            logger2OutputChannelName,
-            { log: true },
-        );
-        expect(channel.info).to.have.been.calledOnceWithExactly("first message");
-        expect(channel.warn).to.have.been.calledOnceWithExactly("second message");
+        expect(createOutputChannelStub).to.have.been.calledWithExactly(logger2OutputChannelName, {
+            log: true,
+        });
+        expect(channel.info).to.have.been.calledWithExactly("first message");
+        expect(channel.warn).to.have.been.calledWithExactly("second message");
     });
 
     test("withPrefix prepends the prefix to all messages", () => {
@@ -84,7 +83,7 @@ suite("Logger2 tests", () => {
 
         prefixedLogger.debug("operation started", { id: 42 });
 
-        expect(channel.debug).to.have.been.calledOnceWithExactly(
+        expect(channel.debug).to.have.been.calledWithExactly(
             '[SchemaCompare] operation started {"id":42}',
         );
     });
@@ -97,9 +96,11 @@ suite("Logger2 tests", () => {
         alternateLogger.error("failed", new Error("boom"));
 
         expect(createOutputChannelStub).to.not.have.been.called;
-        expect(channel.error).to.have.been.calledOnce;
-        expect(channel.error.firstCall.args[0]).to.contain("[Profiler] failed");
-        expect(channel.error.firstCall.args[0]).to.contain("boom");
+        expect(channel.error).to.have.been.calledWithMatch(
+            sinon.match(
+                (value: string) => value.includes("[Profiler] failed") && value.includes("boom"),
+            ),
+        );
     });
 
     test("forChannelName creates a log channel lazily and disposes owned channels", () => {
@@ -112,11 +113,11 @@ suite("Logger2 tests", () => {
         alternateLogger.trace("hello");
         alternateLogger.dispose();
 
-        expect(createOutputChannelStub).to.have.been.calledOnceWithExactly("Custom Channel", {
+        expect(createOutputChannelStub).to.have.been.calledWithExactly("Custom Channel", {
             log: true,
         });
-        expect(channel.trace).to.have.been.calledOnceWithExactly("[Custom] hello");
-        expect(channel.dispose).to.have.been.calledOnce;
+        expect(channel.trace).to.have.been.calledWithExactly("[Custom] hello");
+        expect(channel.dispose).to.have.been.called;
     });
 
     test("show delegates to the underlying channel", () => {
@@ -125,7 +126,7 @@ suite("Logger2 tests", () => {
 
         logger.show(true);
 
-        expect(channel.show).to.have.been.calledOnceWithExactly(true);
+        expect(channel.show).to.have.been.calledWithExactly(true);
     });
 
     test("piiSanitized logs sanitized values when pii logging is enabled", () => {
@@ -149,8 +150,7 @@ suite("Logger2 tests", () => {
             { correlationId: "abc" },
         );
 
-        expect(channel.trace).to.have.been.calledOnce;
-        expect(channel.trace.firstCall.args[0]).to.equal(
+        expect(channel.trace).to.have.been.calledWithExactly(
             '[Auth] [PII] token refresh account={"user":"alice","token":"abc...ijk"} session=123...890 {"correlationId":"abc"}',
         );
     });

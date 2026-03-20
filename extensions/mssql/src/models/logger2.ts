@@ -13,19 +13,35 @@ export const logger2OutputChannelName = "MSSQL - Enhanced Logs";
  * VS Code log-channel-style logger with support for MSSQL tracing and PII settings.
  */
 export interface ILogger2 {
-    /** Logs a message at the most verbose level. */
+    /**
+     * Logs a message at the most verbose level.
+     * Visibility of the message is controlled by the VS Code log channel's configured log level.
+     */
     trace(message: string, ...args: unknown[]): void;
-    /** Logs a message when `mssql.tracingLevel` is `Verbose` or more permissive. */
+    /**
+     * Logs a message at the debug level to the underlying VS Code log channel.
+     * Visibility of the message is controlled by the channel's configured log level.
+     */
     debug(message: string, ...args: unknown[]): void;
-    /** Logs a message when `mssql.tracingLevel` is `Information` or more permissive. */
+    /**
+     * Logs a message at the information level to the underlying VS Code log channel.
+     * Visibility of the message is controlled by the channel's configured log level.
+     */
     info(message: string, ...args: unknown[]): void;
-    /** Logs a message when `mssql.tracingLevel` is `Warning` or more permissive. */
+    /**
+     * Logs a message at the warning level to the underlying VS Code log channel.
+     * Visibility of the message is controlled by the channel's configured log level.
+     */
     warn(message: string, ...args: unknown[]): void;
-    /** Logs a message when `mssql.tracingLevel` is `Error` or more permissive. */
+    /**
+     * Logs a message at the error level to the underlying VS Code log channel.
+     * Visibility of the message is controlled by the channel's configured log level.
+     */
     error(message: string, ...args: unknown[]): void;
     /**
      * Logs a message containing sensitive values after applying the legacy MSSQL sanitization rules.
-     * This is gated by `mssql.piiLogging` and intentionally bypasses tracing-level filtering.
+     * Emission is gated by `mssql.piiLogging`, while visibility is controlled by the VS Code
+     * log channel's configured log level.
      */
     piiSanitized(
         msg: unknown,
@@ -63,21 +79,29 @@ function getDefaultChannel(): vscode.LogOutputChannel {
 }
 
 /**
+ * Ensures a string is normalized to a single line by replacing newlines with spaces.
+ */
+function normalizeSingleLine(text: string): string {
+    return text.replace(/[\r\n]+/g, " ").trim();
+}
+
+/**
  * Converts arbitrary log values into a single-line string payload.
  */
 function formatLogPart(value: unknown): string {
     if (value instanceof Error) {
-        return value.stack ?? value.message;
+        return normalizeSingleLine(value.stack ?? value.message);
     }
 
     if (typeof value === "string") {
-        return value;
+        return normalizeSingleLine(value);
     }
 
     try {
-        return JSON.stringify(value);
+        const json = JSON.stringify(value);
+        return json === undefined ? String(value) : normalizeSingleLine(json);
     } catch {
-        return String(value);
+        return normalizeSingleLine(String(value));
     }
 }
 
@@ -247,5 +271,6 @@ export default logger2;
  * Exported for unit tests to isolate the cached default channel.
  */
 export function resetLogger2DefaultChannelForTest(): void {
+    defaultChannel?.dispose();
     defaultChannel = undefined;
 }
