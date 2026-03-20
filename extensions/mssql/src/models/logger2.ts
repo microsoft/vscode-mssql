@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as Constants from "../constants/constants";
 import * as Utils from "./utils";
-import { sanitize, shorten } from "./logger";
 
-export const logger2OutputChannelName = "MSSQL - Enhanced Logs";
+export const logger2OutputChannelName = Constants.outputChannelName;
 
 /**
  * VS Code log-channel-style logger with support for MSSQL tracing and PII settings.
@@ -236,9 +236,11 @@ export class Logger2 implements ILogger2 {
                 break;
             case "warn":
                 this.channel.warn(formatted);
+                console.warn(formatted);
                 break;
             case "error":
                 this.channel.error(formatted);
+                console.error(formatted);
                 break;
         }
     }
@@ -272,4 +274,55 @@ export function resetLogger2DefaultChannelForTest(): void {
     defaultChannel?.dispose();
     defaultChannel = undefined;
     defaultChannelState.cachedChannel = undefined;
+}
+
+/**
+ * Sanitizes a given object for logging to the output window, removing/shortening any PII or unneeded values.
+ * @param objOrArray The object to sanitize for output logging
+ * @returns The stringified version of the sanitized object
+ */
+export function sanitize(objOrArray: any): string {
+    if (Array.isArray(objOrArray)) {
+        return JSON.stringify(objOrArray.map((o) => sanitizeImpl(o)));
+    } else {
+        return sanitizeImpl(objOrArray);
+    }
+}
+
+function sanitizeImpl(obj: any): string {
+    obj = Object.assign({}, obj);
+    delete obj.domains; // very long and not really useful
+    // Shorten all tokens since we don't usually need the exact values and there's security concerns if they leaked.
+    shortenIfExists(obj, "token");
+    shortenIfExists(obj, "refresh_token");
+    shortenIfExists(obj, "access_token");
+    shortenIfExists(obj, "code");
+    shortenIfExists(obj, "id_token");
+    return JSON.stringify(obj);
+}
+
+/**
+ * Shortens the given string property on an object if it exists, otherwise does nothing.
+ * @param obj The object possibly containing the property
+ * @param property The name of the property to shorten - if it exists
+ */
+function shortenIfExists(obj: any, property: string): void {
+    if (obj[property]) {
+        obj[property] = shorten(obj[property]);
+    }
+}
+
+/**
+ * Shortens a given string. If it's longer than 6 characters it returns the first 3 characters
+ * followed by a ... followed by the last 3 characters. Returns the original string if 6 characters
+ * or less.
+ * @param str The string to shorten
+ * @returns Shortened string in the form 'xxx...xxx'
+ */
+export function shorten(str?: string): string | undefined {
+    // Don't shorten if adding the ... wouldn't make the string shorter.
+    if (!str || str.length < 10) {
+        return str;
+    }
+    return `${str.substr(0, 3)}...${str.slice(-3)}`;
 }
