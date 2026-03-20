@@ -17,6 +17,7 @@ import { Logger } from "../../src/models/logger";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
+import * as signatureVerifier from "../../src/languageservice/signatureVerifier";
 
 chai.use(sinonChai);
 
@@ -200,5 +201,36 @@ suite("ServiceDownloadProvider Tests", () => {
             expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
             expect(testDecompressProvider.decompress).to.have.been.calledOnce;
         });
+    });
+
+    test("installSQLToolsService should delete install directory and throw when signature validation fails", async () => {
+        let fixture: IFixture = {
+            downloadUrl: undefined,
+            downloadProvider: undefined,
+            downloadResult: Promise.resolve(),
+            decompressResult: Promise.resolve(),
+        };
+
+        fixture = await createDownloadProvider(fixture);
+
+        // Stub signature validation to simulate a failure.
+        sandbox
+            .stub(signatureVerifier, "validateExtractedBinaries")
+            .rejects(new Error("Signature is not valid for MicrosoftSqlToolsServiceLayer.exe"));
+
+        // Stub fs.rm to verify it is called with the install directory.
+        const rmStub = sandbox.stub(fs, "rm").resolves();
+
+        try {
+            await fixture.downloadProvider!.installService(Runtime.Windows_64);
+            expect.fail("Expected an error to be thrown");
+        } catch (err: any) {
+            expect(err.message).to.include("did not pass Microsoft signature validation");
+            expect(err.message).to.include("removed for safety");
+        }
+
+        expect(rmStub).to.have.been.calledOnce;
+        const rmArgs = rmStub.firstCall.args;
+        expect(rmArgs[1]).to.deep.include({ recursive: true, force: true });
     });
 });

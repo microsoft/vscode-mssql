@@ -1593,6 +1593,12 @@
                     "description": "%mssql.logDebugInfo%",
                     "scope": "window"
                 },
+                "mssql.disableSignatureVerification": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.disableSignatureVerification%",
+                    "scope": "machine"
+                },
                 "mssql.maxRecentConnections": {
                     "type": "number",
                     "default": 5,
