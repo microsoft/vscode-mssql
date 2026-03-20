@@ -1336,9 +1336,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showWarningMessageStub.calledOnce).to.be.true;
-            expect(mockTableExplorerService.dispose.notCalled).to.be.true;
-            expect(mockTableExplorerService.initialize.notCalled).to.be.true;
+            expect(
+                showWarningMessageStub.calledWithMatch(
+                    LocConstants.TableExplorer.pendingChangesWillBeLost,
+                ),
+            ).to.be.true;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
             // State should be unchanged
             expect(controller.state.newRows).to.have.lengthOf(1);
         });
@@ -1359,9 +1363,21 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showWarningMessageStub.calledOnce).to.be.true;
-            expect(mockTableExplorerService.dispose.calledOnce).to.be.true;
-            expect(mockTableExplorerService.initialize.calledOnce).to.be.true;
+            expect(
+                showWarningMessageStub.calledWithMatch(
+                    LocConstants.TableExplorer.pendingChangesWillBeLost,
+                ),
+            ).to.be.true;
+            expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    "test-owner-uri",
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "SELECT * FROM dbo.TestTable",
+                ),
+            ).to.be.true;
             expect(controller.state.newRows).to.have.lengthOf(0);
         });
 
@@ -1380,8 +1396,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showWarningMessageStub.notCalled).to.be.true;
-            expect(mockTableExplorerService.dispose.calledOnce).to.be.true;
+            expect(showWarningMessageStub.called).to.be.false;
+            expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
         });
 
         test("should attempt to restore original session when custom query fails", async () => {
@@ -1391,11 +1407,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.deletedRows = [];
             controller.state.originalCellValues = new Map();
             mockTableExplorerService.dispose.resolves();
-            mockTableExplorerService.initialize
-                .onFirstCall()
-                .rejects(new Error("Invalid query"))
-                .onSecondCall()
-                .resolves();
+            mockTableExplorerService.initialize.callsFake((...args: unknown[]) => {
+                const queryString = args[4] as string | undefined;
+                if (queryString === "INVALID SQL") {
+                    return Promise.reject(new Error("Invalid query"));
+                }
+                return Promise.resolve();
+            });
 
             // Act
             await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
@@ -1433,11 +1451,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.deletedRows = [];
             controller.state.originalCellValues = new Map();
             mockTableExplorerService.dispose.resolves();
-            mockTableExplorerService.initialize
-                .onFirstCall()
-                .rejects(new Error("Invalid query"))
-                .onSecondCall()
-                .rejects(new Error("Restore failed"));
+            mockTableExplorerService.initialize.rejects(new Error("Query failed"));
 
             // Act
             await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
@@ -1446,7 +1460,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert
             expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
-            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.calledWithMatch(sinon.match.string)).to.be.true;
         });
 
         test("should persist custom query string in state.tableQuery after successful run", async () => {
@@ -1493,6 +1507,33 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert - custom query should be preserved, not overwritten by default
             expect(controller.state.tableQuery).to.equal(customQuery);
+        });
+
+        test("should retain previous tableQuery when custom query fails and session is restored", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            const defaultQuery =
+                "SELECT TOP 100 [id], [firstName], [lastName]\nFROM [dbo].[TestTable]";
+            controller.state.tableQuery = defaultQuery;
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.callsFake((...args: unknown[]) => {
+                const queryString = args[4] as string | undefined;
+                if (queryString === "INVALID SQL") {
+                    return Promise.reject(new Error("Invalid query"));
+                }
+                return Promise.resolve();
+            });
+
+            // Act
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "INVALID SQL",
+            });
+
+            // Assert - tableQuery should retain the previous default value
+            expect(controller.state.tableQuery).to.equal(defaultQuery);
         });
 
         test("should generate default query in loadResultSet when no custom query was run", async () => {
