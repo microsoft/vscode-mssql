@@ -1604,6 +1604,10 @@
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7a5ab2de65399bbabf7f0a8d1acb9249bbce39f6924f77cbaef8a125e86d6539">
+      <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.  Error: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
       <source xml:lang="en">Currently signed in as:</source>
     </trans-unit>
@@ -5719,8 +5723,9 @@
     <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
       <source xml:lang="en">Sign into tenant</source>
     </trans-unit>
-    <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
-      <source xml:lang="en">Signing in to Azure...</source>
+    <trans-unit id="++CODE++81ecb58c552f0960f49fca72a0105a414beccc57b3a401f3d74904af931ccbf1">
+      <source xml:lang="en">Signing in to Azure as {0}...</source>
+      <note>{0} is the account name</note>
     </trans-unit>
     <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
       <source xml:lang="en">Simple</source>

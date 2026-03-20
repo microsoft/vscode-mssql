@@ -18,6 +18,7 @@ export enum ApiStatus {
     Loading = "loading",
     Loaded = "loaded",
     Error = "error",
+    Cancelled = "cancelled",
 }
 
 /**
@@ -27,6 +28,14 @@ export enum ApiStatus {
 export interface Status {
     status: ApiStatus;
     message?: string;
+}
+
+export function isStatus(error: unknown): error is Status {
+    if (!error || typeof error !== "object") {
+        return false;
+    }
+
+    return "status" in error;
 }
 
 export interface WebviewTelemetryActionEvent {
