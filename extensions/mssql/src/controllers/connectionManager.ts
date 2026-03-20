@@ -11,6 +11,10 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
+import {
+    acquireSqlAccessTokenFromVscodeAccount,
+    useVscodeAccountsForEntraMfa,
+} from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
@@ -1038,6 +1042,22 @@ export default class ConnectionManager {
             AzureController.isTokenValid(connectionInfo.azureAccountToken, connectionInfo.expiresOn)
         ) {
             // Token not expired, nothing to refresh
+            return;
+        }
+
+        if (useVscodeAccountsForEntraMfa()) {
+            const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                connectionInfo.accountId,
+                connectionInfo.tenantId,
+                connectionInfo.email ?? connectionInfo.user,
+            );
+
+            connectionInfo.azureAccountToken = tokenInfo.token.token;
+            connectionInfo.expiresOn = tokenInfo.token.expiresOn;
+            connectionInfo.accountId = tokenInfo.account.id;
+            connectionInfo.tenantId = tokenInfo.tenantId;
+            connectionInfo.user = tokenInfo.account.label;
+            connectionInfo.email = tokenInfo.session.account.label;
             return;
         }
 

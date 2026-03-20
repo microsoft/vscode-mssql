@@ -1587,6 +1587,12 @@
                     ],
                     "scope": "application"
                 },
+                "mssql.entraMfa.useVscodeAccounts": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.entraMfa.useVscodeAccounts.description%",
+                    "scope": "application"
+                },
                 "mssql.logDebugInfo": {
                     "type": "boolean",
                     "default": false,

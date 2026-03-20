@@ -96,6 +96,13 @@ import {
 } from "../sharedInterfaces/changePassword";
 import { getCloudId } from "../azure/providerSettings";
 import { ConnectionConfig } from "./connectionconfig";
+import {
+    getVscodeEntraAccountOptions,
+    getVscodeEntraTenantOptions,
+    normalizeVscodeEntraAccountId,
+    resolveVscodeEntraAccount,
+    useVscodeAccountsForEntraMfa,
+} from "../azure/vscodeEntraMfaUtils";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
@@ -192,7 +199,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            getAccounts(this._mainController.azureAccountService, this.logger),
+            this.getEntraMfaAccountOptions(),
             this.getAzureActionButtons(),
             this.getConnectionGroups(this._mainController),
         );
@@ -929,10 +936,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             let tenants = [];
 
             if (this.state.connectionProfile.accountId !== undefined) {
-                tenants = await getTenants(
-                    this._mainController.azureAccountService,
+                tenants = await this.getEntraMfaTenantOptions(
                     this.state.connectionProfile.accountId,
-                    this.logger,
                 );
             }
 
@@ -1459,12 +1464,56 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return mainController.connectionManager.connectionUI.getConnectionGroupOptions();
     }
 
+    private async getEntraMfaAccountOptions(): Promise<FormItemOptions[]> {
+        if (useVscodeAccountsForEntraMfa()) {
+            return getVscodeEntraAccountOptions();
+        }
+
+        return getAccounts(this._mainController.azureAccountService, this.logger);
+    }
+
+    private async getEntraMfaTenantOptions(accountId?: string): Promise<FormItemOptions[]> {
+        if (!accountId) {
+            return [];
+        }
+
+        if (useVscodeAccountsForEntraMfa()) {
+            return getVscodeEntraTenantOptions(accountId);
+        }
+
+        return getTenants(this._mainController.azureAccountService, accountId, this.logger);
+    }
+
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         const actionButtons: FormItemActionButton[] = [];
         actionButtons.push({
             label: Loc.signIn,
             id: "azureSignIn",
             callback: async () => {
+                if (useVscodeAccountsForEntraMfa()) {
+                    const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+                    const selectedAccount = await resolveVscodeEntraAccount(
+                        this.state.connectionProfile.accountId,
+                    );
+                    await auth.signIn(undefined, selectedAccount);
+
+                    const accountsComponent = this.getFormComponent(this.state, "accountId");
+                    if (!accountsComponent) {
+                        this.logger.error("Account component not found");
+                        return;
+                    }
+
+                    accountsComponent.options = await this.getEntraMfaAccountOptions();
+
+                    if (!this.state.connectionProfile.accountId && accountsComponent.options[0]) {
+                        this.state.connectionProfile.accountId = accountsComponent.options[0].value;
+                    }
+
+                    this.updateState();
+                    await this.handleAzureMFAEdits("accountId");
+                    return;
+                }
+
                 const account = await this._mainController.azureAccountService.addAccount();
                 this.logger.verbose(
                     `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
@@ -1494,6 +1543,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 await this.handleAzureMFAEdits("accountId");
             },
         });
+
+        if (useVscodeAccountsForEntraMfa()) {
+            return actionButtons;
+        }
 
         if (
             this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA &&
@@ -1577,12 +1630,26 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const accountComponent = this.getFormComponent(this.state, "accountId");
         const tenantComponent = this.getFormComponent(this.state, "tenantId");
         let tenants: FormItemOptions[] = [];
+
+        accountComponent.options = await this.getEntraMfaAccountOptions();
+
+        if (useVscodeAccountsForEntraMfa() && this.state.connectionProfile.accountId) {
+            const normalizedAccountId = await normalizeVscodeEntraAccountId(
+                this.state.connectionProfile.accountId,
+            );
+
+            if (normalizedAccountId) {
+                this.state.connectionProfile.accountId = normalizedAccountId;
+            } else {
+                this.state.connectionProfile.accountId = undefined;
+                this.state.connectionProfile.tenantId = undefined;
+            }
+        }
+
         switch (propertyName) {
             case "accountId":
-                tenants = await getTenants(
-                    this._mainController.azureAccountService,
+                tenants = await this.getEntraMfaTenantOptions(
                     this.state.connectionProfile.accountId,
-                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
@@ -1605,10 +1672,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     this.state.connectionProfile.accountId = firstOption.value;
                 }
                 if (this.state.connectionProfile.accountId) {
-                    tenants = await getTenants(
-                        this._mainController.azureAccountService,
+                    tenants = await this.getEntraMfaTenantOptions(
                         this.state.connectionProfile.accountId,
-                        this.logger,
                     );
                     if (tenantComponent) {
                         tenantComponent.options = tenants;
@@ -2138,13 +2203,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             toProfile.authenticationType === AuthenticationType.AzureMFA &&
             toProfile.user !== undefined
         ) {
-            const accounts = await this._mainController.azureAccountService.getAccounts();
+            if (useVscodeAccountsForEntraMfa()) {
+                const matchingAccount = await resolveVscodeEntraAccount(undefined, toProfile.user);
+                if (matchingAccount) {
+                    toProfile.accountId = matchingAccount.id;
+                    toProfile.email = matchingAccount.label;
+                }
+            } else {
+                const accounts = await this._mainController.azureAccountService.getAccounts();
 
-            const matchingAccount = accounts.find((a) => a.displayInfo.email === toProfile.user);
+                const matchingAccount = accounts.find(
+                    (account) => account.displayInfo.email === toProfile.user,
+                );
 
-            if (matchingAccount) {
-                toProfile.accountId = matchingAccount.displayInfo.userId;
-                toProfile.email = matchingAccount.displayInfo.email;
+                if (matchingAccount) {
+                    toProfile.accountId = matchingAccount.displayInfo.userId;
+                    toProfile.email = matchingAccount.displayInfo.email;
+                }
             }
         }
 

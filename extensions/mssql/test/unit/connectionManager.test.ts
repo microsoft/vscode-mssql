@@ -33,6 +33,7 @@ import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 
 chai.use(sinonChai);
 
@@ -565,6 +566,61 @@ suite("ConnectionManager Tests", () => {
             expect(result.email).to.equal("test@example.com");
             expect(result.accountId).to.equal("account123");
             expect(result.tenantId).to.equal("tenant456");
+        });
+    });
+
+    suite("confirmEntraTokenValidity", () => {
+        let testConnectionManager: ConnectionManager;
+
+        setup(() => {
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
+
+            testConnectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                mockPrompter,
+                mockLogger,
+            );
+        });
+
+        test("uses VS Code account tokens when VS Code account mode is enabled", async () => {
+            sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+            sandbox.stub(AzureController, "isTokenValid").returns(false);
+            sandbox.stub(VscodeEntraMfaUtils, "acquireSqlAccessTokenFromVscodeAccount").resolves({
+                account: {
+                    id: "vscode-account-id.tenant-id",
+                    label: "user@contoso.com",
+                } as vscode.AuthenticationSessionAccountInformation,
+                session: {
+                    account: {
+                        id: "vscode-account-id.tenant-id",
+                        label: "user@contoso.com",
+                    },
+                } as vscode.AuthenticationSession,
+                tenantId: "tenant-id",
+                token: {
+                    key: "vscode-account-id.tenant-id",
+                    token: "vscode-token",
+                    tokenType: "Bearer",
+                    expiresOn: Date.now() / 1000 + 3600,
+                },
+            });
+
+            const connectionInfo = {
+                server: "testServer",
+                authenticationType: "AzureMFA",
+                accountId: "legacy-account-id",
+                tenantId: "legacy-tenant-id",
+                user: "legacy-user",
+            } as IConnectionInfo;
+
+            await testConnectionManager.confirmEntraTokenValidity(connectionInfo);
+
+            expect(connectionInfo.azureAccountToken).to.equal("vscode-token");
+            expect(connectionInfo.accountId).to.equal("vscode-account-id.tenant-id");
+            expect(connectionInfo.tenantId).to.equal("tenant-id");
+            expect(connectionInfo.user).to.equal("user@contoso.com");
+            expect(connectionInfo.email).to.equal("user@contoso.com");
         });
     });
 
