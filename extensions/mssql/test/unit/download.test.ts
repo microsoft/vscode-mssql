@@ -142,6 +142,10 @@ suite("ServiceDownloadProvider Tests", () => {
         testDownloadHelper.downloadFile.callsFake(() => {
             return fixture.downloadResult;
         });
+        // Stub out signature verification by default — unit tests should not shell out to
+        // PowerShell or codesign. Individual tests that specifically test validation behaviour
+        // replace this stub as needed.
+        sandbox.stub(signatureVerifier, "validateExtractedBinaries").resolves();
         const downloadProvider = new ServiceDownloadProvider(
             config,
             testLogger,

@@ -212,11 +212,11 @@ suite("SignatureVerifier Tests", () => {
                     // codesign --verify: success
                     callback(null, "", "");
                 } else {
-                    // codesign -d: returns authority in stderr
+                    // codesign -d: realistic output with full Developer ID cert name
                     callback(
                         null,
                         "",
-                        "Authority=Microsoft Corporation\nTeamIdentifier=UBF8T346G9",
+                        "Authority=Developer ID Application: Microsoft Corporation (UBF8T346G9)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\nTeamIdentifier=UBF8T346G9",
                     );
                 }
                 callIndex++;
@@ -234,7 +234,11 @@ suite("SignatureVerifier Tests", () => {
                 if (callIndex % 2 === 0) {
                     callback(null, "", "");
                 } else {
-                    callback(null, "", "Authority=Microsoft Corporation");
+                    callback(
+                        null,
+                        "",
+                        "Authority=Developer ID Application: Microsoft Corporation (UBF8T346G9)",
+                    );
                 }
                 callIndex++;
             });
@@ -252,7 +256,11 @@ suite("SignatureVerifier Tests", () => {
                     err.code = 1;
                     callback(err, "", "");
                 } else {
-                    callback(null, "", "Authority=Microsoft Corporation");
+                    callback(
+                        null,
+                        "",
+                        "Authority=Developer ID Application: Microsoft Corporation (UBF8T346G9)",
+                    );
                 }
             });
 

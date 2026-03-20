@@ -133,11 +133,19 @@ async function verifyMacOSBinary(binaryPath: string, binary: RequiredSignedBinar
         }
     }
 
-    // Look for "Authority=<publisher>" in the codesign output.
-    if (!output.includes(`Authority=${binary.expectedPublisher}`)) {
+    // Check that at least one "Authority=..." line contains the expected publisher name.
+    // The real codesign output includes the full certificate name, e.g.:
+    //   "Authority=Developer ID Application: Microsoft Corporation (UBF8T346G9)"
+    // so we match by substring rather than an exact Authority= prefix.
+    const hasMatchingAuthority = output
+        .split(/\r?\n/)
+        .filter((line) => line.trim().startsWith("Authority="))
+        .some((line) => line.includes(binary.expectedPublisher));
+
+    if (!hasMatchingAuthority) {
         throw new Error(
             `Binary "${binary.fileName}" was not signed by the expected publisher. ` +
-                `Expected Authority=${binary.expectedPublisher}. Signature info: ${output}`,
+                `Expected an Authority line containing "${binary.expectedPublisher}". Signature info: ${output}`,
         );
     }
 }
