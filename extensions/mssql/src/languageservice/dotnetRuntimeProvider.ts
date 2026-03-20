@@ -18,6 +18,8 @@ import { getErrorMessage } from "../utils/utils";
  * 2. Error with guidance to install the offline VSIX
  */
 export default class DotnetRuntimeProvider {
+    private _cachedDotnetPath: string | undefined;
+
     constructor(private _logger: ILogger) {}
 
     /**
@@ -26,6 +28,10 @@ export default class DotnetRuntimeProvider {
      * @throws If no runtime can be resolved.
      */
     public async acquireDotnetRuntime(): Promise<string> {
+        if (this._cachedDotnetPath) {
+            return this._cachedDotnetPath;
+        }
+
         // 1. ms-dotnettools.vscode-dotnet-runtime extension
         try {
             const result = await vscode.commands.executeCommand<{ dotnetPath: string }>(
@@ -37,6 +43,7 @@ export default class DotnetRuntimeProvider {
             );
             if (result?.dotnetPath) {
                 this._logger.verbose("Acquired .NET runtime via command: " + result.dotnetPath);
+                this._cachedDotnetPath = result.dotnetPath;
                 return result.dotnetPath;
             }
         } catch (err) {

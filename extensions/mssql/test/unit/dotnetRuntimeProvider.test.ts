@@ -12,6 +12,7 @@ import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvid
 import * as Constants from "../../src/constants/constants";
 import { config } from "../../src/configurations/config";
 import { ILogger } from "../../src/models/interfaces";
+import { ServiceClient } from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -61,7 +62,7 @@ suite("DotnetRuntimeProvider tests", () => {
                     requestingExtensionId: Constants.extensionId,
                 },
             );
-            expect(logger.appendLine).to.have.been.calledWithMatch("Acquired .NET runtime via");
+            expect(logger.verbose).to.have.been.calledWithMatch("Acquired .NET runtime via");
         });
 
         test("should fall through when the runtime extension returns no path", async () => {
@@ -74,7 +75,7 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime();
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect((err as Error).message).to.include("Unable to find a .NET runtime");
+                expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });
 
@@ -88,10 +89,8 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime();
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.appendLine).to.have.been.calledWithMatch(
-                    "Failed to acquire .NET runtime",
-                );
-                expect((err as Error).message).to.include("Unable to find a .NET runtime");
+                expect(logger.error).to.have.been.calledWithMatch("Error acquiring .NET runtime");
+                expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });
     });

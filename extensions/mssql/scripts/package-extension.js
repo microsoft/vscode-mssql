@@ -36,7 +36,7 @@ function writePackageJson(packageJson) {
 }
 
 /**
- * For offline packaging, we need to remove dependancy on the runtime extension since we are including the self-contained STS.
+ * For offline packaging, we need to remove dependency on the runtime extension since we are including the self-contained STS.
  * This is done as users might not have access to the marketplace to download the runtime extension when they install the vsix,
  * so we need to make sure the extension can work without it. We will restore the original package.json after packaging is done.
  */

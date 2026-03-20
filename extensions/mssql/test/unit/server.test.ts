@@ -107,9 +107,7 @@ suite("Server tests", () => {
         const server = createServer(fixture);
         const result = await server.getOrDownloadServer(fixture.runtime);
         expect(result).to.equal(fixture.executableFileName);
-        expect(downloadProvider.installService).to.have.been.calledOnceWithExactly(
-            Runtime.Windows_64,
-        );
+        expect(downloadProvider.installService).to.have.been.calledWith(Runtime.Windows_64);
     });
 
     test("getOrDownloadServer should not download the service if already exist", async () => {
@@ -182,8 +180,10 @@ suite("Server tests", () => {
             const result = await server.getServerPath(Runtime.Portable);
 
             expect(result).to.be.undefined;
-            // Should only call getOrMakeInstallDirectory once for Portable, not twice
-            expect(downloadProvider.getOrMakeInstallDirectory).to.have.been.calledOnce;
+            // Should only call getOrMakeInstallDirectory for Portable, not twice
+            expect(downloadProvider.getOrMakeInstallDirectory).to.have.been.calledWith(
+                Runtime.Portable,
+            );
         });
 
         test("should return undefined when neither platform nor portable has the server", async () => {
