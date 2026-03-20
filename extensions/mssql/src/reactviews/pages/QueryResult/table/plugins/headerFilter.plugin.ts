@@ -13,11 +13,12 @@ import { locConstants } from "../../../../common/locConstants";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { EventManager } from "../../../../common/eventManager";
 import type { ColumnMenuPopupAnchorRect, FilterListItem, FilterValue } from "./ColumnMenuPopup";
-import { HeaderContextMenuAction } from "./HeaderContextMenu";
+import { HeaderContextMenuAction } from "./headerContextMenuTypes";
 
 import {
     ColumnFilterMap,
     ColumnFilterState,
+    CopyColumnNameRequest,
     GetFiltersRequest,
     SetColumnWidthsRequest,
     SetFiltersRequest,
@@ -174,6 +175,18 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     onSubmit: (newWidth: number) => this.resizeColumn(column.id!, newWidth),
                 });
                 break;
+            case HeaderContextMenuAction.CopyColumnName: {
+                const toolTip =
+                    typeof column.toolTip === "string" && column.toolTip.length > 0
+                        ? column.toolTip
+                        : undefined;
+                const rawName = toolTip ?? column.name ?? "";
+                const columnName = `[${rawName.replace(/\]/g, "]]")}]`;
+                await this.queryResultContext.extensionRpc.sendRequest(CopyColumnNameRequest.type, {
+                    columnName,
+                });
+                break;
+            }
         }
     }
 

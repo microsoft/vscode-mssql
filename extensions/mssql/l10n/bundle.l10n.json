@@ -544,6 +544,7 @@
     },
     "Sort": "Sort",
     "Resize": "Resize",
+    "Copy Column Name": "Copy Column Name",
     "Resize column '{0}'/{0} is the name of the column": {
         "message": "Resize column '{0}'",
         "comment": ["{0} is the name of the column"]
