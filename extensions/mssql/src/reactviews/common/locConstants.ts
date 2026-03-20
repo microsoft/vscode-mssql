@@ -1921,6 +1921,7 @@ export class LocConstants {
             modifyTable: l10n.t("Modify Table"),
             viewTableDiagram: l10n.t("View Table Diagram"),
             showSqlPane: l10n.t("Show SQL Pane"),
+            hideSqlPane: l10n.t("Hide SQL Pane"),
             scriptChanges: l10n.t("Script Changes"),
             tableQuery: l10n.t("Table Query"),
             runQuery: l10n.t("Run"),

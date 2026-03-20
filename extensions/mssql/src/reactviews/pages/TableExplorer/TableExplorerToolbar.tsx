@@ -98,6 +98,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         }
     }, [currentRowCount]);
 
+    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
+
     // Total changes includes both cell edits and row deletions
     const changeCount = cellChangeCount + deletionCount;
 
@@ -130,10 +132,17 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                         icon={<CodeRegular />}
                         disabled={isLoading}
                         size="small"
+                        primaryActionButton={{
+                            onClick: showScriptPane ? () => context.toggleScriptPane() : undefined,
+                        }}
                         menuButton={{
-                            "aria-label": loc.tableExplorer.showSqlPane,
+                            "aria-label": showScriptPane
+                                ? loc.tableExplorer.hideSqlPane
+                                : loc.tableExplorer.showSqlPane,
                         }}>
-                        {loc.tableExplorer.showSqlPane}
+                        {showScriptPane
+                            ? loc.tableExplorer.hideSqlPane
+                            : loc.tableExplorer.showSqlPane}
                     </SplitButton>
                 </MenuTrigger>
                 <MenuPopover>
