@@ -11,12 +11,10 @@ import { WizardPageShell } from "./wizardPageShell";
 import { locConstants } from "./locConstants";
 
 const useStyles = makeStyles({
-    footer: {
+    footerGroup: {
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-end",
         gap: "8px",
-        width: "100%",
         flexWrap: "wrap",
     },
     footerButtonContent: {
@@ -91,12 +89,36 @@ export const Wizard = ({
         }
     };
 
+    const goNext = async () => {
+        const result = await currentPage.onNext?.(pageContext);
+        if (result === false) {
+            return;
+        }
+
+        if (currentIndex < totalPages - 1) {
+            setCurrentIndex((index) => Math.min(index + 1, totalPages - 1));
+        }
+    };
+
+    const goPrevious = async () => {
+        if (currentIndex <= 0) {
+            return;
+        }
+
+        const result = await currentPage.onPrevious?.(pageContext);
+        if (result === false) {
+            return;
+        }
+
+        setCurrentIndex((index) => Math.max(index - 1, 0));
+    };
+
     const pageContext: WizardPageRenderContext = {
         currentIndex,
         totalPages,
         goToPage,
-        goNext: async () => {},
-        goPrevious: async () => {},
+        goNext,
+        goPrevious,
     };
 
     const canGoBack =
@@ -123,36 +145,9 @@ export const Wizard = ({
                   ? locConstants.common.finish
                   : locConstants.common.next));
 
-    const goNext = async () => {
-        const result = await currentPage.onNext?.(pageContext);
-        if (result === false) {
-            return;
-        }
-
-        if (currentIndex < totalPages - 1) {
-            setCurrentIndex((index) => Math.min(index + 1, totalPages - 1));
-        }
-    };
-
-    const goPrevious = async () => {
-        if (!canGoBack) {
-            return;
-        }
-
-        const result = await currentPage.onPrevious?.(pageContext);
-        if (result === false) {
-            return;
-        }
-
-        setCurrentIndex((index) => Math.max(index - 1, 0));
-    };
-
-    pageContext.goNext = goNext;
-    pageContext.goPrevious = goPrevious;
-
     useEffect(() => {
         void currentPage.onEnter?.(pageContext);
-    }, [currentPage]);
+    }, [currentIndex]);
 
     const showCancel =
         typeof currentPage.showCancel === "function"
@@ -172,9 +167,18 @@ export const Wizard = ({
             currentStep={currentIndex + 1}
             totalSteps={totalPages}
             maxContentWidth={maxContentWidth}
-            footer={
-                <div className={classes.footer}>
+            footerStart={
+                <div className={classes.footerGroup}>
+                    {showCancel && (
+                        <Button appearance="secondary" onClick={onCancel}>
+                            {locConstants.common.cancel}
+                        </Button>
+                    )}
                     {extraFooterActions}
+                </div>
+            }
+            footerEnd={
+                <div className={classes.footerGroup}>
                     {currentIndex > 0 && (
                         <Button
                             appearance="secondary"
@@ -195,11 +199,6 @@ export const Wizard = ({
                             {currentIndex < totalPages - 1 && <ArrowRight20Regular />}
                         </span>
                     </Button>
-                    {showCancel && (
-                        <Button appearance="secondary" onClick={onCancel}>
-                            {locConstants.common.cancel}
-                        </Button>
-                    )}
                 </div>
             }>
             {currentPage.render(pageContext)}

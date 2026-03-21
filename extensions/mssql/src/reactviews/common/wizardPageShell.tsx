@@ -41,7 +41,8 @@ export interface WizardPageShellProps {
     subtitle: ReactNode;
     currentStep: number;
     totalSteps: number;
-    footer?: ReactNode;
+    footerStart?: ReactNode;
+    footerEnd?: ReactNode;
     maxContentWidth?: DialogPageShellContentWidth;
     children: ReactNode;
 }
@@ -52,7 +53,8 @@ export const WizardPageShell = ({
     subtitle,
     currentStep,
     totalSteps,
-    footer,
+    footerStart,
+    footerEnd,
     maxContentWidth = "medium",
     children,
 }: WizardPageShellProps) => {
@@ -77,7 +79,8 @@ export const WizardPageShell = ({
                     <div className={classes.progressFill} style={{ width: progressPercent }} />
                 </div>
             }
-            footerEnd={footer}>
+            footerStart={footerStart}
+            footerEnd={footerEnd}>
             <div className={classes.content}>{children}</div>
         </DialogPageShell>
     );
