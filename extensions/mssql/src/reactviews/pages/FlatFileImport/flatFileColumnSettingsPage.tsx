@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
-    Button,
     Checkbox,
     createTableColumn,
     Dropdown,
@@ -28,8 +27,7 @@ import {
 } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
-import { FlatFileHeader } from "./flatFileHeader";
-import { FlatFileStepType, ColumnChanges } from "../../../sharedInterfaces/flatFileImport";
+import { ColumnChanges } from "../../../sharedInterfaces/flatFileImport";
 import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
@@ -44,22 +42,8 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
     },
 
-    button: {
-        height: "30px",
-        minWidth: "120px",
-        marginRight: "8px",
-    },
-
-    bottomDiv: {
-        paddingTop: "12px",
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "8px",
-        boxSizing: "border-box",
-    },
-
     tableDiv: {
-        maxWidth: "675px",
+        maxWidth: "100%",
         maxHeight: "650px",
         minWidth: "250px",
         overflow: "auto",
@@ -186,15 +170,21 @@ type FlatFileTableCell = {
     type: string;
 };
 
-export const FlatFileColumnSettings = () => {
+interface FlatFileColumnSettingsPageProps {
+    initialColumnChanges?: ColumnChanges[];
+    onColumnChangesChanged?: (columnChanges: ColumnChanges[]) => void;
+}
+
+export const FlatFileColumnSettingsPage = ({
+    initialColumnChanges,
+    onColumnChangesChanged,
+}: FlatFileColumnSettingsPageProps) => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
 
     if (!context) return null;
 
     const tablePreview = useFlatFileSelector((s) => s.tablePreview);
-
-    const [columnChanges, setColumnChanges] = useState<Record<number, ColumnChanges>>({});
 
     const INPUT_TYPE = "input";
     const CHECKBOX_TYPE = "checkbox";
@@ -245,12 +235,34 @@ export const FlatFileColumnSettings = () => {
         { header: locConstants.flatFileImport.allowNulls, inputType: CHECKBOX_TYPE },
     ];
 
+    const initialColumnChangeMap = useMemo(
+        () =>
+            (initialColumnChanges ?? []).reduce<Record<number, ColumnChanges>>((acc, change) => {
+                acc[change.index] = change;
+                return acc;
+            }, {}),
+        [initialColumnChanges],
+    );
+
+    const [columnChanges, setColumnChanges] =
+        useState<Record<number, ColumnChanges>>(initialColumnChangeMap);
+
     // Indices 2 and 3 correspond to the checkbox columns,
     // which require special handling for the "Select All" functionality.
     const [checkedStates, setCheckedStates] = useState<Record<number, boolean[]>>({
-        [NEW_PRIMARY_KEY_COL_INDEX]: tablePreview?.columnInfo.map(() => false) || [],
-        [NEW_NULLABLE_COL_INDEX]: tablePreview?.columnInfo.map(() => false) || [],
+        [NEW_PRIMARY_KEY_COL_INDEX]:
+            tablePreview?.columnInfo.map((column, index) =>
+                Boolean(initialColumnChangeMap[index]?.newInPrimaryKey ?? column.isInPrimaryKey),
+            ) || [],
+        [NEW_NULLABLE_COL_INDEX]:
+            tablePreview?.columnInfo.map((column, index) =>
+                Boolean(initialColumnChangeMap[index]?.newNullable ?? column.isNullable),
+            ) || [],
     });
+
+    useEffect(() => {
+        onColumnChangesChanged?.(Object.values(columnChanges));
+    }, [columnChanges, onColumnChangesChanged]);
 
     const columns: TableColumnDefinition<FlatFileTableItem>[] = useMemo(
         () =>
@@ -474,18 +486,8 @@ export const FlatFileColumnSettings = () => {
         });
     };
 
-    const handleSubmit = () => {
-        context.setColumnChanges(Object.values(columnChanges));
-        context.setStep(FlatFileStepType.ImportData);
-    };
-
     return (
         <div className={classes.outerDiv}>
-            <FlatFileHeader
-                headerText={locConstants.flatFileImport.importFile}
-                stepText={locConstants.flatFileImport.stepThree}
-            />
-
             <div className={classes.tableDiv}>
                 <Table
                     className={classes.table}
@@ -525,32 +527,6 @@ export const FlatFileColumnSettings = () => {
                         ))}
                     </TableBody>
                 </Table>
-            </div>
-
-            <div className={classes.bottomDiv}>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => {
-                        context.resetState(FlatFileStepType.ColumnChanges);
-                    }}
-                    appearance="secondary">
-                    {locConstants.common.previous}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => handleSubmit()}
-                    appearance="primary">
-                    {locConstants.flatFileImport.importData}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => context.dispose()}
-                    appearance="secondary">
-                    {locConstants.common.cancel}
-                </Button>
             </div>
         </div>
     );
