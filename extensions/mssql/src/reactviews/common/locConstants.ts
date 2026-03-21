@@ -2021,6 +2021,7 @@ export class LocConstants {
             expandAllGroups: l10n.t("Expand all groups"),
             exportToCsv: l10n.t("Export to CSV"),
             exportToExcel: l10n.t("Export to Excel"),
+            exportToPdf: l10n.t("Export to PDF"),
             exportToJson: l10n.t("Export to JSON"),
             exportToTextFormat: l10n.t("Export to text format"),
             exportToTabDelimited: l10n.t("Export to tab delimited"),

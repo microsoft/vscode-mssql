@@ -5,24 +5,19 @@ steps:
       version: 22.x
 
   - pwsh: |
-      yarn --frozen-lockfile
-    displayName: SqlProj - Install extension depedencies
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
-
-  - pwsh: |
-      yarn run build --prod
+      npm run build -- --target sql-database-projects
     displayName: SqlProj - Build extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn lint
+      npm run lint -- --target sql-database-projects
     displayName: SqlProj - Lint code
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn test
+      npm run test -- --target sql-database-projects
     displayName: SqlProj - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: PublishTestResults@2
     displayName: SqlProj - Publish test results
@@ -39,9 +34,9 @@ steps:
     continueOnError: true
 
   - pwsh: |
-      yarn package
+      npm run package -- --target sql-database-projects
     displayName: SqlProj - Package extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2

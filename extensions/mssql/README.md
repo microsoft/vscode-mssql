@@ -335,68 +335,77 @@ This is a multi-extension monorepo. See the [developer documentation](https://gi
 ### Prerequisites
 
 - Node.js `>= 20.19.4`
-- Yarn `>= 1.22`
+- npm `>= 11`
 - VS Code `>= 1.98.0`
 
-All commands below should be executed from the extension's folder unless noted otherwise.
+Install dependencies once from the repository root:
+
+```bash
+npm ci
+```
+
+Use `npm run list:targets` to see the supported workspace targets.
+
+All commands below should be executed from the repository root unless noted otherwise.
+
+### Root Workspace Commands
+
+```bash
+npm run build
+npm run build -- --target mssql
+npm run watch -- --target mssql
+npm run watch:all
+npm run test -- --target mssql
+npm run package -- --target mssql
+```
 
 ### MSSQL Extension (`extensions/mssql/`)
 
 ```bash
-cd extensions/mssql
-
-# Development
-yarn                                # install extension dependencies
-yarn watch                          # continuous build (extension + webviews + bundles)
-yarn build                          # one-off full build
-yarn package [--online|--offline]   # produces VSIX
+npm run watch -- --target mssql
+npm run build -- --target mssql
+npm run build -- --target mssql --prod
+npm run package -- --target mssql --online
+npm run package -- --target mssql --offline
 
 # Testing
-yarn test                           # run unit tests
-yarn smoketest                      # run end-to-end tests (requires SQL instance)
+npm run test -- --target mssql
+npm run smoketest --workspace mssql
 ```
 
 ### SQL Database Projects Extension (`extensions/sql-database-projects/`)
 
 ```bash
-cd extensions/sql-database-projects
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build (extension + webviews + bundles)
-yarn build                # one-off full build
-yarn package              # produces VSIX
+npm run watch -- --target sql-database-projects
+npm run build -- --target sql-database-projects
+npm run package -- --target sql-database-projects
 
 # Testing
-yarn test                 # run unit tests; NOT CURRENTLY WORKING
+npm run test -- --target sql-database-projects
 ```
 
 ### Data Workspace Extension (`extensions/data-workspace/`)
 
 ```bash
-cd extensions/data-workspace
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build
-yarn build                # one-off full build
-yarn package              # produces VSIX
+npm run watch -- --target data-workspace
+npm run build -- --target data-workspace
+npm run package -- --target data-workspace
 
 # Testing
-yarn test                 # run unit tests
+npm run test -- --target data-workspace
 ```
 
 ### Debugging From The Root Workspace
 
 1. Open the repository root in VS Code.
-2. Run `yarn watch` from any or all extension subfolders
+2. Run `npm run watch -- --target <target>` for the extensions you want to debug
 3. Launch a run configuration from VS Code:
     - `Run All Extensions`
 
 ### Contributing Tips
 
-- Keep the extensions independent—run `yarn install` inside each folder instead of the repo root.
-- Shared code (e.g., telemetry helpers, typings) should live under `typings/` or a new sibling package to avoid implicit cross-imports.
+- Add new shared runtime code under `packages/` and wire it into the root workspace target map so it participates in build/watch/test flows.
+- Keep shared typings-only shims in `typings/`; move executable shared code into `packages/`.
 - When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
 - Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
 

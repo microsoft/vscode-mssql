@@ -46,4 +46,4 @@
 
 ### Testing
 
-Use the provided command format: yarn test -- --grep <test suite name>.
+Use the provided command format: npm run test -- --target mssql --grep <test suite name>.

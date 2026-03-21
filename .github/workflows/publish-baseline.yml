@@ -23,16 +23,9 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install tools
-        run: |
-          echo "Installing Yarn"
-          npm install --global yarn@1.22.19
-          echo "Installing VSCE"
-          npm install --global @vscode/vsce@3.7.1
-
       - name: Install root dependencies
         run: |
-          yarn install --frozen-lockfile
+          npm ci
 
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
@@ -51,23 +44,19 @@ jobs:
 
       - name: MSSQL - Package extension
         run: |
-          cd extensions/mssql
-          vsce package
+          npm run package -- --target mssql
 
       - name: SqlProj - Package extension
         run: |
-          cd extensions/sql-database-projects
-          vsce package
+          npm run package -- --target sql-database-projects
 
       - name: Data Workspace - Package extension
         run: |
-          cd extensions/data-workspace
-          vsce package
+          npm run package -- --target data-workspace
 
       - name: Keymap - Package extension
         run: |
-          cd extensions/database-management-keymap
-          vsce package
+          npm run package -- --target database-management-keymap
 
       - name: Calculate and save sizes
         run: |

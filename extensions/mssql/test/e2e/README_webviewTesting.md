@@ -3,7 +3,6 @@
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/) v18 or higher
-- [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
 - [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
 
 ### ⚠️ Important
@@ -49,7 +48,7 @@ To pick up coverage data while testing, you have to run the instrumentation comm
 However, if you've only changed the tests, then you can run
 
 ```shell
-yarn build; npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+npm run build -- --target mssql && npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
 ```
 
 This will recompile your tests and run them for coverage.

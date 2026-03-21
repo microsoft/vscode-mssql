@@ -6,4 +6,3 @@ coverage
 coverConfig.json
 extension.webpack.config.js
 *.vsix
-yarn.lock
