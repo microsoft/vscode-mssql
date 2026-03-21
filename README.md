@@ -342,7 +342,7 @@ This is a multi-extension monorepo. See the [developer documentation](https://gi
 Install dependencies once from the repository root:
 
 ```bash
-npm ci
+npm install
 ```
 
 Use `npm run list:targets` to see the supported workspace targets.
@@ -359,9 +359,12 @@ npm run build
 npm run build -- --target mssql
 npm run build -- --target sql-database-projects,data-workspace
 
-# Watch requires an explicit target; use watch:all for the full repo
+# Watch everything
+npm run watch
+
+# Watch one or more targets
 npm run watch -- --target mssql
-npm run watch:all
+npm run watch -- --target sql-database-projects,data-workspace
 
 # Run tests for everything or a subset
 npm run test
@@ -383,7 +386,7 @@ npm run package -- --target mssql --offline
 
 # Testing
 npm run test -- --target mssql
-npm run smoketest --workspace mssql
+npm run smoketest -- --target mssql
 ```
 
 ### SQL Database Projects Extension (`extensions/sql-database-projects/`)
@@ -408,24 +411,16 @@ npm run package -- --target data-workspace
 npm run test -- --target data-workspace
 ```
 
-### Shared Package (`packages/shared/`)
-
-```bash
-npm run build -- --target shared
-npm run watch -- --target shared
-```
-
 ### Debugging From The Root Workspace
 
 1. Open the repository root in VS Code.
-2. Run `npm run watch -- --target <target>` for the extensions you want to debug
+2. Run `npm run watch` to watch everything, or `npm run watch -- --target <target>` to limit it
 3. Launch a run configuration from VS Code:
     - `Run All Extensions`
 
 ### Contributing Tips
 
-- Add new shared runtime code under `packages/` and wire it into the root workspace target map so it participates in build/watch/test flows.
-- Keep shared typings-only shims in `typings/`; move executable shared code into `packages/`.
+- If new shared packages are added under `packages/`, wire them into the root workspace target map so they participate in build/watch/test flows.
 - When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
 - Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
 
