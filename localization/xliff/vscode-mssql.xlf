@@ -1613,6 +1613,9 @@
     <trans-unit id="++CODE++c01dcd0e5ceb3a50adfe0ba0d9ab5e70b74daf484cbce1b937f8fa14910f7928">
       <source xml:lang="en">Custom GraphQL Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++68029720c761a9a6cd9bf34ca616003ea7528b0f7f5ac83d70cd60c6fa32cfc9">
+      <source xml:lang="en">Custom Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++9084f018e1499a8e51a7e04312970c63a473ec7cbe1cdbe804048ad01461983e">
       <source xml:lang="en">Custom REST Path</source>
     </trans-unit>
@@ -6279,6 +6282,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
       <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f20268a098f70105881abe72f1c0241a1df9fb9364cf236da0f70e52137e0135">
+      <source xml:lang="en">Unable to open Table Explorer: Could not determine the table name from the query.</source>
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>

@@ -478,6 +478,7 @@
         "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]
     },
     "Save as INSERT INTO": "Save as INSERT INTO",
+    "Edit Data": "Edit Data",
     "More Query Actions": "More Query Actions",
     "Hide this panel": "Hide this panel",
     "Query Plan ({0})/{0} is the number of query plans": {
@@ -1298,7 +1299,6 @@
     "Script as Drop": "Script as Drop",
     "Script as Alter": "Script as Alter",
     "Script as Execute": "Script as Execute",
-    "Edit Data": "Edit Data",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
@@ -3001,7 +3001,9 @@
         "message": "Failed to open Modify Table: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Custom Query": "Custom Query",
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
+    "Unable to open Table Explorer: Could not determine the table name from the query.": "Unable to open Table Explorer: Could not determine the table name from the query.",
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
