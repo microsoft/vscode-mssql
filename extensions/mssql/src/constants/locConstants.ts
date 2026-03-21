@@ -2664,8 +2664,12 @@ export class SearchDatabase {
 }
 
 export class TableExplorer {
+    public static customQuery = l10n.t("Custom Query");
     public static unableToOpenTableExplorer = l10n.t(
         "Unable to open Table Explorer: No target node provided.",
+    );
+    public static unableToResolveTableName = l10n.t(
+        "Unable to open Table Explorer: Could not determine the table name from the query.",
     );
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");

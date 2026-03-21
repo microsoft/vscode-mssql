@@ -36,6 +36,7 @@ import {
     ArrowMinimize16Filled,
     DocumentTextRegular,
     MoreVertical20Filled,
+    TableEditRegular,
     TableRegular,
 } from "@fluentui/react-icons";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
@@ -291,6 +292,21 @@ const CommandBar = (props: CommandBarProps) => {
                 title: saveAsInsertTooltip,
                 onClick: () => saveResults("insert"),
                 className: "codicon saveInsert",
+            },
+            {
+                id: "editData",
+                groupId: "edit",
+                icon: <TableEditRegular />,
+                menuLabel: locConstants.queryResult.editData,
+                ariaLabel: locConstants.queryResult.editData,
+                title: locConstants.queryResult.editData,
+                onClick: () => {
+                    void context.extensionRpc.sendRequest(qr.OpenInTableExplorerRequest.type, {
+                        uri: props.uri ?? "",
+                        batchId: props.resultSetSummary?.batchId ?? 0,
+                        resultId: props.resultSetSummary?.id ?? 0,
+                    });
+                },
             },
         );
     }

@@ -480,6 +480,17 @@ export namespace GetMaximizedGridRequest {
     );
 }
 
+export interface OpenInTableExplorerParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+}
+export namespace OpenInTableExplorerRequest {
+    export const type = new RequestType<OpenInTableExplorerParams, void, void>(
+        "openInTableExplorer",
+    );
+}
+
 export enum GridContextMenuAction {
     SelectAll = "select-all",
     CopySelection = "copy-selection",

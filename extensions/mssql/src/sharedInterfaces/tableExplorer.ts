@@ -176,6 +176,18 @@ export interface EditScriptResult {
 
 //#endregion
 
+/**
+ * Parameters for opening Table Explorer with a custom query from the query results window.
+ */
+export interface TableExplorerCustomQueryParams {
+    queryString: string;
+    objectName: string;
+    schemaName: string;
+    connectionProfile: any;
+    databaseName: string;
+    serverName: string;
+}
+
 export interface TableExplorerWebViewState {
     tableName: string;
     databaseName: string;

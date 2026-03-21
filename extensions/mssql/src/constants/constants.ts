@@ -59,6 +59,7 @@ export const cmdNewQuery = "mssql.newQuery";
 export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConnection";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
+export const cmdOpenQueryInTableExplorer = "mssql.openQueryInTableExplorer";
 export const cmdSearchDatabase = "mssql.searchDatabase";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";

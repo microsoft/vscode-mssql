@@ -382,6 +382,15 @@ export function registerCommonRequestHandlers(
             LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
         );
     });
+
+    webviewController.onRequest(qr.OpenInTableExplorerRequest.type, async (message) => {
+        await vscode.commands.executeCommand(
+            Constants.cmdOpenQueryInTableExplorer,
+            message.uri,
+            message.batchId,
+            message.resultId,
+        );
+    });
 }
 
 export function recordLength(record: any): number {

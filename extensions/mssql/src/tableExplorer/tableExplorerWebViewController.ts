@@ -10,6 +10,7 @@ import {
     TableExplorerReducers,
     EditSessionReadyParams,
     DbCellValue,
+    TableExplorerCustomQueryParams,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -30,19 +31,52 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerReducers
 > {
     private operationId: string;
+    private _customQueryString: string | undefined;
+
+    /**
+     * Creates a TableExplorerWebViewController from a custom query (e.g., from query results).
+     */
+    public static createFromCustomQuery(
+        context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
+        tableExplorerService: ITableExplorerService,
+        connectionManager: ConnectionManager,
+        params: TableExplorerCustomQueryParams,
+    ): TableExplorerWebViewController {
+        const controller = new TableExplorerWebViewController(
+            context,
+            vscodeWrapper,
+            tableExplorerService,
+            connectionManager,
+            undefined, // no target node
+            params,
+        );
+        return controller;
+    }
 
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         private _tableExplorerService: ITableExplorerService,
         private _connectionManager: ConnectionManager,
-        private _targetNode: TreeNodeInfo,
+        private _targetNode: TreeNodeInfo | undefined,
+        customQueryParams?: TableExplorerCustomQueryParams,
     ) {
-        const tableName = _targetNode?.metadata?.name || "Table";
-        const schemaName = _targetNode?.metadata?.schema;
-        const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode);
-        const serverName = _targetNode?.connectionProfile?.server || "";
-        const qualifiedTableName = schemaName ? `${schemaName}.${tableName}` : tableName;
+        const isCustomQuery = !!customQueryParams?.queryString;
+        const tableName = _targetNode?.metadata?.name || customQueryParams?.objectName || "Table";
+        const schemaName = _targetNode?.metadata?.schema || customQueryParams?.schemaName;
+        const databaseName = _targetNode
+            ? ObjectExplorerUtils.getDatabaseName(_targetNode)
+            : customQueryParams?.databaseName || "";
+        const serverName =
+            _targetNode?.connectionProfile?.server || customQueryParams?.serverName || "";
+        const displayName = isCustomQuery
+            ? LocConstants.TableExplorer.customQuery
+            : schemaName
+              ? `${schemaName}.${tableName}`
+              : tableName;
+        const connectionProfile =
+            _targetNode?.connectionProfile || customQueryParams?.connectionProfile;
 
         super(
             context,
@@ -53,7 +87,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 tableName: tableName,
                 databaseName: databaseName,
                 serverName: serverName,
-                connectionProfile: _targetNode?.connectionProfile,
+                connectionProfile: connectionProfile,
                 schemaName: schemaName,
                 loadStatus: ApiStatus.Loading,
                 ownerUri: "",
@@ -68,7 +102,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
             },
             {
-                title: qualifiedTableName,
+                title: displayName,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -89,6 +123,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         );
 
         this.operationId = uuid();
+        this._customQueryString = customQueryParams?.queryString;
         this.logger.info(
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
@@ -117,7 +152,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        if (!this._targetNode) {
+        if (!this._targetNode && !this._customQueryString) {
             this.logger.error(`No target node provided - OperationId: ${this.operationId}`);
             endActivity.endFailed(
                 new Error("No target node provided for table explorer"),
@@ -145,10 +180,17 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 ? `untitled:${schemaName}.${objectName}_${this.operationId}`
                 : `untitled:${objectName}_${this.operationId}`;
 
-            const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
+            const isCustomQuery = !!this._customQueryString;
+            const objectType = isCustomQuery
+                ? "TABLE"
+                : this._targetNode.metadata.metadataTypeName.toUpperCase();
 
-            let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
-            const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
+            let connectionCreds = isCustomQuery
+                ? Object.assign({}, this.state.connectionProfile)
+                : Object.assign({}, this._targetNode.connectionProfile);
+            const databaseName = isCustomQuery
+                ? this.state.databaseName
+                : ObjectExplorerUtils.getDatabaseName(this._targetNode);
 
             this.logger.info(
                 `Initializing table explorer for ${schemaName}.${objectName} - OperationId: ${this.operationId}`,
@@ -169,7 +211,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 objectName,
                 schemaName,
                 objectType,
-                undefined,
+                this._customQueryString,
             );
 
             this.logger.info(
@@ -209,6 +251,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 self.updateState();
 
                 void self.loadResultSet();
+            } else {
+                self.logger.error(
+                    `Edit session failed: ${result.message} - OperationId: ${self.operationId}`,
+                );
+                self.state.loadStatus = ApiStatus.Error;
+                self.updateState();
             }
         };
     }

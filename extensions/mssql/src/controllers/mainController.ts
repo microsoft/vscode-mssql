@@ -1763,6 +1763,14 @@ export default class MainController implements vscode.Disposable {
         );
 
         this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenQueryInTableExplorer,
+                async (uri: string, batchId: number, resultId: number) =>
+                    this.onOpenQueryInTableExplorer(uri, batchId, resultId),
+            ),
+        );
+
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
                 this.onSearchDatabase(node),
             ),
@@ -2933,6 +2941,111 @@ export default class MainController implements vscode.Disposable {
         );
 
         tableExplorerWebView.revealToForeground();
+    }
+
+    public async onOpenQueryInTableExplorer(
+        uri: string,
+        batchId: number,
+        resultId: number,
+    ): Promise<void> {
+        const queryRunner = this._outputContentProvider.getQueryRunner(uri);
+        if (!queryRunner) {
+            vscode.window.showErrorMessage(
+                LocalizedConstants.TableExplorer.unableToOpenTableExplorer,
+            );
+            return;
+        }
+
+        const queryString = queryRunner.getQueryString(uri);
+        if (!queryString) {
+            vscode.window.showErrorMessage(
+                LocalizedConstants.TableExplorer.unableToOpenTableExplorer,
+            );
+            return;
+        }
+
+        const connectionInfo = this._connectionMgr.getConnectionInfoFromUri(uri);
+        if (!connectionInfo) {
+            vscode.window.showErrorMessage(
+                LocalizedConstants.TableExplorer.unableToOpenTableExplorer,
+            );
+            return;
+        }
+
+        // Extract table name and schema from result set column metadata, falling back to query parsing
+        let objectName = "";
+        let schemaName = "";
+        const batchSets = queryRunner.batchSets;
+        if (batchSets && batchSets[batchId]) {
+            const resultSetSummary = batchSets[batchId].resultSetSummaries?.[resultId];
+            if (resultSetSummary?.columnInfo?.length > 0) {
+                const firstColumn = resultSetSummary.columnInfo[0];
+                objectName = firstColumn.baseTableName || "";
+                schemaName = firstColumn.baseSchemaName || "";
+            }
+        }
+
+        // Fallback: parse table name from query string if column metadata didn't provide it
+        if (!objectName) {
+            const parsed = this.parseTableNameFromQuery(queryString);
+            objectName = parsed.objectName;
+            schemaName = parsed.schemaName;
+        }
+
+        if (!objectName) {
+            vscode.window.showErrorMessage(
+                LocalizedConstants.TableExplorer.unableToResolveTableName,
+            );
+            return;
+        }
+
+        const tableExplorerWebView = TableExplorerWebViewController.createFromCustomQuery(
+            this._context,
+            this._vscodeWrapper,
+            this.tableExplorerService,
+            this._connectionMgr,
+            {
+                queryString: queryString,
+                objectName: objectName,
+                schemaName: schemaName,
+                connectionProfile: connectionInfo,
+                databaseName: connectionInfo.database || "",
+                serverName: connectionInfo.server || "",
+            },
+        );
+
+        tableExplorerWebView.revealToForeground();
+    }
+
+    /**
+     * Parses a table name and schema from a SQL query's FROM clause.
+     * Handles bracket-quoted and dot-separated identifiers like [dbo].[Table] or db.schema.table.
+     */
+    private parseTableNameFromQuery(query: string): {
+        objectName: string;
+        schemaName: string;
+    } {
+        // Match FROM clause with optional database/schema qualification
+        // Handles: FROM [schema].[table], FROM schema.table, FROM [db].[schema].[table], etc.
+        const fromMatch = query.match(/\bFROM\s+((?:\[?[\w]+\]?\.)*\[?[\w]+\]?)/i);
+        if (!fromMatch) {
+            return { objectName: "", schemaName: "" };
+        }
+
+        const fullName = fromMatch[1];
+        // Split on dots, handling bracket-quoted identifiers
+        const parts = fullName.split(".").map((p) => p.replace(/^\[|\]$/g, ""));
+
+        if (parts.length >= 3) {
+            // [database].[schema].[table] — use last two parts
+            return { objectName: parts[parts.length - 1], schemaName: parts[parts.length - 2] };
+        } else if (parts.length === 2) {
+            // [schema].[table]
+            return { objectName: parts[1], schemaName: parts[0] };
+        } else {
+            // just [table]
+            return { objectName: parts[0], schemaName: "" };
+        }
     }
 
     public async onSearchDatabase(node?: any): Promise<void> {

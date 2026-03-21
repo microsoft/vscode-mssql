@@ -628,6 +628,7 @@ export class LocConstants {
                 }
                 return l10n.t("Save as INSERT INTO");
             },
+            editData: l10n.t("Edit Data"),
             moreQueryActions: l10n.t("More Query Actions"),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: (count: number) => {
