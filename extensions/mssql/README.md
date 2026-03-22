@@ -322,15 +322,9 @@ Support for this extension is provided via [GitHub issues](https://github.com/Mi
 This is a multi-extension monorepo. See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki/contributing) for details on how to contribute.
 
 <details>
-<summary>Repository layout, prerequisites, and build commands</summary>
+<summary>Quick start and MSSQL-specific commands</summary>
 
-### Repository Layout
-
-- `extensions/` - all of the individual VS Code extensions
-- `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
-- `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
-- `extensions/data-workspace/` - Data Workspace extension providing project workspace management and coordination
-- `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
+See the [root README](../../README.md) for full repository layout, all available targets, and contributing tips.
 
 ### Prerequisites
 
@@ -344,71 +338,18 @@ Install dependencies once from the repository root:
 npm install
 ```
 
-Use `npm run list:targets` to see the supported workspace targets.
-
-All commands below should be executed from the repository root unless noted otherwise.
-
-### Root Workspace Commands
+### MSSQL Commands (run from repository root)
 
 ```bash
-npm run watch
-npm run build
-
-# Targeted runs
-npm run watch -- --target mssql
-npm run build -- --target mssql
-npm run test -- --target mssql
-npm run package -- --target mssql
-```
-
-### MSSQL Extension (`extensions/mssql/`)
-
-```bash
-npm run watch -- --target mssql
 npm run build -- --target mssql
 npm run build -- --target mssql --prod
-npm run package -- --target mssql --online
-npm run package -- --target mssql --offline
-
-# Testing
+npm run watch -- --target mssql
+npm run lint -- --target mssql
 npm run test -- --target mssql
 npm run smoketest -- --target mssql
+npm run package -- --target mssql --online
+npm run package -- --target mssql --offline
 ```
-
-### SQL Database Projects Extension (`extensions/sql-database-projects/`)
-
-```bash
-npm run watch -- --target sql-database-projects
-npm run build -- --target sql-database-projects
-npm run package -- --target sql-database-projects
-
-# Testing
-npm run test -- --target sql-database-projects
-```
-
-### Data Workspace Extension (`extensions/data-workspace/`)
-
-```bash
-npm run watch -- --target data-workspace
-npm run build -- --target data-workspace
-npm run package -- --target data-workspace
-
-# Testing
-npm run test -- --target data-workspace
-```
-
-### Debugging From The Root Workspace
-
-1. Open the repository root in VS Code.
-2. Run `npm run watch` to watch everything, or `npm run watch -- --target <target>` to limit it
-3. Launch a run configuration from VS Code:
-    - `Run All Extensions`
-
-### Contributing Tips
-
-- If new shared packages are added under `packages/`, wire them into the root workspace target map so they participate in build/watch/test flows.
-- When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
-- Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
 
 </details>
 
