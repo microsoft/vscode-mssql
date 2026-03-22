@@ -5,6 +5,16 @@ import { supportedActions, workspaceTargets } from "./workspace-targets.mjs";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
+function parseTargetValue(flag, value) {
+    if (!value || value.trim().length === 0 || value.startsWith("-")) {
+        throw new Error(
+            `Missing value for ${flag}. Usage: npm run <action> -- --target <name>[,<name>]`,
+        );
+    }
+
+    return value;
+}
+
 function parseArgs(argv) {
     const [action, ...rest] = argv;
     const options = {
@@ -19,13 +29,13 @@ function parseArgs(argv) {
         const arg = rest[i];
 
         if (arg === "--target" || arg === "-t") {
-            options.targetValue = rest[i + 1];
+            options.targetValue = parseTargetValue(arg, rest[i + 1]);
             i++;
             continue;
         }
 
         if (arg.startsWith("--target=")) {
-            options.targetValue = arg.slice("--target=".length);
+            options.targetValue = parseTargetValue("--target", arg.slice("--target=".length));
             continue;
         }
 

@@ -65,7 +65,7 @@ export class SqlDatabaseProjectProvider
                 description: constants.emptyAzureDbProjectTypeDescription,
                 targetPlatforms: Array.from(constants.targetPlatformToVersion.keys()),
                 defaultTargetPlatform: sqldbproj.SqlTargetPlatform.sqlAzure,
-                icon: IconPathHelper.azureSqlDbProject as any,
+                icon: IconPathHelper.azureSqlDbProject,
                 sdkStyleOption: true,
                 sdkStyleLearnMoreUrl: constants.sdkLearnMoreUrl,
                 learnMoreUrl: constants.azureDevOpsLink,
@@ -75,7 +75,7 @@ export class SqlDatabaseProjectProvider
                 projectFileExtension: constants.sqlprojExtension.replace(/\./g, ""),
                 displayName: constants.emptyProjectTypeDisplayName,
                 description: constants.emptyProjectTypeDescription,
-                icon: IconPathHelper.colorfulSqlProject as any,
+                icon: IconPathHelper.colorfulSqlProject,
                 targetPlatforms: Array.from(constants.targetPlatformToVersion.keys()),
                 defaultTargetPlatform: constants.defaultTargetPlatform,
                 sdkStyleOption: true,
@@ -144,35 +144,35 @@ export class SqlDatabaseProjectProvider
     )[] {
         const addItemAction: dataworkspace.IProjectAction = {
             id: constants.addItemAction,
-            icon: IconPathHelper.add as any,
+            icon: IconPathHelper.add,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.addItemPromptFromNode(treeItem),
         };
 
         const schemaCompareAction: dataworkspace.IProjectAction = {
             id: constants.schemaCompareAction,
-            icon: IconPathHelper.schemaCompare as any,
+            icon: IconPathHelper.schemaCompare,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.schemaCompare(treeItem),
         };
 
         const buildAction: dataworkspace.IProjectAction = {
             id: constants.buildAction,
-            icon: IconPathHelper.build as any,
+            icon: IconPathHelper.build,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.buildProject(treeItem),
         };
 
         const publishAction: dataworkspace.IProjectAction = {
             id: constants.publishAction,
-            icon: IconPathHelper.publish as any,
+            icon: IconPathHelper.publish,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.publishProject(treeItem),
         };
 
         const changeTargetPlatformAction: dataworkspace.IProjectAction = {
             id: constants.changeTargetPlatformAction,
-            icon: IconPathHelper.targetPlatform as any,
+            icon: IconPathHelper.targetPlatform,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.changeTargetPlatform(treeItem),
         };

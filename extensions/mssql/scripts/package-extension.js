@@ -199,8 +199,8 @@ Examples:
   node package-extension.js --offline   # Create offline packages for all platforms
 
 Requirements:
-  - Install workspace dependencies from the repository root: npm ci
-  - Extension must be built first: npm run build -- --target mssql
+    - Install workspace dependencies from the repository root: npm ci
+    - Extension must be built first: npm run build -- --target mssql
 `);
 }
 

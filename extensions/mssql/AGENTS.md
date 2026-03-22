@@ -36,19 +36,19 @@ npm run watch -- --target mssql
 
 ```bash
 # Prepare assets and localization (~2 seconds)
-npm run build:prepare --workspace mssql
+npm run build:prepare
 
 # Compile extension TypeScript (~5 seconds)
-npm run build:extension --workspace mssql
+npm run build:extension
 
 # Bundle extension (~1 second)
-npm run build:extension-bundle --workspace mssql
+npm run build:extension-bundle
 
 # Compile React webviews (~8 seconds)
-npm run build:webviews --workspace mssql
+npm run build:webviews
 
 # Bundle webviews (~2 seconds)
-npm run build:webviews-bundle --workspace mssql
+npm run build:webviews-bundle
 ```
 
 ### Linting and Code Quality
@@ -128,7 +128,7 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 ### Code Quality Validation
 
 - Always run `npm run lint -- --target mssql` before committing
-- Check for TypeScript compilation errors: `npm run build:extension --workspace mssql` and `npm run build:webviews --workspace mssql`
+- Check for TypeScript compilation errors: `npm run build:extension` and `npm run build:webviews`
 - Verify no new warnings are introduced during build
 
 ## Project Structure
@@ -159,8 +159,8 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 | -------------------------------------------- | ----------------------------- | --------------- | --------------------------------------- |
 | `npm install`                                | ~60s initial, ~11s subsequent | 120+ seconds    | NEVER CANCEL: Installs all dependencies |
 | `npm run build -- --target mssql`            | ~19 seconds                   | 60+ seconds     | NEVER CANCEL: Complete build process    |
-| `npm run build:extension --workspace mssql`  | ~5 seconds                    | 30+ seconds     | Compile extension TypeScript            |
-| `npm run build:webviews --workspace mssql`   | ~8 seconds                    | 30+ seconds     | Compile React webviews                  |
+| `npm run build:extension`                    | ~5 seconds                    | 30+ seconds     | Compile extension TypeScript            |
+| `npm run build:webviews`                     | ~8 seconds                    | 30+ seconds     | Compile React webviews                  |
 | `npm run lint -- --target mssql`             | ~1.5 seconds                  | 30+ seconds     | Lint source files only                  |
 | `npm run package -- --target mssql --online` | ~4.5 seconds                  | 60+ seconds     | NEVER CANCEL: Create VSIX package       |
 | `npm run watch -- --target mssql`            | Continuous                    | N/A             | Development watch mode                  |
