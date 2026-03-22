@@ -83,7 +83,7 @@
         "@fluentui/react-components": "^9.72.3",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@monaco-editor/react": "^4.6.0",
-        "@playwright/test": "^1.45.0",
+        "@playwright/test": "1.45.0",
         "@tanstack/react-virtual": "^3.13.12",
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
