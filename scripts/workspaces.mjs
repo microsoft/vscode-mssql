@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
+import path from "node:path";
 import process from "node:process";
 import { supportedActions, workspaceTargets } from "./workspace-targets.mjs";
 
@@ -49,10 +50,10 @@ function printUsage() {
   npm run build [-- --target <name>[,<name>]] [--prod]
   npm run watch [-- --target <name>[,<name>]]
   npm run watch:all
-  npm run test [-- --target <name>[,<name>]] [-- <workspace args>]
-  npm run smoketest [-- --target <name>[,<name>]] [-- <workspace args>]
+  npm run test [-- --target <name>[,<name>]] [-- <target args>]
+  npm run smoketest [-- --target <name>[,<name>]] [-- <target args>]
   npm run lint [-- --target <name>[,<name>]]
-  npm run package [-- --target <name>[,<name>]] [-- <workspace args>]
+  npm run package [-- --target <name>[,<name>]] [-- <target args>]
   npm run list:targets
 `);
 }
@@ -118,15 +119,15 @@ function pruneRedundantWatchTargets(targets) {
 }
 
 function runWorkspaceScript(target, action, forwardedArgs = []) {
-    const npmArgs = ["run", action, "--workspace", target.workspace, "--if-present"];
+    const npmArgs = ["run", action, "--if-present"];
 
     if (forwardedArgs.length > 0) {
         npmArgs.push("--", ...forwardedArgs);
     }
 
-    console.log(`\n> ${target.target} (${target.workspace}) :: ${action}`);
+    console.log(`\n> ${target.target} (${target.packageName}) :: ${action}`);
     const result = spawnSync(npmCommand, npmArgs, {
-        cwd: process.cwd(),
+        cwd: path.join(process.cwd(), target.directory),
         stdio: "inherit",
     });
 
@@ -139,15 +140,15 @@ function watchTargets(targets, forwardedArgs = []) {
     console.log(`Watching targets: ${targets.map((target) => target.target).join(", ")}`);
 
     const children = targets.map((target) => {
-        const npmArgs = ["run", "watch", "--workspace", target.workspace, "--if-present"];
+        const npmArgs = ["run", "watch", "--if-present"];
 
         if (forwardedArgs.length > 0) {
             npmArgs.push("--", ...forwardedArgs);
         }
 
-        console.log(`\n> ${target.target} (${target.workspace}) :: watch`);
+        console.log(`\n> ${target.target} (${target.packageName}) :: watch`);
         return spawn(npmCommand, npmArgs, {
-            cwd: process.cwd(),
+            cwd: path.join(process.cwd(), target.directory),
             stdio: "inherit",
         });
     });
@@ -185,11 +186,11 @@ function watchTargets(targets, forwardedArgs = []) {
 }
 
 function listTargets() {
-    console.log("Available workspace targets:\n");
+    console.log("Available targets:\n");
 
     for (const target of workspaceTargets) {
         console.log(
-            `- ${target.target}: workspace=${target.workspace}; scripts=${target.scripts.join(", ")}; aliases=${target.aliases.join(", ")}`,
+            `- ${target.target}: package=${target.packageName}; dir=${target.directory}; scripts=${target.scripts.join(", ")}; aliases=${target.aliases.join(", ")}`,
         );
     }
 }

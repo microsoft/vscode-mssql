@@ -39,7 +39,7 @@
         "lint": "eslint ./src ./test",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
         "test": "npm run build && vscode-test --coverage",
-        "package": "npm run build && vsce package --no-dependencies"
+        "package": "npm run build && vsce package"
     },
     "capabilities": {
         "virtualWorkspaces": false,

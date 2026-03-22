@@ -17,7 +17,8 @@ runs:
     - name: MSSQL - Install playwright dependencies
       shell: bash
       run: |
-        npm exec --workspace mssql playwright install --with-deps
+        cd ${{ inputs.source-dir }}
+        npm exec playwright install --with-deps
 
     - name: MSSQL - Build extension
       shell: bash

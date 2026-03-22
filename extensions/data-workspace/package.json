@@ -43,7 +43,7 @@
         "localization:generate": "node ../../scripts/localization-generate.js data-workspace .",
         "localization": "npm run localization:extract",
         "test": "npm run build && vscode-test --coverage",
-        "package": "npm run build && vsce package --no-dependencies"
+        "package": "npm run build && vsce package"
     },
     "capabilities": {
         "virtualWorkspaces": false,

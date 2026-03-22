@@ -292,7 +292,8 @@ jobs:
       - name: Build mappings for Webviews
         continue-on-error: true
         run: |
-          npm run build:webviews-bundle --workspace mssql
+          cd ./extensions/mssql
+          npm run build:webviews-bundle
 
       - name: Setup environment for smoke tests
         run: |

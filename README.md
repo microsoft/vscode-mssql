@@ -345,7 +345,7 @@ Install dependencies once from the repository root:
 npm install
 ```
 
-Use `npm run list:targets` to see the supported workspace targets.
+Use `npm run list:targets` to see the supported targets.
 
 All commands below should be executed from the repository root unless noted otherwise.
 
@@ -420,7 +420,7 @@ npm run test -- --target data-workspace
 
 ### Contributing Tips
 
-- If new shared packages are added under `packages/`, wire them into the root workspace target map so they participate in build/watch/test flows.
+- If new shared packages are added later, wire them into the root target map and bootstrap install flow so they participate in build/watch/test flows.
 - When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
 - Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
 
