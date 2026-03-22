@@ -50,7 +50,11 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         await screenshot(vsCodePage, testInfo, "disconnected");
 
         // Verify that the Connect to MSSQL button is visible again after disconnecting
-        const connectAgainButton = await vsCodePage.getByText("Connect to MSSQL");
+        // There can be multiple "Connect to MSSQL" entries (e.g. status bar item) so we scope
+        // to the primary button whose accessible name ends with "Connect to MSSQL".
+        const connectAgainButton = vsCodePage.getByRole("button", {
+            name: /^[^,]*Connect to MSSQL$/,
+        });
         await expect(connectAgainButton).toBeVisible({ timeout: 10 * 1000 });
     });
 });

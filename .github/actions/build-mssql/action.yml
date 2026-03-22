@@ -14,23 +14,16 @@ runs:
         sudo update-rc.d xvfb defaults
         sudo service xvfb start
 
-    - name: MSSQL - Install extension dependencies
-      shell: bash
-      run: |
-        cd ${{ inputs.source-dir }}
-        yarn --frozen-lockfile
-
     - name: MSSQL - Install playwright dependencies
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
-        npx playwright install --with-deps
+        npm exec playwright install --with-deps
 
     - name: MSSQL - Build extension
       shell: bash
       run: |
-        cd ${{ inputs.source-dir }}
-        yarn build --prod
+        npm run build -- --target mssql --prod
 
 inputs:
   source-dir:

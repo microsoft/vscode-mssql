@@ -11,7 +11,6 @@ For more information regarding this limitation, refer to [using insiders version
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/) v18 or higher
-- [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
 
 ---
 
@@ -24,19 +23,19 @@ Tests are currently only setup to run locally.
 From the root of the repo, install all of the build dependencies:
 
 ```shell
-[sudo] yarn
+npm install
 ```
 
 2. Compile the extension and tests by running:
 
 ```shell
-yarn build
+npm run build -- --target mssql
 ```
 
 or watch for changes in the tests by running:
 
 ```shell
-yarn watch
+npm run watch -- --target mssql
 ```
 
 ### Running tests

@@ -45,7 +45,7 @@ export async function launchVsCodeWithMssqlExtension(
     const vsCodeVersion = getVsCodeVersionName();
     const vscodePath = await downloadAndUnzipVSCode(vsCodeVersion);
     const [cliPath] = resolveCliArgsFromVSCodeExecutablePath(vscodePath);
-    const devExtensionPath = path.resolve(__dirname, "../../../");
+    const devExtensionPath = findExtensionRoot(__dirname);
 
     const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
     const userDataDir = path.join(tmpRoot, "user-data");
@@ -147,6 +147,28 @@ export async function launchVsCodeWithMssqlExtension(
     });
 
     return { electronApp, page, userDataDir, extensionsDir, videoDir };
+}
+
+/**
+ * Walks up from startDir to find the nearest ancestor containing a package.json
+ * with a vscode engine entry, identifying it as the VS Code extension root.
+ */
+function findExtensionRoot(startDir: string): string {
+    let dir = path.resolve(startDir);
+    const root = path.parse(dir).root;
+
+    while (dir !== root) {
+        const pkgPath = path.join(dir, "package.json");
+        if (fs.existsSync(pkgPath)) {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+            if (pkg.engines?.vscode) {
+                return dir;
+            }
+        }
+        dir = path.dirname(dir);
+    }
+
+    throw new Error(`Could not find VS Code extension root from ${startDir}`);
 }
 
 export async function cleanupDirectories(...directories: Array<string | undefined>) {

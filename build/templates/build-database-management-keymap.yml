@@ -5,9 +5,9 @@ steps:
       version: 22.x
 
   - pwsh: |
-      vsce package --no-yarn
+      npm run package -- --target database-management-keymap
     displayName: Keymap - Package extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/database-management-keymap"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
