@@ -439,6 +439,26 @@ suite("ConnectionManager Tests", () => {
             expect(connectionInfo.expiresOn).to.equal(cachedToken.expiresOn);
         });
 
+        test("shows user-friendly error when refreshAccessToken returns undefined", async () => {
+            mockAzureController.refreshAccessToken.resolves(undefined);
+            mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+            const connectionInfo = createAzureMfaConnectionInfo();
+
+            try {
+                await testConnectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+                expect.fail("Should have thrown an error");
+            } catch (error) {
+                expect(error.message).to.equal(LocalizedConstants.msgAccountRefreshFailed());
+            }
+
+            expect(withProgressStub).to.have.been.called;
+            expect(mockAzureController.refreshAccessToken).to.have.been.called;
+            expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                LocalizedConstants.msgAccountRefreshFailed(),
+            );
+        });
+
         test("refreshes token and writes it to shared cache", async () => {
             const refreshedToken: IToken = {
                 key: "account-1",
