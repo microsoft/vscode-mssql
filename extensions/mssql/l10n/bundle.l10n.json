@@ -583,7 +583,7 @@
     "Design Schemas with GitHub Copilot (Preview)": "Design Schemas with GitHub Copilot (Preview)",
     "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.": "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
     "Build APIs with GitHub Copilot": "Build APIs with GitHub Copilot",
-    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
+    "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.": "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
     "Edit Table": "Edit Table",
     "Open in Editor": "Open in Editor",
     "Changed Tables": "Changed Tables",
@@ -871,7 +871,7 @@
             "{1} is the count of additional changed properties"
         ]
     },
-    "Data API Builder Configuration (Preview)": "Data API Builder Configuration (Preview)",
+    "Data API builder Configuration (Preview)": "Data API builder Configuration (Preview)",
     "API Type": "API Type",
     "REST API": "REST API",
     "GraphQL": "GraphQL",
@@ -892,9 +892,9 @@
     "Local container deployment is currently only supported with SQL Authentication connections.": "Local container deployment is currently only supported with SQL Authentication connections.",
     "At least one API type must be selected.": "At least one API type must be selected.",
     "Authentication not supported": "Authentication not supported",
-    "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+    "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
     "Unsupported data types detected": "Unsupported data types detected",
-    "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
+    "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -936,8 +936,8 @@
     },
     "Deploy DAB Container": "Deploy DAB Container",
     "Local Container Deployment": "Local Container Deployment",
-    "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
-        "message": "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+    "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
+        "message": "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
         "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
     },
     "Requirements:": "Requirements:",
@@ -963,9 +963,9 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
-    "Table must have a primary key to be used with Data API Builder": "Table must have a primary key to be used with Data API Builder",
-    "Table contains column types not supported by Data API Builder: {0}/{0} is a comma-separated list of column names and their data types": {
-        "message": "Table contains column types not supported by Data API Builder: {0}",
+    "Table must have a primary key to be used with Data API builder": "Table must have a primary key to be used with Data API builder",
+    "Table contains column types not supported by Data API builder: {0}/{0} is a comma-separated list of column names and their data types": {
+        "message": "Table contains column types not supported by Data API builder: {0}",
         "comment": ["{0} is a comma-separated list of column names and their data types"]
     },
     "Checking Docker installation": "Checking Docker installation",
@@ -975,7 +975,7 @@
     "Checking Docker engine": "Checking Docker engine",
     "Verifying Docker engine is ready": "Verifying Docker engine is ready",
     "Pulling DAB container image": "Pulling DAB container image",
-    "Downloading the Data API Builder container image": "Downloading the Data API Builder container image",
+    "Downloading the Data API builder container image": "Downloading the Data API builder container image",
     "Starting DAB container": "Starting DAB container",
     "Creating and starting the container": "Creating and starting the container",
     "Checking container readiness": "Checking container readiness",
@@ -2718,8 +2718,8 @@
             "{2} is the operation name 'apply_edits' and must not be translated"
         ]
     },
-    "Data API Builder opened. Continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_dab' and must not be translated{1} is the operation name 'get_state' and must not be translated{2} is the operation name 'apply_changes' and must not be translated": {
-        "message": "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+    "Data API builder opened. Continue with {0} operations ({1}/{2})./{0} is the command identifier 'mssql_dab' and must not be translated{1} is the operation name 'get_state' and must not be translated{2} is the operation name 'apply_changes' and must not be translated": {
+        "message": "Data API builder opened. Continue with {0} operations ({1}/{2}).",
         "comment": [
             "{0} is the command identifier 'mssql_dab' and must not be translated",
             "{1} is the operation name 'get_state' and must not be translated",
@@ -2734,17 +2734,17 @@
         "message": "Executing '{0}' operation on schema designer",
         "comment": ["{0} is the operation name"]
     },
-    "Data API Builder": "Data API Builder",
-    "Execute '{0}' operation on Data API Builder?/{0} is the operation name": {
-        "message": "Execute '{0}' operation on Data API Builder?",
+    "Data API builder": "Data API builder",
+    "Execute '{0}' operation on Data API builder?/{0} is the operation name": {
+        "message": "Execute '{0}' operation on Data API builder?",
         "comment": ["{0} is the operation name"]
     },
-    "Executing '{0}' operation on Data API Builder/{0} is the operation name": {
-        "message": "Executing '{0}' operation on Data API Builder",
+    "Executing '{0}' operation on Data API builder/{0} is the operation name": {
+        "message": "Executing '{0}' operation on Data API builder",
         "comment": ["{0} is the operation name"]
     },
-    "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
-    "Missing connectionId. Please provide a connectionId to open Data API Builder.": "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+    "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    "Missing connectionId. Please provide a connectionId to open Data API builder.": "Missing connectionId. Please provide a connectionId to open Data API builder.",
     "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.": "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",

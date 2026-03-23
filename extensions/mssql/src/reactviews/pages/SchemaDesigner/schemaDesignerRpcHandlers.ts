@@ -1242,16 +1242,16 @@ function createDabValidationError(message: string): {
 
 function formatUnsupportedEntityReasons(reasons: Dab.DabUnsupportedReason[] | undefined): string {
     if (!reasons || reasons.length === 0) {
-        return "Unsupported by Data API Builder.";
+        return "Unsupported by Data API builder.";
     }
 
     return reasons
         .map((reason) => {
             switch (reason.type) {
                 case "noPrimaryKey":
-                    return "Table must have a primary key to be used with Data API Builder";
+                    return "Table must have a primary key to be used with Data API builder";
                 case "unsupportedDataTypes":
-                    return `Table contains column types not supported by Data API Builder: ${reason.columns}`;
+                    return `Table contains column types not supported by Data API builder: ${reason.columns}`;
             }
         })
         .join("; ");
@@ -1266,7 +1266,7 @@ function createEntityNotSupportedError(entity: Dab.DabEntityConfig): {
         success: false,
         reason: "entity_not_supported",
         message:
-            `Entity '${entity.schemaName}.${entity.tableName}' is not supported by Data API Builder. ` +
+            `Entity '${entity.schemaName}.${entity.tableName}' is not supported by Data API builder. ` +
             formatUnsupportedEntityReasons(entity.unsupportedReasons),
     };
 }

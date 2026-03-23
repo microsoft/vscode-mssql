@@ -671,7 +671,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     /**
-     * Determines whether the DAB (Data API Builder) feature is supported for this connection.
+     * Determines whether the DAB (Data API builder) feature is supported for this connection.
      * Currently only SQL Login connections are supported because DAB runs in a local
      * Docker container that cannot perform interactive Azure AD authentication.
      */

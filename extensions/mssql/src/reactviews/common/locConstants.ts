@@ -836,7 +836,7 @@ export class LocConstants {
             ),
             dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
             dabCopilotDiscoveryBody: l10n.t(
-                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
+                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
             ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
@@ -1293,8 +1293,8 @@ export class LocConstants {
                     ],
                 }),
 
-            // DAB (Data API Builder) strings
-            dabTitle: l10n.t("Data API Builder Configuration (Preview)"),
+            // DAB (Data API builder) strings
+            dabTitle: l10n.t("Data API builder Configuration (Preview)"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1324,11 +1324,11 @@ export class LocConstants {
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(
-                "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
+                "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
             ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
@@ -1391,7 +1391,7 @@ export class LocConstants {
             deployDabContainerDescription: (apiTypes: string) =>
                 l10n.t({
                     message:
-                        "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+                        "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
                     args: [apiTypes],
                     comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
                 }),
@@ -1428,11 +1428,11 @@ export class LocConstants {
 
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: l10n.t(
-                "Table must have a primary key to be used with Data API Builder",
+                "Table must have a primary key to be used with Data API builder",
             ),
             unsupportedDataTypes: (columns: string) =>
                 l10n.t({
-                    message: "Table contains column types not supported by Data API Builder: {0}",
+                    message: "Table contains column types not supported by Data API builder: {0}",
                     args: [columns],
                     comment: ["{0} is a comma-separated list of column names and their data types"],
                 }),
@@ -1445,7 +1445,7 @@ export class LocConstants {
             checkingDockerEngine: l10n.t("Checking Docker engine"),
             verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
             pullingDabImage: l10n.t("Pulling DAB container image"),
-            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API builder container image"),
             startingDabContainer: l10n.t("Starting DAB container"),
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
