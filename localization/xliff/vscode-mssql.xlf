@@ -7635,7 +7635,7 @@
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
     </trans-unit>
-    <trans-unit id="mssql.entraMfa.useVscodeAccounts.description">
+    <trans-unit id="mssql.preview.useVscodeAccountsForEntraID.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA SQL authentication instead of the MSSQL extension&apos;s built-in account cache. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">

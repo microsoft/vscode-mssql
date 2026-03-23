@@ -1587,10 +1587,10 @@
                     ],
                     "scope": "application"
                 },
-                "mssql.entraMfa.useVscodeAccounts": {
+                "mssql.preview.useVscodeAccountsForEntraID": {
                     "type": "boolean",
                     "default": false,
-                    "description": "%mssql.entraMfa.useVscodeAccounts.description%",
+                    "description": "%mssql.preview.useVscodeAccountsForEntraID.description%",
                     "scope": "application"
                 },
                 "mssql.logDebugInfo": {
