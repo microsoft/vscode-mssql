@@ -813,6 +813,10 @@ export class ObjectExplorer {
         });
     }
 
+    public static AzureTokenRefreshFailed = l10n.t(
+        "Failed to refresh the Azure access token. The account may be stale; please sign in again.",
+    );
+
     public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
             message:

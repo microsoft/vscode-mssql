@@ -1142,6 +1142,17 @@ export default class ConnectionManager {
                         });
                         try {
                             const refreshedToken = await refreshTask();
+                            if (!refreshedToken) {
+                                this._logger?.error(
+                                    `Entra token refresh returned undefined for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. The account may be stale.`,
+                                );
+                                reject({
+                                    status: ApiStatus.Error,
+                                    message:
+                                        LocalizedConstants.ObjectExplorer.AzureTokenRefreshFailed,
+                                } as Status);
+                                return;
+                            }
                             this._logger?.verbose(
                                 `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}; now expires on ${refreshedToken.expiresOn} (currently ${Date.now() / 1000}).`,
                             );
