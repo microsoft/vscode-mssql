@@ -47,6 +47,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
+import { previewFeaturesService } from "../featureFlags/previewFeaturesService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
@@ -219,10 +220,6 @@ export default class MainController implements vscode.Disposable {
         Utils.logDebug("de-activated.");
         await this.onDisconnect();
         this._statusview.dispose();
-    }
-
-    public get isExperimentalEnabled(): boolean {
-        return this.configuration.get(Constants.configEnableExperimentalFeatures);
     }
 
     /**
@@ -1047,15 +1044,19 @@ export default class MainController implements vscode.Disposable {
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
-            experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
+            experimentalFeaturesEnabled:
+                previewFeaturesService.experimentalFeaturesEnabled.toString(),
             cloudType: getCloudId(),
+            previewFeatureOverrides: JSON.stringify(
+                previewFeaturesService.getNonDefaultOverrides(),
+            ),
         });
 
         // Set context for experimental features (used for conditional menu visibility)
         await vscode.commands.executeCommand(
             "setContext",
             "mssql.experimentalFeaturesEnabled",
-            this.isExperimentalEnabled,
+            previewFeaturesService.experimentalFeaturesEnabled,
         );
 
         await this._connectionMgr.initialized;
@@ -3052,6 +3053,7 @@ export default class MainController implements vscode.Disposable {
         const configSettingsRequiringReload = [
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
+            Constants.configPreviewFeaturesPrefix,
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,

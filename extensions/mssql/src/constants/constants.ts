@@ -272,6 +272,7 @@ export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
+export const configPreviewFeaturesPrefix = "mssql.preview";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";

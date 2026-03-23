@@ -13,6 +13,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { previewFeaturesService } from "../featureFlags/previewFeaturesService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
@@ -276,11 +277,13 @@ export function sendSurveyTelemetry(
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
-            experimentalFeaturesEnabled: vscode.workspace
-                .getConfiguration()
-                .get(constants.configEnableExperimentalFeatures),
+            experimentalFeaturesEnabled:
+                previewFeaturesService.experimentalFeaturesEnabled.toString(),
             surveySource: surveySource,
             ...stringAnswers,
+            previewFeatureOverrides: JSON.stringify(
+                previewFeaturesService.getNonDefaultOverrides(),
+            ),
         },
         numericalAnswers,
     );
