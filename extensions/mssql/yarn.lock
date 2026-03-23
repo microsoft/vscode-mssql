@@ -2433,6 +2433,13 @@
   dependencies:
     "@types/vscode" "*"
 
+"@types/chai-as-promised@8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@types/chai-as-promised/-/chai-as-promised-8.0.2.tgz#5ac957d346fec5b686b62606baa5704787669704"
+  integrity sha512-meQ1wDr1K5KRCSvG2lX7n7/5wf70BeptTKst0axGvnN6zqaVpRqegoIbugiAPSqOW9K9aL8gDVrm7a2LXOtn2Q==
+  dependencies:
+    "@types/chai" "*"
+
 "@types/chai@*", "@types/chai@^5.2.2":
   version "5.2.2"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-5.2.2.tgz#6f14cea18180ffc4416bc0fd12be05fdd73bdd6b"
