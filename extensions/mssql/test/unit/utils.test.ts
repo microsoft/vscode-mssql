@@ -443,6 +443,28 @@ suite("ConnectionMatcher", () => {
     });
 });
 
+suite("decodeQueryResultLinkFragment", () => {
+    test("falls back to raw fragment on decode error", () => {
+        // Basic case
+        let original = '{"test":"testValue"}';
+        let encoded = encodeURIComponent(original);
+        let result = utilUtils.decodeQueryResultLinkFragment(encoded);
+        expect(result).to.equal(original);
+
+        // Special characters that are valid in URI components and therefore need encoding/decoding
+        original = '{"test":"=:&"}';
+        encoded = encodeURIComponent(original);
+        result = utilUtils.decodeQueryResultLinkFragment(encoded);
+        expect(result).to.equal(original);
+
+        // % character causes decodeURIComponent to throw; fallback should return raw fragment
+        original = '{"test":"%"}';
+        encoded = encodeURIComponent(original);
+        result = utilUtils.decodeQueryResultLinkFragment(encoded);
+        expect(result).to.equal(original);
+    });
+});
+
 export const sqlAuthConn = {
     server: "server1",
     database: "db1",

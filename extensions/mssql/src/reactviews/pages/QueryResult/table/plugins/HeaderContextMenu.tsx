@@ -52,6 +52,7 @@ export const HeaderContextMenu: React.FC<HeaderContextMenuProps> = ({
 
     return (
         <div
+            data-vscode-context='{"preventDefaultContextMenuItems": true}'
             // Prevent the browser default context menu if user right-clicks during menu open
             onContextMenu={(e) => {
                 e.preventDefault();
