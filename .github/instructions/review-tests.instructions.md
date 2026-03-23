@@ -29,8 +29,8 @@ const service: sinon.SinonStubbedInstance<MyService> = sandbox.createStubInstanc
 service.connect.resolves(false); // Type-safe, no cast needed
 ```
 
-- **Exception:** For external library interfaces (e.g., `vscode.WorkspaceConfiguration`, `vscode.Webview`), `createStubInstance()` cannot be used since they are interfaces. The `as unknown as Type` cast is acceptable; stub only the methods actually used.
-- Avoid `Object.defineProperty` hacks and fake/partial plain objects.
+- **Exception:** For external library interfaces that are _interfaces only_ (e.g., `vscode.WorkspaceConfiguration`, `vscode.Webview`), `createStubInstance()` cannot be used. In these cases, it is acceptable to use a minimal plain object with `as unknown as Type`, limited strictly to the members that the test actually uses.
+- Avoid `Object.defineProperty` hacks and fake/partial plain objects for concrete classes or any type where a `sinon.SinonStubbedInstance` created via `sandbox.createStubInstance()` can be used instead.
 - Use `sandbox.stub(obj, 'prop').value(...)` for property stubs.
 
 ## Sandbox and Helpers
