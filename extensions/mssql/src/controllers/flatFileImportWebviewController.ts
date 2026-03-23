@@ -408,9 +408,9 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * @returns A promise that resolves to an array of schema names
      */
     private async getSchemas(databaseName: string): Promise<string[]> {
-        const getSchemaQuery = `USE ${databaseName};
+        const getSchemaQuery = `
             SELECT name
-            FROM sys.schemas
+            FROM ${databaseName}.sys.schemas
             WHERE name NOT IN ('sys', 'information_schema')
             ORDER BY name
             `;
