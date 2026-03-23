@@ -248,6 +248,10 @@ export default class SqlToolsServiceClient {
             await this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
             await this._client.onReady();
 
+            if (serverPath) {
+                this._sqlToolsServicePath = path.dirname(serverPath);
+            }
+
             return new ServerInitializationResult(
                 installedBeforeInitializing,
                 true, // isRunning
