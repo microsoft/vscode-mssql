@@ -90,4 +90,8 @@ export class QueryHistoryNode extends vscode.TreeItem {
     public get connectionLabel(): string {
         return this._connectionLabel;
     }
+
+    public get isSuccess(): boolean {
+        return this._isSuccess;
+    }
 }

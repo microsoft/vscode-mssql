@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { Image, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { ObjectManagementDialog } from "../../../common/objectManagementDialog";
 import {
@@ -18,6 +18,10 @@ import { RestoreDatabaseContext } from "./restoreDatabaseStateProvider";
 import { RestoreDatabaseViewModel } from "../../../../sharedInterfaces/restore";
 import { RestoreDatabaseForm } from "./restoreDatabaseForm";
 import { useRestoreDatabaseSelector } from "./restoreDatabaseSelector";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+
+const restoreLightIcon = require("../../../../../media/restore_light.svg");
+const restoreDarkIcon = require("../../../../../media/restore_dark.svg");
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -43,6 +47,7 @@ const useStyles = makeStyles({
 export const RestoreDatabaseDialogPage = () => {
     const classes = useStyles();
     const context = useContext(RestoreDatabaseContext);
+    const { themeKind } = useVscodeWebview();
 
     if (!context) {
         return null;
@@ -65,6 +70,9 @@ export const RestoreDatabaseDialogPage = () => {
     );
     const restorePlanStatus = useRestoreDatabaseSelector(
         (s) => (s.viewModel.model as RestoreDatabaseViewModel).restorePlanStatus,
+    );
+    const serverName = useRestoreDatabaseSelector(
+        (s) => (s.viewModel.model as RestoreDatabaseViewModel).serverName,
     );
 
     const [fileErrors, setFileErrors] = useState<number[]>([]);
@@ -114,8 +122,18 @@ export const RestoreDatabaseDialogPage = () => {
             case ApiStatus.Loaded:
                 return (
                     <ObjectManagementDialog
-                        title={undefined}
-                        description={undefined}
+                        icon={
+                            <Image
+                                src={
+                                    themeKind === ColorThemeKind.Dark
+                                        ? restoreDarkIcon
+                                        : restoreLightIcon
+                                }
+                                alt={locConstants.restoreDatabase.restoreDatabase}
+                            />
+                        }
+                        title={locConstants.restoreDatabase.restoreDatabase}
+                        subtitle={serverName}
                         errorMessage={errorMessage}
                         primaryLabel={locConstants.restoreDatabase.restore}
                         cancelLabel={locConstants.createDatabase.cancelButton}

@@ -116,10 +116,7 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
-import { FlatFileClient } from "../flatFile/flatFileClient";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
-import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
-import { FlatFileProvider } from "../models/contracts/flatFile";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 
@@ -163,8 +160,6 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
-    public flatFileClient: FlatFileClient;
-    public flatFileProvider: FlatFileProvider;
     public sqlNotebookController: SqlNotebookController;
 
     /**
@@ -735,8 +730,13 @@ export default class MainController implements vscode.Disposable {
             // Register a virtual document provider once during extension activation
             vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
                 provideTextDocumentContent: (uri) => {
-                    // The content is stored in the URI fragment
-                    return decodeURIComponent(uri.fragment);
+                    // Attempt to decode the URI fragment
+                    try {
+                        return decodeURIComponent(uri.fragment);
+                    } catch {
+                        // If decoding fails, return the raw fragment as a fallback.  Some characters (like '%') can cause decodeURIComponent to throw an error.
+                        return uri.fragment;
+                    }
                 },
             });
 
@@ -856,7 +856,14 @@ export default class MainController implements vscode.Disposable {
 
         // Register mssql_dab tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
+            vscode.lm.registerTool(
+                Constants.copilotDabToolName,
+                new DabTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) =>
+                        this.openDabDesigner(connectionUri, database),
+                ),
+            ),
         );
     }
 
@@ -871,6 +878,21 @@ export default class MainController implements vscode.Disposable {
             connectionUri,
         );
         designer.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+        designer.revealToForeground();
+        return designer;
+    }
+
+    private async openDabDesigner(connectionUri: string, database: string) {
+        const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+            this._context,
+            this._vscodeWrapper,
+            this,
+            this.schemaDesignerService,
+            database,
+            undefined,
+            connectionUri,
+        );
+        designer.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
         designer.revealToForeground();
         return designer;
     }
@@ -980,11 +1002,6 @@ export default class MainController implements vscode.Disposable {
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
-
-        // Initialize flat file client
-        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
-            this.flatFileProvider = provider;
-        });
 
         /**
          * TODO: aaskhan
@@ -1527,11 +1544,19 @@ export default class MainController implements vscode.Disposable {
                         `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
 
                     try {
-                        await this.objectManagementService.rename(
-                            connectionUri,
-                            Constants.databaseString,
-                            objectUrn,
-                            newName,
+                        await vscode.window.withProgress(
+                            {
+                                location: vscode.ProgressLocation.Notification,
+                                title: LocalizedConstants.renamingDatabase(databaseName, newName),
+                            },
+                            async () => {
+                                await this.objectManagementService.rename(
+                                    connectionUri,
+                                    Constants.databaseString,
+                                    objectUrn,
+                                    newName,
+                                );
+                            },
                         );
                         await refreshNodeChildren(targetNode.parentNode);
                     } catch (error) {
@@ -1628,7 +1653,6 @@ export default class MainController implements vscode.Disposable {
                         this._vscodeWrapper,
                         SqlToolsServerClient.instance,
                         this.connectionManager,
-                        this.flatFileProvider,
                         node.connectionProfile,
                         node.sessionId,
                         database,
@@ -1756,13 +1780,26 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdEditConnection,
-                async (node: TreeNodeInfo) => {
+                async (nodeOrProfile: TreeNodeInfo | IConnectionProfile) => {
+                    const connectionProfile =
+                        nodeOrProfile instanceof TreeNodeInfo
+                            ? nodeOrProfile.connectionProfile
+                            : (nodeOrProfile as IConnectionProfile);
+
+                    if (!connectionProfile) {
+                        this._logger.error(
+                            `Unhandled input for ${Constants.cmdEditConnection}: ${JSON.stringify(nodeOrProfile)}`,
+                        );
+
+                        return;
+                    }
+
                     const connDialog = new ConnectionDialogWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this,
                         this._objectExplorerProvider,
-                        node.connectionProfile,
+                        connectionProfile,
                     );
                     connDialog.revealToForeground();
                 },
@@ -1783,6 +1820,27 @@ export default class MainController implements vscode.Disposable {
                             node,
                         );
 
+                    schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
+                    schemaDesigner.revealToForeground();
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDesignSchemaForTable,
+                async (node: TreeNodeInfo, databaseName: string, filterTable: string) => {
+                    const schemaDesigner =
+                        await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                            this._context,
+                            this._vscodeWrapper,
+                            this,
+                            this.schemaDesignerService,
+                            databaseName,
+                            node,
+                        );
+
+                    schemaDesigner.setInitialFilterTables([filterTable]);
                     schemaDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner);
                     schemaDesigner.revealToForeground();
                 },
@@ -2200,6 +2258,7 @@ export default class MainController implements vscode.Disposable {
                 this._sqlDocumentService,
                 this._statusview,
                 this._prompter,
+                this._context,
             );
 
             this._context.subscriptions.push(
@@ -2991,7 +3050,6 @@ export default class MainController implements vscode.Disposable {
 
         // Prompt to reload VS Code when any of these settings are updated.
         const configSettingsRequiringReload = [
-            Constants.enableSqlAuthenticationProvider,
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
             Constants.configSovereignCloudEnvironment,

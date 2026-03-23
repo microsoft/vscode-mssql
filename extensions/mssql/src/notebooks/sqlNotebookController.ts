@@ -373,8 +373,8 @@ export class SqlNotebookController implements vscode.Disposable {
         if (mgr?.isConnected()) {
             this.statusBarItem.text = `$(check) ${mgr.getConnectionLabel()}`;
             this.statusBarItem.tooltip =
-                LocalizedConstants.Notebooks.statusBarClickToChangeDatabase;
-            this.statusBarItem.command = Constants.cmdNotebooksChangeDatabase;
+                LocalizedConstants.Notebooks.statusBarClickToChangeConnection;
+            this.statusBarItem.command = Constants.cmdNotebooksChangeConnection;
             this.statusBarItem.show();
         } else {
             this.statusBarItem.text = `$(plug) ${LocalizedConstants.StatusBar.disconnectedLabel}`;
@@ -764,12 +764,43 @@ export class SqlNotebookController implements vscode.Disposable {
         }
 
         const mgr = this.getConnectionManager(notebook);
-        mgr.disconnect();
-        await mgr.promptAndConnect();
+        const previousUri = mgr.getConnectionUri();
+
+        try {
+            // Prompt first so that cancelling the picker preserves the
+            // existing connection instead of disconnecting eagerly.
+            await mgr.promptAndConnect();
+        } catch (err) {
+            // Cancellation (no selection) — silently keep existing connection.
+            // Real failures — notify the user so they know the change failed.
+            const isCancellation =
+                err instanceof Error &&
+                err.message === LocalizedConstants.Notebooks.noConnectionSelected;
+            if (!isCancellation) {
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : LocalizedConstants.Notebooks.connectionFailed;
+                void vscode.window.showErrorMessage(message);
+            }
+            this.updateStatusBar(notebook);
+            this.codeLensProvider.refresh();
+            return;
+        }
+
+        // Clean up the previous connection now that the new one succeeded.
+        if (previousUri) {
+            mgr.disconnectUri(previousUri);
+        }
+
         this.connectCellsForIntellisense(notebook);
         this.saveConnectionMetadataIfConnected(notebook);
         this.updateStatusBar(notebook);
         this.codeLensProvider.refresh();
+
+        // Follow up with a database picker so the user can choose a database
+        // on the newly selected server. Cancelling keeps the default database.
+        await this.changeDatabaseInteractive();
     }
 
     async createNotebookWithConnection(connectionInfo?: IConnectionInfo): Promise<void> {

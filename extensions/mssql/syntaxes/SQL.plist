@@ -840,7 +840,7 @@
 					<key>comment</key>
 					<string>this is faster than the next begin/end rule since sub-pattern will match till end-of-line and SQL files tend to have very long lines.</string>
 					<key>match</key>
-					<string>(N)?(')[^']*(')</string>
+					<string>(?:(?&lt;![a-zA-Z0-9_])(N))?(')[^']*(')</string>
 					<key>name</key>
 					<string>string.quoted.single.sql</string>
 				</dict>

@@ -46,6 +46,7 @@ interface TableDataGridProps {
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
+    onModifyTable?: () => void;
 }
 
 export interface TableDataGridRef {
@@ -73,6 +74,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onDeletionCountChanged,
             onSelectedRowsChanged,
             onSaveResults,
+            onModifyTable,
         },
         ref,
     ) => {
@@ -444,8 +446,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         enableAutoResize: true,
                         autoResize: {
                             container: "#grid-container",
-                            bottomPadding: 50, // Reserve space for custom pagination
-                            minHeight: 250, // Minimum height to prevent unnecessary scrollbar
+                            calculateAvailableSizeBy: "container",
+                            resizeDetection: "container",
+                            autoHeight: false,
+                            bottomPadding: 10,
+                            minHeight: 180,
                         },
                         forceFitColumns: false, // Allow horizontal scrolling for many columns
 
@@ -853,6 +858,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeletionCountChanged(deletedRowsRef.current.size);
                     }
                     break;
+
+                case "modify-table":
+                    if (onModifyTable) {
+                        onModifyTable();
+                    }
+                    break;
             }
         }
 
@@ -1182,6 +1193,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: loc.tableExplorer.revertRow,
                         iconCssClass: "mdi mdi-undo",
                         positionOrder: 11,
+                    },
+                    // Divider before navigation commands
+                    { divider: true, command: "", positionOrder: 12 },
+                    // Navigation commands
+                    {
+                        command: "modify-table",
+                        title: loc.tableExplorer.modifyTable,
+                        iconCssClass: "mdi mdi-table-edit",
+                        positionOrder: 13,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),

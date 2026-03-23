@@ -259,6 +259,10 @@
         <note>{0} is the IP address of the client</note>
         <target state="translated">내 클라이언트 IP 추가({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++119f58d6a58b3f47f5c837a12f2f47a5201453288fc7ec0267e5886c2deba6e9">
+        <source xml:lang="en">Add my subnet IP range</source>
+        <target state="translated">서브넷 IP 범위 추가</target>
+      </trans-unit>
       <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
         <source xml:lang="en">Add new column</source>
         <target state="translated">새 열 추가</target>
@@ -320,10 +324,6 @@
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
         <target state="translated">이후</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
-        <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
-        <target state="translated">스키마 인식 쿼리 생성, ORM 지원 및 요청, 에이전트 모드에서 @mssql 자연어 채팅을 사용하여 AL 지원 SQL을 개발합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
         <source xml:lang="en">All</source>
@@ -436,6 +436,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Analytics-ready by default</source>
         <target state="translated">기본적으로 분석 준비 완료</target>
       </trans-unit>
+      <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
+        <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
+        <target state="translated">SQL Database 프로젝트에서 사용자 지정 규칙 집합으로 정적 코드를 분석하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
         <target state="translated">및</target>
@@ -539,11 +543,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
         <source xml:lang="en">Ask GitHub Copilot to Fix</source>
-        <target state="new">Ask GitHub Copilot to Fix</target>
+        <target state="translated">GitHub Copilot에게 수정 요청</target>
       </trans-unit>
       <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
         <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
         <target state="translated">채팅에서 질문하거나 스키마 변경을 제안하면 GitHub Copilot이 다이어그램에서 스키마를 바로 업데이트합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
+        <source xml:lang="en">At least one API type must be selected.</source>
+        <target state="translated">API 형식을 하나 이상 선택해야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -582,6 +590,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
         <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
         <target state="translated">상태 불일치로 인해 인증에 실패했습니다. ADS를 닫고 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
+        <source xml:lang="en">Authentication not supported</source>
+        <target state="translated">인증이 지원되지 않음</target>
       </trans-unit>
       <trans-unit id="++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246">
         <source xml:lang="en">Authorization Role</source>
@@ -727,18 +739,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Back to preview</source>
         <target state="translated">미리 보기로 돌아가기</target>
       </trans-unit>
-      <trans-unit id="++CODE++c5e2e2d175e43bbb7929e9f2b6758a05509f49a0b16eadb69f69b31d3a21736b">
-        <source xml:lang="en">Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.</source>
-        <target state="translated">SQL 데이터베이스를 로컬이나 URL에 백업하고, 데이터베이스, .BAK 파일, 또는 URL에서 쉽게 복원하세요.</target>
-      </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
         <target state="translated">백업</target>
       </trans-unit>
-      <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
-        <source xml:lang="en">Backup Database - {0}</source>
+      <trans-unit id="++CODE++131339547c38a888800811c65663ba4a48be297f76a3ffdf6075afd06b591df8">
+        <source xml:lang="en">Backup Database (Preview) - {0}</source>
         <note>{0} is the database name</note>
-        <target state="translated">데이터베이스 백업 - {0}</target>
+        <target state="translated">백업 데이터베이스(미리 보기) - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
         <source xml:lang="en">Backup File</source>
@@ -775,10 +783,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
         <source xml:lang="en">Backup to a new media set</source>
         <target state="translated">새 미디어 세트에 백업</target>
-      </trans-unit>
-      <trans-unit id="++CODE++83a4e06596488b0e0716e39bf83706dfe5c54fcfd60ebbe078ead9d1c4611541">
-        <source xml:lang="en">Backup/Restore Dialogs (Preview)</source>
-        <target state="translated">백업/복원 대화 상자(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -845,6 +849,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Browse Fabric</source>
         <target state="translated">Fabric 찾아보기</target>
       </trans-unit>
+      <trans-unit id="++CODE++aaadc23aff35d3da3916780fe2e84c913d08a2d1840d19f3600b2cb75efc1b91">
+        <source xml:lang="en">Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.</source>
+        <target state="translated">VS Code를 벗어나지 않고 Fabric 작업 영역을 탐색하고 Fabric에서 SQL 데이터베이스를 프로비전하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8bb105f01017ced7bd39ba3dd2e7a2d276f16f202f5c29a2c2e51ff0eb31fc3">
         <source xml:lang="en">Browse files</source>
         <target state="translated">파일 찾아보기</target>
@@ -865,9 +873,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Build APIs with GitHub Copilot</source>
         <target state="translated">GitHub Copilot으로 API 빌드</target>
       </trans-unit>
-      <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
-        <source xml:lang="en">Build Data API</source>
-        <target state="new">Build Data API</target>
+      <trans-unit id="++CODE++0b7fa74a368845afd65888dc1e437a2afe5a96728dd43433760a2fe01c167033">
+        <source xml:lang="en">Build Data API (Preview)</source>
+        <target state="translated">데이터 API 빌드(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
@@ -991,10 +999,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
         <target state="translated">되돌릴 수 없음: 참조된 테이블 또는 열이 삭제되었습니다.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9d23681b997e2e0122d7de5c5504f37b87a4f3265f0897f2e47d439706e4549c">
-        <source xml:lang="en">Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.</source>
-        <target state="translated">실시간 SQL Server Extended 이벤트 세션을 캡처하고 분석해 데이터베이스 성능을 모니터링하고 분석하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -1283,6 +1287,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Click to cancel loading summary</source>
         <target state="translated">요약 로드를 취소하려면 클릭하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++2bbd3f4d1c961e88f378b374bc1ce96b67f857965c2fa26ae0898d38a6caab94">
+        <source xml:lang="en">Click to change connection</source>
+        <target state="translated">연결을 변경하려면 클릭하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++2f0d8da82f0ec7faa6c57d5c857f4f157770858322f3b81a13782d19ba9fca85">
         <source xml:lang="en">Click to change database</source>
         <target state="translated">데이터베이스를 변경하려면 클릭하세요.</target>
@@ -1471,10 +1479,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
         <source xml:lang="en">Compare SQL Server editions</source>
         <target state="translated">SQL Server 에디션 비교</target>
-      </trans-unit>
-      <trans-unit id="++CODE++887138e7ec0b3791877650b8e43bd012cf8d0abd298cbacf5c99ff8c3709c126">
-        <source xml:lang="en">Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.</source>
-        <target state="translated">데이터베이스, DACPAC 파일, SQL 프로젝트에서 데이터베이스 스키마를 비교합니다. 차이점을 검토하고 변경 내용을 적용하거나 배포 스크립트를 생성하여 스키마를 동기화 상태로 유지합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
@@ -1697,6 +1701,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection Timeout</source>
         <target state="translated">연결 시간 제한</target>
       </trans-unit>
+      <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
+        <source xml:lang="en">Connection actions</source>
+        <target state="translated">연결 작업</target>
+      </trans-unit>
       <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
         <source xml:lang="en">Connection error</source>
         <target state="translated">연결 오류</target>
@@ -1761,6 +1769,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">연결 문자열이 필요합니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
+        <source xml:lang="en">Connection test succeeded</source>
+        <target state="translated">연결 테스트가 성공함</target>
+      </trans-unit>
       <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
         <note>{0} is the connection ID</note>
@@ -1799,6 +1811,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
         <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
         <target state="translated">시간 제한 내에 컨테이너를 시작하지 못했습니다. 잠시 기다렸다가 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c2757ee529f77e52b5172ba9b77defdd3f8183a111733beab404d8b47299c09">
+        <source xml:lang="en">Container logs</source>
+        <target state="translated">컨테이너 로그</target>
       </trans-unit>
       <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
         <source xml:lang="en">Container name and port are required to check container readiness.</source>
@@ -2000,6 +2016,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create New Connection Group</source>
         <target state="translated">새 연결 그룹 만들기</target>
       </trans-unit>
+      <trans-unit id="++CODE++12d088d1b1386a6196de28580f5092baa6b0e0241453a084aa45af5d5b218d4f">
+        <source xml:lang="en">Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.</source>
+        <target state="translated">Visual Studio Code 내 시각적 인터페이스에서 SQL 데이터베이스 테이블을 위한 REST, GraphQL, MCP 엔드포인트를 만드세요. 엔터티, 권한, 배포 설정을 구성한 후 Docker로 로컬에 배포하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47">
         <source xml:lang="en">Create a Local Docker SQL Server</source>
         <target state="translated">로컬 Docker SQL Server 만들기</target>
@@ -2008,9 +2028,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
         <target state="translated">몇 초 만에 SQL Server 컨테이너를 만들 수 있으며 수동 조치가 필요하지 않습니다. VS Code를 종료하지 않고 MSSQL 확장에서 쉽게 관리할 수 있습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
-        <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
-        <target state="translated">Fabric에서 SQL 데이터베이스 만들기(미리 보기)</target>
+      <trans-unit id="++CODE++09fa1b862a69dc1d82e2cce4c5330d7e9769cdcc2c7521f2927aa20b32a0401c">
+        <source xml:lang="en">Create a SQL database in Fabric</source>
+        <target state="translated">Fabric의 SQL 데이터베이스 만들기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
+        <source xml:lang="en">Create a new connection profile</source>
+        <target state="translated">새 연결 프로필 만들기</target>
       </trans-unit>
       <trans-unit id="++CODE++4c4e11ad9f72c183a2ea2cdf1ed42c358aee2b87c96cad4d22d7d22b967dd3b8">
         <source xml:lang="en">Create a new database on '{0}'.</source>
@@ -2025,10 +2049,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a new profiling session</source>
         <target state="translated">새 프로파일링 세션 만들기</target>
       </trans-unit>
-      <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
-        <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
-        <target state="translated">빠르고 안정적인 로컬 개발 환경을 구축하기 위해 VS Code 직접 로컬 SQL Server 컨테이너를 만들고 관리합니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
         <target state="translated">스크립트로 만들기</target>
@@ -2037,10 +2057,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create new firewall rule for {0}</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">{0}에 대한 새 방화벽 규칙 만들기</target>
-      </trans-unit>
-      <trans-unit id="++CODE++baceb84f5b61a38740cf6681e4994efc08d68c742d57f1679753490478946f22">
-        <source xml:lang="en">Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.</source>
-        <target state="translated">새 관리 대화 상자를 통해 데이터베이스를 쉽게 만들고 이름을 바꾸고 삭제하여 사용자가 손쉽게 데이터베이스를 관리할 수 있게 해 줍니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
@@ -2117,6 +2133,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">DAB container is running!</source>
         <target state="translated">컨테이너가 실행 중입니다!</target>
       </trans-unit>
+      <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
+        <source xml:lang="en">DAB container logs</source>
+        <target state="translated">DAB 컨테이너 로그</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="translated">DACPAC 배포 성공</target>
@@ -2151,9 +2171,20 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Data API Builder</source>
         <target state="translated">데이터 API 작성기</target>
       </trans-unit>
-      <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
-        <source xml:lang="en">Data API Builder Configuration</source>
-        <target state="translated">데이터 API 작성기 구성</target>
+      <trans-unit id="++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5">
+        <source xml:lang="en">Data API Builder Configuration (Preview)</source>
+        <target state="translated">데이터 API 작성기 구성(미리 보기)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
+        <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+        <note>{0} is the command identifier 'mssql_dab' and must not be translated
+{1} is the operation name 'get_state' and must not be translated
+{2} is the operation name 'apply_changes' and must not be translated</note>
+        <target state="translated">데이터 API Builder가 열렸습니다. {0} 작업을 계속합니다({1}/{2}).</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
+        <source xml:lang="en">Data API builder</source>
+        <target state="translated">데이터 API 작성기</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2179,13 +2210,13 @@ Select "{0}" to establish a connection.</source>
 {3} is target column</note>
         <target state="translated">데이터 형식 불일치: '{0}' 열의 '{1}'이(가) '{3}'의 '{2}'과(와) 호환되지 않습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++7e986cf4465d2b2d98f423377f2fbd7e7a3b4d6e4a44023ca39027c3a0229fe0">
-        <source xml:lang="en">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export (Preview)</source>
-        <target state="translated">데이터 계층 애플리케이션(DACPAC/BACPAC) 가져오기 및 내보내기(미리 보기)</target>
+      <trans-unit id="++CODE++8a9889070cc5b808819105a414532c19eb1ace48a6acd6350d5e4aa7576f6ba8">
+        <source xml:lang="en">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export</source>
+        <target state="translated">데이터 계층 애플리케이션(DACPAC/BACPAC) 가져오기 및 내보내기</target>
       </trans-unit>
-      <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
-        <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="translated">데이터 계층 애플리케이션(미리 보기)</target>
+      <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
+        <source xml:lang="en">Data-tier Application</source>
+        <target state="translated">데이터 계층 애플리케이션</target>
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -2207,10 +2238,6 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
         <source xml:lang="en">Database Details</source>
         <target state="translated">데이터베이스 세부 정보</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e306c6d339a2a6de1a8f7377bdc7ec982d0cefe56812aa9ec305470ee4c8b494">
-        <source xml:lang="en">Database Management Dialogs (Preview)</source>
-        <target state="translated">데이터베이스 관리 대화 상자(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
@@ -2275,6 +2302,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
         <source xml:lang="en">Define who can access this endpoint</source>
         <target state="translated">이 엔드포인트에 접근할 수 있는 사용자 정의</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
+        <source xml:lang="en">Definition</source>
+        <target state="translated">정의</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
@@ -2351,10 +2382,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
         <target state="translated">MSSQL 확장에서 간소화된 통합 워크플로를 사용하여 .dacpac 파일을 배포 및 추출하거나 .bacpac 패키지를 가져오고 내보낼 수 있습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++125abe6c1406f356647c415b8627a84a6d928dca274d3e70c26fff22c7b77580">
-        <source xml:lang="en">Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.</source>
-        <target state="translated">SQL Database 프로젝트에서 안내형 게시 대화 상자를 사용하여 데이터베이스 변경 내용을 배포하고, SQL Server 및 Azure SQL 데이터베이스의 스크립트 미리 보기를 제공합니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
         <target state="translated">기존 데이터베이스에 배포</target>
@@ -2399,13 +2426,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Design API</source>
         <target state="translated">API 디자인</target>
       </trans-unit>
-      <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
-        <source xml:lang="en">Design Schemas with GitHub Copilot</source>
-        <target state="translated">GitHub Copilot으로 스키마 디자인</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
-        <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
-        <target state="translated">동기화된 SQL 생성 기능이 있는 대화형 다이어그램을 사용하여 데이터베이스 스키마를 디자인 및 시각화하고 발전시켜 보세요.</target>
+      <trans-unit id="++CODE++b14075f1961f95a9c65c61d8e0da7d32280678ff775e70b6c74a8c4966097838">
+        <source xml:lang="en">Design Schemas with GitHub Copilot (Preview)</source>
+        <target state="translated">GitHub Copilot을 사용하여 스키마 디자인(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -2559,10 +2582,6 @@ Select "{0}" to establish a connection.</source>
 {1} is the server name</note>
         <target state="translated">'{1}'에서 '{0}'을(를) 삭제합니다. 이 작업은 실행을 취소할 수 없습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
-        <source xml:lang="en">Drop Database</source>
-        <target state="translated">데이터베이스 삭제</target>
-      </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
         <target state="translated">데이터베이스 삭제(미리 보기)</target>
@@ -2583,10 +2602,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">VS Code 확장에서 나가지 않고도 로컬 SQL Server를 쉽게 설정할 수 있습니다. 몇 번의 클릭만으로 서버를 손쉽게 설치하고 구성하며 관리할 수 있습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
-        <source xml:lang="en">Edit</source>
-        <target state="translated">편집</target>
-      </trans-unit>
       <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
         <source xml:lang="en">Edit Connection Group - {0}</source>
         <note>{0} is the connection group name</note>
@@ -2605,13 +2620,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Edit Data</source>
         <target state="translated">데이터 편집</target>
       </trans-unit>
-      <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
-        <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="translated">데이터 편집(미리 보기)</target>
-      </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">테이블 편집</target>
+      </trans-unit>
+      <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
+        <source xml:lang="en">Edit an existing connection profile</source>
+        <target state="translated">기존 연결 프로필 편집</target>
       </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -3184,6 +3199,10 @@ Error:
         <source xml:lang="en">Fabric Workspaces</source>
         <target state="translated">Fabric 작업 영역</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7cd0dd0ca57b9a1b087c6af78aaedaec67c6c7c792c96b6d2e90ebf8e0a5c5f">
+        <source xml:lang="en">Fabric databases in Query Profiler</source>
+        <target state="translated">쿼리 프로파일러의 Fabric 데이터베이스</target>
+      </trans-unit>
       <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
         <note>{0} is the cloud name
@@ -3195,10 +3214,6 @@ Error:
         <note>{0} is the error code
 {1} is the error message</note>
         <target state="translated">오류 코드 '{0}'의 Fabric 장기 실행 API 오류: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c85fb96bbfbe33bde4a67a8e9223c63dc3a3f817428e22ff8357a1ae30f6f4eb">
-        <source xml:lang="en">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</source>
-        <target state="translated">패브릭 대상은 현재 이 미리 보기에서 지원되지 않으며 환경을 개선하기 위해 노력하고 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -3414,6 +3429,20 @@ Error:
         <source xml:lang="en">Failed to open Modify Table: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">테이블 수정을 열지 못함: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f8bdabb0046a85c7425f45c252b0b3e8bb407660e28ad5844369a7176f7763b9">
+        <source xml:lang="en">Failed to open Schema Designer: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">스키마 디자이너를 열지 못했습니다. {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3">
+        <source xml:lang="en">Failed to open Table Designer: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">테이블 디자이너를 열지 못했습니다. {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
+        <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
+        <target state="translated">URL을 열지 못했습니다. 기본 제공 단순 브라우저가 비활성화되어 있을 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
         <source xml:lang="en">Failed to open XEL file: {0}</source>
@@ -3878,6 +3907,11 @@ Error:
         <source xml:lang="en">Freeze columns</source>
         <target state="translated">열 고정</target>
       </trans-unit>
+      <trans-unit id="++CODE++589c6d8e7bd5cc5626c229ddacca440a0d228fd6c50c856d46b86b002a9ac8dd">
+        <source xml:lang="en">From</source>
+        <note>Label for the start IP address in the firewall rule IP range</note>
+        <target state="translated">시작</target>
+      </trans-unit>
       <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
         <source xml:lang="en">Full</source>
         <target state="translated">전체</target>
@@ -3897,6 +3931,10 @@ Error:
       <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
         <source xml:lang="en">General Options</source>
         <target state="translated">일반 옵션</target>
+      </trans-unit>
+      <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
+        <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
+        <target state="translated">GitHub Copilot 채팅과 에이전트 도구를 통해 자연어로 데이터 API 작성기 구성을 생성하세요. API 요구 사항을 설명하면 GitHub Copilot이 구성을 자동으로 생성해 줍니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -3991,17 +4029,13 @@ Error:
         <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
         <target state="translated">GitHub Copilot - VS Code 연습</target>
       </trans-unit>
-      <trans-unit id="++CODE++737f47ca3f9975103a99da74b37a986e6a1e97b77817a154b27d53d840a9a599">
-        <source xml:lang="en">GitHub Copilot integration</source>
-        <target state="translated">GitHub Copilot 통합</target>
+      <trans-unit id="++CODE++417d51fadd3d0a015407cc0fd8a632098a2fa435bf7dd75a74b2c657b259fbde">
+        <source xml:lang="en">GitHub Copilot integration in Data API builder</source>
+        <target state="translated">데이터 API 작성기의 GitHub Copilot 통합</target>
       </trans-unit>
       <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
         <source xml:lang="en">GitHub Copilot survey</source>
         <target state="translated">GitHub Copilot 설문 조사</target>
-      </trans-unit>
-      <trans-unit id="++CODE++73851630d8023a874c53d96e86986e532c75453eac99d79b44d43973758b0b3a">
-        <source xml:lang="en">Global Object Search</source>
-        <target state="translated">글로벌 개체 검색</target>
       </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
@@ -4045,6 +4079,10 @@ Error:
         <source xml:lang="en">Help us improve by sharing your thoughts.</source>
         <target state="translated">여러분의 생각을 공유해 주세요. 더 나아질 수 있도록 도와주세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
+        <source xml:lang="en">Hide Changes</source>
+        <target state="translated">변경 내용 숨기기</target>
+      </trans-unit>
       <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
         <source xml:lang="en">Hide Changes Highlight</source>
         <target state="translated">변경 내용 숨기기 강조 표시</target>
@@ -4052,6 +4090,10 @@ Error:
       <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
         <source xml:lang="en">Hide Confirm Password</source>
         <target state="translated">암호 확인 숨기기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++594683ed5533aeeab2a537f670f9a1ae7394eef4784dc9398b23309a6b88a965">
+        <source xml:lang="en">Hide Definition</source>
+        <target state="translated">정의 숨기기</target>
       </trans-unit>
       <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
         <source xml:lang="en">Hide New Password</source>
@@ -4114,6 +4156,10 @@ Error:
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
         <target state="translated">요약을 읽고 잠재적인 위험을 이해했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++cec4c1fded759957b61fa5bace2234953f9645b8a10f1ac56cdd67e89cb7c118">
+        <source xml:lang="en">I understand this action is permanent and irreversible</source>
+        <target state="translated">이 작업은 영구적이며 되돌릴 수 없음을 이해합니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">죄송합니다. SQL 관련 질문만 도와드릴 수 있습니다.</target>
@@ -4138,9 +4184,9 @@ Error:
         <source xml:lang="en">Import Data</source>
         <target state="translated">데이터 가져오기</target>
       </trans-unit>
-      <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
-        <source xml:lang="en">Import File</source>
-        <target state="translated">파일 가져오기</target>
+      <trans-unit id="++CODE++70c983cad7df6201df65d920d2483db7e1c8e824fe563943b0280ac5d11b5f2c">
+        <source xml:lang="en">Import File (Preview)</source>
+        <target state="translated">파일 가져오기(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
         <source xml:lang="en">Import Flat File (Preview)</source>
@@ -4218,6 +4264,10 @@ Error:
       <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
         <source xml:lang="en">In progress</source>
         <target state="translated">진행 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++713772940f735da4b9d051c4f91c4e707ef5389f0014209b9cdd119407ee776c">
+        <source xml:lang="en">In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+        <target state="translated">데이터 API 작성기(미리 보기) 환경에서 로컬 컨테이너 배포는 SQL 인증을 사용하는 연결에만 사용할 수 있습니다. 현재 연결 유형은 지원되지 않습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -4396,10 +4446,6 @@ Error:
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
         <target state="translated">SQL Server 2025 기능에 대한 자세한 정보</target>
-      </trans-unit>
-      <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
-        <source xml:lang="en">Learn more about this issue.</source>
-        <target state="translated">이 문제에 대해 자세히 알아보세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
         <source xml:lang="en">Leave the source database in the restoring state</source>
@@ -4583,6 +4629,10 @@ Error:
         <source xml:lang="en">Loading Fabric Accounts</source>
         <target state="translated">Fabric 계정을 로드하는 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++d17dd48b24fa0afbcf8f22316dfb0f6d0fc0f84209b049d5e9e51875a30290a3">
+        <source xml:lang="en">Loading Fabric provisioning...</source>
+        <target state="translated">Fabric 프로비전을 로드하는 중...</target>
+      </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
         <target state="translated">보고서 로드 중</target>
@@ -4632,10 +4682,6 @@ Error:
       <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">실행 계획을 로드하는 중...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
-        <source xml:lang="en">Loading fabric provisioning...</source>
-        <target state="translated">Fabric 프로비저닝을 로드하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++2dd2f1e34594bff7a420c8f7f69d7933114f5f4e7efd583f515691dea65b63d8">
         <source xml:lang="en">Loading flat file import...</source>
@@ -4698,13 +4744,13 @@ Error:
         <source xml:lang="en">Local Container Deployment</source>
         <target state="translated">로컬 컨테이너 배포</target>
       </trans-unit>
-      <trans-unit id="++CODE++8b40b52b182ad6e53db8c7a2b46b81c4daa05a4737719ec9e7290f3407d9b20d">
-        <source xml:lang="en">Local SQL Server Container</source>
-        <target state="translated">로컬 SQL Server 컨테이너</target>
-      </trans-unit>
       <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">로컬 SQL Server 데이터베이스 컨테이너</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
+        <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
+        <target state="translated">로컬 컨테이너 배포는 현재 SQL 인증 연결에서만 지원됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
         <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
@@ -4729,6 +4775,10 @@ Error:
       <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
         <source xml:lang="en">Logical file name</source>
         <target state="translated">논리적 파일 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
+        <source xml:lang="en">Logs copied to clipboard</source>
+        <target state="translated">클립보드에 로그 복사됨</target>
       </trans-unit>
       <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
         <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
@@ -4769,6 +4819,14 @@ Error:
         <note>{0} is the connection label</note>
         <target state="translated">{0}에 연결된 MSSQL Notebook</target>
       </trans-unit>
+      <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
+        <source xml:lang="en">MSSQL extension icon</source>
+        <target state="translated">MSSQL 확장 아이콘</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
+        <source xml:lang="en">MSSQL: Click to change connection</source>
+        <target state="translated">MSSQL: 연결을 변경하려면 클릭하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a2b41c1abaf1dcf9e0e3f2dfadc4649810e9b986a3c53eaed96f510ec49d0ccd">
         <source xml:lang="en">MSSQL: Click to change database</source>
         <target state="translated">MSSQL: 데이터베이스를 변경하려면 클릭</target>
@@ -4776,6 +4834,10 @@ Error:
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
         <target state="translated">MSSQL: 시작 및 새로운 기능</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
+        <source xml:lang="en">MSSQL: What's new</source>
+        <target state="translated">MSSQL: 새로운 기능</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -4885,6 +4947,10 @@ Error:
         <note>{0} is the account name</note>
         <target state="translated">Microsoft Entra 계정 {0}이(가) 추가되었습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
+        <source xml:lang="en">Microsoft Fabric integration</source>
+        <target state="translated">Microsoft Fabric 통합</target>
+      </trans-unit>
       <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
         <source xml:lang="en">Microsoft SQL Server License Agreement</source>
         <target state="translated">Microsoft SQL Server 라이선스 계약</target>
@@ -4896,10 +4962,6 @@ Error:
       <trans-unit id="++CODE++1f5c209a4ee7cb85322b1d1fbde63de014d0871930fa88895405ebaea926535d">
         <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.</source>
         <target state="translated">Microsoft는 귀하와 조직의 이 제품 사용 환경을 개선하기 위해 조직의 지침에 따라 귀하가 제출한 피드백을 처리합니다. 피드백 데이터 사용과 관련하여 질문이 있는 경우 테넌트 관리자에게 문의하세요. 피드백 데이터 처리는 귀하 조직과 Microsoft 간의 Microsoft 제품 및 서비스 데이터 보호 추록의 적용을 받으며, 제출하는 피드백은 해당 추록에 따라 개인 데이터로 간주됩니다.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++87a43e5185b677199f2369f90cd8518b8b1d7702edff307ed9e79883f43aaaaa">
-        <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...</source>
-        <target state="translated">Microsoft는 이 제품에 대한 사용자와 사용자의 organization 경험을 개선하기 위해 organization 지침에 따라 제출하는 피드백을 처리합니다. 질문이 있는 경우...</target>
       </trans-unit>
       <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
         <source xml:lang="en">Microsoft would like your feedback</source>
@@ -4913,6 +4975,10 @@ Error:
         <source xml:lang="en">Min: {0}</source>
         <note>{0} is the min</note>
         <target state="translated">최소: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
+        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+        <target state="translated">connectionId가 없습니다. 데이터 API Builder를 열려면 connectionId를 제공해 주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
@@ -5172,9 +5238,13 @@ Error:
         <source xml:lang="en">No active notebook.</source>
         <target state="translated">활성 전자 필기장이 없습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
+        <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</source>
+        <target state="translated">활성 스키마 디자이너를 찾을 수 없습니다. 먼저 mssql_dab에서 'show' 작업으로 Data API Builder를 열거나 UI에서 열어주세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
-        <target state="new">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</target>
+        <target state="translated">활성 스키마 디자이너를 찾을 수 없습니다. 먼저 mssql_schema_designer에서 'show' 작업으로 하나를 열거나, UI에서 열어주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
@@ -5229,8 +5299,12 @@ Error:
         <source xml:lang="en">No connection information found</source>
         <target state="translated">연결 정보를 찾을 수 없음</target>
       </trans-unit>
-      <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
-        <source xml:lang="en">No connection profile to remove.</source>
+      <trans-unit id="++CODE++40ba188c747dd12d5cdb75321bf72704b778cd835178b40d494c72fc3c5c0338">
+        <source xml:lang="en">No connection profiles to edit.</source>
+        <target state="translated">편집할 연결 프로필이 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35605994a65826c81e4a45d7266377d48dd06e0d775076714a12f64309323f6e">
+        <source xml:lang="en">No connection profiles to remove.</source>
         <target state="translated">제거할 연결 프로필이 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++5cc52e4221b252017bae16a964d601882d172b1cba7cd2855165b0025f7449c0">
@@ -5571,6 +5645,10 @@ Error:
         <note>{0} is the comma separated list of connection display names</note>
         <target state="translated">존재하지 않고 무시된 하나 이상의 연결 참조 그룹: {0}. 이러한 항목을 수정하려면 연결 설정을 업데이트하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++71219533fa80ed5eeb848c111ee5ebb32cb091945385aeba0c8685617390b694">
+        <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.</source>
+        <target state="translated">엔터티 하나 이상에 현재 데이터 API 작성기에서 지원하지 않는 열 형식이 포함되어 있습니다. 이 엔터티들은 배포 대상으로 선택할 수 없습니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
         <target state="translated">열기</target>
@@ -5589,7 +5667,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
         <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
-        <target state="new">Open GitHub Copilot Chat to help fix these errors</target>
+        <target state="translated">GitHub Copilot Chat을 열어 이 오류를 해결하는 데 도움을 받으세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
+        <source xml:lang="en">Open Nitro</source>
+        <target state="translated">Nitro 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -5911,6 +5993,10 @@ Error:
         <source xml:lang="en">Preserve the replication settings</source>
         <target state="translated">복제 설정을 유지합니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
+        <source xml:lang="en">Preview</source>
+        <target state="translated">미리 보기</target>
+      </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
         <target state="translated">데이터베이스 업데이트 미리 보기</target>
@@ -5957,6 +6043,10 @@ Error:
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">개인정보처리방침</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c385c344080699844442bf2dd893618a4702d5d3a3e11ed632dfad839fa2b8c4">
+        <source xml:lang="en">Privacy notice</source>
+        <target state="translated">개인 정보 알림</target>
       </trans-unit>
       <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
         <source xml:lang="en">Private</source>
@@ -6006,10 +6096,6 @@ Error:
         <note>{0} is the file name</note>
         <target state="translated">프로파일러가 XEL 파일 '{0}'에 대해 읽기 전용이면서 연결이 끊긴 모드입니다. 데이터베이스 연결 없이는 라이브 세션을 시작하거나 만들 수 없습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
-        <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
-        <target state="translated">Microsoft Fabric SQL 데이터베이스에서는 Profiler를 지원하지 않습니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
         <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
         <target state="translated">Profiler가 준비되었습니다. 드롭다운에서 세션을 선택하고 시작을 클릭하여 프로파일링을 시작합니다.</target>
@@ -6045,12 +6131,12 @@ Error:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">프록시 설정은 찾았지만 URL을 분석하는 중 오류가 발생했습니다('{0}'). MSSQL 확장을 사용할 때 연결 문제가 발생할 수 있습니다.  오류: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">프록시 설정은 찾았지만 프로토콜(e.g. http://)이 없습니다('{0}'). MSSQL 확장을 사용할 때 연결 문제가 발생할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -6186,10 +6272,6 @@ Error:
         <source xml:lang="en">Read</source>
         <target state="translated">읽기</target>
       </trans-unit>
-      <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
-        <source xml:lang="en">Read docs</source>
-        <target state="translated">문서 읽기</target>
-      </trans-unit>
       <trans-unit id="++CODE++c386185bf02fec23ab41b4dbcc29406839df6efd9fd1cb03660aa0c2e5640617">
         <source xml:lang="en">Read docs on Microsoft Learn</source>
         <target state="translated">Microsoft Learn 문서 읽기</target>
@@ -6313,6 +6395,10 @@ Error:
         <source xml:lang="en">Remove Sort</source>
         <target state="translated">정렬 제거</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
+        <source xml:lang="en">Remove a connection profile</source>
+        <target state="translated">연결 프로필 제거</target>
+      </trans-unit>
       <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
         <source xml:lang="en">Remove file</source>
         <target state="translated">파일 제거</target>
@@ -6342,6 +6428,12 @@ Error:
       <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
         <source xml:lang="en">Rename Database (Preview)</source>
         <target state="translated">데이터베이스 이름 바꾸기(미리 보기)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3426e6a23fe6e9ab8ec4d59a46f5e26596e94b9712da61c7a323e0cb0a6ecd25">
+        <source xml:lang="en">Renaming database '{0}' to '{1}'...</source>
+        <note>{0} is the current database name
+{1} is the new database name</note>
+        <target state="translated">데이터베이스의 이름을 '{0}'에서 '{1}'(으)로 바꾸는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -6397,9 +6489,9 @@ Error:
         <note>{0} is the keyboard shortcut for restoring the grid</note>
         <target state="translated">복원({0})</target>
       </trans-unit>
-      <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
-        <source xml:lang="en">Restore Database</source>
-        <target state="translated">데이터베이스 복원</target>
+      <trans-unit id="++CODE++5b7f462ae3c2f088449521a194e6c2b8833bd4acd5c877f6e13f55681d4d931d">
+        <source xml:lang="en">Restore Database (Preview)</source>
+        <target state="translated">데이터베이스 복원(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
@@ -6595,13 +6687,17 @@ Query: {2}</source>
         <source xml:lang="en">SQL Database</source>
         <target state="translated">SQL 데이터베이스</target>
       </trans-unit>
-      <trans-unit id="++CODE++bc74221a2af41ceb3a5b55449a92551dab0c6430e6c95cdeb30497274f28bd82">
-        <source xml:lang="en">SQL Database Projects – Publish Dialog</source>
-        <target state="translated">SQL Database 프로젝트 – 게시 대화 상자</target>
+      <trans-unit id="++CODE++0d41159e953416fd1facaa0f44131e65fb6e10e1faf44e6f28283765881c589a">
+        <source xml:lang="en">SQL Database Projects — Code Analysis</source>
+        <target state="translated">SQL Database 프로젝트 — Code Analysis</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL 로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++095cedeb21477c41b2a8a4aebb8ada471ae5b60c59b00351c60dc6754a31f482">
+        <source xml:lang="en">SQL Notebooks</source>
+        <target state="translated">SQL Notebook</target>
       </trans-unit>
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
@@ -6628,9 +6724,9 @@ Query: {2}</source>
         <note>{0} is the SQL Server version</note>
         <target state="translated">SQL Server {0} - 최신</target>
       </trans-unit>
-      <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
-        <source xml:lang="en">SQL database in Fabric (Preview)</source>
-        <target state="translated">Fabric의 SQL 데이터베이스(미리 보기)</target>
+      <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
+        <source xml:lang="en">SQL database in Fabric</source>
+        <target state="translated">패브릭의 SQL 데이터베이스</target>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
@@ -6740,6 +6836,10 @@ Query: {2}</source>
         <source xml:lang="en">Save to URL</source>
         <target state="translated">URL에 저장</target>
       </trans-unit>
+      <trans-unit id="++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06">
+        <source xml:lang="en">Save without connecting</source>
+        <target state="translated">연결하지 않고 저장</target>
+      </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">저장된 연결</target>
@@ -6792,6 +6892,10 @@ Query: {2}</source>
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">스키마 디자이너 모델이 준비되었습니다. 이제 변경 내용을 게시할 수 있습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++a576368432dbd7893c037eb4b0282495ec468ff385db59414d9797a8b0d5c64b">
+        <source xml:lang="en">Schema Designer with GitHub Copilot</source>
+        <target state="translated">GitHub Copilot을 사용하는 스키마 디자이너</target>
+      </trans-unit>
       <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
         <source xml:lang="en">Schema Diff</source>
         <target state="translated">스키마 차이</target>
@@ -6805,7 +6909,7 @@ Query: {2}</source>
         <note>{0} is the command identifier 'mssql_schema_designer' and must not be translated
 {1} is the operation name 'get_overview' and must not be translated
 {2} is the operation name 'apply_edits' and must not be translated</note>
-        <target state="new">Schema designer opened. For schema mutations, continue with {0} operations ({1}/{2}).</target>
+        <target state="translated">스키마 디자이너를 열었습니다. 스키마 변형을 진행하려면 {0} 작업({1}/{2})을 계속하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
@@ -6859,14 +6963,14 @@ Query: {2}</source>
         <source xml:lang="en">Script copied to clipboard.</source>
         <target state="translated">클립보드에 스크립트가 복사되었습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
-        <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">데이터베이스 개체 검색</target>
+      <trans-unit id="++CODE++6bf56ab2774a261ddf7eb5face2f46e7d36789a847949a0219fbfc9572ed8804">
+        <source xml:lang="en">Search Database Objects (Preview)</source>
+        <target state="translated">데이터베이스 개체 검색(미리 보기)</target>
       </trans-unit>
-      <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
-        <source xml:lang="en">Search Database Objects - {0}</source>
+      <trans-unit id="++CODE++053c84fff13ccf92eaa128fa67efa91ef8cbf842592955bced26b57046a24ee3">
+        <source xml:lang="en">Search Database Objects (Preview) - {0}</source>
         <note>{0} is the server name</note>
-        <target state="translated">데이터베이스 개체 검색 - {0}</target>
+        <target state="translated">데이터베이스 개체 검색(미리 보기) - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -6883,10 +6987,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">연결 그룹 검색</target>
-      </trans-unit>
-      <trans-unit id="++CODE++23d11f46146f62653f1a0ba0d28f0bc79d2f04ea722740bb8fa5128447051819">
-        <source xml:lang="en">Search for database objects — tables, views, stored procedures, and more — across your entire database.</source>
-        <target state="translated">테이블, 뷰, 저장 프로시저 등 데이터베이스 개체를 전체 데이터베이스에서 검색하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -7116,6 +7216,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
         <source xml:lang="en">Select package file</source>
         <target state="translated">패키지 파일 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730">
+        <source xml:lang="en">Select profile to edit</source>
+        <target state="translated">편집할 프로필 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -7744,6 +7848,11 @@ Query: {2}</source>
         <source xml:lang="en">Table added to schema designer successfully.</source>
         <target state="translated">스키마 디자이너에 테이블을 성공적으로 추가했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++993e47be6175800df73275ac1ed9110d48278de2832d3dbc9a07f1c35f58876f">
+        <source xml:lang="en">Table contains column types not supported by Data API Builder: {0}</source>
+        <note>{0} is a comma-separated list of column names and their data types</note>
+        <target state="translated">테이블에 데이터 API 작성기에서 지원하지 않는 열 형식이 포함되어 있습니다. {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
         <source xml:lang="en">Table deleted from schema designer successfully.</source>
         <target state="translated">스키마 디자이너에서 테이블을 성공적으로 삭제했습니다.</target>
@@ -7751,6 +7860,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
         <source xml:lang="en">Table id already exists.</source>
         <target state="translated">테이블 ID가 이미 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3b61e80e8a8149fcc5bcb2dc5d9c4f20589057596ae7592a6e165c0cfc71b05">
+        <source xml:lang="en">Table must have a primary key to be used with Data API Builder</source>
+        <target state="translated">데이터 API 작성기와 함께 사용하려면 테이블에 기본 키가 있어야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
         <source xml:lang="en">Table must include at least one column.</source>
@@ -7828,13 +7941,17 @@ Query: {2}</source>
         <source xml:lang="en">Terms &amp; Conditions</source>
         <target state="translated">사용 약관</target>
       </trans-unit>
-      <trans-unit id="++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9">
-        <source xml:lang="en">Test Connection</source>
+      <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
+        <source xml:lang="en">Test connection</source>
         <target state="translated">연결 테스트</target>
       </trans-unit>
       <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">연결 프로필을 테스트하는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6c02a28421f8ad91e91756cb731bb47993bf529101135966b80128548a16d5b1">
+        <source xml:lang="en">Testing...</source>
+        <target state="translated">테스트 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
         <source xml:lang="en">Text</source>
@@ -7847,6 +7964,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">텍스트 탭 - SQL 텍스트 데이터를 표시합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
+        <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
+        <target state="translated">쿼리 프로파일러가 이제 Microsoft Fabric SQL 데이터베이스를 지원하며, 경량 T-SQL 프로파일링을 위한 {code-snippet-0}을 포함하는 새로운 Azure SQL Database 템플릿이 추가되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
@@ -8005,9 +8126,10 @@ Query: {2}</source>
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
         <target state="translated">이 값은 Azure Data Studio 설정 파일에 제공되지 않았습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
-        <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
-        <target state="translated">이 작업은 Docker를 사용해 로컬에 데이터 API 작성기 컨테이너를 배포합니다. 컨테이너는 구성에 따라 REST 및 GraphQL API를 노출합니다.</target>
+      <trans-unit id="++CODE++9140e5e357804946d2f6bec667449fd4ab6fd6060174b5cf3c36e1ccb3ff9b01">
+        <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
+        <note>{0} is a list of API types, e.g. 'REST and GraphQL'</note>
+        <target state="translated">이 작업은 Docker를 사용해 로컬에 데이터 API 작성기 컨테이너를 배포합니다. 컨테이너는 구성에 따라 {0} API를 노출합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
@@ -8016,6 +8138,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">타임스탬프</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f0579d320976e14e7280ec17e960103c91dc619a776e8469b47aeab90278fad">
+        <source xml:lang="en">To</source>
+        <note>Label for the end IP address in the firewall rule IP range</note>
+        <target state="translated">끝</target>
       </trans-unit>
       <trans-unit id="++CODE++94843fe76f0c666e2bce801eb3dbfa672cd6517a14f968c8e41669c580b60cb3">
         <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
@@ -8212,6 +8339,10 @@ Query: {2}</source>
         <note>{0} is the authentication type</note>
         <target state="translated">연결 문자열에서 지원되지 않는 인증 유형: {0}. SQL 로그인, 통합 및 Azure MFA 인증만 지원됩니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
+        <source xml:lang="en">Unsupported data types detected</source>
+        <target state="translated">지원되지 않는 데이터 형식이 감지됨</target>
+      </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
         <note>{0} is the platform name of the machine</note>
@@ -8248,6 +8379,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++db3264529da0968f55cf4d37e71f355fcda342a20fe7cbb114d534807215f634">
         <source xml:lang="en">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</source>
         <target state="translated">형식: YYYY-MM-DD HH:mm:ss[.SSS] 사용</target>
+      </trans-unit>
+      <trans-unit id="++CODE++50564b2fb586a6f8ee172cd303c720768a52904367132b2cafb6d7a4eb9de5dd">
+        <source xml:lang="en">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.</source>
+        <target state="translated">자연어를 사용해 시각적 스키마 디자이너 내에서 데이터베이스 스키마를 직접 설계하세요. 스키마를 처음부터 만들고, 기존 설계를 발전시키며, diff 보기를 통해 변경 사항을 검토하고, 외부 아티팩트를 가져올 수 있으며, 모든 작업이 시각적 다이어그램과 T-SQL 스크립트에 실시간으로 반영됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
         <source xml:lang="en">Use the default server setting</source>
@@ -8365,6 +8500,14 @@ Query: {2}</source>
         <source xml:lang="en">View More</source>
         <target state="translated">자세히 보기</target>
       </trans-unit>
+      <trans-unit id="++CODE++c0eda6287745f09b4f3007da0bcca0fccdf5e68bfd517d4dcead4463ee8453b1">
+        <source xml:lang="en">View Swagger</source>
+        <target state="translated">Swagger 보기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
+        <source xml:lang="en">View Table Diagram</source>
+        <target state="translated">테이블 다이어그램 보기</target>
+      </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">Visual Studio Code용 mssql 릴리스 정보를 보시겠습니까?</target>
@@ -8377,9 +8520,9 @@ Query: {2}</source>
         <source xml:lang="en">View settings</source>
         <target state="translated">설정 보기</target>
       </trans-unit>
-      <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
-        <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
-        <target state="translated">실시간 유효성 검사 및 실시간 DML 스크립트 미리 보기를 사용하여 대화형 표에서 테이블 행을 보고, 편집하고, 추가하고, 삭제합니다.</target>
+      <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
+        <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
+        <target state="translated">실시간 유효성 검사와 실시간 DML 스크립트 미리 보기를 사용하여 대화형 그리드에서 테이블 행을 보고, 추가하고, 편집하고, 삭제하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
         <source xml:lang="en">View:</source>
@@ -8393,9 +8536,9 @@ Query: {2}</source>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">이 설정을 적용하려면 Visual Studio Code를 다시 시작해야 합니다.  Visual Studio Code를 다시 로드하세요.</target>
       </trans-unit>
-      <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
-        <source xml:lang="en">Visualize and Design Schema</source>
-        <target state="new">Visualize and Design Schema</target>
+      <trans-unit id="++CODE++49a6dfed78fc8f501d94e0e7ce6d4f31c023a1a68b946f5faab2cba9950bf29c">
+        <source xml:lang="en">Visualize and Design Schema (Preview)</source>
+        <target state="translated">스키마 시각화 및 디자인(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
         <source xml:lang="en">Warning</source>
@@ -8405,7 +8548,7 @@ Query: {2}</source>
         <source xml:lang="en">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</source>
         <note>{0} is the number of rows actually returned
 {1} is the total number of rows expected</note>
-        <target state="new">Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.</target>
+        <target state="translated">경고: 결과 집합이 완전하지 않습니다. {0}/{1}개의 행을 표시 전체 결과 집합을 불러올 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
@@ -8426,6 +8569,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
         <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
         <target state="translated">현재 연결 정보를 사용하여 연결할 수 없습니다. 연결을 다시 시도하시겠습니까, 아니면 연결 프로필을 편집하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15e1287518c34c5331e35214b9b9874f3e180cd06304170418dcf8e18009f67d">
+        <source xml:lang="en">We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.</source>
+        <target state="translated">VS Code MSSQL을 즐겨 사용해 주셔서 감사합니다!  VS Code 마켓플레이스에 간단한 리뷰를 남겨 주세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++54d8eabdb1e806a10a7f7185c095b13404226eb5ffa574a62914d06a8e2beee0">
         <source xml:lang="en">Webview '{0}' did not become ready within {1}ms</source>
@@ -8464,6 +8611,14 @@ Query: {2}</source>
       <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
         <source xml:lang="en">Workspace is required</source>
         <target state="translated">작업 영역이 필요합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++136286bc5a894ca127a857f65556676fa503d02c806d035053fe50a4d5678214">
+        <source xml:lang="en">Write a review</source>
+        <target state="translated">리뷰 작성</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8aa105b901acedb4a843195d9a4f4453b834578064202c08417dd4f405a9a791">
+        <source xml:lang="en">Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.</source>
+        <target state="translated">대화형 결과, 정렬, 필터링 및 Markdown 문서를 갖춘 Visual Studio Code 기본 제공 Jupyter Notebook에서 SQL 쿼리를 작성하고 실행하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
         <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
@@ -8669,11 +8824,6 @@ Query: {2}</source>
         <source xml:lang="en">{0} (Current Account)</source>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (현재 계정)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the table name</note>
-        <target state="translated">{0}(미리 보기)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
@@ -9000,12 +9150,12 @@ Query: {2}</source>
         <target state="translated">Azure MFA</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
-        <source xml:lang="en">Backup Database (Preview)</source>
-        <target state="translated">백업 데이터베이스(미리 보기)</target>
+        <source xml:lang="en">Backup Database (Preview)...</source>
+        <target state="translated">데이터베이스 백업(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.buildDataApi">
         <source xml:lang="en">Build Data API (Preview)...</source>
-        <target state="new">Build Data API (Preview)...</target>
+        <target state="translated">데이터 API 빌드(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection</source>
@@ -9067,6 +9217,10 @@ Query: {2}</source>
         <source xml:lang="en">Command Timeout</source>
         <target state="translated">명령 시간 제한</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaCompare">
+        <source xml:lang="en">Compare Schemas...</source>
+        <target state="translated">스키마 비교...</target>
+      </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">연결</target>
@@ -9095,6 +9249,10 @@ Query: {2}</source>
         <source xml:lang="en">Connections</source>
         <target state="translated">연결</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines">
+        <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
+        <target state="translated">결과 표에 표시되는 눈금선을 제어합니다.</target>
+      </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">메모리에서 필터링 및 정렬할 수 있는 최대 행 수를 제어합니다. 숫자를 초과하는 경우 정렬과 필터링이 비활성화됩니다. 경고: 이 항목을 늘리면 성능에 영향을 미칠 수 있습니다.</target>
@@ -9103,25 +9261,21 @@ Query: {2}</source>
         <source xml:lang="en">Copy All</source>
         <target state="translated">모두 복사</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy Connection String</source>
+        <target state="translated">연결 문자열 복사</target>
+      </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">개체 이름 복사</target>
-      </trans-unit>
-      <trans-unit id="mssql.copyConnectionString">
-        <source xml:lang="en">Copy as Connection String</source>
-        <target state="translated">연결 문자열로 복사</target>
       </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">SQL 입력 바인딩으로 Azure 함수 만들기</target>
       </trans-unit>
-      <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">Create Database (Preview)</source>
-        <target state="translated">데이터베이스 만들기(미리 보기)</target>
-      </trans-unit>
       <trans-unit id="mssql.notebooks.createNotebook">
-        <source xml:lang="en">Create SQL Notebook</source>
-        <target state="translated">SQL Notebook 만들기</target>
+        <source xml:lang="en">Create SQL Notebook (Preview)</source>
+        <target state="translated">SQL Notebook 만들기(미리 보기)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
@@ -9134,8 +9288,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
 변경이 완료되면 '게시' 버튼을 클릭하여 변경 사항을 데이터베이스에 전송하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
-        <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="translated">데이터 계층 애플리케이션(미리 보기)</target>
+        <source xml:lang="en">DACPAC/BACPAC Operations...</source>
+        <target state="translated">DACPAC/BACPAC 운영...</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -9150,8 +9304,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">연결 그룹 삭제</target>
       </trans-unit>
       <trans-unit id="mssql.deleteContainer">
-        <source xml:lang="en">Delete Container</source>
-        <target state="translated">컨테이너 삭제</target>
+        <source xml:lang="en">Delete SQL Container</source>
+        <target state="translated">SQL 컨테이너 삭제</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
@@ -9190,12 +9344,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">쿼리 결과를 새 탭에 표시하라는 메시지를 표시하지 않습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="translated">데이터베이스 삭제(미리 보기)</target>
-      </trans-unit>
-      <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">연결 편집</target>
+        <source xml:lang="en">Drop Database (Preview)...</source>
+        <target state="translated">데이터베이스 삭제(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
@@ -9205,9 +9355,13 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">연결 공유 권한 편집</target>
       </trans-unit>
+      <trans-unit id="mssql.editConnection">
+        <source xml:lang="en">Edit Connection...</source>
+        <target state="translated">연결 편집...</target>
+      </trans-unit>
       <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="translated">데이터 편집(미리 보기)</target>
+        <source xml:lang="en">Edit Table Data...</source>
+        <target state="translated">테이블 데이터 편집...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -9301,6 +9455,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">SET XACT_ABORT ON 옵션 사용</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.alternatingRowColors">
+        <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
+        <target state="translated">결과 표에서 교차 행 배경색(얼룩말 무늬)을 활성화합니다. 색은 현재 VS Code 테마에서 가져옵니다.</target>
+      </trans-unit>
       <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">테이블에 열이 10개 이상인 경우 스키마 디자이너의 테이블 노드에서 확장/축소 버튼을 활성화하세요.</target>
@@ -9316,10 +9474,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">MSSQL 확장에서 실험적 기능을 사용하도록 설정합니다. 이 기능은 프로덕션 준비가 되지 않았으며 버그 또는 문제가 있을 수 있습니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작합니다.</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableSqlAuthenticationProvider">
-        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
-        <target state="translated">사용자가 'AzureMFA' 인증을 선택할 때 'Microsoft Entra ID Interactive' 인증 모드에서 SQL 인증 공급자를 사용하도록 설정합니다. 이를 통해 액세스 토큰을 가져올 때 서버 쪽 리소스 엔드포인트 통합을 사용할 수 있습니다. 이 옵션은 'MSAL' 인증 라이브러리에 대해서만 지원됩니다. 이 옵션을 변경한 후 Visual Studio Code를 다시 시작하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
@@ -9341,6 +9495,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Export BACPAC</source>
         <target state="translated">BACPAC 내보내기</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.rowPadding">
+        <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
+        <target state="translated">결과 표의 각 행에 추가되는 세로 여백(픽셀)으로 행 밀도를 조절합니다. 유효한 범위: 0-10.</target>
+      </trans-unit>
       <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
         <target state="translated">DACPAC 추출</target>
@@ -9357,6 +9515,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">개체 탐색기 트리 필터링</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlScriptsSubmenu">
+        <source xml:lang="en">Generate Script</source>
+        <target state="translated">스크립트 생성</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
         <target state="translated">Visual Studio Code용 MSSQL을 사용하여 시작</target>
@@ -9365,17 +9527,21 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">시작 가이드</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.none">
+        <source xml:lang="en">Hide all grid lines</source>
+        <target state="translated">모든 눈금선 숨기기</target>
+      </trans-unit>
       <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
         <target state="translated">BACPAC 가져오기</target>
       </trans-unit>
       <trans-unit id="mssql.flatFileImport">
-        <source xml:lang="en">Import Flat File (Preview)</source>
-        <target state="translated">플랫 파일 가져오기(미리 보기)</target>
+        <source xml:lang="en">Import Data (Preview)...</source>
+        <target state="translated">데이터 가져오기(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
-        <source xml:lang="en">Launch Query Profiler (Preview)</source>
-        <target state="translated">Query Profiler(미리 보기) 시작</target>
+        <source xml:lang="en">Launch Query Profiler (Preview)...</source>
+        <target state="translated">쿼리 프로파일러 시작(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -9426,8 +9592,12 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">Azure Data Studio에서 마이그레이션</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Modify Table</source>
-        <target state="translated">테이블 수정</target>
+        <source xml:lang="en">Modify Table Structure...</source>
+        <target state="translated">테이블 구조 수정...</target>
+      </trans-unit>
+      <trans-unit id="mssql.createDatabase">
+        <source xml:lang="en">New Database (Preview)...</source>
+        <target state="translated">새 데이터베이스(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -9492,12 +9662,12 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Query Profiler(미리 보기) XEL 파일 열기</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-        <source xml:lang="en">Open in Copilot Agent mode</source>
-        <target state="translated">Copilot 에이전트 모드에서 열기</target>
+        <source xml:lang="en">Open in GitHub Copilot Agent</source>
+        <target state="translated">GitHub Copilot 에이전트에서 열기</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Open in Copilot Ask mode</source>
-        <target state="translated">Copilot 질문 모드에서 열기</target>
+        <source xml:lang="en">Open in GitHub Copilot Chat</source>
+        <target state="translated">GitHub Copilot Chat에서 열기</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -9536,24 +9706,24 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">IntelliSense 캐시 새로 고침</target>
       </trans-unit>
       <trans-unit id="mssql.removeObjectExplorerNode">
-        <source xml:lang="en">Remove</source>
-        <target state="translated">제거</target>
+        <source xml:lang="en">Remove Connection</source>
+        <target state="translated">연결 제거</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra 테넌트 제거</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="translated">데이터베이스 이름 바꾸기(미리 보기)</target>
+        <source xml:lang="en">Rename Database (Preview)...</source>
+        <target state="translated">데이터베이스 이름 바꾸기(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
         <target state="translated">복제</target>
       </trans-unit>
       <trans-unit id="mssql.restoreDatabase">
-        <source xml:lang="en">Restore Database (Preview)</source>
-        <target state="translated">데이터베이스 복원(미리 보기)</target>
+        <source xml:lang="en">Restore Database (Preview)...</source>
+        <target state="translated">데이터베이스 복원(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -9579,17 +9749,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">SQL Container Version</source>
         <target state="translated">SQL 컨테이너 버전</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlScriptsSubmenu">
-        <source xml:lang="en">SQL Scripts</source>
-        <target state="translated">SQL 스크립트</target>
-      </trans-unit>
       <trans-unit id="mssql.profiler.xelEditorDisplayName">
         <source xml:lang="en">SQL Server Extended Events Log</source>
         <target state="translated">SQL Server 확장 이벤트 로그</target>
-      </trans-unit>
-      <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare</source>
-        <target state="translated">스키마 비교</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -9608,8 +9770,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Execute로 스크립트</target>
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
-        <source xml:lang="en">Search Database Objects</source>
-        <target state="translated">데이터베이스 개체 검색</target>
+        <source xml:lang="en">Search Database Objects (Preview)...</source>
+        <target state="translated">데이터베이스 개체 검색(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -9687,9 +9849,21 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">선택 문에서 객체에 대한 참조를 별도의 줄로 분할해야 하나요? 예: 'SELECT C1, C2 FROM T1'의 경우 C1과 C2는 모두 별도의 줄에 있습니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.both">
+        <source xml:lang="en">Show both horizontal and vertical grid lines</source>
+        <target state="translated">가로 및 세로 눈금선 모두 표시</target>
+      </trans-unit>
       <trans-unit id="mssql.showChangelogOnUpdate">
         <source xml:lang="en">Show changelog after extension updates</source>
         <target state="translated">확장 업데이트 후 변경 로그 표시</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
+        <source xml:lang="en">Show only horizontal grid lines</source>
+        <target state="translated">가로 눈금선만 표시</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
+        <source xml:lang="en">Show only vertical grid lines</source>
+        <target state="translated">세로 눈금선만 표시</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
@@ -9743,17 +9917,17 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
         <target state="translated">'https://vault.azure.net/'에 해당하는 소버린 클라우드</target>
       </trans-unit>
-      <trans-unit id="mssql.startContainer">
-        <source xml:lang="en">Start Container</source>
-        <target state="translated">컨테이너 시작</target>
-      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">쿼리 기록 캡처 시작</target>
       </trans-unit>
+      <trans-unit id="mssql.startContainer">
+        <source xml:lang="en">Start SQL Container</source>
+        <target state="translated">SQL 컨테이너 시작</target>
+      </trans-unit>
       <trans-unit id="mssql.stopContainer">
-        <source xml:lang="en">Stop Container</source>
-        <target state="translated">컨테이너 중지</target>
+        <source xml:lang="en">Stop SQL Container</source>
+        <target state="translated">SQL 컨테이너 중지</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -9815,6 +9989,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Toggle Actual Plan</source>
         <target state="translated">실제 계획 토글</target>
       </trans-unit>
+      <trans-unit id="mssql.toggleQueryResultPanel">
+        <source xml:lang="en">Toggle Query Result Panel Visibility</source>
+        <target state="translated">쿼리 결과 패널 표시 여부 토글</target>
+      </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
         <target state="translated">SQLCMD 모드 토글</target>
@@ -9850,8 +10028,8 @@ See the estimated plan without running the query, or view the actual query plan 
         <target state="translated">쿼리 계획 시각화</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Visualize and Design Schema...</source>
-        <target state="new">Visualize and Design Schema...</target>
+        <source xml:lang="en">Visualize and Design Schema (Preview)...</source>
+        <target state="translated">스키마 시각화 및 디자인(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.transferActiveEditorConnections.description">
         <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>

@@ -24,14 +24,13 @@ import {
     Button,
     Dropdown,
     Field,
-    Image,
     makeStyles,
     Radio,
     RadioGroup,
     Spinner,
     Text,
 } from "@fluentui/react-components";
-import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { AzureIcon20 } from "../../../common/icons/fluentIcons";
 import { Database20Regular, DocumentDatabase20Regular } from "@fluentui/react-icons";
 import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
@@ -41,20 +40,15 @@ import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { AdvancedOptionsDrawer } from "./restoreAdvancedOptions";
 import { useRestoreDatabaseSelector } from "./restoreDatabaseSelector";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { RestorePlanTableContainer } from "./restoreTable";
 
 const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
-        marginLeft: "5px",
-        marginRight: "5px",
-        padding: "8px",
-        whiteSpace: "nowrap",
-        width: "650px",
-        overflow: "auto",
+        gap: "16px",
+        width: "100%",
+        maxWidth: "760px",
     },
     button: {
         height: "32px",
@@ -62,12 +56,7 @@ const useStyles = makeStyles({
     },
     bottomDiv: {
         marginTop: "auto",
-        paddingBottom: "50px",
-    },
-    header: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
+        paddingBottom: "8px",
     },
     saveOption: {
         display: "flex",
@@ -84,11 +73,6 @@ const useStyles = makeStyles({
         flexDirection: "row",
         gap: "8px",
         marginLeft: "10px",
-    },
-    advancedButtonDiv: {
-        display: "flex",
-        alignItems: "center",
-        marginTop: "20px",
     },
     icon: {
         width: "75px",
@@ -114,12 +98,9 @@ const useStyles = makeStyles({
         gap: "8px",
     },
     field: {
-        width: "400px",
+        width: "min(100%, 420px)",
     },
 });
-
-const restoreLightIcon = require("../../../../../media/restore_light.svg");
-const restoreDarkIcon = require("../../../../../media/restore_dark.svg");
 
 export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setFileErrors }) => {
     const classes = useStyles();
@@ -144,11 +125,6 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
     const backupFiles = useRestoreDatabaseSelector(
         (s) => (s.viewModel.model as RestoreDatabaseViewModel).backupFiles,
     );
-    const serverName = useRestoreDatabaseSelector(
-        (s) => (s.viewModel.model as RestoreDatabaseViewModel).serverName,
-    );
-
-    const { themeKind } = useVscodeWebview();
 
     const [restoreType, setRestoreType] = useState<DisasterRecoveryType>(
         useRestoreDatabaseSelector((s) => (s.viewModel.model as RestoreDatabaseViewModel).type),
@@ -182,8 +158,8 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                             ? {
                                   width: component.componentWidth,
                                   maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
+                                  whiteSpace: "normal",
+                                  overflowWrap: "break-word",
                                   wordBreak: "break-word",
                               }
                             : {}
@@ -217,8 +193,8 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                                 ? {
                                       width: component.componentWidth,
                                       maxWidth: component.componentWidth,
-                                      whiteSpace: "normal", // allows wrapping
-                                      overflowWrap: "break-word", // breaks long words if needed
+                                      whiteSpace: "normal",
+                                      overflowWrap: "break-word",
                                       wordBreak: "break-word",
                                   }
                                 : {}
@@ -236,7 +212,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                         />
                     </div>
                 ) : (
-                    <div style={{ marginLeft: "6px", marginBottom: "2px" }} key={index}>
+                    <div style={{ marginBottom: "2px" }} key={index}>
                         <Field
                             key={index}
                             label={
@@ -251,11 +227,7 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
                             <Dropdown
                                 size="small"
                                 placeholder={locConstants.backupDatabase.loading}
-                                style={{
-                                    marginTop: 0,
-                                    marginLeft: "5px",
-                                    width: "630px",
-                                }}
+                                style={{ marginTop: 0, width: "min(100%, 630px)" }}
                             />
                         </Field>
                     </div>
@@ -273,174 +245,145 @@ export const RestoreDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, set
     }, [restoreType, azureComponentStatuses]);
 
     return (
-        <div>
-            <div className={classes.outerDiv}>
-                <div className={classes.header}>
-                    <Image
-                        style={{
-                            padding: "10px",
+        <div className={classes.outerDiv}>
+            {dialog?.type === "fileBrowser" && fileBrowserState && (
+                <FileBrowserDialog
+                    ownerUri={ownerUri}
+                    defaultFileBrowserExpandPath={defaultFileBrowserExpandPath}
+                    fileTree={fileBrowserState.fileTree}
+                    showFoldersOnly={fileBrowserState.showFoldersOnly}
+                    provider={context as FileBrowserProvider}
+                    fileTypeOptions={fileFilterOptions}
+                    closeDialog={() => context.toggleFileBrowserDialog(false, false)}
+                    defaultSelectedPath={
+                        fileBrowserState.showFoldersOnly ? defaultFileBrowserExpandPath : undefined
+                    }
+                />
+            )}
+            <div className={formStyles.formComponentDiv}>
+                <Field
+                    label={locConstants.backupDatabase.backupLocation}
+                    className={classes.field}
+                    orientation="horizontal">
+                    <RadioGroup
+                        onChange={(_, data) => {
+                            const selectedRestoreType = data.value as DisasterRecoveryType;
+                            context.setType(selectedRestoreType);
+                            setRestoreType(selectedRestoreType);
+                            if (selectedRestoreType === DisasterRecoveryType.Url) {
+                                context.loadAzureComponent("accountId");
+                            }
                         }}
-                        src={themeKind === ColorThemeKind.Dark ? restoreDarkIcon : restoreLightIcon}
-                        alt={`${locConstants.restoreDatabase.restoreDatabase} - ${serverName}`}
-                        height={60}
-                        width={60}
-                    />
-                    <Text
-                        size={500}
-                        style={{
-                            lineHeight: "60px",
-                        }}
-                        weight="medium">
-                        {`${locConstants.restoreDatabase.restore} - ${serverName}`}
-                    </Text>
-                </div>
-                {dialog?.type === "fileBrowser" && fileBrowserState && (
-                    <FileBrowserDialog
-                        ownerUri={ownerUri}
-                        defaultFileBrowserExpandPath={defaultFileBrowserExpandPath}
-                        fileTree={fileBrowserState.fileTree}
-                        showFoldersOnly={fileBrowserState.showFoldersOnly}
-                        provider={context as FileBrowserProvider}
-                        fileTypeOptions={fileFilterOptions}
-                        closeDialog={() => context.toggleFileBrowserDialog(false, false)}
-                        defaultSelectedPath={
-                            fileBrowserState.showFoldersOnly
-                                ? defaultFileBrowserExpandPath
-                                : undefined
-                        }
-                    />
-                )}
-                <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
+                        value={restoreType}>
+                        <Radio
+                            value={DisasterRecoveryType.Database}
+                            label={
+                                <div className={classes.saveOption}>
+                                    <Database20Regular style={{ marginRight: "8px" }} />
+                                    {locConstants.restoreDatabase.database}
+                                </div>
+                            }
+                        />
+                        <Radio
+                            value={DisasterRecoveryType.BackupFile}
+                            label={
+                                <div className={classes.saveOption}>
+                                    <DocumentDatabase20Regular style={{ marginRight: "8px" }} />
+                                    {locConstants.restoreDatabase.backupFile}
+                                </div>
+                            }
+                        />
+                        <Radio
+                            value={DisasterRecoveryType.Url}
+                            label={
+                                <div className={classes.saveOption}>
+                                    <AzureIcon20 style={{ marginRight: "8px" }} />
+                                    {locConstants.restoreDatabase.url}
+                                </div>
+                            }
+                        />
+                    </RadioGroup>
+                </Field>
+            </div>
+            {restoreType === DisasterRecoveryType.Url ? (
+                azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
+                    renderUrlFields()
+                ) : (
+                    <div className={classes.azureLoadingContainer}>
+                        <img
+                            className={classes.icon}
+                            src={azureLogoColor()}
+                            alt={locConstants.azure.loadingAzureAccounts}
+                        />
+                        <div>{locConstants.azure.loadingAzureAccounts}</div>
+                        <Spinner size="large" style={{ marginTop: "10px" }} />
+                    </div>
+                )
+            ) : restoreType === DisasterRecoveryType.BackupFile ? (
+                <div className={formStyles.formComponentDiv}>
                     <Field
-                        label={locConstants.backupDatabase.backupLocation}
+                        label={locConstants.backupDatabase.backupFiles}
+                        validationMessage={getFileValidationMessage()}
+                        required={true}
+                        validationState={getFileValidationMessage() === "" ? "none" : "error"}
                         className={classes.field}
                         orientation="horizontal">
-                        <RadioGroup
-                            onChange={(_, data) => {
-                                const selectedRestoreType = data.value as DisasterRecoveryType;
-                                context.setType(selectedRestoreType);
-                                setRestoreType(selectedRestoreType);
-                                if (selectedRestoreType === DisasterRecoveryType.Url) {
-                                    context.loadAzureComponent("accountId");
-                                }
-                            }}
-                            value={restoreType}>
-                            <Radio
-                                value={DisasterRecoveryType.Database}
-                                label={
-                                    <div className={classes.saveOption}>
-                                        <Database20Regular style={{ marginRight: "8px" }} />
-                                        {locConstants.restoreDatabase.database}
+                        <div className={classes.fileDiv}>
+                            <div className={classes.fileList}>
+                                {backupFiles.map((file, index) => (
+                                    <div key={file.filePath}>
+                                        <Field
+                                            validationMessage={file.errorMessage}
+                                            validationState={file.errorMessage ? "error" : "none"}>
+                                            <BackupFileCard
+                                                backupFiles={backupFiles}
+                                                file={file}
+                                                index={index}
+                                                fileErrors={fileErrors}
+                                                setFileErrors={setFileErrors}
+                                                removeBackupFile={context.removeBackupFile}
+                                            />
+                                        </Field>
                                     </div>
-                                }
-                            />
-                            <Radio
-                                value={DisasterRecoveryType.BackupFile}
-                                label={
-                                    <div className={classes.saveOption}>
-                                        <DocumentDatabase20Regular style={{ marginRight: "8px" }} />
-                                        {locConstants.restoreDatabase.backupFile}
-                                    </div>
-                                }
-                            />
-                            <Radio
-                                value={DisasterRecoveryType.Url}
-                                label={
-                                    <div className={classes.saveOption}>
-                                        <AzureIcon20 style={{ marginRight: "8px" }} />
-                                        {locConstants.restoreDatabase.url}
-                                    </div>
-                                }
-                            />
-                        </RadioGroup>
+                                ))}
+                            </div>
+                            <div className={classes.fileButtons}>
+                                <Button
+                                    className={classes.button}
+                                    type="submit"
+                                    appearance="secondary"
+                                    onClick={() => {
+                                        context.toggleFileBrowserDialog(false, true);
+                                    }}>
+                                    {locConstants.restoreDatabase.browseFiles}
+                                </Button>
+                            </div>
+                        </div>
                     </Field>
                 </div>
-                {restoreType === DisasterRecoveryType.Url ? (
-                    azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
-                        renderUrlFields()
-                    ) : (
-                        <div className={classes.azureLoadingContainer}>
-                            <img
-                                className={classes.icon}
-                                src={azureLogoColor()}
-                                alt={locConstants.azure.loadingAzureAccounts}
-                            />
-                            <div>{locConstants.azure.loadingAzureAccounts}</div>
-                            <Spinner size="large" style={{ marginTop: "10px" }} />
-                        </div>
-                    )
-                ) : restoreType === DisasterRecoveryType.BackupFile ? (
-                    <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
-                        <Field
-                            label={locConstants.backupDatabase.backupFiles}
-                            validationMessage={getFileValidationMessage()}
-                            required={true}
-                            validationState={getFileValidationMessage() === "" ? "none" : "error"}
-                            className={classes.field}
-                            orientation="horizontal">
-                            <div className={classes.fileDiv}>
-                                <div className={classes.fileList}>
-                                    {backupFiles.map((file, index) => (
-                                        <div key={file.filePath}>
-                                            <Field
-                                                validationMessage={file.errorMessage}
-                                                validationState={
-                                                    file.errorMessage ? "error" : "none"
-                                                }>
-                                                <BackupFileCard
-                                                    backupFiles={backupFiles}
-                                                    file={file}
-                                                    index={index}
-                                                    fileErrors={fileErrors}
-                                                    setFileErrors={setFileErrors}
-                                                    removeBackupFile={context.removeBackupFile}
-                                                />
-                                            </Field>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className={classes.fileButtons}>
-                                    <Button
-                                        className={classes.button}
-                                        type="submit"
-                                        appearance="secondary"
-                                        onClick={() => {
-                                            context.toggleFileBrowserDialog(false, true);
-                                        }}>
-                                        {locConstants.restoreDatabase.browseFiles}
-                                    </Button>
-                                </div>
-                            </div>
-                        </Field>
-                    </div>
-                ) : (
-                    renderFormFields(DisasterRecoveryType.Database)
-                )}
-                {renderFormFields()}
-                {!(
-                    restoreType === DisasterRecoveryType.Url &&
-                    azureComponentStatuses["accountId"] !== ApiStatus.Loaded
-                ) && (
-                    <RestorePlanTableContainer restoreTableType={RestorePlanTableType.BackupSets} />
-                )}
-                {isAdvancedDrawerOpen && (
-                    <AdvancedOptionsDrawer
-                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                    />
-                )}
-                <div className={classes.bottomDiv}>
-                    <div style={{ marginLeft: "10px" }}>
-                        <Button
-                            className={classes.button}
-                            appearance="secondary"
-                            onClick={(_event) => {
-                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                            }}>
-                            {locConstants.backupDatabase.advanced}
-                        </Button>
-                    </div>
-                </div>
+            ) : (
+                renderFormFields(DisasterRecoveryType.Database)
+            )}
+            {renderFormFields()}
+            {!(
+                restoreType === DisasterRecoveryType.Url &&
+                azureComponentStatuses["accountId"] !== ApiStatus.Loaded
+            ) && <RestorePlanTableContainer restoreTableType={RestorePlanTableType.BackupSets} />}
+            {isAdvancedDrawerOpen && (
+                <AdvancedOptionsDrawer
+                    isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                    setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+                />
+            )}
+            <div className={classes.bottomDiv}>
+                <Button
+                    className={classes.button}
+                    appearance="secondary"
+                    onClick={() => {
+                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                    }}>
+                    {locConstants.backupDatabase.advanced}
+                </Button>
             </div>
         </div>
     );

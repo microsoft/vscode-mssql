@@ -17,6 +17,7 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import { SimpleExecuteResult } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { UserSurvey } from "../../src/nps/userSurvey";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 
@@ -74,6 +75,17 @@ suite("RunQueryTool Tests", () => {
         sandbox.restore();
     });
 
+    function expectRunQueryTelemetry(expectedProperties: Record<string, unknown>) {
+        expect(
+            sendActionEventStub.calledWithMatch(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.RunQuery,
+                sinon.match(expectedProperties),
+            ),
+            `Expected run query telemetry: ${JSON.stringify(expectedProperties)}`,
+        ).to.be.true;
+    }
+
     suite("call", () => {
         test("should send telemetry with queryTypes and queryIntent on execute", async () => {
             const mockResult: SimpleExecuteResult = {
@@ -98,10 +110,7 @@ suite("RunQueryTool Tests", () => {
 
             await runQueryTool.call(options, mockToken);
 
-            // Verify telemetry was sent with correct parameters
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            const telemetryCall = sendActionEventStub.getCall(0);
-            expect(telemetryCall.args[2]).to.deep.include({
+            expectRunQueryTelemetry({
                 phase: "execute",
                 queryTypes: "SELECT,JOIN",
                 queryIntent: "data_exploration",
@@ -197,9 +206,7 @@ suite("RunQueryTool Tests", () => {
 
             await runQueryTool.call(options, mockToken);
 
-            // Verify telemetry defaults to "unknown"
-            const telemetryCall = sendActionEventStub.getCall(0);
-            expect(telemetryCall.args[2]).to.deep.include({
+            expectRunQueryTelemetry({
                 phase: "execute",
                 queryTypes: "unknown",
                 queryIntent: "unknown",
@@ -220,10 +227,7 @@ suite("RunQueryTool Tests", () => {
 
             await runQueryTool.prepareInvocation(options, mockToken);
 
-            // Verify telemetry was sent with prepare phase
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            const telemetryCall = sendActionEventStub.getCall(0);
-            expect(telemetryCall.args[2]).to.deep.include({
+            expectRunQueryTelemetry({
                 phase: "prepare",
                 queryTypes: "DROP,DELETE",
                 queryIntent: "data_maintenance",
@@ -262,10 +266,11 @@ suite("RunQueryTool Tests", () => {
 
             await runQueryTool.prepareInvocation(options, mockToken);
 
-            // Verify destructive operations are tracked
-            const telemetryCall = sendActionEventStub.getCall(0);
-            expect(telemetryCall.args[2].queryTypes).to.equal("DROP,DELETE,TRUNCATE");
-            expect(telemetryCall.args[2].queryIntent).to.equal("schema_modification");
+            expectRunQueryTelemetry({
+                phase: "prepare",
+                queryTypes: "DROP,DELETE,TRUNCATE",
+                queryIntent: "schema_modification",
+            });
         });
 
         test("should include both display name and connection ID in messages", async () => {

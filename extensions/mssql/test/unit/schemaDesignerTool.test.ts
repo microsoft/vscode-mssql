@@ -155,6 +155,21 @@ suite("SchemaDesignerTool Tests", () => {
         expect(parsed).to.not.have.property("schema");
     };
 
+    const expectSchemaDesignerTelemetry = (
+        expectedProperties: Record<string, unknown>,
+        expectedMeasurements?: Record<string, number>,
+    ) => {
+        expect(
+            sendActionEventStub.calledWithMatch(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.SchemaDesignerTool,
+                sinon.match(expectedProperties),
+                expectedMeasurements ? sinon.match(expectedMeasurements) : sinon.match.any,
+            ),
+            `Expected SchemaDesignerTool telemetry: ${JSON.stringify(expectedProperties)}`,
+        ).to.be.true;
+    };
+
     setup(() => {
         sandbox = sinon.createSandbox();
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -186,12 +201,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(showSchemaStub).to.not.have.been.called;
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[0]).to.equal(TelemetryViews.MssqlCopilot);
-            expect(sendActionEventStub.getCall(0).args[1]).to.equal(
-                TelemetryActions.SchemaDesignerTool,
-            );
-            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+            expectSchemaDesignerTelemetry({
                 operation: "show",
                 success: "false",
                 reason: "invalid_request",
@@ -217,8 +227,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(showSchemaStub).to.not.have.been.called;
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+            expectSchemaDesignerTelemetry({
                 operation: "show",
                 success: "false",
                 reason: "invalid_request",
@@ -270,8 +279,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(showSchemaStub).to.have.been.calledOnceWith(sampleConnectionId, sampleDatabase);
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+            expectSchemaDesignerTelemetry({
                 operation: "show",
                 success: "true",
             });
@@ -399,15 +407,16 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.overview.tables[0]).to.not.have.property("columns");
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
-                operation: "get_overview",
-                success: "true",
-            });
-            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
-                tableCount: 41,
-                columnsOmitted: 1,
-            });
+            expectSchemaDesignerTelemetry(
+                {
+                    operation: "get_overview",
+                    success: "true",
+                },
+                {
+                    tableCount: 41,
+                    columnsOmitted: 1,
+                },
+            );
         });
 
         test("omits columns over threshold (>400 columns)", async () => {
@@ -794,15 +803,16 @@ suite("SchemaDesignerTool Tests", () => {
             });
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
-                operation: "get_table",
-                success: "true",
-            });
-            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
-                columnCount: 1,
-                foreignKeyCount: 1,
-            });
+            expectSchemaDesignerTelemetry(
+                {
+                    operation: "get_table",
+                    success: "true",
+                },
+                {
+                    columnCount: 1,
+                    foreignKeyCount: 1,
+                },
+            );
         });
     });
 
@@ -1090,16 +1100,17 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.receipt).to.have.property("changes");
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
-                operation: "apply_edits",
-                success: "true",
-            });
-            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
-                editsCount: 1,
-                appliedEdits: 1,
-                add_table_count: 1,
-            });
+            expectSchemaDesignerTelemetry(
+                {
+                    operation: "apply_edits",
+                    success: "true",
+                },
+                {
+                    editsCount: 1,
+                    appliedEdits: 1,
+                    add_table_count: 1,
+                },
+            );
         });
 
         test("normalizes drop+add foreign key pair into set_foreign_key", async () => {
@@ -1258,20 +1269,25 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.receipt.changes.foreignKeysUpdated).to.have.length(1);
             expectNoSchemaDump(parsedResult);
 
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
-                editsCount: edits.length,
-                appliedEdits: edits.length,
-                add_table_count: 1,
-                drop_table_count: 1,
-                set_table_count: 1,
-                add_column_count: 1,
-                drop_column_count: 1,
-                set_column_count: 1,
-                add_foreign_key_count: 1,
-                drop_foreign_key_count: 1,
-                set_foreign_key_count: 1,
-            });
+            expectSchemaDesignerTelemetry(
+                {
+                    operation: "apply_edits",
+                    success: "true",
+                },
+                {
+                    editsCount: edits.length,
+                    appliedEdits: edits.length,
+                    add_table_count: 1,
+                    drop_table_count: 1,
+                    set_table_count: 1,
+                    add_column_count: 1,
+                    drop_column_count: 1,
+                    set_column_count: 1,
+                    add_foreign_key_count: 1,
+                    drop_foreign_key_count: 1,
+                    set_foreign_key_count: 1,
+                },
+            );
         });
     });
 

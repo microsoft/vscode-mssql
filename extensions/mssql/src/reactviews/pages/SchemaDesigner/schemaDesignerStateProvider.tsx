@@ -30,6 +30,8 @@ import { stateStack } from "./schemaDesignerUndoState";
 
 export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
+    isInitializedRef: { current: boolean };
+    waitForInitialization: () => Promise<boolean>;
     schemaNames: string[];
     datatypes: string[];
     findTableText: string;
@@ -535,6 +537,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             value={{
                 ...getCoreRPCs(extensionRpc),
                 extensionRpc,
+                isInitializedRef,
+                waitForInitialization,
                 schemaNames,
                 datatypes,
                 findTableText,

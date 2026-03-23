@@ -22,6 +22,11 @@ import * as LocConstants from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { FormItemSpec, FormReducers } from "../sharedInterfaces/form";
 
+interface ObjectManagementWebviewIconFiles {
+    light: string;
+    dark: string;
+}
+
 export abstract class ObjectManagementWebviewController<
     TFormState = unknown,
     TReducers extends FormReducers<TFormState> = FormReducers<TFormState>,
@@ -49,6 +54,7 @@ export abstract class ObjectManagementWebviewController<
      * @param dialogType type of the dialog
      * @param dialogTitle title of the dialog
      * @param webviewTitle title of the webview tab
+     * @param iconFiles icon files used for webview tab icon
      * @param sourceFile source file path
      * @param connectionUri connection URI
      * @param serverName server name
@@ -63,6 +69,7 @@ export abstract class ObjectManagementWebviewController<
         dialogType: ObjectManagementDialogType,
         dialogTitle: string,
         webviewTitle: string,
+        iconFiles: ObjectManagementWebviewIconFiles,
         sourceFile: string,
         connectionUri: string,
         serverName: string,
@@ -98,8 +105,8 @@ export abstract class ObjectManagementWebviewController<
                 title: webviewTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", iconFiles.dark),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", iconFiles.light),
                 },
                 preserveFocus: true,
             },

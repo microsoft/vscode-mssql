@@ -12,6 +12,15 @@
     flex-direction: column;
 }
 
+/* SlickgridReact wrapper — propagate flex layout so the grid fills
+   available space and the pagination stays anchored at the bottom. */
+.table-explorer-grid-container > .grid-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
 /* Grid base styles - map SlickGrid CSS custom properties to VS Code theme variables.
  * Setting these on the #id selector (specificity 1-0-0) overrides
  * .slick-dark-mode defaults (specificity 0-1-0) automatically. */
@@ -126,71 +135,85 @@
     color: var(--vscode-list-activeSelectionForeground) !important;
 }
 
-/* VS Code-style context menu */
-#tableExplorerGrid .slick-context-menu {
+/* VS Code-style context menu
+   Note: SlickGrid appends the context menu to document.body (not inside #tableExplorerGrid),
+   so we target it directly via .slick-context-menu. */
+.slick-context-menu {
     background-color: var(--vscode-menu-background) !important;
     border: 1px solid var(--vscode-menu-border) !important;
-    border-radius: 5px !important;
+    border-radius: 4px !important;
     box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
     padding: 4px 0 !important;
-    min-width: 180px !important;
+    min-width: 160px !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item {
+.slick-context-menu .slick-menu-item {
     background-color: transparent !important;
     color: var(--vscode-menu-foreground) !important;
-    padding: 4px 20px 4px 30px !important;
-    line-height: 22px !important;
+    padding: 0 26px 0 8px !important;
+    height: 2em !important;
     font-size: 13px !important;
-    border: none !important;
+    border: 1px solid transparent !important;
+    border-radius: 4px !important;
     cursor: pointer !important;
     position: relative !important;
     display: flex !important;
     align-items: center !important;
     white-space: nowrap !important;
+    margin: 0 4px !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item:hover {
+.slick-context-menu .slick-menu-item:hover {
     background-color: var(--vscode-menu-selectionBackground) !important;
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item .slick-menu-icon {
-    position: absolute !important;
-    left: 8px !important;
+.slick-context-menu .slick-menu-item .slick-menu-icon {
     width: 16px !important;
     height: 16px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+    position: static !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item .slick-menu-content {
+.slick-context-menu .slick-menu-item .slick-menu-content {
     flex: 1 !important;
     padding: 0 !important;
     margin: 0 !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item.red {
+.slick-context-menu .slick-menu-item.red {
     color: var(--vscode-menu-foreground) !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item.red:hover {
+.slick-context-menu .slick-menu-item.red:hover {
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item .mdi {
+.slick-context-menu .slick-menu-item .mdi {
     color: var(--vscode-menu-foreground) !important;
     font-size: 16px !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item:hover .mdi {
+.slick-context-menu .slick-menu-item:hover .mdi {
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-#tableExplorerGrid .slick-context-menu .slick-menu-item.bold,
-#tableExplorerGrid .slick-context-menu .slick-menu-item .bold {
+.slick-context-menu .slick-menu-item.bold,
+.slick-context-menu .slick-menu-item .bold {
     font-weight: normal !important;
+}
+
+.slick-context-menu .slick-menu-item.slick-menu-item-divider {
+    height: 1px !important;
+    padding: 0 !important;
+    margin: 4px 12px !important;
+    background-color: var(--vscode-menu-separatorBackground, var(--vscode-menu-border)) !important;
+    border: none !important;
+    border-radius: 0 !important;
 }
 
 /* Cell state styles */
