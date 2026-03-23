@@ -7,17 +7,13 @@ import "./executionPlan.css";
 
 import * as ep from "../../../sharedInterfaces/executionPlan";
 
-import { ArrowDown20Regular, ArrowUp20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import {
-    Button,
-    Combobox,
-    Dropdown,
-    Input,
-    Option,
-    makeStyles,
-    tokens,
-} from "@fluentui/react-components";
+import { ArrowDown16Regular, ArrowUp16Regular, Dismiss16Regular } from "@fluentui/react-icons";
+import { Button, Dropdown, Input, Option, makeStyles, tokens } from "@fluentui/react-components";
 
+import {
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../common/searchableDropdown.component";
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
 import { useState } from "react";
@@ -27,14 +23,11 @@ const useStyles = makeStyles({
         position: "absolute",
         top: 0,
         right: "35px",
-        padding: "10px",
-        border: "1px solid #ccc",
-        zIndex: "1",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
         display: "flex",
         alignItems: "center",
-        gap: "2px",
+        gap: "3px",
         opacity: 1,
+        zIndex: "35",
     },
     inputs: {
         minWidth: "unset",
@@ -46,6 +39,12 @@ const useStyles = makeStyles({
         textAlign: "left",
         marginLeft: "0px",
         paddingLeft: "0px",
+    },
+    label: {
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        whiteSpace: "nowrap",
     },
     spacer: {
         padding: "1px",
@@ -65,9 +64,15 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setExecutionPlanView,
     findNodeOptions,
     setFindNodeClicked,
-    inputRef,
+    inputRef: _inputRef,
 }) => {
     const classes = useStyles();
+    const searchableFindNodeOptions: SearchableDropdownOptions[] = findNodeOptions.map(
+        (option) => ({
+            value: option,
+            text: option,
+        }),
+    );
     const findNodeComparisonOptions: string[] = [
         locConstants.executionPlan.equals,
         locConstants.executionPlan.contains,
@@ -129,32 +134,30 @@ export const FindNode: React.FC<FindNodeProps> = ({
     return (
         <div
             id="findNodeInputContainer"
-            className={classes.inputContainer}
-            style={{
-                background: tokens.colorNeutralBackground1,
-            }}>
-            {locConstants.executionPlan.findNodes}
+            className={`${classes.inputContainer} execution-plan-widget`}>
+            <div className={classes.label}>{locConstants.executionPlan.findNodes}</div>
             <div style={{ paddingRight: "12px" }} />
-            <Combobox
+            <SearchableDropdown
                 id="findNodeDropdown"
-                className={classes.inputs}
+                style={{ width: "130px", minWidth: "130px", maxWidth: "130px" }}
                 size="small"
-                input={{ style: { width: "130px", textOverflow: "ellipsis" } }}
-                listbox={{ style: { minWidth: "fit-content" } }}
-                defaultValue={findNodeOptions[0]}
-                onOptionSelect={(_, data) => {
-                    setFindNodeSelection(data.optionText ?? findNodeOptions[0]);
+                options={searchableFindNodeOptions}
+                selectedOption={
+                    findNodeSelection
+                        ? {
+                              value: findNodeSelection,
+                              text: findNodeSelection,
+                          }
+                        : undefined
+                }
+                onSelect={(option) => {
+                    setFindNodeSelection(option.value || findNodeOptions[0]);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
-                ref={inputRef}
-                aria-label={locConstants.executionPlan.findNode}>
-                {findNodeOptions.map((option) => (
-                    <Option key={option} className={classes.option}>
-                        {option}
-                    </Option>
-                ))}
-            </Combobox>
+                ariaLabel={locConstants.executionPlan.findNode}
+                searchBoxPlaceholder={locConstants.common.find}
+            />
             <div className={classes.spacer}></div>
             <Dropdown
                 id="findNodeComparisonDropdown"
@@ -181,6 +184,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             <div className={classes.spacer}></div>
             <Input
                 id="findNodeInputBox"
+                ref={_inputRef}
                 size="small"
                 type="text"
                 className={classes.inputs}
@@ -198,7 +202,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 appearance="subtle"
                 title={locConstants.executionPlan.previous}
                 aria-label={locConstants.executionPlan.previous}
-                icon={<ArrowUp20Regular />}
+                icon={<ArrowUp16Regular />}
             />
             <Button
                 onClick={() => handleFoundNode(1)}
@@ -206,7 +210,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 appearance="subtle"
                 title={locConstants.executionPlan.next}
                 aria-label={locConstants.executionPlan.next}
-                icon={<ArrowDown20Regular />}
+                icon={<ArrowDown16Regular />}
             />
             <Button
                 onClick={() => setFindNodeClicked(false)}
@@ -214,7 +218,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 appearance="subtle"
                 title={locConstants.common.close}
                 aria-label={locConstants.common.close}
-                icon={<Dismiss20Regular />}
+                icon={<Dismiss16Regular />}
             />
         </div>
     );

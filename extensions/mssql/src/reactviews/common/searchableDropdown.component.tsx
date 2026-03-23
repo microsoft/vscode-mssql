@@ -584,12 +584,15 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             alignItems: "center",
                             gap: "8px",
                             overflow: "hidden",
+                            minWidth: 0,
                         }}>
                         {props.renderDecoration && props.renderDecoration(selectedOption)}
                         <Text
                             style={{
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                minWidth: 0,
                                 fontSize: triggerFontSize,
                                 ...(getOptionDisplayText(selectedOption, props.placeholder) ===
                                 props.placeholder

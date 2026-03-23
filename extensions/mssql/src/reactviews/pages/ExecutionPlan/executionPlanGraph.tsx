@@ -44,14 +44,11 @@ const useStyles = makeStyles({
         position: "absolute",
         top: 0,
         right: "35px",
-        padding: "10px",
-        border: "1px solid #ccc",
-        zIndex: "1",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
         display: "flex",
         alignItems: "center",
-        gap: "2px",
+        gap: "3px",
         opacity: 1,
+        zIndex: "35",
     },
     queryCostContainer: {
         opacity: 1,
@@ -277,10 +274,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 {customZoomClicked && (
                     <div
                         id="customZoomInputContainer"
-                        className={classes.inputContainer}
-                        style={{
-                            background: tokens.colorNeutralBackground1,
-                        }}
+                        className={`${classes.inputContainer} execution-plan-widget`}
                         tabIndex={0}>
                         <Input
                             ref={inputRef}

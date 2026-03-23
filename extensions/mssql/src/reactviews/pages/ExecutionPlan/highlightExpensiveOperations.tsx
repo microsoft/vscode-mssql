@@ -18,17 +18,20 @@ const useStyles = makeStyles({
         position: "absolute",
         top: 0,
         right: "35px",
-        padding: "10px",
-        border: "1px solid #ccc",
-        zIndex: "1",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
         display: "flex",
         alignItems: "center",
-        gap: "2px",
+        gap: "3px",
         opacity: 1,
+        zIndex: "35",
     },
     dropdown: {
         maxHeight: "200px",
+    },
+    label: {
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        whiteSpace: "nowrap",
     },
     spacer: {
         padding: "1px",
@@ -109,12 +112,9 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
     return (
         <div
             id="highlightExpensiveOpsContainer"
-            className={classes.inputContainer}
-            style={{
-                background: tokens.colorNeutralBackground1,
-            }}
+            className={`${classes.inputContainer} execution-plan-widget`}
             aria-label={highlightedElement}>
-            <div>{locConstants.executionPlan.metric}</div>
+            <div className={classes.label}>{locConstants.executionPlan.metric}</div>
             <div style={{ paddingRight: "12px" }} />
             <Combobox
                 id="highlightExpensiveOpsDropdown"
