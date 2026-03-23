@@ -1,2 +1,2 @@
-CREATE VIEW [dbo].[@@OBJECT_NAME@@]
+CREATE VIEW [@@SCHEMA_NAME@@].[@@OBJECT_NAME@@]
   AS SELECT * FROM [SomeTableOrView]
