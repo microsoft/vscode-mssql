@@ -1880,7 +1880,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
         <source xml:lang="en">Copy Column Name</source>
-        <target state="new">Copy Column Name</target>
+        <target state="translated">Copier le nom de la colonne</target>
       </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
@@ -9255,7 +9255,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines">
         <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
-        <target state="new">Control which grid lines are visible in the results grid.</target>
+        <target state="translated">Contrôlez quelles lignes de grille sont visibles dans la grille de résultats.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
@@ -9461,7 +9461,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.alternatingRowColors">
         <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
-        <target state="new">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</target>
+        <target state="translated">Activer l'alternance des couleurs de fond des lignes (effet zébré) dans la grille de résultats. La couleur est dérivée du thème VS Code actuel.</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
@@ -9501,7 +9501,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.rowPadding">
         <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
-        <target state="new">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</target>
+        <target state="translated">Rembourrage vertical supplémentaire, exprimé en pixels, ajouté à chaque ligne de la grille de résultats et contrôlant la densité des lignes. Plage valide : 0-10.</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
@@ -9533,7 +9533,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.none">
         <source xml:lang="en">Hide all grid lines</source>
-        <target state="new">Hide all grid lines</target>
+        <target state="translated">Masquer toutes les lignes de grille</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
@@ -9855,7 +9855,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.both">
         <source xml:lang="en">Show both horizontal and vertical grid lines</source>
-        <target state="new">Show both horizontal and vertical grid lines</target>
+        <target state="translated">Afficher les lignes de grille horizontales et verticales</target>
       </trans-unit>
       <trans-unit id="mssql.showChangelogOnUpdate">
         <source xml:lang="en">Show changelog after extension updates</source>
@@ -9863,11 +9863,11 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
         <source xml:lang="en">Show only horizontal grid lines</source>
-        <target state="new">Show only horizontal grid lines</target>
+        <target state="translated">Afficher uniquement les lignes de grille horizontales</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
         <source xml:lang="en">Show only vertical grid lines</source>
-        <target state="new">Show only vertical grid lines</target>
+        <target state="translated">Afficher uniquement les lignes de grille verticales</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
@@ -9927,7 +9927,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start SQL Container</source>
-        <target state="new">Start SQL Container</target>
+        <target state="translated">Démarrer le conteneur SQL</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

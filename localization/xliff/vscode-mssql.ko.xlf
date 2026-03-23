@@ -1880,7 +1880,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
         <source xml:lang="en">Copy Column Name</source>
-        <target state="new">Copy Column Name</target>
+        <target state="translated">열 이름 복사</target>
       </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
