@@ -331,7 +331,7 @@ export function msgAccountRefreshFailed(error?: string) {
     } else {
         return l10n.t({
             message:
-                "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.  Error: {0}",
+                "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}",
             args: [error],
             comment: ["{0} is the error message"],
         });

@@ -515,7 +515,12 @@ suite("ConnectionManager Tests", () => {
             });
             testConnectionManager["_entraSqlTokenRefreshInFlight"].set(
                 "account-1|tenant-1",
-                Promise.resolve(undefined),
+                Promise.resolve({
+                    key: "account-1",
+                    token: "cached",
+                    tokenType: "Bearer",
+                    expiresOn: Math.floor(Date.now() / 1000) + 3600,
+                }),
             );
 
             testConnectionManager.onClearAzureTokenCache();
