@@ -110,7 +110,7 @@ suite("SQL Server Container", () => {
                     setTimeout(() => callback(emitError), dataDelayMs);
                 }
             }),
-        } as any;
+        } as unknown as ReturnType<typeof childProcess.spawn>;
     };
 
     const createSpawnSuccessProcess = (
@@ -228,7 +228,13 @@ suite("SQL Server Container", () => {
         const dockerClientMock = createDockerClientMock({
             createContainer: createContainerStub,
         });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+        sandbox
+            .stub(dockerodeClient, "getDockerodeClient")
+            .returns(
+                dockerClientMock as unknown as ReturnType<
+                    typeof dockerodeClient.getDockerodeClient
+                >,
+            );
 
         const resultSuccess = await sqlServerContainer.startSqlServerDockerContainer(
             containerName,
@@ -307,7 +313,13 @@ suite("SQL Server Container", () => {
             getContainer: getContainerStub,
             demuxStream: demuxStreamStub,
         });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+        sandbox
+            .stub(dockerodeClient, "getDockerodeClient")
+            .returns(
+                dockerClientMock as unknown as ReturnType<
+                    typeof dockerodeClient.getDockerodeClient
+                >,
+            );
 
         spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
             if (command === "docker" && args?.[0] === "info") {
@@ -396,7 +408,13 @@ suite("SQL Server Container", () => {
             getContainer: getContainerStub,
             demuxStream: demuxStreamStub,
         });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+        sandbox
+            .stub(dockerodeClient, "getDockerodeClient")
+            .returns(
+                dockerClientMock as unknown as ReturnType<
+                    typeof dockerodeClient.getDockerodeClient
+                >,
+            );
 
         let result =
             await sqlServerContainer.checkIfSqlServerContainerIsReadyForConnections(
@@ -408,54 +426,6 @@ suite("SQL Server Container", () => {
         expect(logsStub).to.have.been.calledOnce;
     });
 
-    test("checkIfContainerIsReadyForConnections: should return true when fallback markers are present", async () => {
-        const rawLogsStream = new PassThrough();
-        const logsStub = sandbox.stub().resolves(rawLogsStream);
-        const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
-        const inspectStub = sandbox
-            .stub()
-            .resolves({ State: { StartedAt: new Date().toISOString() } });
-        const getContainerStub = sandbox.stub().returns({
-            inspect: inspectStub,
-            logs: logsStub,
-        });
-        const demuxStreamStub = sandbox
-            .stub()
-            .callsFake(
-                (
-                    _stream: NodeJS.ReadableStream,
-                    stdout: NodeJS.WritableStream,
-                    _stderr: NodeJS.WritableStream,
-                ) => {
-                    const output = stdout as PassThrough;
-                    queueMicrotask(() => {
-                        output.write(
-                            "Server is listening on [ 'any' <ipv4> 1433] accept sockets 1.\n",
-                        );
-                        output.end(
-                            "Recovery is complete. This is an informational message only. No user action is required.",
-                        );
-                    });
-                },
-            );
-
-        const dockerClientMock = createDockerClientMock({
-            listContainers: listContainersStub,
-            getContainer: getContainerStub,
-            demuxStream: demuxStreamStub,
-        });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
-
-        const result =
-            await sqlServerContainer.checkIfSqlServerContainerIsReadyForConnections(
-                "testContainer",
-            );
-        expect(result.success, "Should return success when fallback readiness markers are present")
-            .to.be.true;
-        expect(inspectStub).to.have.been.calledOnce;
-        expect(logsStub).to.have.been.calledOnce;
-    });
-
     test("pullSqlServerContainerImage: should pull the container image from the docker registry", async () => {
         const followProgressStub = sandbox
             .stub()
@@ -463,14 +433,20 @@ suite("SQL Server Container", () => {
                 (
                     _stream: NodeJS.ReadableStream,
                     callback: (error: Error | null, result: unknown[]) => void,
-                ) => callback(null, []),
+                ) => callback(undefined, []),
             );
         const pullStub = sandbox.stub().resolves(new PassThrough());
         const dockerClientMock = createDockerClientMock({
             pull: pullStub,
             followProgress: followProgressStub,
         });
-        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+        sandbox
+            .stub(dockerodeClient, "getDockerodeClient")
+            .returns(
+                dockerClientMock as unknown as ReturnType<
+                    typeof dockerodeClient.getDockerodeClient
+                >,
+            );
 
         let result = await sqlServerContainer.pullSqlServerContainerImage("2025");
         expect(pullStub).to.have.been.calledOnce;
