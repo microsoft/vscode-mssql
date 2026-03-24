@@ -35,6 +35,10 @@ export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
     const hasProvisioningError =
         fabricProvisioningState?.provisionLoadState === ApiStatus.Error ||
         fabricProvisioningState?.connectionLoadState === ApiStatus.Error;
+    const isFabricStateReady =
+        !!fabricProvisioningState?.formState &&
+        !!fabricProvisioningState?.formComponents &&
+        "accountId" in fabricProvisioningState.formComponents;
 
     const pages: WizardPageDefinition[] = [
         {
@@ -42,6 +46,7 @@ export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
             title: locConstants.deployment.fabricProvisioningHeader,
             render: () => <FabricDeploymentInfoPage />,
             nextLabel: locConstants.common.next,
+            canGoNext: () => isFabricStateReady,
             onPrevious: () => {
                 onBackToStart();
                 return false;

@@ -22,7 +22,15 @@ export async function runDockerStep(
     lastStep: number,
 ): Promise<void> {
     const localContainersState = state.deploymentTypeState as LocalContainersState;
+    if (!Array.isArray(localContainersState?.dockerSteps)) {
+        return;
+    }
+
     const currentStep = localContainersState.currentDockerStep;
+    if (currentStep === undefined || !localContainersState.dockerSteps[currentStep]) {
+        return;
+    }
+
     // If the current step is less than or equal to the last step,
     // complete the step to move to the next one
     if (currentStep <= lastStep) {
@@ -38,7 +46,11 @@ export async function runDockerStep(
  */
 export function isLastStepLoaded(state: DeploymentWebviewState, lastStep: number): boolean {
     const localContainersState = state.deploymentTypeState as LocalContainersState;
-    return localContainersState.dockerSteps[lastStep].loadState === ApiStatus.Loaded;
+    if (!Array.isArray(localContainersState?.dockerSteps)) {
+        return false;
+    }
+
+    return localContainersState.dockerSteps[lastStep]?.loadState === ApiStatus.Loaded;
 }
 
 /**
@@ -48,6 +60,9 @@ export function isLastStepLoaded(state: DeploymentWebviewState, lastStep: number
  */
 export function checkStepErrored(state: DeploymentWebviewState): boolean {
     const localContainersState = state.deploymentTypeState as LocalContainersState;
+    if (!Array.isArray(localContainersState?.dockerSteps)) {
+        return false;
+    }
 
     // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
     if (

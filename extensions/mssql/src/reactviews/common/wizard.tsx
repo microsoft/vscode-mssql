@@ -101,12 +101,12 @@ export const Wizard = ({
     };
 
     const goPrevious = async () => {
-        if (currentIndex <= 0) {
+        const result = await currentPage.onPrevious?.(pageContext);
+        if (result === false) {
             return;
         }
 
-        const result = await currentPage.onPrevious?.(pageContext);
-        if (result === false) {
+        if (currentIndex <= 0) {
             return;
         }
 
@@ -121,8 +121,10 @@ export const Wizard = ({
         goPrevious,
     };
 
+    const hasPreviousAction = currentIndex > 0 || currentPage.onPrevious !== undefined;
+
     const canGoBack =
-        currentIndex > 0 &&
+        hasPreviousAction &&
         (typeof currentPage.canGoBack === "function"
             ? currentPage.canGoBack(pageContext)
             : (currentPage.canGoBack ?? true));
@@ -179,7 +181,7 @@ export const Wizard = ({
             }
             footerEnd={
                 <div className={classes.footerGroup}>
-                    {currentIndex > 0 && (
+                    {hasPreviousAction && (
                         <Button
                             appearance="secondary"
                             disabled={!canGoBack}

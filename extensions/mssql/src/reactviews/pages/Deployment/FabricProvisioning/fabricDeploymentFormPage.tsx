@@ -37,24 +37,27 @@ const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
-        marginLeft: "5px",
-        marginRight: "5px",
-        padding: "8px",
-        width: "500px",
-        whiteSpace: "nowrap",
-        minWidth: "800px",
-        height: "80vh",
+        gap: "12px",
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        minHeight: "fit-content",
+        padding: "4px 0 8px",
+        boxSizing: "border-box",
+        whiteSpace: "normal",
     },
     advancedOptionsDiv: {
         marginLeft: "24px",
+        width: "100%",
+        maxWidth: "600px",
     },
     bottomDiv: {
-        bottom: 0,
-        paddingBottom: "50px",
+        paddingBottom: "8px",
     },
     formDiv: {
         flexGrow: 1,
+        width: "100%",
+        minWidth: 0,
     },
     spinnerDiv: {
         height: "100%",
@@ -74,6 +77,20 @@ const useStyles = makeStyles({
         gap: "0.5rem",
         marginTop: "20px",
         marginBottom: "20px",
+        width: "100%",
+        maxWidth: "600px",
+    },
+    fieldContainer: {
+        width: "100%",
+        maxWidth: "600px",
+        minWidth: 0,
+        whiteSpace: "normal",
+        overflowWrap: "break-word",
+        wordBreak: "break-word",
+    },
+    advancedToggle: {
+        width: "100%",
+        maxWidth: "600px",
     },
 });
 
@@ -131,19 +148,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                     !fabricComponents.includes(component.propertyName),
             )
             .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal",
-                                  overflowWrap: "break-word",
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
+                <div key={index} className={classes.fieldContainer}>
                     <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
@@ -172,67 +177,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         closeDialog={() => context.setConnectionGroupDialogState(false)}
                     />
                 )}
-                <FormField<
-                    FabricProvisioningFormState,
-                    FabricProvisioningState,
-                    FabricProvisioningFormItemSpec,
-                    FabricProvisioningContextProps
-                >
-                    context={context}
-                    formState={fabricProvisioningState.formState}
-                    component={
-                        fabricProvisioningState.formComponents[
-                            "accountId"
-                        ] as FabricProvisioningFormItemSpec
-                    }
-                    idx={0}
-                    componentProps={{
-                        onOptionSelect: (
-                            _event: { type: string },
-                            data: { optionValue?: string },
-                        ) => {
-                            context.formAction({
-                                propertyName: "accountId",
-                                isAction: false,
-                                value: data.optionValue as string,
-                            });
-                            context.reloadFabricEnvironment();
-                        },
-                    }}
-                />
-                {renderFormFields(false)}
-                <FormField<
-                    FabricProvisioningFormState,
-                    FabricProvisioningState,
-                    FabricProvisioningFormItemSpec,
-                    FabricProvisioningContextProps
-                >
-                    context={context}
-                    formState={fabricProvisioningState.formState}
-                    component={
-                        fabricProvisioningState.formComponents[
-                            "groupId"
-                        ] as FabricProvisioningFormItemSpec
-                    }
-                    idx={0}
-                    componentProps={{
-                        onSelect: (option: SearchableDropdownOptions) => {
-                            if (option.value === CREATE_NEW_GROUP_ID) {
-                                context.setConnectionGroupDialogState(true);
-                            } else {
-                                context.formAction({
-                                    propertyName: "groupId",
-                                    isAction: false,
-                                    value: option.value,
-                                });
-                            }
-                        },
-                        renderDecoration: (option: SearchableDropdownOptions) => {
-                            return renderColorSwatch(option.color);
-                        },
-                    }}
-                />
-                {fabricProvisioningState.formState.accountId && (
+                <div className={classes.fieldContainer}>
                     <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
@@ -243,7 +188,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         formState={fabricProvisioningState.formState}
                         component={
                             fabricProvisioningState.formComponents[
-                                "tenantId"
+                                "accountId"
                             ] as FabricProvisioningFormItemSpec
                         }
                         idx={0}
@@ -253,17 +198,51 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                                 data: { optionValue?: string },
                             ) => {
                                 context.formAction({
-                                    propertyName: "tenantId",
+                                    propertyName: "accountId",
                                     isAction: false,
                                     value: data.optionValue as string,
                                 });
-                                context.reloadFabricEnvironment(data.optionValue as string);
+                                context.reloadFabricEnvironment();
                             },
                         }}
                     />
-                )}
-                {fabricProvisioningState.formState.accountId &&
-                    (fabricProvisioningState.workspaces.length > 0 ? (
+                </div>
+                {renderFormFields(false)}
+                <div className={classes.fieldContainer}>
+                    <FormField<
+                        FabricProvisioningFormState,
+                        FabricProvisioningState,
+                        FabricProvisioningFormItemSpec,
+                        FabricProvisioningContextProps
+                    >
+                        context={context}
+                        formState={fabricProvisioningState.formState}
+                        component={
+                            fabricProvisioningState.formComponents[
+                                "groupId"
+                            ] as FabricProvisioningFormItemSpec
+                        }
+                        idx={0}
+                        componentProps={{
+                            onSelect: (option: SearchableDropdownOptions) => {
+                                if (option.value === CREATE_NEW_GROUP_ID) {
+                                    context.setConnectionGroupDialogState(true);
+                                } else {
+                                    context.formAction({
+                                        propertyName: "groupId",
+                                        isAction: false,
+                                        value: option.value,
+                                    });
+                                }
+                            },
+                            renderDecoration: (option: SearchableDropdownOptions) => {
+                                return renderColorSwatch(option.color);
+                            },
+                        }}
+                    />
+                </div>
+                {fabricProvisioningState.formState.accountId && (
+                    <div className={classes.fieldContainer}>
                         <FormField<
                             FabricProvisioningFormState,
                             FabricProvisioningState,
@@ -274,16 +253,50 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                             formState={fabricProvisioningState.formState}
                             component={
                                 fabricProvisioningState.formComponents[
-                                    "workspace"
+                                    "tenantId"
                                 ] as FabricProvisioningFormItemSpec
                             }
                             idx={0}
                             componentProps={{
-                                onSelect: async (option: FormItemOptions) => {
-                                    await context.handleWorkspaceFormAction(option.value);
+                                onOptionSelect: (
+                                    _event: { type: string },
+                                    data: { optionValue?: string },
+                                ) => {
+                                    context.formAction({
+                                        propertyName: "tenantId",
+                                        isAction: false,
+                                        value: data.optionValue as string,
+                                    });
+                                    context.reloadFabricEnvironment(data.optionValue as string);
                                 },
                             }}
                         />
+                    </div>
+                )}
+                {fabricProvisioningState.formState.accountId &&
+                    (fabricProvisioningState.workspaces.length > 0 ? (
+                        <div className={classes.fieldContainer}>
+                            <FormField<
+                                FabricProvisioningFormState,
+                                FabricProvisioningState,
+                                FabricProvisioningFormItemSpec,
+                                FabricProvisioningContextProps
+                            >
+                                context={context}
+                                formState={fabricProvisioningState.formState}
+                                component={
+                                    fabricProvisioningState.formComponents[
+                                        "workspace"
+                                    ] as FabricProvisioningFormItemSpec
+                                }
+                                idx={0}
+                                componentProps={{
+                                    onSelect: async (option: FormItemOptions) => {
+                                        await context.handleWorkspaceFormAction(option.value);
+                                    },
+                                }}
+                            />
+                        </div>
                     ) : fabricProvisioningState.isWorkspacesErrored ? (
                         <div className={classes.statusRow}>
                             <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
@@ -296,7 +309,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         </div>
                     ))}
 
-                <div>
+                <div className={classes.advancedToggle}>
                     <Button
                         icon={
                             showAdvancedOptions ? (
@@ -315,9 +328,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                     <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
                 )}
             </div>
-            <div className={classes.bottomDiv}>
-                <hr style={{ background: tokens.colorNeutralBackground2 }} />
-            </div>
+            <div className={classes.bottomDiv} />
         </div>
     );
 };

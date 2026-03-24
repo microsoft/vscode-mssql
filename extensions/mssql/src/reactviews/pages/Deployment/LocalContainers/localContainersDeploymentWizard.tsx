@@ -46,12 +46,15 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
         return undefined;
     }
 
+    const isLocalContainersStateReady = Array.isArray(localContainersState?.dockerSteps);
+
     const pages: WizardPageDefinition[] = [
         {
             id: "local-info",
             title: locConstants.deployment.dockerSqlServerHeader,
             render: () => <LocalContainersDeploymentInfoPage />,
             nextLabel: locConstants.common.next,
+            canGoNext: () => isLocalContainersStateReady,
             onPrevious: () => {
                 onBackToStart();
                 return false;

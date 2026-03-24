@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import {
     ChevronDown20Regular,
     ChevronRight20Regular,
@@ -35,24 +35,27 @@ const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
-        marginLeft: "5px",
-        marginRight: "5px",
-        padding: "8px",
-        width: "500px",
-        whiteSpace: "nowrap",
-        minWidth: "800px",
-        height: "80vh",
+        gap: "12px",
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        minHeight: "fit-content",
+        padding: "4px 0 8px",
+        boxSizing: "border-box",
+        whiteSpace: "normal",
     },
     advancedOptionsDiv: {
         marginLeft: "24px",
+        width: "100%",
+        maxWidth: "600px",
     },
     bottomDiv: {
-        bottom: 0,
-        paddingBottom: "50px",
+        paddingBottom: "8px",
     },
     formDiv: {
         flexGrow: 1,
+        width: "100%",
+        minWidth: 0,
     },
     spinnerDiv: {
         height: "100%",
@@ -65,6 +68,27 @@ const useStyles = makeStyles({
     errorIcon: {
         fontSize: "100px",
         opacity: 0.5,
+    },
+    fieldContainer: {
+        width: "100%",
+        maxWidth: "600px",
+        minWidth: 0,
+        whiteSpace: "normal",
+        overflowWrap: "break-word",
+        wordBreak: "break-word",
+    },
+    advancedToggle: {
+        width: "100%",
+        maxWidth: "600px",
+    },
+    eulaCard: {
+        width: "100%",
+        maxWidth: "600px",
+        borderRadius: "8px",
+        border: "1px solid var(--vscode-editorWidget-border)",
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        padding: "10px 14px",
+        boxSizing: "border-box",
     },
 });
 
@@ -125,19 +149,7 @@ export const LocalContainersDeploymentFormPage: React.FC<
                     component.propertyName !== "groupId",
             )
             .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal",
-                                  overflowWrap: "break-word",
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
+                <div key={index} className={classes.fieldContainer}>
                     <FormField<
                         DockerConnectionProfile,
                         LocalContainersState,
@@ -164,38 +176,40 @@ export const LocalContainersDeploymentFormPage: React.FC<
                     />
                 )}
                 {renderFormFields(false)}
-                <FormField<
-                    DockerConnectionProfile,
-                    LocalContainersState,
-                    LocalContainersFormItemSpec,
-                    LocalContainersContextProps
-                >
-                    context={context}
-                    formState={localContainersState.formState}
-                    component={
-                        localContainersState.formComponents[
-                            "groupId"
-                        ] as LocalContainersFormItemSpec
-                    }
-                    idx={0}
-                    componentProps={{
-                        onSelect: (option: SearchableDropdownOptions) => {
-                            if (option.value === CREATE_NEW_GROUP_ID) {
-                                context.setConnectionGroupDialogState(true);
-                            } else {
-                                context.formAction({
-                                    propertyName: "groupId",
-                                    isAction: false,
-                                    value: option.value,
-                                });
-                            }
-                        },
-                        renderDecoration: (option: SearchableDropdownOptions) => {
-                            return renderColorSwatch(option.color);
-                        },
-                    }}
-                />
-                <div>
+                <div className={classes.fieldContainer}>
+                    <FormField<
+                        DockerConnectionProfile,
+                        LocalContainersState,
+                        LocalContainersFormItemSpec,
+                        LocalContainersContextProps
+                    >
+                        context={context}
+                        formState={localContainersState.formState}
+                        component={
+                            localContainersState.formComponents[
+                                "groupId"
+                            ] as LocalContainersFormItemSpec
+                        }
+                        idx={0}
+                        componentProps={{
+                            onSelect: (option: SearchableDropdownOptions) => {
+                                if (option.value === CREATE_NEW_GROUP_ID) {
+                                    context.setConnectionGroupDialogState(true);
+                                } else {
+                                    context.formAction({
+                                        propertyName: "groupId",
+                                        isAction: false,
+                                        value: option.value,
+                                    });
+                                }
+                            },
+                            renderDecoration: (option: SearchableDropdownOptions) => {
+                                return renderColorSwatch(option.color);
+                            },
+                        }}
+                    />
+                </div>
+                <div className={classes.advancedToggle}>
                     <Button
                         icon={
                             showAdvancedOptions ? (
@@ -215,14 +229,7 @@ export const LocalContainersDeploymentFormPage: React.FC<
                 )}
             </div>
             <div className={classes.bottomDiv}>
-                <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                <div
-                    style={{
-                        ...(eulaComponent.componentWidth && {
-                            width: eulaComponent.componentWidth,
-                        }),
-                        marginTop: "10px",
-                    }}>
+                <div className={classes.eulaCard}>
                     <FormField<
                         DockerConnectionProfile,
                         LocalContainersState,

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Card, makeStyles, tokens, Text } from "@fluentui/react-components";
+import { Card, makeStyles, mergeClasses, tokens, Text } from "@fluentui/react-components";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
 import { locConstants } from "../../common/locConstants";
 import { DockerIcon } from "../../common/icons/docker";
@@ -113,11 +113,12 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
         <div className={classes.outerDiv}>
             <div className={classes.cardRow}>
                 <Card
-                    className={`${classes.cardDiv} ${
+                    className={mergeClasses(
+                        classes.cardDiv,
                         selectedDeploymentType === DeploymentType.LocalContainers
                             ? classes.selectedCard
-                            : ""
-                    }`}
+                            : undefined,
+                    )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.LocalContainers)}>
                     <div className={classes.iconBadge}>
                         <DockerIcon
@@ -136,11 +137,12 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                     </div>
                 </Card>
                 <Card
-                    className={`${classes.cardDiv} ${
+                    className={mergeClasses(
+                        classes.cardDiv,
                         selectedDeploymentType === DeploymentType.FabricProvisioning
                             ? classes.selectedCard
-                            : ""
-                    }`}
+                            : undefined,
+                    )}
                     onClick={() => onDeploymentTypeChange(DeploymentType.FabricProvisioning)}>
                     <div className={classes.iconBadge}>
                         <SqlDbInFabricIcon
