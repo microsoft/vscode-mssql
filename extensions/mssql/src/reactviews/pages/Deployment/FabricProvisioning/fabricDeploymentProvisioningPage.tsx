@@ -17,7 +17,7 @@ import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
-import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
+import { FabricDeploymentFormPage } from "./fabricDeploymentFormPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -127,7 +127,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const ProvisionFabricDatabasePage: React.FC = () => {
+export const FabricDeploymentProvisioningPage: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const [showPrevious, setShowPrevious] = useState(false);
@@ -199,7 +199,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
     };
 
     return showPrevious === true ? (
-        <FabricProvisioningInputForm />
+        <FabricDeploymentFormPage />
     ) : (
         <div>
             {provisionLoadState === ApiStatus.Error && (

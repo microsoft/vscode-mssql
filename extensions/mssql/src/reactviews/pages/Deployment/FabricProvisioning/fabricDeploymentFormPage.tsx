@@ -30,7 +30,7 @@ import {
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../../sharedInterfaces/form";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
-import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
+import { FabricDeploymentProvisioningPage } from "./fabricDeploymentProvisioningPage";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 
@@ -68,7 +68,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const FabricProvisioningInputForm: React.FC = () => {
+export const FabricDeploymentFormPage: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const fabricProvisioningState = useDeploymentSelector(
@@ -127,7 +127,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
     }, [fabricProvisioningState.formValidationLoadState]);
 
     return showNext ? (
-        <ProvisionFabricDatabasePage />
+        <FabricDeploymentProvisioningPage />
     ) : (
         <div>
             <FabricProvisioningHeader paddingLeft="20px" />

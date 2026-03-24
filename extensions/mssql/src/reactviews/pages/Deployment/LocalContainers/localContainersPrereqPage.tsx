@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
-import { LocalContainersInputForm } from "./localContainersInputForm";
+import { LocalContainersDeploymentFormPage } from "./localContainersDeploymentFormPage";
 import {
     checkStepErrored,
     isLastStepLoaded,
@@ -55,7 +55,7 @@ export const LocalContainersPrereqPage: React.FC = () => {
     };
 
     return showNext ? (
-        <LocalContainersInputForm />
+        <LocalContainersDeploymentFormPage />
     ) : (
         <div>
             <LocalContainersHeader

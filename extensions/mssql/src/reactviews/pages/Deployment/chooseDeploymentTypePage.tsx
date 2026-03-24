@@ -7,9 +7,12 @@ import { useContext, useState } from "react";
 import { Card, makeStyles, tokens, Text } from "@fluentui/react-components";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
-import { FabricProvisioningInfoPage } from "./FabricProvisioning/fabricProvisioningInfoPage";
-import { LocalContainersInfoPage } from "./LocalContainers/localContainersInfoPage";
+import { FabricDeploymentInfoPage } from "./FabricProvisioning/fabricDeploymentInfoPage";
+import { LocalContainersDeploymentInfoPage } from "./LocalContainers/localContainersDeploymentInfoPage";
 import { locConstants } from "../../common/locConstants";
+import { DeploymentDatabaseIcon } from "../../common/icons/deploymentDatabase";
+import { DockerIcon } from "../../common/icons/docker";
+import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -123,9 +126,9 @@ export const ChooseDeploymentTypePage: React.FC = () => {
 
     const getDeploymentStartPage = () => {
         if (deploymentType === DeploymentType.LocalContainers) {
-            return <LocalContainersInfoPage />;
+            return <LocalContainersDeploymentInfoPage />;
         } else if (deploymentType === DeploymentType.FabricProvisioning) {
-            return <FabricProvisioningInfoPage />;
+            return <FabricDeploymentInfoPage />;
         }
         return null;
     };
@@ -135,7 +138,7 @@ export const ChooseDeploymentTypePage: React.FC = () => {
     ) : (
         <div>
             <div className={classes.outerHeaderDiv}>
-                <img className={classes.headerIcon} src={deploymentIcon()} />
+                <DeploymentDatabaseIcon className={classes.headerIcon} aria-hidden="true" />
                 <Text className={classes.titleDiv}>{locConstants.deployment.deploymentHeader}</Text>
             </div>
             <Text className={classes.subtitleDiv}>
@@ -147,10 +150,10 @@ export const ChooseDeploymentTypePage: React.FC = () => {
                     <Card
                         className={classes.cardDiv}
                         onClick={() => setDeploymentType(DeploymentType.LocalContainers)}>
-                        <img
+                        <DockerIcon
                             className={classes.dockerIcon}
-                            src={dockerIcon()}
-                            alt={locConstants.deployment.dockerSqlServerHeader}
+                            role="img"
+                            aria-label={locConstants.deployment.dockerSqlServerHeader}
                         />
                         <Text className={classes.cardHeader}>
                             {locConstants.deployment.dockerSqlServerHeader}
@@ -162,10 +165,10 @@ export const ChooseDeploymentTypePage: React.FC = () => {
                     <Card
                         className={classes.cardDiv}
                         onClick={() => setDeploymentType(DeploymentType.FabricProvisioning)}>
-                        <img
+                        <SqlDbInFabricIcon
                             className={classes.sqlInFabricIcon}
-                            src={sqlDbInFabricIcon()}
-                            alt={locConstants.deployment.fabricProvisioningHeader}
+                            role="img"
+                            aria-label={locConstants.deployment.fabricProvisioningHeader}
                         />
                         <Text className={classes.cardHeader}>
                             {locConstants.deployment.fabricProvisioningHeader}
@@ -178,16 +181,4 @@ export const ChooseDeploymentTypePage: React.FC = () => {
             </div>
         </div>
     );
-};
-
-export const deploymentIcon = () => {
-    return require(`../../media/database.svg`);
-};
-
-export const dockerIcon = () => {
-    return require(`../../media/docker.svg`);
-};
-
-export const sqlDbInFabricIcon = () => {
-    return require(`../../media/sqlDbInFabric.svg`);
 };

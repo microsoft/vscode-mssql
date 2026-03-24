@@ -22,7 +22,7 @@ import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 
-export const LocalContainersSetupStepsPage: React.FC = () => {
+export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
     const classes = stepPageStyles();
     const context = useContext(DeploymentContext);
     const localContainersState = useDeploymentSelector(

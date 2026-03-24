@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../../common/forms/form.component";
-import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
+import { LocalContainersDeploymentProvisioningPage } from "./localContainersDeploymentProvisioningPage";
 import {
     LocalContainersContextProps,
     LocalContainersFormItemSpec,
@@ -63,7 +63,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const LocalContainersInputForm: React.FC = () => {
+export const LocalContainersDeploymentFormPage: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const dialog = useDeploymentSelector((s) => s.dialog);
@@ -125,7 +125,7 @@ export const LocalContainersInputForm: React.FC = () => {
     }, [localContainersState.isDockerProfileValid]);
 
     return showNext ? (
-        <LocalContainersSetupStepsPage />
+        <LocalContainersDeploymentProvisioningPage />
     ) : (
         <div>
             <LocalContainersHeader

@@ -5,13 +5,15 @@
 
 import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
+import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { LocalContainersStartPage } from "./localContainersStartPage";
 import { DeploymentType } from "../../../../sharedInterfaces/deployment";
 import { ChevronLeft20Regular } from "@fluentui/react-icons";
 import { ChooseDeploymentTypePage } from "../chooseDeploymentTypePage";
-import { FabricProvisioningStartPage } from "./fabricProvisioningStartPage";
-import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
+import { ChooseVersionIcon } from "../../../common/icons/chooseVersion";
+import { InstantSetupIcon } from "../../../common/icons/instantSetup";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -20,7 +22,6 @@ const useStyles = makeStyles({
         gap: "2px",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
         minWidth: "750px",
         minHeight: "fit-content",
     },
@@ -50,7 +51,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         height: "fit-content",
-        padding: "25px",
+        padding: "10px",
     },
     textDiv: {
         position: "relative",
@@ -75,7 +76,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const FabricProvisioningInfoPage: React.FC = () => {
+export const LocalContainersDeploymentInfoPage: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const [showNext, setShowNext] = useState(false);
@@ -89,7 +90,7 @@ export const FabricProvisioningInfoPage: React.FC = () => {
     return showPrevious ? (
         <ChooseDeploymentTypePage />
     ) : showNext ? (
-        <FabricProvisioningStartPage />
+        <LocalContainersStartPage />
     ) : (
         <div>
             <Button
@@ -99,56 +100,78 @@ export const FabricProvisioningInfoPage: React.FC = () => {
                 <ChevronLeft20Regular style={{ marginRight: "4px" }} />
                 {locConstants.common.back}
             </Button>
-            <FabricProvisioningHeader />
+            <LocalContainersHeader
+                headerText={locConstants.localContainers.sqlServerContainerHeader}
+            />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
                     <div className={classes.itemDiv}>
-                        <img
+                        <InstantSetupIcon
                             className={classes.icon}
-                            src={builtOnAzureSQL()}
-                            alt={locConstants.fabricProvisioning.builtOnAzureSQL}
+                            role="img"
+                            aria-label={locConstants.localContainers.instantContainerSetup}
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
-                                {locConstants.fabricProvisioning.builtOnAzureSQL}
+                                {locConstants.localContainers.instantContainerSetup}
                             </div>
-                            <div>{locConstants.fabricProvisioning.builtOnAzureSQLDescription}</div>
+                            <div>{locConstants.localContainers.instantContainerDescription}</div>
                         </div>
                     </div>
                     <div className={classes.itemDiv}>
-                        <img
+                        <ChooseVersionIcon
                             className={classes.icon}
-                            src={analyticsReady()}
-                            alt={locConstants.fabricProvisioning.analyticsReady}
+                            role="img"
+                            aria-label={locConstants.localContainers.chooseTheRightVersion}
+                            style={{
+                                width: "60px",
+                                height: "60px",
+                                marginLeft: "9px",
+                                marginRight: "18px",
+                            }}
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
-                                {locConstants.fabricProvisioning.analyticsReady}
-                            </div>
-                            <div>{locConstants.fabricProvisioning.analyticsReadyDescription}</div>
-                        </div>
-                    </div>
-                    <div className={classes.itemDiv}>
-                        <img
-                            className={classes.icon}
-                            src={integratedAndSecure()}
-                            alt={locConstants.fabricProvisioning.integratedAndSecure}
-                        />
-                        <div className={classes.textDiv}>
-                            <div className={classes.titleDiv}>
-                                {locConstants.fabricProvisioning.integratedAndSecure}
+                                {locConstants.localContainers.chooseTheRightVersion}
                             </div>
                             <div>
-                                {locConstants.fabricProvisioning.integratedAndSecureDescription}
+                                {locConstants.localContainers.chooseTheRightVersionDescription}
                             </div>
+                            <a
+                                href={
+                                    "https://learn.microsoft.com/en-us/sql/sql-server/what-s-new-in-sql-server-2025"
+                                }
+                                target="_blank"
+                                className={classes.link}
+                                rel="noopener noreferrer">
+                                {locConstants.localContainers.learnMoreAboutSqlServer2025}
+                            </a>
+                            <a
+                                href={
+                                    "https://learn.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2025?"
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={classes.link}
+                                style={{ marginTop: "0px" }}>
+                                {locConstants.localContainers.sqlServerEditionsComparison}
+                            </a>
+                            <a
+                                href={
+                                    "https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-docker-container-configure"
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={classes.link}
+                                style={{ marginTop: "0px" }}>
+                                {locConstants.localContainers.configureAndCustomizeSqlServer}
+                            </a>
                         </div>
                     </div>
                     <Button
                         className={classes.button}
                         onClick={() => {
-                            context.initializeDeploymentSpecifics(
-                                DeploymentType.FabricProvisioning,
-                            );
+                            context.initializeDeploymentSpecifics(DeploymentType.LocalContainers);
                             setShowNext(true);
                         }}
                         appearance={"primary"}>
@@ -158,16 +181,4 @@ export const FabricProvisioningInfoPage: React.FC = () => {
             </div>
         </div>
     );
-};
-
-export const builtOnAzureSQL = () => {
-    return require(`../../../media/builtOnAzureSql.svg`);
-};
-
-export const analyticsReady = () => {
-    return require(`../../../media/analyticsReady.svg`);
-};
-
-export const integratedAndSecure = () => {
-    return require(`../../../media/instantSetup.svg`);
 };
