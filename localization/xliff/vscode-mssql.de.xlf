@@ -3145,6 +3145,10 @@ Fehler:
         <source xml:lang="en">Export to JSON</source>
         <target state="translated">In JSON exportieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++ccd4fda2f60776da3700ab9349601e6fb2058888d091d6bad6dd7ffb9b32bd75">
+        <source xml:lang="en">Export to PDF</source>
+        <target state="new">Export to PDF</target>
+      </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
         <target state="translated">Als Datei mit Tabstopptrennzeichen exportieren</target>
