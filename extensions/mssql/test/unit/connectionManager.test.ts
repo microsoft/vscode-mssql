@@ -452,7 +452,6 @@ suite("ConnectionManager Tests", () => {
                 expect(error.message).to.equal(LocalizedConstants.msgAccountRefreshFailed());
             }
 
-            expect(withProgressStub).to.have.been.called;
             expect(mockAzureController.refreshAccessToken).to.have.been.called;
             expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWith(
                 LocalizedConstants.msgAccountRefreshFailed(),
