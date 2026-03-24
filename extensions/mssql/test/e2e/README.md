@@ -10,7 +10,8 @@ For more information regarding this limitation, refer to [using insiders version
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) v18 or higher
+- [Node.js](https://nodejs.org/en/) v24 or higher
+- npm v11 or higher
 
 ---
 

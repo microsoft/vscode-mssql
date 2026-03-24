@@ -2,7 +2,8 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) v18 or higher
+- [Node.js](https://nodejs.org/en/) v24 or higher
+- npm v11 or higher
 - [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
 
 ### ⚠️ Important

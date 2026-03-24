@@ -29,18 +29,12 @@ jobs:
 
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
-        with:
-          source-dir: "./extensions/mssql"
 
       - name: SqlProj - Install dependencies and build
         uses: ./.github/actions/build-sqlproj
-        with:
-          source-dir: "./extensions/sql-database-projects"
 
       - name: Data Workspace - Install dependencies and build
         uses: ./.github/actions/build-data-workspace
-        with:
-          source-dir: "./extensions/data-workspace"
 
       - name: Package extensions
         run: |
