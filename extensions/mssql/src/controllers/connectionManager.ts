@@ -1142,6 +1142,13 @@ export default class ConnectionManager {
                         });
                         try {
                             const refreshedToken = await refreshTask();
+                            if (!refreshedToken) {
+                                reject({
+                                    status: ApiStatus.Error,
+                                    message: LocalizedConstants.msgAccountRefreshFailed(),
+                                } as Status);
+                                return;
+                            }
                             this._logger?.verbose(
                                 `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}; now expires on ${refreshedToken.expiresOn} (currently ${Date.now() / 1000}).`,
                             );
