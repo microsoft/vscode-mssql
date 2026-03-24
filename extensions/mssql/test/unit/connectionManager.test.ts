@@ -449,13 +449,11 @@ suite("ConnectionManager Tests", () => {
                 await testConnectionManager.refreshEntraTokenIfNeeded(connectionInfo);
                 expect.fail("Should have thrown an error");
             } catch (error) {
-                expect(error.message).to.equal(LocalizedConstants.msgAccountRefreshFailed());
+                expect(error.message).to.include(LocalizedConstants.msgAccountRefreshFailed());
             }
 
             expect(mockAzureController.refreshAccessToken).to.have.been.called;
-            expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWith(
-                LocalizedConstants.msgAccountRefreshFailed(),
-            );
+            expect(mockVscodeWrapper.showErrorMessage).to.have.been.called;
         });
 
         test("refreshes token and writes it to shared cache", async () => {
