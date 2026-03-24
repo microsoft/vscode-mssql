@@ -190,9 +190,9 @@ export const TextView = () => {
 
                         // Add row count information
                         if (resultSetSummary.rowCount > 0) {
-                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})${EOL}`;
+                            content += `${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)}${EOL}`;
                         } else {
-                            content += `(${locConstants.queryResult.rowsAffected(0)})${EOL}`;
+                            content += `${locConstants.queryResult.rowsAffected(0)}${EOL}`;
                         }
 
                         content += `${EOL}`;

@@ -1703,7 +1703,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4">
         <source xml:lang="en">Connection actions</source>
-        <target state="new">Connection actions</target>
+        <target state="translated">Ações de conexão</target>
       </trans-unit>
       <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
         <source xml:lang="en">Connection error</source>
@@ -1771,7 +1771,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
         <source xml:lang="en">Connection test succeeded</source>
-        <target state="new">Connection test succeeded</target>
+        <target state="translated">Teste de conexão bem-sucedido</target>
       </trans-unit>
       <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
@@ -1877,6 +1877,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
         <source xml:lang="en">Copy As</source>
         <target state="translated">Copiar como</target>
+      </trans-unit>
+      <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
+        <source xml:lang="en">Copy Column Name</source>
+        <target state="translated">Copiar nome da coluna</target>
       </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
@@ -3433,12 +3437,12 @@ Erro:
       <trans-unit id="++CODE++f8bdabb0046a85c7425f45c252b0b3e8bb407660e28ad5844369a7176f7763b9">
         <source xml:lang="en">Failed to open Schema Designer: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open Schema Designer: {0}</target>
+        <target state="translated">Falha ao abrir o Designer de Esquema: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3">
         <source xml:lang="en">Failed to open Table Designer: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open Table Designer: {0}</target>
+        <target state="translated">Falha ao abrir o Designer de Tabela: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a32ffd7a33114d3b61146c6a94e4d0af2793426148cebd559e12bc469035c801">
         <source xml:lang="en">Failed to open URL. The built-in Simple Browser may be disabled.</source>
@@ -6838,7 +6842,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06">
         <source xml:lang="en">Save without connecting</source>
-        <target state="new">Save without connecting</target>
+        <target state="translated">Salvar sem se conectar</target>
       </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
@@ -7943,7 +7947,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912">
         <source xml:lang="en">Test connection</source>
-        <target state="new">Test connection</target>
+        <target state="translated">Testar conectividade</target>
       </trans-unit>
       <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
         <source xml:lang="en">Testing connection profile...</source>
@@ -7951,7 +7955,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6c02a28421f8ad91e91756cb731bb47993bf529101135966b80128548a16d5b1">
         <source xml:lang="en">Testing...</source>
-        <target state="new">Testing...</target>
+        <target state="translated">Testando...</target>
       </trans-unit>
       <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
         <source xml:lang="en">Text</source>
@@ -8506,7 +8510,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
         <source xml:lang="en">View Table Diagram</source>
-        <target state="new">View Table Diagram</target>
+        <target state="translated">Exibir o Diagrama de Tabela</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
@@ -9251,7 +9255,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines">
         <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
-        <target state="new">Control which grid lines are visible in the results grid.</target>
+        <target state="translated">Controlar quais linhas de grade são visíveis na grade de resultados.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
@@ -9457,7 +9461,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.alternatingRowColors">
         <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
-        <target state="new">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</target>
+        <target state="translated">Habilitar cores de plano de fundo de linha alternadas (listras em zigue-zague) na grade de resultados. A cor é derivada do tema atual do VS Code.</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
@@ -9497,7 +9501,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.rowPadding">
         <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
-        <target state="new">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</target>
+        <target state="translated">Preenchimento vertical extra em pixels adicionado a cada linha na grade de resultados, controlando a densidade das linhas. Intervalo válido: 0-10.</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
@@ -9529,7 +9533,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.none">
         <source xml:lang="en">Hide all grid lines</source>
-        <target state="new">Hide all grid lines</target>
+        <target state="translated">Ocultar todas as linhas de grade</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
@@ -9851,7 +9855,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.both">
         <source xml:lang="en">Show both horizontal and vertical grid lines</source>
-        <target state="new">Show both horizontal and vertical grid lines</target>
+        <target state="translated">Mostrar linhas de grade horizontais e verticais</target>
       </trans-unit>
       <trans-unit id="mssql.showChangelogOnUpdate">
         <source xml:lang="en">Show changelog after extension updates</source>
@@ -9859,11 +9863,11 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
         <source xml:lang="en">Show only horizontal grid lines</source>
-        <target state="new">Show only horizontal grid lines</target>
+        <target state="translated">Mostrar apenas linhas de grade horizontais</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
         <source xml:lang="en">Show only vertical grid lines</source>
-        <target state="new">Show only vertical grid lines</target>
+        <target state="translated">Mostrar apenas linhas de grade verticais</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
@@ -9923,7 +9927,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start SQL Container</source>
-        <target state="translated">Iniciar SQL Container</target>
+        <target state="translated">Iniciar Contêiner SQL</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>

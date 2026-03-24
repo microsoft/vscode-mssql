@@ -41,6 +41,18 @@ suite("TableDesignerWebviewController tests", () => {
         stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        const outputChannel: vscode.OutputChannel = {
+            name: "MSSQL",
+            append: sandbox.stub(),
+            appendLine: sandbox.stub(),
+            clear: sandbox.stub(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            show: sandbox.stub() as any,
+            replace: sandbox.stub(),
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+        };
+        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => outputChannel);
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);

@@ -2467,6 +2467,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Table Diagram]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Exibir o Diagrama de Tabela]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cost]]></Val>
@@ -7183,6 +7192,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5bcf311b19d80c5645ce05f5fd36fc449412a6571ceb229fd483e9c415865912" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testar conectividade]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5bf30206188ff92ec48bba56b2bf99fcb46ba9c20a05460485cf684b81a9c54b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cannot exclude {0}. Included dependents exist]]></Val>
@@ -8371,6 +8389,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6c02a28421f8ad91e91756cb731bb47993bf529101135966b80128548a16d5b1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testando...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6c0fbe990abbc4d4b6a832d99cd6f59e467c361fe623ec0b67a332a648d23a5e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Source Database]]></Val>
@@ -9528,6 +9555,15 @@
           <Val><![CDATA[Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[O Profiler está no modo somente leitura e desconectado para o arquivo XEL '{0}' e não pode iniciar ou criar sessões ativas sem uma conexão de banco de dados]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7adcdad944795811d245dd457c98c003d8ffba02c9e947a3f7267162b347bfd3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to open Table Designer: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Falha ao abrir o Designer de Tabela: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11440,6 +11476,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy Column Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Copiar nome da coluna]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[I have read the summary and understand the potential risks.]]></Val>
@@ -12030,6 +12075,15 @@
           <Val><![CDATA[Compress backup]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Compactar backup]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9e1bbb65014b6b6675d9921d3f4f67079e6646332e4bc7aff7f12acfc0b9d3d4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ações de conexão]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13393,6 +13447,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save without connecting]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Salvar sem se conectar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connections in groups that are not selected will be moved under the root.]]></Val>
@@ -14541,15 +14604,6 @@
           <Val><![CDATA[Custom GraphQL Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tipo de GraphQL personalizado]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test Connection]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testar Conexão]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18721,6 +18775,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f8bdabb0046a85c7425f45c252b0b3e8bb407660e28ad5844369a7176f7763b9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to open Schema Designer: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Falha ao abrir o Designer de Esquema: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Equals]]></Val>
@@ -18888,6 +18951,15 @@
           <Val><![CDATA[Loading Schema Designer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Carregando o Designer de Esquema]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection test succeeded]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Teste de conexão bem-sucedido]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21280,6 +21352,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.resultsGrid.alternatingRowColors" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Habilitar cores de plano de fundo de linha alternadas (listras em zigue-zague) na grade de resultados. A cor é derivada do tema atual do VS Code.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.resultsGrid.autoSizeColumnsMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).]]></Val>
@@ -21303,6 +21384,60 @@
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Controla o número máximo de linhas permitidas para filtragem e classificação na memória. Se o número for excedido, a classificação e a filtragem serão desabilitadas. Aviso: aumentar isso pode afetar o desempenho.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.rowPadding" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Preenchimento vertical extra em pixels adicionado a cada linha na grade de resultados, controlando a densidade das linhas. Intervalo válido: 0-10.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Control which grid lines are visible in the results grid.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Controlar quais linhas de grade são visíveis na grade de resultados.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.both" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show both horizontal and vertical grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrar linhas de grade horizontais e verticais]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.horizontal" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show only horizontal grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrar apenas linhas de grade horizontais]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.none" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide all grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ocultar todas as linhas de grade]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.vertical" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show only vertical grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrar apenas linhas de grade verticais]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21590,10 +21725,10 @@
         <Str Cat="Text">
           <Val><![CDATA[Start SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Iniciar SQL Container]]></Val>
+            <Val><![CDATA[Iniciar Contêiner SQL]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Start Container]]></Val>
+            <Val><![CDATA[Start SQLContainer]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />

@@ -752,6 +752,7 @@ export class LocConstants {
             sort: l10n.t("Sort"),
             filter: l10n.t("Filter"),
             resize: l10n.t("Resize"),
+            copyColumnName: l10n.t("Copy Column Name"),
             resizeColumn: (columnName: string) => {
                 return l10n.t({
                     message: "Resize column '{0}'",

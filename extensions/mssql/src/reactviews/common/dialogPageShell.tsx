@@ -187,11 +187,7 @@ export const DialogPageShell = ({
               })
             : icon;
     const hasHeaderIcon = headerIcon !== undefined && headerIcon !== null && headerIcon !== false;
-    const hasHeaderContent =
-        icon !== undefined ||
-        title !== undefined ||
-        subtitle !== undefined ||
-        headerEnd !== undefined;
+    const hasHeaderContent = !!icon || !!title || !!subtitle || !!headerEnd;
 
     return (
         <div className={styles.page} aria-label={title}>
