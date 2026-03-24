@@ -40,11 +40,13 @@ export const DabDeploymentProgress = ({
             <DialogTitle>
                 {locConstants.localContainers.settingUp} {containerName}...
             </DialogTitle>
-            <DialogContent style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <DialogContent style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <Text>{locConstants.localContainers.gettingContainerReadyForConnection}</Text>
-                {stepStatuses.map((stepStatus) => (
-                    <DabStepCard key={stepStatus.step} stepStatus={stepStatus} />
-                ))}
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    {stepStatuses.map((stepStatus) => (
+                        <DabStepCard key={stepStatus.step} stepStatus={stepStatus} />
+                    ))}
+                </div>
             </DialogContent>
             <DialogActions>
                 <Button appearance="secondary" onClick={onCancel}>

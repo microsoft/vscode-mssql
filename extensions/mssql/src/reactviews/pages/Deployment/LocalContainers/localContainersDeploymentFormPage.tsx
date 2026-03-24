@@ -56,7 +56,7 @@ const useStyles = makeStyles({
     advancedOptionsDiv: {
         marginLeft: "24px",
         width: "100%",
-        maxWidth: "600px",
+        minWidth: 0,
     },
     bottomDiv: {
         paddingBottom: "8px",
@@ -80,7 +80,6 @@ const useStyles = makeStyles({
     },
     fieldContainer: {
         width: "100%",
-        maxWidth: "600px",
         minWidth: 0,
         whiteSpace: "normal",
         overflowWrap: "break-word",
@@ -88,11 +87,9 @@ const useStyles = makeStyles({
     },
     advancedToggle: {
         width: "100%",
-        maxWidth: "600px",
     },
     eulaCard: {
         width: "100%",
-        maxWidth: "600px",
         borderRadius: "8px",
         border: "1px solid var(--vscode-editorWidget-border)",
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
@@ -250,7 +247,7 @@ export const LocalContainersDeploymentFormPage: React.FC<
                         appearance="subtle"
                         onClick={() => setShowAdvanced(!showAdvancedOptions)}
                     />
-                    {locConstants.connectionDialog.advancedOptions}
+                    <span>{locConstants.connectionDialog.advancedOptions}</span>
                 </div>
 
                 {showAdvancedOptions && (

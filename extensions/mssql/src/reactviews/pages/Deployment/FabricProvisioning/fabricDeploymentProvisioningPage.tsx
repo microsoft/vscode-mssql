@@ -3,92 +3,65 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
+import { makeStyles, tokens } from "@fluentui/react-components";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useDeploymentSelector } from "../deploymentSelector";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { DeploymentStepCard } from "../deploymentStepCard";
 
 const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
-        alignItems: "center",
-        justifyContent: "center",
-        minWidth: "650px",
+        gap: "8px",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
+        width: "100%",
+        minWidth: 0,
         minHeight: "fit-content",
     },
     innerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
+        gap: "12px",
         height: "fit-content",
-        width: "fit-content",
-        minWidth: "650px",
+        width: "100%",
+        minWidth: 0,
     },
     contentHeader: {
         fontSize: "22px",
         fontWeight: 400,
-        padding: "8px",
+        padding: "0",
         textAlign: "left",
     },
-    leftHeader: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        fontSize: "18px",
-        fontWeight: 400,
-    },
-    separatorDiv: {
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: "4px",
-        background: tokens.colorNeutralStroke2,
-    },
-    header: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "4px",
-    },
     cardContentDiv: {
-        display: "flex",
-        flexDirection: "row",
-        gap: "2px",
-        height: "100%",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: "0",
         width: "100%",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     cardColumn: {
         display: "flex",
         flexDirection: "column",
         padding: "20px",
-        width: "fit-content",
+        width: "100%",
+        minWidth: 0,
     },
     cardDiv: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "2px",
-        minHeight: "250px",
-        height: "fit-content",
         width: "100%",
     },
     cardItem: {
         fontSize: "14px",
-        padding: "10px",
+        padding: "10px 0",
     },
     cardItemLabel: {
         color: tokens.colorNeutralForeground4,
         paddingRight: "10px",
     },
-    cardHeader: {
-        width: "100%",
-        fontSize: "24px",
-        padding: "8px",
-        textAlign: "left",
+    cardBody: {
+        padding: "0",
     },
 });
 
@@ -118,24 +91,8 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
 
     if (!provisionLoadState) return undefined;
 
-    const getStatusIcon = () => {
-        let status: ApiStatus;
-        if (provisionLoadState !== ApiStatus.Loaded) {
-            status = provisionLoadState;
-        } else {
-            status = connectionLoadState;
-        }
-        if (status === ApiStatus.NotStarted) {
-            return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
-        }
-        if (status === ApiStatus.Loaded) {
-            return <Checkmark20Regular style={{ color: tokens.colorStatusSuccessBackground3 }} />;
-        }
-        if (status === ApiStatus.Error) {
-            return <Dismiss20Regular style={{ color: tokens.colorStatusDangerBackground3 }} />;
-        }
-        return <Spinner size="tiny" />;
-    };
+    const stepStatus =
+        provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
 
     const getHeaderText = () => {
         let headerText = locConstants.fabricProvisioning.finishedDeployment;
@@ -157,14 +114,11 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                 <div className={classes.contentHeader}>
                     {locConstants.fabricProvisioning.provisioning} {databaseName}
                 </div>
-                <Card className={classes.cardDiv}>
-                    <div className={classes.separatorDiv} />
-                    <div className={classes.cardHeader}>
-                        <div className={classes.leftHeader}>
-                            {getStatusIcon()}
-                            {getHeaderText()}
-                        </div>
-                    </div>
+                <DeploymentStepCard
+                    status={stepStatus}
+                    title={getHeaderText()}
+                    className={classes.cardDiv}
+                    bodyClassName={classes.cardBody}>
                     <div className={classes.cardContentDiv}>
                         {errorMessage ? (
                             <div className={classes.cardColumn}>
@@ -210,7 +164,7 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                             </>
                         )}
                     </div>
-                </Card>
+                </DeploymentStepCard>
             </div>
         </div>
     );

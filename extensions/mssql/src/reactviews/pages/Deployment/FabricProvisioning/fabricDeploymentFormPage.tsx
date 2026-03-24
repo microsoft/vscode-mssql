@@ -49,7 +49,7 @@ const useStyles = makeStyles({
     advancedOptionsDiv: {
         marginLeft: "24px",
         width: "100%",
-        maxWidth: "600px",
+        minWidth: 0,
     },
     bottomDiv: {
         paddingBottom: "8px",
@@ -78,11 +78,9 @@ const useStyles = makeStyles({
         marginTop: "20px",
         marginBottom: "20px",
         width: "100%",
-        maxWidth: "600px",
     },
     fieldContainer: {
         width: "100%",
-        maxWidth: "600px",
         minWidth: 0,
         whiteSpace: "normal",
         overflowWrap: "break-word",
@@ -90,7 +88,6 @@ const useStyles = makeStyles({
     },
     advancedToggle: {
         width: "100%",
-        maxWidth: "600px",
     },
 });
 
@@ -321,7 +318,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         appearance="subtle"
                         onClick={() => setShowAdvanced(!showAdvancedOptions)}
                     />
-                    {locConstants.connectionDialog.advancedOptions}
+                    <span>{locConstants.connectionDialog.advancedOptions}</span>
                 </div>
 
                 {showAdvancedOptions && (

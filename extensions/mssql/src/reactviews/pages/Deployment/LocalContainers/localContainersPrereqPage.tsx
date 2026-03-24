@@ -77,9 +77,6 @@ export const LocalContainersPrereqPage: React.FC = () => {
     return (
         <div className={classes.outerDiv}>
             <div className={classes.stepsDiv}>
-                <div className={classes.stepsHeader}>
-                    {locConstants.localContainers.gettingDockerReady}
-                </div>
                 <div className={classes.stepsSubheader}>
                     {locConstants.localContainers.checkingPrerequisites}
                 </div>
