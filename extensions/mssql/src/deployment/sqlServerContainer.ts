@@ -46,12 +46,17 @@ const yearStringLength = 4;
  * SQL Server-specific commands.
  */
 export const SQL_SERVER_COMMANDS = {
-    CHECK_CONTAINER_READY: `Recovery is complete`,
+    CHECK_CONTAINER_READY: `SQL Server is now ready for client connections`,
+    CHECK_CONTAINER_LISTENING_ON_SQL_PORT: `Server is listening on`,
+    CHECK_CONTAINER_RECOVERY_COMPLETE: `Recovery is complete`,
     GET_SQL_SERVER_CONTAINER_VERSIONS: (): DockerCommand => ({
         command: "curl",
         args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
     }),
 };
+
+const sqlServerLogMonitorBufferLength = 32 * 1024;
+const sqlServerReadinessPollIntervalMs = 250;
 
 /**
  * The steps for the Docker container deployment process.
@@ -125,6 +130,48 @@ export function constructVersionTag(version: string): string {
 
 function getSqlServerImageName(versionTag: string): string {
     return `${sqlServerDockerRegistry}/${sqlServerDockerRepository}:${versionTag}`;
+}
+
+function getContainerStartTimestampSeconds(
+    containerInspectInfo: Dockerode.ContainerInspectInfo,
+): number {
+    const startedAt = containerInspectInfo.State?.StartedAt;
+    const startedAtMilliseconds = startedAt ? Date.parse(startedAt) : NaN;
+
+    if (Number.isNaN(startedAtMilliseconds)) {
+        return Math.floor(Date.now() / 1000);
+    }
+
+    return Math.floor(startedAtMilliseconds / 1000);
+}
+
+async function waitForSqlServerReadinessMarkers(
+    logMonitor: { getLogs: () => string | undefined },
+    timeoutMs: number,
+): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+        const logs = logMonitor.getLogs() ?? "";
+
+        if (logs.includes(SQL_SERVER_COMMANDS.CHECK_CONTAINER_READY)) {
+            return true;
+        }
+
+        const isListeningOnSqlPort =
+            logs.includes(SQL_SERVER_COMMANDS.CHECK_CONTAINER_LISTENING_ON_SQL_PORT) &&
+            /Server is listening on .*1433.*accept sockets/i.test(logs);
+        if (
+            isListeningOnSqlPort &&
+            logs.includes(SQL_SERVER_COMMANDS.CHECK_CONTAINER_RECOVERY_COMPLETE)
+        ) {
+            return true;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, sqlServerReadinessPollIntervalMs));
+    }
+
+    return false;
 }
 
 /**
@@ -286,8 +333,6 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
     containerName: string,
 ): Promise<DockerCommandParams> {
     const timeoutMs = 300_000; // 5 minutes
-    const readyMessage = SQL_SERVER_COMMANDS.CHECK_CONTAINER_READY;
-    const startTimestampSeconds = Math.floor(Date.now() / 1000);
 
     dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
 
@@ -300,13 +345,16 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
             };
         }
 
+        const containerInspectInfo = await container.inspect();
+        const startTimestampSeconds = getContainerStartTimestampSeconds(containerInspectInfo);
+
         const logMonitor = await startContainerLogMonitor(container, {
             since: startTimestampSeconds,
-            maxBufferLength: readyMessage.length * 2,
+            maxBufferLength: sqlServerLogMonitorBufferLength,
         });
         let isReady = false;
         try {
-            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
+            isReady = await waitForSqlServerReadinessMarkers(logMonitor, timeoutMs);
         } finally {
             logMonitor.dispose();
         }

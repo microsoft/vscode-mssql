@@ -296,8 +296,8 @@ suite("SQL Server Container", () => {
                 ) => {
                     const output = stdout as PassThrough;
                     queueMicrotask(() => {
-                        output.write("Recovery is ");
-                        output.end("complete");
+                        output.write("SQL Server is now ready ");
+                        output.end("for client connections");
                     });
                 },
             );
@@ -324,7 +324,9 @@ suite("SQL Server Container", () => {
         listContainersStub
             .onCall(1)
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]); // isDockerContainerRunning
-        inspectStub.onFirstCall().resolves({ State: { Running: true } });
+        inspectStub.onFirstCall().resolves({
+            State: { Running: true, StartedAt: new Date().toISOString() },
+        });
 
         let result = await sqlServerContainer.restartSqlServerContainer(
             containerName,
@@ -349,6 +351,7 @@ suite("SQL Server Container", () => {
             .onCall(3)
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]); // readiness
         inspectStub.onFirstCall().resolves({ State: { Running: false } });
+        inspectStub.onSecondCall().resolves({ State: { StartedAt: new Date().toISOString() } });
 
         result = await sqlServerContainer.restartSqlServerContainer(
             containerName,
@@ -365,7 +368,11 @@ suite("SQL Server Container", () => {
         const rawLogsStream = new PassThrough();
         const logsStub = sandbox.stub().resolves(rawLogsStream);
         const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
+        const inspectStub = sandbox
+            .stub()
+            .resolves({ State: { StartedAt: new Date().toISOString() } });
         const getContainerStub = sandbox.stub().returns({
+            inspect: inspectStub,
             logs: logsStub,
         });
         const demuxStreamStub = sandbox
@@ -378,8 +385,8 @@ suite("SQL Server Container", () => {
                 ) => {
                     const output = stdout as PassThrough;
                     queueMicrotask(() => {
-                        output.write("Recovery is ");
-                        output.end("complete");
+                        output.write("SQL Server is now ready ");
+                        output.end("for client connections");
                     });
                 },
             );
@@ -397,6 +404,55 @@ suite("SQL Server Container", () => {
             );
         expect(result.success, "Should return success when container is ready for connections").to
             .be.true;
+        expect(inspectStub).to.have.been.calledOnce;
+        expect(logsStub).to.have.been.calledOnce;
+    });
+
+    test("checkIfContainerIsReadyForConnections: should return true when fallback markers are present", async () => {
+        const rawLogsStream = new PassThrough();
+        const logsStub = sandbox.stub().resolves(rawLogsStream);
+        const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
+        const inspectStub = sandbox
+            .stub()
+            .resolves({ State: { StartedAt: new Date().toISOString() } });
+        const getContainerStub = sandbox.stub().returns({
+            inspect: inspectStub,
+            logs: logsStub,
+        });
+        const demuxStreamStub = sandbox
+            .stub()
+            .callsFake(
+                (
+                    _stream: NodeJS.ReadableStream,
+                    stdout: NodeJS.WritableStream,
+                    _stderr: NodeJS.WritableStream,
+                ) => {
+                    const output = stdout as PassThrough;
+                    queueMicrotask(() => {
+                        output.write(
+                            "Server is listening on [ 'any' <ipv4> 1433] accept sockets 1.\n",
+                        );
+                        output.end(
+                            "Recovery is complete. This is an informational message only. No user action is required.",
+                        );
+                    });
+                },
+            );
+
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: getContainerStub,
+            demuxStream: demuxStreamStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result =
+            await sqlServerContainer.checkIfSqlServerContainerIsReadyForConnections(
+                "testContainer",
+            );
+        expect(result.success, "Should return success when fallback readiness markers are present")
+            .to.be.true;
+        expect(inspectStub).to.have.been.calledOnce;
         expect(logsStub).to.have.been.calledOnce;
     });
 
