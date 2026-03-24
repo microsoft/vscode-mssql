@@ -3581,7 +3581,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API Builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API Builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id } or { schemaName, tableName }. Change types: { type: 'set_api_types', apiTypes }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3672,7 +3672,7 @@
                     },
                     "properties": {
                         "operation": {
-                            "description": "The operation to perform on Data API Builder. Supported values: 'get_state', 'apply_changes', 'show'.",
+                            "description": "The operation to perform on Data API builder. Supported values: 'get_state', 'apply_changes', 'show'.",
                             "title": "Operation",
                             "type": "string",
                             "enum": [
@@ -3682,7 +3682,7 @@
                             ]
                         },
                         "connectionId": {
-                            "description": "Connection ID to use when opening Data API Builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
+                            "description": "Connection ID to use when opening Data API builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
                             "title": "Connection ID",
                             "type": "string",
                             "minLength": 1
@@ -3907,9 +3907,9 @@
                     "additionalProperties": false
                 },
                 "canBeReferencedInPrompt": true,
-                "displayName": "Data API Builder",
+                "displayName": "Data API builder",
                 "toolReferenceName": "mssql_dab",
-                "userDescription": "Open or manage Data API Builder settings for a connection or the active designer.",
+                "userDescription": "Open or manage Data API builder settings for a connection or the active designer.",
                 "icon": "$(database)"
             },
             {

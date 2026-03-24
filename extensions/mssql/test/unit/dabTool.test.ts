@@ -703,7 +703,7 @@ suite("DabTool Tests", () => {
             );
 
             expect(prepared.invocationMessage).to.include("get_state");
-            expect(prepared.confirmationMessages.title).to.include("Data API Builder");
+            expect(prepared.confirmationMessages.title).to.include("Data API builder");
             expect(prepared.confirmationMessages.message.value).to.include("get_state");
         });
     });
