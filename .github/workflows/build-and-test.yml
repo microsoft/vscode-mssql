@@ -90,25 +90,18 @@ jobs:
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
       # that increase size
-      - name: MSSQL - Package extension
+      - name: Package extensions
         continue-on-error: true
         run: |
-          npm run package -- --target mssql
+          failed=0
 
-      - name: SqlProj - Package extension
-        continue-on-error: true
-        run: |
-          npm run package -- --target sql-database-projects
+          for target in mssql sql-database-projects data-workspace database-management-keymap; do
+            if ! npm run package -- --target "$target"; then
+              failed=1
+            fi
+          done
 
-      - name: DataWorkspace - Package extension
-        continue-on-error: true
-        run: |
-          npm run package -- --target data-workspace
-
-      - name: Keymap - Package extension
-        continue-on-error: true
-        run: |
-          npm run package -- --target database-management-keymap
+          exit "$failed"
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
