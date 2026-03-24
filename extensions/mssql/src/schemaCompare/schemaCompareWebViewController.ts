@@ -1570,6 +1570,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            // Optimistically update the checkbox state before the async service call
+            // so the UI reflects the change immediately without waiting for the round-trip.
+            if (state.schemaCompareResult) {
+                state.schemaCompareResult.differences[payload.id].included = payload.includeRequest;
+                this.updateState(state);
+            }
+
             this.logger.verbose(
                 `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
             );
@@ -1665,6 +1672,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     `includeExcludeNode completed successfully - OperationId: ${this.operationId}`,
                 );
             } else {
+                // Revert the optimistic update since the service call failed.
+                if (state.schemaCompareResult) {
+                    state.schemaCompareResult.differences[payload.id].included =
+                        !payload.includeRequest;
+                }
+
                 this.logger.warn(
                     `Failed to ${payload.includeRequest ? "include" : "exclude"} node: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
                 );
@@ -1741,6 +1754,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         },
                     );
                 }
+
+                // Push the reverted state to the webview.
+                this.updateState(state);
             }
 
             return state;

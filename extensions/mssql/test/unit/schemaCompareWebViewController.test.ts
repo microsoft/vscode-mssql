@@ -796,6 +796,165 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
+    test("includeExcludeNode reducer - optimistically updates included state before service call", async () => {
+        // Track the state of `included` when the async service is invoked.
+        // The optimistic update should have already flipped the flag before the service is called.
+        let includedAtServiceCallTime: boolean | undefined;
+
+        sandbox.stub(scUtils, "includeExcludeNode").callsFake(async () => {
+            // Capture the state at the moment the service is called
+            includedAtServiceCallTime =
+                mockInitialState.schemaCompareResult.differences[0].included;
+            return {
+                success: true,
+                errorMessage: "",
+                affectedDependencies: [],
+                blockingDependencies: [],
+            };
+        });
+
+        // The item starts as included (true). We request to exclude it.
+        expect(
+            mockInitialState.schemaCompareResult.differences[0].included,
+            "item should start as included",
+        ).to.be.true;
+
+        const payload = {
+            id: 0,
+            diffEntry: {
+                updateAction: SchemaUpdateAction.Change,
+                differenceType: SchemaDifferenceType.Object,
+                name: "Table",
+                sourceValue: ["dbo", "CUstomers"],
+                targetValue: [],
+                parent: undefined,
+                children: [],
+                sourceScript: "",
+                targetScript: "",
+                included: true,
+            },
+            includeRequest: false, // request to exclude
+        };
+
+        await controller["_reducerHandlers"].get("includeExcludeNode")(mockInitialState, payload);
+
+        // The optimistic update should have set included to false BEFORE the service call
+        expect(
+            includedAtServiceCallTime,
+            "included should be optimistically set to false before the service call",
+        ).to.be.false;
+
+        // Final state should also be false
+        expect(
+            mockInitialState.schemaCompareResult.differences[0].included,
+            "included should remain false after successful service call",
+        ).to.be.false;
+    });
+
+    test("includeExcludeNode reducer - reverts optimistic update on service failure", async () => {
+        sandbox.stub(scUtils, "includeExcludeNode").resolves({
+            success: false,
+            errorMessage: "Service error",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        });
+
+        // Suppress the warning message shown on failure
+        sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined as any);
+
+        // The item starts as included (true). We request to exclude it.
+        expect(
+            mockInitialState.schemaCompareResult.differences[0].included,
+            "item should start as included",
+        ).to.be.true;
+
+        const payload = {
+            id: 0,
+            diffEntry: {
+                updateAction: SchemaUpdateAction.Change,
+                differenceType: SchemaDifferenceType.Object,
+                name: "Table",
+                sourceValue: ["dbo", "CUstomers"],
+                targetValue: [],
+                parent: undefined,
+                children: [],
+                sourceScript: "",
+                targetScript: "",
+                included: true,
+            },
+            includeRequest: false, // request to exclude
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get("includeExcludeNode")(
+            mockInitialState,
+            payload,
+        );
+
+        // The optimistic update should have been reverted after the service failure
+        expect(
+            actualResult.schemaCompareResult.differences[0].included,
+            "included should be reverted to true after service failure",
+        ).to.be.true;
+    });
+
+    test("includeExcludeNode reducer - reverts optimistic update on blocking dependencies failure", async () => {
+        sandbox.stub(scUtils, "includeExcludeNode").resolves({
+            success: false,
+            errorMessage: "Blocked by dependencies",
+            affectedDependencies: [],
+            blockingDependencies: [
+                {
+                    sourceValue: ["dbo", "Orders"],
+                    targetValue: [],
+                    updateAction: SchemaUpdateAction.Add,
+                    name: "Table",
+                    differenceType: SchemaDifferenceType.Object,
+                    children: [],
+                    parent: undefined,
+                    sourceScript: "",
+                    targetScript: "",
+                    included: true,
+                },
+            ],
+        });
+
+        sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined as any);
+
+        // The item starts as included (true). We request to exclude it.
+        expect(
+            mockInitialState.schemaCompareResult.differences[0].included,
+            "item should start as included",
+        ).to.be.true;
+
+        const payload = {
+            id: 0,
+            diffEntry: {
+                updateAction: SchemaUpdateAction.Change,
+                differenceType: SchemaDifferenceType.Object,
+                name: "Table",
+                sourceValue: ["dbo", "CUstomers"],
+                targetValue: [],
+                parent: undefined,
+                children: [],
+                sourceScript: "",
+                targetScript: "",
+                included: true,
+            },
+            includeRequest: false, // request to exclude
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get("includeExcludeNode")(
+            mockInitialState,
+            payload,
+        );
+
+        // The optimistic update should have been reverted after the blocking dependency failure
+        expect(
+            actualResult.schemaCompareResult.differences[0].included,
+            "included should be reverted to true after blocking dependency failure",
+        ).to.be.true;
+    });
+
     test("openScmp reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
