@@ -20,13 +20,6 @@ Use these alongside standard good practices when reviewing code.
 - DO check for duplicated code when we already have functions somewhere.
 - DO NOT write custom functions when a library is already used in the extension (or part of the node runtime) to perform that function.
 
-## Tests
-
-- DO prefer `SinonStubbedInstance` via `sandbox.createStubInstance` over plain-object stubs for classes, and reserve loosely-defined/plain-object stubs only for interface-only types where `createStubInstance` cannot be used.
-- DO check for places where stubs are created outside of a sandbox.
-- DO check that shared sinon stubs are used wherever possible, and that good candidates are added to the collection of premade stubs (found in `extensions/mssql/test/unit/utils.ts`).
-- DO check that stubs and verifications accessed multiple times within a test use parameters, not "n-th call" (e.g., avoid `calledOnce`, `getCall(0)`, `firstCall`). Rationale: "n-th call" checks are brittle and easily broken by incidental changes.
-
 ## Localization
 
 - DO check for strings in UIs and user-facing messages that should be localized.

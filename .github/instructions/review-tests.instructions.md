@@ -6,7 +6,7 @@ applyTo: "extensions/mssql/test/**"
 
 ## Framework Requirements
 
-- Must use Sinon, not TypeMoq. Replace TypeMoq mocks/stubs/helpers with Sinon equivalents when possible.
+- Must use Sinon. Replace any remaining TypeMoq mocks/stubs/helpers with Sinon equivalents.
 - Must use chai's `expect` for assertions. For Sinon interactions, use sinon-chai (`expect(...).to.have.been...`). Avoid `sinon.assert` and Node's `assert`.
 
 ## Telemetry and Logging
@@ -37,8 +37,10 @@ service.connect.resolves(false); // Type-safe, no cast needed
 
 - Use a Sinon sandbox (`sinon.createSandbox()`) with proper setup/teardown.
 - Keep helper closures inside setup where the sandbox is created.
-- Add shared Sinon helpers to `test/unit/utils.ts` when they'll be reused.
-- When introducing a Sinon helper to replace a TypeMoq helper, follow the utils.ts pattern: accept an optional sandbox, create stub instances, and return them.
+- ALWAYS check `test/unit/utils.ts` for reusable stubs before creating new ones. Add shared Sinon helpers there when they'll be reused.
+- Prefer `SinonStubbedInstance` via `sandbox.createStubInstance` over plain-object stubs for classes, and reserve loosely-defined/plain-object stubs only for interface-only types where `createStubInstance` cannot be used.
+- DO check for places where stubs are created outside of a sandbox.
+- DO check that stubs and verifications accessed multiple times within a test use parameters, not "n-th call" (e.g., avoid `calledOnce`, `getCall(0)`, `firstCall`). Rationale: "n-th call" checks are brittle and easily broken by incidental changes.
 
 ## VS Code Service Stubs
 
