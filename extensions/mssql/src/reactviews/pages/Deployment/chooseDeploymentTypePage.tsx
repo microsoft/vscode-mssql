@@ -3,14 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
 import { Card, makeStyles, tokens, Text } from "@fluentui/react-components";
-import { DeploymentContext } from "./deploymentStateProvider";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
-import { FabricDeploymentInfoPage } from "./FabricProvisioning/fabricDeploymentInfoPage";
-import { LocalContainersDeploymentInfoPage } from "./LocalContainers/localContainersDeploymentInfoPage";
 import { locConstants } from "../../common/locConstants";
-import { DeploymentDatabaseIcon } from "../../common/icons/deploymentDatabase";
 import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
 
@@ -18,10 +13,9 @@ const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
+        gap: "16px",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
         width: "100%",
         minWidth: "750px",
         minHeight: "fit-content",
@@ -29,155 +23,141 @@ const useStyles = makeStyles({
     cardRow: {
         display: "flex",
         flexDirection: "row",
-        gap: "20px",
-    },
-    itemDiv: {
-        position: "relative",
-        overflow: "auto",
-        display: "flex",
-        flexDirection: "row",
-        height: "fit-content",
-        padding: "10px",
-    },
-    textDiv: {
-        position: "relative",
-        overflow: "auto",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "left",
-        gap: "10px",
-        width: "425px",
-    },
-    dockerIcon: {
-        width: "75px",
-        height: "75px",
-        marginRight: "10px",
-    },
-    sqlInFabricIcon: {
-        width: "65px",
-        height: "65px",
-        marginRight: "10px",
-    },
-    subtitleDiv: {
-        fontSize: "14px",
-        alignItems: "unset",
-        textAlign: "left",
-        fontWeight: 400,
-        paddingLeft: "70px",
-        paddingBottom: "50px",
-    },
-    outerHeaderDiv: {
-        display: "flex",
-        flexDirection: "row",
-        gap: "20px",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        minWidth: "750px",
-        minHeight: "fit-content",
-        top: 0,
-        left: 0,
-        paddingTop: "50px",
-        paddingLeft: "70px",
-        paddingBottom: "15px",
-    },
-    titleDiv: {
-        fontWeight: 500,
-        fontSize: "24px",
-        display: "flex",
-        alignItems: "center",
-    },
-    headerIcon: {
-        width: "58px",
-        height: "58px",
+        gap: "16px",
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "stretch",
+        flexWrap: "wrap",
     },
     cardDiv: {
         display: "flex",
         flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
+        padding: "22px 24px",
+        gap: "14px",
+        width: "360px",
+        minHeight: "220px",
+        borderRadius: "18px",
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground1,
+        boxShadow: tokens.shadow4,
+        cursor: "pointer",
+        transitionProperty: "transform, box-shadow, border-color",
+        transitionDuration: tokens.durationNormal,
+        transitionTimingFunction: tokens.curveEasyEase,
+        ":hover": {
+            transform: "translateY(-2px)",
+            boxShadow: tokens.shadow8,
+            border: `1px solid ${tokens.colorNeutralStroke1}`,
+        },
+    },
+    iconBadge: {
+        width: "56px",
+        height: "56px",
+        display: "flex",
         alignItems: "center",
-        padding: "20px",
-        gap: "5px",
-        width: "400px",
-        marginTop: "5px",
+        justifyContent: "center",
+        borderRadius: "14px",
+        backgroundColor: "color-mix(in srgb, var(--vscode-focusBorder) 12%, transparent)",
+        color: "var(--vscode-focusBorder)",
+        flexShrink: 0,
+    },
+    dockerIcon: {
+        width: "32px",
+        height: "32px",
+    },
+    sqlInFabricIcon: {
+        width: "32px",
+        height: "32px",
+    },
+    content: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "8px",
+        width: "100%",
     },
     cardHeader: {
-        fontWeight: 400,
+        fontWeight: 600,
         fontSize: "18px",
-        padding: "5px",
-        marginTop: "5px",
+        lineHeight: "24px",
+        letterSpacing: "0",
+        color: tokens.colorNeutralForeground1,
     },
     cardDescription: {
         fontWeight: 400,
         fontSize: "14px",
-        padding: "5px",
-        color: tokens.colorNeutralForeground4,
+        lineHeight: "22px",
+        letterSpacing: "0",
+        color: tokens.colorNeutralForeground3,
+        textAlign: "left",
+    },
+    selectedCard: {
+        border: "1px solid var(--vscode-focusBorder)",
+        boxShadow: `0 0 0 1px var(--vscode-focusBorder), ${tokens.shadow8}`,
     },
 });
 
-export const ChooseDeploymentTypePage: React.FC = () => {
+interface ChooseDeploymentTypePageProps {
+    selectedDeploymentType?: DeploymentType;
+    onDeploymentTypeChange: (deploymentType: DeploymentType) => void;
+}
+
+export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> = ({
+    selectedDeploymentType,
+    onDeploymentTypeChange,
+}) => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const [deploymentType, setDeploymentType] = useState<DeploymentType>();
-
-    // If this passes, container deployment state is guaranteed
-    // to be defined, so we can reference it as non-null
-    if (!context) {
-        return undefined;
-    }
-
-    const getDeploymentStartPage = () => {
-        if (deploymentType === DeploymentType.LocalContainers) {
-            return <LocalContainersDeploymentInfoPage />;
-        } else if (deploymentType === DeploymentType.FabricProvisioning) {
-            return <FabricDeploymentInfoPage />;
-        }
-        return null;
-    };
-
-    return deploymentType !== undefined ? (
-        getDeploymentStartPage()
-    ) : (
-        <div>
-            <div className={classes.outerHeaderDiv}>
-                <DeploymentDatabaseIcon className={classes.headerIcon} aria-hidden="true" />
-                <Text className={classes.titleDiv}>{locConstants.deployment.deploymentHeader}</Text>
-            </div>
-            <Text className={classes.subtitleDiv}>
-                {locConstants.deployment.deploymentDescription}
-            </Text>
-
-            <div className={classes.outerDiv}>
-                <div className={classes.cardRow}>
-                    <Card
-                        className={classes.cardDiv}
-                        onClick={() => setDeploymentType(DeploymentType.LocalContainers)}>
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.cardRow}>
+                <Card
+                    className={`${classes.cardDiv} ${
+                        selectedDeploymentType === DeploymentType.LocalContainers
+                            ? classes.selectedCard
+                            : ""
+                    }`}
+                    onClick={() => onDeploymentTypeChange(DeploymentType.LocalContainers)}>
+                    <div className={classes.iconBadge}>
                         <DockerIcon
                             className={classes.dockerIcon}
                             role="img"
                             aria-label={locConstants.deployment.dockerSqlServerHeader}
                         />
+                    </div>
+                    <div className={classes.content}>
                         <Text className={classes.cardHeader}>
                             {locConstants.deployment.dockerSqlServerHeader}
                         </Text>
                         <Text className={classes.cardDescription}>
                             {locConstants.deployment.dockerSqlServerDescription}
                         </Text>
-                    </Card>
-                    <Card
-                        className={classes.cardDiv}
-                        onClick={() => setDeploymentType(DeploymentType.FabricProvisioning)}>
+                    </div>
+                </Card>
+                <Card
+                    className={`${classes.cardDiv} ${
+                        selectedDeploymentType === DeploymentType.FabricProvisioning
+                            ? classes.selectedCard
+                            : ""
+                    }`}
+                    onClick={() => onDeploymentTypeChange(DeploymentType.FabricProvisioning)}>
+                    <div className={classes.iconBadge}>
                         <SqlDbInFabricIcon
                             className={classes.sqlInFabricIcon}
                             role="img"
                             aria-label={locConstants.deployment.fabricProvisioningHeader}
                         />
+                    </div>
+                    <div className={classes.content}>
                         <Text className={classes.cardHeader}>
                             {locConstants.deployment.fabricProvisioningHeader}
                         </Text>
                         <Text className={classes.cardDescription}>
                             {locConstants.deployment.fabricProvisioningDescription}
                         </Text>
-                    </Card>
-                </div>
+                    </div>
+                </Card>
             </div>
         </div>
     );

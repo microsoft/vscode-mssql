@@ -4,7 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import {
+    ChevronDown20Regular,
+    ChevronRight20Regular,
+    Dismiss20Regular,
+    ErrorCircleRegular,
+} from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
@@ -13,11 +19,6 @@ import {
     FabricProvisioningFormState,
 } from "../../../../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import {
-    ChevronDown20Regular,
-    ChevronRight20Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import {
     CREATE_NEW_GROUP_ID,
@@ -29,8 +30,6 @@ import {
 } from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../../sharedInterfaces/form";
-import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
-import { FabricDeploymentProvisioningPage } from "./fabricDeploymentProvisioningPage";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 
@@ -47,10 +46,6 @@ const useStyles = makeStyles({
         minWidth: "800px",
         height: "80vh",
     },
-    button: {
-        height: "32px",
-        width: "160px",
-    },
     advancedOptionsDiv: {
         marginLeft: "24px",
     },
@@ -61,26 +56,71 @@ const useStyles = makeStyles({
     formDiv: {
         flexGrow: 1,
     },
-    buttonContent: {
+    spinnerDiv: {
+        height: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        padding: "20px",
+    },
+    errorIcon: {
+        fontSize: "100px",
+        opacity: 0.5,
+    },
+    statusRow: {
         display: "flex",
         flexDirection: "row",
         gap: "0.5rem",
+        marginTop: "20px",
+        marginBottom: "20px",
     },
 });
 
-export const FabricDeploymentFormPage: React.FC = () => {
+interface FabricDeploymentFormPageProps {
+    onValidated?: () => void;
+}
+
+export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> = ({
+    onValidated,
+}) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const fabricProvisioningState = useDeploymentSelector(
         (s) => s.deploymentTypeState,
     ) as FabricProvisioningState;
+    const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
     if (!context || !fabricProvisioningState) return undefined;
 
+    useEffect(() => {
+        if (fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded) {
+            onValidated?.();
+        }
+    }, [fabricProvisioningState.formValidationLoadState, onValidated]);
+
+    if (fabricProvisioningState.loadState === ApiStatus.Loading) {
+        return (
+            <div className={classes.spinnerDiv}>
+                <Spinner
+                    label={locConstants.fabricProvisioning.loadingFabricProvisioning}
+                    labelPosition="below"
+                />
+            </div>
+        );
+    }
+
+    if (fabricProvisioningState.loadState === ApiStatus.Error) {
+        return (
+            <div className={classes.spinnerDiv}>
+                <ErrorCircleRegular className={classes.errorIcon} />
+                <Text size={400}>{fabricProvisioningState.errorMessage ?? ""}</Text>
+            </div>
+        );
+    }
+
     const fabricComponents = ["accountId", "workspace", "tenantId"];
     const { formComponents } = fabricProvisioningState;
-    const [showAdvancedOptions, setShowAdvanced] = useState(false);
-    const [showNext, setShowNext] = useState(false);
 
     const renderFormFields = (isAdvanced: boolean) =>
         Object.values(formComponents)
@@ -98,8 +138,8 @@ export const FabricDeploymentFormPage: React.FC = () => {
                             ? {
                                   width: component.componentWidth,
                                   maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
+                                  whiteSpace: "normal",
+                                  overflowWrap: "break-word",
                                   wordBreak: "break-word",
                               }
                             : {}
@@ -118,32 +158,81 @@ export const FabricDeploymentFormPage: React.FC = () => {
                 </div>
             ));
 
-    const handleSubmit = async () => {
-        await context.createDatabase();
-    };
-
-    useEffect(() => {
-        setShowNext(fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded);
-    }, [fabricProvisioningState.formValidationLoadState]);
-
-    return showNext ? (
-        <FabricDeploymentProvisioningPage />
-    ) : (
-        <div>
-            <FabricProvisioningHeader paddingLeft="20px" />
-            <div className={classes.outerDiv}>
-                <div className={classes.formDiv}>
-                    {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
-                        <ConnectionGroupDialog
-                            mode="modal"
-                            state={
-                                (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
-                                    .props
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.formDiv}>
+                {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        mode="modal"
+                        state={
+                            (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
+                                .props
+                        }
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={() => context.setConnectionGroupDialogState(false)}
+                    />
+                )}
+                <FormField<
+                    FabricProvisioningFormState,
+                    FabricProvisioningState,
+                    FabricProvisioningFormItemSpec,
+                    FabricProvisioningContextProps
+                >
+                    context={context}
+                    formState={fabricProvisioningState.formState}
+                    component={
+                        fabricProvisioningState.formComponents[
+                            "accountId"
+                        ] as FabricProvisioningFormItemSpec
+                    }
+                    idx={0}
+                    componentProps={{
+                        onOptionSelect: (
+                            _event: { type: string },
+                            data: { optionValue?: string },
+                        ) => {
+                            context.formAction({
+                                propertyName: "accountId",
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                            context.reloadFabricEnvironment();
+                        },
+                    }}
+                />
+                {renderFormFields(false)}
+                <FormField<
+                    FabricProvisioningFormState,
+                    FabricProvisioningState,
+                    FabricProvisioningFormItemSpec,
+                    FabricProvisioningContextProps
+                >
+                    context={context}
+                    formState={fabricProvisioningState.formState}
+                    component={
+                        fabricProvisioningState.formComponents[
+                            "groupId"
+                        ] as FabricProvisioningFormItemSpec
+                    }
+                    idx={0}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.setConnectionGroupDialogState(true);
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
                             }
-                            saveConnectionGroup={context.createConnectionGroup}
-                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
-                        />
-                    )}
+                        },
+                        renderDecoration: (option: SearchableDropdownOptions) => {
+                            return renderColorSwatch(option.color);
+                        },
+                    }}
+                />
+                {fabricProvisioningState.formState.accountId && (
                     <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
@@ -154,7 +243,7 @@ export const FabricDeploymentFormPage: React.FC = () => {
                         formState={fabricProvisioningState.formState}
                         component={
                             fabricProvisioningState.formComponents[
-                                "accountId"
+                                "tenantId"
                             ] as FabricProvisioningFormItemSpec
                         }
                         idx={0}
@@ -164,47 +253,17 @@ export const FabricDeploymentFormPage: React.FC = () => {
                                 data: { optionValue?: string },
                             ) => {
                                 context.formAction({
-                                    propertyName: "accountId",
+                                    propertyName: "tenantId",
                                     isAction: false,
                                     value: data.optionValue as string,
                                 });
-                                context.reloadFabricEnvironment();
+                                context.reloadFabricEnvironment(data.optionValue as string);
                             },
                         }}
                     />
-                    {renderFormFields(false)}
-                    <FormField<
-                        FabricProvisioningFormState,
-                        FabricProvisioningState,
-                        FabricProvisioningFormItemSpec,
-                        FabricProvisioningContextProps
-                    >
-                        context={context}
-                        formState={fabricProvisioningState.formState}
-                        component={
-                            fabricProvisioningState.formComponents[
-                                "groupId"
-                            ] as FabricProvisioningFormItemSpec
-                        }
-                        idx={0}
-                        componentProps={{
-                            onSelect: (option: SearchableDropdownOptions) => {
-                                if (option.value === CREATE_NEW_GROUP_ID) {
-                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
-                                } else {
-                                    context.formAction({
-                                        propertyName: "groupId",
-                                        isAction: false,
-                                        value: option.value,
-                                    });
-                                }
-                            },
-                            renderDecoration: (option: SearchableDropdownOptions) => {
-                                return renderColorSwatch(option.color);
-                            },
-                        }}
-                    />
-                    {fabricProvisioningState.formState.accountId && (
+                )}
+                {fabricProvisioningState.formState.accountId &&
+                    (fabricProvisioningState.workspaces.length > 0 ? (
                         <FormField<
                             FabricProvisioningFormState,
                             FabricProvisioningState,
@@ -215,107 +274,49 @@ export const FabricDeploymentFormPage: React.FC = () => {
                             formState={fabricProvisioningState.formState}
                             component={
                                 fabricProvisioningState.formComponents[
-                                    "tenantId"
+                                    "workspace"
                                 ] as FabricProvisioningFormItemSpec
                             }
                             idx={0}
                             componentProps={{
-                                onOptionSelect: (
-                                    _event: { type: string },
-                                    data: { optionValue?: string },
-                                ) => {
-                                    context.formAction({
-                                        propertyName: "tenantId",
-                                        isAction: false,
-                                        value: data.optionValue as string,
-                                    });
-                                    context.reloadFabricEnvironment(data.optionValue as string);
+                                onSelect: async (option: FormItemOptions) => {
+                                    await context.handleWorkspaceFormAction(option.value);
                                 },
                             }}
                         />
-                    )}
-                    {fabricProvisioningState.formState.accountId &&
-                        (fabricProvisioningState.workspaces.length > 0 ? (
-                            <FormField<
-                                FabricProvisioningFormState,
-                                FabricProvisioningState,
-                                FabricProvisioningFormItemSpec,
-                                FabricProvisioningContextProps
-                            >
-                                context={context}
-                                formState={fabricProvisioningState.formState}
-                                component={
-                                    fabricProvisioningState.formComponents[
-                                        "workspace"
-                                    ] as FabricProvisioningFormItemSpec
-                                }
-                                idx={0}
-                                componentProps={{
-                                    onSelect: async (option: FormItemOptions) => {
-                                        await context.handleWorkspaceFormAction(option.value);
-                                    },
-                                }}
-                            />
-                        ) : fabricProvisioningState.isWorkspacesErrored ? (
-                            <div
-                                className={classes.buttonContent}
-                                style={{ marginTop: "20px", marginBottom: "20px" }}>
-                                <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
-                                {locConstants.fabricProvisioning.errorLoadingWorkspaces}
-                            </div>
-                        ) : (
-                            <div
-                                className={classes.buttonContent}
-                                style={{ marginTop: "20px", marginBottom: "20px" }}>
-                                <Spinner size="tiny" />
-                                {locConstants.fabricProvisioning.loadingWorkspaces}...
-                            </div>
-                        ))}
-
-                    <div>
-                        <Button
-                            icon={
-                                showAdvancedOptions ? (
-                                    <ChevronDown20Regular />
-                                ) : (
-                                    <ChevronRight20Regular />
-                                )
-                            }
-                            appearance="subtle"
-                            onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                        />
-                        {locConstants.connectionDialog.advancedOptions}
-                    </div>
-
-                    {showAdvancedOptions && (
-                        <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
-                    )}
-                </div>
-                <div className={classes.bottomDiv}>
-                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                    {fabricProvisioningState.formValidationLoadState === ApiStatus.Loading ? (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            appearance="secondary"
-                            disabled>
-                            <div className={classes.buttonContent}>
-                                <Spinner
-                                    size="extra-tiny"
-                                    label={locConstants.fabricProvisioning.createDatabase}
-                                />
-                            </div>
-                        </Button>
+                    ) : fabricProvisioningState.isWorkspacesErrored ? (
+                        <div className={classes.statusRow}>
+                            <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
+                            {locConstants.fabricProvisioning.errorLoadingWorkspaces}
+                        </div>
                     ) : (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            onClick={() => handleSubmit()}
-                            appearance="primary">
-                            {locConstants.fabricProvisioning.createDatabase}
-                        </Button>
-                    )}
+                        <div className={classes.statusRow}>
+                            <Spinner size="tiny" />
+                            {locConstants.fabricProvisioning.loadingWorkspaces}...
+                        </div>
+                    ))}
+
+                <div>
+                    <Button
+                        icon={
+                            showAdvancedOptions ? (
+                                <ChevronDown20Regular />
+                            ) : (
+                                <ChevronRight20Regular />
+                            )
+                        }
+                        appearance="subtle"
+                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                    />
+                    {locConstants.connectionDialog.advancedOptions}
                 </div>
+
+                {showAdvancedOptions && (
+                    <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                )}
+            </div>
+            <div className={classes.bottomDiv}>
+                <hr style={{ background: tokens.colorNeutralBackground2 }} />
             </div>
         </div>
     );

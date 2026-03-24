@@ -4,17 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import {
+    ChevronDown20Regular,
+    ChevronRight20Regular,
+    ErrorCircleRegular,
+} from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
-import { LocalContainersDeploymentProvisioningPage } from "./localContainersDeploymentProvisioningPage";
 import {
     LocalContainersContextProps,
     LocalContainersFormItemSpec,
     LocalContainersState,
     DockerConnectionProfile,
 } from "../../../../sharedInterfaces/localContainers";
-import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import {
@@ -42,10 +44,6 @@ const useStyles = makeStyles({
         minWidth: "800px",
         height: "80vh",
     },
-    button: {
-        height: "32px",
-        width: "160px",
-    },
     advancedOptionsDiv: {
         marginLeft: "24px",
     },
@@ -56,24 +54,62 @@ const useStyles = makeStyles({
     formDiv: {
         flexGrow: 1,
     },
-    buttonContent: {
+    spinnerDiv: {
+        height: "100%",
         display: "flex",
-        flexDirection: "row",
-        gap: "0.5rem",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        padding: "20px",
+    },
+    errorIcon: {
+        fontSize: "100px",
+        opacity: 0.5,
     },
 });
 
-export const LocalContainersDeploymentFormPage: React.FC = () => {
+interface LocalContainersDeploymentFormPageProps {
+    onValidated?: () => void;
+}
+
+export const LocalContainersDeploymentFormPage: React.FC<
+    LocalContainersDeploymentFormPageProps
+> = ({ onValidated }) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const dialog = useDeploymentSelector((s) => s.dialog);
     const localContainersState = useDeploymentSelector(
         (s) => s.deploymentTypeState,
     ) as LocalContainersState;
-    const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
     if (!context || !localContainersState) return undefined;
+
+    useEffect(() => {
+        if (localContainersState.isDockerProfileValid) {
+            onValidated?.();
+        }
+    }, [localContainersState.isDockerProfileValid, onValidated]);
+
+    if (localContainersState.loadState === ApiStatus.Loading) {
+        return (
+            <div className={classes.spinnerDiv}>
+                <Spinner
+                    label={locConstants.localContainers.loadingLocalContainers}
+                    labelPosition="below"
+                />
+            </div>
+        );
+    }
+
+    if (localContainersState.loadState === ApiStatus.Error) {
+        return (
+            <div className={classes.spinnerDiv}>
+                <ErrorCircleRegular className={classes.errorIcon} />
+                <Text size={400}>{localContainersState.errorMessage ?? ""}</Text>
+            </div>
+        );
+    }
 
     const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
@@ -96,8 +132,8 @@ export const LocalContainersDeploymentFormPage: React.FC = () => {
                             ? {
                                   width: component.componentWidth,
                                   maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
+                                  whiteSpace: "normal",
+                                  overflowWrap: "break-word",
                                   wordBreak: "break-word",
                               }
                             : {}
@@ -116,125 +152,89 @@ export const LocalContainersDeploymentFormPage: React.FC = () => {
                 </div>
             ));
 
-    const handleSubmit = async () => {
-        await context.checkDockerProfile();
-    };
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.formDiv}>
+                {dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        mode="modal"
+                        state={(dialog as CreateConnectionGroupDialogProps).props}
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={() => context.setConnectionGroupDialogState(false)}
+                    />
+                )}
+                {renderFormFields(false)}
+                <FormField<
+                    DockerConnectionProfile,
+                    LocalContainersState,
+                    LocalContainersFormItemSpec,
+                    LocalContainersContextProps
+                >
+                    context={context}
+                    formState={localContainersState.formState}
+                    component={
+                        localContainersState.formComponents[
+                            "groupId"
+                        ] as LocalContainersFormItemSpec
+                    }
+                    idx={0}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.setConnectionGroupDialogState(true);
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
+                            }
+                        },
+                        renderDecoration: (option: SearchableDropdownOptions) => {
+                            return renderColorSwatch(option.color);
+                        },
+                    }}
+                />
+                <div>
+                    <Button
+                        icon={
+                            showAdvancedOptions ? (
+                                <ChevronDown20Regular />
+                            ) : (
+                                <ChevronRight20Regular />
+                            )
+                        }
+                        appearance="subtle"
+                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                    />
+                    {locConstants.connectionDialog.advancedOptions}
+                </div>
 
-    useEffect(() => {
-        setShowNext(localContainersState.isDockerProfileValid);
-    }, [localContainersState.isDockerProfileValid]);
-
-    return showNext ? (
-        <LocalContainersDeploymentProvisioningPage />
-    ) : (
-        <div>
-            <LocalContainersHeader
-                headerText={locConstants.localContainers.sqlServerContainerHeader}
-                paddingLeft="20px"
-            />
-            <div className={classes.outerDiv}>
-                <div className={classes.formDiv}>
-                    {dialog?.type === "createConnectionGroup" && (
-                        <ConnectionGroupDialog
-                            mode="modal"
-                            state={(dialog as CreateConnectionGroupDialogProps).props}
-                            saveConnectionGroup={context.createConnectionGroup}
-                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
-                        />
-                    )}
-                    {renderFormFields(false)}
+                {showAdvancedOptions && (
+                    <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                )}
+            </div>
+            <div className={classes.bottomDiv}>
+                <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                <div
+                    style={{
+                        ...(eulaComponent.componentWidth && {
+                            width: eulaComponent.componentWidth,
+                        }),
+                        marginTop: "10px",
+                    }}>
                     <FormField<
                         DockerConnectionProfile,
                         LocalContainersState,
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
+                        key={eulaComponent.propertyName}
                         context={context}
                         formState={localContainersState.formState}
-                        component={
-                            localContainersState.formComponents[
-                                "groupId"
-                            ] as LocalContainersFormItemSpec
-                        }
+                        component={eulaComponent}
                         idx={0}
-                        componentProps={{
-                            onSelect: (option: SearchableDropdownOptions) => {
-                                if (option.value === CREATE_NEW_GROUP_ID) {
-                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
-                                } else {
-                                    context.formAction({
-                                        propertyName: "groupId",
-                                        isAction: false,
-                                        value: option.value,
-                                    });
-                                }
-                            },
-                            renderDecoration: (option: SearchableDropdownOptions) => {
-                                return renderColorSwatch(option.color);
-                            },
-                        }}
                     />
-                    <div>
-                        <Button
-                            icon={
-                                showAdvancedOptions ? (
-                                    <ChevronDown20Regular />
-                                ) : (
-                                    <ChevronRight20Regular />
-                                )
-                            }
-                            appearance="subtle"
-                            onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                        />
-                        {locConstants.connectionDialog.advancedOptions}
-                    </div>
-
-                    {showAdvancedOptions && (
-                        <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
-                    )}
-                </div>
-                <div className={classes.bottomDiv}>
-                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                    <div
-                        style={{
-                            ...(eulaComponent.componentWidth && {
-                                width: eulaComponent.componentWidth,
-                            }),
-                            marginTop: "10px",
-                        }}>
-                        <FormField<
-                            DockerConnectionProfile,
-                            LocalContainersState,
-                            LocalContainersFormItemSpec,
-                            LocalContainersContextProps
-                        >
-                            key={eulaComponent.propertyName}
-                            context={context}
-                            formState={localContainersState.formState}
-                            component={eulaComponent}
-                            idx={0}
-                        />
-                    </div>
-                    {localContainersState.formValidationLoadState === ApiStatus.Loading ? (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            appearance="secondary"
-                            disabled>
-                            <div className={classes.buttonContent}>
-                                <Spinner size="extra-tiny" />
-                                {locConstants.localContainers.createContainer}
-                            </div>
-                        </Button>
-                    ) : (
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            onClick={() => handleSubmit()}
-                            appearance="primary">
-                            {locConstants.localContainers.createContainer}
-                        </Button>
-                    )}
                 </div>
             </div>
         </div>

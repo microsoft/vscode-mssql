@@ -3,21 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
-import { Button, Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import {
-    Checkmark20Regular,
-    ChevronLeft20Regular,
-    Circle20Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
-import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
+import { Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
-import { FabricDeploymentFormPage } from "./fabricDeploymentFormPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -26,10 +17,8 @@ const useStyles = makeStyles({
         gap: "2px",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
         minWidth: "650px",
         minHeight: "fit-content",
-        paddingBottom: "50px",
     },
     innerDiv: {
         display: "flex",
@@ -39,30 +28,11 @@ const useStyles = makeStyles({
         width: "fit-content",
         minWidth: "650px",
     },
-    button: {
-        height: "28px",
-        width: "60px",
-        marginTop: "20px",
-    },
     contentHeader: {
         fontSize: "22px",
         fontWeight: 400,
         padding: "8px",
         textAlign: "left",
-    },
-    buttonDiv: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        padding: "8px",
-        gap: "5px",
-    },
-    spinnerDiv: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-        padding: "20px",
     },
     leftHeader: {
         display: "flex",
@@ -120,18 +90,10 @@ const useStyles = makeStyles({
         padding: "8px",
         textAlign: "left",
     },
-    backButton: {
-        position: "absolute",
-        top: "10px",
-        left: "10px",
-    },
 });
 
 export const FabricDeploymentProvisioningPage: React.FC = () => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const [showPrevious, setShowPrevious] = useState(false);
-
     const provisionLoadState = useDeploymentSelector(
         (s) => (s.deploymentTypeState as FabricProvisioningState)?.provisionLoadState,
     );
@@ -154,16 +116,7 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
         (s) => (s.deploymentTypeState as FabricProvisioningState)?.workspaceName,
     );
 
-    if (!context || !provisionLoadState || showPrevious === undefined) return undefined;
-
-    const handleRetry = async () => {
-        await context.retryCreateDatabase();
-    };
-
-    const handleBack = async () => {
-        setShowPrevious(true);
-        await context.resetFormValidationState();
-    };
+    if (!provisionLoadState) return undefined;
 
     const getStatusIcon = () => {
         let status: ApiStatus;
@@ -198,106 +151,66 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
         return headerText;
     };
 
-    return showPrevious === true ? (
-        <FabricDeploymentFormPage />
-    ) : (
-        <div>
-            {provisionLoadState === ApiStatus.Error && (
-                <Button
-                    className={classes.backButton}
-                    onClick={handleBack}
-                    appearance="transparent">
-                    <ChevronLeft20Regular style={{ marginRight: "4px" }} />
-                    {locConstants.common.back}
-                </Button>
-            )}
-            <FabricProvisioningHeader />
-            <div className={classes.outerDiv}>
-                <div className={classes.innerDiv}>
-                    <div className={classes.contentHeader}>
-                        {locConstants.fabricProvisioning.provisioning} {databaseName}
-                    </div>
-                    <Card className={classes.cardDiv}>
-                        <div className={classes.separatorDiv} />
-                        <div className={classes.cardHeader}>
-                            <div className={classes.leftHeader}>
-                                {getStatusIcon()}
-                                {getHeaderText()}
-                            </div>
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.innerDiv}>
+                <div className={classes.contentHeader}>
+                    {locConstants.fabricProvisioning.provisioning} {databaseName}
+                </div>
+                <Card className={classes.cardDiv}>
+                    <div className={classes.separatorDiv} />
+                    <div className={classes.cardHeader}>
+                        <div className={classes.leftHeader}>
+                            {getStatusIcon()}
+                            {getHeaderText()}
                         </div>
-                        <div className={classes.cardContentDiv}>
-                            {errorMessage ? (
+                    </div>
+                    <div className={classes.cardContentDiv}>
+                        {errorMessage ? (
+                            <div className={classes.cardColumn}>
+                                <span className={classes.cardItem}>
+                                    <span className={classes.cardItemLabel}>
+                                        {locConstants.common.error}:
+                                    </span>
+                                    {errorMessage}
+                                </span>
+                            </div>
+                        ) : (
+                            <>
                                 <div className={classes.cardColumn}>
                                     <span className={classes.cardItem}>
                                         <span className={classes.cardItemLabel}>
-                                            {locConstants.common.error}:
+                                            {locConstants.fabricProvisioning.deploymentName}:
                                         </span>
-                                        {errorMessage}
+                                        {databaseName}
+                                    </span>
+                                    <span className={classes.cardItem}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.fabricProvisioning.startTime}:
+                                        </span>
+                                        {deploymentStartTime}
                                     </span>
                                 </div>
-                            ) : (
-                                <>
-                                    <div className={classes.cardColumn}>
-                                        <span className={classes.cardItem}>
-                                            <span className={classes.cardItemLabel}>
-                                                {locConstants.fabricProvisioning.deploymentName}:
-                                            </span>
-                                            {databaseName}
+                                <div
+                                    className={classes.cardColumn}
+                                    style={{ paddingLeft: "100px" }}>
+                                    <span className={classes.cardItem}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.azure.tenant}:
                                         </span>
-                                        <span className={classes.cardItem}>
-                                            <span className={classes.cardItemLabel}>
-                                                {locConstants.fabricProvisioning.startTime}:
-                                            </span>
-                                            {deploymentStartTime}
+                                        {tenantName}
+                                    </span>
+                                    <span className={classes.cardItem}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.fabricProvisioning.workspace}:
                                         </span>
-                                    </div>
-                                    <div
-                                        className={classes.cardColumn}
-                                        style={{ paddingLeft: "100px" }}>
-                                        <span className={classes.cardItem}>
-                                            <span className={classes.cardItemLabel}>
-                                                {locConstants.azure.tenant}:
-                                            </span>
-                                            {tenantName}
-                                        </span>
-                                        <span className={classes.cardItem}>
-                                            <span className={classes.cardItemLabel}>
-                                                {locConstants.fabricProvisioning.workspace}:
-                                            </span>
-                                            {workspaceName}
-                                        </span>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </Card>
-                    {provisionLoadState === ApiStatus.Error && (
-                        <div className={classes.buttonDiv}>
-                            <Button
-                                className={classes.button}
-                                onClick={handleRetry}
-                                appearance="primary">
-                                {locConstants.common.retry}
-                            </Button>
-                            <Button
-                                className={classes.button}
-                                onClick={() => context.dispose()}
-                                appearance="secondary">
-                                {locConstants.common.cancel}
-                            </Button>
-                        </div>
-                    )}
-                    {connectionLoadState === ApiStatus.Loaded && (
-                        <div className={classes.buttonDiv}>
-                            <Button
-                                className={classes.button}
-                                onClick={() => context.dispose()}
-                                appearance="primary">
-                                {locConstants.common.finish}
-                            </Button>
-                        </div>
-                    )}
-                </div>
+                                        {workspaceName}
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </Card>
             </div>
         </div>
     );
