@@ -5,29 +5,24 @@ parameters:
 
 steps:
   - task: UseNode@1
-    displayName: "Use Node 22.x"
+    displayName: "Use Node 24.x"
     inputs:
-      version: 22.x
+      version: 24.x
 
   - pwsh: |
-      yarn --frozen-lockfile
-    displayName: MSSQL - Install extension depedencies
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
-
-  - pwsh: |
-      yarn run build --prod
+      npm run build -- --target mssql --prod
     displayName: MSSQL - Build extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn lint
+      npm run lint -- --target mssql
     displayName: MSSQL - Lint code
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn test
+      npm run test -- --target mssql
     displayName: MSSQL - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: PublishTestResults@2
     displayName: MSSQL - Publish test results
@@ -43,14 +38,14 @@ steps:
     condition: succeededOrFailed()
 
   - pwsh: |
-      yarn package --online
+      npm run package -- --target mssql --online
     displayName: MSSQL - Package extension (online)
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn package --offline
+      npm run package -- --target mssql --offline
     displayName: MSSQL - Package extension (offline)
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)"
     condition: eq( ${{ parameters.packageOffline }}, 'true')
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards

@@ -32,14 +32,14 @@
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
         "build:extension": "tsc -p tsconfig.extension.json",
-        "build:prepare": "yarn build:runtime-localization",
+        "build:prepare": "npm run build:runtime-localization",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
-        "watch": "yarn build:prepare && run-p -l watch:extension",
-        "lint": "eslint ./src",
+        "watch": "npm run build:prepare && run-p -l watch:extension",
+        "lint": "eslint ./src ./test",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
-        "test": "yarn build && vscode-test --coverage",
-        "package": "yarn build && vsce package --no-yarn"
+        "test": "npm run build && vscode-test --coverage",
+        "package": "npm run build && vsce package"
     },
     "capabilities": {
         "virtualWorkspaces": false,
