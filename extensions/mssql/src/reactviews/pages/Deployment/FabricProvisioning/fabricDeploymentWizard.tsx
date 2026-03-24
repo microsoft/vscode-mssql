@@ -8,7 +8,10 @@ import { Button } from "@fluentui/react-components";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentDatabaseIcon } from "../../../common/icons/deploymentDatabase";
-import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import {
+    FabricProvisioningFormItemSpec,
+    FabricProvisioningState,
+} from "../../../../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
@@ -39,6 +42,22 @@ export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
         !!fabricProvisioningState?.formState &&
         !!fabricProvisioningState?.formComponents &&
         "accountId" in fabricProvisioningState.formComponents;
+    const isFabricFormValid =
+        fabricProvisioningState?.loadState === ApiStatus.Loaded &&
+        Object.values(fabricProvisioningState?.formComponents ?? {}).every((component) => {
+            const formComponent = component as FabricProvisioningFormItemSpec | undefined;
+            if (!formComponent) {
+                return true;
+            }
+
+            const value = fabricProvisioningState.formState?.[formComponent.propertyName];
+            const normalizedValue = (value ?? "") as string | number | boolean;
+            if (formComponent.validate) {
+                return formComponent.validate(fabricProvisioningState, normalizedValue).isValid;
+            }
+
+            return formComponent.required ? !!value : true;
+        });
 
     const pages: WizardPageDefinition[] = [
         {
@@ -62,7 +81,7 @@ export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
             ),
             nextLabel: locConstants.fabricProvisioning.createDatabase,
             canGoNext: () =>
-                fabricProvisioningState?.loadState === ApiStatus.Loaded &&
+                isFabricFormValid &&
                 fabricProvisioningState?.formValidationLoadState !== ApiStatus.Loading &&
                 !!fabricProvisioningState?.formState?.accountId &&
                 !!fabricProvisioningState?.formState?.workspace,

@@ -15,6 +15,7 @@ import { useDeploymentSelector } from "../deploymentSelector";
 import {
     DockerStepOrder,
     LocalContainersState,
+    LocalContainersFormItemSpec,
 } from "../../../../sharedInterfaces/localContainers";
 import { LocalContainersDeploymentInfoPage } from "./localContainersDeploymentInfoPage";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
@@ -47,6 +48,22 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
     }
 
     const isLocalContainersStateReady = Array.isArray(localContainersState?.dockerSteps);
+    const isLocalContainersFormValid =
+        localContainersState?.loadState === ApiStatus.Loaded &&
+        Object.values(localContainersState?.formComponents ?? {}).every((component) => {
+            const formComponent = component as LocalContainersFormItemSpec | undefined;
+            if (!formComponent) {
+                return true;
+            }
+
+            const value = localContainersState.formState?.[formComponent.propertyName];
+            const normalizedValue = (value ?? "") as string | number | boolean;
+            if (formComponent.validate) {
+                return formComponent.validate(localContainersState, normalizedValue).isValid;
+            }
+
+            return formComponent.required ? !!value : true;
+        });
 
     const pages: WizardPageDefinition[] = [
         {
@@ -83,7 +100,7 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
             ),
             nextLabel: locConstants.localContainers.createContainer,
             canGoNext: () =>
-                localContainersState?.loadState === ApiStatus.Loaded &&
+                isLocalContainersFormValid &&
                 localContainersState?.formValidationLoadState !== ApiStatus.Loading,
             onNext: () => {
                 context.checkDockerProfile();

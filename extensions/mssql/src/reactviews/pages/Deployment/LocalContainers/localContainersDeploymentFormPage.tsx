@@ -4,7 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles, Spinner, Text } from "@fluentui/react-components";
+import {
+    Button,
+    Checkbox,
+    Field,
+    InfoLabel,
+    makeStyles,
+    Spinner,
+    Text,
+    tokens,
+} from "@fluentui/react-components";
 import {
     ChevronDown20Regular,
     ChevronRight20Regular,
@@ -90,6 +99,21 @@ const useStyles = makeStyles({
         padding: "10px 14px",
         boxSizing: "border-box",
     },
+    eulaLabel: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        flexWrap: "wrap",
+        minWidth: 0,
+        color: tokens.colorNeutralForeground1,
+    },
+    eulaRequired: {
+        color: tokens.colorPaletteRedForeground1,
+    },
+    eulaInfo: {
+        display: "inline-flex",
+        alignItems: "center",
+    },
 });
 
 interface LocalContainersDeploymentFormPageProps {
@@ -139,6 +163,11 @@ export const LocalContainersDeploymentFormPage: React.FC<
     const eulaComponent = Object.values(formComponents).find(
         (component) => component.propertyName === "acceptEula",
     )!;
+    const eulaValidationState = eulaComponent.validation
+        ? eulaComponent.validation.isValid
+            ? "none"
+            : "error"
+        : "none";
 
     const renderFormFields = (isAdvanced: boolean) =>
         Object.values(formComponents)
@@ -230,18 +259,41 @@ export const LocalContainersDeploymentFormPage: React.FC<
             </div>
             <div className={classes.bottomDiv}>
                 <div className={classes.eulaCard}>
-                    <FormField<
-                        DockerConnectionProfile,
-                        LocalContainersState,
-                        LocalContainersFormItemSpec,
-                        LocalContainersContextProps
-                    >
-                        key={eulaComponent.propertyName}
-                        context={context}
-                        formState={localContainersState.formState}
-                        component={eulaComponent}
-                        idx={0}
-                    />
+                    <Field
+                        validationMessage={eulaComponent.validation?.validationMessage ?? ""}
+                        validationState={eulaValidationState}>
+                        <Checkbox
+                            size="medium"
+                            checked={localContainersState.formState.acceptEula ?? false}
+                            onChange={(_value, data) =>
+                                context.formAction({
+                                    propertyName: "acceptEula",
+                                    isAction: false,
+                                    value: data.checked,
+                                })
+                            }
+                            label={
+                                <span className={classes.eulaLabel}>
+                                    <span
+                                        dangerouslySetInnerHTML={{
+                                            __html: eulaComponent.label,
+                                        }}
+                                    />
+                                    {eulaComponent.required && (
+                                        <span className={classes.eulaRequired}>*</span>
+                                    )}
+                                    {eulaComponent.tooltip && (
+                                        <InfoLabel
+                                            info={eulaComponent.tooltip}
+                                            className={classes.eulaInfo}
+                                            size="small">
+                                            <span aria-hidden="true" />
+                                        </InfoLabel>
+                                    )}
+                                </span>
+                            }
+                        />
+                    </Field>
                 </div>
             </div>
         </div>
