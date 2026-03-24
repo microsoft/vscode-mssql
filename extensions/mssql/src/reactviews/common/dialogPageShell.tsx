@@ -168,14 +168,14 @@ export const DialogPageShell = ({
         ? {
               width: "100%",
               maxWidth: resolvedMaxContentWidth,
-              margin: "0 auto",
+              margin: "0",
           }
         : { width: "100%" };
     const footerWidthStyle = resolvedMaxContentWidth
         ? {
               width: "100%",
               maxWidth: `calc(${resolvedMaxContentWidth} + 48px)`,
-              margin: "0 auto",
+              margin: "0",
           }
         : { width: "100%" };
 
