@@ -351,13 +351,10 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
     try {
         const tags = await getAllSqlServerContainerTags();
 
-        const versions: string[] = [];
         const yearSet = new Set<string>();
 
         for (const tag of tags) {
             if (!tag) continue;
-
-            versions.push(tag);
 
             const year = tag.slice(0, 4);
             if (/^\d{4}$/.test(year)) {
@@ -365,20 +362,12 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
             }
         }
 
-        const uniqueYears = Array.from(yearSet);
-        const latestVersionIndex = versions.length - 4;
-        const latestImage = versions[latestVersionIndex];
-
-        const versionOptions = uniqueYears
+        return Array.from(yearSet)
+            .sort((left, right) => Number(right) - Number(left))
             .map((year) => ({
                 displayName: LocalContainers.sqlServerVersionImage(year),
                 value: year,
-            }))
-            .reverse();
-
-        versionOptions[0].value = latestImage; // Version options is guaranteed to have at least one element
-
-        return versionOptions;
+            }));
     } catch (e) {
         dockerLogger.appendLine(
             `Error parsing SQL Server container versions: ${getErrorMessage(e)}`,

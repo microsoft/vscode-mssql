@@ -7,7 +7,7 @@ import { useContext } from "react";
 import { Button } from "@fluentui/react-components";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentDatabaseIcon } from "../../../common/icons/deploymentDatabase";
+import { SqlDbInFabricIcon } from "../../../common/icons/sqlDbInFabric";
 import {
     FabricProvisioningFormItemSpec,
     FabricProvisioningState,
@@ -115,7 +115,7 @@ export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
 
     return (
         <Wizard
-            icon={<DeploymentDatabaseIcon aria-hidden="true" />}
+            icon={<SqlDbInFabricIcon aria-hidden="true" />}
             title={locConstants.deployment.deploymentHeader}
             pages={pages}
             onCancel={() => context.dispose()}

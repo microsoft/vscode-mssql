@@ -7,7 +7,7 @@ import { useContext, useMemo } from "react";
 import { Button } from "@fluentui/react-components";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentDatabaseIcon } from "../../../common/icons/deploymentDatabase";
+import { DockerIcon } from "../../../common/icons/docker";
 import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
@@ -130,7 +130,7 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
 
     return (
         <Wizard
-            icon={<DeploymentDatabaseIcon aria-hidden="true" />}
+            icon={<DockerIcon aria-hidden="true" />}
             title={locConstants.deployment.deploymentHeader}
             pages={pages}
             onCancel={() => context.dispose()}
