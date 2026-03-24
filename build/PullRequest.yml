@@ -8,10 +8,6 @@ pool:
 
 steps:
   - pwsh: |
-      Write-Host "Using root npm commands from the repository root"
-    displayName: Install toolchain
-
-  - pwsh: |
       npm ci
     displayName: Install root dependencies
     workingDirectory: "$(Build.SourcesDirectory)"

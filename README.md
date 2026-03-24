@@ -335,7 +335,7 @@ This is a multi-extension monorepo. See the [developer documentation](https://gi
 
 ### Prerequisites
 
-- Node.js `>= 20.19.4`
+- Node.js `>= 24`
 - npm `>= 11`
 - VS Code `>= 1.98.0`
 
@@ -420,7 +420,6 @@ npm run test -- --target data-workspace
 
 ### Contributing Tips
 
-- If new shared packages are added later, wire them into the root target map and bootstrap install flow so they participate in build/watch/test flows.
 - When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
 - Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
 

@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Install root dependencies
         run: |
@@ -42,21 +42,9 @@ jobs:
         with:
           source-dir: "./extensions/data-workspace"
 
-      - name: MSSQL - Package extension
+      - name: Package extensions
         run: |
-          npm run package -- --target mssql
-
-      - name: SqlProj - Package extension
-        run: |
-          npm run package -- --target sql-database-projects
-
-      - name: Data Workspace - Package extension
-        run: |
-          npm run package -- --target data-workspace
-
-      - name: Keymap - Package extension
-        run: |
-          npm run package -- --target database-management-keymap
+          npm run package
 
       - name: Calculate and save sizes
         run: |

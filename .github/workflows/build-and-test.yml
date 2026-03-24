@@ -56,7 +56,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Setup .NET Core # Required to execute ReportGenerator
         uses: actions/setup-dotnet@v5
@@ -83,18 +83,9 @@ jobs:
         with:
           source-dir: "./extensions/data-workspace"
 
-      - name: MSSQL - Run lint
+      - name: Run lint
         run: |
-          npm run lint -- --target mssql
-
-      - name: SqlProj - Run lint
-        continue-on-error: true
-        run: |
-          npm run lint -- --target sql-database-projects
-
-      - name: DataWorkspace - Run lint
-        run: |
-          npm run lint -- --target data-workspace
+          npm run lint
 
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code

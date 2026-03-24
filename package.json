@@ -2,7 +2,7 @@
     "name": "vscode-mssql",
     "version": "1.0.0",
     "private": true,
-    "packageManager": "npm@11.9.0",
+    "packageManager": "npm@11.12.0",
     "description": "Monorepo for SQL Server extensions for Visual Studio Code",
     "scripts": {
         "build": "node scripts/workspaces.mjs build",

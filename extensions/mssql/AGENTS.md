@@ -13,8 +13,8 @@ The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extensi
 #### Initial Setup (Required once)
 
 ```bash
-# Ensure correct Node.js version (v20+)
-node --version  # Should be v20.19.4 or higher
+# Ensure correct Node.js version (v24+)
+node --version  # Should be v24.0.0 or higher
 
 # Install dependencies - takes ~60 seconds initial, ~11 seconds subsequent. NEVER CANCEL. Set timeout to 120+ seconds.
 npm install

@@ -317,42 +317,6 @@ View the change log in the extension via the **MS SQL: Show Change Log** command
 
 Support for this extension is provided via [GitHub issues](https://github.com/Microsoft/vscode-mssql/issues). You can submit a [bug report](https://aka.ms/vscode-mssql-bug), a [feature suggestion](https://aka.ms/vscode-mssql-feature-request) or participate in [discussions](https://aka.ms/vscode-mssql-discussions).
 
-## Development & Contributing
-
-This is a multi-extension monorepo. See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki/contributing) for details on how to contribute.
-
-<details>
-<summary>Quick start and MSSQL-specific commands</summary>
-
-See the [root README](../../README.md) for full repository layout, all available targets, and contributing tips.
-
-### Prerequisites
-
-- Node.js `>= 20.19.4`
-- npm `>= 11`
-- VS Code `>= 1.98.0`
-
-Install dependencies once from the repository root:
-
-```bash
-npm install
-```
-
-### MSSQL Commands (run from repository root)
-
-```bash
-npm run build -- --target mssql
-npm run build -- --target mssql --prod
-npm run watch -- --target mssql
-npm run lint -- --target mssql
-npm run test -- --target mssql
-npm run smoketest -- --target mssql
-npm run package -- --target mssql --online
-npm run package -- --target mssql --offline
-```
-
-</details>
-
 ## Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
