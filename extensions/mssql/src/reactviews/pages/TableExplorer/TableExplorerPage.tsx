@@ -37,7 +37,7 @@ const useStyles = makeStyles({
     },
     dataGridContainer: {
         ...shorthands.flex(1),
-        ...shorthands.overflow("auto"),
+        ...shorthands.overflow("hidden"),
         minHeight: 0,
         position: "relative",
     },
@@ -144,6 +144,7 @@ export const TableExplorerPage: React.FC = () => {
                                             onCellChangeCountChanged={handleCellChangeCountChanged}
                                             onDeletionCountChanged={handleDeletionCountChanged}
                                             onSaveResults={context?.saveResults}
+                                            onModifyTable={context?.modifyTable}
                                         />
                                     )}
                                 </div>

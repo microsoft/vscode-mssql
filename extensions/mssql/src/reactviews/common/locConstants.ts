@@ -70,11 +70,19 @@ export class LocConstants {
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            stepOf: (currentStep: number, totalSteps: number) =>
+                l10n.t({
+                    message: "Step {0} of {1}",
+                    args: [currentStep, totalSteps],
+                    comment: ["{0} is the current step number", "{1} is the total number of steps"],
+                }),
+            learnMore: l10n.t("Learn more"),
         };
     }
 
     public get objectExplorerFiltering() {
         return {
+            filterSettings: l10n.t("Filter Settings"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),
@@ -291,7 +299,15 @@ export class LocConstants {
                     args: [ipAddress],
                     comment: ["{0} is the IP address of the client"],
                 }),
-            addMySubnetRange: "Add my subnet IP range",
+            addMySubnetRange: l10n.t("Add my subnet IP range"),
+            fromLabel: l10n.t({
+                message: "From",
+                comment: ["Label for the start IP address in the firewall rule IP range"],
+            }),
+            toLabel: l10n.t({
+                message: "To",
+                comment: ["Label for the end IP address in the firewall rule IP range"],
+            }),
         };
     }
 
@@ -339,9 +355,14 @@ export class LocConstants {
             },
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
+            connectActions: l10n.t("Connection actions"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
-            testConnection: l10n.t("Test Connection"),
+            testConnection: l10n.t("Test connection"),
+            testConnectionSucceeded: l10n.t("Connection test succeeded"),
+            testing: l10n.t("Testing..."),
+            connecting: l10n.t("Connecting..."),
+            saveWithoutConnecting: l10n.t("Save without connecting"),
             connectToDatabase: l10n.t("Connect to Database"),
             editDatabaseConnection: (profileName: string) =>
                 l10n.t({
@@ -537,10 +558,8 @@ export class LocConstants {
             submit: l10n.t("Submit"),
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),
+            privacyNotice: l10n.t("Privacy notice"),
             privacyStatement: l10n.t("Privacy Statement"),
-            feedbackStatementShort: l10n.t(
-                "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
-            ),
             feedbackStatementLong: l10n.t(
                 "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
             ),
@@ -752,6 +771,7 @@ export class LocConstants {
             sort: l10n.t("Sort"),
             filter: l10n.t("Filter"),
             resize: l10n.t("Resize"),
+            copyColumnName: l10n.t("Copy Column Name"),
             resizeColumn: (columnName: string) => {
                 return l10n.t({
                     message: "Resize column '{0}'",
@@ -833,13 +853,15 @@ export class LocConstants {
             askGithubCopilotToFixTooltip: l10n.t(
                 "Open GitHub Copilot Chat to help fix these errors",
             ),
-            schemaDesignerCopilotDiscoveryTitle: l10n.t("Design Schemas with GitHub Copilot"),
+            schemaDesignerCopilotDiscoveryTitle: l10n.t(
+                "Design Schemas with GitHub Copilot (Preview)",
+            ),
             schemaDesignerCopilotDiscoveryBody: l10n.t(
                 "Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.",
             ),
             dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
             dabCopilotDiscoveryBody: l10n.t(
-                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
+                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
             ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
@@ -1049,7 +1071,9 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
-            definition: l10n.t("Show Definition"),
+            definition: l10n.t("Definition"),
+            showDefinition: l10n.t("Show Definition"),
+            hideDefinition: l10n.t("Hide Definition"),
             copy: l10n.t("Copy"),
             close: l10n.t("Close"),
             deleteConfirmation: l10n.t("Delete Confirmation"),
@@ -1060,9 +1084,10 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
-            schemaDesignerNavLabel: l10n.t("Schema Designer"),
-            dabNavLabel: l10n.t("DAB"),
+            schemaDesignerNavLabel: l10n.t("Visualize and Design Schema (Preview)"),
+            dabNavLabel: l10n.t("Build Data API (Preview)"),
             showChangesButtonLabel: l10n.t("Show Changes"),
+            hideChangesButtonLabel: l10n.t("Hide Changes"),
             showCopilotChangesButtonLabel: l10n.t("Copilot Changes"),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
@@ -1293,8 +1318,8 @@ export class LocConstants {
                     ],
                 }),
 
-            // DAB (Data API Builder) strings
-            dabTitle: l10n.t("Data API Builder Configuration"),
+            // DAB (Data API builder) strings
+            dabTitle: l10n.t("Data API builder Configuration (Preview)"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1318,6 +1343,18 @@ export class LocConstants {
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
+            dabDeploymentNotSupported: l10n.t(
+                "Local container deployment is currently only supported with SQL Authentication connections.",
+            ),
+            atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
+            authenticationNotSupported: l10n.t("Authentication not supported"),
+            dabDeploymentNotSupportedBanner: l10n.t(
+                "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+            ),
+            unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
+            dabUnsupportedDataTypesBanner: l10n.t(
+                "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
+            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -1376,9 +1413,13 @@ export class LocConstants {
             // DAB Deployment Dialog
             deployDabContainer: l10n.t("Deploy DAB Container"),
             localContainerDeployment: l10n.t("Local Container Deployment"),
-            deployDabContainerDescription: l10n.t(
-                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
-            ),
+            deployDabContainerDescription: (apiTypes: string) =>
+                l10n.t({
+                    message:
+                        "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+                    args: [apiTypes],
+                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
+                }),
             requirements: l10n.t("Requirements:"),
             dockerDesktopRequirement: l10n.t(
                 "Docker Desktop must be installed and running on your machine.",
@@ -1407,6 +1448,19 @@ export class LocConstants {
             addToVSCode: l10n.t("Add to VS Code"),
             addMcpServerToWorkspace: l10n.t("Add MCP server to workspace configuration"),
             mcpServerAdded: l10n.t("Added"),
+            viewSwagger: l10n.t("View Swagger"),
+            openNitro: l10n.t("Open Nitro"),
+
+            // DAB Unsupported Reasons
+            unsupportedNoPrimaryKey: l10n.t(
+                "Table must have a primary key to be used with Data API builder",
+            ),
+            unsupportedDataTypes: (columns: string) =>
+                l10n.t({
+                    message: "Table contains column types not supported by Data API builder: {0}",
+                    args: [columns],
+                    comment: ["{0} is a comma-separated list of column names and their data types"],
+                }),
 
             // DAB Deployment Steps
             checkingDockerInstallation: l10n.t("Checking Docker installation"),
@@ -1416,11 +1470,12 @@ export class LocConstants {
             checkingDockerEngine: l10n.t("Checking Docker engine"),
             verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
             pullingDabImage: l10n.t("Pulling DAB container image"),
-            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API builder container image"),
             startingDabContainer: l10n.t("Starting DAB container"),
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
+            containerLogs: l10n.t("Container logs"),
         };
     }
 
@@ -1619,7 +1674,7 @@ export class LocConstants {
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric (Preview)"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
@@ -1666,8 +1721,8 @@ export class LocConstants {
 
     public get fabricProvisioning() {
         return {
-            loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
-            sqlDatabaseInFabric: l10n.t("SQL database in Fabric (Preview)"),
+            loadingFabricProvisioning: l10n.t("Loading Fabric provisioning..."),
+            sqlDatabaseInFabric: l10n.t("SQL database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             errorLoadingWorkspaces: l10n.t(
@@ -1781,6 +1836,7 @@ export class LocConstants {
             valueUnknown: l10n.t("-"),
             dropConnections: l10n.t("Drop active connections"),
             deleteBackupHistory: l10n.t("Delete backup and restore history"),
+            confirmationLabel: l10n.t("I understand this action is permanent and irreversible"),
             helpButton: l10n.t("Help"),
             scriptButton: l10n.t("Script"),
             dropButton: l10n.t("Drop"),
@@ -1791,7 +1847,7 @@ export class LocConstants {
 
     public get dacpacDialog() {
         return {
-            title: l10n.t("Data-tier Application (Preview)"),
+            title: l10n.t("Data-tier Application"),
             subtitle: l10n.t(
                 "Deploy, extract, import, or export data-tier applications on the selected database",
             ),
@@ -1858,10 +1914,6 @@ export class LocConstants {
                 "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
             ),
             learnMore: l10n.t("Learn More"),
-            fabricWarning: l10n.t(
-                "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
-            ),
-            fabricWarningLearnMore: l10n.t("Learn more about this issue."),
         };
     }
 
@@ -1892,13 +1944,15 @@ export class LocConstants {
             noDataAvailable: l10n.t("No data available"),
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
             closeScriptPane: l10n.t("Close Script Pane"),
+            modifyTable: l10n.t("Modify Table"),
+            viewTableDiagram: l10n.t("View Table Diagram"),
         };
     }
 
     public get searchDatabase() {
         return {
             // Page titles and headers
-            title: l10n.t("Search Database Objects"),
+            title: l10n.t("Search Database Objects (Preview)"),
             loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
@@ -1992,6 +2046,7 @@ export class LocConstants {
             expandAllGroups: l10n.t("Expand all groups"),
             exportToCsv: l10n.t("Export to CSV"),
             exportToExcel: l10n.t("Export to Excel"),
+            exportToPdf: l10n.t("Export to PDF"),
             exportToJson: l10n.t("Export to JSON"),
             exportToTextFormat: l10n.t("Export to text format"),
             exportToTabDelimited: l10n.t("Export to tab delimited"),
@@ -2190,12 +2245,15 @@ export class LocConstants {
 
     public get changelog() {
         return {
+            pageTitle: l10n.t("MSSQL: What's new"),
+            headerIconAlt: l10n.t("MSSQL extension icon"),
             highlightsSectionTitle: l10n.t("Highlights"),
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(
                 "New to MSSQL extension? Check out our quick-start guide.",
             ),
+            previewBadge: l10n.t("Preview"),
             footerText: (version: string) =>
                 l10n.t({
                     message:
@@ -2224,6 +2282,12 @@ export class LocConstants {
 
     public get backupDatabase() {
         return {
+            backupDatabaseTitle: (databaseName: string) =>
+                l10n.t({
+                    message: "Backup Database (Preview) - {0}",
+                    args: [databaseName],
+                    comment: ["{0} is the database name"],
+                }),
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
             script: l10n.t("Script"),
@@ -2456,22 +2520,22 @@ export class LocConstants {
 
     public get flatFileImport() {
         return {
-            importFile: l10n.t("Import File"),
-            stepOne: l10n.t("Step 1: Specify Input File"),
+            importFile: l10n.t("Import File (Preview)"),
+            stepOne: l10n.t("Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
             browse: l10n.t("Browse"),
-            stepTwo: l10n.t("Step 2: Preview Data"),
+            stepTwo: l10n.t("Preview Data"),
             operationPreviewText: l10n.t(
                 "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
             ),
-            stepThree: l10n.t("Step 3: Modify Columns"),
+            stepThree: l10n.t("Modify Columns"),
             columnName: l10n.t("Column Name"),
             dataType: l10n.t("Data Type"),
             allowNulls: l10n.t("Allow Nulls"),
             primaryKey: l10n.t("Primary Key"),
             importData: l10n.t("Import Data"),
-            stepFour: l10n.t("Step 4: Summary"),
+            stepFour: l10n.t("Summary"),
             importInformation: l10n.t("Import Information"),
             importStatus: l10n.t("Import Status"),
             objectType: l10n.t("Object Type"),
@@ -2493,7 +2557,7 @@ export class LocConstants {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),
             restore: l10n.t("Restore"),
-            restoreDatabase: l10n.t("Restore Database"),
+            restoreDatabase: l10n.t("Restore Database (Preview)"),
             database: l10n.t("Database"),
             backupFile: l10n.t("Backup File"),
             url: l10n.t("URL"),

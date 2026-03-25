@@ -29,7 +29,6 @@ import { AzureBrowsePage } from "./azureBrowsePage";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { ConnectionFormPage } from "./connectionFormPage";
-import { ConnectionHeader } from "./components/connectionHeader.component";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
@@ -60,6 +59,11 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
     },
+    formContent: {
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "0 16px",
+    },
 });
 
 export const ConnectionInfoFormContainer = () => {
@@ -81,10 +85,9 @@ export const ConnectionInfoFormContainer = () => {
     }
 
     return (
-        <form onSubmit={handleConnect} className={formStyles.formRoot}>
-            <ConnectionHeader />
-
-            <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+        <form id="connectionForm" onSubmit={handleConnect}>
+            <button type="submit" style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+            <div className={styles.formContent}>
                 {formMessage && (
                     <DialogMessage
                         message={formMessage}
@@ -100,6 +103,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
+                        mode="modal"
                         state={(dialog as AddFirewallRuleDialogProps).props}
                         addFirewallRule={context.addFirewallRule}
                         closeDialog={context.closeDialog}
@@ -108,6 +112,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "changePassword" && (
                     <ChangePasswordDialog
+                        mode="modal"
                         serverName={changePasswordDialogState?.server}
                         userName={changePasswordDialogState?.userName}
                         onSubmit={context.changePassword}
@@ -119,6 +124,7 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {dialog?.type === "createConnectionGroup" && (
                     <ConnectionGroupDialog
+                        mode="modal"
                         state={(dialog as CreateConnectionGroupDialogProps).props}
                         saveConnectionGroup={context.createConnectionGroup}
                         closeDialog={context.closeDialog}

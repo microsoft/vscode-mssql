@@ -45,6 +45,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
     let writeTextStub: sinon.SinonStub;
     let showSaveDialogStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
 
     const mockConnectionProfile: IConnectionProfile = {
         server: "test-server",
@@ -99,6 +100,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
         sandbox.stub(vscode.workspace, "fs").value({
             writeFile: writeFileStub,
         });
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
         // Setup mock webview and panel
         mockWebview = {
@@ -154,6 +156,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 metadataTypeName: "Table",
             },
             connectionProfile: mockConnectionProfile,
+            parentNode: {
+                metadata: {
+                    name: "test-db",
+                    metadataTypeName: "Database",
+                },
+                connectionProfile: mockConnectionProfile,
+                parentNode: null,
+            },
         } as any;
 
         // Create controller
@@ -1122,6 +1132,150 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(callArgs[1]).to.equal("excel");
             expect(callArgs[2]).to.deep.equal(mockHeaders);
             expect(callArgs[3]).to.deep.equal(mockRows);
+        });
+    });
+
+    suite("modifyTable reducer", () => {
+        test("should open Table Designer via executeCommand with the target node", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
+
+            // Assert
+            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(executeCommandStub.firstCall.args[0]).to.equal("mssql.editTable");
+            expect(executeCommandStub.firstCall.args[1]).to.equal(controller["_targetNode"]);
+        });
+
+        test("should not show an error message when Table Designer opens successfully", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            showErrorMessageStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
+
+            // Assert
+            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.called).to.be.false;
+        });
+
+        test("should show error message when executeCommand throws", async () => {
+            // Arrange
+            const error = new Error("Table Designer failed to open");
+            executeCommandStub.rejects(error);
+            showErrorMessageStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("modifyTable")(controller.state, {});
+
+            // Assert
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include(
+                "Table Designer failed to open",
+            );
+        });
+
+        test("should return state unchanged after successful open", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            controller.state.tableName = "TestTable";
+
+            // Act
+            const resultState = await controller["_reducerHandlers"].get("modifyTable")(
+                controller.state,
+                {},
+            );
+
+            // Assert
+            expect(resultState.tableName).to.equal("TestTable");
+        });
+    });
+
+    suite("viewTableDiagram reducer", () => {
+        test("should open Schema Designer via executeCommand with correct arguments", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            controller.state.schemaName = "dbo";
+            controller.state.tableName = "TestTable";
+
+            // Act
+            await controller["_reducerHandlers"].get("viewTableDiagram")(controller.state, {});
+
+            // Assert
+            expect(
+                executeCommandStub.calledWithMatch(
+                    "mssql.schemaDesignerForTable",
+                    controller["_targetNode"],
+                    "test-db",
+                    "dbo.TestTable",
+                ),
+            ).to.be.true;
+        });
+
+        test("should fall back to target node schema when state schema is empty", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            controller.state.schemaName = "";
+            controller.state.tableName = "TestTable";
+
+            // Act
+            await controller["_reducerHandlers"].get("viewTableDiagram")(controller.state, {});
+
+            // Assert - falls back to _targetNode.metadata.schema ("dbo")
+            expect(
+                executeCommandStub.calledWithMatch(
+                    "mssql.schemaDesignerForTable",
+                    sinon.match.any,
+                    sinon.match.any,
+                    "dbo.TestTable",
+                ),
+            ).to.be.true;
+        });
+
+        test("should not show an error message when Schema Designer opens successfully", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            showErrorMessageStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("viewTableDiagram")(controller.state, {});
+
+            // Assert
+            expect(executeCommandStub.calledWithMatch("mssql.schemaDesignerForTable")).to.be.true;
+            expect(showErrorMessageStub.called).to.be.false;
+        });
+
+        test("should show error message when executeCommand throws", async () => {
+            // Arrange
+            const error = new Error("Schema Designer failed to open");
+            executeCommandStub.rejects(error);
+            showErrorMessageStub.resetHistory();
+
+            // Act
+            await controller["_reducerHandlers"].get("viewTableDiagram")(controller.state, {});
+
+            // Assert
+            expect(
+                showErrorMessageStub.calledWithMatch(sinon.match("Schema Designer failed to open")),
+            ).to.be.true;
+        });
+
+        test("should return state unchanged after successful open", async () => {
+            // Arrange
+            executeCommandStub.resetHistory();
+            controller.state.tableName = "TestTable";
+
+            // Act
+            const resultState = await controller["_reducerHandlers"].get("viewTableDiagram")(
+                controller.state,
+                {},
+            );
+
+            // Assert
+            expect(resultState.tableName).to.equal("TestTable");
         });
     });
 });

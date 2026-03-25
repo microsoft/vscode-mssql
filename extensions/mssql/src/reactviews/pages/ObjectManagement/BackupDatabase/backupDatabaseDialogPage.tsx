@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { Image, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
 import { BackupDatabaseForm } from "./backupDatabaseForm";
@@ -19,6 +19,10 @@ import {
 import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { url } from "../../../common/constants";
 import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+
+const backupLightIcon = require("../../../../../media/backup_light.svg");
+const backupDarkIcon = require("../../../../../media/backup_dark.svg");
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -44,6 +48,7 @@ const useStyles = makeStyles({
 export const BackupDatabaseDialogPage = () => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
+    const { themeKind } = useVscodeWebview();
     const viewModel = useBackupDatabaseSelector((s) => s.viewModel);
     const formComponents = useBackupDatabaseSelector((s) => s.formComponents);
     const formState = useBackupDatabaseSelector((s) => s.formState);
@@ -102,8 +107,18 @@ export const BackupDatabaseDialogPage = () => {
             case ApiStatus.Loaded:
                 return (
                     <ObjectManagementDialog
-                        title={undefined}
-                        description={undefined}
+                        icon={
+                            <Image
+                                src={
+                                    themeKind === ColorThemeKind.Dark
+                                        ? backupDarkIcon
+                                        : backupLightIcon
+                                }
+                                alt={locConstants.backupDatabase.backup}
+                            />
+                        }
+                        title={locConstants.backupDatabase.backup}
+                        subtitle={backupViewModel.databaseName}
                         errorMessage={errorMessage}
                         primaryLabel={locConstants.backupDatabase.backup}
                         cancelLabel={locConstants.createDatabase.cancelButton}

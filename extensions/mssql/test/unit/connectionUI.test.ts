@@ -242,6 +242,49 @@ suite("Connection UI tests", () => {
         expect(promptSingleStub).to.have.been.calledOnce;
     });
 
+    test("promptToManageProfiles should show saved profiles and open selected profile for edit", async () => {
+        const selectedProfileItem: IConnectionCredentialsQuickPickItem = {
+            label: "Test Profile",
+            quickPickItemType: CredentialsQuickPickItemType.Profile,
+            connectionCreds: new ConnectionCredentials(),
+        };
+        connectionStoreStub.getProfilePickListItems.resolves([selectedProfileItem]);
+
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const editChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.EditProfilesLabel,
+            );
+            await question.onAnswered(editChoice.value);
+            return undefined;
+        });
+        promptStub.resolves({
+            ChooseProfile: selectedProfileItem,
+        });
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
+        expect(vscodeWrapperStub.executeCommand).to.have.been.calledWithExactly(
+            "mssql.editConnection",
+            selectedProfileItem.connectionCreds,
+        );
+    });
+
+    test("editProfile should show an error if there are no saved profiles", async () => {
+        connectionStoreStub.getProfilePickListItems.resolves([]);
+
+        const result = await connectionUI.editProfile();
+
+        expect(result).to.be.false;
+        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnceWithExactly(
+            LocConstants.msgNoProfilesToEdit,
+        );
+        expect(vscodeWrapperStub.executeCommand).to.not.have.been.calledWith(
+            "mssql.editConnection",
+        );
+    });
+
     test("getConnectionGroupOptions", async () => {
         const mockGroups: IConnectionGroup[] = [
             {

@@ -24,10 +24,11 @@ export class Common {
     public static error = l10n.t("Error");
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
+    public static remove = l10n.t("Remove");
 }
 
-export let createDatabaseDialogTitle = l10n.t("Create Database");
-export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let createDatabaseDialogTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
 export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
@@ -69,6 +70,13 @@ export function renameDatabaseError(
             "{1} is the new database name",
             "{2} is the error message",
         ],
+    });
+}
+export function renamingDatabase(databaseName: string, newDatabaseName: string) {
+    return l10n.t({
+        message: "Renaming database '{0}' to '{1}'...",
+        args: [databaseName, newDatabaseName],
+        comment: ["{0} is the current database name", "{1} is the new database name"],
     });
 }
 
@@ -146,10 +154,10 @@ export let msgOpenSqlFile = l10n.t(
 );
 export let recentConnectionsPlaceholder = l10n.t("Choose a connection profile from the list below");
 export let CreateProfileFromConnectionsListLabel = l10n.t("Create Connection Profile");
-export let CreateProfileLabel = l10n.t("Create");
+export let CreateProfileLabel = l10n.t("Create a new connection profile");
 export let ClearRecentlyUsedLabel = l10n.t("Clear Recent Connections List");
-export let EditProfilesLabel = l10n.t("Edit");
-export let RemoveProfileLabel = l10n.t("Remove");
+export let EditProfilesLabel = l10n.t("Edit an existing connection profile");
+export let RemoveProfileLabel = l10n.t("Remove a connection profile");
 export let ManageProfilesPrompt = l10n.t("Manage Connection Profiles");
 export let SampleServerName = l10n.t("{{put-server-name-here}}");
 export let serverPrompt = l10n.t("Server name or ADO.NET connection string");
@@ -257,8 +265,10 @@ export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
 export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
+export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
-export let msgNoProfilesSaved = l10n.t("No connection profile to remove.");
+export let msgNoProfilesToRemove = l10n.t("No connection profiles to remove.");
+export let msgNoProfilesToEdit = l10n.t("No connection profiles to edit.");
 export let msgProfileRemoved = l10n.t("Profile removed successfully");
 export let msgProfileCreated = l10n.t("Profile created successfully");
 export let msgProfileCreatedAndConnected = l10n.t("Profile created and connected");
@@ -640,6 +650,7 @@ export let newDeployment = l10n.t("New Deployment");
 
 export class Notebooks {
     // Status bar
+    public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
 
     // Errors
@@ -659,6 +670,17 @@ export class Notebooks {
     }
     public static commandCompletedSuccessfully = l10n.t("(Command completed successfully)");
     public static zeroRows = l10n.t("(0 rows)");
+    public static resultSetTruncated(actual: number, expected: number) {
+        return l10n.t({
+            message:
+                "Warning: Result set is incomplete. Showing {0} of {1} rows. The full result set could not be loaded.",
+            args: [actual, expected],
+            comment: [
+                "{0} is the number of rows actually returned",
+                "{1} is the total number of rows expected",
+            ],
+        });
+    }
     public static rowCountPlain(count: number) {
         if (count === 1) {
             return l10n.t({
@@ -705,6 +727,7 @@ export class Notebooks {
     public static currentDatabaseLabel = l10n.t("(current)");
 
     // Code lens
+    public static codeLensClickToChangeConnection = l10n.t("Click to change connection");
     public static codeLensClickToChangeDatabase = l10n.t("Click to change database");
     public static codeLensConnectToSqlServer = l10n.t("Connect to SQL Server");
 
@@ -1397,7 +1420,7 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    // DAB (Data API Builder) deployment strings
+    // DAB (Data API builder) deployment strings
     public static dabContainerNameInvalidOrInUse = l10n.t(
         "Container name is invalid or already in use",
     );
@@ -1465,6 +1488,10 @@ export class UserSurvey {
         "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
     );
     public static submitIssue = l10n.t("Submit an issue");
+    public static mssqlMarketplaceReviewPrompt = l10n.t(
+        "We're glad you're enjoying MSSQL for VS Code!  Please consider leaving a quick review on the VS Code Marketplace.",
+    );
+    public static writeReview = l10n.t("Write a review");
 }
 
 export class Webview {
@@ -1682,6 +1709,7 @@ export class SchemaCompare {
 
 export class SchemaDesigner {
     public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
+    public static PanelTitle = l10n.t("Visualize and Design Schema (Preview)");
     public static SchemaReady = l10n.t(
         "Schema Designer Model is ready. Changes can now be published.",
     );
@@ -1713,6 +1741,14 @@ export class SchemaDesigner {
     );
     public static configCopiedToClipboard = l10n.t("Config copied to clipboard");
     public static urlCopiedToClipboard = l10n.t("URL copied to clipboard");
+    public static logsCopiedToClipboard = l10n.t("Logs copied to clipboard");
+    public static dabLogsEditorTitle = l10n.t("DAB container logs");
+    public static failedToOpenUrl = l10n.t(
+        "Failed to open URL. The built-in Simple Browser may be disabled.",
+    );
+    public static dabDeploymentNotSupported = l10n.t(
+        "Local container deployment is currently only supported with SQL Authentication connections.",
+    );
 }
 
 export class StatusBar {
@@ -2031,6 +2067,15 @@ export class MssqlChatAgent {
             "{2} is the operation name 'apply_edits' and must not be translated",
         ],
     });
+    public static dabToolShowSuccessMessage = l10n.t({
+        message: "Data API builder opened. Continue with {0} operations ({1}/{2}).",
+        args: ["mssql_dab", "get_state", "apply_changes"],
+        comment: [
+            "{0} is the command identifier 'mssql_dab' and must not be translated",
+            "{1} is the operation name 'get_state' and must not be translated",
+            "{2} is the operation name 'apply_changes' and must not be translated",
+        ],
+    });
     public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
     public static schemaDesignerToolConfirmationMessage = (operation: string) => {
         return l10n.t({
@@ -2046,21 +2091,27 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
-    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationTitle = l10n.t("Data API builder");
     public static dabToolConfirmationMessage = (operation: string) => {
         return l10n.t({
-            message: "Execute '{0}' operation on Data API Builder?",
+            message: "Execute '{0}' operation on Data API builder?",
             args: [operation],
             comment: ["{0} is the operation name"],
         });
     };
     public static dabToolInvocationMessage = (operation: string) => {
         return l10n.t({
-            message: "Executing '{0}' operation on Data API Builder",
+            message: "Executing '{0}' operation on Data API builder",
             args: [operation],
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolNoActiveDesigner = l10n.t(
+        "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    );
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
@@ -2500,7 +2551,7 @@ export class ConnectionGroup {
 }
 
 export class DacpacDialog {
-    public static Title = l10n.t("Data-tier Application (Preview)");
+    public static Title = l10n.t("Data-tier Application");
     public static FilePathRequired = l10n.t("File path is required");
     public static FileNotFound = l10n.t("File not found");
     public static InvalidFileExtension = l10n.t(
@@ -2570,7 +2621,7 @@ export class DacpacDialog {
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database Objects - {0}",
+            message: "Search Database Objects (Preview) - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -2620,13 +2671,6 @@ export class TableExplorer {
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
     public static rowDeletedSuccessfully = l10n.t("Row deleted.");
-
-    public static title = (tableName: string) =>
-        l10n.t({
-            message: "{0} (Preview)",
-            args: [tableName],
-            comment: ["{0} is the table name"],
-        });
 
     public static failedToSaveChanges = (errorMessage: string) =>
         l10n.t({
@@ -2733,6 +2777,20 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToOpenTableDesigner = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Table Designer: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenSchemaDesigner = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Schema Designer: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class AzureDataStudioMigration {
@@ -2794,7 +2852,6 @@ export class Changelog {
     public static tryIt = l10n.t("Try it");
     public static watchDemo = l10n.t("Watch demo");
     public static learnMore = l10n.t("Learn more");
-    public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
     public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
@@ -2803,41 +2860,35 @@ export class Changelog {
 
     // Main content
     public static mainContentTitle = l10n.t("Highlights");
+    public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
+    public static schemaDesignerCopilotDescription = l10n.t(
+        "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
+    );
+    public static dabTitle = l10n.t("Data API builder");
+    public static dabDescription = l10n.t(
+        "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
+    );
+    public static dabCopilotTitle = l10n.t("GitHub Copilot integration in Data API builder");
+    public static dabCopilotDescription = l10n.t(
+        "Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.",
+    );
+    public static sqlNotebooksTitle = l10n.t("SQL Notebooks");
+    public static sqlNotebooksDescription = l10n.t(
+        "Write and run SQL queries in native Visual Studio Code Jupyter notebooks with interactive results, sorting, filtering, and Markdown documentation.",
+    );
+    public static fabricQueryProfilerTitle = l10n.t("Fabric databases in Query Profiler");
+    public static fabricQueryProfilerDescription = l10n.t(
+        "The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.",
+    );
     public static adsMigrationTitle = l10n.t(
         "Azure Data Studio Migration Toolkit - Now Including Keymap!",
     );
     public static adsMigrationDescription = l10n.t(
         "Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.",
     );
-    public static editDataTitle = l10n.t("Edit Data (Preview)");
-    public static editDataDescription = l10n.t(
-        "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-    );
-    public static globalObjectSearchTitle = l10n.t("Global Object Search");
-    public static globalObjectSearchDescription = l10n.t(
-        "Search for database objects — tables, views, stored procedures, and more — across your entire database.",
-    );
-    public static backupRestoreTitle = l10n.t("Backup/Restore Dialogs (Preview)");
-    public static backupRestoreDescription = l10n.t(
-        "Back up SQL databases locally or to URL, and easily restore them from database, .BAK file, or URL.",
-    );
-    public static databaseManagementTitle = l10n.t("Database Management Dialogs (Preview)");
-    public static databaseManagementDescription = l10n.t(
-        "Create, rename, and drop databases using new management dialogs enabling users to easily manage their databases.",
-    );
-    public static queryProfilerTitle = l10n.t("Query Profiler (Preview)");
-    public static queryProfilerDescription = l10n.t(
-        "Capture and analyze live SQL Server Extended Events sessions to monitor and analyze database performance.",
-    );
-    public static dacpacTitle = l10n.t(
-        "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
-    );
+    public static dacpacTitle = l10n.t("Data-Tier Application (DACPAC / BACPAC) Import & Export");
     public static dacpacDescription = l10n.t(
         "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
-    );
-    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog");
-    public static sqlProjPublishDescription = l10n.t(
-        "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
     );
 
     // Secondary content
@@ -2845,21 +2896,17 @@ export class Changelog {
     public static secondaryContentDescription = l10n.t(
         "Previously released features you may not have explored yet.",
     );
-    public static schemaDesignerTitle = l10n.t("Schema Designer");
-    public static schemaDesignerDescription = l10n.t(
-        "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+    public static editDataTitle = l10n.t("Edit Data");
+    public static editDataDescription = l10n.t(
+        "View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
     );
-    public static schemaCompareTitle = l10n.t("Schema Compare");
-    public static schemaCompareDescription = l10n.t(
-        "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+    public static fabricIntegrationTitle = l10n.t("Microsoft Fabric integration");
+    public static fabricIntegrationDescription = l10n.t(
+        "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.",
     );
-    public static localContainerTitle = l10n.t("Local SQL Server Container");
-    public static localContainerDescription = l10n.t(
-        "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
-    );
-    public static copilotIntegrationTitle = l10n.t("GitHub Copilot integration");
-    public static copilotIntegrationDescription = l10n.t(
-        "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+    public static sqlProjCodeAnalysisTitle = l10n.t("SQL Database Projects — Code Analysis");
+    public static sqlProjCodeAnalysisDescription = l10n.t(
+        "Analyze static code with customizable rulesets in SQL Database Projects.",
     );
 
     // Sidebar content
@@ -3073,9 +3120,6 @@ export class Profiler {
     public static noDatabasesFound = l10n.t(
         "No databases found on the server. Please check your connection.",
     );
-    public static profilerNotSupportedOnFabric = l10n.t(
-        "Profiler is not supported on Microsoft Fabric SQL databases.",
-    );
 }
 
 export class Proxy {
@@ -3084,7 +3128,7 @@ export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
             args: [proxy],
             comment: ["{0} is the proxy URL"],
         });
@@ -3092,7 +3136,7 @@ export class Proxy {
     public static unparseableWarning = (proxy: string, errorMessage: string) =>
         l10n.t({
             message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
             args: [proxy, errorMessage],
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
@@ -3101,7 +3145,7 @@ export class Proxy {
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
-            message: "Backup Database - {0}",
+            message: "Backup Database (Preview) - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
@@ -3229,7 +3273,7 @@ export class FlatFileImport {
 }
 
 export class RestoreDatabase {
-    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static restoreDatabaseTitle = l10n.t("Restore Database (Preview)");
     public static sourceDatabase = l10n.t("Source Database");
     public static targetDatabase = l10n.t("Target Database");
     public static files = l10n.t("Files");

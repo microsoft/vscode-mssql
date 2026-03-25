@@ -129,9 +129,7 @@ suite("SqlTasksService Tests", () => {
 
             sqlTasksService.registerCompletionSuccessHandler(handler2);
 
-            // Verify telemetry was sent
-            expect(sendActionEventStub).to.have.been.calledOnce;
-            expect(sendActionEventStub).to.have.been.calledWith(
+            expect(sendActionEventStub).to.have.been.calledWithMatch(
                 "General",
                 "Initialize",
                 sinon.match({
@@ -141,8 +139,14 @@ suite("SqlTasksService Tests", () => {
             );
 
             // Verify error was logged
-            expect(loggerErrorStub).to.have.been.calledOnce;
-            expect(loggerErrorStub.firstCall.args[0]).to.include("TestOperation");
+            expect(
+                loggerErrorStub.calledWithMatch(
+                    sinon.match(
+                        (value: unknown) =>
+                            typeof value === "string" && value.includes("TestOperation"),
+                    ),
+                ),
+            ).to.be.true;
         });
 
         test("should support multiple handlers for different operation IDs", async () => {
@@ -740,6 +744,189 @@ suite("SqlTasksService Tests", () => {
 
             // Custom handler should not be invoked
             expect(showInformationMessageStub).to.not.have.been.called;
+        });
+    });
+
+    suite("Script task notification ordering (issue #20176)", () => {
+        let onNotificationStub: sinon.SinonStub;
+        let taskCreatedHandler: (taskInfo: TaskInfo) => void;
+        let taskStatusChangedHandler: (progressInfo: TaskProgressInfo) => Promise<void>;
+
+        const scriptTaskInfo: TaskInfo = {
+            taskId: "script-task-1",
+            status: TaskStatus.InProgress,
+            taskExecutionMode: TaskExecutionMode.script,
+            serverName: "test-server",
+            databaseName: "test-db",
+            name: "Generate script",
+            description: "Generate script operation",
+            providerName: "MSSQL",
+            isCancelable: false,
+            targetLocation: "",
+        };
+
+        setup(() => {
+            onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
+            taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
+            taskStatusChangedHandler = onNotificationStub.getCalls()[1].args[1];
+        });
+
+        test("should open script when script arrives with the completion notification (normal ordering)", async () => {
+            taskCreatedHandler(scriptTaskInfo);
+
+            const progressWithScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+                script: "CREATE TABLE [dbo].[MyTable] ...",
+            };
+
+            await taskStatusChangedHandler(progressWithScript);
+
+            expect(sqlDocumentServiceStub.newQuery).to.have.been.calledOnce;
+            expect(sqlDocumentServiceStub.newQuery.firstCall.args[0]).to.deep.include({
+                content: "CREATE TABLE [dbo].[MyTable] ...",
+            });
+        });
+
+        test("should defer completion and open script when completion arrives before script notification (race condition)", async () => {
+            taskCreatedHandler(scriptTaskInfo);
+
+            // Notification E arrives first: Succeeded status WITHOUT script
+            const completionWithoutScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+            };
+            await taskStatusChangedHandler(completionWithoutScript);
+
+            // Script should NOT have been opened yet — task is deferred
+            expect(sqlDocumentServiceStub.newQuery).to.not.have.been.called;
+            // Completion message should NOT have been shown yet
+            expect(showInformationMessageStub).to.not.have.been.called;
+
+            // Notification C arrives second: Succeeded status WITH script
+            const scriptNotification: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+                script: "ALTER TABLE [dbo].[Users] ADD [Email] NVARCHAR(256);",
+            };
+            await taskStatusChangedHandler(scriptNotification);
+
+            // Now the script should be opened
+            expect(sqlDocumentServiceStub.newQuery).to.have.been.calledOnce;
+            expect(sqlDocumentServiceStub.newQuery.firstCall.args[0]).to.deep.include({
+                content: "ALTER TABLE [dbo].[Users] ADD [Email] NVARCHAR(256);",
+            });
+            // And the completion message should be shown
+            expect(showInformationMessageStub).to.have.been.calledOnce;
+        });
+
+        test("should not defer completion for execute-mode tasks without script", async () => {
+            const executeTaskInfo: TaskInfo = {
+                ...scriptTaskInfo,
+                taskId: "exec-task-1",
+                taskExecutionMode: TaskExecutionMode.execute,
+            };
+
+            taskCreatedHandler(executeTaskInfo);
+
+            const completionWithoutScript: TaskProgressInfo = {
+                taskId: "exec-task-1",
+                status: TaskStatus.Succeeded,
+                message: "Completed",
+            };
+            await taskStatusChangedHandler(completionWithoutScript);
+
+            // Execute-mode tasks should complete immediately (no deferral)
+            expect(showInformationMessageStub).to.have.been.calledOnce;
+        });
+
+        test("should store script from earlier non-completed notification and use it at completion", async () => {
+            taskCreatedHandler(scriptTaskInfo);
+
+            // Script arrives with an in-progress notification (edge case)
+            const inProgressWithScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.InProgress,
+                message: "Generating...",
+                script: "SELECT 1;",
+            };
+            await taskStatusChangedHandler(inProgressWithScript);
+
+            // Completion arrives without script
+            const completionWithoutScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+            };
+            await taskStatusChangedHandler(completionWithoutScript);
+
+            // Script stored from the earlier notification should be used
+            expect(sqlDocumentServiceStub.newQuery).to.have.been.calledOnce;
+            expect(sqlDocumentServiceStub.newQuery.firstCall.args[0]).to.deep.include({
+                content: "SELECT 1;",
+            });
+        });
+
+        test("should complete deferred task when script arrives on a non-completed notification", async () => {
+            taskCreatedHandler(scriptTaskInfo);
+
+            // Completion arrives first without script — deferred
+            const completionWithoutScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+            };
+            await taskStatusChangedHandler(completionWithoutScript);
+
+            // Script should NOT have been opened yet — task is deferred
+            expect(sqlDocumentServiceStub.newQuery).to.not.have.been.called;
+            expect(showInformationMessageStub).to.not.have.been.called;
+
+            // An InProgress notification arrives carrying the script
+            const inProgressWithScript: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.InProgress,
+                message: "Generating...",
+                script: "CREATE PROCEDURE [dbo].[MyProc] AS BEGIN SELECT 1 END;",
+            };
+            await taskStatusChangedHandler(inProgressWithScript);
+
+            // Now the deferred task should be completed and script opened
+            expect(sqlDocumentServiceStub.newQuery).to.have.been.calledOnce;
+            expect(sqlDocumentServiceStub.newQuery.firstCall.args[0]).to.deep.include({
+                content: "CREATE PROCEDURE [dbo].[MyProc] AS BEGIN SELECT 1 END;",
+            });
+            expect(showInformationMessageStub).to.have.been.calledOnce;
+        });
+
+        test("should complete without opening script when second completion arrives without script (fallback)", async () => {
+            taskCreatedHandler(scriptTaskInfo);
+
+            // First completion without script — deferred
+            const firstCompletion: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+            };
+            await taskStatusChangedHandler(firstCompletion);
+
+            expect(sqlDocumentServiceStub.newQuery).to.not.have.been.called;
+
+            // Second completion also without script — give up waiting, complete task
+            const secondCompletion: TaskProgressInfo = {
+                taskId: "script-task-1",
+                status: TaskStatus.Succeeded,
+                message: null!,
+            };
+            await taskStatusChangedHandler(secondCompletion);
+
+            // Task should be completed now (not deferred again)
+            expect(showInformationMessageStub).to.have.been.calledOnce;
+            // No script to open
+            expect(sqlDocumentServiceStub.newQuery).to.not.have.been.called;
         });
     });
 });

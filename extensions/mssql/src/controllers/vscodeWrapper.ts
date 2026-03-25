@@ -73,7 +73,7 @@ export default class VscodeWrapper {
      * Create an output channel in vscode.
      */
     public createOutputChannel(channelName: string): vscode.OutputChannel {
-        return vscode.window.createOutputChannel(channelName);
+        return vscode.window.createOutputChannel(channelName, { log: true });
     }
 
     /**

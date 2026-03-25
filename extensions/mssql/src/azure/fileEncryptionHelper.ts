@@ -16,7 +16,6 @@ import {
 import { Logger } from "../models/logger";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { azureAccountProviderCredentials } from "./constants";
-import { getEnableSqlAuthenticationProviderConfig } from "./utils";
 
 export class FileEncryptionHelper {
     constructor(
@@ -70,14 +69,12 @@ export class FileEncryptionHelper {
             this._keyBuffer = Buffer.from(key, this._bufferEncoding);
         }
 
-        if (getEnableSqlAuthenticationProviderConfig()) {
-            SqlToolsServerClient.instance.sendNotification(EncryptionKeysChangedNotification.type, <
-                DidChangeEncryptionIVKeyParams
-            >{
-                iv: this._ivBuffer.toString(this._bufferEncoding),
-                key: this._keyBuffer.toString(this._bufferEncoding),
-            });
-        }
+        SqlToolsServerClient.instance.sendNotification(EncryptionKeysChangedNotification.type, <
+            DidChangeEncryptionIVKeyParams
+        >{
+            iv: this._ivBuffer.toString(this._bufferEncoding),
+            key: this._keyBuffer.toString(this._bufferEncoding),
+        });
     }
 
     fileSaver = async (content: string): Promise<string> => {

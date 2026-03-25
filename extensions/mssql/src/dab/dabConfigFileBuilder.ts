@@ -136,7 +136,7 @@ export class DabConfigFileBuilder {
     ): Record<string, DabEntityOutput> {
         const result: Record<string, DabEntityOutput> = {};
         for (const entity of entities) {
-            if (!entity.isEnabled) {
+            if (!entity.isEnabled || !entity.isSupported) {
                 continue;
             }
             result[entity.advancedSettings.entityName] = this.buildEntityEntry(

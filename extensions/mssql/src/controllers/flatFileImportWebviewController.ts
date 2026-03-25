@@ -15,7 +15,13 @@ import {
     FlatFileImportState,
     FlatFileStepType,
 } from "../sharedInterfaces/flatFileImport";
-import { ProseDiscoveryParams, FlatFileProvider } from "../models/contracts/flatFile";
+import {
+    ChangeColumnSettingsRequest,
+    DisposeSessionRequest,
+    InsertDataRequest,
+    ProseDiscoveryParams,
+    ProseDiscoveryRequest,
+} from "../models/contracts/flatFile";
 import { FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { defaultSchema, flatFileImportFileTypes } from "../constants/constants";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
@@ -27,10 +33,8 @@ import ConnectionManager from "./connectionManager";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { Deferred } from "../protocol";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
-import { FlatFileClient } from "../flatFile/flatFileClient";
-import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 
 /**
  * Controller for the Flat File Import dialog
@@ -42,13 +46,13 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     FlatFileImportReducers
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
+    private readonly operationId: string = uuid();
     private databases: string[] = [];
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         private client: SqlToolsServiceClient,
         private connectionManager: ConnectionManager,
-        private provider: FlatFileProvider | undefined,
         private profile: ConnectionProfile,
         private ownerUri: string,
         private databaseName: string,
@@ -63,8 +67,16 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 title: Loc.FlatFileImport.flatFileImportTitle,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "flatFileImport_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "flatFileImport_dark.svg",
+                    ),
                 },
             },
         );
@@ -85,15 +97,6 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * Initialize the controller
      */
     private async initialize(): Promise<void> {
-        if (!this.provider) {
-            const client = new FlatFileClient(this.vscodeWrapper);
-            await client.startFlatFileService(this._context);
-            managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)(
-                (provider) => {
-                    this.provider = provider;
-                },
-            );
-        }
         // Set database names for dropdown
         this.state.serverName = this.profile.server;
         this.state.formState.databaseName = this.databaseName;
@@ -139,12 +142,16 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     private registerRpcHandlers(): void {
         this.registerReducer("getTablePreview", async (state, payload) => {
             const params: ProseDiscoveryParams = {
+                operationId: this.operationId,
                 filePath: payload.filePath,
                 tableName: payload.tableName,
                 schemaName: payload.schemaName,
             };
             try {
-                state.tablePreview = await this.provider.sendProseDiscoveryRequest(params);
+                state.tablePreview = await this.client.sendRequest(
+                    ProseDiscoveryRequest.type,
+                    params,
+                );
                 state.tablePreviewStatus = ApiStatus.Loaded;
             } catch (error) {
                 state.errorMessage = Loc.FlatFileImport.fetchTablePreviewError;
@@ -167,41 +174,34 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("importData", async (state, _payload) => {
-            if (state.importDataStatus !== ApiStatus.NotStarted) return;
+            if (state.importDataStatus !== ApiStatus.NotStarted) return state;
 
             state.importDataStatus = ApiStatus.Loading;
             this.updateState();
 
             try {
-                // Get connection string with password to perform the data import
-                const connDetails = this.connectionManager.createConnectionDetails({
-                    ...this.profile,
-                    database: state.formState.databaseName,
-                });
-                const connectionString = await this.connectionManager.getConnectionString(
-                    connDetails,
-                    true, // include password
-                    true, // include application name
-                );
-
-                // Set other default params for the import request
                 const batchSize = 1000; // default batch size
-                const azureAccessToken = this.profile.azureAccountToken;
 
                 // Send column changes (if any) before sending the import request
                 for (const colChange of state.columnChanges) {
-                    const colChangeResult =
-                        await this.provider.sendChangeColumnSettingsRequest(colChange);
+                    const colChangeResult = await this.client.sendRequest(
+                        ChangeColumnSettingsRequest.type,
+                        {
+                            ...colChange,
+                            operationId: this.operationId,
+                        },
+                    );
                     if (colChangeResult.result.success === false) {
                         throw new Error(colChangeResult.result.errorMessage);
                     }
                 }
 
                 // Send import request
-                const insertDataResult = await this.provider.sendInsertDataRequest({
-                    connectionString: connectionString,
+                const insertDataResult = await this.client.sendRequest(InsertDataRequest.type, {
+                    operationId: this.operationId,
+                    ownerUri: this.ownerUri,
+                    databaseName: state.formState.databaseName,
                     batchSize: batchSize,
-                    azureAccessToken: azureAccessToken,
                 });
 
                 // Check result for errors
@@ -310,8 +310,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
             return state;
         });
         this.registerReducer("dispose", async (state, _payload) => {
+            await this.client.sendRequest(DisposeSessionRequest.type, {
+                operationId: this.operationId,
+            });
             this.panel.dispose();
-            this.dispose();
             return state;
         });
     }
@@ -414,9 +416,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * @returns A promise that resolves to an array of schema names
      */
     private async getSchemas(databaseName: string): Promise<string[]> {
-        const getSchemaQuery = `USE ${databaseName};
+        const safeDbName = `[${databaseName.replace(/]/g, "]]")}]`;
+        const getSchemaQuery = `
             SELECT name
-            FROM sys.schemas
+            FROM ${safeDbName}.sys.schemas
             WHERE name NOT IN ('sys', 'information_schema')
             ORDER BY name
             `;

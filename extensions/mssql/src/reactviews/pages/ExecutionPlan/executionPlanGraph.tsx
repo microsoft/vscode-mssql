@@ -10,7 +10,7 @@ import "./executionPlan.css";
 import * as azdataGraph from "azdataGraph";
 import * as utils from "./queryPlanSetup";
 
-import { Button, Input, Popover, makeStyles, tokens } from "@fluentui/react-components";
+import { Button, Input, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { useEffect, useRef, useState } from "react";
 
@@ -274,7 +274,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
                     }}></div>
-                <Popover open={customZoomClicked}>
+                {customZoomClicked && (
                     <div
                         id="customZoomInputContainer"
                         className={classes.inputContainer}
@@ -323,8 +323,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             onClick={() => setCustomZoomClicked(false)}
                         />
                     </div>
-                </Popover>
-                <Popover open={findNodeClicked}>
+                )}
+                {findNodeClicked && (
                     <div tabIndex={0}>
                         <FindNode
                             // guaranteed to be non-null, because the plan will only
@@ -336,8 +336,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             inputRef={inputRef}
                         />
                     </div>
-                </Popover>
-                <Popover open={highlightOpsClicked}>
+                )}
+                {highlightOpsClicked && (
                     <div tabIndex={0}>
                         <HighlightExpensiveOperations
                             // guaranteed to be non-null
@@ -347,23 +347,21 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             inputRef={inputRef}
                         />
                     </div>
-                </Popover>
+                )}
                 {propertiesClicked && (
                     <div
                         className={classes.resizable}
                         style={{ width: `${propertiesWidth}px` }}
                         ref={resizableRef}>
                         <div className={classes.resizer} onMouseDown={onMouseDown}></div>
-                        <Popover open={propertiesClicked}>
-                            <div style={{ height: "100%" }} tabIndex={0}>
-                                <PropertiesPane
-                                    // guaranteed to be non-null
-                                    executionPlanView={executionPlanView!}
-                                    setPropertiesClicked={setPropertiesClicked}
-                                    inputRef={inputRef}
-                                />
-                            </div>
-                        </Popover>
+                        <div style={{ height: "100%" }} tabIndex={0}>
+                            <PropertiesPane
+                                // guaranteed to be non-null
+                                executionPlanView={executionPlanView!}
+                                setPropertiesClicked={setPropertiesClicked}
+                                inputRef={inputRef}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

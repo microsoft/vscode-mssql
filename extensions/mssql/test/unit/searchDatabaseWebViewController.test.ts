@@ -916,4 +916,58 @@ suite("SearchDatabaseWebViewController", () => {
             expect(controller["_reducerHandlers"].has("search")).to.be.true;
         });
     });
+
+    suite("Default Sort Order", () => {
+        test("results are sorted by schema, then type name, then name ascending", async () => {
+            createController();
+            await waitForInitialization();
+
+            const results = controller.state.searchResults;
+
+            // Verify the overall sort order: schema (asc), typeName (asc), name (asc)
+            // dbo items first (Function: fn_CalculateTotal; Stored Procedure: sp_GetUsers;
+            // Tables: Orders, Users; View: vw_UserOrders),
+            // then sales items (Table: Products)
+            const names = results.map((r: SearchResultItem) => r.name);
+            expect(names).to.deep.equal([
+                "fn_CalculateTotal",
+                "sp_GetUsers",
+                "Orders",
+                "Users",
+                "vw_UserOrders",
+                "Products",
+            ]);
+        });
+
+        test("sort order is preserved after filtering by search term", async () => {
+            createController();
+            await waitForInitialization();
+
+            const searchReducer = controller["_reducerHandlers"].get("search");
+            // "ord" matches Orders and vw_UserOrders (which contains "Orders")
+            const result = await searchReducer!(controller.state, { searchTerm: "ord" });
+
+            const names = result.searchResults.map((r: SearchResultItem) => r.name);
+            // Sorted by: schema (dbo), then type (Table, View), then name
+            expect(names).to.deep.equal(["Orders", "vw_UserOrders"]);
+        });
+
+        test("items within same schema are grouped by type name alphabetically", async () => {
+            createController();
+            await waitForInitialization();
+
+            const results = controller.state.searchResults;
+            const dboResults = results.filter((r: SearchResultItem) => r.schema === "dbo");
+
+            // Within the dbo schema, items should be grouped by typeName alphabetically:
+            // Function, Stored Procedure, Table, Table, View
+            const typeNames = dboResults.map((r: SearchResultItem) => r.typeName);
+            for (let i = 1; i < typeNames.length; i++) {
+                expect(
+                    typeNames[i - 1].localeCompare(typeNames[i]),
+                    `Expected '${typeNames[i - 1]}' <= '${typeNames[i]}'`,
+                ).to.be.at.most(0);
+            }
+        });
+    });
 });

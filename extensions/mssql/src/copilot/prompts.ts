@@ -10,7 +10,7 @@ export const schemaDesignerAgentPrompt = `Use mssql_schema_designer for the acti
 Run get_overview, briefly summarize the schema, then ask what I want to explore or change.
 Do not apply edits until I confirm.`;
 
-export const dabAgentPrompt = `Use mssql_dab for the active Data API Builder configuration.
+export const dabAgentPrompt = `Use mssql_dab for the Data API builder configuration in the active schema designer.
 Run get_state, briefly summarize the current configuration, then ask what I want to review or change.
 Prefer mssql_dab for configuration tasks, and only use mssql_schema_designer if schema context is needed.
 Do not apply changes until I confirm.`;

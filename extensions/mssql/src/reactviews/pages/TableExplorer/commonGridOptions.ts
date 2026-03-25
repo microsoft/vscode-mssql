@@ -35,6 +35,7 @@ export const slickGridLocales = {
     TEXT_EXPAND_ALL_GROUPS: loc.slickGrid.expandAllGroups,
     TEXT_EXPORT_TO_CSV: loc.slickGrid.exportToCsv,
     TEXT_EXPORT_TO_EXCEL: loc.slickGrid.exportToExcel,
+    TEXT_EXPORT_TO_PDF: loc.slickGrid.exportToPdf,
     TEXT_EXPORT_TO_TEXT_FORMAT: loc.slickGrid.exportToTextFormat,
     TEXT_EXPORT_TO_TAB_DELIMITED: loc.slickGrid.exportToTabDelimited,
     TEXT_FILTER_SHORTCUTS: loc.slickGrid.filterShortcuts,
