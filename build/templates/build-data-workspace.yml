@@ -1,28 +1,23 @@
 steps:
   - task: UseNode@1
-    displayName: "Use Node 22.x"
+    displayName: "Use Node 24.x"
     inputs:
-      version: 22.x
+      version: 24.x
 
   - pwsh: |
-      yarn --frozen-lockfile
-    displayName: DataWorkspace - Install extension depedencies
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
-
-  - pwsh: |
-      yarn run build
+      npm run build -- --target data-workspace
     displayName: DataWorkspace - Build extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn lint
+      npm run lint -- --target data-workspace
     displayName: DataWorkspace - Lint code
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      yarn test
+      npm run test -- --target data-workspace
     displayName: DataWorkspace - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: PublishTestResults@2
     displayName: DataWorkspace - Publish test results
@@ -38,9 +33,9 @@ steps:
     condition: succeededOrFailed()
 
   - pwsh: |
-      yarn package
+      npm run package -- --target data-workspace
     displayName: DataWorkspace - Package extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2

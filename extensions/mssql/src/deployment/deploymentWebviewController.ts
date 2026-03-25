@@ -59,16 +59,8 @@ export class DeploymentWebviewController extends FormWebviewController<
                 title: newDeployment,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "connectionDialogEditor_dark.svg",
-                    ),
-                    light: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "connectionDialogEditor_light.svg",
-                    ),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
                 },
             },
         );

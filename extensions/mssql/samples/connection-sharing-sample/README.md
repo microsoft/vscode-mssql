@@ -14,8 +14,8 @@ This sample extension showcases two different approaches to leverage database co
 1. Compile the mssql extension by running from the repository root:
 
 ```bash
-yarn
-yarn watch
+npm install
+npm run watch -- --target mssql
 ```
 
 2. Open this sample extension in VS Code

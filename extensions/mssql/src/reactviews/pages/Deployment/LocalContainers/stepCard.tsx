@@ -3,53 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Spinner, Card, Button, makeStyles, tokens } from "@fluentui/react-components";
-import {
-    Checkmark20Regular,
-    ChevronDown20Regular,
-    ChevronUp20Regular,
-    Circle20Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
+import { Button, makeStyles } from "@fluentui/react-components";
+import { ChevronDown20Regular, ChevronUp20Regular } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DockerStep } from "../../../../sharedInterfaces/localContainers";
 import { locConstants } from "../../../common/locConstants";
 import { useDeploymentSelector } from "../deploymentSelector";
+import { DeploymentStepCard } from "../deploymentStepCard";
 
 const useStyles = makeStyles({
-    outerDiv: {
-        height: "fit-content",
-        width: "500px",
-        position: "relative",
-        overflow: "auto",
-    },
-    spinnerDiv: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-        padding: "20px",
-    },
-    leftHeader: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-    },
-    separatorDiv: {
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: "4px",
-        background: tokens.colorNeutralStroke2,
-    },
-    header: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "4px",
-    },
     topSpace: {
         marginTop: "8px",
     },
@@ -80,37 +43,21 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
         }
     }, [step.loadState]);
 
-    const getStatusIcon = () => {
-        if (step.loadState === ApiStatus.NotStarted) {
-            return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
-        }
-        if (step.loadState === ApiStatus.Loaded) {
-            return <Checkmark20Regular style={{ color: tokens.colorStatusSuccessBackground3 }} />;
-        }
-        if (step.loadState === ApiStatus.Error) {
-            return <Dismiss20Regular style={{ color: tokens.colorStatusDangerBackground3 }} />;
-        }
-        return <Spinner size="tiny" />;
-    };
-
     return (
-        <Card className={classes.outerDiv}>
-            <div className={classes.separatorDiv} />
-            <div className={classes.header}>
-                <div className={classes.leftHeader}>
-                    {getStatusIcon()}
-                    <span>{step.headerText}</span>
-                </div>
-                {step.loadState !== ApiStatus.Loaded && (
+        <DeploymentStepCard
+            status={step.loadState}
+            title={step.headerText}
+            headerAction={
+                step.loadState !== ApiStatus.Loaded ? (
                     <Button
                         icon={expanded ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
                         appearance="subtle"
                         onClick={() => setExpanded(!expanded)}
                     />
-                )}
-            </div>
+                ) : undefined
+            }>
             {expanded && step.loadState !== ApiStatus.Loaded && (
-                <div style={{ marginLeft: "32px" }}>
+                <>
                     {step.loadState === ApiStatus.Error ? step.errorMessage : step.bodyText}
 
                     {/* If step.errorLink is defined and API is in error, render it */}
@@ -138,8 +85,8 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                             </a>
                         )}
                     </div>
-                </div>
+                </>
             )}
-        </Card>
+        </DeploymentStepCard>
     );
 };

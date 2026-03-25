@@ -5,7 +5,6 @@
 
 import { useContext, useEffect, useState } from "react";
 import {
-    Button,
     Link,
     makeStyles,
     Spinner,
@@ -20,10 +19,8 @@ import {
 } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
-import { FlatFileHeader } from "./flatFileHeader";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
 import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
@@ -34,16 +31,6 @@ const useStyles = makeStyles({
         overflowY: "auto",
         overflowX: "unset",
     },
-    button: {
-        height: "32px",
-        width: "120px",
-        margin: "5px",
-    },
-    bottomDiv: {
-        bottom: 0,
-        paddingBottom: "50px",
-    },
-
     tableDiv: {
         overflow: "auto",
         maxHeight: "60vh",
@@ -113,7 +100,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const FlatFileSummary = () => {
+export const FlatFileSummaryPage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
 
@@ -144,11 +131,6 @@ export const FlatFileSummary = () => {
 
     return (
         <div className={classes.outerDiv}>
-            <FlatFileHeader
-                headerText={locConstants.flatFileImport.importFile}
-                stepText={locConstants.flatFileImport.stepFour}
-            />
-
             <Text className={classes.subheaderText}>
                 {locConstants.flatFileImport.importInformation}
             </Text>
@@ -226,37 +208,6 @@ export const FlatFileSummary = () => {
                             return null;
                     }
                 })()}
-            </div>
-
-            <div className={classes.bottomDiv}>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => {
-                        context.resetState(FlatFileStepType.Form);
-                    }}
-                    style={{ width: "140px" }}
-                    appearance="secondary">
-                    {locConstants.flatFileImport.importNewFile}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => {
-                        context.resetState(FlatFileStepType.ImportData);
-                    }}
-                    appearance="secondary">
-                    {locConstants.common.previous}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => context.dispose()}
-                    appearance={importDataStatus === ApiStatus.Loaded ? "primary" : "secondary"}>
-                    {importDataStatus === ApiStatus.Loaded
-                        ? locConstants.common.finish
-                        : locConstants.common.cancel}
-                </Button>
             </div>
         </div>
     );
