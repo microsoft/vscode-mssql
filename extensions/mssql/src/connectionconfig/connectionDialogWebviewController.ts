@@ -1431,7 +1431,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.state.editingConnectionDisplayName = getConnectionDisplayName(initializedConnection);
 
         await this.updateItemVisibility();
-        await this.handleAzureMFAEdits("azureAuthType");
+        await this.handleAzureMFAEdits("authenticationType");
         await this.handleAzureMFAEdits("accountId");
         await this.checkReadyToConnect();
     }
@@ -1454,7 +1454,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.state.editingConnectionDisplayName = undefined;
 
         await this.updateItemVisibility();
-        await this.handleAzureMFAEdits("azureAuthType");
+        await this.handleAzureMFAEdits("authenticationType");
         await this.handleAzureMFAEdits("accountId");
         await this.checkReadyToConnect();
     }

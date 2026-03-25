@@ -363,7 +363,6 @@
     },
     "Default": "Default",
     "Delete saved connection": "Delete saved connection",
-    "Copy connection to a new profile": "Copy connection to a new profile",
     "Remove recent connection": "Remove recent connection",
     "Copy connection string to clipboard": "Copy connection string to clipboard",
     "Paste connection string from clipboard": "Paste connection string from clipboard",

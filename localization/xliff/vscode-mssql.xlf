@@ -1467,9 +1467,6 @@
     <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
       <source xml:lang="en">Copy connection string to clipboard</source>
     </trans-unit>
-    <trans-unit id="++CODE++58a3543188ba49b9c51c596fa21636899f0714f30de345976c64f65a0c0e4412">
-      <source xml:lang="en">Copy connection to a new profile</source>
-    </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
     </trans-unit>

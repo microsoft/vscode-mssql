@@ -433,7 +433,6 @@ export class LocConstants {
                 }),
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
-            copySavedConnectionToNew: l10n.t("Copy connection to a new profile"),
             removeRecentConnection: l10n.t("Remove recent connection"),
             copyConnectionString: l10n.t("Copy connection string to clipboard"),
             pasteConnectionString: l10n.t("Paste connection string from clipboard"),
