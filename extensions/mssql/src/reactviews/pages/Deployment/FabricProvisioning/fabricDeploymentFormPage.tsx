@@ -3,16 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
-import {
-    ChevronDown20Regular,
-    ChevronRight20Regular,
-    Dismiss20Regular,
-    ErrorCircleRegular,
-    Settings20Regular,
-} from "@fluentui/react-icons";
+import { Dismiss20Regular, ErrorCircleRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
+import { CollapsibleSection } from "../../../common/collapsibleSection";
 import {
     FabricProvisioningContextProps,
     FabricProvisioningFormItemSpec,
@@ -52,7 +47,7 @@ const useStyles = makeStyles({
         minWidth: 0,
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "10px",
     },
     bottomDiv: {
         paddingBottom: "8px",
@@ -90,49 +85,6 @@ const useStyles = makeStyles({
         overflowWrap: "break-word",
         wordBreak: "break-word",
     },
-    advancedToggle: {
-        width: "100%",
-    },
-    advancedSection: {
-        width: "100%",
-        borderRadius: "6px",
-        border: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border))",
-        overflow: "hidden",
-        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
-    },
-    advancedToggleButton: {
-        width: "100%",
-        border: "none",
-        backgroundColor:
-            "var(--vscode-sideBar-background, var(--vscode-editorWidget-background, var(--vscode-editor-background)))",
-        color: tokens.colorNeutralForeground2,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "9px 12px",
-        cursor: "pointer",
-        fontFamily: "inherit",
-        textAlign: "left",
-    },
-    advancedToggleContent: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        fontSize: "13px",
-        fontWeight: 500,
-    },
-    advancedIcon: {
-        color: tokens.colorNeutralForeground3,
-    },
-    advancedChevron: {
-        color: tokens.colorNeutralForeground3,
-        display: "flex",
-        alignItems: "center",
-    },
-    advancedPanelBody: {
-        borderTop: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border))",
-        padding: "14px 12px 16px",
-    },
 });
 
 interface FabricDeploymentFormPageProps {
@@ -152,7 +104,6 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
     const formComponents = useFabricDeploymentSelector((s) => s.formComponents);
     const workspaces = useFabricDeploymentSelector((s) => s.workspaces);
     const isWorkspacesErrored = useFabricDeploymentSelector((s) => s.isWorkspacesErrored);
-    const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
     if (!context || !formState) return undefined;
 
@@ -331,38 +282,30 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                             {locConstants.fabricProvisioning.errorLoadingWorkspaces}
                         </div>
                     ) : (
-                        <div className={classes.statusRow}>
-                            <Spinner size="tiny" />
-                            {locConstants.fabricProvisioning.loadingWorkspaces}...
+                        <div className={classes.fieldContainer}>
+                            <FormField<
+                                FabricProvisioningFormState,
+                                FabricProvisioningState,
+                                FabricProvisioningFormItemSpec,
+                                FabricProvisioningContextProps
+                            >
+                                context={context}
+                                formState={formState}
+                                component={
+                                    formComponents["workspace"] as FabricProvisioningFormItemSpec
+                                }
+                                idx={0}
+                                componentProps={{
+                                    disabled: true,
+                                    placeholder: `${locConstants.fabricProvisioning.loadingWorkspaces}...`,
+                                    onSelect: async () => undefined,
+                                }}
+                            />
                         </div>
                     ))}
-
-                <div className={classes.advancedSection}>
-                    <button
-                        type="button"
-                        className={classes.advancedToggleButton}
-                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                        aria-expanded={showAdvancedOptions}>
-                        <span className={classes.advancedToggleContent}>
-                            <Settings20Regular className={classes.advancedIcon} />
-                            {locConstants.connectionDialog.advancedOptions}
-                        </span>
-                        <span className={classes.advancedChevron}>
-                            {showAdvancedOptions ? (
-                                <ChevronDown20Regular />
-                            ) : (
-                                <ChevronRight20Regular />
-                            )}
-                        </span>
-                    </button>
-                    {showAdvancedOptions && (
-                        <div className={classes.advancedPanelBody}>
-                            <div className={classes.advancedOptionsDiv}>
-                                {renderFormFields(true)}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <CollapsibleSection title={locConstants.connectionDialog.advancedOptions}>
+                    <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                </CollapsibleSection>
             </div>
             <div className={classes.bottomDiv} />
         </div>
