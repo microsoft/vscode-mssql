@@ -7680,7 +7680,7 @@ Requête : {2}</target>
         <source xml:lang="en">Step {0} of {1}</source>
         <note>{0} is the current step number
 {1} is the total number of steps</note>
-        <target state="new">Step {0} of {1}</target>
+        <target state="translated">Étape {0} sur {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>

@@ -5039,7 +5039,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2b0fb3195207b0c3a2a2e4f9dfcec543b14670f9d9ea87452e108e589360152c">
         <source xml:lang="en">Modify Columns</source>
-        <target state="new">Modify Columns</target>
+        <target state="translated">列の変更</target>
       </trans-unit>
       <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
         <source xml:lang="en">Modify Table</source>
@@ -6007,7 +6007,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6e71512df696382fac6921ba12839603a2a39a6da6d68a85140c4f937e5f1165">
         <source xml:lang="en">Preview Data</source>
-        <target state="new">Preview Data</target>
+        <target state="translated">データのプレビュー</target>
       </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
@@ -7595,7 +7595,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++58985ddaf5b41a741597a25373888d0bd61c8764c95b3eef48076bb0238fdca5">
         <source xml:lang="en">Specify Input File</source>
-        <target state="new">Specify Input File</target>
+        <target state="translated">入力ファイルの指定</target>
       </trans-unit>
       <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
         <source xml:lang="en">SqlPackage Command</source>
@@ -7680,7 +7680,7 @@ Query: {2}</source>
         <source xml:lang="en">Step {0} of {1}</source>
         <note>{0} is the current step number
 {1} is the total number of steps</note>
-        <target state="new">Step {0} of {1}</target>
+        <target state="translated">手順 {0} ({1} 中)</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -7774,7 +7774,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
         <source xml:lang="en">Summary</source>
-        <target state="new">Summary</target>
+        <target state="translated">要約</target>
       </trans-unit>
       <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
         <source xml:lang="en">Summary loading canceled</source>
