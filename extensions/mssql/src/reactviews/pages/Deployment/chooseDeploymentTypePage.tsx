@@ -22,8 +22,9 @@ const useStyles = makeStyles({
     },
     cardRow: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-        gap: "16px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 360px))",
+        justifyContent: "center",
+        gap: "12px",
         width: "100%",
         alignItems: "stretch",
     },
