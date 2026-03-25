@@ -5,7 +5,6 @@
 
 import { useContext, useEffect, useState } from "react";
 import {
-    Button,
     Checkbox,
     Field,
     InfoLabel,
@@ -18,6 +17,7 @@ import {
     ChevronDown20Regular,
     ChevronRight20Regular,
     ErrorCircleRegular,
+    Settings20Regular,
 } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
@@ -54,9 +54,11 @@ const useStyles = makeStyles({
         whiteSpace: "normal",
     },
     advancedOptionsDiv: {
-        marginLeft: "24px",
         width: "100%",
         minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
     },
     bottomDiv: {
         paddingBottom: "8px",
@@ -65,6 +67,9 @@ const useStyles = makeStyles({
         flexGrow: 1,
         width: "100%",
         minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
     },
     spinnerDiv: {
         height: "100%",
@@ -85,8 +90,62 @@ const useStyles = makeStyles({
         overflowWrap: "break-word",
         wordBreak: "break-word",
     },
+    savePasswordRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        width: "100%",
+    },
+    savePasswordLabel: {
+        display: "inline-flex",
+        alignItems: "center",
+        color: tokens.colorNeutralForeground1,
+    },
+    savePasswordCheckbox: {
+        flexShrink: 0,
+    },
     advancedToggle: {
         width: "100%",
+    },
+    advancedSection: {
+        width: "100%",
+        borderRadius: "6px",
+        border: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border))",
+        overflow: "hidden",
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+    },
+    advancedToggleButton: {
+        width: "100%",
+        border: "none",
+        backgroundColor:
+            "var(--vscode-sideBar-background, var(--vscode-editorWidget-background, var(--vscode-editor-background)))",
+        color: tokens.colorNeutralForeground2,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "9px 12px",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        textAlign: "left",
+    },
+    advancedToggleContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "13px",
+        fontWeight: 500,
+    },
+    advancedIcon: {
+        color: tokens.colorNeutralForeground3,
+    },
+    advancedChevron: {
+        color: tokens.colorNeutralForeground3,
+        display: "flex",
+        alignItems: "center",
+    },
+    advancedPanelBody: {
+        borderTop: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border))",
+        padding: "14px 12px 16px",
     },
     eulaCard: {
         width: "100%",
@@ -168,30 +227,47 @@ export const LocalContainersDeploymentFormPage: React.FC<
             ? "none"
             : "error"
         : "none";
+    const savePasswordComponent = formComponents["savePassword"] as LocalContainersFormItemSpec;
+    const renderField = (
+        component: LocalContainersFormItemSpec | undefined,
+        idx: number,
+        componentProps?: unknown,
+        key?: string,
+    ) => {
+        if (!component) {
+            return undefined;
+        }
 
-    const renderFormFields = (isAdvanced: boolean) =>
+        return (
+            <div className={classes.fieldContainer} key={key}>
+                <FormField<
+                    DockerConnectionProfile,
+                    LocalContainersState,
+                    LocalContainersFormItemSpec,
+                    LocalContainersContextProps
+                >
+                    context={context}
+                    formState={formState}
+                    component={component}
+                    idx={idx}
+                    componentProps={componentProps}
+                />
+            </div>
+        );
+    };
+
+    const renderAdvancedFields = () =>
         Object.values(formComponents)
             .filter(
                 (component) =>
-                    component.isAdvancedOption === isAdvanced &&
+                    component.isAdvancedOption &&
                     component.propertyName !== "acceptEula" &&
-                    component.propertyName !== "groupId",
+                    component.propertyName !== "groupId" &&
+                    component.propertyName !== "savePassword",
             )
-            .map((component, index) => (
-                <div key={index} className={classes.fieldContainer}>
-                    <FormField<
-                        DockerConnectionProfile,
-                        LocalContainersState,
-                        LocalContainersFormItemSpec,
-                        LocalContainersContextProps
-                    >
-                        context={context}
-                        formState={formState}
-                        component={component}
-                        idx={index}
-                    />
-                </div>
-            ));
+            .map((component, index) =>
+                renderField(component, index, undefined, component.propertyName),
+            );
 
     return (
         <div className={classes.outerDiv}>
@@ -204,54 +280,85 @@ export const LocalContainersDeploymentFormPage: React.FC<
                         closeDialog={() => context.setConnectionGroupDialogState(false)}
                     />
                 )}
-                {renderFormFields(false)}
-                <div className={classes.fieldContainer}>
-                    <FormField<
-                        DockerConnectionProfile,
-                        LocalContainersState,
-                        LocalContainersFormItemSpec,
-                        LocalContainersContextProps
-                    >
-                        context={context}
-                        formState={formState}
-                        component={formComponents["groupId"] as LocalContainersFormItemSpec}
-                        idx={0}
-                        componentProps={{
-                            onSelect: (option: SearchableDropdownOptions) => {
-                                if (option.value === CREATE_NEW_GROUP_ID) {
-                                    context.setConnectionGroupDialogState(true);
-                                } else {
-                                    context.formAction({
-                                        propertyName: "groupId",
-                                        isAction: false,
-                                        value: option.value,
-                                    });
-                                }
-                            },
-                            renderDecoration: (option: SearchableDropdownOptions) => {
-                                return renderColorSwatch(option.color);
-                            },
-                        }}
-                    />
-                </div>
-                <div className={classes.advancedToggle}>
-                    <Button
-                        icon={
-                            showAdvancedOptions ? (
+                {renderField(formComponents["version"] as LocalContainersFormItemSpec, 0)}
+                {renderField(formComponents["password"] as LocalContainersFormItemSpec, 1)}
+                {savePasswordComponent && (
+                    <div className={classes.savePasswordRow}>
+                        <span className={classes.savePasswordLabel}>
+                            {savePasswordComponent.tooltip ? (
+                                <InfoLabel info={savePasswordComponent.tooltip}>
+                                    <span
+                                        dangerouslySetInnerHTML={{
+                                            __html: savePasswordComponent.label,
+                                        }}
+                                    />
+                                </InfoLabel>
+                            ) : (
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: savePasswordComponent.label,
+                                    }}
+                                />
+                            )}
+                        </span>
+                        <Checkbox
+                            className={classes.savePasswordCheckbox}
+                            size="medium"
+                            checked={formState.savePassword ?? false}
+                            aria-label={savePasswordComponent.label}
+                            onChange={(_value, data) =>
+                                context.formAction({
+                                    propertyName: "savePassword",
+                                    isAction: false,
+                                    value: data.checked,
+                                })
+                            }
+                        />
+                    </div>
+                )}
+                {renderField(formComponents["profileName"] as LocalContainersFormItemSpec, 2)}
+                {renderField(formComponents["groupId"] as LocalContainersFormItemSpec, 3, {
+                    onSelect: (option: SearchableDropdownOptions) => {
+                        if (option.value === CREATE_NEW_GROUP_ID) {
+                            context.setConnectionGroupDialogState(true);
+                        } else {
+                            context.formAction({
+                                propertyName: "groupId",
+                                isAction: false,
+                                value: option.value,
+                            });
+                        }
+                    },
+                    renderDecoration: (option: SearchableDropdownOptions) => {
+                        return renderColorSwatch(option.color);
+                    },
+                })}
+                <div className={classes.advancedSection}>
+                    <button
+                        type="button"
+                        className={classes.advancedToggleButton}
+                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                        aria-expanded={showAdvancedOptions}>
+                        <span className={classes.advancedToggleContent}>
+                            <Settings20Regular className={classes.advancedIcon} />
+                            {locConstants.connectionDialog.advancedOptions}
+                        </span>
+                        <span className={classes.advancedChevron}>
+                            {showAdvancedOptions ? (
                                 <ChevronDown20Regular />
                             ) : (
                                 <ChevronRight20Regular />
-                            )
-                        }
-                        appearance="subtle"
-                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                    />
-                    <span>{locConstants.connectionDialog.advancedOptions}</span>
+                            )}
+                        </span>
+                    </button>
+                    {showAdvancedOptions && (
+                        <div className={classes.advancedPanelBody}>
+                            <div className={classes.advancedOptionsDiv}>
+                                {renderAdvancedFields()}
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                {showAdvancedOptions && (
-                    <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
-                )}
             </div>
             <div className={classes.bottomDiv}>
                 <div className={classes.eulaCard}>

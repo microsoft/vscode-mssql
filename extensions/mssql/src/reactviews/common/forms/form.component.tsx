@@ -19,7 +19,7 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
+import { Eye16Regular, EyeOff16Regular } from "@fluentui/react-icons";
 import {
     FormContextProps,
     FormItemSpec,
@@ -146,7 +146,7 @@ export const FormInput = <
                     contentAfter={
                         <Button
                             onClick={() => setShowPassword(!showPassword)}
-                            icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
+                            icon={showPassword ? <Eye16Regular /> : <EyeOff16Regular />}
                             appearance="transparent"
                             size="small"
                             aria-label={

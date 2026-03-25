@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import { makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
 import {
     ChevronDown20Regular,
     ChevronRight20Regular,
     Dismiss20Regular,
     ErrorCircleRegular,
+    Settings20Regular,
 } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
@@ -47,9 +48,11 @@ const useStyles = makeStyles({
         whiteSpace: "normal",
     },
     advancedOptionsDiv: {
-        marginLeft: "24px",
         width: "100%",
         minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
     },
     bottomDiv: {
         paddingBottom: "8px",
@@ -58,6 +61,9 @@ const useStyles = makeStyles({
         flexGrow: 1,
         width: "100%",
         minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
     },
     spinnerDiv: {
         height: "100%",
@@ -75,8 +81,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         gap: "0.5rem",
-        marginTop: "20px",
-        marginBottom: "20px",
         width: "100%",
     },
     fieldContainer: {
@@ -88,6 +92,46 @@ const useStyles = makeStyles({
     },
     advancedToggle: {
         width: "100%",
+    },
+    advancedSection: {
+        width: "100%",
+        borderRadius: "6px",
+        border: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border))",
+        overflow: "hidden",
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+    },
+    advancedToggleButton: {
+        width: "100%",
+        border: "none",
+        backgroundColor:
+            "var(--vscode-sideBar-background, var(--vscode-editorWidget-background, var(--vscode-editor-background)))",
+        color: tokens.colorNeutralForeground2,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "9px 12px",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        textAlign: "left",
+    },
+    advancedToggleContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "13px",
+        fontWeight: 500,
+    },
+    advancedIcon: {
+        color: tokens.colorNeutralForeground3,
+    },
+    advancedChevron: {
+        color: tokens.colorNeutralForeground3,
+        display: "flex",
+        alignItems: "center",
+    },
+    advancedPanelBody: {
+        borderTop: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border))",
+        padding: "14px 12px 16px",
     },
 });
 
@@ -293,24 +337,32 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         </div>
                     ))}
 
-                <div className={classes.advancedToggle}>
-                    <Button
-                        icon={
-                            showAdvancedOptions ? (
+                <div className={classes.advancedSection}>
+                    <button
+                        type="button"
+                        className={classes.advancedToggleButton}
+                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                        aria-expanded={showAdvancedOptions}>
+                        <span className={classes.advancedToggleContent}>
+                            <Settings20Regular className={classes.advancedIcon} />
+                            {locConstants.connectionDialog.advancedOptions}
+                        </span>
+                        <span className={classes.advancedChevron}>
+                            {showAdvancedOptions ? (
                                 <ChevronDown20Regular />
                             ) : (
                                 <ChevronRight20Regular />
-                            )
-                        }
-                        appearance="subtle"
-                        onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                    />
-                    <span>{locConstants.connectionDialog.advancedOptions}</span>
+                            )}
+                        </span>
+                    </button>
+                    {showAdvancedOptions && (
+                        <div className={classes.advancedPanelBody}>
+                            <div className={classes.advancedOptionsDiv}>
+                                {renderFormFields(true)}
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                {showAdvancedOptions && (
-                    <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
-                )}
             </div>
             <div className={classes.bottomDiv} />
         </div>
