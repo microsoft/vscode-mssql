@@ -85,7 +85,7 @@ interface SearchDatabaseResultsTableProps {
 
 const iconStyle = { fontSize: "16px", color: "var(--vscode-foreground)" };
 
-const getTypeIcon = (type: MetadataType): JSX.Element => {
+const getTypeIcon = (type: MetadataType): React.ReactElement => {
     switch (type) {
         case MetadataType.Table:
             return <TableRegular style={iconStyle} />;

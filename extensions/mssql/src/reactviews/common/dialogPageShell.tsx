@@ -181,7 +181,7 @@ export const DialogPageShell = ({
 
     const headerIcon =
         icon && isValidElement(icon)
-            ? cloneElement(icon as ReactElement, {
+            ? cloneElement(icon as ReactElement<{ width?: number; height?: number }>, {
                   width: headerIconSizePx,
                   height: headerIconSizePx,
               })

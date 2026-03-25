@@ -17,7 +17,7 @@ import {
     TreeItem,
     TreeItemLayout,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, type JSX } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";

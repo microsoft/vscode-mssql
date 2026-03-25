@@ -26,7 +26,15 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position, useUpdateNodeInternals } from "@xyflow/react";
-import { useContext, useRef, useEffect, useState, cloneElement, type ComponentProps } from "react";
+import {
+    useContext,
+    useRef,
+    useEffect,
+    useState,
+    cloneElement,
+    type ComponentProps,
+    type ReactElement,
+} from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
@@ -42,7 +50,7 @@ import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesi
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
     const [isOverflowing, setIsOverflowing] = useState(false);
-    const textRef = useRef<HTMLElement | undefined>(undefined);
+    const textRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         const checkOverflow = () => {
@@ -74,14 +82,14 @@ const ConditionalTooltip = ({
     ...props
 }: {
     content: string;
-    children: React.ReactElement;
+    children: ReactElement<Record<string, unknown>>;
 } & Omit<ComponentProps<typeof Tooltip>, "content" | "children">) => {
     const { isOverflowing, textRef } = useTextOverflow(content);
 
     // Clone the child element and add the ref
     const childWithRef = cloneElement(children, {
         ref: textRef,
-        ...children.props,
+        ...(children.props as Record<string, unknown>),
     });
 
     if (isOverflowing) {
