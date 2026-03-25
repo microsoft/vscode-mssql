@@ -31,7 +31,7 @@ import {
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../../sharedInterfaces/form";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { useDeploymentSelector } from "../deploymentSelector";
+import { useFabricDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -100,20 +100,25 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
 }) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
-    const fabricProvisioningState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as FabricProvisioningState;
+    const loadState = useFabricDeploymentSelector((s) => s.loadState);
+    const errorMessage = useFabricDeploymentSelector((s) => s.errorMessage);
+    const formValidationLoadState = useFabricDeploymentSelector((s) => s.formValidationLoadState);
+    const dialog = useFabricDeploymentSelector((s) => s.dialog);
+    const formState = useFabricDeploymentSelector((s) => s.formState);
+    const formComponents = useFabricDeploymentSelector((s) => s.formComponents);
+    const workspaces = useFabricDeploymentSelector((s) => s.workspaces);
+    const isWorkspacesErrored = useFabricDeploymentSelector((s) => s.isWorkspacesErrored);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
-    if (!context || !fabricProvisioningState) return undefined;
+    if (!context || !formState) return undefined;
 
     useEffect(() => {
-        if (fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded) {
+        if (formValidationLoadState === ApiStatus.Loaded) {
             onValidated?.();
         }
-    }, [fabricProvisioningState.formValidationLoadState, onValidated]);
+    }, [formValidationLoadState, onValidated]);
 
-    if (fabricProvisioningState.loadState === ApiStatus.Loading) {
+    if (loadState === ApiStatus.Loading) {
         return (
             <div className={classes.spinnerDiv}>
                 <Spinner
@@ -124,17 +129,16 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
         );
     }
 
-    if (fabricProvisioningState.loadState === ApiStatus.Error) {
+    if (loadState === ApiStatus.Error) {
         return (
             <div className={classes.spinnerDiv}>
                 <ErrorCircleRegular className={classes.errorIcon} />
-                <Text size={400}>{fabricProvisioningState.errorMessage ?? ""}</Text>
+                <Text size={400}>{errorMessage ?? ""}</Text>
             </div>
         );
     }
 
     const fabricComponents = ["accountId", "workspace", "tenantId"];
-    const { formComponents } = fabricProvisioningState;
 
     const renderFormFields = (isAdvanced: boolean) =>
         Object.values(formComponents)
@@ -153,7 +157,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         FabricProvisioningContextProps
                     >
                         context={context}
-                        formState={fabricProvisioningState.formState}
+                        formState={formState}
                         component={component}
                         idx={index}
                     />
@@ -163,13 +167,10 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
     return (
         <div className={classes.outerDiv}>
             <div className={classes.formDiv}>
-                {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
+                {dialog?.type === "createConnectionGroup" && (
                     <ConnectionGroupDialog
                         mode="modal"
-                        state={
-                            (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
-                                .props
-                        }
+                        state={(dialog as CreateConnectionGroupDialogProps).props}
                         saveConnectionGroup={context.createConnectionGroup}
                         closeDialog={() => context.setConnectionGroupDialogState(false)}
                     />
@@ -182,12 +183,8 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         FabricProvisioningContextProps
                     >
                         context={context}
-                        formState={fabricProvisioningState.formState}
-                        component={
-                            fabricProvisioningState.formComponents[
-                                "accountId"
-                            ] as FabricProvisioningFormItemSpec
-                        }
+                        formState={formState}
+                        component={formComponents["accountId"] as FabricProvisioningFormItemSpec}
                         idx={0}
                         componentProps={{
                             onOptionSelect: (
@@ -213,12 +210,8 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         FabricProvisioningContextProps
                     >
                         context={context}
-                        formState={fabricProvisioningState.formState}
-                        component={
-                            fabricProvisioningState.formComponents[
-                                "groupId"
-                            ] as FabricProvisioningFormItemSpec
-                        }
+                        formState={formState}
+                        component={formComponents["groupId"] as FabricProvisioningFormItemSpec}
                         idx={0}
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
@@ -238,7 +231,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         }}
                     />
                 </div>
-                {fabricProvisioningState.formState.accountId && (
+                {formState.accountId && (
                     <div className={classes.fieldContainer}>
                         <FormField<
                             FabricProvisioningFormState,
@@ -247,12 +240,8 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                             FabricProvisioningContextProps
                         >
                             context={context}
-                            formState={fabricProvisioningState.formState}
-                            component={
-                                fabricProvisioningState.formComponents[
-                                    "tenantId"
-                                ] as FabricProvisioningFormItemSpec
-                            }
+                            formState={formState}
+                            component={formComponents["tenantId"] as FabricProvisioningFormItemSpec}
                             idx={0}
                             componentProps={{
                                 onOptionSelect: (
@@ -270,8 +259,8 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                         />
                     </div>
                 )}
-                {fabricProvisioningState.formState.accountId &&
-                    (fabricProvisioningState.workspaces.length > 0 ? (
+                {formState.accountId &&
+                    (workspaces.length > 0 ? (
                         <div className={classes.fieldContainer}>
                             <FormField<
                                 FabricProvisioningFormState,
@@ -280,11 +269,9 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                                 FabricProvisioningContextProps
                             >
                                 context={context}
-                                formState={fabricProvisioningState.formState}
+                                formState={formState}
                                 component={
-                                    fabricProvisioningState.formComponents[
-                                        "workspace"
-                                    ] as FabricProvisioningFormItemSpec
+                                    formComponents["workspace"] as FabricProvisioningFormItemSpec
                                 }
                                 idx={0}
                                 componentProps={{
@@ -294,7 +281,7 @@ export const FabricDeploymentFormPage: React.FC<FabricDeploymentFormPageProps> =
                                 }}
                             />
                         </div>
-                    ) : fabricProvisioningState.isWorkspacesErrored ? (
+                    ) : isWorkspacesErrored ? (
                         <div className={classes.statusRow}>
                             <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
                             {locConstants.fabricProvisioning.errorLoadingWorkspaces}

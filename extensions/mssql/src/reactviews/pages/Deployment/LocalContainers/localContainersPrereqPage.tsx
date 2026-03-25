@@ -8,15 +8,12 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { StepCard } from "./stepCard";
 import { runDockerStep } from "./localContainersDeploymentUtils";
-import {
-    DockerStepOrder,
-    LocalContainersState,
-} from "../../../../sharedInterfaces/localContainers";
+import { DockerStepOrder } from "../../../../sharedInterfaces/localContainers";
 import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { useDeploymentSelector } from "../deploymentSelector";
+import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 const useLoadingStyles = makeStyles({
@@ -38,9 +35,7 @@ export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
     const loadingClasses = useLoadingStyles();
     const context = useContext(DeploymentContext);
-    const localContainersState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as LocalContainersState;
+    const localContainersState = useLocalContainersDeploymentSelector((s) => s);
     const lastStep = DockerStepOrder.checkDockerEngine;
 
     if (!context || !localContainersState) {

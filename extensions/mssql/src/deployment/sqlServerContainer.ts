@@ -136,7 +136,7 @@ function getContainerStartTimestampSeconds(
     const startedAtMilliseconds = startedAt ? Date.parse(startedAt) : NaN;
 
     if (Number.isNaN(startedAtMilliseconds)) {
-        return Math.floor(Date.now() / 1000);
+        return 0;
     }
 
     return Math.floor(startedAtMilliseconds / 1000);

@@ -38,7 +38,7 @@ import {
 } from "../../../common/searchableDropdown.component";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { useDeploymentSelector } from "../deploymentSelector";
+import { useDeploymentSelector, useLocalContainersDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -123,20 +123,24 @@ export const LocalContainersDeploymentFormPage: React.FC<
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const dialog = useDeploymentSelector((s) => s.dialog);
-    const localContainersState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as LocalContainersState;
+    const loadState = useLocalContainersDeploymentSelector((s) => s.loadState);
+    const errorMessage = useLocalContainersDeploymentSelector((s) => s.errorMessage);
+    const isDockerProfileValid = useLocalContainersDeploymentSelector(
+        (s) => s.isDockerProfileValid,
+    );
+    const formState = useLocalContainersDeploymentSelector((s) => s.formState);
+    const formComponents = useLocalContainersDeploymentSelector((s) => s.formComponents);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
-    if (!context || !localContainersState) return undefined;
+    if (!context || !formState) return undefined;
 
     useEffect(() => {
-        if (localContainersState.isDockerProfileValid) {
+        if (isDockerProfileValid) {
             onValidated?.();
         }
-    }, [localContainersState.isDockerProfileValid, onValidated]);
+    }, [isDockerProfileValid, onValidated]);
 
-    if (localContainersState.loadState === ApiStatus.Loading) {
+    if (loadState === ApiStatus.Loading) {
         return (
             <div className={classes.spinnerDiv}>
                 <Spinner
@@ -147,16 +151,15 @@ export const LocalContainersDeploymentFormPage: React.FC<
         );
     }
 
-    if (localContainersState.loadState === ApiStatus.Error) {
+    if (loadState === ApiStatus.Error) {
         return (
             <div className={classes.spinnerDiv}>
                 <ErrorCircleRegular className={classes.errorIcon} />
-                <Text size={400}>{localContainersState.errorMessage ?? ""}</Text>
+                <Text size={400}>{errorMessage ?? ""}</Text>
             </div>
         );
     }
 
-    const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
         (component) => component.propertyName === "acceptEula",
     )!;
@@ -183,7 +186,7 @@ export const LocalContainersDeploymentFormPage: React.FC<
                         LocalContainersContextProps
                     >
                         context={context}
-                        formState={localContainersState.formState}
+                        formState={formState}
                         component={component}
                         idx={index}
                     />
@@ -210,12 +213,8 @@ export const LocalContainersDeploymentFormPage: React.FC<
                         LocalContainersContextProps
                     >
                         context={context}
-                        formState={localContainersState.formState}
-                        component={
-                            localContainersState.formComponents[
-                                "groupId"
-                            ] as LocalContainersFormItemSpec
-                        }
+                        formState={formState}
+                        component={formComponents["groupId"] as LocalContainersFormItemSpec}
                         idx={0}
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
@@ -261,7 +260,7 @@ export const LocalContainersDeploymentFormPage: React.FC<
                         validationState={eulaValidationState}>
                         <Checkbox
                             size="medium"
-                            checked={localContainersState.formState.acceptEula ?? false}
+                            checked={formState.acceptEula ?? false}
                             onChange={(_value, data) =>
                                 context.formAction({
                                     propertyName: "acceptEula",

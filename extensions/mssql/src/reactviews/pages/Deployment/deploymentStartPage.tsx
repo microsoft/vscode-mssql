@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { useDeploymentSelector } from "./deploymentSelector";
-import { Button, makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { Button, makeStyles, Text } from "@fluentui/react-components";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { DialogPageShell } from "../../common/dialogPageShell";
@@ -142,9 +142,6 @@ export const DeploymentStartPage = () => {
                     />
                 ) : (
                     <div style={{ minHeight: "240px" }}>
-                        {loadState === ApiStatus.Loading && (
-                            <Spinner labelPosition="below" label="" />
-                        )}
                         {loadState === ApiStatus.Error && (
                             <Text size={400}>{errorMessage ?? ""}</Text>
                         )}

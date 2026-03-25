@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { StepCard } from "./stepCard";
 import { runDockerStep } from "./localContainersDeploymentUtils";
 import {
@@ -14,43 +14,48 @@ import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment"
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { useDeploymentSelector } from "../deploymentSelector";
+import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
 
 export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
     const classes = stepPageStyles();
     const context = useContext(DeploymentContext);
-    const localContainersState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as LocalContainersState;
+    const dockerSteps = useLocalContainersDeploymentSelector((s) => s.dockerSteps);
+    const currentDockerStep = useLocalContainersDeploymentSelector((s) => s.currentDockerStep);
+    const containerName = useLocalContainersDeploymentSelector((s) => s.formState?.containerName);
     const lastStep = DockerStepOrder.connectToContainer;
 
-    if (!context || !localContainersState || !localContainersState.formState.containerName) {
+    const localContainersWrappedState = useMemo(
+        () =>
+            ({
+                deploymentTypeState: new LocalContainersState({
+                    dockerSteps,
+                    currentDockerStep,
+                }),
+            }) as DeploymentWebviewState,
+        [currentDockerStep, dockerSteps],
+    );
+
+    if (!context || !containerName) {
         return undefined;
     }
 
     useEffect(() => {
-        const wrappedState = {
-            deploymentTypeState: localContainersState,
-        } as DeploymentWebviewState;
-        void runDockerStep(context, wrappedState, lastStep);
-    }, [context, localContainersState]);
+        void runDockerStep(context, localContainersWrappedState, lastStep);
+    }, [context, localContainersWrappedState]);
 
     return (
         <div className={classes.outerDiv}>
             <div className={classes.stepsDiv}>
                 <div className={classes.stepsHeader}>
-                    {locConstants.localContainers.settingUp}{" "}
-                    {localContainersState.formState.containerName}...
+                    {locConstants.localContainers.settingUp} {containerName}...
                 </div>
                 <div className={classes.stepsSubheader}>
                     {locConstants.localContainers.gettingContainerReadyForConnection}
                 </div>
-                <StepCard step={localContainersState.dockerSteps[DockerStepOrder.pullImage]} />
-                <StepCard step={localContainersState.dockerSteps[DockerStepOrder.startContainer]} />
-                <StepCard step={localContainersState.dockerSteps[DockerStepOrder.checkContainer]} />
-                <StepCard
-                    step={localContainersState.dockerSteps[DockerStepOrder.connectToContainer]}
-                />
+                <StepCard step={dockerSteps[DockerStepOrder.pullImage]} />
+                <StepCard step={dockerSteps[DockerStepOrder.startContainer]} />
+                <StepCard step={dockerSteps[DockerStepOrder.checkContainer]} />
+                <StepCard step={dockerSteps[DockerStepOrder.connectToContainer]} />
             </div>
         </div>
     );

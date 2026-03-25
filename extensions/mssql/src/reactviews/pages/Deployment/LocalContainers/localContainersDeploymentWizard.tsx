@@ -11,11 +11,11 @@ import { DockerIcon } from "../../../common/icons/docker";
 import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { useDeploymentSelector } from "../deploymentSelector";
+import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
 import {
     DockerStepOrder,
-    LocalContainersState,
     LocalContainersFormItemSpec,
+    LocalContainersState,
 } from "../../../../sharedInterfaces/localContainers";
 import { LocalContainersDeploymentInfoPage } from "./localContainersDeploymentInfoPage";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
@@ -31,35 +31,53 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
     onBackToStart,
 }) => {
     const context = useContext(DeploymentContext);
-    const localContainersState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as LocalContainersState;
+    const loadState = useLocalContainersDeploymentSelector((s) => s.loadState);
+    const dockerSteps = useLocalContainersDeploymentSelector((s) => s.dockerSteps);
+    const currentDockerStep = useLocalContainersDeploymentSelector((s) => s.currentDockerStep);
+    const formState = useLocalContainersDeploymentSelector((s) => s.formState);
+    const formComponents = useLocalContainersDeploymentSelector((s) => s.formComponents);
+    const formValidationLoadState = useLocalContainersDeploymentSelector(
+        (s) => s.formValidationLoadState,
+    );
 
     const localContainersWrappedState = useMemo(
         () =>
             ({
-                deploymentTypeState: localContainersState,
+                deploymentTypeState: new LocalContainersState({
+                    dockerSteps,
+                    currentDockerStep,
+                }),
             }) as DeploymentWebviewState,
-        [localContainersState],
+        [currentDockerStep, dockerSteps],
+    );
+
+    const validationState = useMemo(
+        () =>
+            new LocalContainersState({
+                loadState,
+                formState,
+                formComponents,
+            }),
+        [formComponents, formState, loadState],
     );
 
     if (!context) {
         return undefined;
     }
 
-    const isLocalContainersStateReady = Array.isArray(localContainersState?.dockerSteps);
+    const isLocalContainersStateReady = Array.isArray(dockerSteps);
     const isLocalContainersFormValid =
-        localContainersState?.loadState === ApiStatus.Loaded &&
-        Object.values(localContainersState?.formComponents ?? {}).every((component) => {
+        loadState === ApiStatus.Loaded &&
+        Object.values(formComponents ?? {}).every((component) => {
             const formComponent = component as LocalContainersFormItemSpec | undefined;
             if (!formComponent) {
                 return true;
             }
 
-            const value = localContainersState.formState?.[formComponent.propertyName];
+            const value = formState?.[formComponent.propertyName];
             const normalizedValue = (value ?? "") as string | number | boolean;
             if (formComponent.validate) {
-                return formComponent.validate(localContainersState, normalizedValue).isValid;
+                return formComponent.validate(validationState, normalizedValue).isValid;
             }
 
             return formComponent.required ? !!value : true;
@@ -100,8 +118,7 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
             ),
             nextLabel: locConstants.localContainers.createContainer,
             canGoNext: () =>
-                isLocalContainersFormValid &&
-                localContainersState?.formValidationLoadState !== ApiStatus.Loading,
+                isLocalContainersFormValid && formValidationLoadState !== ApiStatus.Loading,
             onNext: () => {
                 context.checkDockerProfile();
                 return false;

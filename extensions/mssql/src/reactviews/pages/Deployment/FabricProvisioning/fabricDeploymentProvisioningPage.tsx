@@ -6,8 +6,7 @@
 import { makeStyles, tokens } from "@fluentui/react-components";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { useDeploymentSelector } from "../deploymentSelector";
-import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { useFabricDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
 
 const useStyles = makeStyles({
@@ -67,27 +66,13 @@ const useStyles = makeStyles({
 
 export const FabricDeploymentProvisioningPage: React.FC = () => {
     const classes = useStyles();
-    const provisionLoadState = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.provisionLoadState,
-    );
-    const connectionLoadState = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.connectionLoadState,
-    );
-    const errorMessage = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.errorMessage,
-    );
-    const databaseName = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.formState?.databaseName,
-    );
-    const deploymentStartTime = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.deploymentStartTime,
-    );
-    const tenantName = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.tenantName,
-    );
-    const workspaceName = useDeploymentSelector(
-        (s) => (s.deploymentTypeState as FabricProvisioningState)?.workspaceName,
-    );
+    const provisionLoadState = useFabricDeploymentSelector((s) => s.provisionLoadState);
+    const connectionLoadState = useFabricDeploymentSelector((s) => s.connectionLoadState);
+    const errorMessage = useFabricDeploymentSelector((s) => s.errorMessage);
+    const databaseName = useFabricDeploymentSelector((s) => s.formState?.databaseName);
+    const deploymentStartTime = useFabricDeploymentSelector((s) => s.deploymentStartTime);
+    const tenantName = useFabricDeploymentSelector((s) => s.tenantName);
+    const workspaceName = useFabricDeploymentSelector((s) => s.workspaceName);
 
     if (!provisionLoadState) return undefined;
 

@@ -119,7 +119,15 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                             ? classes.selectedCard
                             : undefined,
                     )}
-                    onClick={() => onDeploymentTypeChange(DeploymentType.LocalContainers)}>
+                    onClick={() => onDeploymentTypeChange(DeploymentType.LocalContainers)}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onDeploymentTypeChange(DeploymentType.LocalContainers);
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button">
                     <div className={classes.iconBadge}>
                         <DockerIcon
                             className={classes.dockerIcon}
@@ -143,7 +151,15 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                             ? classes.selectedCard
                             : undefined,
                     )}
-                    onClick={() => onDeploymentTypeChange(DeploymentType.FabricProvisioning)}>
+                    onClick={() => onDeploymentTypeChange(DeploymentType.FabricProvisioning)}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onDeploymentTypeChange(DeploymentType.FabricProvisioning);
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button">
                     <div className={classes.iconBadge}>
                         <SqlDbInFabricIcon
                             className={classes.sqlInFabricIcon}
