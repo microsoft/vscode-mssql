@@ -50,7 +50,7 @@ const useStyles = makeStyles({
         flex: "1 1 auto",
         overflowY: "auto",
         overflowX: "hidden",
-        scrollbarGutter: "stable both-edges",
+        scrollbarGutter: "stable",
     },
     container: {
         width: "100%",

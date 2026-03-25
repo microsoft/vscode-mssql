@@ -10,6 +10,7 @@ import { ReactNode, useState } from "react";
 const useStyles = makeStyles({
     root: {
         width: "100%",
+        boxSizing: "border-box",
         borderRadius: "4px",
         border: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border, #2d2d2d))",
         overflow: "hidden",

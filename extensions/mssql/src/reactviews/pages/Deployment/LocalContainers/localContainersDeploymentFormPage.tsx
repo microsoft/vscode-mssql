@@ -45,7 +45,7 @@ const useStyles = makeStyles({
         maxWidth: "100%",
         minWidth: 0,
         minHeight: "fit-content",
-        padding: "4px 0 8px",
+        padding: "4px 1px 8px",
         boxSizing: "border-box",
         whiteSpace: "normal",
     },

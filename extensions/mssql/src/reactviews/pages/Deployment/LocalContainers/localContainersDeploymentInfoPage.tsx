@@ -169,7 +169,7 @@ export const LocalContainersDeploymentInfoPage: React.FC = () => {
                     </div>
                 </div>
                 <div className={classes.docsCard}>
-                    <Text className={classes.docsTitle}>Learn More</Text>
+                    <Text className={classes.docsTitle}>{locConstants.common.learnMore}</Text>
                     <div className={classes.docsActions}>
                         {links.map((link) => (
                             <Link
