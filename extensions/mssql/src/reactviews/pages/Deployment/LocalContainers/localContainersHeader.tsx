@@ -5,6 +5,7 @@
 
 import { makeStyles } from "@fluentui/react-components";
 import { useDeploymentSelector } from "../deploymentSelector";
+import { DockerIcon } from "../../../common/icons/docker";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -49,12 +50,8 @@ export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddi
 
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>
-            <img className={classes.icon} src={dockerIcon()} />
+            <DockerIcon className={classes.icon} aria-hidden="true" />
             <div className={classes.titleDiv}>{headerText}</div>
         </div>
     );
-};
-
-export const dockerIcon = () => {
-    return require(`../../../media/docker.svg`);
 };
