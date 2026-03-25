@@ -3,7 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import { supportedActions, workspaceTargets } from "./workspace-targets.mjs";
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const npmCommand = "npm";
+const spawnOptions = { shell: process.platform === "win32" };
 
 function parseTargetValue(flag, value) {
     if (!value || value.trim().length === 0 || value.startsWith("-")) {
@@ -139,6 +140,7 @@ function runWorkspaceScript(target, action, forwardedArgs = []) {
     const result = spawnSync(npmCommand, npmArgs, {
         cwd: path.join(process.cwd(), target.directory),
         stdio: "inherit",
+        ...spawnOptions,
     });
 
     if (result.status !== 0) {
@@ -160,7 +162,7 @@ function watchTargets(targets, forwardedArgs = []) {
         return spawn(npmCommand, npmArgs, {
             cwd: path.join(process.cwd(), target.directory),
             stdio: "inherit",
-            shell: process.platform === "win32",
+            ...spawnOptions,
         });
     });
 
