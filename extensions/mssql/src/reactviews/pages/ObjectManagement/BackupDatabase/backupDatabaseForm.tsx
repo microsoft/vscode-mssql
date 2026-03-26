@@ -351,7 +351,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             <div className={classes.fileList}>
                                 {backupViewModel.backupFiles.map((file, index) => (
                                     <BackupFileCard
-                                        key={file.filePath}
+                                        key={`backup-file-${index}`}
                                         backupFiles={backupViewModel.backupFiles}
                                         file={file}
                                         index={index}
