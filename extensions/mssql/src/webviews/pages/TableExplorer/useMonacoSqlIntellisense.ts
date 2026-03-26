@@ -8,6 +8,7 @@ import { useRef, useCallback, useEffect } from "react";
 import {
     WebviewCompletionRequest,
     WebviewCompletionResult,
+    WebviewDocumentSyncNotification,
 } from "../../../sharedInterfaces/webviewLanguageService";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -18,12 +19,13 @@ import { WebviewRpc } from "../../common/rpc";
  * @param ownerUri - The ownerUri identifying the connection/session context.
  *                   May start empty and get populated later.
  * @param extensionRpc - The webview RPC instance for communicating with the extension host.
- * @returns An object containing a `beforeMount` callback for the VscodeEditor component.
+ * @returns An object containing a `beforeMount` callback for the VscodeEditor component
+ *          and an `onContentChange` callback to sync editor content with the STS.
  */
 export function useMonacoSqlIntellisense(
     ownerUri: string,
     extensionRpc: WebviewRpc<unknown>,
-): { beforeMount: BeforeMount } {
+): { beforeMount: BeforeMount; onContentChange: (value: string) => void } {
     const disposablesRef = useRef<{ dispose(): void }[]>([]);
 
     // Use a ref so the completion provider closure always reads the latest ownerUri,
@@ -41,15 +43,30 @@ export function useMonacoSqlIntellisense(
         };
     }, []);
 
+    // Send document content changes to the extension host so the STS always has
+    // up-to-date text. This fires on every editor change, independently of
+    // completion requests, ensuring the STS's ScriptFile content is current
+    // before any completion request is processed.
+    const onContentChange = useCallback(
+        (value: string) => {
+            const currentUri = ownerUriRef.current;
+            if (!currentUri) {
+                return;
+            }
+            void extensionRpc.sendNotification(WebviewDocumentSyncNotification.type, {
+                ownerUri: currentUri,
+                fullText: value,
+            });
+        },
+        [extensionRpc],
+    );
+
     const beforeMount: BeforeMount = useCallback(
         (monaco) => {
             // Dispose previous providers if re-mounting
             disposablesRef.current.forEach((d) => d.dispose());
             disposablesRef.current = [];
 
-            console.log(
-                `[IntelliSense] Registering SQL completion provider (ownerUri ref: "${ownerUriRef.current}")`,
-            );
             const completionProvider = monaco.languages.registerCompletionItemProvider("sql", {
                 triggerCharacters: [".", " "],
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,13 +77,7 @@ export function useMonacoSqlIntellisense(
                     token: any,
                 ) {
                     const currentUri = ownerUriRef.current;
-                    console.log(
-                        `[IntelliSense] provideCompletionItems called - ownerUri: "${currentUri}", ` +
-                            `position: (${position.lineNumber}, ${position.column})`,
-                    );
-
                     if (!currentUri) {
-                        console.log(`[IntelliSense] No ownerUri available yet, returning empty`);
                         return { suggestions: [] };
                     }
 
@@ -77,11 +88,6 @@ export function useMonacoSqlIntellisense(
                         endLineNumber: position.lineNumber,
                         endColumn: position.column,
                     });
-
-                    console.log(
-                        `[IntelliSense] Sending RPC request - textUntilPosition: "${textUntilPosition}", ` +
-                            `fullText length: ${fullText.length}`,
-                    );
 
                     try {
                         const result: WebviewCompletionResult = await extensionRpc.sendRequest(
@@ -96,14 +102,6 @@ export function useMonacoSqlIntellisense(
                                 fullText,
                             },
                             token,
-                        );
-
-                        console.log(
-                            `[IntelliSense] Received ${result.suggestions.length} suggestions. ` +
-                                `First 5: [${result.suggestions
-                                    .slice(0, 5)
-                                    .map((s) => `"${s.label}" (kind=${s.kind})`)
-                                    .join(", ")}]`,
                         );
 
                         const word = model.getWordUntilPosition(position);
@@ -139,5 +137,5 @@ export function useMonacoSqlIntellisense(
         [extensionRpc],
     );
 
-    return { beforeMount };
+    return { beforeMount, onContentChange };
 }
