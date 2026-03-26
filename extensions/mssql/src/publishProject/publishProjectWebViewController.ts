@@ -290,6 +290,20 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     success: "true",
                     serverTypes: this._serverTypes,
                 });
+            } else {
+                sendErrorEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.GenerateScript,
+                    new Error(getErrorMessage(result.errorMessage)),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        operationId: this._operationId,
+                        success: "false",
+                        serverTypes: this._serverTypes,
+                    },
+                );
             }
         } catch (error) {
             sendErrorEvent(
@@ -909,7 +923,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                     // STEP 4: Store connection URI for DacFx publish
                     this._connectionUri = containerResult.connectionUri;
-                    this._serverTypes = ServerType.Local;
+                    this._serverTypes = [ServerType.Local, ServerType.Sql].join(",");
 
                     // STEP 5: Build DACPAC from project
                     const dacpacPath = await this.buildProject(state);
