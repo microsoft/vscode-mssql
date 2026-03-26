@@ -36,9 +36,14 @@ import {
     WebviewCompletionRequest,
     WebviewCompletionParams,
     WebviewCompletionResult,
+    WebviewDocumentSyncNotification,
     mapLspKindToMonaco,
 } from "../sharedInterfaces/webviewLanguageService";
-import { LanguageFlavorChangedNotification } from "../models/contracts/languageService";
+import {
+    IntelliSenseReadyNotification,
+    LanguageFlavorChangedNotification,
+    RebuildIntelliSenseNotification,
+} from "../models/contracts/languageService";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -109,13 +114,26 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         );
 
         this.operationId = uuid();
-        this.logger.info(
+        this.logger.verbose(
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
 
         this._tableExplorerService.sqlToolsClient.onNotification(
             EditSessionReadyNotification.type,
             this.handleEditSessionReadyNotification(),
+        );
+
+        // Listen for IntelliSense ready notifications so we know when the STS
+        // has finished loading metadata for our ownerUri.
+        this._tableExplorerService.sqlToolsClient.onNotification(
+            IntelliSenseReadyNotification.type,
+            (params) => {
+                if (params.ownerUri === this._expectedOwnerUri) {
+                    console.log(
+                        `[IntelliSense] IntelliSenseReady received for "${params.ownerUri}"`,
+                    );
+                }
+            },
         );
 
         void this.initialize();
@@ -174,7 +192,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
             const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
 
-            this.logger.info(
+            this.logger.verbose(
                 `Initializing table explorer for ${schemaName}.${objectName} - OperationId: ${this.operationId}`,
             );
 
@@ -188,6 +206,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
             }
 
+            // Open the language service document immediately after connecting so that
+            // the STS's PrepopulateCommonMetadata can find the ScriptFile and pre-load
+            // table/column metadata while the edit session initializes.
+            this.openLanguageServiceDocument(ownerUri);
+
             await this._tableExplorerService.initialize(
                 ownerUri,
                 objectName,
@@ -196,7 +219,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 undefined,
             );
 
-            this.logger.info(
+            this.logger.verbose(
                 `Table explorer initialized successfully - OperationId: ${this.operationId}`,
             );
             endActivity.end(ActivityStatus.Succeeded, {
@@ -291,7 +314,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const combinedScript = scriptResult.scripts?.join("\n") || "";
             state.updateScript = combinedScript;
             this.updateState();
-            this.logger.info("Script regenerated successfully in real-time");
+            this.logger.verbose("Script regenerated successfully in real-time");
         } catch (error) {
             this.logger.error(`Error regenerating script: ${error}`);
         }
@@ -308,12 +331,24 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        console.log(`[IntelliSense] registerRpcHandlers called`);
+
         this.onRequest(WebviewCompletionRequest.type, async (params) => {
+            console.log(`[IntelliSense] completion request received`);
             return await this.handleCompletionRequest(params);
         });
 
+        // Sync document content on every editor change so the STS always has
+        // up-to-date text before completion requests arrive.
+        this.onNotification(WebviewDocumentSyncNotification.type, (params) => {
+            console.log(`[IntelliSense] document sync notification received`);
+            if (params.ownerUri) {
+                this.syncDocumentContent(params.ownerUri, params.fullText);
+            }
+        });
+
         this.registerReducer("commitChanges", async (state) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
 
@@ -342,7 +377,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
                 this.showRestorePromptAfterClose = false;
 
-                this.logger.info(
+                this.logger.verbose(
                     `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
                 );
 
@@ -375,7 +410,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("loadSubset", async (state, payload) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Loading subset with rowCount: ${payload.rowCount} - OperationId: ${this.operationId}`,
             );
 
@@ -414,7 +449,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     rowCount: backendRowsOnly.length + state.newRows.length,
                 };
 
-                this.logger.info(
+                this.logger.verbose(
                     `Loaded ${backendRowsOnly.length} committed rows from database, appended ${state.newRows.length} new uncommitted rows - OperationId: ${this.operationId}`,
                 );
 
@@ -455,7 +490,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("createRow", async (state) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Creating new row for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
 
@@ -475,7 +510,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.rowCreatedSuccessfully,
                 );
-                this.logger.info(
+                this.logger.verbose(
                     `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
                 );
 
@@ -492,7 +527,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         rowCount: state.resultSet.rowCount + 1,
                     };
 
-                    this.logger.info(
+                    this.logger.verbose(
                         `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
                     );
 
@@ -532,7 +567,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
-            this.logger.info(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
+            this.logger.verbose(
+                `Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`,
+            );
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -569,7 +606,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         }
                     });
                     keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.info(
+                    this.logger.verbose(
                         `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
                     );
                 }
@@ -593,7 +630,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         LocConstants.TableExplorer.rowDeletedSuccessfully,
                     );
 
-                    this.logger.info(
+                    this.logger.verbose(
                         `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
                     );
 
@@ -613,7 +650,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                     this.showRestorePromptAfterClose = true;
 
-                    this.logger.info(
+                    this.logger.verbose(
                         `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
                     );
                 }
@@ -652,7 +689,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Updating cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
 
@@ -723,13 +760,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                         this.updateState();
 
-                        this.logger.info(
+                        this.logger.verbose(
                             `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
                     }
                 }
 
-                this.logger.info(`Cell updated successfully - OperationId: ${this.operationId}`);
+                this.logger.verbose(`Cell updated successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -768,7 +805,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                         state.resultSet.subset[rowIndex].cells[payload.columnId] = failedCell;
 
-                        this.logger.info(
+                        this.logger.verbose(
                             `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
                         );
                     }
@@ -796,7 +833,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
 
@@ -815,7 +852,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             try {
                 // Always call the service to revert to ensure backend state is properly cleaned up
-                this.logger.info(`Calling service to revert cell ${cacheKey}`);
+                this.logger.verbose(`Calling service to revert cell ${cacheKey}`);
                 const revertCellResult = await this._tableExplorerService.revertCell(
                     state.ownerUri,
                     payload.rowId,
@@ -838,7 +875,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                       };
 
                 if (cachedOriginalValue) {
-                    this.logger.info(
+                    this.logger.verbose(
                         `Using cached original value for display: ${cachedOriginalValue.displayValue}`,
                     );
                 }
@@ -846,7 +883,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Remove from cache after successful revert
                 if (state.originalCellValues?.has(cacheKey)) {
                     state.originalCellValues.delete(cacheKey);
-                    this.logger.info(
+                    this.logger.verbose(
                         `Removed cached value for cell ${cacheKey} after successful revert`,
                     );
                 }
@@ -885,14 +922,16 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                             subset: newSubset,
                         };
 
-                        this.logger.info(
+                        this.logger.verbose(
                             `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
 
                         this.updateState();
                     }
                 }
-                this.logger.info(`Cell reverted successfully - OperationId: ${this.operationId}`);
+                this.logger.verbose(
+                    `Cell reverted successfully - OperationId: ${this.operationId}`,
+                );
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -925,7 +964,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
-            this.logger.info(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
+            this.logger.verbose(
+                `Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`,
+            );
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -963,7 +1004,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         }
                     });
                     keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.info(
+                    this.logger.verbose(
                         `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
                     );
                 }
@@ -992,7 +1033,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                             this.updateState();
 
-                            this.logger.info(
+                            this.logger.verbose(
                                 `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
                             );
                         }
@@ -1013,7 +1054,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                     this.updateState();
 
-                    this.logger.info(
+                    this.logger.verbose(
                         `Removed newly created row ${payload.rowId} from UI after revert`,
                     );
 
@@ -1023,7 +1064,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     }
                 }
 
-                this.logger.info(`Row reverted successfully - OperationId: ${this.operationId}`);
+                this.logger.verbose(`Row reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -1056,7 +1097,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("generateScript", async (state) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Generating update script for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
 
@@ -1078,7 +1119,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Combine script array into single string
                 const combinedScript = scriptResult.scripts?.join("\n") || "";
-                this.logger.info(
+                this.logger.verbose(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
 
@@ -1087,15 +1128,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 state.showScriptPane = true;
                 state.sqlPaneMode = SqlPaneMode.ScriptChanges;
 
-                this.logger.info(
+                this.logger.verbose(
                     `State before updateState - updateScript length: ${state.updateScript?.length}, showScriptPane: ${state.showScriptPane}`,
                 );
                 this.updateState();
-                this.logger.info(
+                this.logger.verbose(
                     `State after updateState - this.state.updateScript length: ${this.state.updateScript?.length} - OperationId: ${this.operationId}`,
                 );
 
-                this.logger.info(
+                this.logger.verbose(
                     `Script generated successfully - OperationId: ${this.operationId}`,
                 );
 
@@ -1129,7 +1170,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openScriptInEditor", async (state) => {
-            this.logger.info(`Opening script in SQL editor - OperationId: ${this.operationId}`);
+            this.logger.verbose(`Opening script in SQL editor - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
                 operationId: this.operationId,
@@ -1144,7 +1185,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     });
                     await vscode.window.showTextDocument(doc);
 
-                    this.logger.info(
+                    this.logger.verbose(
                         `Script opened in SQL editor successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1163,7 +1204,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("copyScriptToClipboard", async (state) => {
-            this.logger.info(`Copying script to clipboard - OperationId: ${this.operationId}`);
+            this.logger.verbose(`Copying script to clipboard - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.CopyResults, {
                 operationId: this.operationId,
@@ -1177,7 +1218,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         LocConstants.TableExplorer.scriptCopiedToClipboard,
                     );
 
-                    this.logger.info(
+                    this.logger.verbose(
                         `Script copied to clipboard successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1198,7 +1239,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         this.registerReducer("toggleScriptPane", async (state) => {
             state.showScriptPane = !state.showScriptPane;
 
-            this.logger.info(
+            this.logger.verbose(
                 `Script pane toggled to: ${state.showScriptPane} - OperationId: ${this.operationId}`,
             );
 
@@ -1215,13 +1256,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         this.registerReducer("setCurrentPage", async (state, payload) => {
             state.currentPage = payload.pageNumber;
 
-            this.logger.info(`Current page set to: ${payload.pageNumber}`);
+            this.logger.verbose(`Current page set to: ${payload.pageNumber}`);
 
             return state;
         });
 
         this.registerReducer("saveResults", async (state, payload) => {
-            this.logger.info(
+            this.logger.verbose(
                 `Saving results as ${payload.format} - OperationId: ${this.operationId}`,
             );
 
@@ -1279,7 +1320,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                             LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
                         );
 
-                        this.logger.info(
+                        this.logger.verbose(
                             `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
                         );
 
@@ -1293,7 +1334,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         throw new Error(result.messages || "Serialization failed");
                     }
                 } else {
-                    this.logger.info("Save dialog cancelled by user");
+                    this.logger.verbose("Save dialog cancelled by user");
                 }
             } catch (error) {
                 this.logger.error(
@@ -1320,7 +1361,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("showTableQuery", async (state) => {
-            this.logger.info(`Showing table query pane - OperationId: ${this.operationId}`);
+            this.logger.verbose(`Showing table query pane - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
                 operationId: this.operationId,
@@ -1334,7 +1375,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("runTableQuery", async (state, payload) => {
-            this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
+            this.logger.verbose(`Running custom table query - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1349,7 +1390,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             // Validate input before tearing down the session
             if (!payload.queryString || !payload.queryString.trim()) {
-                this.logger.info("Empty query string provided, skipping custom query");
+                this.logger.verbose("Empty query string provided, skipping custom query");
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -1389,7 +1430,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 if (result !== LocConstants.TableExplorer.Continue) {
-                    this.logger.info("User cancelled custom query due to pending changes");
+                    this.logger.verbose("User cancelled custom query due to pending changes");
                     endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -1432,7 +1473,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 state.tableQuery = payload.queryString;
                 this._preserveTableQuery = true;
 
-                this.logger.info(
+                this.logger.verbose(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
                 );
 
@@ -1459,7 +1500,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         undefined,
                     );
 
-                    this.logger.info("Restored original session after custom query failure");
+                    this.logger.verbose("Restored original session after custom query failure");
                 } catch (restoreError) {
                     this.logger.error(
                         `Failed to restore original session: ${getErrorMessage(restoreError)}`,
@@ -1488,7 +1529,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("modifyTable", async (state, _payload) => {
-            this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
+            this.logger.verbose(`Opening Table Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1504,7 +1545,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             try {
                 await vscode.commands.executeCommand(Constants.cmdEditTable, this._targetNode);
 
-                this.logger.info(
+                this.logger.verbose(
                     `Table Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
@@ -1537,7 +1578,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("viewTableDiagram", async (state, _payload) => {
-            this.logger.info(`Opening Schema Designer - OperationId: ${this.operationId}`);
+            this.logger.verbose(`Opening Schema Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1563,7 +1604,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     filterTable,
                 );
 
-                this.logger.info(
+                this.logger.verbose(
                     `Schema Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
@@ -1606,62 +1647,54 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         const ownerUri = params.ownerUri;
         const client = this._tableExplorerService.sqlToolsClient;
 
-        this.logger.verbose(
-            `[IntelliSense] Completion request received - ownerUri: "${ownerUri}", ` +
-                `position: (${params.position.lineNumber}, ${params.position.column}), ` +
+        console.log(
+            `[IntelliSense] handleCompletionRequest – ownerUri: "${ownerUri}", ` +
+                `pos: (${params.position.lineNumber},${params.position.column}), ` +
                 `textUntilPosition: "${params.textUntilPosition}", ` +
-                `fullText length: ${params.fullText.length}`,
+                `fullText length: ${params.fullText.length}, ` +
+                `docVersion: ${this._documentVersions.get(ownerUri ?? "") ?? "NOT_FOUND"}, ` +
+                `isConnected: ${ownerUri ? this._connectionManager.isConnected(ownerUri) : "N/A"}`,
         );
 
         if (!ownerUri) {
-            this.logger.verbose(`[IntelliSense] No ownerUri provided, returning empty suggestions`);
+            console.log(`[IntelliSense] BAIL: no ownerUri`);
             return { suggestions: [] };
         }
 
         if (!this._connectionManager.isConnected(ownerUri)) {
-            this.logger.verbose(
-                `[IntelliSense] Not connected for ownerUri "${ownerUri}", returning empty suggestions`,
-            );
+            console.log(`[IntelliSense] BAIL: not connected`);
             return { suggestions: [] };
         }
 
         try {
-            await this.syncDocumentContent(ownerUri, params.fullText);
+            this.syncDocumentContent(ownerUri, params.fullText);
 
             const lspPosition = {
-                line: params.position.lineNumber - 1, // Monaco is 1-based, LSP is 0-based
+                line: params.position.lineNumber - 1,
                 character: params.position.column - 1,
             };
 
-            this.logger.verbose(
-                `[IntelliSense] Sending textDocument/completion to STS - ` +
-                    `uri: "${ownerUri}", LSP position: (${lspPosition.line}, ${lspPosition.character})`,
-            );
+            console.log(`[IntelliSense] sending textDocument/completion to STS...`);
 
             const completionResult = await client.sendRequest(CompletionRequest.type, {
                 textDocument: { uri: ownerUri },
                 position: lspPosition,
             });
 
+            console.log(
+                `[IntelliSense] STS responded: ${completionResult == null ? "null" : "has data"}`,
+            );
+
             if (!completionResult) {
-                this.logger.verbose(`[IntelliSense] STS returned null/undefined completion result`);
                 return { suggestions: [] };
             }
 
-            const items = Array.isArray(completionResult)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const items: any[] = Array.isArray(completionResult)
                 ? completionResult
-                : (completionResult.items ?? []);
+                : ((completionResult as any).items ?? []);
 
-            this.logger.verbose(
-                `[IntelliSense] STS returned ${items.length} completion items. ` +
-                    `First 5: [${items
-                        .slice(0, 5)
-                        .map(
-                            (i) =>
-                                `"${typeof i.label === "string" ? i.label : i.label.label}" (kind=${i.kind})`,
-                        )
-                        .join(", ")}]`,
-            );
+            console.log(`[IntelliSense] STS returned ${items.length} items`);
 
             const suggestions = items.map((item) => ({
                 label: typeof item.label === "string" ? item.label : item.label.label,
@@ -1679,73 +1712,80 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 preselect: item.preselect,
             }));
 
-            this.logger.verbose(
-                `[IntelliSense] Returning ${suggestions.length} mapped Monaco suggestions`,
-            );
-
+            console.log(`[IntelliSense] returning ${suggestions.length} suggestions`);
             return { suggestions };
         } catch (error) {
-            this.logger.error(
-                `[IntelliSense] Error handling completion request: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-            );
+            console.log(`[IntelliSense] ERROR: ${error}`);
             return { suggestions: [] };
         }
     }
 
     /**
-     * Syncs the editor document content with the SQL Tools Service so it can provide
-     * context-aware completions. Uses didOpen for the first sync and didChange with
-     * a full-document range for subsequent syncs.
+     * Opens the language service document in the STS workspace so that
+     * PrepopulateCommonMetadata can find the ScriptFile and pre-load
+     * table/column metadata when the connection is established.
+     *
+     * This must be called BEFORE or immediately after connectionManager.connect()
+     * so the STS's UpdateLanguageServiceOnConnection callback finds the ScriptFile.
      */
-    private async syncDocumentContent(ownerUri: string, text: string): Promise<void> {
+    private openLanguageServiceDocument(ownerUri: string): void {
+        console.log(`[IntelliSense] openLanguageServiceDocument called for "${ownerUri}"`);
+        const client = this._tableExplorerService.sqlToolsClient;
+        const version = 1;
+        this._documentVersions.set(ownerUri, version);
+
+        this.logger.verbose(
+            `[IntelliSense] ── openLanguageServiceDocument ── uri: "${ownerUri}", version: ${version}`,
+        );
+
+        client.sendNotification(DidOpenTextDocumentNotification.type, {
+            textDocument: {
+                uri: ownerUri,
+                languageId: "sql",
+                version,
+                text: "",
+            },
+        });
+
+        client.sendNotification(LanguageFlavorChangedNotification.type, {
+            uri: ownerUri,
+            language: "sql",
+            flavor: "MSSQL",
+        });
+
+        // Send an explicit rebuild after a delay to ensure the STS has had time
+        // to process the connection callback (UpdateLanguageServiceOnConnection)
+        // which creates the ScriptParseInfo and binding context.
+        setTimeout(() => {
+            console.log(`[IntelliSense] Sending RebuildIntelliSense for "${ownerUri}"`);
+            client.sendNotification(RebuildIntelliSenseNotification.type, {
+                ownerUri,
+            });
+        }, 2000);
+    }
+
+    /**
+     * Syncs the editor document content with the SQL Tools Service.
+     * Uses didClose + didOpen to replace the entire document content,
+     * avoiding range calculation issues with the STS's position validation.
+     */
+    private syncDocumentContent(ownerUri: string, text: string): void {
         const client = this._tableExplorerService.sqlToolsClient;
         const version = (this._documentVersions.get(ownerUri) ?? 0) + 1;
         this._documentVersions.set(ownerUri, version);
 
-        if (version === 1) {
-            this.logger.verbose(
-                `[IntelliSense] Sending textDocument/didOpen for "${ownerUri}" (version ${version}, text length: ${text.length})`,
-            );
+        client.sendNotification(DidCloseTextDocumentNotification.type, {
+            textDocument: { uri: ownerUri },
+        });
 
-            client.sendNotification(DidOpenTextDocumentNotification.type, {
-                textDocument: {
-                    uri: ownerUri,
-                    languageId: "sql",
-                    version,
-                    text,
-                },
-            });
-
-            // Tell STS this is an MSSQL document for MSSQL-specific completions
-            this.logger.verbose(
-                `[IntelliSense] Sending languageFlavorChanged for "${ownerUri}" (flavor: MSSQL)`,
-            );
-            client.sendNotification(LanguageFlavorChangedNotification.type, {
+        client.sendNotification(DidOpenTextDocumentNotification.type, {
+            textDocument: {
                 uri: ownerUri,
-                language: "sql",
-                flavor: "MSSQL",
-            });
-        } else {
-            this.logger.verbose(
-                `[IntelliSense] Sending textDocument/didChange for "${ownerUri}" (version ${version}, text length: ${text.length})`,
-            );
-
-            client.sendNotification(DidChangeTextDocumentNotification.type, {
-                textDocument: { uri: ownerUri, version },
-                contentChanges: [
-                    {
-                        range: {
-                            start: { line: 0, character: 0 },
-                            end: {
-                                line: Number.MAX_SAFE_INTEGER,
-                                character: Number.MAX_SAFE_INTEGER,
-                            },
-                        },
-                        text,
-                    },
-                ],
-            });
-        }
+                languageId: "sql",
+                version,
+                text,
+            },
+        });
     }
 
     /**
@@ -1785,7 +1825,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         // Handle the user's choice
         if (result === LocConstants.TableExplorer.Save) {
-            this.logger.info("User chose to save changes before closing");
+            this.logger.verbose("User chose to save changes before closing");
 
             try {
                 await this._tableExplorerService.commit(this.state.ownerUri);
@@ -1793,7 +1833,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
 
-                this.logger.info("Changes saved successfully before closing");
+                this.logger.verbose("Changes saved successfully before closing");
             } catch (error) {
                 this.logger.error(`Error saving changes before closing: ${error}`);
                 vscode.window.showErrorMessage(
@@ -1801,9 +1841,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
             }
         } else if (result === LocConstants.TableExplorer.Discard) {
-            this.logger.info("User chose to discard changes");
+            this.logger.verbose("User chose to discard changes");
         } else {
-            this.logger.info("User dismissed the prompt - treating as discard");
+            this.logger.verbose("User dismissed the prompt - treating as discard");
         }
 
         // Always return undefined to allow disposal to continue
@@ -1816,7 +1856,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
      */
     public override dispose(): void {
         if (this.state.ownerUri) {
-            this.logger.info(
+            this.logger.verbose(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
 

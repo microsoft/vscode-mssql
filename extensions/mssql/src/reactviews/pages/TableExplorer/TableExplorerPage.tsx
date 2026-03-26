@@ -108,7 +108,7 @@ export const TableExplorerPage: React.FC = () => {
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
-    const { beforeMount } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
+    const { beforeMount, onContentChange } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
 
     const [editableQuery, setEditableQuery] = useState("");
 
@@ -220,9 +220,11 @@ export const TableExplorerPage: React.FC = () => {
                                                         readOnly: false,
                                                         fixedOverflowWidgets: true,
                                                     }}
-                                                    onChange={(value) =>
-                                                        setEditableQuery(value ?? "")
-                                                    }
+                                                    onChange={(value) => {
+                                                        const text = value ?? "";
+                                                        setEditableQuery(text);
+                                                        onContentChange(text);
+                                                    }}
                                                     beforeMount={beforeMount}
                                                 />
                                             </div>
