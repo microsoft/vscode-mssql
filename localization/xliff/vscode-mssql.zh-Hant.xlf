@@ -2177,14 +2177,14 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb">
         <source xml:lang="en">Data API builder Configuration (Preview)</source>
-        <target state="new">Data API builder Configuration (Preview)</target>
+        <target state="translated">資料 API 建立器設定 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
         <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
         <note>{0} is the command identifier 'mssql_dab' and must not be translated
 {1} is the operation name 'get_state' and must not be translated
 {2} is the operation name 'apply_changes' and must not be translated</note>
-        <target state="new">Data API builder opened. Continue with {0} operations ({1}/{2}).</target>
+        <target state="translated">資料 API 建立器已開啟。繼續進行 {0} 作業 ({1}/{2})。</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2570,7 +2570,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
         <source xml:lang="en">Downloading the Data API builder container image</source>
-        <target state="new">Downloading the Data API builder container image</target>
+        <target state="translated">正在下載資料 API 建立器容器映像</target>
       </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
         <source xml:lang="en">Drop</source>
@@ -3019,7 +3019,7 @@ Error:
       <trans-unit id="++CODE++bb035c6e4172fa0ed22c5df8a72cbc77405f39715c9515c5eb7fe9db16adde4b">
         <source xml:lang="en">Execute '{0}' operation on Data API builder?</source>
         <note>{0} is the operation name</note>
-        <target state="new">Execute '{0}' operation on Data API builder?</target>
+        <target state="translated">是否要在資料 API 建立器上執行「{0}」作業?</target>
       </trans-unit>
       <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
         <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
@@ -3033,7 +3033,7 @@ Error:
       <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
         <source xml:lang="en">Executing '{0}' operation on Data API builder</source>
         <note>{0} is the operation name</note>
-        <target state="new">Executing '{0}' operation on Data API builder</target>
+        <target state="translated">正在資料 API 建立器上執行「{0}」作業</target>
       </trans-unit>
       <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
         <source xml:lang="en">Executing '{0}' operation on schema designer</source>
@@ -3147,7 +3147,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ccd4fda2f60776da3700ab9349601e6fb2058888d091d6bad6dd7ffb9b32bd75">
         <source xml:lang="en">Export to PDF</source>
-        <target state="new">Export to PDF</target>
+        <target state="translated">匯出為 PDF</target>
       </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
@@ -4271,7 +4271,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183">
         <source xml:lang="en">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
-        <target state="new">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</target>
+        <target state="translated">在資料 API 建立器 (預覽) 體驗中，只有使用 SQL 驗證的連線可以使用本機容器部署。不支援您目前的連線類型。</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -4982,7 +4982,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++42c869c9cf0bc65de28be00cb8d74e9103e69df8251055669978ecbc7b656d71">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API builder.</source>
-        <target state="new">Missing connectionId. Please provide a connectionId to open Data API builder.</target>
+        <target state="translated">遺漏 connectionId。請提供 connectionId 以開啟資料 API 建立器。</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
@@ -5248,7 +5248,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++dbff7fc884da7e9804728876cc7995627f9f9d17b7041de1dc1d7b5559001270">
         <source xml:lang="en">No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.</source>
-        <target state="new">No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.</target>
+        <target state="translated">找不到使用中的結構描述設計工具。請先使用 mssql_dab 搭配作業 'show' 或從 UI 開啟資料 API 建立器。</target>
       </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
@@ -5655,7 +5655,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
         <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
-        <target state="new">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</target>
+        <target state="translated">您的一或多個實體包含資料 API 建立器目前不支援的資料行類型。無法選取這些實體進行部署。</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
@@ -6604,7 +6604,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
         <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
-        <target state="new">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</target>
+        <target state="translated">在聊天中檢閲或提出 API 設定變更，GitHub Copilot 會立即在資料 API 建立器中更新您的設定。</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -7861,7 +7861,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
         <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
         <note>{0} is a comma-separated list of column names and their data types</note>
-        <target state="new">Table contains column types not supported by Data API builder: {0}</target>
+        <target state="translated">表格包含資料 API 建立器不支援的資料行類型: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
         <source xml:lang="en">Table deleted from schema designer successfully.</source>
@@ -7873,7 +7873,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
         <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
-        <target state="new">Table must have a primary key to be used with Data API builder</target>
+        <target state="translated">資料表必須有主索引鍵，以用於資料 API 建立器</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
         <source xml:lang="en">Table must include at least one column.</source>
@@ -8139,7 +8139,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99">
         <source xml:lang="en">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
         <note>{0} is a list of API types, e.g. 'REST and GraphQL'</note>
-        <target state="new">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</target>
+        <target state="translated">這將使用 Docker 在本機部署資料 API 建立器容器。容器會根據您的設定公開 {0} API。</target>
       </trans-unit>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>

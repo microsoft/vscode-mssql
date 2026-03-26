@@ -11,7 +11,7 @@ interface ResizableOptions {
     maxHeight?: number;
     initialHeight?: number;
     onResize?: (height: number) => void;
-    siblingRef?: React.RefObject<HTMLDivElement>; // Reference to sibling element for coordinated resizing
+    siblingRef?: React.RefObject<HTMLDivElement | null>; // Reference to sibling element for coordinated resizing
 }
 
 /**

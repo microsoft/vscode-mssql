@@ -69,7 +69,7 @@ export class DeploymentWebviewController extends FormWebviewController<
 
     private async initialize(initialConnectionGroup?: string) {
         // If an initial connection group was provided, try to pre-populate the form state
-        if (initialConnectionGroup && initialConnectionGroup) {
+        if (initialConnectionGroup) {
             this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.connectionGroupOptions =

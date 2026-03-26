@@ -129,7 +129,7 @@ export interface TableDesignerContextProps extends CoreRPCs {
     /**
      * Reference to the definition pane component.
      */
-    definitionPaneRef: React.RefObject<DefinitionPanelController>;
+    definitionPaneRef: React.RefObject<DefinitionPanelController | null>;
 }
 
 const TableDesignerContext = createContext<TableDesignerContextProps | undefined>(undefined);

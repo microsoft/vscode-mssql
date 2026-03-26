@@ -160,11 +160,17 @@ suite("PublishChangesDialogButton component", () => {
     let PublishChangesDialogButton: typeof import("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton").PublishChangesDialogButton;
     let PublishDialogStages: typeof import("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton").PublishDialogStages;
 
+    type TestElementProps = {
+        children?: React.ReactNode;
+        title?: string;
+        onClick?: () => void | Promise<void>;
+    };
+
     const findElement = (
         node: React.ReactNode,
-        predicate: (element: React.ReactElement) => boolean,
-    ): React.ReactElement | undefined => {
-        if (!React.isValidElement(node)) {
+        predicate: (element: React.ReactElement<TestElementProps>) => boolean,
+    ): React.ReactElement<TestElementProps> | undefined => {
+        if (!React.isValidElement<TestElementProps>(node)) {
             return undefined;
         }
 
@@ -277,7 +283,7 @@ suite("PublishChangesDialogButton component", () => {
     });
 
     test("shows GHCP fix button in error stage and sends prompt override command", async () => {
-        const dialogElement = PublishChangesDialogButton() as React.ReactElement;
+        const dialogElement = PublishChangesDialogButton() as React.ReactElement<TestElementProps>;
         const ghcpFixButton = findElement(
             dialogElement,
             (element) =>

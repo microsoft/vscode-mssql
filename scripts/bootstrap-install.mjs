@@ -4,9 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { workspaceTargets } from "./workspace-targets.mjs";
 
-const installArgs = process.env.CI
-    ? ["ci", "--legacy-peer-deps"]
-    : ["install", "--legacy-peer-deps"];
+const installArgs = process.env.CI ? ["ci"] : ["install"];
 
 function installDirectory(directory) {
     const absoluteDirectory = path.join(process.cwd(), directory);

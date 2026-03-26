@@ -265,12 +265,8 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string;
-                if (args) {
-                    if (args instanceof ConnectionGroupNode) {
-                        initialConnectionGroup = args.connectionGroup?.id;
-                    } else if (typeof args === "object" && args.id) {
-                        initialConnectionGroup = args.id;
-                    }
+                if (args && args instanceof ConnectionGroupNode) {
+                    initialConnectionGroup = args.connectionGroup?.id;
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
             });
