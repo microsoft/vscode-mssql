@@ -7038,7 +7038,7 @@
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
-      <source xml:lang="en">Connect (MSSQL)</source>
+      <source xml:lang="en">Connect</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
@@ -7116,7 +7116,7 @@
       <source xml:lang="en">Disabled</source>
     </trans-unit>
     <trans-unit id="mssql.disconnect">
-      <source xml:lang="en">Disconnect (MSSQL)</source>
+      <source xml:lang="en">Disconnect</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
       <source xml:lang="en">Display results in a formatted text format.</source>
@@ -7608,7 +7608,7 @@
       <source xml:lang="en">Toggle Actual Plan</source>
     </trans-unit>
     <trans-unit id="mssql.toggleQueryResultPanel">
-      <source xml:lang="en">Toggle Query Result Panel Visibility</source>
+      <source xml:lang="en">Toggle Query Result Panel Visibility (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
