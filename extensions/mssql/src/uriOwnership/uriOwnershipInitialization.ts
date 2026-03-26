@@ -8,12 +8,15 @@ import type ConnectionManager from "../controllers/connectionManager";
 import { UriOwnershipCoordinator } from "./uriOwnershipCore";
 
 const HIDE_UI_ELEMENTS_CONTEXT_VARIABLE = "mssql.hideUIElements";
+const HAS_COORDINATING_EXTENSIONS_CONTEXT_VARIABLE =
+    "mssql.hasCoordinatingExtensionsWithUriOwnership";
 
 export function createUriOwnershipCoordinator(
     context: vscode.ExtensionContext,
 ): UriOwnershipCoordinator {
     return new UriOwnershipCoordinator(context, {
         hideUiContextKey: HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
+        hasCoordinatingExtensionsContextKey: HAS_COORDINATING_EXTENSIONS_CONTEXT_VARIABLE,
     });
 }
 

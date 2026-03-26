@@ -25,6 +25,7 @@ interface SqlExtensionCommonFeaturesContribution {
 
 export interface UriOwnershipConfig {
     hideUiContextKey: string;
+    hasCoordinatingExtensionsContextKey?: string;
     ownsUri?: (uri: string) => boolean;
     onDidChangeOwnership?: vscode.Event<void>;
     releaseUri?: (uri: string) => void | Promise<void>;
@@ -76,6 +77,7 @@ export class UriOwnershipCoordinator {
 
     private readonly _context: vscode.ExtensionContext;
     private readonly _hideUiContextKey: string;
+    private readonly _hasCoordinatingExtensionsContextKey?: string;
     private readonly _fileOwnedByOtherExtensionMessage?: (extensionName: string) => string;
     private readonly _coordinatingExtensionApis: Map<string, UriOwnershipApi> = new Map();
     private readonly _coordinatingOwnershipChangedEmitter = new vscode.EventEmitter<void>();
@@ -89,6 +91,7 @@ export class UriOwnershipCoordinator {
     constructor(context: vscode.ExtensionContext, config: UriOwnershipConfig) {
         this._context = context;
         this._hideUiContextKey = config.hideUiContextKey;
+        this._hasCoordinatingExtensionsContextKey = config.hasCoordinatingExtensionsContextKey;
         this._fileOwnedByOtherExtensionMessage = config.fileOwnedByOtherExtensionMessage;
 
         this._context.subscriptions.push(this._coordinatingOwnershipChangedEmitter);
@@ -180,6 +183,7 @@ export class UriOwnershipCoordinator {
 
     private _discoverAndRegisterExtensions(): void {
         this._coordinatingExtensions = discoverCoordinatingExtensions(this._context.extension.id);
+        this._updateCoordinatingExtensionsContext();
 
         for (const extInfo of this._coordinatingExtensions) {
             const extension = vscode.extensions.getExtension(extInfo.extensionId);
@@ -250,6 +254,19 @@ export class UriOwnershipCoordinator {
         }
 
         this._coordinatingExtensions = newExtensions;
+        this._updateCoordinatingExtensionsContext();
+    }
+
+    private _updateCoordinatingExtensionsContext(): void {
+        if (!this._hasCoordinatingExtensionsContextKey) {
+            return;
+        }
+
+        void vscode.commands.executeCommand(
+            SET_CONTEXT_COMMAND,
+            this._hasCoordinatingExtensionsContextKey,
+            this._coordinatingExtensions.length > 0,
+        );
     }
 
     private _updateUriOwnershipContext(): void {

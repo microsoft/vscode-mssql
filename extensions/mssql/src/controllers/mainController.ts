@@ -241,6 +241,13 @@ export default class MainController implements vscode.Disposable {
                 }
                 void this.runAndLogErrors(this.promptToConnect());
             });
+            this.registerCommand(Constants.cmdConnectWithUriOwnership);
+            this._event.on(Constants.cmdConnectWithUriOwnership, () => {
+                if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+                    return;
+                }
+                void this.runAndLogErrors(this.promptToConnect());
+            });
             this.registerCommand(Constants.cmdChangeConnection);
             this._event.on(Constants.cmdChangeConnection, () => {
                 void this.runAndLogErrors(this.promptToConnect());
@@ -255,6 +262,14 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
+                if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+                    return;
+                }
+                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
+                void this.onRunQuery();
+            });
+            this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
+            this._event.on(Constants.cmdRunQueryWithUriOwnership, () => {
                 if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
                     return;
                 }

@@ -1,0 +1,24 @@
+<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Small play button bottom-left, outline only -->
+    <g transform="translate(2, 9) scale(0.55)">
+        <path
+            d="M2.23541 2.19233C1.2355 1.62986 0 2.35243 0 3.49968V12.5C0 13.6472 1.23546 14.3698 2.23537 13.8073L10.2356 9.30735C11.2551 8.73391 11.2551 7.26609 10.2357 6.69262L2.23541 2.19233Z"
+            fill="none"
+            stroke="#3C9E3A"
+            stroke-width="3 "
+            stroke-linejoin="round" />
+    </g>
+    <!-- Big M badge top-right -->
+    <circle cx="13" cy="7" r="7" fill="#0078D4" />
+    <text
+        x="13"
+        y="7.3"
+        text-anchor="middle"
+        dominant-baseline="central"
+        font-family="sans-serif"
+        font-size="9"
+        font-weight="900"
+        fill="white">
+        M
+    </text>
+</svg>
