@@ -24,6 +24,7 @@ import {
     Field,
 } from "@fluentui/react-components";
 import { DocumentRegular, FolderRegular } from "@fluentui/react-icons";
+import { useState, type JSX } from "react";
 import { locConstants as Loc } from "./locConstants";
 import { KeyCode } from "./keys";
 import {
@@ -32,7 +33,6 @@ import {
     FileTreeNode,
     FileTypeOption,
 } from "../../sharedInterfaces/fileBrowser";
-import { useState } from "react";
 
 const useStyles = makeStyles({
     titleDiv: {

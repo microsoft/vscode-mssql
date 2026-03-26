@@ -53,7 +53,7 @@ export interface FloatingSearchWidgetProps<T extends SearchableItem> {
     width?: string;
     emitSearchEvent?: (searchText: string) => void;
     disabled?: boolean; // Whether keyboard shortcuts are disabled
-    parentRef?: React.RefObject<HTMLElement>; // Reference to parent container
+    parentRef?: React.RefObject<HTMLElement | null>; // Reference to parent container
     zIndex?: number; // z-index for the floating container
 }
 

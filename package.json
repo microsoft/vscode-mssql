@@ -37,7 +37,7 @@
         "@vscode/l10n-dev": "^0.0.35",
         "eslint": "^9.32.0",
         "eslint-config-prettier": "^9.1.0",
-        "eslint-plugin-custom-eslint-rules": "file:eslint/custom-rules",
+        "@microsoft/vscode-mssql-eslint-plugin-custom-rules": "file:eslint/custom-rules",
         "eslint-plugin-jsdoc": "^50.2.2",
         "eslint-plugin-notice": "^1.0.0",
         "eslint-plugin-prettier": "^5.2.1",
