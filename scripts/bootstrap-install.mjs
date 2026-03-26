@@ -4,9 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { workspaceTargets } from "./workspace-targets.mjs";
 
-const installArgs = process.env.CI
-    ? ["ci", "--legacy-peer-deps"]
-    : ["install", "--legacy-peer-deps"];
+const installArgs = process.env.CI ? ["ci"] : ["install"];
 
 function installDirectory(directory) {
     const absoluteDirectory = path.join(process.cwd(), directory);
@@ -19,7 +17,8 @@ function installDirectory(directory) {
     console.log(`\n> bootstrap install :: ${directory}`);
 
     const command = process.platform === "win32" ? "cmd.exe" : "npm";
-    const commandArgs = process.platform === "win32" ? ["/d", "/s", "/c", "npm.cmd", ...installArgs] : installArgs;
+    const commandArgs =
+        process.platform === "win32" ? ["/d", "/s", "/c", "npm.cmd", ...installArgs] : installArgs;
 
     const result = spawnSync(command, commandArgs, {
         cwd: absoluteDirectory,

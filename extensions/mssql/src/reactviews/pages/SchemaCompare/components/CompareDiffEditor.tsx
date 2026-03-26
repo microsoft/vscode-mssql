@@ -118,7 +118,7 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
                     options={{
                         renderSideBySide: renderSideBySide ?? true,
                         renderOverviewRuler: true,
-                        OverviewRulerLane: 0,
+                        overviewRulerLanes: 0,
                         readOnly: true,
                     }}
                     onMount={handleEditorDidMount}
