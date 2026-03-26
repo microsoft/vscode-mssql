@@ -6990,7 +6990,7 @@
       <source xml:lang="en">Build Data API (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.cancelConnect">
-      <source xml:lang="en">Cancel Connection</source>
+      <source xml:lang="en">Cancel Connection (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query (MSSQL)</source>
@@ -7038,7 +7038,7 @@
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
-      <source xml:lang="en">Connect</source>
+      <source xml:lang="en">Connect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
@@ -7104,7 +7104,7 @@
       <source xml:lang="en">Deploy DACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
-      <source xml:lang="en">Disable Actual Plan</source>
+      <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
@@ -7116,7 +7116,7 @@
       <source xml:lang="en">Disabled</source>
     </trans-unit>
     <trans-unit id="mssql.disconnect">
-      <source xml:lang="en">Disconnect</source>
+      <source xml:lang="en">Disconnect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
       <source xml:lang="en">Display results in a formatted text format.</source>
@@ -7143,7 +7143,7 @@
       <source xml:lang="en">Edit Table Data...</source>
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
-      <source xml:lang="en">Enable Actual Plan</source>
+      <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
@@ -7227,7 +7227,7 @@
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
-      <source xml:lang="en">Estimated Plan</source>
+      <source xml:lang="en">Estimated Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
       <source xml:lang="en">Execute Current Statement (MSSQL)</source>
