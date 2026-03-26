@@ -2,10 +2,16 @@
     "name": "mssql-database-management-keymap",
     "displayName": "MSSQL Database Management Keymap",
     "description": "Provides MSSQL database management-oriented default keybindings for the SQL Server (mssql) extension",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "ms-mssql",
     "preview": true,
     "license": "SEE LICENSE IN LICENSE.txt",
+    "files": [
+        "LICENSE.txt",
+        "README.md",
+        "images/**",
+        "package.json"
+    ],
     "icon": "images/extensionIcon.png",
     "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/database-management-keymap/README.md",
@@ -31,7 +37,7 @@
         "ms-mssql.mssql"
     ],
     "scripts": {
-        "package": "vsce package --no-yarn"
+        "package": "vsce package --no-dependencies"
     },
     "contributes": {
         "keybindings": [
@@ -39,7 +45,13 @@
                 "command": "mssql.runQuery",
                 "key": "f5",
                 "mac": "f5",
-                "when": "editorTextFocus && editorLangId == 'sql'"
+                "when": "editorTextFocus && editorLangId == 'sql' && !notebookEditorFocused"
+            },
+            {
+                "command": "notebook.cell.execute",
+                "key": "f5",
+                "mac": "f5",
+                "when": "notebookCellListFocused && notebookType == 'sql'"
             },
             {
                 "command": "mssql.runCurrentStatement",
@@ -79,12 +91,13 @@
                 "mac": "cmd+shift+d"
             },
             {
-                "command": "queryResult.focus",
-                "key": "ctrl+shift+r"
+                "key": "ctrl+shift+r",
+                "command": "mssql.toggleQueryResultPanel",
+                "when": "(editorLangId == 'sql' && editorTextFocus) || view.queryResult.visible"
             }
         ]
     },
     "devDependencies": {
-        "@vscode/vsce": "^3.1.1"
+        "@vscode/vsce": "^3.7.1"
     }
 }

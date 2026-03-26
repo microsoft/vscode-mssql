@@ -447,15 +447,15 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const getDropdownIcon = () => {
         if (!props.clearable) {
-            return <FluentIcons.ChevronDownRegular />;
+            return <FluentIcons.ChevronDown16Regular />;
         }
 
         if (selectedOptionIndex === -1) {
-            return <FluentIcons.ChevronDownRegular />;
+            return <FluentIcons.ChevronDown16Regular />;
         }
 
         return (
-            <FluentIcons.DismissRegular
+            <FluentIcons.Dismiss16Regular
                 style={{ cursor: "pointer" }}
                 onClick={(e) => {
                     updateOption({ value: "" });

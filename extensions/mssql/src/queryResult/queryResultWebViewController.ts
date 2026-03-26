@@ -57,40 +57,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             executionPlanState: {},
             fontSettings: {},
+            gridSettings: {},
             autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
         });
 
         void this.initialize();
 
-        context.subscriptions.push(
-            vscode.window.onDidChangeActiveTextEditor((editor) => {
-                this.updateSelectionSummary();
-
-                const uri = getUriKey(editor?.document?.uri);
-                const hasPanel = uri && this.hasPanel(uri);
-                const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
-
-                if (hasWebviewViewState && !hasPanel) {
-                    this.state = this.getQueryResultState(uri);
-                } else if (hasPanel) {
-                    const editorViewColumn = editor?.viewColumn;
-                    const panelViewColumn =
-                        this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
-
-                    /**
-                     * If the results are shown in webview panel, and the active editor is not in the same
-                     * view column as the results, then reveal the panel to the foreground
-                     */
-                    if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
-                        this.revealPanel(uri);
-                    }
-                } else {
-                    this.showSplashScreen();
-                }
-            }),
-        );
-
-        // Cleanup state when documents are closed.
+        // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
             this.vscodeWrapper.onDidCloseTextDocument((document) => {
                 const uri = getUriKey(document.uri);
@@ -105,38 +78,62 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         context.subscriptions.push(
             this.vscodeWrapper.onDidChangeConfiguration((e) => {
+                let stateChanged = false;
                 if (e.affectsConfiguration("mssql.resultsFontFamily")) {
+                    const newValue = this.getFontFamilyConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.fontSettings.fontFamily = this.vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.extConfigResultKeys.ResultsFontFamily);
+                        state.fontSettings.fontFamily = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    stateChanged = true;
                 }
                 if (e.affectsConfiguration("mssql.resultsFontSize")) {
+                    const newValue = this.getFontSizeConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.fontSettings.fontSize =
-                            (this.vscodeWrapper
-                                .getConfiguration(Constants.extensionName)
-                                .get(Constants.extConfigResultKeys.ResultsFontSize) as number) ??
-                            (this.vscodeWrapper
-                                .getConfiguration("editor")
-                                .get("fontSize") as number);
+                        state.fontSettings.fontSize = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    stateChanged = true;
                 }
-                if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")) {
+                if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumnsMode")) {
+                    const newValue = this.getAutoSizeColumnsConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.autoSizeColumnsMode = this.getAutoSizeColumnsConfig();
+                        state.autoSizeColumnsMode = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    stateChanged = true;
                 }
                 if (e.affectsConfiguration("mssql.resultsGrid.inMemoryDataProcessingThreshold")) {
+                    const newValue = getInMemoryGridDataProcessingThreshold();
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.inMemoryDataProcessingThreshold = this.vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.configInMemoryDataProcessingThreshold);
+                        state.inMemoryDataProcessingThreshold = newValue;
                         this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
+                if (
+                    e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
+                    e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
+                    e.affectsConfiguration("mssql.resultsGrid.rowPadding")
+                ) {
+                    const newValue = this.getGridSettingsConfig();
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.gridSettings = newValue;
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
+                if (stateChanged) {
+                    // Push updates to all open panel controllers
+                    for (const [uri] of this._queryResultStateMap) {
+                        this.updatePanelState(uri);
+                    }
+                    // Push update to the webview view if it is visible
+                    if (this.isVisible() && this.state?.uri) {
+                        const currentUri = this.state.uri;
+                        if (this._queryResultStateMap.has(currentUri)) {
+                            this.state = this.getQueryResultState(currentUri);
+                        }
                     }
                 }
             }),
@@ -155,6 +152,40 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private get shouldAutoRevealResultsPanel(): boolean {
         return this.vscodeWrapper.getConfiguration().get(Constants.configAutoRevealResultsPanel);
+    }
+
+    public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
+        this.updateSelectionSummary();
+
+        const uri = getUriKey(editor?.document?.uri);
+        const hasPanel = uri && this.hasPanel(uri);
+        const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
+
+        if (hasWebviewViewState) {
+            if (hasPanel) {
+                const editorViewColumn = editor?.viewColumn;
+                const panelViewColumn =
+                    this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
+                /**
+                 * If the results are shown in a webview panel and the active editor is not in the same
+                 * view column as the results, then reveal the panel to the foreground. We explicitly
+                 * check that the editor and results are in different columns before revealing so that
+                 * we do not cover the query editor when the results share the same column.
+                 */
+                if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
+                    this.revealPanel(uri);
+                }
+                /**
+                 * If the results are shown in webview panel, we always set
+                 * the webview view to show splash screen.
+                 */
+                this.showSplashScreen();
+            } else {
+                this.state = this.getQueryResultState(uri);
+            }
+        } else {
+            this.showSplashScreen();
+        }
     }
 
     private async initialize() {
@@ -244,9 +275,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             executionPlanState: {},
             fontSettings: {
                 fontSize: this.getFontSizeConfig(),
-
                 fontFamily: this.getFontFamilyConfig(),
             },
+            gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             initializationError: undefined,
@@ -272,7 +303,24 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
-        await controller.whenWebviewReady();
+        try {
+            await controller.whenWebviewReady();
+        } catch (e) {
+            // If the webview was disposed or timed out before it became ready, clean up the
+            // panel controller entry so callers are not blocked indefinitely.
+            sendErrorEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CreatePanelController,
+                e instanceof Error ? e : new Error(String(e)),
+                true, // includeErrorMessage
+            );
+            this._queryResultWebviewPanelControllerMap.delete(uri);
+            controller.panel.dispose();
+            void this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
+            );
+            throw e;
+        }
     }
 
     public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
@@ -298,6 +346,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontSize: this.getFontSizeConfig(),
                 fontFamily: this.getFontFamilyConfig(),
             },
+            gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
         } as qr.QueryResultWebviewState;
@@ -339,6 +388,23 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
+    }
+
+    public getGridSettingsConfig(): qr.GridSettings {
+        const config = this.vscodeWrapper.getConfiguration(Constants.extensionName);
+        const validGridLineModes: qr.GridLinesMode[] = ["both", "horizontal", "vertical", "none"];
+        const gridLinesValue = config.get(Constants.configResultsGridShowGridLines) as string;
+        const showGridLines: qr.GridLinesMode = validGridLineModes.includes(
+            gridLinesValue as qr.GridLinesMode,
+        )
+            ? (gridLinesValue as qr.GridLinesMode)
+            : "both";
+        return {
+            alternatingRowColors:
+                (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
+            showGridLines,
+            rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
+        };
     }
 
     public getDefaultViewModeConfig(): qr.QueryResultViewMode {
@@ -429,6 +495,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
+
+            this.updateSelectionSummary();
         }
     }
 

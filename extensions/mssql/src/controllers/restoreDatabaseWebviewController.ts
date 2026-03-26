@@ -83,6 +83,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             ObjectManagementDialogType.RestoreDatabase,
             LocConstants.RestoreDatabase.restoreDatabaseTitle,
             LocConstants.RestoreDatabase.restoreDatabaseTitle,
+            {
+                light: "restore_light.svg",
+                dark: "restore_dark.svg",
+            },
             "restoreDatabaseDialog",
             ownerUri,
             profile.server || "",

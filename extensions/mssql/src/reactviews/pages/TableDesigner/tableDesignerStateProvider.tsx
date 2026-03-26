@@ -13,6 +13,8 @@ import { ReactNode, createContext, useMemo, useRef, useState } from "react";
 import { useTableDesignerSelector } from "./tableDesignerSelector";
 
 export interface TableDesignerContextProps extends CoreRPCs {
+    isDefinitionPaneVisible: boolean;
+    setDefinitionPaneVisibility: (isVisible: boolean) => void;
     resultPaneResizeInfo: {
         originalHeight: number;
         setOriginalHeight: (height: number) => void;
@@ -127,7 +129,7 @@ export interface TableDesignerContextProps extends CoreRPCs {
     /**
      * Reference to the definition pane component.
      */
-    definitionPaneRef: React.RefObject<DefinitionPanelController>;
+    definitionPaneRef: React.RefObject<DefinitionPanelController | null>;
 }
 
 const TableDesignerContext = createContext<TableDesignerContextProps | undefined>(undefined);
@@ -154,6 +156,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
     const [propertiesPaneWidth, setPropertiesPaneWidth] = useState<number>(450);
     const [isPropertiesPaneFullScreen, setIsPropertiesPaneFullScreen] = useState<boolean>(false);
     const [originalWidth, setOriginalWidth] = useState<number>(450);
+    const [isDefinitionPaneVisible, setDefinitionPaneVisibility] = useState<boolean>(true);
 
     const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const definitionPaneRef = useRef<DefinitionPanelController>(null);
@@ -173,6 +176,8 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
     const commands = useMemo<TableDesignerContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
+            isDefinitionPaneVisible,
+            setDefinitionPaneVisibility,
             processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
                 extensionRpc.action("processTableEdit", {
                     table: stateRef.current?.tableInfo!,
@@ -296,13 +301,29 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
                 return (elementRefs.current[key] = ref);
             },
             toggleDefinitionPane: function (): void {
-                if (!definitionPaneRef.current) {
+                const definitionPane = definitionPaneRef.current;
+                if (!definitionPane) {
                     return;
                 }
-                if (definitionPaneRef.current.isCollapsed()) {
-                    definitionPaneRef.current.openPanel(25);
-                } else {
-                    definitionPaneRef.current.closePanel();
+
+                const resultPaneTab = stateRef.current?.tabStates?.resultPaneTab;
+                const isDefinitionVisible =
+                    !definitionPane.isCollapsed() &&
+                    resultPaneTab === designer.DesignerResultPaneTabs.Script;
+
+                if (isDefinitionVisible) {
+                    definitionPane.closePanel();
+                    return;
+                }
+
+                if (resultPaneTab !== designer.DesignerResultPaneTabs.Script) {
+                    extensionRpc.action("setResultTab", {
+                        tabId: designer.DesignerResultPaneTabs.Script,
+                    });
+                }
+
+                if (definitionPane.isCollapsed()) {
+                    definitionPane.openPanel(25);
                 }
             },
             definitionPaneRef,
@@ -310,6 +331,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
         [
             extensionRpc,
             getComponentId,
+            isDefinitionPaneVisible,
             originalHeight,
             isResultPaneFullScreen,
             resultPaneHeight,

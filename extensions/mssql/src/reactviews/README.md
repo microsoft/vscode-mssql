@@ -8,4 +8,4 @@ If you want to update the state (and force a re-render) mid-reducer, you can man
 
 ## Checking Webview Size
 
-When you build the extension, `webviews-metafile.json` will be generated at your repository root; build using `yarn build --prod` to get a version without all the debugging sourcemaps. Upload this to the [ESBuild Bundle Analyzer](https://esbuild.github.io/analyze/) to get a visual breakdown of what's taking up space.
+When you build the extension, `webviews-metafile.json` will be generated at your repository root; build using `npm run build -- --target mssql --prod` to get a version without all the debugging sourcemaps. Upload this to the [ESBuild Bundle Analyzer](https://esbuild.github.io/analyze/) to get a visual breakdown of what's taking up space.

@@ -87,7 +87,7 @@ const useStyles = makeStyles({
 interface Props {
     onDiffSelected: (id: number) => void;
     selectedDiffId: number;
-    siblingRef?: React.RefObject<HTMLDivElement>;
+    siblingRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(

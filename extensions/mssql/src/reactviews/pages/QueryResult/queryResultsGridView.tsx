@@ -58,11 +58,14 @@ export const QueryResultsGridView = () => {
         useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
         qr.QueryResultViewMode.Grid;
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
+    const gridSettings = useQueryResultSelector((state) => state.gridSettings);
     const tabStates = useQueryResultSelector((state) => state.tabStates);
 
     const gridViewContainerRef = useRef<HTMLDivElement>(null);
     const [gridViewContainerHeight, setGridViewContainerHeight] = useState<number>(0);
-    const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement>>>(new Map());
+    const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement | null>>>(
+        new Map(),
+    );
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
     const { keyBindings } = useVscodeWebview();
@@ -354,18 +357,30 @@ export const QueryResultsGridView = () => {
                     return undefined;
                 }
 
+                const gridLineClass = `results-grid--gridlines-${gridSettings?.showGridLines ?? "both"}`;
+                const gridClasses = [
+                    classes.gridContainer,
+                    gridSettings?.alternatingRowColors ? "results-grid--alternating" : "",
+                    gridLineClass,
+                ]
+                    .filter(Boolean)
+                    .join(" ");
+
                 return (
                     <div
                         key={gridKey}
                         id={gridKey}
-                        className={classes.gridContainer}
-                        style={{
-                            fontFamily: fontSettings.fontFamily
-                                ? fontSettings.fontFamily
-                                : "var(--vscode-font-family)",
-                            fontSize: `${fontSettings.fontSize ?? 12}px`,
-                            height: `${maximizedGridKey === gridKey ? `100%` : `${gridHeights[index]}px`}`,
-                        }}>
+                        className={gridClasses}
+                        style={
+                            {
+                                fontFamily: fontSettings?.fontFamily
+                                    ? fontSettings.fontFamily
+                                    : "var(--vscode-editor-font-family)",
+                                fontSize: `${fontSettings?.fontSize ?? 12}px`,
+                                height: `${maximizedGridKey === gridKey ? `100%` : `${gridHeights[index]}px`}`,
+                                "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
+                            } as React.CSSProperties
+                        }>
                         <div
                             style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
                             ref={containerRef}>

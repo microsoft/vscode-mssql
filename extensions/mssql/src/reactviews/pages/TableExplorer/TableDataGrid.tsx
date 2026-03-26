@@ -46,6 +46,7 @@ interface TableDataGridProps {
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
     onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
+    onModifyTable?: () => void;
 }
 
 export interface TableDataGridRef {
@@ -73,6 +74,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onDeletionCountChanged,
             onSelectedRowsChanged,
             onSaveResults,
+            onModifyTable,
         },
         ref,
     ) => {
@@ -444,8 +446,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         enableAutoResize: true,
                         autoResize: {
                             container: "#grid-container",
-                            bottomPadding: 50, // Reserve space for custom pagination
-                            minHeight: 250, // Minimum height to prevent unnecessary scrollbar
+                            calculateAvailableSizeBy: "container",
+                            resizeDetection: "container",
+                            autoHeight: false,
+                            bottomPadding: 10,
+                            minHeight: 180,
                         },
                         forceFitColumns: false, // Allow horizontal scrolling for many columns
 
@@ -461,12 +466,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         enableHeaderMenu: true, // Enable header menu for column operations
                         headerMenu: {
-                            hideColumnHideCommand: false, // Show "Hide Column" command
-                            hideSortCommands: false, // Show sort commands
-                            hideClearSortCommand: false, // Show "Clear Sort" command
-                            hideClearFilterCommand: false, // Show "Clear Filter" command
-                            hideFilterCommand: false, // Show "Filter" command
-                            hideFreezeColumnsCommand: true, // Hide freeze columns (not needed)
+                            // v10+ prefers hideCommands over hide*Command flags.
+                            hideCommands: ["freeze-columns"],
                         },
 
                         // Sorting
@@ -615,7 +616,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const cellIndex = args.cell;
             // Get the actual column from the grid (accounts for hidden columns)
-            const gridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+            const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
             const column = gridColumns[cellIndex];
             // Use the original column index stored in column metadata (handles hidden columns)
             const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
@@ -733,7 +734,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
 
-            const column = columns[activeCell.cell];
+            const column = grid.getVisibleColumns()[activeCell.cell];
             if (!column) {
                 return;
             }
@@ -804,7 +805,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 case "revert-cell":
                     const cellIndex = args.cell;
                     // Get the actual column from the grid (accounts for hidden columns)
-                    const gridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+                    const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
                     const column = gridColumns[cellIndex];
                     // Use the original column index stored in column metadata (handles hidden columns)
                     const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
@@ -853,6 +854,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeletionCountChanged(deletedRowsRef.current.size);
                     }
                     break;
+
+                case "modify-table":
+                    if (onModifyTable) {
+                        onModifyTable();
+                    }
+                    break;
             }
         }
 
@@ -877,7 +884,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const grid = reactGridRef.current.slickGrid;
             const dataView = reactGridRef.current.dataView;
-            const visibleColumns = grid.getColumns();
+            const visibleColumns = grid.getVisibleColumns();
 
             // Get selection ranges from the cell selection model
             const selectionModel = grid.getSelectionModel();
@@ -975,7 +982,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const dataView = reactGridRef.current.dataView;
             const grid = reactGridRef.current.slickGrid;
-            const visibleColumns = grid.getColumns();
+            const visibleColumns = grid.getVisibleColumns();
 
             // Check if there's a cell selection
             const selectionModel = grid.getSelectionModel();
@@ -1112,7 +1119,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         function getContextMenuOptions(): ContextMenu {
             return {
-                hideCopyCellValueCommand: true,
+                hideCommands: ["copy"],
                 hideCloseButton: true,
                 commandItems: [
                     // Copy commands
@@ -1182,6 +1189,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: loc.tableExplorer.revertRow,
                         iconCssClass: "mdi mdi-undo",
                         positionOrder: 11,
+                    },
+                    // Divider before navigation commands
+                    { divider: true, command: "", positionOrder: 12 },
+                    // Navigation commands
+                    {
+                        command: "modify-table",
+                        title: loc.tableExplorer.modifyTable,
+                        iconCssClass: "mdi mdi-table-edit",
+                        positionOrder: 13,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),

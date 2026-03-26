@@ -13,11 +13,12 @@ import { locConstants } from "../../../../common/locConstants";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { EventManager } from "../../../../common/eventManager";
 import type { ColumnMenuPopupAnchorRect, FilterListItem, FilterValue } from "./ColumnMenuPopup";
-import { HeaderContextMenuAction } from "./HeaderContextMenu";
+import { HeaderContextMenuAction } from "./headerContextMenuTypes";
 
 import {
     ColumnFilterMap,
     ColumnFilterState,
+    CopyColumnNameRequest,
     GetFiltersRequest,
     SetColumnWidthsRequest,
     SetFiltersRequest,
@@ -174,6 +175,18 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     onSubmit: (newWidth: number) => this.resizeColumn(column.id!, newWidth),
                 });
                 break;
+            case HeaderContextMenuAction.CopyColumnName: {
+                const toolTip =
+                    typeof column.toolTip === "string" && column.toolTip.length > 0
+                        ? column.toolTip
+                        : undefined;
+                const rawName = toolTip ?? column.name ?? "";
+                const columnName = `[${rawName.replace(/\]/g, "]]")}]`;
+                await this.queryResultContext.extensionRpc.sendRequest(CopyColumnNameRequest.type, {
+                    columnName,
+                });
+                break;
+            }
         }
     }
 
@@ -280,10 +293,9 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 await this.showColumnMenu(filterButtonEl);
                 this._grid.onHeaderClick.notify();
             });
+            this._columnFilterButtonMapping.set(column.id!, filterButtonEl);
         }
         $filterButton.appendTo(args.node);
-
-        this._columnFilterButtonMapping.set(column.id!, filterButtonEl);
 
         let existingSort = this._columnSortStateMapping.get(column.id!);
         if (existingSort === undefined) {
@@ -332,19 +344,31 @@ export class HeaderMenu<T extends Slick.SlickData> {
         const anchorRect = this.toAnchorRect(menuButton.getBoundingClientRect());
         const filterButtonElement = jQuery(menuButton);
 
+        const previousFilterValues = [...(this._columnDef.filterValues ?? [])];
+
         const applySelection = async (selected: FilterValue[]) => {
             this._columnDef.filterValues = selected as unknown as string[];
-            this.updateMenuButtonImage(
-                filterButtonElement,
-                this._columnDef.filterValues.length > 0,
-            );
-            await this.applyFilters(this._columnDef);
+            const applied = await this.applyFilters(this._columnDef);
+            if (applied) {
+                this.updateMenuButtonImage(
+                    filterButtonElement,
+                    this._columnDef.filterValues.length > 0,
+                );
+            } else {
+                // Restore previous filter values since the operation was rejected
+                this._columnDef.filterValues = previousFilterValues as unknown as string[];
+            }
         };
 
         const clearSelection = async () => {
             this._columnDef.filterValues = [];
-            this.updateMenuButtonImage(filterButtonElement, false);
-            await this.applyFilters(this._columnDef, true);
+            const applied = await this.applyFilters(this._columnDef, true);
+            if (applied) {
+                this.updateMenuButtonImage(filterButtonElement, false);
+            } else {
+                // Restore previous filter values since the operation was rejected
+                this._columnDef.filterValues = previousFilterValues as unknown as string[];
+            }
         };
 
         this.queryResultContext.showColumnFilterPopup({
@@ -375,6 +399,12 @@ export class HeaderMenu<T extends Slick.SlickData> {
     ) {
         const columnId = column.id!;
 
+        // Attempt the sort/reset first; bail out if the operation was rejected (e.g., threshold exceeded)
+        const sortApplied = await this.handleMenuItemClick(command, column, skipFocusReset);
+        if (!sortApplied) {
+            return;
+        }
+
         // Clear previous sort state
         if (this._currentSortColumn && this._currentSortColumn !== columnId) {
             const prevColumn = this._grid
@@ -403,8 +433,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
         } else {
             this._currentSortColumn = columnId;
         }
-
-        await this.handleMenuItemClick(command, column, skipFocusReset);
 
         const columnFilterState: ColumnFilterState = {
             columnDef: column.id!,
@@ -615,21 +643,28 @@ export class HeaderMenu<T extends Slick.SlickData> {
         return String(value);
     }
 
-    private async resetData(columnDef: Slick.Column<T>) {
+    private async resetData(columnDef: Slick.Column<T>): Promise<boolean> {
         const dataView = this._grid.getData() as IDisposableDataProvider<T>;
         if (instanceOfIDisposableDataProvider(dataView)) {
-            await dataView.filter(this._grid.getColumns());
+            const filterApplied = await dataView.filter(this._grid.getColumns());
+            if (!filterApplied) {
+                return false;
+            }
             this._grid.invalidateAllRows();
             this._grid.updateRowCount();
             this._grid.render();
         }
         this.onFilterApplied.notify({ grid: this._grid, column: columnDef });
         this.setFocusToColumn(columnDef);
+        return true;
     }
 
-    private async applyFilters(columnDef: Slick.Column<T>, clear?: boolean) {
+    private async applyFilters(columnDef: Slick.Column<T>, clear?: boolean): Promise<boolean> {
         let columnFilterState: ColumnFilterState;
-        await this.resetData(columnDef);
+        const filterApplied = await this.resetData(columnDef);
+        if (!filterApplied) {
+            return false;
+        }
         // clear filterValues if clear is true
         if (clear) {
             columnFilterState = {
@@ -647,7 +682,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     },
                 );
                 if (!gridColumnMapArray) {
-                    return;
+                    return true;
                 }
                 // Drill down into the grid column map array and clear the filter values for the specified column
                 gridColumnMapArray = this.clearFilterValues(gridColumnMapArray, columnDef.id!);
@@ -666,6 +701,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }
 
         await this.updateState(columnFilterState, columnDef.id!);
+        return true;
     }
 
     /**
@@ -706,21 +742,25 @@ export class HeaderMenu<T extends Slick.SlickData> {
         command: SortProperties,
         columnDef: Slick.Column<T>,
         skipFocusReset: boolean = false,
-    ) {
+    ): Promise<boolean> {
         const dataView = this._grid.getData();
-        if (command === SortProperties.ASC || command === SortProperties.DESC) {
-            this._grid.setSortColumn(columnDef.id as string, command === SortProperties.ASC);
-        }
         if (instanceOfIDisposableDataProvider<T>(dataView)) {
             if (command === SortProperties.ASC || command === SortProperties.DESC) {
-                await dataView.sort({
+                const sortApplied = await dataView.sort({
                     grid: this._grid,
                     multiColumnSort: false,
                     sortCol: columnDef,
                     sortAsc: command === SortProperties.ASC,
                 });
+                if (!sortApplied) {
+                    return false;
+                }
+                this._grid.setSortColumn(columnDef.id as string, command === SortProperties.ASC);
             } else {
-                dataView.resetSort();
+                const resetApplied = await dataView.resetSort();
+                if (!resetApplied) {
+                    return false;
+                }
                 this._grid.setSortColumn("", false);
             }
             this._grid.invalidateAllRows();
@@ -737,6 +777,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         if (!skipFocusReset) {
             this.setFocusToColumn(columnDef);
         }
+        return true;
     }
 
     private getFilterValues(

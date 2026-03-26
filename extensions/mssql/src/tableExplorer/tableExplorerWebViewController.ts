@@ -19,10 +19,10 @@ import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import { NotificationHandler } from "vscode-languageclient";
 import * as LocConstants from "../constants/locConstants";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
+import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { generateGuid } from "../models/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
@@ -68,7 +68,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
             },
             {
-                title: LocConstants.TableExplorer.title(qualifiedTableName),
+                title: qualifiedTableName,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -88,7 +88,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        this.operationId = generateGuid();
+        this.operationId = uuid();
         this.logger.info(
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
@@ -110,7 +110,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.TableExplorer,
             TelemetryActions.Initialize,
-            generateGuid(),
+            uuid(),
             {
                 startTime: startTime.toString(),
                 operationId: this.operationId,
@@ -257,7 +257,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CommitChanges,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -319,7 +319,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.LoadSubset,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -399,7 +399,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CreateRow,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -474,7 +474,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.DeleteRow,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -596,7 +596,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.UpdateCell,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -740,7 +740,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertCell,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -867,7 +867,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertRow,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1000,7 +1000,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.GenerateScript,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1164,7 +1164,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.SaveResults,
-                generateGuid(),
+                uuid(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1248,6 +1248,114 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.exportFailed(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+
+        this.registerReducer("modifyTable", async (state, _payload) => {
+            this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.ModifyTable,
+                uuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            try {
+                await vscode.commands.executeCommand(Constants.cmdEditTable, this._targetNode);
+
+                this.logger.info(
+                    `Table Designer opened successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening Table Designer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error("Failed to open Table Designer for column"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenTableDesigner(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+
+        this.registerReducer("viewTableDiagram", async (state, _payload) => {
+            this.logger.info(`Opening Schema Designer - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.ViewTableDiagram,
+                uuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            try {
+                const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
+                const schemaName = state.schemaName || this._targetNode.metadata.schema || "";
+                const tableName = state.tableName;
+                const filterTable = schemaName ? `${schemaName}.${tableName}` : tableName;
+
+                await vscode.commands.executeCommand(
+                    Constants.cmdDesignSchemaForTable,
+                    this._targetNode,
+                    databaseName,
+                    filterTable,
+                );
+
+                this.logger.info(
+                    `Schema Designer opened successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+            } catch (error) {
+                this.logger.error(
+                    `Error opening Schema Designer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error("Failed to open Schema Designer"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenSchemaDesigner(getErrorMessage(error)),
                 );
             }
 

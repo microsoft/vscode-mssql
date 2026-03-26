@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, SearchBox, Text, makeStyles } from "@fluentui/react-components";
+import { Button, SearchBox, Text, makeStyles, mergeClasses } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { locConstants } from "./locConstants";
@@ -53,7 +53,7 @@ export interface FloatingSearchWidgetProps<T extends SearchableItem> {
     width?: string;
     emitSearchEvent?: (searchText: string) => void;
     disabled?: boolean; // Whether keyboard shortcuts are disabled
-    parentRef?: React.RefObject<HTMLElement>; // Reference to parent container
+    parentRef?: React.RefObject<HTMLElement | null>; // Reference to parent container
     zIndex?: number; // z-index for the floating container
 }
 
@@ -81,10 +81,12 @@ const useStyles = makeStyles({
         borderLeft: "3px solid var(--vscode-editorWidget-border)",
         height: "33px",
         gap: "3px",
+        pointerEvents: "none",
     },
     visible: {
         opacity: "1",
         transform: "translateY(0)",
+        pointerEvents: "auto",
     },
     invisible: {
         display: "none",
@@ -289,7 +291,10 @@ export function FindWidget<T extends SearchableItem>({
             ref={containerRef}
             role="search"
             aria-label={searchLabel}
-            className={`${styles.floatingContainer} ${isVisible ? styles.visible : styles.invisible}`}
+            className={mergeClasses(
+                styles.floatingContainer,
+                isVisible ? styles.visible : styles.invisible,
+            )}
             style={{ zIndex: zIndex }}>
             <SearchBox
                 size="small"

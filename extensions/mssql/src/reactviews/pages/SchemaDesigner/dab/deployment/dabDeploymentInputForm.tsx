@@ -15,7 +15,8 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { useEffect, useState } from "react";
+import debounce from "lodash/debounce";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 
@@ -54,8 +55,33 @@ export const DabDeploymentInputForm = ({
     const [port, setPort] = useState(initialParams.port.toString());
     const [containerNameError, setContainerNameError] = useState<string | undefined>();
     const [portError, setPortError] = useState<string | undefined>();
-    const [isValidating, setIsValidating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
+
+    const validationRequestRef = useRef(0);
+
+    const debouncedServerValidation = useMemo(
+        () =>
+            debounce((name: string, portStr: string) => {
+                const requestId = ++validationRequestRef.current;
+                const portNum = parseInt(portStr, 10);
+                void validateParams(name, portNum).then((result) => {
+                    if (requestId !== validationRequestRef.current) {
+                        return;
+                    }
+                    setContainerNameError(
+                        result.isContainerNameValid ? undefined : result.containerNameError,
+                    );
+                    setPortError(result.isPortValid ? undefined : result.portError);
+                });
+            }, 300),
+        [validateParams],
+    );
+
+    // Cancel pending debounced validation on unmount
+    useEffect(() => {
+        return () => debouncedServerValidation.cancel();
+    }, [debouncedServerValidation]);
 
     // Auto-generate validated defaults on mount
     useEffect(() => {
@@ -74,40 +100,58 @@ export const DabDeploymentInputForm = ({
         void initializeDefaults();
     }, []); // Component remounts each time dialog opens, so empty deps is correct
 
-    const validateFormClient = (): boolean => {
-        let isValid = true;
+    const validateClientSide = useCallback(
+        (name: string, portStr: string): { nameError?: string; portError?: string } => {
+            let nameError: string | undefined;
+            let portError: string | undefined;
 
-        // Validate container name (client-side)
-        if (!containerName.trim()) {
-            setContainerNameError(locConstants.schemaDesigner.containerNameRequired);
-            isValid = false;
-        } else if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(containerName)) {
-            setContainerNameError(locConstants.schemaDesigner.containerNameInvalid);
-            isValid = false;
-        } else {
-            setContainerNameError(undefined);
-        }
+            if (!name.trim()) {
+                nameError = locConstants.schemaDesigner.containerNameRequired;
+            } else if (
+                // Docker container name: must start alphanumeric, then alphanumeric/underscore/dot/hyphen
+                !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(name)
+            ) {
+                nameError = locConstants.schemaDesigner.containerNameInvalid;
+            }
 
-        // Validate port (client-side)
-        const portNum = parseInt(port, 10);
-        if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-            setPortError(locConstants.schemaDesigner.portInvalid);
-            isValid = false;
-        } else {
-            setPortError(undefined);
-        }
+            const portNum = parseInt(portStr, 10);
+            if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+                portError = locConstants.schemaDesigner.portInvalid;
+            }
 
-        return isValid;
-    };
+            return { nameError, portError };
+        },
+        [],
+    );
 
-    const handleSubmit = async () => {
-        // First do client-side validation
-        if (!validateFormClient()) {
+    // Validate on input change: client-side immediately, server-side debounced
+    useEffect(() => {
+        if (isInitializing) {
             return;
         }
 
-        // Then do server-side validation
-        setIsValidating(true);
+        const { nameError, portError } = validateClientSide(containerName, port);
+        setContainerNameError(nameError);
+        setPortError(portError);
+
+        if (nameError || portError) {
+            debouncedServerValidation.cancel();
+            return;
+        }
+
+        debouncedServerValidation(containerName, port);
+    }, [containerName, port, isInitializing, validateClientSide, debouncedServerValidation]);
+
+    const handleSubmit = async () => {
+        debouncedServerValidation.cancel();
+        const { nameError, portError } = validateClientSide(containerName, port);
+        if (nameError || portError) {
+            setContainerNameError(nameError);
+            setPortError(portError);
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             const portNum = parseInt(port, 10);
             const result = await validateParams(containerName, portNum);
@@ -126,11 +170,9 @@ export const DabDeploymentInputForm = ({
                 });
             }
         } finally {
-            setIsValidating(false);
+            setIsSubmitting(false);
         }
     };
-
-    const isLoading = isInitializing || isValidating;
 
     return (
         <>
@@ -143,7 +185,7 @@ export const DabDeploymentInputForm = ({
                     <Input
                         value={containerName}
                         onChange={(_, data) => setContainerName(data.value)}
-                        disabled={isLoading}
+                        disabled={isInitializing}
                     />
                     <Text className={classes.fieldHint}>
                         {locConstants.schemaDesigner.containerNameHint}
@@ -158,7 +200,7 @@ export const DabDeploymentInputForm = ({
                         type="number"
                         value={port}
                         onChange={(_, data) => setPort(data.value)}
-                        disabled={isLoading}
+                        disabled={isInitializing}
                     />
                     <Text className={classes.fieldHint}>
                         {locConstants.schemaDesigner.portHint}
@@ -166,14 +208,14 @@ export const DabDeploymentInputForm = ({
                 </Field>
             </DialogContent>
             <DialogActions>
-                <Button appearance="secondary" onClick={onCancel} disabled={isValidating}>
+                <Button appearance="secondary" onClick={onCancel} disabled={isSubmitting}>
                     {locConstants.common.cancel}
                 </Button>
                 <Button
                     appearance="primary"
                     onClick={handleSubmit}
-                    disabled={isLoading}
-                    icon={isValidating ? <Spinner size="tiny" /> : undefined}>
+                    disabled={isInitializing || isSubmitting}
+                    icon={isSubmitting ? <Spinner size="tiny" /> : undefined}>
                     {locConstants.localContainers.createContainer}
                 </Button>
             </DialogActions>

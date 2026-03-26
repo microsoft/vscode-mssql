@@ -1,18 +1,13 @@
 steps:
   - task: UseNode@1
-    displayName: "Use Node 22.x"
+    displayName: "Use Node 24.x"
     inputs:
-      version: 22.x
+      version: 24.x
 
   - pwsh: |
-      Write-Host "Installing VSCE"
-      npm install --global vsce@2.9.2
-    displayName: Keymap - Install toolchain
-
-  - pwsh: |
-      vsce package --no-yarn
+      npm run package -- --target database-management-keymap
     displayName: Keymap - Package extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/database-management-keymap"
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2

@@ -7,16 +7,19 @@ import * as vscode from "vscode";
 import { ToolBase } from "./toolBase";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import ConnectionManager from "../../controllers/connectionManager";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
+import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { Dab } from "../../sharedInterfaces/dab";
 import { matchesStrictTargetHint, ToolTargetHint } from "./toolsUtils";
 
-type DabToolOperation = "get_state" | "apply_changes";
+type DabToolOperation = "show" | "get_state" | "apply_changes";
 
 export type DabToolParams =
+    | { operation: "show"; connectionId: string }
     | { operation: "get_state" }
     | {
           operation: "apply_changes";
@@ -35,6 +38,7 @@ type DabToolFailureReason =
     | "target_mismatch"
     | "stale_state"
     | "not_found"
+    | "entity_not_supported"
     | "invalid_request"
     | "validation_error"
     | "internal_error";
@@ -82,6 +86,16 @@ interface DabToolError {
 
 export class DabTool extends ToolBase<DabToolParams> {
     public readonly toolName = Constants.copilotDabToolName;
+
+    constructor(
+        private _connectionManager: ConnectionManager,
+        private _showDab: (
+            connectionUri: string,
+            database: string,
+        ) => Promise<SchemaDesignerWebviewController>,
+    ) {
+        super();
+    }
 
     async call(
         options: vscode.LanguageModelToolInvocationOptions<DabToolParams>,
@@ -170,13 +184,57 @@ export class DabTool extends ToolBase<DabToolParams> {
         });
 
         try {
+            if (operation === "show") {
+                const { connectionId } = options.input;
+                if (!connectionId) {
+                    const err: DabToolError = {
+                        success: false,
+                        reason: "invalid_request",
+                        message: loc.dabToolMissingConnectionId,
+                    };
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
+                    return json(err);
+                }
+
+                const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+                const connCreds = connInfo?.credentials;
+                if (!connCreds) {
+                    const err: DabToolError = {
+                        success: false,
+                        reason: "invalid_request",
+                        message: loc.noConnectionError(connectionId),
+                    };
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
+                    return json(err);
+                }
+
+                const designer = await this._showDab(connectionId, connCreds.database);
+                sendToolTelemetry({
+                    operation,
+                    success: true,
+                });
+
+                return json(
+                    withTarget(
+                        {
+                            success: true,
+                            message: loc.dabToolShowSuccessMessage,
+                            recommendedTool: this.toolName,
+                            recommendedNextCall: {
+                                operation: "get_state",
+                            },
+                        },
+                        designer,
+                    ),
+                );
+            }
+
             const activeDesigner = schemaDesignerManager.getActiveDesigner();
             if (!activeDesigner) {
                 const err: DabToolError = {
                     success: false,
                     reason: "no_active_designer",
-                    message:
-                        "No active schema designer found. Please open a schema designer first.",
+                    message: loc.dabToolNoActiveDesigner,
                 };
                 sendToolTelemetry({ operation, success: false, reason: err.reason });
                 return json(err);
@@ -280,7 +338,7 @@ export class DabTool extends ToolBase<DabToolParams> {
             }
 
             activeDesigner.revealToForeground();
-            activeDesigner.showDabView();
+            activeDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
             const applyResult = await activeDesigner.applyDabToolChanges({
                 expectedVersion,
                 changes,

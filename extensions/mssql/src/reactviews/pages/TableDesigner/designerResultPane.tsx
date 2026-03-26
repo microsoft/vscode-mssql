@@ -59,6 +59,7 @@ export const DesignerResultPane = () => {
             customTabs={issues && issues.length > 0 ? [issuesTab] : []}
             activeTab={definitionTab}
             setActiveTab={setDefinitionTab}
+            onPanelVisibilityChange={context.setDefinitionPaneVisibility}
         />
     );
 };

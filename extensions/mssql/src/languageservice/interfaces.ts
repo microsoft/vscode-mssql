@@ -19,21 +19,11 @@ export interface IConfigUtils {
     getSqlToolsInstallDirectory(): string;
     getSqlToolsExecutableFiles(): string[];
     getSqlToolsPackageVersion(): string;
-    getFlatFileServiceDownloadUrl(): string;
-    getFlatFileInstallDirectory(): string;
-    getFlatFileExecutableFiles(): string[];
-    getFlatFilePackageVersion(): string;
-    getExtensionConfig(key: string, type: DownloadType, defaultValue?: any): any;
-    getWorkspaceConfig(key: string, type: DownloadType, defaultValue?: any): any;
+    getExtensionConfig(key: string, defaultValue?: any): any;
+    getWorkspaceConfig(key: string, defaultValue?: any): any;
     getSqlToolsConfigValue(configKey: string): any;
-    getFlatFileConfigValue(configKey: string): any;
     useServiceVersion(version: number): void;
     getServiceVersion(): number;
-}
-
-export enum DownloadType {
-    SqlToolsService,
-    FlatFileService,
 }
 
 export interface IPackage {
@@ -60,15 +50,6 @@ export class PackageError extends Error {
     ) {
         super(message);
     }
-}
-
-export interface IHttpClient {
-    downloadFile(
-        urlString: string,
-        pkg: IPackage,
-        logger: ILogger,
-        statusView: IStatusView,
-    ): Promise<void>;
 }
 
 export interface IDecompressProvider {

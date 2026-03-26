@@ -3,16 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import { IconPath } from "vscode";
-
-// export interface IconPath {
-// 	dark: string;
-// 	light: string;
-// }
+import { IconPath, ExtensionContext, Uri } from "vscode";
 
 export class IconPathHelper {
-    private static extensionContext: vscode.ExtensionContext;
+    private static extensionContext: ExtensionContext;
     public static databaseProject: IconPath;
     public static colorfulSqlProject: IconPath;
     public static sqlEdgeProject: IconPath;
@@ -44,7 +38,7 @@ export class IconPathHelper {
     public static error: IconPath;
     public static inProgress: IconPath;
 
-    public static setExtensionContext(extensionContext: vscode.ExtensionContext) {
+    public static setExtensionContext(extensionContext: ExtensionContext) {
         IconPathHelper.extensionContext = extensionContext;
 
         IconPathHelper.databaseProject = IconPathHelper.makeIcon("databaseProject");
@@ -79,11 +73,11 @@ export class IconPathHelper {
         IconPathHelper.inProgress = IconPathHelper.makeIcon("inProgress", true);
     }
 
-    private static makeIcon(name: string, sameIcon: boolean = false) {
+    private static makeIcon(name: string, sameIcon: boolean = false): IconPath {
         const folder = "images";
 
         const toIconUri = (relativePath: string) =>
-            vscode.Uri.file(IconPathHelper.extensionContext.asAbsolutePath(relativePath));
+            Uri.file(IconPathHelper.extensionContext.asAbsolutePath(relativePath));
 
         if (sameIcon) {
             const iconPath = `${folder}/${name}.svg`;

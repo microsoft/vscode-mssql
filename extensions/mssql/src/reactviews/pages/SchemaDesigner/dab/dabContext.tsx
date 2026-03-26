@@ -7,11 +7,15 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { registerSchemaDesignerDabToolHandlers } from "../schemaDesignerRpcHandlers";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 interface DabContextProps {
     isInitialized: boolean;
+    isDabDeploymentSupported: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
+    openUrl: (url: string, apiType?: Dab.ApiType) => void;
+    openLogsInNewTab: (logsContent: string) => void;
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
@@ -21,9 +25,7 @@ interface DabContextProps {
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
-    dabConfigContent: string;
-    dabConfigRequestId: number;
-    generateDabConfig: () => Promise<void>;
+    dabConfigTextFileContent: string;
     openDabConfigInEditor: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
@@ -36,7 +38,7 @@ interface DabContextProps {
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
-    retryDabDeploymentSteps: () => void;
+    retryDabDeploymentSteps: () => Promise<void>;
     addDabMcpServer: (serverUrl: string) => Promise<Dab.AddMcpServerResponse>;
 }
 
@@ -48,27 +50,24 @@ interface DabProviderProps {
 
 export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const schemaDesignerContext = useContext(SchemaDesignerContext);
-    const { extensionRpc, extractSchema, isInitialized } = schemaDesignerContext;
+    const { extensionRpc, extractSchema, isInitialized, isInitializedRef, waitForInitialization } =
+        schemaDesignerContext;
+    const isDabDeploymentSupported =
+        useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
-    const [dabConfigContent, setDabConfigContent] = useState<string>("");
-    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+    const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
         Dab.createDefaultDeploymentState(),
     );
 
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
-    const isInitializedRef = useRef<boolean>(isInitialized);
     const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
 
     useEffect(() => {
         dabConfigRef.current = dabConfig;
     }, [dabConfig]);
-
-    useEffect(() => {
-        isInitializedRef.current = isInitialized;
-    }, [isInitialized]);
 
     useEffect(() => {
         extractSchemaRef.current = extractSchema;
@@ -78,13 +77,14 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc,
             isInitializedRef,
+            waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
             getCurrentSchemaTables: () => extractSchemaRef.current().tables,
             commitDabConfig: (config) => {
                 setDabConfig(config);
             },
         });
-    }, [extensionRpc]);
+    }, [extensionRpc, waitForInitialization]);
 
     const initializeDabConfig = useCallback(() => {
         const schema = extractSchema();
@@ -97,19 +97,9 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             return;
         }
 
-        const schema = extractSchema();
-        const currentTableIds = new Set(schema.tables.map((t) => t.id));
-        const existingEntityIds = new Set(dabConfig.entities.map((e) => e.id));
-
-        const newTables = schema.tables.filter((t) => !existingEntityIds.has(t.id));
-        const updatedEntities = dabConfig.entities.filter((e) => currentTableIds.has(e.id));
-        const newEntities = newTables.map((t) => Dab.createDefaultEntityConfig(t));
-
-        if (newEntities.length > 0 || updatedEntities.length !== dabConfig.entities.length) {
-            setDabConfig({
-                ...dabConfig,
-                entities: [...updatedEntities, ...newEntities],
-            });
+        const synced = Dab.syncConfigWithSchema(dabConfig, extractSchema().tables);
+        if (synced.changed) {
+            setDabConfig(synced.config);
         }
     }, [dabConfig, extractSchema]);
 
@@ -177,17 +167,23 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [],
     );
 
-    const generateDabConfig = useCallback(async () => {
+    // Auto-generate text config whenever dabConfig changes
+    useEffect(() => {
         if (!dabConfig) {
             return;
         }
-        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
-            config: dabConfig,
-        });
-        if (response.success) {
-            setDabConfigContent(response.configContent);
-            setDabConfigRequestId((id) => id + 1);
-        }
+        void extensionRpc
+            .sendRequest(Dab.GenerateConfigRequest.type, { config: dabConfig })
+            .then((response) => {
+                if (response.success) {
+                    setDabConfigTextFileContent(response.configContent);
+                } else {
+                    console.error("Failed to generate DAB config:", response.error);
+                }
+            })
+            .catch((error) => {
+                console.error("Failed to generate DAB config:", error);
+            });
     }, [dabConfig, extensionRpc]);
 
     const copyToClipboard = useCallback(
@@ -200,10 +196,26 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
+    const openUrl = useCallback(
+        (url: string, apiType?: Dab.ApiType) => {
+            void extensionRpc.sendNotification(Dab.OpenUrlNotification.type, { url, apiType });
+        },
+        [extensionRpc],
+    );
+
     const openDabConfigInEditor = useCallback(
         (configContent: string) => {
             void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
                 configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const openLogsInNewTab = useCallback(
+        (logsContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenLogsInNewTabNotification.type, {
+                logsContent,
             });
         },
         [extensionRpc],
@@ -259,6 +271,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             step: Dab.DabDeploymentStepOrder,
             status: ApiStatus,
             message?: string,
+            containerLogs?: string,
             fullErrorText?: string,
             errorLink?: string,
             errorLinkText?: string,
@@ -267,7 +280,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 ...prev,
                 stepStatuses: prev.stepStatuses.map((s) =>
                     s.step === step
-                        ? { ...s, status, message, fullErrorText, errorLink, errorLinkText }
+                        ? {
+                              ...s,
+                              status,
+                              message,
+                              containerLogs,
+                              fullErrorText,
+                              errorLink,
+                              errorLinkText,
+                          }
                         : s,
                 ),
             }));
@@ -284,6 +305,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     step,
                     ApiStatus.Error,
                     "DAB configuration is not available.",
+                    undefined,
                 );
                 return;
             }
@@ -322,6 +344,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     step,
                     ApiStatus.Error,
                     response.error,
+                    response.containerLogs,
                     response.fullErrorText,
                     response.errorLink,
                     response.errorLinkText,
@@ -335,20 +358,36 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         setDabDeploymentState(Dab.createDefaultDeploymentState());
     }, []);
 
-    const retryDabDeploymentSteps = useCallback(() => {
+    const retryDabDeploymentSteps = useCallback(async () => {
+        try {
+            await extensionRpc.sendRequest(Dab.StopDeploymentRequest.type, {
+                containerName: dabDeploymentState.params.containerName,
+            });
+        } catch (error) {
+            console.error("Failed to clean up DAB container before retry:", error);
+        }
+
         setDabDeploymentState((prev) => ({
             ...prev,
             currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
             stepStatuses: prev.stepStatuses.map((s) => {
                 if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
-                    return { ...s, status: ApiStatus.NotStarted, message: undefined };
+                    return {
+                        ...s,
+                        status: ApiStatus.NotStarted,
+                        message: undefined,
+                        containerLogs: undefined,
+                        fullErrorText: undefined,
+                        errorLink: undefined,
+                        errorLinkText: undefined,
+                    };
                 }
                 return s;
             }),
             error: undefined,
             apiUrl: undefined,
         }));
-    }, []);
+    }, [dabDeploymentState.params.containerName, extensionRpc]);
 
     const addDabMcpServer = useCallback(
         async (serverUrl: string): Promise<Dab.AddMcpServerResponse> => {
@@ -364,7 +403,10 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         <DabContext.Provider
             value={{
                 isInitialized,
+                isDabDeploymentSupported,
                 copyToClipboard,
+                openUrl,
+                openLogsInNewTab,
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
@@ -374,9 +416,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 updateDabEntitySettings,
                 dabTextFilter,
                 setDabTextFilter,
-                dabConfigContent,
-                dabConfigRequestId,
-                generateDabConfig,
+                dabConfigTextFileContent,
                 openDabConfigInEditor,
                 dabDeploymentState,
                 openDabDeploymentDialog,

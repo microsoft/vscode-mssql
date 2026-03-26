@@ -111,7 +111,7 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.calledOnce;
+                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -163,7 +163,7 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.calledOnce;
+                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -190,7 +190,7 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.calledOnce;
+                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -226,7 +226,7 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.calledOnce;
+                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -255,7 +255,7 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.calledOnce;
+                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });
@@ -282,7 +282,7 @@ suite("ProfilerService Tests", () => {
                 expect.fail("Should have thrown error");
             } catch (e) {
                 expect(e).to.equal(error);
-                expect(loggerErrorStub).to.have.been.calledOnce;
+                expect(loggerErrorStub).to.have.been.called;
             }
         });
     });

@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTable } from "./dabEntityTable";
-import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
+import { DabInfoBanner } from "./dabInfoBanner";
+import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -47,10 +48,22 @@ interface DabPageProps {
 
 export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const classes = useStyles();
-    const { dabConfig, initializeDabConfig, syncDabConfigWithSchema, isInitialized } =
-        useDabContext();
+    const {
+        dabConfig,
+        initializeDabConfig,
+        syncDabConfigWithSchema,
+        isInitialized,
+        isDabDeploymentSupported,
+    } = useDabContext();
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
+    const hasUnsupportedDataTypes =
+        dabConfig?.entities.some(
+            (e) =>
+                !e.isSupported &&
+                e.unsupportedReasons?.some((r) => r.type === "unsupportedDataTypes"),
+        ) ?? false;
     const canShowDiscovery = isDabTabActive && isInitialized && dabConfig != null;
+    const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(null);
 
     // Initialize DAB config when schema is first initialized
     useEffect(() => {
@@ -94,12 +107,27 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     return (
         <div className={classes.root}>
             <DabDeploymentDialog />
+            {!isDabDeploymentSupported && (
+                <DabInfoBanner
+                    title={locConstants.schemaDesigner.authenticationNotSupported}
+                    message={locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}
+                    learnMoreUrl="https://aka.ms/dab-dep-limitation"
+                />
+            )}
+            {hasUnsupportedDataTypes && (
+                <DabInfoBanner
+                    title={locConstants.schemaDesigner.unsupportedDataTypesDetected}
+                    message={locConstants.schemaDesigner.dabUnsupportedDataTypesBanner}
+                    learnMoreUrl="https://aka.ms/dab-datatype-limitation"
+                />
+            )}
             <PanelGroup direction="vertical">
                 <Panel defaultSize={100}>
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                         <DabToolbar
                             showDiscovery={canShowDiscovery}
                             onNavigateToSchema={onNavigateToSchema}
+                            onViewConfig={() => definitionsPanelRef.current?.openPanel()}
                         />
                         <div className={classes.content}>
                             <DabEntityTable />
@@ -107,7 +135,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                     </div>
                 </Panel>
                 <PanelResizeHandle className={classes.resizeHandle} />
-                <DabDefinitionsPanel />
+                <DabDefinitionsPanel ref={definitionsPanelRef} />
             </PanelGroup>
         </div>
     );

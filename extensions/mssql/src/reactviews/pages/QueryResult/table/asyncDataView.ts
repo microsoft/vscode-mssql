@@ -250,15 +250,15 @@ export class AsyncDataProvider<T extends Slick.SlickData> implements IDisposable
         throw new Error("Method not implemented.");
     }
 
-    sort(_options: Slick.OnSortEventArgs<T>): Promise<void> {
+    sort(_options: Slick.OnSortEventArgs<T>): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 
-    filter(_columns?: Slick.Column<T>[]): Promise<void> {
+    filter(_columns?: Slick.Column<T>[]): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 
-    resetSort(): void {
+    resetSort(): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 

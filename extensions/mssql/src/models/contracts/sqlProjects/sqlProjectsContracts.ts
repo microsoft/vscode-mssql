@@ -70,6 +70,24 @@ export namespace SetDatabaseSchemaProviderRequest {
     >("sqlProjects/setDatabaseSchemaProvider");
 }
 
+export namespace SetProjectPropertiesRequest {
+    export const type = new RequestType<
+        mssql.SetProjectPropertiesParams,
+        mssql.ResultStatus,
+        void,
+        void
+    >("sqlProjects/setProjectProperties");
+}
+
+export namespace UpdateCodeAnalysisRulesRequest {
+    export const type = new RequestType<
+        mssql.UpdateCodeAnalysisRulesParams,
+        mssql.UpdateCodeAnalysisRulesResult,
+        void,
+        void
+    >("sqlProjects/updateCodeAnalysisRules");
+}
+
 //#endregion
 
 //#region File/folder functions

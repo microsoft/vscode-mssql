@@ -20,14 +20,13 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IMetadataService } from "../services/metadataService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { MetadataType, ObjectMetadata } from "../sharedInterfaces/metadata";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { IScriptingObject } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { Deferred } from "../protocol";
-import { generateGuid } from "../models/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
@@ -58,7 +57,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
 
         // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
-        const instanceId = generateGuid();
+        const instanceId = uuid();
         const ownerUri = `searchDatabase://${serverName}/${instanceId}`;
 
         super(
@@ -107,7 +106,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         );
 
         this._ownerUri = ownerUri;
-        this._operationId = generateGuid();
+        this._operationId = uuid();
         this.logInfo(
             `SearchDatabaseWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
         );
@@ -331,7 +330,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.LoadMetadata,
-            generateGuid(),
+            uuid(),
             {
                 operationId: this._operationId,
                 source: "server",
@@ -348,6 +347,24 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             // Pre-transform all metadata to SearchResultItems and cache them
             // This avoids re-transforming on every filter change
             const searchResultItems = metadata.map((obj) => this.toSearchResultItem(obj));
+
+            // Sort cached items once by schema, type name, then name (ascending).
+            // Since Array.filter preserves order, subsequent filter operations
+            // in applyFiltersAndSearch will maintain this sort.
+            searchResultItems.sort((a, b) => {
+                const schemaCompare = a.schema.localeCompare(b.schema);
+                if (schemaCompare !== 0) {
+                    return schemaCompare;
+                }
+
+                const typeCompare = a.typeName.localeCompare(b.typeName);
+                if (typeCompare !== 0) {
+                    return typeCompare;
+                }
+
+                return a.name.localeCompare(b.name);
+            });
+
             this._searchResultItemCache.set(cacheKey, searchResultItems);
 
             // Extract unique schemas and sort alphabetically
@@ -555,7 +572,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                 const endActivity = startActivity(
                     TelemetryViews.SearchDatabase,
                     TelemetryActions.SetDatabase,
-                    generateGuid(),
+                    uuid(),
                     { operationId: this._operationId },
                 );
 
@@ -722,7 +739,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             const endActivity = startActivity(
                 TelemetryViews.SearchDatabase,
                 TelemetryActions.RefreshResults,
-                generateGuid(),
+                uuid(),
                 { operationId: this._operationId },
             );
 
@@ -828,7 +845,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.Script,
-            generateGuid(),
+            uuid(),
             {
                 operationId: this._operationId,
                 scriptType: scriptType,
@@ -923,7 +940,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.EditData,
-            generateGuid(),
+            uuid(),
             {
                 operationId: this._operationId,
                 objectType: object.metadataTypeName,
@@ -982,7 +999,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.ModifyTable,
-            generateGuid(),
+            uuid(),
             {
                 operationId: this._operationId,
                 objectType: object.metadataTypeName,

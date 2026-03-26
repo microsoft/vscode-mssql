@@ -2,7 +2,7 @@
     "name": "sql-database-projects-vscode",
     "displayName": "SQL Database Projects",
     "description": "Enables users to develop and publish database schemas for MSSQL Databases",
-    "version": "1.5.8",
+    "version": "1.5.9",
     "publisher": "ms-mssql",
     "preview": false,
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/sql-database-projects/README.md",
@@ -32,14 +32,14 @@
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
         "build:extension": "tsc -p tsconfig.extension.json",
-        "build:prepare": "yarn build:runtime-localization",
+        "build:prepare": "npm run build:runtime-localization",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
-        "watch": "yarn build:prepare && run-p -l watch:extension",
-        "lint": "eslint ./src",
+        "watch": "npm run build:prepare && run-p -l watch:extension",
+        "lint": "eslint ./src ./test",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
-        "test": "yarn build && vscode-test --coverage",
-        "package": "yarn build && vsce package --no-yarn"
+        "test": "npm run build && vscode-test --coverage",
+        "package": "npm run build && vsce package"
     },
     "capabilities": {
         "virtualWorkspaces": false,
@@ -246,6 +246,13 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             }
         ],
+        "submenus": [
+            {
+                "id": "sqlDatabaseProjects.objectExplorerSubmenu",
+                "title": "%sqlDatabaseProjects.objectExplorerSubmenu%",
+                "label": "%sqlDatabaseProjects.objectExplorerSubmenu%"
+            }
+        ],
         "menus": {
             "view/title": [
                 {
@@ -383,6 +390,16 @@
                     "when": "false"
                 }
             ],
+            "sqlDatabaseProjects.objectExplorerSubmenu": [
+                {
+                    "command": "sqlDatabaseProjects.createProjectFromDatabase",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "sqlDatabaseProjects.updateProjectFromDatabase",
+                    "group": "navigation@2"
+                }
+            ],
             "view/item/context": [
                 {
                     "command": "sqlDatabaseProjects.build",
@@ -510,14 +527,9 @@
                     "group": "9_dbProjectsLast@9"
                 },
                 {
-                    "command": "sqlDatabaseProjects.createProjectFromDatabase",
+                    "submenu": "sqlDatabaseProjects.objectExplorerSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "sqldbproj@1"
-                },
-                {
-                    "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "sqldbproj@2"
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@1"
                 },
                 {
                     "command": "sqlDatabaseProjects.editSqlCmdVariable",
@@ -579,6 +591,7 @@
         "fs-extra": "^5.0.0",
         "promisify-child-process": "^3.1.1",
         "semver": "^7.5.2",
+        "tunnel": "0.0.6",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "which": "^2.0.2",
@@ -592,6 +605,7 @@
         "@types/semver": "^7.3.1",
         "@types/sinon": "^9.0.4",
         "@types/sinon-chai": "^4.0.0",
+        "@types/tunnel": "0.0.1",
         "@types/vscode": "1.98.0",
         "@types/which": "^2.0.1",
         "@types/xml-formatter": "^1.1.0",
@@ -600,12 +614,11 @@
         "@vscode/l10n-dev": "^0.0.35",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.5.2",
-        "@vscode/vsce": "^3.1.1",
+        "@vscode/vsce": "^3.7.1",
         "chai": "^5.3.3",
         "eslint": "^9.32.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",
-        "mocha": "^9.2.2",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",

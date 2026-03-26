@@ -11,9 +11,11 @@ import {
     makeStyles,
     Text,
     tokens,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
@@ -75,24 +77,51 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
     },
+    apiTypeWarning: {
+        fontSize: "12px",
+        color: tokens.colorPaletteRedForeground1,
+    },
 });
 
 interface DabToolbarProps {
     showDiscovery: boolean;
     onNavigateToSchema?: () => void;
+    onViewConfig?: () => void;
 }
 
-export function DabToolbar({ showDiscovery, onNavigateToSchema }: DabToolbarProps) {
+export function DabToolbar({ showDiscovery, onNavigateToSchema, onViewConfig }: DabToolbarProps) {
     const classes = useStyles();
     const context = useDabContext();
     const {
         dabConfig,
+        isDabDeploymentSupported,
         updateDabApiTypes,
         dabTextFilter,
         setDabTextFilter,
-        generateDabConfig,
         openDabDeploymentDialog,
     } = context;
+
+    const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
+    const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const showMinApiTypeWarning = useCallback(() => {
+        setShowApiTypeWarning(true);
+        if (warningTimerRef.current) {
+            clearTimeout(warningTimerRef.current);
+        }
+        warningTimerRef.current = setTimeout(() => {
+            setShowApiTypeWarning(false);
+            warningTimerRef.current = null;
+        }, 3000);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (warningTimerRef.current) {
+                clearTimeout(warningTimerRef.current);
+            }
+        };
+    }, []);
 
     if (!dabConfig) {
         return null;
@@ -110,6 +139,18 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema }: DabToolbarProp
     const allApiTypes = apiTypeOptions.map((o) => o.type);
     const allApiTypesSelected = allApiTypes.every((t) => dabConfig.apiTypes.includes(t));
     const noneApiTypesExtraSelected = dabConfig.apiTypes.length <= 1;
+    const hasApiTypes = dabConfig.apiTypes.length > 0;
+    const isDeployDisabled = !isDabDeploymentSupported || !hasApiTypes;
+
+    const getDeployTooltip = (): string => {
+        if (!isDabDeploymentSupported) {
+            return locConstants.schemaDesigner.dabDeploymentNotSupported;
+        }
+        if (!hasApiTypes) {
+            return locConstants.schemaDesigner.atLeastOneApiTypeRequired;
+        }
+        return locConstants.schemaDesigner.deploy;
+    };
 
     return (
         <div className={classes.toolbarContainer}>
@@ -136,20 +177,33 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema }: DabToolbarProp
                     />
                     <Button
                         appearance="subtle"
-                        icon={<FluentIcons.DocumentCopy16Regular />}
+                        icon={<FluentIcons.Eye16Regular />}
                         size="small"
-                        title={locConstants.schemaDesigner.generateConfig}
-                        onClick={() => void generateDabConfig()}>
-                        {locConstants.schemaDesigner.generateConfig}
+                        title={locConstants.schemaDesigner.viewConfig}
+                        onClick={onViewConfig}>
+                        {locConstants.schemaDesigner.viewConfig}
                     </Button>
-                    <Button
-                        appearance="primary"
-                        icon={<FluentIcons.Play16Filled />}
-                        size="small"
-                        title={locConstants.schemaDesigner.deploy}
-                        onClick={openDabDeploymentDialog}>
-                        {locConstants.schemaDesigner.deploy}
-                    </Button>
+                    {isDeployDisabled ? (
+                        <Tooltip content={getDeployTooltip()} relationship="label">
+                            <span>
+                                <Button
+                                    appearance="primary"
+                                    icon={<FluentIcons.Play16Filled />}
+                                    size="small"
+                                    disabled>
+                                    {locConstants.schemaDesigner.deploy}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    ) : (
+                        <Button
+                            appearance="primary"
+                            icon={<FluentIcons.Play16Filled />}
+                            size="small"
+                            onClick={openDabDeploymentDialog}>
+                            {locConstants.schemaDesigner.deploy}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -159,17 +213,19 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema }: DabToolbarProp
                 <div className={classes.apiTypeCheckboxes}>
                     {apiTypeOptions.map(({ type, label }) => {
                         const isSelected = dabConfig.apiTypes.includes(type);
-                        const isLastSelected = isSelected && dabConfig.apiTypes.length === 1;
                         return (
                             <Checkbox
                                 key={type}
                                 label={label}
                                 checked={isSelected}
-                                disabled={isLastSelected}
                                 onChange={(_, data) => {
                                     const updated = data.checked
                                         ? [...dabConfig.apiTypes, type]
                                         : dabConfig.apiTypes.filter((t) => t !== type);
+                                    if (updated.length === 0) {
+                                        showMinApiTypeWarning();
+                                        return;
+                                    }
                                     updateDabApiTypes(updated);
                                 }}
                             />
@@ -182,11 +238,19 @@ export function DabToolbar({ showDiscovery, onNavigateToSchema }: DabToolbarProp
                             allApiTypesSelected ? true : noneApiTypesExtraSelected ? false : "mixed"
                         }
                         onChange={(_, data) => {
-                            const updated = data.checked ? allApiTypes : [allApiTypes[0]];
-                            updateDabApiTypes(updated);
+                            if (!data.checked) {
+                                showMinApiTypeWarning();
+                                return;
+                            }
+                            updateDabApiTypes(allApiTypes);
                         }}
                     />
                 </div>
+                {showApiTypeWarning && (
+                    <Text className={classes.apiTypeWarning}>
+                        {locConstants.schemaDesigner.atLeastOneApiTypeRequired}
+                    </Text>
+                )}
             </div>
 
             {/* Filter row */}

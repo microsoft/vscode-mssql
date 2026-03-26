@@ -5,11 +5,9 @@
 
 import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { Editor } from "@monaco-editor/react";
-import { resolveVscodeThemeType } from "../../common/utils";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
+import { VscodeEditor } from "../../common/vscodeMonaco";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
@@ -192,9 +190,9 @@ export const TextView = () => {
 
                         // Add row count information
                         if (resultSetSummary.rowCount > 0) {
-                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})${EOL}`;
+                            content += `${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)}${EOL}`;
                         } else {
-                            content += `(${locConstants.queryResult.rowsAffected(0)})${EOL}`;
+                            content += `${locConstants.queryResult.rowsAffected(0)}${EOL}`;
                         }
 
                         content += `${EOL}`;
@@ -224,11 +222,11 @@ export const TextView = () => {
         <div className={classes.textViewContainer}>
             {textContent ? (
                 <div className={classes.editorContainer}>
-                    <Editor
+                    <VscodeEditor
                         width="100%"
                         height="100%"
                         language="plaintext"
-                        theme={resolveVscodeThemeType(themeKind || ColorThemeKind.Light)}
+                        themeKind={themeKind}
                         value={textContent}
                         options={{
                             readOnly: true,

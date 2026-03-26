@@ -500,6 +500,11 @@ export const useSchemaDesignerChangeState = (
         [context, reactFlow],
     );
 
+    const stableSetHighlightOverride = useCallback(
+        (override: HighlightOverride | null) => setHighlightOverride(override ?? undefined),
+        [],
+    );
+
     return useMemo(
         () => ({
             showChangesHighlight,
@@ -526,8 +531,7 @@ export const useSchemaDesignerChangeState = (
             revertChange: highlightOverride?.revertChange ?? revertChange,
             canRevertChange: highlightOverride?.canRevertChange ?? canRevertChange,
             acceptChange: highlightOverride?.acceptChange,
-            setHighlightOverride: (override: HighlightOverride | null) =>
-                setHighlightOverride(override ?? undefined),
+            setHighlightOverride: stableSetHighlightOverride,
         }),
         [
             baselineColumnOrderByTable,

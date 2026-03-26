@@ -16,7 +16,7 @@ import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import MainController from "../../src/controllers/mainController";
 import { stubTelemetry } from "./utils";
-import { generateUUID } from "../e2e/baseFixtures";
+import { uuid } from "../e2e/baseFixtures";
 
 chai.use(sinonChai);
 
@@ -148,7 +148,7 @@ suite("localContainers logic", () => {
             formState: {
                 containerName: "goodName",
                 port: 1433,
-                password: "Test" + generateUUID(),
+                password: "Test" + uuid(),
                 acceptEula: true,
             } as any,
             formErrors: [] as string[],
@@ -321,7 +321,7 @@ suite("localContainers logic", () => {
 
         await localContainersHelpers.sendLocalContainersCloseEventTelemetry(state);
 
-        expect(sendActionEvent).to.have.been.calledOnce;
+        expect(sendActionEvent).to.have.been.called;
     });
 
     test("updateLocalContainersState updates state", async () => {

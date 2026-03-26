@@ -1,6 +1,6 @@
 # Unit tests
 
-You can run all the unit tests for the extension using `yarn testWithCoverage`. This will run the tests and generate a coverage report in the `coverage` folder.
+You can run all the unit tests for the extension using `npm run test -- --target mssql`. This will run the tests and generate a coverage report in the `coverage` folder.
 
 For better debugging, you can install following extensions in VS Code:
 

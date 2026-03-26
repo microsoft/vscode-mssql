@@ -11,12 +11,19 @@ import {
     EventRow,
     EngineType,
     ViewColumn,
+    ColumnDataType,
     FIELD_TIMESTAMP,
     FIELD_ADDITIONAL_DATA,
     TYPE_NUMBER,
+    resolveColumnDataType,
 } from "./profilerTypes";
 import { defaultProfilerConfig } from "./profilerDefaultConfig";
 import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../sharedInterfaces/profiler";
+
+/**
+ * The canonical column/field name used for database-name filtering in profiler views.
+ */
+export const FIELD_DATABASE_NAME = "DatabaseName";
 
 /**
  * Service for managing profiler templates and view configurations.
@@ -193,6 +200,64 @@ export class ProfilerConfigService {
     }
 
     /**
+     * Convert an EventRow to a typed Record for filtering.
+     * Values are coerced to their proper runtime types based on the column's
+     * declared type (ColumnDataType) as defined on the view column:
+     *   - ColumnDataType.Number   → number
+     *   - ColumnDataType.DateTime → Date
+     *   - ColumnDataType.String   → string (default)
+     *
+     * This avoids repeated type parsing during filter evaluation — the
+     * FilteredBuffer can compare values directly using typeof / instanceof.
+     *
+     * @param event The raw event row
+     * @param view  The view template whose columns carry the type metadata
+     * @returns A Record with view-level field names and properly-typed values
+     */
+    public convertEventToTypedRow(event: EventRow, view: ViewTemplate): Record<string, unknown> {
+        const typedRow: Record<string, unknown> = {
+            id: event.id,
+            eventNumber: event.eventNumber,
+        };
+
+        for (const column of view.columns) {
+            const rawValue = this.getColumnValue(event, column);
+            typedRow[column.field] = this.coerceToColumnType(rawValue, column);
+        }
+
+        return typedRow;
+    }
+
+    /**
+     * Coerce a raw field value to the column's declared data type.
+     * Returns the value unchanged when it is already the correct type,
+     * or falls back to the original value when parsing fails.
+     */
+    private coerceToColumnType(value: string | number | undefined, column: ViewColumn): unknown {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        const dataType = resolveColumnDataType(column);
+
+        switch (dataType) {
+            case ColumnDataType.Number: {
+                if (typeof value === "number") {
+                    return value;
+                }
+                const num = Number(value);
+                return isNaN(num) ? value : num;
+            }
+            case ColumnDataType.DateTime: {
+                const date = new Date(value);
+                return isNaN(date.getTime()) ? value : date;
+            }
+            default:
+                return typeof value === "string" ? value : String(value);
+        }
+    }
+
+    /**
      * Get a field value from an EventRow, checking both direct properties and additionalData
      */
     private getFieldValue(event: EventRow, field: string): string | number | undefined {
@@ -221,14 +286,21 @@ export class ProfilerConfigService {
     }
 
     /**
-     * Format a timestamp for display.
-     * Converts timestamp to ISO 8601 format: "YYYY-MM-DD HH:mm:ss.sss"
+     * Format a timestamp for display in the local machine timezone.
+     * Format: "YYYY-MM-DD HH:mm:ss.SSS" (matching SSMS display)
      * Example output: "2026-01-29 14:30:45.123"
      */
     private formatTimestamp(timestamp: number): string {
         try {
             const date = new Date(timestamp);
-            return date.toISOString().replace("T", " ").replace("Z", "");
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            const ms = String(date.getMilliseconds()).padStart(3, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}`;
         } catch {
             return String(timestamp);
         }

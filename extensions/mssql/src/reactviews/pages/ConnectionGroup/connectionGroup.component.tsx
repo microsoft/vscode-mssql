@@ -27,6 +27,7 @@ import {
     ColorPickerProps,
     ColorSlider,
 } from "@fluentui/react-color-picker";
+import { FolderAdd24Regular } from "@fluentui/react-icons";
 import { TinyColor } from "@ctrl/tinycolor";
 import { locConstants as Loc } from "../../common/locConstants";
 import {
@@ -35,6 +36,8 @@ import {
 } from "../../../sharedInterfaces/connectionGroup";
 import { useState } from "react";
 import { KeyCode } from "../../common/keys";
+import { DialogPageShell } from "../../common/dialogPageShell";
+import { ConnectionSubDialogDisplayType } from "../../../sharedInterfaces/connectionDialog";
 
 const useStyles = makeStyles({
     previewColor: {
@@ -84,10 +87,12 @@ export const ConnectionGroupDialog = ({
     state,
     saveConnectionGroup,
     closeDialog,
+    mode = "standalone",
 }: {
     state: ConnectionGroupState;
     saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
     closeDialog: () => void;
+    mode?: ConnectionSubDialogDisplayType;
 }) => {
     const formStyles = useFormStyles();
     const styles = useStyles();
@@ -99,6 +104,9 @@ export const ConnectionGroupDialog = ({
     const [color, setColor] = useState(intialHsvColor);
     const [pickerColor, setPickerColor] = useState(intialHsvColor);
     const [popoverOpen, setPopoverOpen] = useState(false);
+    const dialogTitle = state.existingGroupName
+        ? Loc.connectionGroups.editConnectionGroup(state.existingGroupName)
+        : Loc.connectionGroups.createNew;
 
     const handleChange: ColorPickerProps["onColorChange"] = (_, data) => {
         setColor({ ...data.color, a: 1 });
@@ -121,6 +129,141 @@ export const ConnectionGroupDialog = ({
         }
     }
 
+    const renderFooterButtons = () => (
+        <>
+            <Button
+                appearance="secondary"
+                onClick={() => {
+                    closeDialog();
+                }}>
+                {Loc.common.cancel}
+            </Button>
+            <Button
+                appearance="primary"
+                type="submit"
+                style={{ width: "auto", whiteSpace: "nowrap" }}
+                onClick={(e) => {
+                    handleSubmit(e);
+                }}
+                disabled={!isReadyToSubmit()}>
+                {Loc.connectionGroups.saveConnectionGroup}
+            </Button>
+        </>
+    );
+
+    const renderForm = (showInlineError: boolean) => (
+        <form onSubmit={handleSubmit}>
+            {showInlineError && state.message && (
+                <>
+                    <MessageBar intent="error" style={{ paddingRight: "12px" }}>
+                        {state.message}
+                    </MessageBar>
+                    <br />
+                </>
+            )}
+            <Field
+                className={formStyles.formComponentDiv}
+                label={Loc.connectionGroups.name}
+                required>
+                <Input
+                    value={groupName}
+                    onChange={(_e, data) => {
+                        setGroupName(data.value);
+                    }}
+                    required
+                    placeholder={Loc.connectionGroups.enterConnectionGroupName}
+                />
+            </Field>
+            <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.description}>
+                <Textarea
+                    value={description}
+                    onChange={(_e, data) => {
+                        setDescription(data.value);
+                    }}
+                    placeholder={Loc.connectionGroups.enterDescription}
+                />
+            </Field>
+            <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.color}>
+                <div className={styles.colorContainer}>
+                    <div
+                        className={styles.previewColor}
+                        style={{
+                            backgroundColor: new TinyColor(pickerColor).toRgbString(),
+                        }}
+                        onClick={() => {
+                            setPopoverOpen(true);
+                        }}
+                    />
+                    <Popover
+                        open={popoverOpen}
+                        trapFocus
+                        onOpenChange={(_, data) => setPopoverOpen(data.open)}>
+                        <PopoverTrigger disableButtonEnhancement>
+                            <Button style={{ minWidth: "120px" }}>
+                                {Loc.connectionGroups.chooseColor}
+                            </Button>
+                        </PopoverTrigger>
+
+                        <PopoverSurface>
+                            <ColorPicker
+                                color={new TinyColor(color).toHsv()}
+                                onColorChange={handleChange}>
+                                <ColorArea
+                                    inputX={{
+                                        "aria-label": Loc.connectionGroups.saturation,
+                                    }}
+                                    inputY={{
+                                        "aria-label": Loc.connectionGroups.brightness,
+                                    }}
+                                />
+                                <div className={styles.row}>
+                                    <div className={styles.sliders}>
+                                        <ColorSlider aria-label={Loc.connectionGroups.hue} />
+                                    </div>
+                                    <div
+                                        className={styles.previewColor}
+                                        style={{
+                                            backgroundColor: new TinyColor(color).toRgbString(),
+                                        }}
+                                    />
+                                </div>
+                            </ColorPicker>
+                            <div className={styles.row}>
+                                <Button
+                                    appearance="primary"
+                                    onClick={() => {
+                                        setPickerColor(color);
+                                        setPopoverOpen(false);
+                                    }}>
+                                    {Loc.common.select}
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        setPopoverOpen(false);
+                                    }}>
+                                    {Loc.common.cancel}
+                                </Button>
+                            </div>
+                        </PopoverSurface>
+                    </Popover>
+                </div>
+            </Field>
+        </form>
+    );
+
+    if (mode === "standalone") {
+        return (
+            <DialogPageShell
+                icon={<FolderAdd24Regular aria-label={dialogTitle} />}
+                title={dialogTitle}
+                errorMessage={state.message}
+                maxContentWidth="medium"
+                footerEnd={renderFooterButtons()}>
+                {renderForm(false)}
+            </DialogPageShell>
+        );
+    }
+
     return (
         <Dialog open={true /* standalone dialog always open*/}>
             <DialogSurface
@@ -130,142 +273,9 @@ export const ConnectionGroupDialog = ({
                     }
                 }}>
                 <DialogBody>
-                    {" "}
-                    <DialogTitle>
-                        {state.existingGroupName
-                            ? Loc.connectionGroups.editConnectionGroup(state.existingGroupName)
-                            : Loc.connectionGroups.createNew}
-                    </DialogTitle>
-                    <DialogContent>
-                        <form onSubmit={handleSubmit}>
-                            {state.message && (
-                                <>
-                                    <MessageBar intent="error" style={{ paddingRight: "12px" }}>
-                                        {state.message}
-                                    </MessageBar>
-                                    <br />
-                                </>
-                            )}{" "}
-                            <Field
-                                className={formStyles.formComponentDiv}
-                                label={Loc.connectionGroups.name}
-                                required>
-                                <Input
-                                    value={groupName}
-                                    onChange={(_e, data) => {
-                                        setGroupName(data.value);
-                                    }}
-                                    required
-                                    placeholder={Loc.connectionGroups.enterConnectionGroupName}
-                                />
-                            </Field>{" "}
-                            <Field
-                                className={formStyles.formComponentDiv}
-                                label={Loc.connectionGroups.description}>
-                                <Textarea
-                                    value={description}
-                                    onChange={(_e, data) => {
-                                        setDescription(data.value);
-                                    }}
-                                    placeholder={Loc.connectionGroups.enterDescription}
-                                />
-                            </Field>{" "}
-                            <Field
-                                className={formStyles.formComponentDiv}
-                                label={Loc.connectionGroups.color}>
-                                <div className={styles.colorContainer}>
-                                    <div
-                                        className={styles.previewColor}
-                                        style={{
-                                            backgroundColor: new TinyColor(
-                                                pickerColor,
-                                            ).toRgbString(),
-                                        }}
-                                        onClick={() => {
-                                            setPopoverOpen(true);
-                                        }}
-                                    />
-                                    <Popover
-                                        open={popoverOpen}
-                                        trapFocus
-                                        onOpenChange={(_, data) => setPopoverOpen(data.open)}>
-                                        <PopoverTrigger disableButtonEnhancement>
-                                            <Button style={{ minWidth: "120px" }}>
-                                                {Loc.connectionGroups.chooseColor}
-                                            </Button>
-                                        </PopoverTrigger>
-
-                                        <PopoverSurface>
-                                            <ColorPicker
-                                                color={new TinyColor(color).toHsv()}
-                                                onColorChange={handleChange}>
-                                                <ColorArea
-                                                    inputX={{
-                                                        "aria-label":
-                                                            Loc.connectionGroups.saturation,
-                                                    }}
-                                                    inputY={{
-                                                        "aria-label":
-                                                            Loc.connectionGroups.brightness,
-                                                    }}
-                                                />
-                                                <div className={styles.row}>
-                                                    <div className={styles.sliders}>
-                                                        <ColorSlider
-                                                            aria-label={Loc.connectionGroups.hue}
-                                                        />
-                                                    </div>
-                                                    <div
-                                                        className={styles.previewColor}
-                                                        style={{
-                                                            backgroundColor: new TinyColor(
-                                                                color,
-                                                            ).toRgbString(),
-                                                        }}
-                                                    />
-                                                </div>
-                                            </ColorPicker>
-                                            <div className={styles.row}>
-                                                <Button
-                                                    appearance="primary"
-                                                    onClick={() => {
-                                                        setPickerColor(color);
-                                                        setPopoverOpen(false);
-                                                    }}>
-                                                    {Loc.common.select}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => {
-                                                        setPopoverOpen(false);
-                                                    }}>
-                                                    {Loc.common.cancel}
-                                                </Button>
-                                            </div>
-                                        </PopoverSurface>
-                                    </Popover>
-                                </div>
-                            </Field>
-                        </form>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            appearance="primary"
-                            type="submit"
-                            style={{ width: "auto", whiteSpace: "nowrap" }}
-                            onClick={(e) => {
-                                handleSubmit(e);
-                            }}
-                            disabled={!isReadyToSubmit()}>
-                            {Loc.connectionGroups.saveConnectionGroup}
-                        </Button>
-                        <Button
-                            appearance="secondary"
-                            onClick={() => {
-                                closeDialog();
-                            }}>
-                            {Loc.common.cancel}
-                        </Button>
-                    </DialogActions>
+                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogContent>{renderForm(true)}</DialogContent>
+                    <DialogActions>{renderFooterButtons()}</DialogActions>
                 </DialogBody>
             </DialogSurface>
         </Dialog>

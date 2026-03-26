@@ -19,7 +19,7 @@ import {
     windowsDockerDesktopExecutable,
     x64,
 } from "../constants/constants";
-import { LocalContainers, msgYes, Common, RemoveProfileLabel } from "../constants/locConstants";
+import { LocalContainers, msgYes, Common } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { FormItemValidationState } from "../sharedInterfaces/form";
@@ -177,6 +177,119 @@ export async function getContainerByName(name: string): Promise<Dockerode.Contai
     return dockerClient.getContainer(matchedContainer.Id);
 }
 
+export interface ContainerLogMonitor {
+    dispose: () => void;
+    getLogs: () => string | undefined;
+    includes: (text: string) => boolean;
+    waitForMatch: (text: string, timeoutMs: number) => Promise<boolean>;
+}
+
+export interface StartContainerLogMonitorOptions {
+    since?: number;
+    tail?: number;
+    maxBufferLength?: number;
+    transformChunk?: (text: string) => string;
+}
+
+export async function startContainerLogMonitor(
+    container: Dockerode.Container,
+    options: StartContainerLogMonitorOptions = {},
+): Promise<ContainerLogMonitor> {
+    const dockerClient = getDockerodeClient();
+    const rawLogsStream = (await container.logs({
+        follow: true,
+        stdout: true,
+        stderr: true,
+        since: options.since,
+        tail: options.tail,
+    })) as NodeJS.ReadableStream;
+    const stdoutStream = new PassThrough();
+    const stderrStream = new PassThrough();
+    dockerClient.modem.demuxStream(rawLogsStream, stdoutStream, stderrStream);
+
+    let bufferedLogs = "";
+
+    const appendChunk = (chunk: Buffer | string) => {
+        const chunkText = options.transformChunk
+            ? options.transformChunk(chunk.toString("utf8"))
+            : chunk.toString("utf8");
+        bufferedLogs += chunkText;
+
+        if (
+            options.maxBufferLength !== undefined &&
+            bufferedLogs.length > options.maxBufferLength
+        ) {
+            bufferedLogs = bufferedLogs.slice(-options.maxBufferLength);
+        }
+    };
+
+    stdoutStream.on("data", appendChunk);
+    stderrStream.on("data", appendChunk);
+
+    const dispose = () => {
+        stdoutStream.removeListener("data", appendChunk);
+        stderrStream.removeListener("data", appendChunk);
+        const destroyLogStream = (
+            rawLogsStream as NodeJS.ReadableStream & {
+                destroy?: () => void;
+            }
+        ).destroy;
+        destroyLogStream?.call(rawLogsStream);
+    };
+
+    return {
+        dispose,
+        getLogs: () => {
+            const logs = bufferedLogs.trim();
+            return logs.length > 0 ? logs : undefined;
+        },
+        includes: (text: string) => bufferedLogs.includes(text),
+        waitForMatch: (text: string, timeoutMs: number) => {
+            if (bufferedLogs.includes(text)) {
+                return Promise.resolve(true);
+            }
+
+            return new Promise<boolean>((resolve, reject) => {
+                const onData = () => {
+                    if (bufferedLogs.includes(text)) {
+                        cleanupAndResolve(true);
+                    }
+                };
+
+                const onError = (error: Error) => {
+                    clearTimeout(timeoutHandle);
+                    stdoutStream.removeListener("data", onData);
+                    stderrStream.removeListener("data", onData);
+                    rawLogsStream.removeListener("error", onError);
+                    rawLogsStream.removeListener("end", onEnd);
+                    rawLogsStream.removeListener("close", onEnd);
+                    reject(error);
+                };
+
+                const onEnd = () => cleanupAndResolve(false);
+
+                const cleanupAndResolve = (result: boolean) => {
+                    clearTimeout(timeoutHandle);
+                    stdoutStream.removeListener("data", onData);
+                    stderrStream.removeListener("data", onData);
+                    rawLogsStream.removeListener("error", onError);
+                    rawLogsStream.removeListener("end", onEnd);
+                    rawLogsStream.removeListener("close", onEnd);
+                    resolve(result);
+                };
+
+                const timeoutHandle = setTimeout(() => cleanupAndResolve(false), timeoutMs);
+
+                stdoutStream.on("data", onData);
+                stderrStream.on("data", onData);
+                rawLogsStream.on("error", onError);
+                rawLogsStream.on("end", onEnd);
+                rawLogsStream.on("close", onEnd);
+            });
+        },
+    };
+}
+
 function getContainerHostPorts(containerInspectInfo: Dockerode.ContainerInspectInfo): Set<number> {
     const usedPorts = new Set<number>();
     const networkPortBindings = containerInspectInfo.NetworkSettings?.Ports ?? {};
@@ -207,72 +320,6 @@ function getContainerHostPorts(containerInspectInfo: Dockerode.ContainerInspectI
     addBoundHostPorts(hostConfigPortBindings);
 
     return usedPorts;
-}
-
-export async function waitForContainerReadyFromLogs(
-    container: Dockerode.Container,
-    sinceTimestampSeconds: number,
-    timeoutMs: number,
-    readyMessage: string,
-): Promise<boolean> {
-    const dockerClient = getDockerodeClient();
-    const rawLogsStream = (await container.logs({
-        follow: true,
-        stdout: true,
-        stderr: true,
-        since: sinceTimestampSeconds,
-    })) as NodeJS.ReadableStream;
-    const stdoutStream = new PassThrough();
-    const stderrStream = new PassThrough();
-    dockerClient.modem.demuxStream(rawLogsStream, stdoutStream, stderrStream);
-
-    return new Promise<boolean>((resolve, reject) => {
-        let chunkBuffer = "";
-        const maxBufferLength = readyMessage.length * 2;
-
-        const cleanupAndResolve = (result: boolean) => {
-            clearTimeout(timeoutHandle);
-            stdoutStream.removeListener("data", onData);
-            stderrStream.removeListener("data", onData);
-            rawLogsStream.removeListener("error", onError);
-            rawLogsStream.removeListener("end", onEnd);
-            rawLogsStream.removeListener("close", onEnd);
-            const destroyLogStream = (
-                rawLogsStream as NodeJS.ReadableStream & {
-                    destroy?: () => void;
-                }
-            ).destroy;
-            destroyLogStream?.call(rawLogsStream);
-            resolve(result);
-        };
-
-        const onData = (chunk: Buffer | string) => {
-            chunkBuffer += chunk.toString();
-            if (chunkBuffer.includes(readyMessage)) {
-                cleanupAndResolve(true);
-                return;
-            }
-
-            if (chunkBuffer.length > maxBufferLength) {
-                chunkBuffer = chunkBuffer.slice(-maxBufferLength);
-            }
-        };
-
-        const onError = (error: Error) => {
-            clearTimeout(timeoutHandle);
-            reject(error);
-        };
-
-        const onEnd = () => cleanupAndResolve(false);
-
-        const timeoutHandle = setTimeout(() => cleanupAndResolve(false), timeoutMs);
-
-        stdoutStream.on("data", onData);
-        stderrStream.on("data", onData);
-        rawLogsStream.on("error", onError);
-        rawLogsStream.on("end", onEnd);
-        rawLogsStream.on("close", onEnd);
-    });
 }
 
 /**
@@ -781,9 +828,9 @@ export async function prepareForDockerContainerCommand(
         const confirmation = await vscode.window.showInformationMessage(
             LocalContainers.containerDoesNotExistError,
             { modal: true },
-            RemoveProfileLabel,
+            Common.remove,
         );
-        if (confirmation === RemoveProfileLabel) {
+        if (confirmation === Common.remove) {
             await objectExplorerService.removeNode(containerNode, false);
         }
         return {

@@ -80,7 +80,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         configuration: ITableConfiguration<T>,
         keyBindings: WebviewKeyBindings,
         options?: Slick.GridOptions<T>,
-        gridParentRef?: React.RefObject<HTMLDivElement>,
+        gridParentRef?: React.RefObject<HTMLDivElement | null>,
         autoSizeColumnsMode: ResultsGridAutoSizeStyle = ResultsGridAutoSizeStyle.HeadersAndData,
         themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {

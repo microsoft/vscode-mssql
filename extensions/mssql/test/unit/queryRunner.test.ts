@@ -470,7 +470,7 @@ suite("Query Runner tests", () => {
         queryRunner.uri = testuri;
 
         const result = await queryRunner.getRows(0, 5, 0, 0);
-        expect(result).to.equal(testresult);
+        expect(result).to.deep.equal(testresult);
     });
 
     test("Correctly handles error from subset request", async () => {
@@ -484,8 +484,89 @@ suite("Query Runner tests", () => {
 
         let queryRunner = createQueryRunner(testuri, testuri);
         queryRunner.uri = testuri;
-        await queryRunner.getRows(0, 5, 0, 0);
+        const result = await queryRunner.getRows(0, 5, 0, 0);
         expect(testVscodeWrapper.showErrorMessage as sinon.SinonStub).to.have.been.calledOnce;
+        expect(result).to.deep.equal({
+            resultSubset: {
+                rows: [],
+                rowCount: 0,
+            },
+        });
+    });
+
+    test("Paginates getRows requests and concatenates rows in order", async () => {
+        const testuri = "test";
+        const pageSize = 500; // Must match QueryRunner._subsetRowsPageSize
+        const totalRows = 1200; // 3 pages: 500 + 500 + 200
+
+        // Helper to create a page of rows where each row is [[displayValue]]
+        // with values ranging from `start` to `start + count - 1`.
+        function makePage(start: number, count: number): QueryExecuteSubsetResult {
+            const rows = Array.from({ length: count }, (_, i) => [
+                { isNull: false, displayValue: String(start + i) },
+            ]);
+            return { resultSubset: { rowCount: count, rows } };
+        }
+
+        // Stub sendRequest to return different pages based on rowsStartIndex.
+        testSqlToolsServerClient.sendRequest
+            .withArgs(
+                QueryExecuteContracts.QueryExecuteSubsetRequest.type,
+                sinon.match({ rowsStartIndex: 0, rowsCount: pageSize }),
+            )
+            .resolves(makePage(0, pageSize));
+
+        testSqlToolsServerClient.sendRequest
+            .withArgs(
+                QueryExecuteContracts.QueryExecuteSubsetRequest.type,
+                sinon.match({ rowsStartIndex: pageSize, rowsCount: pageSize }),
+            )
+            .resolves(makePage(pageSize, pageSize));
+
+        testSqlToolsServerClient.sendRequest
+            .withArgs(
+                QueryExecuteContracts.QueryExecuteSubsetRequest.type,
+                sinon.match({
+                    rowsStartIndex: pageSize * 2,
+                    rowsCount: totalRows - pageSize * 2,
+                }),
+            )
+            .resolves(makePage(pageSize * 2, totalRows - pageSize * 2));
+
+        const queryRunner = createQueryRunner(testuri, testuri);
+        queryRunner.uri = testuri;
+
+        const result = await queryRunner.getRows(0, totalRows, 0, 0);
+
+        // Verify three separate sendRequest calls were made for the subset
+        const subsetCalls = testSqlToolsServerClient.sendRequest
+            .getCalls()
+            .filter((c) => c.args[0] === QueryExecuteContracts.QueryExecuteSubsetRequest.type);
+        expect(subsetCalls).to.have.lengthOf(3);
+
+        // Verify each call had the expected pagination parameters
+        expect(subsetCalls[0].args[1]).to.include({
+            rowsStartIndex: 0,
+            rowsCount: pageSize,
+        });
+        expect(subsetCalls[1].args[1]).to.include({
+            rowsStartIndex: pageSize,
+            rowsCount: pageSize,
+        });
+        expect(subsetCalls[2].args[1]).to.include({
+            rowsStartIndex: pageSize * 2,
+            rowsCount: totalRows - pageSize * 2,
+        });
+
+        // Verify the returned rows are concatenated in order (0..1199)
+        expect(result.resultSubset.rowCount).to.equal(totalRows);
+        expect(result.resultSubset.rows).to.have.lengthOf(totalRows);
+        for (let i = 0; i < totalRows; i++) {
+            expect(
+                result.resultSubset.rows[i][0].displayValue,
+                `row ${i} should have displayValue "${i}"`,
+            ).to.equal(String(i));
+        }
     });
 
     test("Toggle SQLCMD Mode sends request", async () => {
@@ -653,6 +734,52 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResults(selection, 0, 0, false);
 
             expect(testVscodeWrapper.clipboardWriteText).to.not.have.been.called;
+        });
+
+        test("copyResults preserves non-monotonic selection order in the backend request", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 1, toRow: 1, fromCell: 0, toCell: 0 },
+                { fromRow: 3, toRow: 3, fromCell: 0, toCell: 0 },
+                { fromRow: 5, toRow: 5, fromCell: 0, toCell: 0 },
+                { fromRow: 7, toRow: 7, fromCell: 0, toCell: 0 },
+                { fromRow: 0, toRow: 0, fromCell: 0, toCell: 0 },
+                { fromRow: 2, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 },
+                { fromRow: 6, toRow: 6, fromCell: 0, toCell: 0 },
+            ];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "copied" });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnceWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    selections: [
+                        { fromRow: 1, toRow: 1, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 3, toRow: 3, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 5, toRow: 5, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 7, toRow: 7, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 0, toRow: 0, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 2, toRow: 2, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 4, toRow: 4, fromColumn: 0, toColumn: 0 },
+                        { fromRow: 6, toRow: 6, fromColumn: 0, toColumn: 0 },
+                    ],
+                }),
+            );
+            expect(selection).to.deep.equal([
+                { fromRow: 1, toRow: 1, fromCell: 0, toCell: 0 },
+                { fromRow: 3, toRow: 3, fromCell: 0, toCell: 0 },
+                { fromRow: 5, toRow: 5, fromCell: 0, toCell: 0 },
+                { fromRow: 7, toRow: 7, fromCell: 0, toCell: 0 },
+                { fromRow: 0, toRow: 0, fromCell: 0, toCell: 0 },
+                { fromRow: 2, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 },
+                { fromRow: 6, toRow: 6, fromCell: 0, toCell: 0 },
+            ]);
         });
 
         test("copyResultsAsCsv calls copyResults2 with CSV CopyType", async () => {

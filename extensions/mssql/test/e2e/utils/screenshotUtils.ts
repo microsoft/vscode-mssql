@@ -5,8 +5,12 @@
 
 import type { Page, TestInfo } from "@playwright/test";
 
+export function hasTestFailure(testInfo: TestInfo): boolean {
+    return testInfo.status !== testInfo.expectedStatus;
+}
+
 export async function screenshotOnFailure(page: Page, testInfo: TestInfo): Promise<void> {
-    if (testInfo.status !== testInfo.expectedStatus) {
+    if (hasTestFailure(testInfo)) {
         await screenshot(page, testInfo, "failure");
     }
 }

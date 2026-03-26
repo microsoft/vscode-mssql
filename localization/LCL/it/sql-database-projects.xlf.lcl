@@ -190,6 +190,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impostazioni proxy trovate, ma si è verificato un errore durante l'analisi dell'URL: ''{0}''. Potrebbero verificarsi problemi di connessione durante l'uso dell'estensione Progetti di database SQL.  Errore:{1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0fd7a3888589d46de552e4f15eb56703fb9529d52f818824b68e21c2b685496b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error finding build files location: {0}]]></Val>
@@ -1594,6 +1603,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to read proxy agent options.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è possibile leggere le opzioni dell'agente proxy.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impostazioni proxy trovate, ma senza un protocollo (ad esempio http://): '{0}'. Potrebbero verificarsi problemi di connessione durante l'uso dell'estensione Progetti di database SQL.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++97c59aa9b524fc50bc1c1eb646c9a306160017cda473234d8d5f3f32bb2e93f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced...]]></Val>
@@ -2455,6 +2482,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add ProjectGuid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aggiungi ProjectGuid]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++de554ddaf72fbc2e0ad0e75fc128d75b3422ebc13af1eea553bf73baa62f6eda" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User selected to install autorest gloablly.  Installing now...]]></Val>
@@ -2491,6 +2527,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Progetto '{0}' con un ProjectGuid mancante. Un ProjectGuid univoco aiuta a identificare il progetto per i riferimenti tra progetti. Aggiungerne uno?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e0a06981f6dd0d4ca2c5e3a808122ea107adc5980c505dcf2ca09d231a129fd7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Dacpac references need to be located on the same drive as the project file.]]></Val>
@@ -2514,6 +2559,15 @@
           <Val><![CDATA[Data Source]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Origine dati]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?]A;]A;Projects:]A;{1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} progetti in questa area di lavoro non dispongono di un ProjectGuid. Un ProjectGuid univoco aiuta a identificare i progetti per i riferimenti tra progetti. Aggiungerne uno a ogni progetto?]A;]A;Progetti:]A;{1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2640,6 +2694,15 @@
           <Val><![CDATA[No (default)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nessuna (impostazione predefinita)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è possibile raggiungere nuget.org. Se si è dietro a un proxy o in un ambiente offline, è possibile posizionare manualmente i file DLL necessari nella directory di compilazione: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2916,10 +2979,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.configureCodeAnalysisSettings" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          <Val><![CDATA[Code Analysis Settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impostazioni di Code Analysis (anteprima)]]></Val>
+            <Val><![CDATA[Impostazioni di Code Analysis]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Code Analysis Settings (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2934,10 +3000,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.createProjectFromDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create Project From Database]]></Val>
+          <Val><![CDATA[Create Project from Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Creare il progetto dal database]]></Val>
+            <Val><![CDATA[Creare progetto dal database]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Create Project From Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3148,6 +3217,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.sqlDatabaseProjects.objectExplorerSubmenu" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Database Projects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Progetti di database SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.sqlDatabaseProjects.open" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Database Project]]></Val>
@@ -3222,10 +3300,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.updateProjectFromDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Update Project From Database]]></Val>
+          <Val><![CDATA[Update Project from Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aggiorna progetto dal database]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Update Project From Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

@@ -43,12 +43,12 @@ const useStyles = makeStyles({
         paddingRight: "4px",
     },
     paneTitle: {
-        marginTop: "12px",
-        marginBottom: "12px",
+        marginTop: "8px",
+        marginBottom: "4px",
         marginRight: "12px",
     },
     main: {
-        gap: "5px",
+        gap: "2px",
         display: "flex",
         flexDirection: "column",
         flexWrap: "wrap",
@@ -58,7 +58,7 @@ const useStyles = makeStyles({
         width: "100%",
         maxWidth: "100%",
         height: "fit-content",
-        padding: "5px",
+        padding: "2px 5px",
         margin: "0px",
         [`& .${buttonContainer}`]: {
             visibility: "hidden",
@@ -89,8 +89,8 @@ const useStyles = makeStyles({
     },
     text: { margin: "0" },
     adsMigrationContainer: {
-        marginTop: "6px",
-        marginBottom: "12px",
+        marginTop: "4px",
+        marginBottom: "8px",
     },
     adsMigrationButton: {
         width: "100%",
@@ -252,6 +252,7 @@ export const ConnectionCard = ({
         <Card
             className={styles.connectionContainer}
             appearance="subtle"
+            size="small"
             tabIndex={0}
             onClick={() => {
                 context.loadConnection(connection);

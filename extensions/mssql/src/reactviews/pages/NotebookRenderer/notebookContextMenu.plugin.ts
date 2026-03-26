@@ -5,8 +5,14 @@
 
 /**
  * Context menu plugin for the notebook renderer grid.
- * Shows a right-click menu with copy operations, all handled locally
- * using the clipboard API (no extension host RPC).
+ *
+ * This is intentionally separate from QueryResult's ContextMenu because
+ * the two share very little implementation:
+ *  - QueryResult renders its menu via React (queryResultContext.showGridContextMenu)
+ *    and delegates copy/format to the extension host via RPC;
+ *  - The notebook renderer runs inside a VS Code notebook output iframe that
+ *    has no access to extension host RPC, so it builds the menu with raw DOM
+ *    and copies locally via the clipboard API using in-memory data.
  */
 
 import * as l10n from "@vscode/l10n";

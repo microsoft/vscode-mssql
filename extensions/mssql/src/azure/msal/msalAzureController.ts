@@ -12,7 +12,6 @@ import { ConnectionProfile } from "../../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, IToken } from "../../models/contracts/azure";
 import { AccountStore } from "../accountStore";
 import { AzureController } from "../azureController";
-import { getEnableSqlAuthenticationProviderConfig } from "../utils";
 import { MsalAzureAuth } from "./msalAzureAuth";
 import { MsalAzureCodeGrant } from "./msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "./msalAzureDeviceCode";
@@ -114,13 +113,6 @@ export class MsalAzureController extends AzureController {
         }
 
         this.initialized.resolve();
-    }
-
-    public init(): void {
-        // Since this setting is only applicable to MSAL, we can enable it safely only for MSAL Controller
-        if (getEnableSqlAuthenticationProviderConfig()) {
-            this._isSqlAuthProviderEnabled = true;
-        }
     }
 
     public async loadTokenCache(): Promise<void> {
@@ -331,28 +323,9 @@ export class MsalAzureController extends AzureController {
         profile.user = account!.displayInfo.displayName;
         profile.email = account!.displayInfo.email;
         profile.accountId = account!.key.id;
-
-        // Skip fetching access token for profile if Sql Authentication Provider is enabled.
-        if (!this.isSqlAuthProviderEnabled()) {
-            if (!profile.tenantId) {
-                await this.promptForTenantChoice(account!, profile);
-            }
-
-            const token = await this.getAccountSecurityToken(account!, profile.tenantId, settings);
-
-            if (!token) {
-                let errorMessage = LocalizedConstants.msgGetTokenFail;
-                this.logger.error(errorMessage);
-                this._vscodeWrapper.showErrorMessage(errorMessage);
-            } else {
-                profile.azureAccountToken = token.token;
-                profile.expiresOn = token.expiresOn;
-            }
-        } else {
-            this.logger.verbose(
-                "SQL Authentication Provider is enabled, access token will not be acquired by extension.",
-            );
-        }
+        this.logger.verbose(
+            "SQL Authentication Provider is enabled, access token will not be acquired by extension.",
+        );
         return profile;
     }
 

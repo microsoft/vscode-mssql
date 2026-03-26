@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { v4 as uuidv4 } from "uuid";
+import { uuid } from "../../../src/utils/utils";
 import { FilteredBuffer } from "../../../src/profiler/filteredBuffer";
 import { IndexedRow, FilterOperator, FilterTypeHint } from "../../../src/profiler/profilerTypes";
 
@@ -29,7 +29,7 @@ function createTestRow(
     additionalData?: Record<string, string>,
 ): TestRow {
     return {
-        id: uuidv4(),
+        id: uuid(),
         eventNumber: nextEventNumber++,
         name,
         value,
@@ -501,6 +501,20 @@ suite("FilteredBuffer Tests", () => {
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(0);
         });
+
+        test("trims leading whitespace from field value before matching", () => {
+            filteredBuffer.add(createTestRow("  SELECT * FROM Users", 1));
+            filteredBuffer.add(createTestRow("\tSELECT COUNT(*)", 2));
+            filteredBuffer.add(createTestRow("\n\r SELECT TOP 10", 3));
+            filteredBuffer.add(createTestRow("INSERT INTO Logs", 4));
+
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.StartsWith, value: "SELECT" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(3);
+        });
     });
 
     suite("FilterOperator.NotStartsWith", () => {
@@ -529,6 +543,19 @@ suite("FilteredBuffer Tests", () => {
             // Both should match
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(2);
+        });
+
+        test("trims leading whitespace before evaluating not-starts-with", () => {
+            filteredBuffer.add(createTestRow("  SELECT * FROM Users", 1));
+            filteredBuffer.add(createTestRow("\tINSERT INTO Logs", 2));
+
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.NotStartsWith, value: "SELECT" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("\tINSERT INTO Logs");
         });
     });
 
@@ -625,9 +652,9 @@ suite("FilteredBuffer Tests", () => {
 
             const boolFiltered = new FilteredBuffer<BoolRow>(10);
 
-            boolFiltered.add({ id: uuidv4(), eventNumber: 1, name: "test1", active: true });
-            boolFiltered.add({ id: uuidv4(), eventNumber: 2, name: "test2", active: false });
-            boolFiltered.add({ id: uuidv4(), eventNumber: 3, name: "test3", active: true });
+            boolFiltered.add({ id: uuid(), eventNumber: 1, name: "test1", active: true });
+            boolFiltered.add({ id: uuid(), eventNumber: 2, name: "test2", active: false });
+            boolFiltered.add({ id: uuid(), eventNumber: 3, name: "test3", active: true });
 
             boolFiltered.setColumnFilters([
                 {
@@ -722,7 +749,7 @@ suite("FilteredBuffer Tests", () => {
 
         function createEventRow(overrides: Partial<EventRow> = {}): EventRow {
             return {
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: new Date(),
                 eventClass: "SQL:BatchCompleted",
@@ -921,25 +948,25 @@ suite("FilteredBuffer Tests", () => {
             dateFilteredBuffer = new FilteredBuffer<DateTestRow>(100);
 
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Jan15,
                 name: "January event",
             });
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Mar20,
                 name: "March event",
             });
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Jun01,
                 name: "June event",
             });
             dateFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 timestamp: date2024Dec31,
                 name: "December event",
@@ -1075,25 +1102,25 @@ suite("FilteredBuffer Tests", () => {
 
             // Add events with profiler-format timestamp strings (as they appear in grid)
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:00:00.000",
                 name: "Early event",
             });
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:29:10.000",
                 name: "Middle event",
             });
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 20:32:00.000",
                 name: "Late event",
             });
             profilerFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 StartTime: "2026-01-21 21:00:00.000",
                 name: "Much later event",
@@ -1227,7 +1254,7 @@ suite("FilteredBuffer Tests", () => {
 
             // Add diverse test data
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT * FROM Users WHERE active = 1",
@@ -1236,7 +1263,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 55,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT * FROM Orders WHERE total > 100",
@@ -1245,7 +1272,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 60,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "RPC:Completed",
                 textData: "sp_GetUserDetails @userId = 123",
@@ -1254,7 +1281,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 55,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "INSERT INTO Logs VALUES (1, 'test')",
@@ -1263,7 +1290,7 @@ suite("FilteredBuffer Tests", () => {
                 spid: 70,
             });
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT id FROM Users",
@@ -1373,7 +1400,7 @@ suite("FilteredBuffer Tests", () => {
         test("clauses with mixed null checks", () => {
             // Add a row with undefined duration
             complexFilteredBuffer.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: nextEventNumber++,
                 eventClass: "SQL:BatchCompleted",
                 textData: "SELECT 1",
@@ -1413,14 +1440,14 @@ suite("FilteredBuffer Tests", () => {
 
             const optFiltered = new FilteredBuffer<OptionalNumRow>(10);
 
-            optFiltered.add({ id: uuidv4(), eventNumber: 1, name: "has value", optionalNum: 150 });
+            optFiltered.add({ id: uuid(), eventNumber: 1, name: "has value", optionalNum: 150 });
             optFiltered.add({
-                id: uuidv4(),
+                id: uuid(),
                 eventNumber: 2,
                 name: "no value",
                 optionalNum: undefined,
             });
-            optFiltered.add({ id: uuidv4(), eventNumber: 3, name: "high value", optionalNum: 300 });
+            optFiltered.add({ id: uuid(), eventNumber: 3, name: "high value", optionalNum: 300 });
 
             optFiltered.setColumnFilters([
                 {
@@ -1446,9 +1473,9 @@ suite("FilteredBuffer Tests", () => {
 
             const optFiltered = new FilteredBuffer<OptionalNumRow>(10);
 
-            optFiltered.add({ id: uuidv4(), eventNumber: 1, name: "fast", duration: 50 });
-            optFiltered.add({ id: uuidv4(), eventNumber: 2, name: "slow", duration: 5000 });
-            optFiltered.add({ id: uuidv4(), eventNumber: 3, name: "unknown", duration: undefined });
+            optFiltered.add({ id: uuid(), eventNumber: 1, name: "fast", duration: 50 });
+            optFiltered.add({ id: uuid(), eventNumber: 2, name: "slow", duration: 5000 });
+            optFiltered.add({ id: uuid(), eventNumber: 3, name: "unknown", duration: undefined });
 
             // Find slow queries (duration > 1000) but only where duration is known
             optFiltered.setColumnFilters([
@@ -1506,6 +1533,21 @@ suite("FilteredBuffer Tests", () => {
 
             expect(filteredBuffer.getFilteredRows()).to.have.length(0);
         });
+
+        test("trims trailing whitespace from field value before matching", () => {
+            filteredBuffer.add(createTestRow("SELECT * FROM Users  ", 1));
+            filteredBuffer.add(createTestRow("SELECT * FROM Orders\t", 2));
+            filteredBuffer.add(createTestRow("SELECT * FROM Logs\n\r ", 3));
+            filteredBuffer.add(createTestRow("INSERT INTO Logs", 4));
+
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.EndsWith, value: "Users" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("SELECT * FROM Users  ");
+        });
     });
 
     suite("NotEndsWith operator", () => {
@@ -1534,6 +1576,19 @@ suite("FilteredBuffer Tests", () => {
             const rows = filteredBuffer.getFilteredRows();
             expect(rows).to.have.length(1);
             expect(rows[0].name).to.equal("query.txt");
+        });
+
+        test("trims trailing whitespace before evaluating not-ends-with", () => {
+            filteredBuffer.add(createTestRow("SELECT * FROM Users  ", 1));
+            filteredBuffer.add(createTestRow("INSERT INTO Orders\n", 2));
+
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.NotEndsWith, value: "Users" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("INSERT INTO Orders\n");
         });
     });
 
@@ -1973,6 +2028,537 @@ suite("FilteredBuffer Tests", () => {
             });
 
             expect(filteredBuffer.filteredCount).to.equal(2);
+        });
+    });
+
+    suite("database name filter with row converter", () => {
+        test("Equals filter on converted field filters rows added after applyFilter", () => {
+            // Simulate the profiler scenario: filter on DatabaseName via a row converter
+            // that maps the raw "name" field to "DatabaseName"
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                DatabaseName: row.name,
+            }));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.Equals,
+                        value: "AdventureWorks",
+                    },
+                ],
+            });
+
+            // Cache should exist and be empty since no rows yet
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+
+            // Add rows after filter is set (simulating live events arriving)
+            filteredBuffer.add(createTestRow("AdventureWorks", 1));
+            filteredBuffer.add(createTestRow("master", 2));
+            filteredBuffer.add(createTestRow("AdventureWorks", 3));
+            filteredBuffer.add(createTestRow("tempdb", 4));
+
+            // Only AdventureWorks rows should pass
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+            expect(filteredBuffer.size).to.equal(4); // total is still 4
+        });
+
+        test("Equals filter is case-insensitive for string values", () => {
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                DatabaseName: row.name,
+            }));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.Equals,
+                        value: "adventureworks",
+                    },
+                ],
+            });
+
+            filteredBuffer.add(createTestRow("AdventureWorks", 1));
+            filteredBuffer.add(createTestRow("ADVENTUREWORKS", 2));
+            filteredBuffer.add(createTestRow("master", 3));
+
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+        });
+
+        test("Equals filter excludes rows with undefined/null field", () => {
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                DatabaseName: row.category, // category can be undefined
+            }));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "DatabaseName",
+                        operator: FilterOperator.Equals,
+                        value: "MyDB",
+                    },
+                ],
+            });
+
+            filteredBuffer.add(createTestRow("event1", 1, 0, "MyDB"));
+            filteredBuffer.add(createTestRow("event2", 2, 0, undefined)); // no db
+            filteredBuffer.add(createTestRow("event3", 3, 0, "OtherDB"));
+
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+        });
+    });
+
+    suite("Pre-converted clause values", () => {
+        /**
+         * These tests verify that clause values are pre-converted to their
+         * runtime types when filters are set, so that per-row evaluation
+         * can compare values directly without repeated parsing.
+         */
+
+        test("numeric clause value is pre-converted and comparison works correctly", () => {
+            filteredBuffer.add(createTestRow("test1", 100));
+            filteredBuffer.add(createTestRow("test2", 200));
+            filteredBuffer.add(createTestRow("test3", 50));
+
+            // String value with Number typeHint should be pre-converted to number
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "value",
+                    operator: FilterOperator.GreaterThan,
+                    value: "75" as unknown as number,
+                    typeHint: FilterTypeHint.Number,
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows[0].value).to.equal(100);
+            expect(rows[1].value).to.equal(200);
+        });
+
+        test("date clause value is pre-converted and comparison works with Date field values", () => {
+            const now = Date.now();
+            filteredBuffer.add(createTestRow("past", 1, -10000));
+            filteredBuffer.add(createTestRow("recent", 2, -1000));
+            filteredBuffer.add(createTestRow("future", 3, 10000));
+
+            // String ISO date with Date typeHint should be pre-converted to Date object
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "timestamp",
+                    operator: FilterOperator.GreaterThan,
+                    value: new Date(now - 5000).toISOString(),
+                    typeHint: FilterTypeHint.Date,
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.map((r) => r.name)).to.include("recent");
+            expect(rows.map((r) => r.name)).to.include("future");
+        });
+
+        test("boolean clause value is pre-converted", () => {
+            interface BoolRow extends IndexedRow {
+                eventNumber: number;
+                name: string;
+                active: boolean;
+            }
+
+            const boolBuffer = new FilteredBuffer<BoolRow>(10);
+            boolBuffer.add({ id: uuid(), eventNumber: 1, name: "a", active: true });
+            boolBuffer.add({ id: uuid(), eventNumber: 2, name: "b", active: false });
+            boolBuffer.add({ id: uuid(), eventNumber: 3, name: "c", active: true });
+
+            // String "true" with Boolean typeHint should be pre-converted
+            boolBuffer.setColumnFilters([
+                {
+                    field: "active",
+                    operator: FilterOperator.Equals,
+                    value: "true" as unknown as boolean,
+                    typeHint: FilterTypeHint.Boolean,
+                },
+            ]);
+
+            const rows = boolBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.every((r) => r.active === true)).to.be.true;
+        });
+
+        test("clause values without typeHint are left as-is", () => {
+            filteredBuffer.add(createTestRow("apple", 1));
+            filteredBuffer.add(createTestRow("banana", 2));
+            filteredBuffer.add(createTestRow("apricot", 3));
+
+            // No typeHint — value remains a string
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.Contains, value: "ap" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.map((r) => r.name)).to.deep.equal(["apple", "apricot"]);
+        });
+
+        test("undefined clause value is handled correctly", () => {
+            filteredBuffer.add(createTestRow("test1", 1, 0, "cat1"));
+            filteredBuffer.add(createTestRow("test2", 2, 0, undefined));
+
+            filteredBuffer.setColumnFilters([
+                { field: "category", operator: FilterOperator.Equals, value: undefined },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("test2");
+        });
+
+        test("clearColumnFilters clears pre-converted values", () => {
+            filteredBuffer.add(createTestRow("test1", 100));
+            filteredBuffer.add(createTestRow("test2", 200));
+
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "value",
+                    operator: FilterOperator.GreaterThan,
+                    value: 150,
+                    typeHint: FilterTypeHint.Number,
+                },
+            ]);
+            expect(filteredBuffer.getFilteredRows()).to.have.length(1);
+
+            // Clear and set a completely different filter
+            filteredBuffer.clearColumnFilters();
+            expect(filteredBuffer.isFilterActive).to.be.false;
+            expect(filteredBuffer.getFilteredRows()).to.have.length(2);
+
+            // Re-apply a different filter — old pre-converted values should not leak
+            filteredBuffer.setColumnFilters([
+                { field: "name", operator: FilterOperator.Contains, value: "test1" },
+            ]);
+            expect(filteredBuffer.getFilteredRows()).to.have.length(1);
+            expect(filteredBuffer.getFilteredRows()[0].name).to.equal("test1");
+        });
+
+        test("resetFilter clears pre-converted values", () => {
+            filteredBuffer.add(createTestRow("a", 10));
+            filteredBuffer.add(createTestRow("b", 20));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.Equals,
+                        value: 10,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            filteredBuffer.resetFilter();
+            expect(filteredBuffer.isFilterActive).to.be.false;
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+        });
+
+        test("clearAllFilters clears pre-converted values", () => {
+            filteredBuffer.add(createTestRow("x", 5));
+            filteredBuffer.add(createTestRow("y", 15));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.GreaterThan,
+                        value: 10,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+                quickFilter: "y",
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            filteredBuffer.clearAllFilters();
+            expect(filteredBuffer.isFilterActive).to.be.false;
+            expect(filteredBuffer.getFilteredRows()).to.have.length(2);
+        });
+
+        test("applyFilter with new clauses replaces pre-converted values", () => {
+            filteredBuffer.add(createTestRow("alpha", 100));
+            filteredBuffer.add(createTestRow("beta", 200));
+            filteredBuffer.add(createTestRow("gamma", 300));
+
+            // First filter: value > 150
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.GreaterThan,
+                        value: 150,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(2);
+
+            // Second filter: value > 250 — pre-converted values should be replaced
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.GreaterThan,
+                        value: 250,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+            expect(filteredBuffer.getFilteredRows()[0].name).to.equal("gamma");
+        });
+    });
+
+    suite("Pre-typed fast paths (both sides typed)", () => {
+        /**
+         * These tests verify the zero-parsing fast paths where both
+         * the field value (from the row or row converter) and the filter
+         * clause value are already properly typed (number, Date, boolean).
+         */
+
+        test("number-number: row converter provides typed numbers, clause pre-converts", () => {
+            // Simulate the real flow: row converter converts string fields to numbers
+            filteredBuffer.add(createTestRow("test1", 100));
+            filteredBuffer.add(createTestRow("test2", 200));
+            filteredBuffer.add(createTestRow("test3", 300));
+
+            // Row converter maps value → typedValue (already a number, so no change)
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                typedValue: row.value, // Already a number in TestRow
+            }));
+
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "typedValue",
+                    operator: FilterOperator.Equals,
+                    value: 200,
+                    typeHint: FilterTypeHint.Number,
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("test2");
+        });
+
+        test("Date-Date: field is Date object, clause pre-converts ISO string to Date", () => {
+            filteredBuffer.add(createTestRow("early", 1, -86400000)); // 1 day before now
+            filteredBuffer.add(createTestRow("target", 2, 0));
+
+            // Use row converter to provide a known Date
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                eventDate: row.timestamp, // Date objects from TestRow
+            }));
+
+            // Filter with ISO string + Date typeHint — pre-converts to Date
+            const filterIso = new Date(Date.now() - 43200000).toISOString(); // 12h ago
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "eventDate",
+                    operator: FilterOperator.GreaterThan,
+                    value: filterIso,
+                    typeHint: FilterTypeHint.Date,
+                },
+            ]);
+
+            // The "target" row's timestamp should be more recent
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows.length).to.be.greaterThanOrEqual(1);
+        });
+
+        test("boolean-boolean: field is boolean, clause pre-converts string to boolean", () => {
+            interface FlagRow extends IndexedRow {
+                eventNumber: number;
+                name: string;
+                isActive: boolean;
+            }
+
+            const flagBuffer = new FilteredBuffer<FlagRow>(10);
+            flagBuffer.add({ id: uuid(), eventNumber: 1, name: "on1", isActive: true });
+            flagBuffer.add({ id: uuid(), eventNumber: 2, name: "off1", isActive: false });
+            flagBuffer.add({ id: uuid(), eventNumber: 3, name: "on2", isActive: true });
+
+            // String "false" with Boolean typeHint
+            flagBuffer.setColumnFilters([
+                {
+                    field: "isActive",
+                    operator: FilterOperator.Equals,
+                    value: "false" as unknown as boolean,
+                    typeHint: FilterTypeHint.Boolean,
+                },
+            ]);
+
+            const rows = flagBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("off1");
+        });
+
+        test("number field with string clause: one-side-typed path parses the string", () => {
+            // Field value is already a number, filter value is a string WITHOUT typeHint
+            // The one-side-typed path should parse the string
+            filteredBuffer.add(createTestRow("x", 42));
+            filteredBuffer.add(createTestRow("y", 99));
+
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "value",
+                    operator: FilterOperator.Equals,
+                    value: "42",
+                    typeHint: FilterTypeHint.Number,
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("x");
+        });
+
+        test("Date field with string clause: one-side-typed path parses the string", () => {
+            const now = Date.now();
+            filteredBuffer.add(createTestRow("event1", 1, -5000));
+            filteredBuffer.add(createTestRow("event2", 2, 5000));
+
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "timestamp",
+                    operator: FilterOperator.LessThan,
+                    value: new Date(now).toISOString(),
+                    typeHint: FilterTypeHint.Date,
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("event1");
+        });
+
+        test("row converter with typed numeric values and comparison operators", () => {
+            // Simulate the profiler's real flow where convertEventToTypedRow
+            // provides typed numbers and clause values are pre-converted
+            filteredBuffer.add(createTestRow("fast", 50));
+            filteredBuffer.add(createTestRow("medium", 500));
+            filteredBuffer.add(createTestRow("slow", 5000));
+
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                duration: row.value, // Number type preserved
+            }));
+
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "duration",
+                    operator: FilterOperator.GreaterThanOrEqual,
+                    value: 500,
+                    typeHint: FilterTypeHint.Number,
+                },
+                {
+                    field: "duration",
+                    operator: FilterOperator.LessThan,
+                    value: 5000,
+                    typeHint: FilterTypeHint.Number,
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("medium");
+        });
+
+        test("row converter with mixed typed and string values", () => {
+            // Row converter provides number for one field and string for another
+            filteredBuffer.add(createTestRow("alpha", 100, 0, "catA"));
+            filteredBuffer.add(createTestRow("beta", 200, 0, "catB"));
+            filteredBuffer.add(createTestRow("gamma", 100, 0, "catA"));
+
+            filteredBuffer.setRowConverter((row) => ({
+                ...row,
+                numericValue: row.value, // number
+                categoryLabel: row.category ?? "", // string
+            }));
+
+            filteredBuffer.setColumnFilters([
+                {
+                    field: "numericValue",
+                    operator: FilterOperator.Equals,
+                    value: 100,
+                    typeHint: FilterTypeHint.Number,
+                },
+                {
+                    field: "categoryLabel",
+                    operator: FilterOperator.Equals,
+                    value: "catA",
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.map((r) => r.name)).to.deep.equal(["alpha", "gamma"]);
+        });
+    });
+
+    suite("Pre-typed values with incremental cache maintenance", () => {
+        /**
+         * These tests verify that pre-converted clause values work correctly
+         * with the incremental cache maintenance in add().
+         */
+
+        test("add() evaluates new rows using pre-converted clause values", () => {
+            filteredBuffer.add(createTestRow("init", 100));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "value",
+                        operator: FilterOperator.GreaterThan,
+                        value: "150" as unknown as number,
+                        typeHint: FilterTypeHint.Number,
+                    },
+                ],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+
+            // Add matching row — should use pre-converted clause value for comparison
+            filteredBuffer.add(createTestRow("matching", 200));
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+
+            // Add non-matching row
+            filteredBuffer.add(createTestRow("nonmatching", 50));
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+        });
+
+        test("add() with pre-typed Date comparison for incremental cache", () => {
+            const now = Date.now();
+            filteredBuffer.add(createTestRow("old", 1, -20000));
+
+            filteredBuffer.applyFilter({
+                clauses: [
+                    {
+                        field: "timestamp",
+                        operator: FilterOperator.GreaterThan,
+                        value: new Date(now - 5000).toISOString(),
+                        typeHint: FilterTypeHint.Date,
+                    },
+                ],
+            });
+            expect(filteredBuffer.getFilteredCount()).to.equal(0);
+
+            // Add a recent event that should match
+            filteredBuffer.add(createTestRow("new", 2, 1000));
+            expect(filteredBuffer.getFilteredCount()).to.equal(1);
+            expect(filteredBuffer.getFilteredRows()[0].name).to.equal("new");
         });
     });
 });
