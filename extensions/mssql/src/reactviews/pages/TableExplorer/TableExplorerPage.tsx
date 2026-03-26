@@ -19,8 +19,13 @@ import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { SqlPaneMode } from "../../../sharedInterfaces/tableExplorer";
+import {
+    SqlPaneMode,
+    TableExplorerWebViewState,
+    TableExplorerReducers,
+} from "../../../sharedInterfaces/tableExplorer";
 import { VscodeEditor } from "../../common/vscodeMonaco";
+import { useMonacoSqlIntellisense } from "./useMonacoSqlIntellisense";
 
 const useStyles = makeStyles({
     root: {
@@ -84,7 +89,10 @@ const useStyles = makeStyles({
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
-    const { themeKind } = useVscodeWebview();
+    const { themeKind, extensionRpc } = useVscodeWebview<
+        TableExplorerWebViewState,
+        TableExplorerReducers
+    >();
 
     // Use selectors to access specific state properties
     const resultSet = useTableExplorerSelector((s) => s.resultSet);
@@ -96,8 +104,11 @@ export const TableExplorerPage: React.FC = () => {
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
+    const ownerUri = useTableExplorerSelector((s) => s.ownerUri);
 
     const isLoading = loadStatus === ApiStatus.Loading;
+
+    const { beforeMount } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
 
     const [editableQuery, setEditableQuery] = useState("");
 
@@ -207,10 +218,12 @@ export const TableExplorerPage: React.FC = () => {
                                                     value={editableQuery}
                                                     options={{
                                                         readOnly: false,
+                                                        fixedOverflowWidgets: true,
                                                     }}
                                                     onChange={(value) =>
                                                         setEditableQuery(value ?? "")
                                                     }
+                                                    beforeMount={beforeMount}
                                                 />
                                             </div>
                                         ),

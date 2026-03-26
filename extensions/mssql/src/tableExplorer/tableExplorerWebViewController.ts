@@ -18,7 +18,13 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
-import { NotificationHandler } from "vscode-languageclient";
+import {
+    CompletionRequest,
+    DidChangeTextDocumentNotification,
+    DidCloseTextDocumentNotification,
+    DidOpenTextDocumentNotification,
+    NotificationHandler,
+} from "vscode-languageclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
@@ -26,6 +32,13 @@ import * as Constants from "../constants/constants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import {
+    WebviewCompletionRequest,
+    WebviewCompletionParams,
+    WebviewCompletionResult,
+    mapLspKindToMonaco,
+} from "../sharedInterfaces/webviewLanguageService";
+import { LanguageFlavorChangedNotification } from "../models/contracts/languageService";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -34,6 +47,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     private operationId: string;
     private _preserveTableQuery = false;
     private _expectedOwnerUri: string = "";
+    private _documentVersions = new Map<string, number>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -294,6 +308,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.onRequest(WebviewCompletionRequest.type, async (params) => {
+            return await this.handleCompletionRequest(params);
+        });
+
         this.registerReducer("commitChanges", async (state) => {
             this.logger.info(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
@@ -1579,6 +1597,174 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Handles a completion request from the webview Monaco editor by forwarding it
+     * to the SQL Tools Service and mapping the results to Monaco's format.
+     */
+    private async handleCompletionRequest(
+        params: WebviewCompletionParams,
+    ): Promise<WebviewCompletionResult> {
+        const ownerUri = params.ownerUri;
+        const client = this._tableExplorerService.sqlToolsClient;
+
+        this.logger.verbose(
+            `[IntelliSense] Completion request received - ownerUri: "${ownerUri}", ` +
+                `position: (${params.position.lineNumber}, ${params.position.column}), ` +
+                `textUntilPosition: "${params.textUntilPosition}", ` +
+                `fullText length: ${params.fullText.length}`,
+        );
+
+        if (!ownerUri) {
+            this.logger.verbose(`[IntelliSense] No ownerUri provided, returning empty suggestions`);
+            return { suggestions: [] };
+        }
+
+        if (!this._connectionManager.isConnected(ownerUri)) {
+            this.logger.verbose(
+                `[IntelliSense] Not connected for ownerUri "${ownerUri}", returning empty suggestions`,
+            );
+            return { suggestions: [] };
+        }
+
+        try {
+            await this.syncDocumentContent(ownerUri, params.fullText);
+
+            const lspPosition = {
+                line: params.position.lineNumber - 1, // Monaco is 1-based, LSP is 0-based
+                character: params.position.column - 1,
+            };
+
+            this.logger.verbose(
+                `[IntelliSense] Sending textDocument/completion to STS - ` +
+                    `uri: "${ownerUri}", LSP position: (${lspPosition.line}, ${lspPosition.character})`,
+            );
+
+            const completionResult = await client.sendRequest(CompletionRequest.type, {
+                textDocument: { uri: ownerUri },
+                position: lspPosition,
+            });
+
+            if (!completionResult) {
+                this.logger.verbose(`[IntelliSense] STS returned null/undefined completion result`);
+                return { suggestions: [] };
+            }
+
+            const items = Array.isArray(completionResult)
+                ? completionResult
+                : (completionResult.items ?? []);
+
+            this.logger.verbose(
+                `[IntelliSense] STS returned ${items.length} completion items. ` +
+                    `First 5: [${items
+                        .slice(0, 5)
+                        .map(
+                            (i) =>
+                                `"${typeof i.label === "string" ? i.label : i.label.label}" (kind=${i.kind})`,
+                        )
+                        .join(", ")}]`,
+            );
+
+            const suggestions = items.map((item) => ({
+                label: typeof item.label === "string" ? item.label : item.label.label,
+                kind: mapLspKindToMonaco(item.kind),
+                insertText:
+                    item.insertText ??
+                    (typeof item.label === "string" ? item.label : item.label.label),
+                detail: item.detail,
+                documentation:
+                    typeof item.documentation === "string"
+                        ? item.documentation
+                        : item.documentation?.value,
+                sortText: item.sortText,
+                filterText: item.filterText,
+                preselect: item.preselect,
+            }));
+
+            this.logger.verbose(
+                `[IntelliSense] Returning ${suggestions.length} mapped Monaco suggestions`,
+            );
+
+            return { suggestions };
+        } catch (error) {
+            this.logger.error(
+                `[IntelliSense] Error handling completion request: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+            return { suggestions: [] };
+        }
+    }
+
+    /**
+     * Syncs the editor document content with the SQL Tools Service so it can provide
+     * context-aware completions. Uses didOpen for the first sync and didChange with
+     * a full-document range for subsequent syncs.
+     */
+    private async syncDocumentContent(ownerUri: string, text: string): Promise<void> {
+        const client = this._tableExplorerService.sqlToolsClient;
+        const version = (this._documentVersions.get(ownerUri) ?? 0) + 1;
+        this._documentVersions.set(ownerUri, version);
+
+        if (version === 1) {
+            this.logger.verbose(
+                `[IntelliSense] Sending textDocument/didOpen for "${ownerUri}" (version ${version}, text length: ${text.length})`,
+            );
+
+            client.sendNotification(DidOpenTextDocumentNotification.type, {
+                textDocument: {
+                    uri: ownerUri,
+                    languageId: "sql",
+                    version,
+                    text,
+                },
+            });
+
+            // Tell STS this is an MSSQL document for MSSQL-specific completions
+            this.logger.verbose(
+                `[IntelliSense] Sending languageFlavorChanged for "${ownerUri}" (flavor: MSSQL)`,
+            );
+            client.sendNotification(LanguageFlavorChangedNotification.type, {
+                uri: ownerUri,
+                language: "sql",
+                flavor: "MSSQL",
+            });
+        } else {
+            this.logger.verbose(
+                `[IntelliSense] Sending textDocument/didChange for "${ownerUri}" (version ${version}, text length: ${text.length})`,
+            );
+
+            client.sendNotification(DidChangeTextDocumentNotification.type, {
+                textDocument: { uri: ownerUri, version },
+                contentChanges: [
+                    {
+                        range: {
+                            start: { line: 0, character: 0 },
+                            end: {
+                                line: Number.MAX_SAFE_INTEGER,
+                                character: Number.MAX_SAFE_INTEGER,
+                            },
+                        },
+                        text,
+                    },
+                ],
+            });
+        }
+    }
+
+    /**
+     * Cleans up the language service document when the controller is disposed.
+     */
+    private disposeLanguageServiceDocument(ownerUri: string): void {
+        if (!ownerUri || !this._documentVersions.has(ownerUri)) {
+            return;
+        }
+
+        const client = this._tableExplorerService.sqlToolsClient;
+        client.sendNotification(DidCloseTextDocumentNotification.type, {
+            textDocument: { uri: ownerUri },
+        });
+
+        this._documentVersions.delete(ownerUri);
+    }
+
+    /**
      * Override the base class's showRestorePrompt to handle unsaved changes.
      * This is called from the onDidDispose handler in the base class.
      * Prompts the user to save or discard changes, then allows disposal to continue.
@@ -1633,6 +1819,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
+
+            // Clean up the language service document to prevent ScriptFile buffer leaks
+            this.disposeLanguageServiceDocument(this.state.ownerUri);
+
             void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
                 this.logger.error(
                     `Error disposing table explorer service: ${getErrorMessage(error)}`,
