@@ -53,6 +53,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _preserveTableQuery = false;
     private _expectedOwnerUri: string = "";
     private _documentVersions = new Map<string, number>();
+    private _documentEndPosition = new Map<string, { line: number; character: number }>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -1766,25 +1767,34 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     /**
      * Syncs the editor document content with the SQL Tools Service.
-     * Uses didClose + didOpen to replace the entire document content,
-     * avoiding range calculation issues with the STS's position validation.
+     * Sends a didChange with a range covering the entire previous document.
      */
     private syncDocumentContent(ownerUri: string, text: string): void {
         const client = this._tableExplorerService.sqlToolsClient;
         const version = (this._documentVersions.get(ownerUri) ?? 0) + 1;
         this._documentVersions.set(ownerUri, version);
 
-        client.sendNotification(DidCloseTextDocumentNotification.type, {
-            textDocument: { uri: ownerUri },
+        // The end position must be within the previous document's bounds.
+        const prevEnd = this._documentEndPosition.get(ownerUri) ?? { line: 0, character: 0 };
+
+        // Track the new content's end position for the next change
+        const lines = text.split("\n");
+        this._documentEndPosition.set(ownerUri, {
+            line: lines.length - 1,
+            character: lines[lines.length - 1].length,
         });
 
-        client.sendNotification(DidOpenTextDocumentNotification.type, {
-            textDocument: {
-                uri: ownerUri,
-                languageId: "sql",
-                version,
-                text,
-            },
+        client.sendNotification(DidChangeTextDocumentNotification.type, {
+            textDocument: { uri: ownerUri, version },
+            contentChanges: [
+                {
+                    range: {
+                        start: { line: 0, character: 0 },
+                        end: prevEnd,
+                    },
+                    text,
+                },
+            ],
         });
     }
 
