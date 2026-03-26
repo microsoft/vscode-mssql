@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { l10n } from "vscode";
 import { AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth/out/src/getSessionFromVSCode";
 
@@ -13,6 +12,7 @@ import { FormItemOptions } from "../sharedInterfaces/form";
 import { IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
 import { VsCodeAzureHelper, getDefaultTenantId } from "../connectionconfig/azureHelpers";
+import * as locConstants from "../constants/locConstants";
 
 export interface VscodeEntraSqlTokenInfo {
     account: vscode.AuthenticationSessionAccountInformation;
@@ -103,10 +103,10 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
 ): Promise<VscodeEntraSqlTokenInfo> {
     const account = await resolveVscodeEntraAccount(accountId, accountLabel);
     if (!account) {
-        throw new Error(
-            l10n.t(
-                "The selected Microsoft Entra account is not available through VS Code sign-in. Sign into VS Code with that account or disable '{0}'.",
-                Constants.configUseVscodeAccountsForEntraMfa,
+        throw new MissingVsCodeEntraAuthError(
+            locConstants.Accounts.accountNotAvailableThroguhVsCode(
+                accountLabel ?? accountId ?? "",
+                tenantId ?? "",
             ),
         );
     }
@@ -118,17 +118,20 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
             : getDefaultTenantId(account.id, tenants);
 
     if (!resolvedTenantId) {
-        throw new Error(
-            l10n.t(
-                "No Microsoft Entra tenant is available for the selected VS Code account. Sign into the tenant in VS Code or disable '{0}'.",
-                Constants.configUseVscodeAccountsForEntraMfa,
+        throw new MissingVsCodeEntraAuthError(
+            locConstants.Accounts.accountNotAvailableThroguhVsCode(
+                accountLabel ?? accountId ?? "",
+                tenantId ?? "",
             ),
         );
     }
 
-    const sqlResource = getCloudProviderSettings().settings.sqlResource;
+    const cloudSettings = getCloudProviderSettings();
+    const sqlResource = cloudSettings.settings.sqlResource;
     if (!sqlResource) {
-        throw new Error(l10n.t("No SQL resource is configured for the current cloud."));
+        throw new Error(
+            locConstants.Azure.noSqlResourceConfiguredForCurrentCloud(cloudSettings.displayName),
+        );
     }
 
     const session =
@@ -144,9 +147,7 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
 
     if (!session) {
         throw new Error(
-            l10n.t(
-                "Unable to acquire a Microsoft Entra token from VS Code for the selected account.",
-            ),
+            locConstants.Azure.unableToAcquireEntraTokenFromVsCode(accountLabel ?? accountId ?? ""),
         );
     }
 
@@ -175,5 +176,14 @@ function getTokenExpiration(accessToken: string): number | undefined {
         return typeof claims.exp === "number" ? claims.exp : undefined;
     } catch {
         return undefined;
+    }
+}
+
+export class MissingVsCodeEntraAuthError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "MissingVsCodeEntraAccountError";
+        // Set the prototype explicitly to maintain the correct prototype chain
+        Object.setPrototypeOf(this, MissingVsCodeEntraAuthError.prototype);
     }
 }

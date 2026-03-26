@@ -1587,6 +1587,12 @@
                     ],
                     "scope": "application"
                 },
+                "mssql.preview.useVscodeAccountsForEntraID": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.useVscodeAccountsForEntraID.description%",
+                    "scope": "application"
+                },
                 "mssql.logDebugInfo": {
                     "type": "boolean",
                     "default": false,
