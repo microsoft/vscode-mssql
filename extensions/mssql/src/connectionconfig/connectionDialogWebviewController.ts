@@ -1495,7 +1495,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     const selectedAccount = await resolveVscodeEntraAccount(
                         this.state.connectionProfile.accountId,
                     );
-                    await auth.signIn(undefined, selectedAccount);
+
+                    const signedIn = await auth.signIn(undefined, selectedAccount);
+                    if (!signedIn) {
+                        this.logger.warn("VS Code Azure sign-in was canceled or failed.");
+                        return;
+                    }
 
                     const accountsComponent = this.getFormComponent(this.state, "accountId");
                     if (!accountsComponent) {

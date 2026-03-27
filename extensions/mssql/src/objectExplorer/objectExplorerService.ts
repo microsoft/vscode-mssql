@@ -763,14 +763,12 @@ export class ObjectExplorerService {
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
                 );
                 if (choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn) {
-                    // User chose to sign in; try again.
-                    await VsCodeAzureHelper.signIn();
                     try {
-                        // in case the error was due to missing authentication
+                        await VsCodeAzureHelper.signIn(); // User chose to sign in to the missing account; try again.
                         return await prepareConnectionProfile();
                     } catch (retryError) {
                         this._logger.error(
-                            `Error when attempting to prepare connection profile after VS Code sign-in.\n\nError:\n${getErrorMessage(retryError)}`,
+                            `Error when signing in or attempting to prepare connection profile after VS Code sign-in.\n\nError:\n${getErrorMessage(retryError)}`,
                         );
                     }
                 } else if (
