@@ -400,8 +400,7 @@
                     "when": "false"
                 },
                 {
-                    "command": "sqlDatabaseProjects.openDocumentation",
-                    "when": "false"
+                    "command": "sqlDatabaseProjects.openDocumentation"
                 }
             ],
             "sqlDatabaseProjects.objectExplorerSubmenu": [
