@@ -1000,7 +1000,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
             .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
             .resolves([mockTenants[0], mockTenants[1]]);
 
-        const signInStub = sandbox.stub().resolves(true);
+        const signInStub = sandbox.stub().callsFake(() => {
+            return true;
+        });
+
         sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
             signIn: signInStub,
         } as unknown as MssqlVSCodeAzureSubscriptionProvider);
@@ -1012,7 +1015,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         expect(buttons).to.have.lengthOf(1);
         expect(buttons[0].id).to.equal("azureSignIn");
 
-        buttons[0].callback();
+        await buttons[0].callback();
 
         expect(signInStub).to.have.been.calledOnce;
     });

@@ -1517,35 +1517,35 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     this.updateState();
                     await this.handleAzureMFAEdits("accountId");
                     return;
+                } else {
+                    const account = await this._mainController.azureAccountService.addAccount();
+                    this.logger.verbose(
+                        `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
+                    );
+
+                    const accountsComponent = this.getFormComponent(this.state, "accountId");
+
+                    if (!accountsComponent) {
+                        this.logger.error("Account component not found");
+                        return;
+                    }
+
+                    accountsComponent.options = await getAccounts(
+                        this._mainController.azureAccountService,
+                        this.logger,
+                    );
+
+                    this.logger.verbose(
+                        `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
+                    );
+
+                    this.state.connectionProfile.accountId = account.key.id;
+
+                    this.logger.verbose(`Selecting '${account.key.id}'`);
+
+                    this.updateState();
+                    await this.handleAzureMFAEdits("accountId");
                 }
-
-                const account = await this._mainController.azureAccountService.addAccount();
-                this.logger.verbose(
-                    `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
-                );
-
-                const accountsComponent = this.getFormComponent(this.state, "accountId");
-
-                if (!accountsComponent) {
-                    this.logger.error("Account component not found");
-                    return;
-                }
-
-                accountsComponent.options = await getAccounts(
-                    this._mainController.azureAccountService,
-                    this.logger,
-                );
-
-                this.logger.verbose(
-                    `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
-                );
-
-                this.state.connectionProfile.accountId = account.key.id;
-
-                this.logger.verbose(`Selecting '${account.key.id}'`);
-
-                this.updateState();
-                await this.handleAzureMFAEdits("accountId");
             },
         });
 
