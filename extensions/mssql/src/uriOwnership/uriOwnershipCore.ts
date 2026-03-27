@@ -238,6 +238,7 @@ export class UriOwnershipCoordinator {
         this._context.subscriptions.push(
             vscode.extensions.onDidChange(() => {
                 this._refreshCoordinatingExtensions();
+                this._updateUriOwnershipContext();
             }),
         );
     }
