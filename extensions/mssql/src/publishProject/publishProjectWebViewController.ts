@@ -46,7 +46,7 @@ import * as dockerUtils from "../docker/dockerUtils";
 import * as sqlServerContainer from "../deployment/sqlServerContainer";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
@@ -60,6 +60,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
     private _connectionUri?: string;
+    private _serverTypes: string = "";
     private _availableConnections?: IConnectionDialogProfile[];
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
@@ -208,11 +209,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const connectionUri = this._connectionUri || "";
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
-        // Send telemetry
-        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-            operationId: this._operationId,
-        });
-
         try {
             const result = await this._dacFxService!.deployDacpac(
                 dacpacPath,
@@ -228,6 +224,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
                     operationId: this._operationId,
                     success: "true",
+                    serverTypes: this._serverTypes,
                 });
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
@@ -242,6 +239,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     {
                         operationId: this._operationId,
                         success: "false",
+                        serverTypes: this._serverTypes,
                     },
                 );
             }
@@ -256,6 +254,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 {
                     operationId: this._operationId,
                     success: "false",
+                    serverTypes: this._serverTypes,
                 },
             );
         }
@@ -275,11 +274,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const connectionUri = this._connectionUri || "";
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
-        // Send telemetry
-        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-            operationId: this._operationId,
-        });
-
         try {
             const result = await this._dacFxService!.generateDeployScript(
                 dacpacPath,
@@ -294,7 +288,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
                     operationId: this._operationId,
                     success: "true",
+                    serverTypes: this._serverTypes,
                 });
+            } else {
+                sendErrorEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.GenerateScript,
+                    new Error(getErrorMessage(result.errorMessage)),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        operationId: this._operationId,
+                        success: "false",
+                        serverTypes: this._serverTypes,
+                    },
+                );
             }
         } catch (error) {
             sendErrorEvent(
@@ -307,6 +316,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 {
                     operationId: this._operationId,
                     success: "false",
+                    serverTypes: this._serverTypes,
                 },
             );
         }
@@ -593,6 +603,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     errorMessage: Loc.ConnectionProfileNotFound,
                 };
             }
+
+            // Profile found - compute server types once here for telemetry
+            this._serverTypes = getServerTypes(profile).join(",");
 
             // Check if already connected
             let ownerUri = this._connectionManager.getUriForConnection(profile);
@@ -910,6 +923,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                     // STEP 4: Store connection URI for DacFx publish
                     this._connectionUri = containerResult.connectionUri;
+                    this._serverTypes = [ServerType.Local, ServerType.Sql].join(",");
 
                     // STEP 5: Build DACPAC from project
                     const dacpacPath = await this.buildProject(state);
@@ -1517,6 +1531,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // Update state on success
             state.loadConnectionStatus = ApiStatus.Loaded;
             this._connectionUri = fileUri;
+            this._serverTypes = getServerTypes(connectionInfo).join(",");
             this.updateState(state);
 
             return fileUri;
@@ -1580,6 +1595,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     path.extname(this.state.projectFilePath),
                 );
                 this._connectionUri = undefined;
+                this._serverTypes = "";
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {

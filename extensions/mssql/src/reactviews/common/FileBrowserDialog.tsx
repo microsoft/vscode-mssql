@@ -23,6 +23,7 @@ import {
     Label,
     Field,
 } from "@fluentui/react-components";
+import { DocumentRegular, FolderRegular } from "@fluentui/react-icons";
 import { useState, type JSX } from "react";
 import { locConstants as Loc } from "./locConstants";
 import { KeyCode } from "./keys";
@@ -36,13 +37,16 @@ import {
 const useStyles = makeStyles({
     titleDiv: {
         display: "flex",
-        flexDirection: "row",
-        paddingLeft: "20px",
+        alignItems: "center",
+        padding: "18px 20px 12px",
+        borderBottom: "1px solid var(--vscode-widget-border)",
     },
     dialogSurfaceDiv: {
-        maxHeight: "75vh",
-        width: "60vw",
+        width: "min(560px, 94vw)",
         display: "flex",
+        borderRadius: "6px",
+        border: "1px solid var(--vscode-widget-border)",
+        backgroundColor: "var(--vscode-editorWidget-background)",
     },
     dialogBodyDiv: {
         display: "flex",
@@ -50,33 +54,57 @@ const useStyles = makeStyles({
         width: "100%",
     },
     titleText: {
-        marginLeft: "8px",
-        fontSize: "20px",
+        fontSize: "14px",
         fontWeight: 600,
+        color: "var(--vscode-editor-foreground)",
     },
     contentDiv: {
         display: "flex",
         flexDirection: "column",
-        flex: 1,
+        gap: "12px",
         overflow: "hidden",
-        padding: "15px",
+        padding: "8px 20px 12px",
         width: "100%",
     },
-    contentItem: {
-        padding: "10px",
-    },
     treeDiv: {
-        flex: 1,
+        minHeight: "340px",
+        height: "340px",
+        maxHeight: "340px",
         overflowY: "auto",
-        marginBottom: "15px",
+        paddingTop: "4px",
+        paddingBottom: "4px",
     },
     formRow: {
         display: "grid",
-        gridTemplateColumns: "160px 1fr",
+        gridTemplateColumns: "110px 1fr",
         columnGap: "8px",
-        padding: "10px",
+        alignItems: "start",
+    },
+    label: {
+        fontSize: "12px",
+        color: "var(--vscode-descriptionForeground)",
+        paddingTop: "6px",
+    },
+    fieldControl: {
+        "& .fui-Input, & .fui-Dropdown": {
+            backgroundColor: "var(--vscode-input-background)",
+            color: "var(--vscode-input-foreground)",
+        },
+    },
+    actionsDiv: {
+        borderTop: "1px solid var(--vscode-widget-border)",
+        padding: "10px 20px 14px",
+        justifyContent: "flex-start",
+        gap: "8px",
+    },
+    loadingRow: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "5px",
     },
 });
+
+type FileBrowserDialogClasses = ReturnType<typeof useStyles>;
 
 type FileSelectionInfo = {
     fullPath: string;
@@ -231,16 +259,19 @@ export const FileBrowserDialog = ({
                                 handleExpandNode,
                                 handleNodeClick,
                                 handleNodeDoubleClick,
+                                classes,
                             )}
                         </Tree>
                         <div className={classes.formRow}>
-                            <Label>{Loc.fileBrowser.selectedPath}</Label>
+                            <Label className={classes.label}>{Loc.fileBrowser.selectedPath}</Label>
                             <Field
+                                className={classes.fieldControl}
                                 validationState={
                                     selectedNodeValidationMessage() ? "error" : undefined
                                 }
                                 validationMessage={selectedNodeValidationMessage()}>
                                 <Input
+                                    size="small"
                                     placeholder={
                                         showFoldersOnly
                                             ? Loc.fileBrowser.folderPath
@@ -258,8 +289,12 @@ export const FileBrowserDialog = ({
                         </div>
                         {!showFoldersOnly && ( // only show file filter if showing files instead of just folders
                             <div className={classes.formRow}>
-                                <Label>{Loc.fileBrowser.filesOfType}</Label>
+                                <Label className={classes.label}>
+                                    {Loc.fileBrowser.filesOfType}
+                                </Label>
                                 <Dropdown
+                                    className={classes.fieldControl}
+                                    size="small"
                                     defaultValue={fileTypeOptions[0].displayName}
                                     onOptionSelect={(_event, data) => {
                                         handleFilterChange(data.optionValue as string);
@@ -273,7 +308,7 @@ export const FileBrowserDialog = ({
                             </div>
                         )}
                     </DialogContent>
-                    <DialogActions>
+                    <DialogActions className={classes.actionsDiv}>
                         <Button
                             appearance="primary"
                             onClick={async () => {
@@ -301,6 +336,7 @@ function renderTreeItem(
     onNodeExpand: (node: FileTreeNode) => void,
     onNodeClick: (node: FileTreeNode) => void,
     onNodeDoubleClick: (node: FileTreeNode) => void,
+    classes: FileBrowserDialogClasses,
 ): JSX.Element {
     const isBranch = !node.isFile; // folders are branches
     const hasChildren = node.children && node.children.length > 0;
@@ -324,13 +360,21 @@ function renderTreeItem(
                 e.stopPropagation(); // prevent parent TreeItems from also triggering
                 onNodeDoubleClick(node);
             }}>
-            <TreeItemLayout>{node.name}</TreeItemLayout>
+            <TreeItemLayout iconBefore={isBranch ? <FolderRegular /> : <DocumentRegular />}>
+                {node.name}
+            </TreeItemLayout>
 
             {isBranch && (
                 <Tree>
                     {hasChildren ? (
                         node.children.map((child) =>
-                            renderTreeItem(child, onNodeExpand, onNodeClick, onNodeDoubleClick),
+                            renderTreeItem(
+                                child,
+                                onNodeExpand,
+                                onNodeClick,
+                                onNodeDoubleClick,
+                                classes,
+                            ),
                         )
                     ) : !node.isExpanded ? (
                         // show loading only while expanding
@@ -339,18 +383,13 @@ function renderTreeItem(
                             itemType="leaf"
                             data-node={node}>
                             <TreeItemLayout>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        gap: "5px",
-                                    }}>
+                                <div className={classes.loadingRow}>
                                     <Spinner size="extra-tiny" />
                                     {`${Loc.common.loading}...`}
                                 </div>
                             </TreeItemLayout>
                         </TreeItem>
-                    ) : null}
+                    ) : undefined}
                 </Tree>
             )}
         </TreeItem>
