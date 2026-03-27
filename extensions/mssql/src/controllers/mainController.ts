@@ -48,6 +48,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
+import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
@@ -205,6 +206,21 @@ export default class MainController implements vscode.Disposable {
         );
     }
 
+    private onConnectCommand(): void {
+        if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+            return;
+        }
+        void this.runAndLogErrors(this.promptToConnect());
+    }
+
+    private onRunQueryCommand(): void {
+        if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+            return;
+        }
+        void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
+        void this.onRunQuery();
+    }
+
     /**
      * Disposes the controller
      */
@@ -234,9 +250,9 @@ export default class MainController implements vscode.Disposable {
         if (didInitialize) {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
-            this._event.on(Constants.cmdConnect, () => {
-                void this.runAndLogErrors(this.promptToConnect());
-            });
+            this._event.on(Constants.cmdConnect, () => this.onConnectCommand());
+            this.registerCommand(Constants.cmdConnectWithUriOwnership);
+            this._event.on(Constants.cmdConnectWithUriOwnership, () => this.onConnectCommand());
             this.registerCommand(Constants.cmdChangeConnection);
             this._event.on(Constants.cmdChangeConnection, () => {
                 void this.runAndLogErrors(this.promptToConnect());
@@ -250,10 +266,9 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onCancelConnect());
             });
             this.registerCommand(Constants.cmdRunQuery);
-            this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
-                void this.onRunQuery();
-            });
+            this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
+            this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
+            this._event.on(Constants.cmdRunQueryWithUriOwnership, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdManageConnectionProfiles);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => {
                 await this.onManageProfiles();

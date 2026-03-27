@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
+import { uriOwnershipCoordinator } from "../extension";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { removeUndefinedProperties, getUriKey, uuid } from "../utils/utils";
@@ -365,7 +366,21 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
+        // Disable last-active auto-connect when any coordinating SQL extension is present.
+        if ((uriOwnershipCoordinator?.getCoordinatingExtensions().length ?? 0) > 0) {
+            this._logger.debug(
+                "Skipping auto-connect because a coordinating uri-ownership extension is present",
+                { uri: docUri },
+            );
+            return;
+        }
+
         await this.waitForOngoingCreates();
+
+        // Don't auto-connect if this document is owned by a coordinating extension.
+        if (uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(doc.uri)) {
+            return;
+        }
 
         // This becomes a no-op if there is no last active connection.
         if (!this._lastActiveConnectionInfo) {
@@ -436,11 +451,34 @@ export default class SqlDocumentService implements vscode.Disposable {
         });
 
         /**
-         * Update the last active connection info only if:
-         * 1. Active connection has been established (has connectionId), AND
-         * 2. It's not still in the process of connecting (connecting is false)
+         * Clear the last active connection if the active SQL file is owned by another extension.
+         * This prevents MSSQL from auto-connecting to documents created by PostgreSQL.
+         *
+         * Why this works:
+         * - User is working with MSSQL, _lastActiveConnectionInfo is set
+         * - User switches to a PostgreSQL-owned document
+         * - We clear _lastActiveConnectionInfo here
+         * - User runs "PGSQL: New Query", new document opens
+         * - MSSQL's onDidOpenTextDocument fires, but _lastActiveConnectionInfo is undefined
+         * - MSSQL doesn't auto-connect, PostgreSQL connects cleanly, no race condition!
+         *
+         * Note: Only clear for SQL files owned by other extensions.
+         * Don't clear for non-SQL files or unowned SQL files.
          */
-        if (connectionInfo?.connectionId && !connectionInfo?.connecting) {
+        if (
+            editor.document.languageId === Constants.languageId &&
+            uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(editor.document.uri)
+        ) {
+            this._lastActiveConnectionInfo = undefined;
+        } else if (
+            /**
+             * Update the last active connection info only if:
+             * 1. Active connection has been established (has connectionId), AND
+             * 2. It's not still in the process of connecting (connecting is false)
+             */
+            connectionInfo?.connectionId &&
+            !connectionInfo?.connecting
+        ) {
             this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
             this._logger.debug("Updated last active connection info", { uri: activeDocumentUri });
         }
