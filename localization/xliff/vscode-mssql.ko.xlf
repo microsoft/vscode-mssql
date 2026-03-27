@@ -9176,20 +9176,20 @@ Query: {2}</source>
         <target state="translated">데이터 API 빌드(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
-        <source xml:lang="en">Cancel Connection</source>
-        <target state="translated">연결 취소</target>
+        <source xml:lang="en">Cancel Connection (MSSQL)</source>
+        <target state="new">Cancel Connection (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
-        <source xml:lang="en">Cancel Query</source>
-        <target state="translated">쿼리 취소</target>
+        <source xml:lang="en">Cancel Query (MSSQL)</source>
+        <target state="new">Cancel Query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
-        <source xml:lang="en">Change Connection</source>
-        <target state="translated">연결 변경</target>
+        <source xml:lang="en">Change Connection (MSSQL)</source>
+        <target state="new">Change Connection (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
-        <source xml:lang="en">Change Database</source>
-        <target state="translated">데이터베이스 변경</target>
+        <source xml:lang="en">Change Database (MSSQL)</source>
+        <target state="new">Change Database (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.changeConnection">
         <source xml:lang="en">Change Notebook Connection</source>
@@ -9240,8 +9240,8 @@ Query: {2}</source>
         <target state="translated">스키마 비교...</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
-        <source xml:lang="en">Connect</source>
-        <target state="translated">연결</target>
+        <source xml:lang="en">Connect (MSSQL)</source>
+        <target state="new">Connect (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
         <source xml:lang="en">Connect to a SQL Database</source>
@@ -9330,8 +9330,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">DACPAC 배포</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
-        <source xml:lang="en">Disable Actual Plan</source>
-        <target state="translated">실제 계획 사용 안 함</target>
+        <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
+        <target state="new">Disable Actual Plan (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
@@ -9346,8 +9346,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">사용 안 함</target>
       </trans-unit>
       <trans-unit id="mssql.disconnect">
-        <source xml:lang="en">Disconnect</source>
-        <target state="translated">연결 끊기</target>
+        <source xml:lang="en">Disconnect (MSSQL)</source>
+        <target state="new">Disconnect (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
         <source xml:lang="en">Display results in a formatted text format.</source>
@@ -9382,8 +9382,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">테이블 데이터 편집...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
-        <source xml:lang="en">Enable Actual Plan</source>
-        <target state="translated">실제 계획 사용</target>
+        <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
+        <target state="new">Enable Actual Plan (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
@@ -9494,16 +9494,16 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">MSSQL 확장에서 실험적 기능을 사용하도록 설정합니다. 이 기능은 프로덕션 준비가 되지 않았으며 버그 또는 문제가 있을 수 있습니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">예상 플랜</target>
+        <source xml:lang="en">Estimated Plan (MSSQL)</source>
+        <target state="new">Estimated Plan (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
-        <source xml:lang="en">Execute Current Statement</source>
-        <target state="translated">현재 문 실행</target>
+        <source xml:lang="en">Execute Current Statement (MSSQL)</source>
+        <target state="new">Execute Current Statement (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runQuery">
-        <source xml:lang="en">Execute Query</source>
-        <target state="translated">쿼리 실행</target>
+        <source xml:lang="en">Execute Query (MSSQL)</source>
+        <target state="new">Execute Query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
@@ -9744,8 +9744,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">데이터베이스 복원(미리 보기)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
-        <source xml:lang="en">Reveal Query Result</source>
-        <target state="translated">쿼리 결과 표시</target>
+        <source xml:lang="en">Reveal Query Result (MSSQL)</source>
+        <target state="new">Reveal Query Result (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
@@ -10008,8 +10008,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">실제 계획 토글</target>
       </trans-unit>
       <trans-unit id="mssql.toggleQueryResultPanel">
-        <source xml:lang="en">Toggle Query Result Panel Visibility</source>
-        <target state="translated">쿼리 결과 패널 표시 여부 토글</target>
+        <source xml:lang="en">Toggle Query Result Panel Visibility (MSSQL)</source>
+        <target state="new">Toggle Query Result Panel Visibility (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>

@@ -9176,20 +9176,20 @@ Query: {2}</source>
         <target state="translated">Data API のビルド (プレビュー)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
-        <source xml:lang="en">Cancel Connection</source>
-        <target state="translated">接続の取り消し</target>
+        <source xml:lang="en">Cancel Connection (MSSQL)</source>
+        <target state="new">Cancel Connection (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
-        <source xml:lang="en">Cancel Query</source>
-        <target state="translated">クエリのキャンセル</target>
+        <source xml:lang="en">Cancel Query (MSSQL)</source>
+        <target state="new">Cancel Query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
-        <source xml:lang="en">Change Connection</source>
-        <target state="translated">接続の変更</target>
+        <source xml:lang="en">Change Connection (MSSQL)</source>
+        <target state="new">Change Connection (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
-        <source xml:lang="en">Change Database</source>
-        <target state="translated">データベースの変更</target>
+        <source xml:lang="en">Change Database (MSSQL)</source>
+        <target state="new">Change Database (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.changeConnection">
         <source xml:lang="en">Change Notebook Connection</source>
@@ -9240,8 +9240,8 @@ Query: {2}</source>
         <target state="translated">スキーマの比較...</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
-        <source xml:lang="en">Connect</source>
-        <target state="translated">接続</target>
+        <source xml:lang="en">Connect (MSSQL)</source>
+        <target state="new">Connect (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
         <source xml:lang="en">Connect to a SQL Database</source>
@@ -9330,8 +9330,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">DACPAC の展開</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
-        <source xml:lang="en">Disable Actual Plan</source>
-        <target state="translated">実際のプランを無効にする</target>
+        <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
+        <target state="new">Disable Actual Plan (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
@@ -9346,8 +9346,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">無効</target>
       </trans-unit>
       <trans-unit id="mssql.disconnect">
-        <source xml:lang="en">Disconnect</source>
-        <target state="translated">切断</target>
+        <source xml:lang="en">Disconnect (MSSQL)</source>
+        <target state="new">Disconnect (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
         <source xml:lang="en">Display results in a formatted text format.</source>
@@ -9382,8 +9382,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">テーブル データの編集...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
-        <source xml:lang="en">Enable Actual Plan</source>
-        <target state="translated">実際のプランを有効にする</target>
+        <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
+        <target state="new">Enable Actual Plan (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
@@ -9494,16 +9494,16 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">MSSQL 拡張機能の試験的な機能を有効にします。機能は運用環境に対応していないため、バグや問題が発生する可能性があります。この設定を変更した後、Visual Studio Code を再起動します。</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">推定プラン</target>
+        <source xml:lang="en">Estimated Plan (MSSQL)</source>
+        <target state="new">Estimated Plan (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
-        <source xml:lang="en">Execute Current Statement</source>
-        <target state="translated">現在のステートメントを実行</target>
+        <source xml:lang="en">Execute Current Statement (MSSQL)</source>
+        <target state="new">Execute Current Statement (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runQuery">
-        <source xml:lang="en">Execute Query</source>
-        <target state="translated">クエリの実行</target>
+        <source xml:lang="en">Execute Query (MSSQL)</source>
+        <target state="new">Execute Query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
@@ -9744,8 +9744,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">データベースの復元 (プレビュー)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
-        <source xml:lang="en">Reveal Query Result</source>
-        <target state="translated">クエリ結果を表示</target>
+        <source xml:lang="en">Reveal Query Result (MSSQL)</source>
+        <target state="new">Reveal Query Result (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
@@ -10008,8 +10008,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">実際のプランの切り替え</target>
       </trans-unit>
       <trans-unit id="mssql.toggleQueryResultPanel">
-        <source xml:lang="en">Toggle Query Result Panel Visibility</source>
-        <target state="translated">クエリ結果パネルの表示を切り替える</target>
+        <source xml:lang="en">Toggle Query Result Panel Visibility (MSSQL)</source>
+        <target state="new">Toggle Query Result Panel Visibility (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
