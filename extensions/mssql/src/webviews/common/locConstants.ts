@@ -523,6 +523,8 @@ export class LocConstants {
             previous: l10n.t("Previous"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
+            operatorCostLabel: l10n.t("Estimated Operator Cost"),
         };
     }
 
