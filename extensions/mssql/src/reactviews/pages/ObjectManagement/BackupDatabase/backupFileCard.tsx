@@ -84,7 +84,7 @@ export const BackupFileCard = ({
     };
 
     return (
-        <Card className={classes.cardDiv} key={file.filePath}>
+        <Card className={classes.cardDiv}>
             <div className={classes.cardContent}>
                 <div className={classes.cardHeader}>
                     {file.isExisting ? <DocumentEdit24Regular /> : <DocumentAdd24Regular />}

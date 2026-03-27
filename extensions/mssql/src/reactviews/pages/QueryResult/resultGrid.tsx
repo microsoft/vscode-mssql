@@ -39,7 +39,7 @@ declare global {
 
 export interface ResultGridProps {
     gridId: string;
-    gridParentRef: React.RefObject<HTMLDivElement>;
+    gridParentRef: React.RefObject<HTMLDivElement | null>;
     resultId: number;
     batchId: number;
 }

@@ -466,12 +466,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         enableHeaderMenu: true, // Enable header menu for column operations
                         headerMenu: {
-                            hideColumnHideCommand: false, // Show "Hide Column" command
-                            hideSortCommands: false, // Show sort commands
-                            hideClearSortCommand: false, // Show "Clear Sort" command
-                            hideClearFilterCommand: false, // Show "Clear Filter" command
-                            hideFilterCommand: false, // Show "Filter" command
-                            hideFreezeColumnsCommand: true, // Hide freeze columns (not needed)
+                            // v10+ prefers hideCommands over hide*Command flags.
+                            hideCommands: ["freeze-columns"],
                         },
 
                         // Sorting
@@ -620,7 +616,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const cellIndex = args.cell;
             // Get the actual column from the grid (accounts for hidden columns)
-            const gridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+            const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
             const column = gridColumns[cellIndex];
             // Use the original column index stored in column metadata (handles hidden columns)
             const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
@@ -738,7 +734,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
 
-            const column = columns[activeCell.cell];
+            const column = grid.getVisibleColumns()[activeCell.cell];
             if (!column) {
                 return;
             }
@@ -809,7 +805,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 case "revert-cell":
                     const cellIndex = args.cell;
                     // Get the actual column from the grid (accounts for hidden columns)
-                    const gridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+                    const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
                     const column = gridColumns[cellIndex];
                     // Use the original column index stored in column metadata (handles hidden columns)
                     const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
@@ -888,7 +884,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const grid = reactGridRef.current.slickGrid;
             const dataView = reactGridRef.current.dataView;
-            const visibleColumns = grid.getColumns();
+            const visibleColumns = grid.getVisibleColumns();
 
             // Get selection ranges from the cell selection model
             const selectionModel = grid.getSelectionModel();
@@ -986,7 +982,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const dataView = reactGridRef.current.dataView;
             const grid = reactGridRef.current.slickGrid;
-            const visibleColumns = grid.getColumns();
+            const visibleColumns = grid.getVisibleColumns();
 
             // Check if there's a cell selection
             const selectionModel = grid.getSelectionModel();
@@ -1123,7 +1119,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         function getContextMenuOptions(): ContextMenu {
             return {
-                hideCopyCellValueCommand: true,
+                hideCommands: ["copy"],
                 hideCloseButton: true,
                 commandItems: [
                     // Copy commands

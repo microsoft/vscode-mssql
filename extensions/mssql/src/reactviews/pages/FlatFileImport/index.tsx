@@ -7,12 +7,12 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { FlatFileImportStateProvider } from "./flatFileStateProvider";
-import { FlatFileImportPage } from "./flatFlatImportPage";
+import { FlatFileWizard } from "./flatFileWizard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <FlatFileImportStateProvider>
-            <FlatFileImportPage />
+            <FlatFileWizard />
         </FlatFileImportStateProvider>
     </VscodeWebviewProvider>,
 );

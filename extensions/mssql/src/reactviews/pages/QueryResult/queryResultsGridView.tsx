@@ -63,7 +63,9 @@ export const QueryResultsGridView = () => {
 
     const gridViewContainerRef = useRef<HTMLDivElement>(null);
     const [gridViewContainerHeight, setGridViewContainerHeight] = useState<number>(0);
-    const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement>>>(new Map());
+    const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement | null>>>(
+        new Map(),
+    );
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
     const { keyBindings } = useVscodeWebview();

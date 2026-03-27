@@ -50,12 +50,12 @@ const useStyles = makeStyles({
         flex: "1 1 auto",
         overflowY: "auto",
         overflowX: "hidden",
-        scrollbarGutter: "stable both-edges",
+        scrollbarGutter: "stable",
     },
     container: {
         width: "100%",
         margin: 0,
-        padding: "16px 0 32px",
+        padding: "16px 10px 32px",
         boxSizing: "border-box",
     },
     headerOuter: {
@@ -69,8 +69,6 @@ const useStyles = makeStyles({
         alignItems: "center",
     },
     iconContainer: {
-        width: `${headerIconSizePx}px`,
-        height: `${headerIconSizePx}px`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -93,7 +91,6 @@ const useStyles = makeStyles({
     subtitle: {
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
-        color: "var(--vscode-descriptionForeground)",
         wordBreak: "break-word",
     },
     messageStack: {
@@ -140,6 +137,9 @@ export interface DialogPageShellProps {
     icon?: ReactNode;
     title?: string;
     subtitle?: ReactNode;
+    headerEnd?: ReactNode;
+    headerBottom?: ReactNode;
+    showHeaderDivider?: boolean;
     errorMessage?: string;
     loadingMessage?: string;
     maxContentWidth?: DialogPageShellContentWidth;
@@ -152,6 +152,9 @@ export const DialogPageShell = ({
     icon,
     title,
     subtitle,
+    headerEnd,
+    headerBottom,
+    showHeaderDivider = true,
     errorMessage,
     loadingMessage,
     maxContentWidth,
@@ -178,35 +181,61 @@ export const DialogPageShell = ({
 
     const headerIcon =
         icon && isValidElement(icon)
-            ? cloneElement(icon as ReactElement, {
+            ? cloneElement(icon as ReactElement<{ width?: number; height?: number }>, {
                   width: headerIconSizePx,
                   height: headerIconSizePx,
               })
             : icon;
     const hasHeaderIcon = headerIcon !== undefined && headerIcon !== null && headerIcon !== false;
+    const hasHeaderContent = !!icon || !!title || !!subtitle || !!headerEnd;
 
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.scrollRegion}>
                 <div className={styles.container}>
-                    {(icon || title || subtitle) && (
-                        <div className={styles.headerOuter}>
+                    {hasHeaderContent && (
+                        <div
+                            className={styles.headerOuter}
+                            style={
+                                showHeaderDivider
+                                    ? undefined
+                                    : {
+                                          borderBottom: "none",
+                                          paddingBottom: "16px",
+                                      }
+                            }>
                             <div
                                 className={styles.header}
                                 style={{
                                     ...contentWidthStyle,
-                                    gridTemplateColumns: hasHeaderIcon ? "auto 1fr" : "1fr",
+                                    gridTemplateColumns:
+                                        hasHeaderIcon && headerEnd
+                                            ? "auto minmax(0, 1fr) auto"
+                                            : hasHeaderIcon
+                                              ? "auto 1fr"
+                                              : headerEnd
+                                                ? "minmax(0, 1fr) auto"
+                                                : "1fr",
                                 }}>
                                 {hasHeaderIcon && (
-                                    <div className={styles.iconContainer}>{headerIcon}</div>
+                                    <div
+                                        className={styles.iconContainer}
+                                        style={{
+                                            width: `${headerIconSizePx}px`,
+                                            height: `${headerIconSizePx}px`,
+                                        }}>
+                                        {headerIcon}
+                                    </div>
                                 )}
                                 <div className={styles.headerText}>
                                     {title && <div className={styles.title}>{title}</div>}
                                     {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
                                 </div>
+                                {headerEnd}
                             </div>
                         </div>
                     )}
+                    {headerBottom && <div style={contentWidthStyle}>{headerBottom}</div>}
                     {(errorMessage || loadingMessage) && (
                         <div className={styles.messageStack} style={contentWidthStyle}>
                             {errorMessage && (

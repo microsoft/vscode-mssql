@@ -405,7 +405,7 @@ const SchemaDesignerCopilotChangesContent = () => {
         setReviewIndex,
     } = useCopilotChangesContext();
     const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
-    const listRef = useRef<HTMLDivElement>();
+    const listRef = useRef<HTMLDivElement | null>(null);
     const activeIndex = reviewIndex;
     const setActiveIndex = setReviewIndex;
     const [undoing, setUndoing] = useState<Record<number, boolean>>({});
@@ -514,7 +514,7 @@ const SchemaDesignerCopilotChangesContent = () => {
             <div
                 className={classes.list}
                 ref={(node) => {
-                    listRef.current = node ?? undefined;
+                    listRef.current = node;
                 }}>
                 <div
                     className={classes.virtualTrack}

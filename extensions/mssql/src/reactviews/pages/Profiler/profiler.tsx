@@ -446,9 +446,8 @@ export const Profiler: React.FC = () => {
 
             // Force re-render of headers after subscribing to the event
             // This is needed because headers may have already been rendered before we subscribed
-            const currentColumns = grid.getColumns();
-            if (currentColumns.length > 0) {
-                grid.setColumns(currentColumns);
+            if (grid.getVisibleColumns().length > 0) {
+                grid.updateColumns();
             }
         }
     }
@@ -469,7 +468,7 @@ export const Profiler: React.FC = () => {
             return;
         }
 
-        const gridColumns = grid.getColumns();
+        const gridColumns = grid.getVisibleColumns();
         gridColumns.forEach((column) => {
             const headerCell = headerContainer.querySelector(
                 `.slick-header-column[data-id="${column.id}"]`,
@@ -517,7 +516,7 @@ export const Profiler: React.FC = () => {
         // 3. Update sort-button CSS classes in every header cell
         const headerContainer = grid.getContainerNode()?.querySelector(".slick-header-columns");
         if (headerContainer) {
-            const gridColumns = grid.getColumns();
+            const gridColumns = grid.getVisibleColumns();
             gridColumns.forEach((column) => {
                 const headerCell = headerContainer.querySelector(
                     `.slick-header-column[data-id="${column.id}"]`,
@@ -777,9 +776,8 @@ export const Profiler: React.FC = () => {
         // Reset sort when view changes — sorted column may no longer exist
         setSortState(undefined);
         // Force re-render of headers to add sort + filter buttons to new columns
-        const currentColumns = grid.getColumns();
-        if (currentColumns.length > 0) {
-            grid.setColumns(currentColumns);
+        if (grid.getVisibleColumns().length > 0) {
+            grid.updateColumns();
         }
     }, [viewId]);
 

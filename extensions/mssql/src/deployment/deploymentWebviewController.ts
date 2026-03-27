@@ -59,16 +59,8 @@ export class DeploymentWebviewController extends FormWebviewController<
                 title: newDeployment,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "connectionDialogEditor_dark.svg",
-                    ),
-                    light: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "connectionDialogEditor_light.svg",
-                    ),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
                 },
             },
         );
@@ -77,7 +69,7 @@ export class DeploymentWebviewController extends FormWebviewController<
 
     private async initialize(initialConnectionGroup?: string) {
         // If an initial connection group was provided, try to pre-populate the form state
-        if (initialConnectionGroup && initialConnectionGroup) {
+        if (initialConnectionGroup) {
             this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.connectionGroupOptions =

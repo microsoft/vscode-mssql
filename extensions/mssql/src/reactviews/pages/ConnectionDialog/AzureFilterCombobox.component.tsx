@@ -5,7 +5,7 @@
 
 import { Field, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import {
     SearchableDropdown,
     SearchableDropdownOptions,

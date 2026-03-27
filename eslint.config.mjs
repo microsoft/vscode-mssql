@@ -9,7 +9,7 @@ import react from "eslint-plugin-react";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import customRules from "eslint-plugin-custom-eslint-rules";
+import customRules from "@microsoft/vscode-mssql-eslint-plugin-custom-rules";
 import stylistic from "@stylistic/eslint-plugin";
 
 const __filename = fileURLToPath(import.meta.url);

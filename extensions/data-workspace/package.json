@@ -33,17 +33,17 @@
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js data-workspace .",
         "build:extension": "tsc -p tsconfig.json",
-        "build:prepare": "yarn build:runtime-localization",
-        "build": "yarn build:prepare && yarn build:extension",
-        "compile": "yarn build",
+        "build:prepare": "npm run build:runtime-localization",
+        "build": "npm run build:prepare && npm run build:extension",
+        "compile": "npm run build",
         "watch:extension": "tsc -watch -p tsconfig.json --preserveWatchOutput",
-        "watch": "yarn build:prepare && run-p -l watch:extension",
-        "lint": "../../node_modules/.bin/eslint ./src",
+        "watch": "npm run build:prepare && run-p -l watch:extension",
+        "lint": "eslint ./src ./test",
         "localization:extract": "node ../../scripts/localization-extract.js data-workspace",
         "localization:generate": "node ../../scripts/localization-generate.js data-workspace .",
-        "localization": "yarn localization:extract",
-        "test": "yarn build && vscode-test --coverage",
-        "package": "yarn build && vsce package --no-yarn"
+        "localization": "npm run localization:extract",
+        "test": "npm run build && vscode-test --coverage",
+        "package": "npm run build && vsce package"
     },
     "capabilities": {
         "virtualWorkspaces": false,
@@ -206,7 +206,6 @@
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
-        "@microsoft/vscodetestcover": "^1.2.2",
         "@types/chai": "^5.2.2",
         "@types/glob": "^8.1.0",
         "@types/mocha": "^5.2.7",
@@ -219,8 +218,7 @@
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.7.1",
         "chai": "^5.3.3",
-        "glob": "^11.0.0",
-        "mocha": "^9.2.2",
+        "glob": "^11.1.0",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",

@@ -331,7 +331,7 @@ const ForeignKeyCard = ({
 }) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerEditorContext);
-    const inputRef = useRef<HTMLInputElement | null>();
+    const inputRef = useRef<HTMLInputElement | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [warningMessage, setWarningMessage] = useState<string>("");
     const allTablesById = useMemo(() => {
