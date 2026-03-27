@@ -145,6 +145,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
+  "mssql.enableSqlAuthenticationProvider": true,           // Enable SQL authentication support
   "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
 }
 
@@ -317,17 +318,124 @@ View the change log in the extension via the **MS SQL: Show Change Log** command
 
 Support for this extension is provided via [GitHub issues](https://github.com/Microsoft/vscode-mssql/issues). You can submit a [bug report](https://aka.ms/vscode-mssql-bug), a [feature suggestion](https://aka.ms/vscode-mssql-feature-request) or participate in [discussions](https://aka.ms/vscode-mssql-discussions).
 
+## Development & Contributing
+
+This is a multi-extension monorepo. See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki/contributing) for details on how to contribute.
+
+<details>
+<summary>Repository layout, prerequisites, and build commands</summary>
+
+### Repository Layout
+
+- `extensions/` - all of the individual VS Code extensions
+- `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
+- `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
+- `extensions/data-workspace/` - Data Workspace extension providing project workspace management and coordination
+- `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
+
+### Prerequisites
+
+- Node.js `>= 24`
+- npm `>= 11`
+- VS Code `>= 1.98.0`
+
+Install dependencies once from the repository root:
+
+```bash
+npm install
+```
+
+Use `npm run list:targets` to see the supported targets.
+
+All commands below should be executed from the repository root unless noted otherwise.
+
+### Root Workspace Commands
+
+```bash
+# Build everything
+npm run build
+
+# Build one or more targets
+npm run build -- --target mssql
+npm run build -- --target sql-database-projects,data-workspace
+
+# Watch everything
+npm run watch
+
+# Watch one or more targets
+npm run watch -- --target mssql
+npm run watch -- --target sql-database-projects,data-workspace
+
+# Run tests for everything or a subset
+npm run test
+npm run test -- --target data-workspace
+
+# Package one or more extensions
+npm run package -- --target mssql
+npm run package -- --target database-management-keymap
+```
+
+### MSSQL Extension (`extensions/mssql/`)
+
+```bash
+npm run watch -- --target mssql
+npm run build -- --target mssql
+npm run build -- --target mssql --prod
+npm run package -- --target mssql --online
+npm run package -- --target mssql --offline
+
+# Testing
+npm run test -- --target mssql
+npm run smoketest -- --target mssql
+```
+
+### SQL Database Projects Extension (`extensions/sql-database-projects/`)
+
+```bash
+npm run watch -- --target sql-database-projects
+npm run build -- --target sql-database-projects
+npm run package -- --target sql-database-projects
+
+# Testing
+npm run test -- --target sql-database-projects
+```
+
+### Data Workspace Extension (`extensions/data-workspace/`)
+
+```bash
+npm run watch -- --target data-workspace
+npm run build -- --target data-workspace
+npm run package -- --target data-workspace
+
+# Testing
+npm run test -- --target data-workspace
+```
+
+### Debugging From The Root Workspace
+
+1. Open the repository root in VS Code.
+2. Run `npm run watch` to watch everything, or `npm run watch -- --target <target>` to limit it
+3. Launch a run configuration from VS Code:
+    - `Run All Extensions`
+
+### Contributing Tips
+
+- When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
+- Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
+
+</details>
+
 ## Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Telemetry
 
-This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
+This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation. Administrators can set or disable telemetry across their entire organization/tenant with the same mechanism.
 
 ## Privacy Statement
 
-The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
+The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=521839) describes the privacy statement of this software.
 
 ## License
 
