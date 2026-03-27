@@ -8,19 +8,19 @@ import { expect } from "chai";
 import * as React from "react";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
-import { locConstants } from "../../src/reactviews/common/locConstants";
+import { locConstants } from "../../src/webviews/common/locConstants";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import {
     schemaDesignerPublishErrorDetailsLabel,
     schemaDesignerPublishErrorFallbackDetails,
     schemaDesignerPublishErrorPrompt,
-} from "../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogPrompts";
+} from "../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogPrompts";
 import { ExecuteCommandRequest } from "../../src/sharedInterfaces/webview";
 
 chai.use(sinonChai);
 
 suite("PublishChangesDialogButton helpers", () => {
-    let helpers: typeof import("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton");
+    let helpers: typeof import("../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton");
     const globalWithAcquireVsCodeApi = globalThis as typeof globalThis & {
         acquireVsCodeApi?: () => {
             postMessage: () => void;
@@ -38,10 +38,10 @@ suite("PublishChangesDialogButton helpers", () => {
 
         delete require.cache[
             require.resolve(
-                "../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton",
+                "../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton",
             )
         ];
-        helpers = require("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton");
+        helpers = require("../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton");
     });
 
     teardown(() => {
@@ -157,8 +157,8 @@ suite("PublishChangesDialogButton component", () => {
     let setOpenStub: sinon.SinonStub;
     let setStateStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let PublishChangesDialogButton: typeof import("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton").PublishChangesDialogButton;
-    let PublishDialogStages: typeof import("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton").PublishDialogStages;
+    let PublishChangesDialogButton: typeof import("../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton").PublishChangesDialogButton;
+    let PublishDialogStages: typeof import("../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton").PublishDialogStages;
 
     type TestElementProps = {
         children?: React.ReactNode;
@@ -202,18 +202,18 @@ suite("PublishChangesDialogButton component", () => {
             setState: sandbox.stub(),
         });
 
-        const styles = require("../../src/reactviews/common/styles");
+        const styles = require("../../src/webviews/common/styles");
         sandbox.stub(styles, "useMarkdownStyles").returns({
             markdownPage: "markdownPage",
         });
 
-        const schemaDesignerStateProvider = require("../../src/reactviews/pages/SchemaDesigner/schemaDesignerStateProvider");
-        const changeContext = require("../../src/reactviews/pages/SchemaDesigner/definition/changes/schemaDesignerChangeContext");
+        const schemaDesignerStateProvider = require("../../src/webviews/pages/SchemaDesigner/schemaDesignerStateProvider");
+        const changeContext = require("../../src/webviews/pages/SchemaDesigner/definition/changes/schemaDesignerChangeContext");
         sandbox.stub(changeContext, "useSchemaDesignerChangeContext").returns({
             schemaChangesCount: 1,
         });
 
-        const schemaDesignerSelector = require("../../src/reactviews/pages/SchemaDesigner/schemaDesignerSelector");
+        const schemaDesignerSelector = require("../../src/webviews/pages/SchemaDesigner/schemaDesignerSelector");
         sandbox.stub(schemaDesignerSelector, "useSchemaDesignerSelector").returns(true);
 
         sendRequestStub = sandbox.stub().resolves(undefined);
@@ -266,10 +266,10 @@ suite("PublishChangesDialogButton component", () => {
 
         delete require.cache[
             require.resolve(
-                "../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton",
+                "../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton",
             )
         ];
-        const publishChangesDialogButton = require("../../src/reactviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton");
+        const publishChangesDialogButton = require("../../src/webviews/pages/SchemaDesigner/toolbar/publishChangesDialogButton");
         PublishChangesDialogButton = publishChangesDialogButton.PublishChangesDialogButton;
         PublishDialogStages = publishChangesDialogButton.PublishDialogStages;
     });

@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { randomUUID } from "crypto";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import * as designer from "../sharedInterfaces/tableDesigner";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
@@ -22,7 +22,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
-export class TableDesignerWebviewController extends ReactWebviewPanelController<
+export class TableDesignerWebviewController extends WebviewPanelController<
     designer.TableDesignerWebviewState,
     designer.TableDesignerReducers
 > {

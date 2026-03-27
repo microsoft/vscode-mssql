@@ -10,7 +10,7 @@ import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
-import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
+import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
@@ -38,7 +38,7 @@ const DEMO_BINDING = {
     },
 };
 
-suite("ReactWebviewController Tests", () => {
+suite("WebviewController Tests", () => {
     let controller: TestWebviewController;
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
@@ -283,7 +283,7 @@ interface TestReducers {
 
 let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
-class TestWebviewController extends ReactWebviewBaseController<TestState, TestReducers> {
+class TestWebviewController extends WebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
 
     constructor(context: vscode.ExtensionContext, sourceFile: string, initialData: TestState) {

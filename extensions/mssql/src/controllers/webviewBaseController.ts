@@ -105,13 +105,13 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
 }
 
 /**
- * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
+ * WebviewBaseController is a class that manages a vscode.Webview and provides
  * a way to communicate with it. It provides a way to register request handlers and reducers
  * that can be called from the webview. It also provides a way to post notifications to the webview.
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export abstract class ReactWebviewBaseController<State, Reducers> implements vscode.Disposable {
+export abstract class WebviewBaseController<State, Reducers> implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
     private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -143,7 +143,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     protected logger: Logger;
 
     /**
-     * Creates a new ReactWebviewPanelController
+     * Creates a new WebviewPanelController
      * @param _context The context of the extension
      * @param _sourceFile The source file that the webview will use
      * @param _initialData The initial state object that the webview will use

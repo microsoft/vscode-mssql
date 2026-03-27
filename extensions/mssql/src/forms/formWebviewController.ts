@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { FormItemSpec, FormReducers, FormState } from "../sharedInterfaces/form";
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 
@@ -13,7 +13,7 @@ export abstract class FormWebviewController<
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
     TReducers extends FormReducers<TForm>,
     TResult = void,
-> extends ReactWebviewPanelController<TState, TReducers, TResult> {
+> extends WebviewPanelController<TState, TReducers, TResult> {
     constructor(
         context,
         vscodeWrapper,

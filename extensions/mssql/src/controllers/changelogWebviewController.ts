@@ -13,7 +13,7 @@ import {
     ChangelogWebviewState,
     CloseChangelogRequest,
 } from "../sharedInterfaces/changelog";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
 import VscodeWrapper from "./vscodeWrapper";
 import { changelogConfig } from "../configurations/changelog";
@@ -23,7 +23,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 
 const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
 
-export class ChangelogWebviewController extends ReactWebviewPanelController<
+export class ChangelogWebviewController extends WebviewPanelController<
     ChangelogWebviewState,
     void,
     void
