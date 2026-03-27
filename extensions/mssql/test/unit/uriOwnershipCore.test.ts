@@ -327,29 +327,41 @@ suite("UriOwnershipCoordinator Tests", () => {
         const ownsByOtherStub = sandbox.stub(coordinator, "isOwnedByCoordinatingExtension");
         ownsByOtherStub.returns(false);
 
-        const listener = sandbox.spy();
-        coordinator.onCoordinatingOwnershipChanged(listener);
+        const ownershipTransitionObserver = sandbox.spy((_isOwnedByOther: boolean) => {});
+        coordinator.onCoordinatingOwnershipChanged(() => {
+            const currentUri = vscode.window.activeTextEditor?.document?.uri;
+            const isOwnedByOther = currentUri
+                ? coordinator.isOwnedByCoordinatingExtension(currentUri)
+                : false;
+            ownershipTransitionObserver(isOwnedByOther);
+        });
 
         onDidChangeActiveTextEditorHandler?.(activeEditor);
-        expect(listener).to.not.have.been.called;
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(true);
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(false);
 
         ownsByOtherStub.returns(true);
         onDidChangeActiveTextEditorHandler?.(activeEditor);
-        expect(listener).to.have.been.calledOnce;
+        expect(ownershipTransitionObserver).to.have.been.calledWith(true);
 
+        ownershipTransitionObserver.resetHistory();
         onDidChangeActiveTextEditorHandler?.(activeEditor);
-        expect(listener).to.have.been.calledOnce;
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(true);
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(false);
 
         ownsByOtherStub.returns(false);
         onDidChangeActiveTextEditorHandler?.(activeEditor);
-        expect(listener).to.have.been.calledTwice;
+        expect(ownershipTransitionObserver).to.have.been.calledWith(false);
 
+        ownershipTransitionObserver.resetHistory();
         activeEditor = undefined;
         onDidChangeActiveTextEditorHandler?.(activeEditor);
-        expect(listener).to.have.been.calledTwice;
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(true);
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(false);
 
         onDidChangeActiveTextEditorHandler?.(activeEditor);
-        expect(listener).to.have.been.calledTwice;
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(true);
+        expect(ownershipTransitionObserver).to.not.have.been.calledWith(false);
     });
 
     test("refreshes coordinating extensions on extension change and updates context", () => {
@@ -380,6 +392,35 @@ suite("UriOwnershipCoordinator Tests", () => {
             "mssql.hasCoordinatingExtensions",
             true,
         );
+    });
+
+    test("refresh removes stale coordinating APIs for extensions no longer participating", () => {
+        const uri = vscode.Uri.parse("file:///tmp/owned.sql");
+        const coordinating = createCoordinatingExtension({
+            id: "ext.pgsql",
+            displayName: "PostgreSQL",
+            active: true,
+            ownsUri: (ownedUri) => ownedUri.toString() === uri.toString(),
+        });
+
+        extensionsAll = [coordinating.extension];
+        extensionById.set(coordinating.extension.id, coordinating.extension);
+
+        const coordinator = new UriOwnershipCoordinator(createContext(), {
+            hideUiContextKey: "mssql.hideUIElements",
+        });
+
+        expect(coordinator.isOwnedByCoordinatingExtension(uri)).to.equal(true);
+
+        // Simulate extension uninstall/disable by removing it from discovery.
+        extensionsAll = [];
+        extensionById.delete(coordinating.extension.id);
+
+        (
+            coordinator as unknown as { _refreshCoordinatingExtensions: () => void }
+        )._refreshCoordinatingExtensions();
+
+        expect(coordinator.isOwnedByCoordinatingExtension(uri)).to.equal(false);
     });
 
     test("registers URI ownership API for inactive coordinating extensions after activation", async () => {

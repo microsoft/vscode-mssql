@@ -245,6 +245,13 @@ export class UriOwnershipCoordinator {
 
     private _refreshCoordinatingExtensions(): void {
         const newExtensions = discoverCoordinatingExtensions(this._context.extension.id);
+        const newExtensionIds = new Set(newExtensions.map((ext) => ext.extensionId));
+
+        for (const extensionId of this._coordinatingExtensionApis.keys()) {
+            if (!newExtensionIds.has(extensionId)) {
+                this._coordinatingExtensionApis.delete(extensionId);
+            }
+        }
 
         for (const extInfo of newExtensions) {
             if (!this._coordinatingExtensionApis.has(extInfo.extensionId)) {
