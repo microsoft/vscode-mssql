@@ -126,6 +126,7 @@ export const location = l10n.t("Location");
 export const reloadProject = l10n.t("Would you like to reload your database project?");
 export const learnMore = l10n.t("Learn More");
 export const sdkLearnMoreUrl = "https://aka.ms/sqlprojsdk";
+export const documentationUrl = "https://aka.ms/sqlprojects";
 export const azureDevOpsLink =
     "https://docs.microsoft.com/azure/azure-sql/database/local-dev-experience-overview?view=azuresql";
 export function newObjectNamePrompt(objectType: string) {
