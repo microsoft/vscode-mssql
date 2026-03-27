@@ -433,9 +433,11 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
 
+Administrators can set or disable telemetry across their entire organization/tenant with the same mechanism. Learn more [here](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting).
+
 ## Privacy Statement
 
-The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
+The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=521839) describes the privacy statement of this software.
 
 ## License
 
