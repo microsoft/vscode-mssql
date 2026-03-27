@@ -80,6 +80,10 @@ export class UriOwnershipCoordinator {
     private readonly _hasCoordinatingExtensionsContextKey?: string;
     private readonly _fileOwnedByOtherExtensionMessage?: (extensionName: string) => string;
     private readonly _coordinatingExtensionApis: Map<string, UriOwnershipApi> = new Map();
+    private readonly _coordinatingExtensionOwnershipChangeSubscriptions: Map<
+        string,
+        vscode.Disposable
+    > = new Map();
     private readonly _coordinatingOwnershipChangedEmitter = new vscode.EventEmitter<void>();
     private readonly _uriOwnershipChangedEmitter = new vscode.EventEmitter<void>();
 
@@ -214,12 +218,20 @@ export class UriOwnershipCoordinator {
         if (api) {
             this._coordinatingExtensionApis.set(extensionId, api);
 
+            const existingSubscription =
+                this._coordinatingExtensionOwnershipChangeSubscriptions.get(extensionId);
+            existingSubscription?.dispose();
+            this._coordinatingExtensionOwnershipChangeSubscriptions.delete(extensionId);
+
             if (api.onDidChangeUriOwnership) {
-                this._context.subscriptions.push(
-                    api.onDidChangeUriOwnership(() => {
-                        this._updateUriOwnershipContext();
-                    }),
+                const ownershipChangeSubscription = api.onDidChangeUriOwnership(() => {
+                    this._updateUriOwnershipContext();
+                });
+                this._coordinatingExtensionOwnershipChangeSubscriptions.set(
+                    extensionId,
+                    ownershipChangeSubscription,
                 );
+                this._context.subscriptions.push(ownershipChangeSubscription);
             }
         }
     }
@@ -247,9 +259,13 @@ export class UriOwnershipCoordinator {
         const newExtensions = discoverCoordinatingExtensions(this._context.extension.id);
         const newExtensionIds = new Set(newExtensions.map((ext) => ext.extensionId));
 
-        for (const extensionId of this._coordinatingExtensionApis.keys()) {
+        for (const extensionId of Array.from(this._coordinatingExtensionApis.keys())) {
             if (!newExtensionIds.has(extensionId)) {
                 this._coordinatingExtensionApis.delete(extensionId);
+                const subscription =
+                    this._coordinatingExtensionOwnershipChangeSubscriptions.get(extensionId);
+                subscription?.dispose();
+                this._coordinatingExtensionOwnershipChangeSubscriptions.delete(extensionId);
             }
         }
 
@@ -295,7 +311,14 @@ export class UriOwnershipCoordinator {
         const isOwnedBySelf = this._ownsUri?.(uriString) ?? false;
 
         if (isOwnedByOther && isOwnedBySelf && this._releaseUri) {
-            void Promise.resolve(this._releaseUri(uriString));
+            const releaseUri = this._releaseUri;
+            void Promise.resolve()
+                .then(() => releaseUri(uriString))
+                .catch((err) => {
+                    console.error(
+                        `[${this._context.extension.id}] Error releasing uri ownership for ${uriString}: ${err}`,
+                    );
+                });
         }
 
         void vscode.commands.executeCommand(

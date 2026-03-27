@@ -285,7 +285,7 @@ suite("UriOwnershipCoordinator Tests", () => {
         );
     });
 
-    test("releases URI when both self and coordinating extension own the active editor", () => {
+    test("releases URI when both self and coordinating extension own the active editor", async () => {
         const uri = vscode.Uri.parse("file:///tmp/owned.sql");
         activeEditor = undefined;
 
@@ -308,6 +308,9 @@ suite("UriOwnershipCoordinator Tests", () => {
 
         activeEditor = createEditor(uri);
         onDidChangeActiveTextEditorHandler?.(activeEditor);
+
+        await Promise.resolve();
+        await Promise.resolve();
 
         expect(releaseUri).to.have.been.calledWith(uri.toString());
         expect(executeCommandStub).to.have.been.calledWith(
@@ -421,6 +424,51 @@ suite("UriOwnershipCoordinator Tests", () => {
         )._refreshCoordinatingExtensions();
 
         expect(coordinator.isOwnedByCoordinatingExtension(uri)).to.equal(false);
+
+        executeCommandStub.resetHistory();
+        coordinating.ownershipChangedEmitter?.fire();
+        expect(executeCommandStub).to.not.have.been.calledWith(
+            "setContext",
+            "mssql.hideUIElements",
+            sinon.match.any,
+        );
+    });
+
+    test("logs when releaseUri rejects", async () => {
+        const uri = vscode.Uri.parse("file:///tmp/owned.sql");
+        activeEditor = createEditor(uri);
+
+        const coordinating = createCoordinatingExtension({
+            id: "ext.pgsql",
+            displayName: "PostgreSQL",
+            active: true,
+            ownsUri: (ownedUri) => ownedUri.toString() === uri.toString(),
+        });
+        extensionsAll = [coordinating.extension];
+        extensionById.set(coordinating.extension.id, coordinating.extension);
+
+        const releaseUri = sandbox.stub().rejects(new Error("release failed"));
+        const unhandledRejections: unknown[] = [];
+        const unhandledRejectionListener = (reason: unknown) => {
+            unhandledRejections.push(reason);
+        };
+        process.on("unhandledRejection", unhandledRejectionListener);
+
+        new UriOwnershipCoordinator(createContext(), {
+            hideUiContextKey: "mssql.hideUIElements",
+            ownsUri: (ownedUri) => ownedUri === uri.toString(),
+            onDidChangeOwnership: new vscode.EventEmitter<void>().event,
+            releaseUri,
+        });
+
+        onDidChangeActiveTextEditorHandler?.(activeEditor);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        process.off("unhandledRejection", unhandledRejectionListener);
+
+        expect(releaseUri).to.have.been.calledWith(uri.toString());
+        expect(unhandledRejections).to.deep.equal([]);
     });
 
     test("registers URI ownership API for inactive coordinating extensions after activation", async () => {
@@ -468,7 +516,7 @@ suite("UriOwnershipCoordinator Tests", () => {
         expect(showInformationMessageStub).to.not.have.been.called;
     });
 
-    test("uses canonical uri.toString() for ownsUri and releaseUri", () => {
+    test("uses canonical uri.toString() for ownsUri and releaseUri", async () => {
         const ownershipChanged = new vscode.EventEmitter<void>();
         const encodedUri = vscode.Uri.parse("file:///tmp/space%20hash%23name.sql");
         const ownsUri = sandbox.stub().callsFake((uri: string) => uri === encodedUri.toString());
@@ -488,6 +536,9 @@ suite("UriOwnershipCoordinator Tests", () => {
         } as unknown as vscode.TextEditor;
 
         onDidChangeActiveTextEditorHandler?.(activeEditor);
+
+        await Promise.resolve();
+        await Promise.resolve();
 
         expect(ownsUri).to.have.been.calledWith(encodedUri.toString());
         expect(releaseUri).to.have.been.calledWith(encodedUri.toString());
