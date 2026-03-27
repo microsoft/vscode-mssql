@@ -8,6 +8,7 @@ import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
+    createExecutionPlanGraphs,
     openExecutionPlanWebview,
     saveExecutionPlan,
     showPlanXml,
@@ -362,6 +363,19 @@ export function registerCommonRequestHandlers(
     });
     webviewController.registerReducer("saveExecutionPlan", async (state, payload) => {
         return (await saveExecutionPlan(state, payload)) as qr.QueryResultWebviewState;
+    });
+    webviewController.registerReducer("getExecutionPlan", async (state, payload) => {
+        const xmlPlans = Object.values(state.executionPlanState.xmlPlans ?? {});
+        if (state.executionPlanState.executionPlanGraphs?.length || xmlPlans.length === 0) {
+            return state;
+        }
+
+        return (await createExecutionPlanGraphs(
+            state,
+            webviewViewController.executionPlanService,
+            xmlPlans,
+            "QueryResults",
+        )) as qr.QueryResultWebviewState;
     });
     webviewController.registerReducer("showPlanXml", async (state, payload) => {
         return (await showPlanXml(state, payload)) as qr.QueryResultWebviewState;
