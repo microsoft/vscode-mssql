@@ -2990,6 +2990,14 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">錯誤: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
+        <source xml:lang="en">Estimated Operator Cost</source>
+        <target state="new">Estimated Operator Cost</target>
+      </trans-unit>
+      <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
+        <source xml:lang="en">Estimated Subtree Cost</source>
+        <target state="new">Estimated Subtree Cost</target>
+      </trans-unit>
       <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
         <source xml:lang="en">Event details for {0}</source>
         <note>{0} is the name of the profiler event</note>
