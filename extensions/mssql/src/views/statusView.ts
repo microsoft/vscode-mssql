@@ -71,7 +71,7 @@ export default class StatusView implements vscode.Disposable {
                     this.hideLastShownStatusBar();
                 } else {
                     // Show status bar if the active file is no longer owned by another extension
-                    const fileUri = activeUri.toString(true);
+                    const fileUri = getUriKey(activeUri);
                     const bar = this._statusBars[fileUri];
                     if (bar) {
                         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);

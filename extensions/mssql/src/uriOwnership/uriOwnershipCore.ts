@@ -86,6 +86,7 @@ export class UriOwnershipCoordinator {
     private _coordinatingExtensions: CoordinatingExtensionInfo[] = [];
     private _ownsUri: ((uri: string) => boolean) | undefined;
     private _releaseUri: ((uri: string) => void | Promise<void>) | undefined;
+    private _lastIsOwnedByOther: boolean | undefined;
     private _initialized = false;
 
     constructor(context: vscode.ExtensionContext, config: UriOwnershipConfig) {
@@ -99,7 +100,7 @@ export class UriOwnershipCoordinator {
 
         this.uriOwnershipApi = {
             ownsUri: (uri: vscode.Uri): boolean => {
-                return this._ownsUri?.(uri.toString(true)) ?? false;
+                return this._ownsUri?.(uri.toString()) ?? false;
             },
             onDidChangeUriOwnership: this._uriOwnershipChangedEmitter.event,
         };
@@ -273,11 +274,15 @@ export class UriOwnershipCoordinator {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor) {
             void vscode.commands.executeCommand(SET_CONTEXT_COMMAND, this._hideUiContextKey, false);
+            if (this._lastIsOwnedByOther !== false) {
+                this._lastIsOwnedByOther = false;
+                this._coordinatingOwnershipChangedEmitter.fire();
+            }
             return;
         }
 
         const uri = activeEditor.document.uri;
-        const uriString = uri.toString(true);
+        const uriString = uri.toString();
         const isOwnedByOther = this.isOwnedByCoordinatingExtension(uri);
         const isOwnedBySelf = this._ownsUri?.(uriString) ?? false;
 
@@ -291,6 +296,9 @@ export class UriOwnershipCoordinator {
             isOwnedByOther,
         );
 
-        this._coordinatingOwnershipChangedEmitter.fire();
+        if (this._lastIsOwnedByOther !== isOwnedByOther) {
+            this._lastIsOwnedByOther = isOwnedByOther;
+            this._coordinatingOwnershipChangedEmitter.fire();
+        }
     }
 }

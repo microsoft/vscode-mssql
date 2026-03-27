@@ -536,7 +536,7 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "config.mssql.enableRichExperiences && view == objectExplorer",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
