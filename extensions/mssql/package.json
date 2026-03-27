@@ -999,8 +999,8 @@
                 "title": "%mssql.runQuery%",
                 "category": "MS SQL",
                 "icon": {
-                    "dark": "media/runQueryUriOwnership.svg",
-                    "light": "media/runQueryUriOwnership.svg"
+                    "dark": "media/runQueryUriOwnership_dark.svg",
+                    "light": "media/runQueryUriOwnership_light.svg"
                 }
             },
             {
