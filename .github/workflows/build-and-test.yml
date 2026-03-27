@@ -85,17 +85,9 @@ jobs:
       # Testing generates sourcemaps and instrumented code
       # that increase size
       - name: Package extensions
-        continue-on-error: true
         run: |
-          failed=0
-
-          for target in mssql sql-database-projects data-workspace database-management-keymap; do
-            if ! npm run package -- --target "$target"; then
-              failed=1
-            fi
-          done
-
-          exit "$failed"
+          cd extensions/mssql
+          yarn package
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
