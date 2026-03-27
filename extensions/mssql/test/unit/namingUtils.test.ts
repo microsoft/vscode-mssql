@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { namingUtils } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { namingUtils } from "../../src/webviews/pages/SchemaDesigner/model";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 suite("SchemaDesigner naming utils", () => {

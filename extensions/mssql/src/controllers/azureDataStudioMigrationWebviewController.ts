@@ -26,7 +26,7 @@ import {
     ViewSettingsDialogProps,
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -80,7 +80,7 @@ const EXCLUDED_SETTINGS = new Set<string>([
     "mssql.tableDesigner.preloadDatabaseModel",
 ]);
 
-export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
+export class AzureDataStudioMigrationWebviewController extends WebviewPanelController<
     AzureDataStudioMigrationWebviewState,
     AzureDataStudioMigrationReducers
 > {

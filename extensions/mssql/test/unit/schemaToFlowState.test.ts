@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import { ConnectionLineType } from "@xyflow/react";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
-import { buildFlowComponentsFromSchema } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { buildFlowComponentsFromSchema } from "../../src/webviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner schema to flow state", () => {
     function createColumn(id: string, name: string): SchemaDesigner.Column {

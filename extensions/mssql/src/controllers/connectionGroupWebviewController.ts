@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import {
     ConnectionGroupState,
@@ -24,7 +24,7 @@ import ConnectionManager from "./connectionManager";
 /**
  * Controller for the Add Firewall Rule dialog
  */
-export class ConnectionGroupWebviewController extends ReactWebviewPanelController<
+export class ConnectionGroupWebviewController extends WebviewPanelController<
     ConnectionGroupState,
     ConnectionGroupReducers,
     boolean

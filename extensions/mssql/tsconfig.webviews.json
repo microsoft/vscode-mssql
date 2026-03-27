@@ -20,5 +20,5 @@
         "composite": false,
         "allowSyntheticDefaultImports": true
     },
-    "include": ["src/reactviews", "typings", "src/sharedInterfaces", "media"]
+    "include": ["src/webviews", "typings", "src/sharedInterfaces", "media"]
 }

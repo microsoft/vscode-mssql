@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { Writable } from "stream";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     ProfilerWebviewState,
     ProfilerReducers,
@@ -62,7 +62,7 @@ export interface ProfilerWebviewEvents {
 /**
  * Controller for the profiler webview that displays profiler events
  */
-export class ProfilerWebviewController extends ReactWebviewPanelController<
+export class ProfilerWebviewController extends WebviewPanelController<
     ProfilerWebviewState,
     ProfilerReducers
 > {

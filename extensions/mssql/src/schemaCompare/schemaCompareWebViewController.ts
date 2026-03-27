@@ -9,7 +9,7 @@ import * as utils from "../models/utils";
 
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     ExtractTarget,
     SchemaCompareEndpointType,
@@ -57,7 +57,7 @@ import { UserSurvey } from "../nps/userSurvey";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
-export class SchemaCompareWebViewController extends ReactWebviewPanelController<
+export class SchemaCompareWebViewController extends WebviewPanelController<
     SchemaCompareWebViewState,
     SchemaCompareReducers
 > {

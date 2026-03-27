@@ -12,13 +12,13 @@ import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
-import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../../src/controllers/webviewPanelController";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 chai.use(sinonChai);
 
-suite("ReactWebviewPanelController", () => {
+suite("WebviewPanelController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let createWebviewPanelStub: sinon.SinonStub;
@@ -85,7 +85,7 @@ suite("ReactWebviewPanelController", () => {
             showRestorePromptAfterClose: true,
         };
 
-        const controller = new TestReactWebviewPanelController<TResult>(mockContext, {
+        const controller = new TestWebviewPanelController<TResult>(mockContext, {
             ...defaultOptions,
             ...options,
         });
@@ -335,7 +335,7 @@ interface TestReducers {
 
 let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
-class TestReactWebviewPanelController<TResult> extends ReactWebviewPanelController<
+class TestWebviewPanelController<TResult> extends WebviewPanelController<
     TestState,
     TestReducers,
     TResult

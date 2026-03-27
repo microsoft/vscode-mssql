@@ -12,13 +12,13 @@ import {
 } from "../sharedInterfaces/objectExplorerFilter";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
-export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPanelController<
+export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
     ObjectExplorerReducers
 > {
@@ -74,7 +74,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
 }
 
 export class ObjectExplorerFilter {
-    private static _filterWebviewController: ObjectExplorerFilterReactWebviewController;
+    private static _filterWebviewController: ObjectExplorerFilterWebviewController;
     /**
      * This method is used to get the filters from the user for the given treeNode.
      * @param context The extension context
@@ -93,7 +93,7 @@ export class ObjectExplorerFilter {
                 correlationId,
             });
             if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
-                this._filterWebviewController = new ObjectExplorerFilterReactWebviewController(
+                this._filterWebviewController = new ObjectExplorerFilterWebviewController(
                     context,
                     vscodeWrapper,
                     {

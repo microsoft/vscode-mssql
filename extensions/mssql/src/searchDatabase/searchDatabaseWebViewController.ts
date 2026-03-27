@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     SearchDatabaseWebViewState,
     SearchDatabaseReducers,
@@ -30,7 +30,7 @@ import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-export class SearchDatabaseWebViewController extends ReactWebviewPanelController<
+export class SearchDatabaseWebViewController extends WebviewPanelController<
     SearchDatabaseWebViewState,
     SearchDatabaseReducers
 > {

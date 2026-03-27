@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// This is a separate build script from bundle-reactviews.js because the notebook
+// This is a separate build script from bundle-webviews.js because the notebook
 // renderer has fundamentally incompatible esbuild requirements:
 //
 // 1. CSS inlining: Notebook renderers run in an isolated iframe that only loads the
@@ -72,7 +72,7 @@ const inlineCssPlugin = {
 
 // Build configuration
 const config = {
-    entryPoints: ["src/reactviews/pages/NotebookRenderer/notebookRendererEntry.tsx"],
+    entryPoints: ["src/webviews/pages/NotebookRenderer/notebookRendererEntry.tsx"],
     bundle: true,
     outfile: "dist/notebookRenderer.js",
     platform: "browser",
@@ -84,7 +84,7 @@ const config = {
         ".png": "file",
         ".gif": "file",
     },
-    tsconfig: "./tsconfig.react.json",
+    tsconfig: "./tsconfig.webviews.json",
     plugins: [inlineCssPlugin, esbuildProblemMatcherPlugin("notebook-renderer")],
     sourcemap: isProd ? false : "inline",
     metafile: !isProd,

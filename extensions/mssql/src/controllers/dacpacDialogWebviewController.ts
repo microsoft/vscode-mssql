@@ -12,7 +12,7 @@ import ConnectionManager from "./connectionManager";
 import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
@@ -41,7 +41,7 @@ const DACPAC_DIALOG_VIEW_ID = "DacpacDialog";
  * Controller for the DacpacDialog webview.
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
  */
-export class DacpacDialogWebviewController extends ReactWebviewPanelController<
+export class DacpacDialogWebviewController extends WebviewPanelController<
     dacpacDialog.DacpacDialogWebviewState,
     void,
     dacpacDialog.DacpacDialogResult

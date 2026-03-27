@@ -140,7 +140,7 @@ export default [
                 tsconfigRootDir: __dirname,
                 project: [
                     "./extensions/mssql/tsconfig.extension.json",
-                    "./extensions/mssql/tsconfig.react.json",
+                    "./extensions/mssql/tsconfig.webviews.json",
                 ],
                 ecmaFeatures: {
                     jsx: true,

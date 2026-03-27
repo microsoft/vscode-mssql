@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { locConstants } from "../../src/reactviews/common/locConstants";
+import { locConstants } from "../../src/webviews/common/locConstants";
 import {
     normalizeColumn,
     shouldAutoArrangeForToolBatch,
     TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD,
     TOOL_AUTO_ARRANGE_TABLE_THRESHOLD,
     validateTable,
-} from "../../src/reactviews/pages/SchemaDesigner/model/toolBatchUtils";
+} from "../../src/webviews/pages/SchemaDesigner/model/toolBatchUtils";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 const createColumn = (partial: Partial<SchemaDesigner.Column>): SchemaDesigner.Column =>
