@@ -149,7 +149,7 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 
 - `package.json` - Extension manifest and build scripts
 - `tsconfig.extension.json` - TypeScript config for extension code
-- `tsconfig.react.json` - TypeScript config for webviews
+- `tsconfig.webviews.json` - TypeScript config for webviews
 - `eslint.config.mjs` - Linting configuration
 - `prettier.config.mjs` - Code formatting rules
 
@@ -243,12 +243,12 @@ When reviewing PRs that touch webview code (especially in `src/webviews/`), pay 
 Use `requestAnimationFrame` instead of `setTimeout(cb, 0)` or short delays:
 
 ```typescript
-// âŒ BAD: Throttled when webview is hidden
+// ❌ BAD: Throttled when webview is hidden
 setTimeout(() => {
     updateUIState();
 }, 0);
 
-// âœ… GOOD: Syncs with browser paint loop (~60 FPS / ~16ms)
+// ✅ GOOD: Syncs with browser paint loop (~60 FPS / ~16ms)
 requestAnimationFrame(() => {
     updateUIState();
 });
@@ -265,12 +265,12 @@ requestAnimationFrame(() => {
 Use `queueMicrotask` for immediate execution after the current call stack:
 
 ```typescript
-// âŒ BAD: Unnecessary Promise allocation and potential throttling
+// ❌ BAD: Unnecessary Promise allocation and potential throttling
 setTimeout(() => {
     sendRpcMessage();
 }, 0);
 
-// âœ… GOOD: Runs immediately after current call stack
+// ✅ GOOD: Runs immediately after current call stack
 queueMicrotask(() => {
     sendRpcMessage();
 });

@@ -54,7 +54,7 @@ const config = {
         ".png": "file",
         ".gif": "file",
     },
-    tsconfig: "./tsconfig.react.json",
+    tsconfig: "./tsconfig.webviews.json",
     plugins: [esbuildProblemMatcherPlugin("webviews")],
     sourcemap: isProd ? false : "inline",
     metafile: !isProd,

@@ -1,4 +1,4 @@
 {
     "files": [],
-    "references": [{ "path": "./tsconfig.extension.json" }, { "path": "./tsconfig.react.json" }]
+    "references": [{ "path": "./tsconfig.extension.json" }, { "path": "./tsconfig.webviews.json" }]
 }

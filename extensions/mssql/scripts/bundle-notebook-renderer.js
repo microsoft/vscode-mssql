@@ -7,7 +7,7 @@
 // renderer has fundamentally incompatible esbuild requirements:
 //
 // 1. CSS inlining: Notebook renderers run in an isolated iframe that only loads the
-//    JS entrypoint - extracted CSS files are never loaded. We use a custom plugin to
+//    JS entrypoint — extracted CSS files are never loaded. We use a custom plugin to
 //    inline CSS as <style> elements, whereas webview panels use esbuild's native .css
 //    loader with separate files loaded via <link> tags in HTML templates.
 //
@@ -49,7 +49,7 @@ const inlineCssPlugin = {
                     const dataUrl = `data:${mime};base64,${content.toString("base64")}`;
                     replacements.push({ original: match[0], replacement: `url("${dataUrl}")` });
                 } catch {
-                    // Asset not found -s leave the url() as-is
+                    // Asset not found — leave the url() as-is
                 }
             }
             for (const { original, replacement } of replacements) {
@@ -84,7 +84,7 @@ const config = {
         ".png": "file",
         ".gif": "file",
     },
-    tsconfig: "./tsconfig.react.json",
+    tsconfig: "./tsconfig.webviews.json",
     plugins: [inlineCssPlugin, esbuildProblemMatcherPlugin("notebook-renderer")],
     sourcemap: isProd ? false : "inline",
     metafile: !isProd,

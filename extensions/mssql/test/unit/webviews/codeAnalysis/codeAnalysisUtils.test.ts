@@ -11,7 +11,7 @@ import {
     SqlCodeAnalysisRule,
 } from "../../../../src/sharedInterfaces/codeAnalysis";
 
-// Minimal rule factory â€” only fields used by filterRules need values
+// Minimal rule factory — only fields used by filterRules need values
 function makeRule(base: {
     shortRuleId: string;
     displayName: string;

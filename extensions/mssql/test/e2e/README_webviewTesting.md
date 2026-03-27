@@ -6,7 +6,7 @@
 - npm v11 or higher
 - [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
 
-### âš ï¸ Important
+### ⚠️ Important
 
 **Note:** You must fully **close out of all VSCode windows before running these tests.**
 These tests launch a separate instance of VSCode in a clean environment using Electron.
