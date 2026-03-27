@@ -18,7 +18,6 @@ suite("UriOwnershipCoordinator Tests", () => {
     let onDidChangeActiveTextEditorHandler:
         | ((e: vscode.TextEditor | undefined) => void)
         | undefined;
-    let onDidChangeExtensionsHandler: (() => void) | undefined;
     let executeCommandStub: sinon.SinonStub;
     let showInformationMessageStub: sinon.SinonStub;
     let extensionsAll: vscode.Extension<unknown>[];
@@ -97,7 +96,6 @@ suite("UriOwnershipCoordinator Tests", () => {
         sandbox = sinon.createSandbox();
         activeEditor = undefined;
         onDidChangeActiveTextEditorHandler = undefined;
-        onDidChangeExtensionsHandler = undefined;
         extensionsAll = [];
         extensionById = new Map<string, vscode.Extension<unknown>>();
 
@@ -110,10 +108,9 @@ suite("UriOwnershipCoordinator Tests", () => {
         sandbox
             .stub(vscode.extensions, "getExtension")
             .callsFake((extensionId: string) => extensionById.get(extensionId));
-        sandbox.stub(vscode.extensions, "onDidChange").callsFake((listener: () => void) => {
-            onDidChangeExtensionsHandler = listener;
-            return new vscode.Disposable(() => {});
-        });
+        sandbox
+            .stub(vscode.extensions, "onDidChange")
+            .callsFake((_listener: () => void) => new vscode.Disposable(() => {}));
 
         sandbox
             .stub(vscode.window, "onDidChangeActiveTextEditor")
@@ -302,7 +299,7 @@ suite("UriOwnershipCoordinator Tests", () => {
         extensionById.set(coordinating.extension.id, coordinating.extension);
 
         const releaseUri = sandbox.stub();
-        const coordinator = new UriOwnershipCoordinator(createContext(), {
+        new UriOwnershipCoordinator(createContext(), {
             hideUiContextKey: "mssql.hideUIElements",
             ownsUri: (ownedUri) => ownedUri === uri.toString(),
             onDidChangeOwnership: new vscode.EventEmitter<void>().event,
