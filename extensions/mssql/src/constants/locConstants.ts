@@ -1113,7 +1113,7 @@ export class Fabric {
 }
 
 export class Accounts {
-    static accountNotAvailableThroguhVsCode(accountDisplayName: string, tenantId: string): string {
+    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId: string): string {
         return l10n.t({
             message:
                 "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",

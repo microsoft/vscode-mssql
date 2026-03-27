@@ -1628,8 +1628,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         const accountComponent = this.getFormComponent(this.state, "accountId");
-        const tenantComponent = this.getFormComponent(this.state, "tenantId");
-        let tenants: FormItemOptions[] = [];
+
+        if (!accountComponent) {
+            return;
+        }
 
         accountComponent.options = await this.getEntraMfaAccountOptions();
 
@@ -1645,6 +1647,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.state.connectionProfile.tenantId = undefined;
             }
         }
+
+        const tenantComponent = this.getFormComponent(this.state, "tenantId");
+        let tenants: FormItemOptions[] = [];
 
         switch (propertyName) {
             case "accountId":
@@ -1662,6 +1667,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         await this.validateForm(this.state.formState, "tenantId");
                     }
                 }
+
                 accountComponent.actionButtons = await this.getAzureActionButtons();
                 break;
             case "tenantId":

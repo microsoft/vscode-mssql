@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import { getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth/out/src/getSessionFromVSCode";
+import { AzureTenant, getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth";
 
 import * as Constants from "../constants/constants";
 import { FormItemOptions } from "../sharedInterfaces/form";
@@ -104,7 +103,7 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
     const account = await resolveVscodeEntraAccount(accountId, accountLabel);
     if (!account) {
         throw new MissingVsCodeEntraAuthError(
-            locConstants.Accounts.accountNotAvailableThroguhVsCode(
+            locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
                 tenantId ?? "",
             ),
@@ -119,7 +118,7 @@ export async function acquireSqlAccessTokenFromVscodeAccount(
 
     if (!resolvedTenantId) {
         throw new MissingVsCodeEntraAuthError(
-            locConstants.Accounts.accountNotAvailableThroguhVsCode(
+            locConstants.Accounts.accountNotAvailableThroughVsCode(
                 accountLabel ?? accountId ?? "",
                 tenantId ?? "",
             ),
@@ -182,7 +181,7 @@ function getTokenExpiration(accessToken: string): number | undefined {
 export class MissingVsCodeEntraAuthError extends Error {
     constructor(message: string) {
         super(message);
-        this.name = "MissingVsCodeEntraAccountError";
+        this.name = "MissingVsCodeEntraAuthError";
         // Set the prototype explicitly to maintain the correct prototype chain
         Object.setPrototypeOf(this, MissingVsCodeEntraAuthError.prototype);
     }

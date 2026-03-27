@@ -1012,7 +1012,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         expect(buttons).to.have.lengthOf(1);
         expect(buttons[0].id).to.equal("azureSignIn");
 
-        await buttons[0].callback();
+        buttons[0].callback();
 
         expect(signInStub).to.have.been.calledOnce;
     });

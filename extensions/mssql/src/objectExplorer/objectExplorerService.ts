@@ -749,6 +749,9 @@ export class ObjectExplorerService {
             return await prepareConnectionProfile();
         } catch (error) {
             if (!useVscodeAccountsForEntraMfa()) {
+                this._logger.error(
+                    `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                );
                 return undefined;
             }
 
@@ -763,11 +766,12 @@ export class ObjectExplorerService {
                     // User chose to sign in; try again.
                     await VsCodeAzureHelper.signIn();
                     try {
-                        // try preparing the connection profile again after the user signs in
                         // in case the error was due to missing authentication
                         return await prepareConnectionProfile();
-                    } catch {
-                        return undefined;
+                    } catch (retryError) {
+                        this._logger.error(
+                            `Error when attempting to prepare connection profile after VS Code sign-in.\n\nError:\n${getErrorMessage(retryError)}`,
+                        );
                     }
                 } else if (
                     choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate
