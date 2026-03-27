@@ -317,91 +317,6 @@ View the change log in the extension via the **MS SQL: Show Change Log** command
 
 Support for this extension is provided via [GitHub issues](https://github.com/Microsoft/vscode-mssql/issues). You can submit a [bug report](https://aka.ms/vscode-mssql-bug), a [feature suggestion](https://aka.ms/vscode-mssql-feature-request) or participate in [discussions](https://aka.ms/vscode-mssql-discussions).
 
-## Development & Contributing
-
-This is a multi-extension monorepo. See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki/contributing) for details on how to contribute.
-
-<details>
-<summary>Repository layout, prerequisites, and build commands</summary>
-
-### Repository Layout
-
-- `extensions/` - all of the individual VS Code extensions
-- `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
-- `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
-- `extensions/data-workspace/` - Data Workspace extension providing project workspace management and coordination
-- `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
-
-### Prerequisites
-
-- Node.js `>= 20.19.4`
-- Yarn `>= 1.22`
-- VS Code `>= 1.98.0`
-
-All commands below should be executed from the extension's folder unless noted otherwise.
-
-### MSSQL Extension (`extensions/mssql/`)
-
-```bash
-cd extensions/mssql
-
-# Development
-yarn                                # install extension dependencies
-yarn watch                          # continuous build (extension + webviews + bundles)
-yarn build                          # one-off full build
-yarn package [--online|--offline]   # produces VSIX
-
-# Testing
-yarn test                           # run unit tests
-yarn smoketest                      # run end-to-end tests (requires SQL instance)
-```
-
-### SQL Database Projects Extension (`extensions/sql-database-projects/`)
-
-```bash
-cd extensions/sql-database-projects
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build (extension + webviews + bundles)
-yarn build                # one-off full build
-yarn package              # produces VSIX
-
-# Testing
-yarn test                 # run unit tests; NOT CURRENTLY WORKING
-```
-
-### Data Workspace Extension (`extensions/data-workspace/`)
-
-```bash
-cd extensions/data-workspace
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build
-yarn build                # one-off full build
-yarn package              # produces VSIX
-
-# Testing
-yarn test                 # run unit tests
-```
-
-### Debugging From The Root Workspace
-
-1. Open the repository root in VS Code.
-2. Run `yarn watch` from any or all extension subfolders
-3. Launch a run configuration from VS Code:
-    - `Run All Extensions`
-
-### Contributing Tips
-
-- Keep the extensions independent—run `yarn install` inside each folder instead of the repo root.
-- Shared code (e.g., telemetry helpers, typings) should live under `typings/` or a new sibling package to avoid implicit cross-imports.
-- When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
-- Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
-
-</details>
-
 ## Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
@@ -410,9 +325,11 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
 
+Administrators can set or disable feedback and telemetry collection across their entire organization/tenant with the same mechanism. Learn more about [setting feedback and telemetry collection policy](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) and [centrally managing VS Code settings with policies](https://code.visualstudio.com/docs/enterprise/policies).
+
 ## Privacy Statement
 
-The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
+The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=521839) describes the privacy statement of this software.
 
 ## License
 

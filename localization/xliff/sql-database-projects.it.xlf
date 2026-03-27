@@ -74,6 +74,10 @@
         <source xml:lang="en">Add Item</source>
         <target state="translated">Aggiungi elemento</target>
       </trans-unit>
+      <trans-unit id="++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8">
+        <source xml:lang="en">Add ProjectGuid</source>
+        <target state="translated">Aggiungi ProjectGuid</target>
+      </trans-unit>
       <trans-unit id="++CODE++7287537df41bee4b40e151d7c5f2f345d70fdcf9b16a48ec51a07013cd23a6ac">
         <source xml:lang="en">Add SQLCMD variable '{0}' to project without default value?</source>
         <target state="translated">Aggiungere la variabile SQLCMD '{0}' al progetto senza il valore predefinito?</target>
@@ -738,6 +742,10 @@
         <source xml:lang="en">Project '{0}' is already opened.</source>
         <target state="translated">Il progetto '{0}' è già aperto.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c">
+        <source xml:lang="en">Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?</source>
+        <target state="translated">Progetto '{0}' con un ProjectGuid mancante. Un ProjectGuid univoco aiuta a identificare il progetto per i riferimenti tra progetti. Aggiungerne uno?</target>
+      </trans-unit>
       <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
         <source xml:lang="en">Project (.sqlproj)</source>
         <target state="translated">Progetto (.sqlproj)</target>
@@ -1269,6 +1277,16 @@
       <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
         <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
         <target state="translated">{0} Se il progetto è stato creato in SQL Server Data Tools, continuerà a funzionare in entrambi gli strumenti. Aggiornare il progetto?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de">
+        <source xml:lang="en">{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?
+
+Projects:
+{1}</source>
+        <target state="translated">{0} progetti in questa area di lavoro non dispongono di un ProjectGuid. Un ProjectGuid univoco aiuta a identificare i progetti per i riferimenti tra progetti. Aggiungerne uno a ogni progetto?
+
+Progetti:
+{1}</target>
       </trans-unit>
     </body>
   </file>

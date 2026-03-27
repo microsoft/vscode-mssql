@@ -8,7 +8,7 @@ import { SchemaDesigner } from "./schemaDesigner";
 import { ApiStatus, Status } from "./webview";
 
 /**
- * Data API Builder (DAB) interfaces for webview-extension communication
+ * Data API builder (DAB) interfaces for webview-extension communication
  */
 export namespace Dab {
     /**
@@ -392,7 +392,7 @@ export namespace Dab {
 
     /**
      * DAB container image from Microsoft Container Registry.
-     * Uses :latest tag intentionally so users always get the newest Data API Builder
+     * Uses :latest tag intentionally so users always get the newest Data API builder
      * features and bug fixes without manual version management.
      */
     export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
@@ -809,7 +809,7 @@ export namespace Dab {
         | { type: "unsupportedDataTypes"; columns: string };
 
     /**
-     * SQL Server data types that are not supported by Data API Builder.
+     * SQL Server data types that are not supported by Data API builder.
      * Documented at https://learn.microsoft.com/en-us/azure/data-api-builder/feature-availability#unsupported-data-types
      */
     export const DAB_UNSUPPORTED_DATA_TYPES = [

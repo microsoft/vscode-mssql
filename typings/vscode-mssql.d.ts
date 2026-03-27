@@ -654,6 +654,13 @@ declare module 'vscode-mssql' {
 		getProjectProperties(projectUri: string): Promise<GetProjectPropertiesResult>;
 
 		/**
+		 * Set one or more properties on a project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param properties Map of property names to values
+		 */
+		setProjectProperties(projectUri: string, properties: { [key: string]: string }): Promise<ResultStatus>;
+
+		/**
 		 * Add a SQLCMD variable to a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 * @param name Name of the SQLCMD variable
@@ -1411,6 +1418,13 @@ declare module 'vscode-mssql' {
 		 * New DatabaseSchemaProvider value, in the form "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
 		 */
 		databaseSchemaProvider: string;
+	}
+
+	export interface SetProjectPropertiesParams extends SqlProjectParams {
+		/**
+		 * Map of property names to their new values
+		 */
+		properties: { [key: string]: string };
 	}
 
 	//#endregion

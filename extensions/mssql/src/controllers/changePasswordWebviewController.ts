@@ -10,12 +10,12 @@ import {
     ChangePasswordWebviewRequest,
     ChangePasswordWebviewState,
 } from "../sharedInterfaces/changePassword";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { ChangePasswordService as ChangePasswordService } from "../services/changePasswordService";
 
-export class ChangePasswordWebviewController extends ReactWebviewPanelController<
+export class ChangePasswordWebviewController extends WebviewPanelController<
     ChangePasswordWebviewState,
     void,
     string

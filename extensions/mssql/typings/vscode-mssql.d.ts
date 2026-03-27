@@ -134,6 +134,10 @@ declare module "vscode-mssql" {
          * APIs for working with mssql connections
          */
         connectionSharing: IConnectionSharingService;
+        /**
+         * APIs for coordinating URI ownership with other database extensions
+         */
+        uriOwnershipApi: UriOwnershipApi;
     }
 
     /**
@@ -815,6 +819,16 @@ declare module "vscode-mssql" {
          * @param projectUri Absolute path of the project, including .sqlproj
          */
         getProjectProperties(projectUri: string): Promise<GetProjectPropertiesResult>;
+
+        /**
+         * Set one or more properties on a SQL project.
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param properties Map of property names to their new values
+         */
+        setProjectProperties(
+            projectUri: string,
+            properties: { [key: string]: string },
+        ): Promise<ResultStatus>;
 
         /**
          * Add a SQLCMD variable to a project
@@ -1798,6 +1812,13 @@ declare module "vscode-mssql" {
         databaseSchemaProvider: string;
     }
 
+    export interface SetProjectPropertiesParams extends SqlProjectParams {
+        /**
+         * Map of property names to their new values
+         */
+        properties: { [key: string]: string };
+    }
+
     //#endregion
 
     //#region Results
@@ -2691,6 +2712,11 @@ declare module "vscode-mssql" {
          * The parent object type name such as Table, View, etc.
          */
         parentTypeName?: string;
+    }
+
+    export interface UriOwnershipApi {
+        ownsUri(uri: vscode.Uri): boolean;
+        onDidChangeUriOwnership: vscode.Event<void>;
     }
 
     /**

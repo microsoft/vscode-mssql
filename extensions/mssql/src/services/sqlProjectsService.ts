@@ -416,6 +416,22 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
     }
 
     /**
+     * Set one or more properties on a SQL project.
+     * @param projectUri Absolute path of the project, including .sqlproj
+     * @param properties Map of property names to their new values
+     */
+    public async setProjectProperties(
+        projectUri: string,
+        properties: { [key: string]: string },
+    ): Promise<mssql.ResultStatus> {
+        const params: mssql.SetProjectPropertiesParams = {
+            projectUri: projectUri,
+            properties: properties,
+        };
+        return this._client.sendRequest(contracts.SetProjectPropertiesRequest.type, params);
+    }
+
+    /**
      * Update SQL code analysis settings for a SQL project.
      * @param params Includes projectUri (absolute path to the .sqlproj), rule overrides, and optional runSqlCodeAnalysis setting.
      */

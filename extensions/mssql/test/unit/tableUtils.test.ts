@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { locConstants } from "../../src/reactviews/common/locConstants";
-import { tableUtils } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { locConstants } from "../../src/webviews/common/locConstants";
+import { tableUtils } from "../../src/webviews/pages/SchemaDesigner/model";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 suite("SchemaDesigner table utils", () => {

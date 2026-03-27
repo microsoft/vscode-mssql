@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import { Edge, Node } from "@xyflow/react";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
-import { applyAddTableMutation } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { applyAddTableMutation } from "../../src/webviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner add table mutation", () => {
     function createColumn(id: string, name: string): SchemaDesigner.Column {

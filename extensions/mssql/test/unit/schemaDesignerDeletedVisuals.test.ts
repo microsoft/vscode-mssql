@@ -12,7 +12,7 @@ import {
     filterDeletedNodes,
     mergeDeletedTableNodes,
     mergeColumnsWithDeleted,
-} from "../../src/reactviews/pages/SchemaDesigner/diff/deletedVisualUtils";
+} from "../../src/webviews/pages/SchemaDesigner/diff/deletedVisualUtils";
 
 type DeletedTable = SchemaDesigner.Table & { isDeleted: true };
 type DeletedForeignKey = SchemaDesigner.ForeignKey & { isDeleted: true };

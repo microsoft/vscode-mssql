@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
@@ -48,7 +48,7 @@ function getCopilotChatDiscoveryDismissedState(
     };
 }
 
-export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
+export class SchemaDesignerWebviewController extends WebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
 > {
@@ -671,7 +671,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     /**
-     * Determines whether the DAB (Data API Builder) feature is supported for this connection.
+     * Determines whether the DAB (Data API builder) feature is supported for this connection.
      * Currently only SQL Login connections are supported because DAB runs in a local
      * Docker container that cannot perform interactive Azure AD authentication.
      */

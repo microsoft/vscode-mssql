@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import { Edge, Node } from "@xyflow/react";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
-import { foreignKeyUtils } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { foreignKeyUtils } from "../../src/webviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner foreign key utils", () => {
     function createColumn(id: string, name: string, isPrimaryKey = false): SchemaDesigner.Column {

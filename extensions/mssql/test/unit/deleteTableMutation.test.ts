@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import { Node } from "@xyflow/react";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
-import { applyDeleteTableMutation } from "../../src/reactviews/pages/SchemaDesigner/model";
+import { applyDeleteTableMutation } from "../../src/webviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner delete table mutation", () => {
     function createTable(id: string, name: string): SchemaDesigner.Table {
