@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as ep from "../../../sharedInterfaces/executionPlan";
+import { locConstants } from "../../common/locConstants";
 import { uuid } from "../../common/utils";
 
 export class ExecutionPlanView {
@@ -11,6 +12,8 @@ export class ExecutionPlanView {
     public expensiveMetricTypes: Set<ep.ExpensiveMetricType> = new Set();
     private _graphElementPropertiesSet: Set<string> = new Set();
     private _executionPlanRootNode: ep.ExecutionPlanNode;
+    public static readonly SUBTREE_COST_DISPLAY_ORDER = 8;
+    public static readonly OPERATOR_COST_DISPLAY_ORDER = 3;
 
     constructor(node: ep.ExecutionPlanNode) {
         this._executionPlanRootNode = node;
@@ -47,6 +50,22 @@ export class ExecutionPlanView {
         diagramNode.id = node.id;
 
         diagramNode.icon = node.type;
+
+        // Add subtree cost and cost props
+        node.properties.push({
+            name: locConstants.executionPlan.subtreeCostLabel,
+            displayValue: node.subTreeCost.toString(),
+            showInTooltip: true,
+            displayOrder: ExecutionPlanView.SUBTREE_COST_DISPLAY_ORDER,
+        } as ep.ExecutionPlanGraphElementProperty);
+
+        const opCost = node.relativeCost * this._executionPlanRootNode.subTreeCost;
+        node.properties.push({
+            name: locConstants.executionPlan.operatorCostLabel,
+            displayValue: `${parseFloat(opCost.toFixed(7)).toString()} (${node.costDisplayString})`,
+            showInTooltip: true,
+            displayOrder: ExecutionPlanView.OPERATOR_COST_DISPLAY_ORDER,
+        } as ep.ExecutionPlanGraphElementProperty);
         diagramNode.metrics = this.populateProperties(node.properties);
 
         diagramNode.badges = [];
