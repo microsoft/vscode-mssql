@@ -183,7 +183,7 @@ suite("keyboardUtils Tests", () => {
             test("should resolve to Cmd on Mac", () => {
                 isMacStub.returns(true);
                 const result = getShortcutInfo("ctrlcmd+p");
-                expect(result.label).to.equal("âŒ˜+P");
+                expect(result.label).to.equal("⌘+P");
                 expect(result.keyCombination.key).to.equal("p");
                 expect(result.keyCombination.metaKey).to.equal(true);
                 expect(result.keyCombination.ctrlKey).to.be.undefined;
@@ -201,7 +201,7 @@ suite("keyboardUtils Tests", () => {
             test("should resolve ctrlcmd with other modifiers on Mac", () => {
                 isMacStub.returns(true);
                 const result = getShortcutInfo("ctrlcmd+shift+a");
-                expect(result.label).to.equal("âŒ˜+Shift+A");
+                expect(result.label).to.equal("⌘+Shift+A");
                 expect(result.keyCombination.metaKey).to.equal(true);
                 expect(result.keyCombination.shiftKey).to.equal(true);
                 expect(result.keyCombination.ctrlKey).to.be.undefined;
@@ -218,10 +218,10 @@ suite("keyboardUtils Tests", () => {
         });
 
         suite("platform-specific display labels", () => {
-            test("should show âŒ˜ for cmd on Mac", () => {
+            test("should show ⌘ for cmd on Mac", () => {
                 isMacStub.returns(true);
                 const result = getShortcutInfo("cmd+c");
-                expect(result.label).to.equal("âŒ˜+C");
+                expect(result.label).to.equal("⌘+C");
             });
 
             test("should show Meta for cmd on Windows/Linux", () => {

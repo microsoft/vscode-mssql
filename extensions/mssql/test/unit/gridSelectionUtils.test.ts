@@ -15,7 +15,7 @@ import { ISlickRange, SortProperties } from "../../src/sharedInterfaces/queryRes
 /**
  * Creates a minimal mock Slick.Grid that returns:
  *  - columns with optional sort/filter state
- *  - data items with _mssqlRowId mapping display rows â†’ actual rows
+ *  - data items with _mssqlRowId mapping display rows -> actual rows
  */
 function createMockGrid(options: {
     actualRowIds: number[];
@@ -59,7 +59,7 @@ suite("Grid Selection Utils", () => {
 
         test("preserves display order when sort is applied (reversed data)", () => {
             // Display order maps to reversed actual rows:
-            // display 0 â†’ actual 4, display 1 â†’ actual 3, ..., display 4 â†’ actual 0
+            // display 0 -> actual 4, display 1 -> actual 3, ..., display 4 -> actual 0
             const grid = createMockGrid({
                 actualRowIds: [4, 3, 2, 1, 0],
                 hasSortOrFilter: true,
@@ -97,14 +97,14 @@ suite("Grid Selection Utils", () => {
         });
 
         test("merges consecutive ascending actual rows within display order", () => {
-            // Display rows 0â€“3 map to actual rows [5, 6, 7, 8] (consecutive ascending)
+            // Display rows 0-3 map to actual rows [5, 6, 7, 8] (consecutive ascending)
             const grid = createMockGrid({
                 actualRowIds: [5, 6, 7, 8],
                 hasSortOrFilter: true,
             });
             const selections: ISlickRange[] = [{ fromRow: 0, toRow: 3, fromCell: 0, toCell: 2 }];
             const result = convertDisplayedSelectionToActual(grid, selections);
-            // All consecutive ascending â†’ merged into one range
+            // All consecutive ascending -> merged into one range
             expect(result).to.deep.equal([{ fromRow: 5, toRow: 8, fromCell: 0, toCell: 2 }]);
         });
 
@@ -139,8 +139,8 @@ suite("Grid Selection Utils", () => {
                 hasSortOrFilter: true,
             });
             const selections: ISlickRange[] = [
-                { fromRow: 3, toRow: 4, fromCell: 0, toCell: 1 }, // display rows 3-4 â†’ actual 40, 50
-                { fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }, // display rows 0-1 â†’ actual 10, 20
+                { fromRow: 3, toRow: 4, fromCell: 0, toCell: 1 }, // display rows 3-4 -> actual 40, 50
+                { fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }, // display rows 0-1 -> actual 10, 20
             ];
             const result = convertDisplayedSelectionToActual(grid, selections);
             // Selection input is out-of-order by display row (3-4 first, then 0-1).
