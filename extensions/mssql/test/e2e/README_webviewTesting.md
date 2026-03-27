@@ -6,7 +6,7 @@
 - npm v11 or higher
 - [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
 
-### ⚠️ Important
+### âš ï¸ Important
 
 **Note:** You must fully **close out of all VSCode windows before running these tests.**
 These tests launch a separate instance of VSCode in a clean environment using Electron.
@@ -41,7 +41,7 @@ then rerun the instrumentation
 After the code is instrumented, run the tests using
 
 ```shell
-npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+npx nyc --reporter=html --reporter=text-summary --include="src/webviews/pages/**/*.tsx" npx playwright test
 ```
 
 To pick up coverage data while testing, you have to run the instrumentation command every time you rebuild the project.
@@ -49,7 +49,7 @@ To pick up coverage data while testing, you have to run the instrumentation comm
 However, if you've only changed the tests, then you can run
 
 ```shell
-npm run build -- --target mssql && npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+npm run build -- --target mssql && npx nyc --reporter=html --reporter=text-summary --include="src/webviews/pages/**/*.tsx" npx playwright test
 ```
 
 This will recompile your tests and run them for coverage.

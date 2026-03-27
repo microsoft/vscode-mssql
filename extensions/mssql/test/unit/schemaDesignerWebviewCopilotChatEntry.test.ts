@@ -8,7 +8,7 @@ import { expect } from "chai";
 import * as React from "react";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
-import { locConstants } from "../../src/reactviews/common/locConstants";
+import { locConstants } from "../../src/webviews/common/locConstants";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ExecuteCommandRequest } from "../../src/sharedInterfaces/webview";
 
@@ -16,8 +16,8 @@ chai.use(sinonChai);
 
 suite("SchemaDesignerWebviewCopilotChatEntry", () => {
     let sandbox: sinon.SinonSandbox;
-    let schemaDesignerSelector: typeof import("../../src/reactviews/pages/SchemaDesigner/schemaDesignerSelector");
-    let SchemaDesignerWebviewCopilotChatEntry: typeof import("../../src/reactviews/pages/SchemaDesigner/copilot/schemaDesignerWebviewCopilotChatEntry").SchemaDesignerWebviewCopilotChatEntry;
+    let schemaDesignerSelector: typeof import("../../src/webviews/pages/SchemaDesigner/schemaDesignerSelector");
+    let SchemaDesignerWebviewCopilotChatEntry: typeof import("../../src/webviews/pages/SchemaDesigner/copilot/schemaDesignerWebviewCopilotChatEntry").SchemaDesignerWebviewCopilotChatEntry;
     let useRefStub: sinon.SinonStub;
 
     setup(() => {
@@ -28,9 +28,9 @@ suite("SchemaDesignerWebviewCopilotChatEntry", () => {
             getState: sandbox.stub(),
             setState: sandbox.stub(),
         });
-        schemaDesignerSelector = require("../../src/reactviews/pages/SchemaDesigner/schemaDesignerSelector");
+        schemaDesignerSelector = require("../../src/webviews/pages/SchemaDesigner/schemaDesignerSelector");
         SchemaDesignerWebviewCopilotChatEntry =
-            require("../../src/reactviews/pages/SchemaDesigner/copilot/schemaDesignerWebviewCopilotChatEntry").SchemaDesignerWebviewCopilotChatEntry;
+            require("../../src/webviews/pages/SchemaDesigner/copilot/schemaDesignerWebviewCopilotChatEntry").SchemaDesignerWebviewCopilotChatEntry;
     });
 
     teardown(() => {

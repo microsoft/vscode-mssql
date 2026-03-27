@@ -11,7 +11,7 @@ import * as os from "os";
 import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterfaces/userSurvey";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
@@ -286,7 +286,7 @@ export function sendSurveyTelemetry(
     );
 }
 
-export class UserSurveyWebviewController extends ReactWebviewPanelController<
+export class UserSurveyWebviewController extends WebviewPanelController<
     UserSurveyState,
     UserSurveyReducers
 > {

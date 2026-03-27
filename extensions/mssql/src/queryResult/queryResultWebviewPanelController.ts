@@ -7,11 +7,11 @@ import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import { randomUUID } from "crypto";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import { registerCommonRequestHandlers } from "./utils";
 
-export class QueryResultWebviewPanelController extends ReactWebviewPanelController<
+export class QueryResultWebviewPanelController extends WebviewPanelController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
 > {

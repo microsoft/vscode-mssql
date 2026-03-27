@@ -6,12 +6,12 @@
 import { allFileTypes } from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 export function registerFileBrowserReducers<TResult>(
-    controller: ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, TResult>,
+    controller: WebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, TResult>,
     fileBrowserService: FileBrowserService,
     fileBrowserFilters?: string[],
 ): void {

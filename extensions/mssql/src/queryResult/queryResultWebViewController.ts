@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
+import { WebviewViewController } from "../controllers/webviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -27,7 +27,7 @@ import {
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 
-export class QueryResultWebviewController extends ReactWebviewViewController<
+export class QueryResultWebviewController extends WebviewViewController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
 > {

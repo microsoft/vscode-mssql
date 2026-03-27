@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { filterRules } from "../../../../src/reactviews/pages/CodeAnalysis/codeAnalysisUtils";
-import { allSeverities } from "../../../../src/reactviews/common/constants";
+import { filterRules } from "../../../../src/webviews/pages/CodeAnalysis/codeAnalysisUtils";
+import { allSeverities } from "../../../../src/webviews/common/constants";
 import {
     CodeAnalysisRuleSeverity,
     SqlCodeAnalysisRule,
 } from "../../../../src/sharedInterfaces/codeAnalysis";
 
-// Minimal rule factory — only fields used by filterRules need values
+// Minimal rule factory â€” only fields used by filterRules need values
 function makeRule(base: {
     shortRuleId: string;
     displayName: string;

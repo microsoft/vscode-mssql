@@ -16,5 +16,5 @@
         "skipLibCheck": true
     },
     "include": ["src", "test", "typings"],
-    "exclude": ["node_modules", "src/reactviews", "samples"]
+    "exclude": ["node_modules", "src/webviews", "samples"]
 }

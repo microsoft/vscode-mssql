@@ -57,13 +57,13 @@
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:extension-bundle": "node scripts/bundle-extension.js",
         "build:webviews": "tsc -p tsconfig.react.json",
-        "build:webviews-bundle": "node scripts/bundle-reactviews.js",
+        "build:webviews-bundle": "node scripts/bundle-webviews.js",
         "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node scripts/bundle-extension.js --watch",
         "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
-        "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
+        "watch:webviews-bundle": "node scripts/bundle-webviews.js --watch",
         "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "eslint --quiet --cache ./src ./test",
@@ -73,7 +73,7 @@
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
-        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
+        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",

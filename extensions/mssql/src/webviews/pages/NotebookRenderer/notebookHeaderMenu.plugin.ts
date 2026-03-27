@@ -15,7 +15,7 @@ import { FilterableColumn } from "../QueryResult/table/interfaces";
 import { SortProperties } from "../../../sharedInterfaces/queryResult";
 
 // Sort/filter icons are provided via CSS background-image in table.css,
-// which references the shared SVG files in src/reactviews/media/.
+// which references the shared SVG files in src/webviews/media/.
 
 /** Extra width added to each column to accommodate the sort + filter buttons. */
 export const FilterButtonWidth = 38;
@@ -84,7 +84,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         this._listeners.push({ target, type, handler });
     }
 
-    // ── Header Cell Rendering ──────────────────────────────────────────
+    // â”€â”€ Header Cell Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private onHeaderCellRendered(_e: Event, args: Slick.OnHeaderCellRenderedEventArgs<T>): void {
         const column = args.column as FilterableColumn<T>;
@@ -97,7 +97,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
 
         args.node.classList.add("slick-header-with-filter");
 
-        // Sort button — uses shared slick-header-sortbutton class (icons via table.css)
+        // Sort button â€” uses shared slick-header-sortbutton class (icons via table.css)
         const sortBtn = document.createElement("button");
         sortBtn.className = "slick-header-sortbutton";
         sortBtn.title = "Sort";
@@ -111,7 +111,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         args.node.appendChild(sortBtn);
         this._columnSortButtonMapping.set(column.id!, sortBtn);
 
-        // Filter button — uses shared slick-header-filterbutton class (icons via table.css)
+        // Filter button â€” uses shared slick-header-filterbutton class (icons via table.css)
         const filterBtn = document.createElement("button");
         filterBtn.className = "slick-header-filterbutton";
         filterBtn.title = "Filter";
@@ -151,7 +151,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         }
     }
 
-    // ── Sort ───────────────────────────────────────────────────────────
+    // â”€â”€ Sort â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private updateSortIcon(columnId: string, sortState: SortProperties): void {
         const btn = this._columnSortButtonMapping.get(columnId);
@@ -180,7 +180,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         const columnId = column.id!;
         const currentSort = this._columnSortStateMapping.get(columnId) ?? SortProperties.NONE;
 
-        // Cycle: NONE → ASC → DESC → NONE
+        // Cycle: NONE â†’ ASC â†’ DESC â†’ NONE
         let nextSort: SortProperties;
         if (currentSort === SortProperties.NONE) {
             nextSort = SortProperties.ASC;
@@ -229,7 +229,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         this.onSortChanged.notify(nextSort);
     }
 
-    // ── Filter ─────────────────────────────────────────────────────────
+    // â”€â”€ Filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private updateFilterIcon(columnId: string, hasFilter: boolean): void {
         const btn = this._columnFilterButtonMapping.get(columnId);
@@ -361,7 +361,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         const selectedValues = new Set(initialSelected);
         let filteredItems = [...items];
 
-        // ── Title bar ──
+        // â”€â”€ Title bar â”€â”€
         const titleBar = document.createElement("div");
         titleBar.className = "nb-filter-title-bar";
         const title = document.createElement("span");
@@ -376,17 +376,17 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         titleBar.appendChild(closeBtn);
         popup.appendChild(titleBar);
 
-        // ── Divider ──
+        // â”€â”€ Divider â”€â”€
         const divider = document.createElement("div");
         divider.className = "nb-filter-divider";
         popup.appendChild(divider);
 
-        // ── Search input ──
+        // â”€â”€ Search input â”€â”€
         const searchContainer = document.createElement("div");
         searchContainer.className = "nb-filter-search-container";
         const searchIcon = document.createElement("span");
         searchIcon.className = "nb-filter-search-icon";
-        searchIcon.textContent = "\uD83D\uDD0D"; // 🔍
+        searchIcon.textContent = "\uD83D\uDD0D"; // ðŸ”
         const searchInput = document.createElement("input");
         searchInput.type = "text";
         searchInput.className = "nb-filter-search-input";
@@ -395,7 +395,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         searchContainer.appendChild(searchInput);
         popup.appendChild(searchContainer);
 
-        // ── Select All row ──
+        // â”€â”€ Select All row â”€â”€
         const selectAllRow = document.createElement("div");
         selectAllRow.className = "nb-filter-select-all-row";
         const selectAllCheckbox = document.createElement("input");
@@ -410,12 +410,12 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         selectAllRow.appendChild(selectedCount);
         popup.appendChild(selectAllRow);
 
-        // ── Scrollable checkbox list ──
+        // â”€â”€ Scrollable checkbox list â”€â”€
         const listContainer = document.createElement("div");
         listContainer.className = "nb-filter-list";
         popup.appendChild(listContainer);
 
-        // ── Action buttons ──
+        // â”€â”€ Action buttons â”€â”€
         const actions = document.createElement("div");
         actions.className = "nb-filter-actions";
         const applyBtn = document.createElement("button");
@@ -428,7 +428,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
         actions.appendChild(clearBtn);
         popup.appendChild(actions);
 
-        // ── Render helpers ──
+        // â”€â”€ Render helpers â”€â”€
 
         const updateSelectedCount = () => {
             selectedCount.textContent = `${selectedValues.size} selected`;
@@ -479,7 +479,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
             updateSelectAllState();
         };
 
-        // ── Search ──
+        // â”€â”€ Search â”€â”€
         searchInput.addEventListener("input", () => {
             const query = searchInput.value.trim().toLowerCase();
             if (!query) {
@@ -492,7 +492,7 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
             renderItems();
         });
 
-        // ── Select All ──
+        // â”€â”€ Select All â”€â”€
         selectAllCheckbox.addEventListener("change", () => {
             const shouldSelect = selectAllCheckbox.checked;
             for (const item of filteredItems) {
@@ -505,13 +505,13 @@ export class NotebookHeaderMenu<T extends Slick.SlickData> {
             renderItems();
         });
 
-        // ── Apply ──
+        // â”€â”€ Apply â”€â”€
         applyBtn.addEventListener("click", () => {
             void this.applyFilter(column, Array.from(selectedValues) as unknown as string[]);
             this.dismissPopup();
         });
 
-        // ── Clear ──
+        // â”€â”€ Clear â”€â”€
         clearBtn.addEventListener("click", () => {
             void this.applyFilter(column, []);
             this.dismissPopup();

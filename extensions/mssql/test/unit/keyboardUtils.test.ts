@@ -9,13 +9,13 @@ import {
     getShortcutInfo,
     parseWebviewKeyboardShortcutConfig,
     eventMatchesShortcut,
-} from "../../src/reactviews/common/keyboardUtils";
+} from "../../src/webviews/common/keyboardUtils";
 import {
     WebviewAction,
     WebviewKeyCombination,
     WebviewKeyBindingConfiguration,
 } from "../../src/sharedInterfaces/webview";
-import * as utils from "../../src/reactviews/common/utils";
+import * as utils from "../../src/webviews/common/utils";
 
 suite("keyboardUtils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -183,7 +183,7 @@ suite("keyboardUtils Tests", () => {
             test("should resolve to Cmd on Mac", () => {
                 isMacStub.returns(true);
                 const result = getShortcutInfo("ctrlcmd+p");
-                expect(result.label).to.equal("⌘+P");
+                expect(result.label).to.equal("âŒ˜+P");
                 expect(result.keyCombination.key).to.equal("p");
                 expect(result.keyCombination.metaKey).to.equal(true);
                 expect(result.keyCombination.ctrlKey).to.be.undefined;
@@ -201,7 +201,7 @@ suite("keyboardUtils Tests", () => {
             test("should resolve ctrlcmd with other modifiers on Mac", () => {
                 isMacStub.returns(true);
                 const result = getShortcutInfo("ctrlcmd+shift+a");
-                expect(result.label).to.equal("⌘+Shift+A");
+                expect(result.label).to.equal("âŒ˜+Shift+A");
                 expect(result.keyCombination.metaKey).to.equal(true);
                 expect(result.keyCombination.shiftKey).to.equal(true);
                 expect(result.keyCombination.ctrlKey).to.be.undefined;
@@ -218,10 +218,10 @@ suite("keyboardUtils Tests", () => {
         });
 
         suite("platform-specific display labels", () => {
-            test("should show ⌘ for cmd on Mac", () => {
+            test("should show âŒ˜ for cmd on Mac", () => {
                 isMacStub.returns(true);
                 const result = getShortcutInfo("cmd+c");
-                expect(result.label).to.equal("⌘+C");
+                expect(result.label).to.equal("âŒ˜+C");
             });
 
             test("should show Meta for cmd on Windows/Linux", () => {

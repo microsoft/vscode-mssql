@@ -1,6 +1,6 @@
 # MSSQL Extension for Visual Studio Code
 
-The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extension that provides database management capabilities for SQL Server, Azure SQL, and SQL Database in Fabric. The extension includes React-based webview components, AI-powered features with GitHub Copilot integration, and comprehensive SQL development tools.
+The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extension that provides database management capabilities for SQL Server, Azure SQL, and SQL Database in Fabric. The extension includes webview components, AI-powered features with GitHub Copilot integration, and comprehensive SQL development tools.
 
 **Always reference these instructions first** and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
@@ -44,7 +44,7 @@ npm run build:extension
 # Bundle extension (~1 second)
 npm run build:extension-bundle
 
-# Compile React webviews (~8 seconds)
+# Compile webviews (~8 seconds)
 npm run build:webviews
 
 # Bundle webviews (~2 seconds)
@@ -138,7 +138,7 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 - `src/` - Main extension source code (TypeScript)
     - `copilot/` - GitHub Copilot integration features
     - `controllers/` - Extension controllers and logic
-    - `reactviews/` - React components for webviews
+    - `webviews/` - React components for webviews
     - `services/` - Core business logic services
 - `test/` - Unit and E2E tests
 - `scripts/` - Build and utility scripts
@@ -149,7 +149,7 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 
 - `package.json` - Extension manifest and build scripts
 - `tsconfig.extension.json` - TypeScript config for extension code
-- `tsconfig.react.json` - TypeScript config for React webviews
+- `tsconfig.react.json` - TypeScript config for webviews
 - `eslint.config.mjs` - Linting configuration
 - `prettier.config.mjs` - Code formatting rules
 
@@ -160,7 +160,7 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 | `npm install`                                | ~60s initial, ~11s subsequent | 120+ seconds    | NEVER CANCEL: Installs all dependencies |
 | `npm run build -- --target mssql`            | ~19 seconds                   | 60+ seconds     | NEVER CANCEL: Complete build process    |
 | `npm run build:extension`                    | ~5 seconds                    | 30+ seconds     | Compile extension TypeScript            |
-| `npm run build:webviews`                     | ~8 seconds                    | 30+ seconds     | Compile React webviews                  |
+| `npm run build:webviews`                     | ~8 seconds                    | 30+ seconds     | Compile webviews                        |
 | `npm run lint -- --target mssql`             | ~1.5 seconds                  | 30+ seconds     | Lint source files only                  |
 | `npm run package -- --target mssql --online` | ~4.5 seconds                  | 60+ seconds     | NEVER CANCEL: Create VSIX package       |
 | `npm run watch -- --target mssql`            | Continuous                    | N/A             | Development watch mode                  |
@@ -226,7 +226,7 @@ npm run package -- --target mssql --online      # Ensure extension can be packag
 
 ### Webview Code Review Checklist
 
-When reviewing PRs that touch webview code (especially in `src/reactviews/`), pay close attention to the following patterns:
+When reviewing PRs that touch webview code (especially in `src/webviews/`), pay close attention to the following patterns:
 
 #### Avoid `setTimeout()` in Webviews
 
@@ -243,12 +243,12 @@ When reviewing PRs that touch webview code (especially in `src/reactviews/`), pa
 Use `requestAnimationFrame` instead of `setTimeout(cb, 0)` or short delays:
 
 ```typescript
-// ❌ BAD: Throttled when webview is hidden
+// âŒ BAD: Throttled when webview is hidden
 setTimeout(() => {
     updateUIState();
 }, 0);
 
-// ✅ GOOD: Syncs with browser paint loop (~60 FPS / ~16ms)
+// âœ… GOOD: Syncs with browser paint loop (~60 FPS / ~16ms)
 requestAnimationFrame(() => {
     updateUIState();
 });
@@ -265,12 +265,12 @@ requestAnimationFrame(() => {
 Use `queueMicrotask` for immediate execution after the current call stack:
 
 ```typescript
-// ❌ BAD: Unnecessary Promise allocation and potential throttling
+// âŒ BAD: Unnecessary Promise allocation and potential throttling
 setTimeout(() => {
     sendRpcMessage();
 }, 0);
 
-// ✅ GOOD: Runs immediately after current call stack
+// âœ… GOOD: Runs immediately after current call stack
 queueMicrotask(() => {
     sendRpcMessage();
 });
