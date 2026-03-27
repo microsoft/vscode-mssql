@@ -366,6 +366,15 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
+        // Disable last-active auto-connect when any coordinating SQL extension is present.
+        if ((uriOwnershipCoordinator?.getCoordinatingExtensions().length ?? 0) > 0) {
+            this._logger.debug(
+                "Skipping auto-connect because a coordinating uri-ownership extension is present",
+                { uri: docUri },
+            );
+            return;
+        }
+
         await this.waitForOngoingCreates();
 
         // Don't auto-connect if this document is owned by a coordinating extension.
