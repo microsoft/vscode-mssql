@@ -142,9 +142,8 @@ suite("Project: sqlproj content operations", function (): void {
     });
 
     test("Should throw warning message while reading Project with more than 1 pre-deploy script from sqlproj", async function (): Promise<void> {
-        const stub = sinon
-            .stub(window, "showWarningMessage")
-            .returns(<any>Promise.resolve(constants.okString));
+        const stub = sinon.stub(window, "showWarningMessage") as sinon.SinonStub;
+        stub.resolves(constants.okString);
 
         const projFilePath = await testUtils.createTestSqlProjFile(
             this.test,
@@ -309,7 +308,7 @@ suite("Project: sqlproj content operations", function (): void {
     });
 
     test("Should show information messages when adding more than one pre/post deployment scripts to sqlproj", async function (): Promise<void> {
-        const stub = sinon.stub(window, "showInformationMessage").returns(<any>Promise.resolve());
+        const stub = sinon.stub(window, "showInformationMessage").resolves();
 
         const project: Project = await testUtils.createTestSqlProject(this.test);
 
@@ -1672,8 +1671,19 @@ suite("Project: publish profiles", function (): void {
 });
 
 suite("Project: properties", function (): void {
+    let sandbox: sinon.SinonSandbox;
+
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
+        await templates.loadTemplates(testUtils.getTemplatesRootPath());
+    });
+
+    setup(function (): void {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(function (): void {
+        sandbox.restore();
     });
 
     suiteTeardown(async function (): Promise<void> {
@@ -1837,6 +1847,89 @@ suite("Project: properties", function (): void {
             constants.invalidProjectPropertyValueProvided(semicolon),
         );
     });
+
+    test("Should show a single notification for multiple projects with missing ProjectGuid", async function (): Promise<void> {
+        const project1 = await testUtils.createTestSqlProject(this.test);
+        const project2 = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project1, { _projectGuid: constants.nullProjectGuid });
+        Object.assign(project2, { _projectGuid: undefined });
+
+        const ensureGuid1 = sandbox.stub(project1, "ensureValidProjectGuid").resolves();
+        const ensureGuid2 = sandbox.stub(project2, "ensureValidProjectGuid").resolves();
+
+        const showInfoStub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
+        showInfoStub.resolves(constants.addProjectGuidLabel);
+
+        await Project.checkPromptProjectGuidStatus([project1, project2]);
+
+        // Only one notification should have been shown for both projects
+        expect(showInfoStub.calledOnce, "showInformationMessage should be called exactly once").to
+            .be.true;
+        expect(
+            showInfoStub.calledWith(
+                constants.missingProjectGuids(2, [
+                    project1.projectFileName,
+                    project2.projectFileName,
+                ]),
+            ),
+            `showInformationMessage not called with expected message. Actual: "${showInfoStub.firstCall.args[0]}"`,
+        ).to.be.true;
+
+        // ensureValidProjectGuid should have been called once for each project
+        expect(ensureGuid1.calledOnce, "ensureValidProjectGuid should be called once for project1")
+            .to.be.true;
+        expect(ensureGuid2.calledOnce, "ensureValidProjectGuid should be called once for project2")
+            .to.be.true;
+    });
+
+    test("Should add a valid ProjectGuid when user accepts prompt", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
+
+        // In the test environment the mssql extension API returns a proxy that may not
+        // expose setProjectProperties as an own property. Assign a no-op first so sinon can stub it.
+        type ServiceHost = { sqlProjService: Record<string, unknown> };
+        const svc = (project as unknown as ServiceHost).sqlProjService;
+        svc["setProjectProperties"] = async () => ({ success: true });
+        const setProjectPropertiesStub = sandbox
+            .stub(svc, "setProjectProperties")
+            .resolves({ success: true });
+
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            constants.addProjectGuidLabel,
+        );
+
+        await Project.checkPromptProjectGuidStatus([project]);
+
+        expect(project.projectGuid, "projectGuid should be set after accepting prompt").to.not.be
+            .undefined;
+        expect(project.projectGuid, "projectGuid should not be the null GUID").to.not.equal(
+            constants.nullProjectGuid,
+        );
+        expect(project.projectGuid).to.match(
+            /^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}$/,
+        );
+        expect(
+            setProjectPropertiesStub.calledOnce,
+            "setProjectProperties should be called once to persist the new GUID",
+        ).to.be.true;
+    });
+
+    test("Should not add ProjectGuid when user rejects prompt", async function (): Promise<void> {
+        const project = await testUtils.createTestSqlProject(this.test);
+        Object.assign(project, { _projectGuid: constants.nullProjectGuid });
+
+        (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
+            constants.noString,
+        );
+
+        await Project.checkPromptProjectGuidStatus([project]);
+
+        expect(
+            project.projectGuid,
+            "projectGuid should remain unchanged when user rejects the prompt",
+        ).to.equal(constants.nullProjectGuid);
+    });
 });
 
 suite("Project: round trip updates", function (): void {
@@ -1869,7 +1962,7 @@ suite("Project: round trip updates", function (): void {
     });
 
     test("Should not update project and no backup file should be created when prompt to update project is rejected", async function (): Promise<void> {
-        sinon.stub(window, "showWarningMessage").returns(<any>Promise.resolve(constants.noString));
+        (sinon.stub(window, "showWarningMessage") as sinon.SinonStub).resolves(constants.noString);
         // setup test files
         const folderPath = await testUtils.generateTestFolderPath(this.test);
         const sqlProjPath = await testUtils.createTestSqlProjFile(

@@ -1420,7 +1420,7 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    // DAB (Data API Builder) deployment strings
+    // DAB (Data API builder) deployment strings
     public static dabContainerNameInvalidOrInUse = l10n.t(
         "Container name is invalid or already in use",
     );
@@ -2068,7 +2068,7 @@ export class MssqlChatAgent {
         ],
     });
     public static dabToolShowSuccessMessage = l10n.t({
-        message: "Data API Builder opened. Continue with {0} operations ({1}/{2}).",
+        message: "Data API builder opened. Continue with {0} operations ({1}/{2}).",
         args: ["mssql_dab", "get_state", "apply_changes"],
         comment: [
             "{0} is the command identifier 'mssql_dab' and must not be translated",
@@ -2091,26 +2091,26 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
-    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationTitle = l10n.t("Data API builder");
     public static dabToolConfirmationMessage = (operation: string) => {
         return l10n.t({
-            message: "Execute '{0}' operation on Data API Builder?",
+            message: "Execute '{0}' operation on Data API builder?",
             args: [operation],
             comment: ["{0} is the operation name"],
         });
     };
     public static dabToolInvocationMessage = (operation: string) => {
         return l10n.t({
-            message: "Executing '{0}' operation on Data API Builder",
+            message: "Executing '{0}' operation on Data API builder",
             args: [operation],
             comment: ["{0} is the operation name"],
         });
     };
     public static dabToolNoActiveDesigner = l10n.t(
-        "No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.",
+        "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
     public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API Builder.",
+        "Missing connectionId. Please provide a connectionId to open Data API builder.",
     );
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",

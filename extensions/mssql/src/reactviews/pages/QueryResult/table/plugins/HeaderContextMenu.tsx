@@ -15,12 +15,9 @@ import { locConstants } from "../../../../common/locConstants";
 import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 import { useContextMenuStyles } from "../../../../common/styles";
+import { HeaderContextMenuAction } from "./headerContextMenuTypes";
 
-export enum HeaderContextMenuAction {
-    ToggleSort = "toggleSort",
-    Filter = "filter",
-    Resize = "resize",
-}
+export { HeaderContextMenuAction };
 
 export interface HeaderContextMenuProps {
     x: number;
@@ -52,6 +49,7 @@ export const HeaderContextMenu: React.FC<HeaderContextMenuProps> = ({
 
     return (
         <div
+            data-vscode-context='{"preventDefaultContextMenuItems": true}'
             // Prevent the browser default context menu if user right-clicks during menu open
             onContextMenu={(e) => {
                 e.preventDefault();
@@ -98,6 +96,11 @@ export const HeaderContextMenu: React.FC<HeaderContextMenuProps> = ({
                             }
                             onClick={() => onAction(HeaderContextMenuAction.Resize)}>
                             {locConstants.queryResult.resize}
+                        </MenuItem>
+                        <MenuItem
+                            className={styles.menuItem}
+                            onClick={() => onAction(HeaderContextMenuAction.CopyColumnName)}>
+                            {locConstants.queryResult.copyColumnName}
                         </MenuItem>
                     </MenuList>
                 </MenuPopover>

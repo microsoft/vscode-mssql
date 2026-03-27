@@ -37,7 +37,7 @@ class TableNodeItem implements SearchableItem {
 export const SchemaDesignerFindTableWidget = ({
     parentRef,
 }: {
-    parentRef?: React.RefObject<HTMLElement>;
+    parentRef?: React.RefObject<HTMLElement | null>;
 }) => {
     const reactFlow = useReactFlow();
     const context = useContext(SchemaDesignerContext);

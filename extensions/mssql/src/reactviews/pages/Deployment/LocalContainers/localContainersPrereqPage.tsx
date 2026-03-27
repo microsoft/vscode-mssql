@@ -3,39 +3,41 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
+import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { StepCard } from "./stepCard";
-import { Button } from "@fluentui/react-components";
-import { LocalContainersInputForm } from "./localContainersInputForm";
-import {
-    checkStepErrored,
-    isLastStepLoaded,
-    runDockerStep,
-} from "./localContainersDeploymentUtils";
-import {
-    DockerStepOrder,
-    LocalContainersState,
-} from "../../../../sharedInterfaces/localContainers";
+import { runDockerStep } from "./localContainersDeploymentUtils";
+import { DockerStepOrder } from "../../../../sharedInterfaces/localContainers";
 import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment";
-import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { useDeploymentSelector } from "../deploymentSelector";
+import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+
+const useLoadingStyles = makeStyles({
+    spinnerDiv: {
+        height: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        padding: "20px",
+    },
+    errorIcon: {
+        fontSize: "100px",
+        opacity: 0.5,
+    },
+});
 
 export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
+    const loadingClasses = useLoadingStyles();
     const context = useContext(DeploymentContext);
-    const localContainersState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as LocalContainersState;
-    const [showNext, setShowNext] = useState(false);
-    const [stepsLoaded, setStepsLoaded] = useState(false);
-    const [stepsErrored, setStepsErrored] = useState(false);
+    const localContainersState = useLocalContainersDeploymentSelector((s) => s);
     const lastStep = DockerStepOrder.checkDockerEngine;
 
-    // If this passes, container deployment state is guaranteed
-    // to be defined, so we can reference it as non-null
     if (!context || !localContainersState) {
         return undefined;
     }
@@ -45,66 +47,43 @@ export const LocalContainersPrereqPage: React.FC = () => {
             deploymentTypeState: localContainersState,
         } as DeploymentWebviewState;
         void runDockerStep(context, wrappedState, lastStep);
-        setStepsLoaded(isLastStepLoaded(wrappedState, lastStep));
-        setStepsErrored(checkStepErrored(wrappedState));
-    }, [localContainersState]);
+    }, [context, localContainersState]);
 
-    const handleRetry = async () => {
-        // reset step states
-        await context.resetDockerStepState();
-    };
+    if (localContainersState.loadState === ApiStatus.Loading) {
+        return (
+            <div className={loadingClasses.spinnerDiv}>
+                <Spinner
+                    label={locConstants.localContainers.loadingLocalContainers}
+                    labelPosition="below"
+                />
+            </div>
+        );
+    }
 
-    return showNext ? (
-        <LocalContainersInputForm />
-    ) : (
-        <div>
-            <LocalContainersHeader
-                headerText={locConstants.localContainers.sqlServerContainerHeader}
-            />
-            <div className={classes.outerDiv}>
-                <div className={classes.stepsDiv}>
-                    <div className={classes.stepsHeader}>
-                        {locConstants.localContainers.gettingDockerReady}
-                    </div>
-                    <div className={classes.stepsSubheader}>
-                        {locConstants.localContainers.checkingPrerequisites}
-                    </div>
-                    <StepCard
-                        step={localContainersState.dockerSteps[DockerStepOrder.dockerInstallation]}
-                    />
-                    <StepCard
-                        step={localContainersState.dockerSteps[DockerStepOrder.startDockerDesktop]}
-                    />
-                    <StepCard
-                        step={localContainersState.dockerSteps[DockerStepOrder.checkDockerEngine]}
-                    />
-                    <div className={classes.buttonDiv}>
-                        {stepsErrored && (
-                            <Button
-                                className={classes.button}
-                                onClick={handleRetry}
-                                appearance="primary">
-                                {locConstants.common.retry}
-                            </Button>
-                        )}
-                        {stepsLoaded ? (
-                            <Button
-                                className={classes.button}
-                                onClick={() => setShowNext(true)}
-                                appearance="primary">
-                                {locConstants.common.next}
-                            </Button>
-                        ) : (
-                            <Button
-                                className={classes.button}
-                                onClick={() => {
-                                    context.dispose();
-                                }}>
-                                {locConstants.common.cancel}
-                            </Button>
-                        )}
-                    </div>
+    if (localContainersState.loadState === ApiStatus.Error) {
+        return (
+            <div className={loadingClasses.spinnerDiv}>
+                <ErrorCircleRegular className={loadingClasses.errorIcon} />
+                <Text size={400}>{localContainersState.errorMessage ?? ""}</Text>
+            </div>
+        );
+    }
+
+    return (
+        <div className={classes.outerDiv}>
+            <div className={classes.stepsDiv}>
+                <div className={classes.stepsSubheader}>
+                    {locConstants.localContainers.checkingPrerequisites}
                 </div>
+                <StepCard
+                    step={localContainersState.dockerSteps[DockerStepOrder.dockerInstallation]}
+                />
+                <StepCard
+                    step={localContainersState.dockerSteps[DockerStepOrder.startDockerDesktop]}
+                />
+                <StepCard
+                    step={localContainersState.dockerSteps[DockerStepOrder.checkDockerEngine]}
+                />
             </div>
         </div>
     );

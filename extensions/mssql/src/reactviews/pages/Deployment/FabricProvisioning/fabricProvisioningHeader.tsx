@@ -6,6 +6,7 @@
 import { makeStyles, Text } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { useDeploymentSelector } from "../deploymentSelector";
+import { SqlDbInFabricIcon } from "../../../common/icons/sqlDbInFabric";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -47,14 +48,10 @@ export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft })
 
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>
-            <img className={classes.icon} src={sqlInFabricIcon()} />
+            <SqlDbInFabricIcon className={classes.icon} aria-hidden="true" />
             <Text className={classes.titleDiv}>
                 {locConstants.fabricProvisioning.sqlDatabaseInFabric}
             </Text>
         </div>
     );
-};
-
-export const sqlInFabricIcon = () => {
-    return require(`../../../media/sqlDbInFabric.svg`);
 };

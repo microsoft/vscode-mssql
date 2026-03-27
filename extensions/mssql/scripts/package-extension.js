@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const { promisify } = require("util");
 const del = require("del");
 const logger = require("../../../scripts/terminal-logger");
@@ -13,6 +12,7 @@ const logger = require("../../../scripts/terminal-logger");
 const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
 const isOffline = args.includes("--offline");
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 // Platform configurations for offline packaging
 const OFFLINE_PLATFORMS = [
@@ -102,16 +102,15 @@ function packageExtension(packageName = null) {
     logger.step("Packaging extension with vsce...");
 
     try {
-        const vsceArgs = ["yarn", "vsce", "package"];
+        const vsceArgs = ["exec", "--", "vsce", "package", "--no-dependencies"];
 
         if (packageName) {
             vsceArgs.push("-o", packageName);
         }
 
-        const command = vsceArgs.join(" ");
-        logger.debug(`Running: ${command}`);
+        logger.debug(`Running: ${npmCommand} ${vsceArgs.join(" ")}`);
 
-        execSync(command, { stdio: "inherit" });
+        execFileSync(npmCommand, vsceArgs, { stdio: "inherit" });
         logger.success(`Extension packaged${packageName ? `: ${packageName}` : ""}`);
     } catch (error) {
         logger.error(`Packaging failed: ${error.message}`);
@@ -244,8 +243,8 @@ Examples:
   node package-extension.js --offline   # Create offline packages for all platforms
 
 Requirements:
-  - vsce must be installed globally: npm install -g vsce
-  - Extension must be built first: yarn build
+    - Install workspace dependencies from the repository root: npm ci
+    - Extension must be built first: npm run build -- --target mssql
 `);
 }
 

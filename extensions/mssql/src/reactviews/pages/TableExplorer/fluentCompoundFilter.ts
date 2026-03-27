@@ -18,7 +18,6 @@ import type {
     FilterArguments,
     FilterCallback,
     GridOption,
-    OperatorString,
     OperatorType,
     SearchTerm,
     SlickGrid,
@@ -49,7 +48,7 @@ export class FluentCompoundFilter {
     grid!: SlickGrid;
     columnDef!: Column;
     callback!: FilterCallback;
-    operator: OperatorType | OperatorString = "";
+    operator: OperatorType = "";
     searchTerms: SearchTerm[] = [];
 
     // Internal state
@@ -165,7 +164,7 @@ export class FluentCompoundFilter {
     private handleFilterChange(operator: string, value: string): void {
         this._currentOperator = operator;
         this._currentValue = value;
-        this.operator = operator as OperatorType | OperatorString;
+        this.operator = operator as OperatorType;
 
         // Update filled class for styling
         this.updateFilterStyle(value !== "");
@@ -228,7 +227,7 @@ export class FluentCompoundFilter {
      */
     setValues(
         values: SearchTerm | SearchTerm[],
-        operator?: OperatorType | OperatorString,
+        operator?: OperatorType,
         triggerChange = false,
     ): void {
         const searchValue = Array.isArray(values) ? String(values[0] ?? "") : String(values ?? "");
@@ -236,7 +235,7 @@ export class FluentCompoundFilter {
 
         this._currentValue = searchValue;
         this._currentOperator = operatorValue;
-        this.operator = operatorValue as OperatorType | OperatorString;
+        this.operator = operatorValue as OperatorType;
 
         // Update the React component
         if (this._filterComponentRef) {

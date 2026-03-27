@@ -45,7 +45,7 @@ export function stubVscodeWrapper(
     const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
 
     const outputChannel: vscode.OutputChannel = {
-        name: "",
+        name: "MSSQL",
         append: stubber.stub(),
         appendLine: stubber.stub(),
         clear: stubber.stub(),
