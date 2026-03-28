@@ -11,9 +11,9 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import {
     registerSchemaDesignerApplyEditsHandler,
     registerSchemaDesignerGetSchemaStateHandler,
-} from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
-import { normalizeColumn } from "../../src/reactviews/pages/SchemaDesigner/model";
-import { locConstants } from "../../src/reactviews/common/locConstants";
+} from "../../src/webviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
+import { normalizeColumn } from "../../src/webviews/pages/SchemaDesigner/model";
+import { locConstants } from "../../src/webviews/common/locConstants";
 
 suite("schemaDesignerRpcHandlers", () => {
     let sandbox: sinon.SinonSandbox;

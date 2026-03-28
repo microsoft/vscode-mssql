@@ -11,7 +11,7 @@ import {
     reconcileTrackedChangesWithSchema,
     removeTrackedChangesForEditedEntities,
     processCopilotChanges,
-} from "../../src/reactviews/pages/SchemaDesigner/definition/copilot/copilotLedger";
+} from "../../src/webviews/pages/SchemaDesigner/definition/copilot/copilotLedger";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 function deepClone<T>(value: T): T {

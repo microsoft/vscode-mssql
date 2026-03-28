@@ -9,13 +9,13 @@ import {
     getShortcutInfo,
     parseWebviewKeyboardShortcutConfig,
     eventMatchesShortcut,
-} from "../../src/reactviews/common/keyboardUtils";
+} from "../../src/webviews/common/keyboardUtils";
 import {
     WebviewAction,
     WebviewKeyCombination,
     WebviewKeyBindingConfiguration,
 } from "../../src/sharedInterfaces/webview";
-import * as utils from "../../src/reactviews/common/utils";
+import * as utils from "../../src/webviews/common/utils";
 
 suite("keyboardUtils Tests", () => {
     let sandbox: sinon.SinonSandbox;

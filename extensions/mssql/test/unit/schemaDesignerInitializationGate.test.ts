@@ -7,7 +7,7 @@ import { expect } from "chai";
 import {
     createInitializationGateController,
     type InitializationDeferred,
-} from "../../src/reactviews/pages/SchemaDesigner/initializationGate";
+} from "../../src/webviews/pages/SchemaDesigner/initializationGate";
 
 suite("SchemaDesigner initialization gate", () => {
     test("waitForInitialization returns true when already initialized", async () => {

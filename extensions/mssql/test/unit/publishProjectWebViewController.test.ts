@@ -33,6 +33,9 @@ import * as projectUtils from "../../src/publishProject/projectUtils";
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionDetails } from "vscode-mssql";
 import * as constants from "../../src/constants/constants";
+import * as telemetry from "../../src/telemetry/telemetry";
+import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
+import { ServerType } from "../../src/models/connectionInfo";
 
 chai.use(sinonChai);
 
@@ -88,6 +91,8 @@ suite("PublishProjectWebViewController Tests", () => {
         mockDacFxService = {
             getOptionsFromProfile: sandbox.stub(),
             savePublishProfile: sandbox.stub(),
+            deployDacpac: sandbox.stub(),
+            generateDeployScript: sandbox.stub(),
         } as sinon.SinonStubbedInstance<mssql.IDacFxService>;
 
         // Create mock for SqlPackageService
@@ -1406,6 +1411,54 @@ suite("PublishProjectWebViewController Tests", () => {
         );
     });
     //#endregion
+
+    test("publish and generate-script telemetry payloads include serverTypes from the active connection", async () => {
+        const sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        const sendErrorEventStub = sandbox.stub(telemetry, "sendErrorEvent");
+
+        mockDacFxService.deployDacpac.resolves({
+            success: true,
+            errorMessage: "",
+            operationId: "",
+        });
+        mockDacFxService.generateDeployScript.resolves({
+            success: false,
+            errorMessage: "Script generation failed",
+            operationId: "",
+        });
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        const expectedServerTypes = `${ServerType.Azure},${ServerType.Sql}`;
+        controller["_connectionUri"] = "mssql://azure-connection";
+        controller["_serverTypes"] = expectedServerTypes;
+
+        // Verify PublishProject success event includes serverTypes
+        await controller["publishToDatabase"](
+            controller.state,
+            "c:/project.dacpac",
+            "TestDB",
+            true,
+        );
+        const publishCall = sendActionEventStub.args.find(
+            (args) => args[1] === TelemetryActions.PublishProject,
+        );
+        expect(publishCall, "PublishProject telemetry should be emitted").to.exist;
+        expect(publishCall[2].serverTypes).to.equal(expectedServerTypes);
+
+        // Verify GenerateScript failure event includes serverTypes (exercises the !result.success path)
+        await controller["generateDeploymentScript"](
+            controller.state,
+            "c:/project.dacpac",
+            "TestDB",
+        );
+        const scriptErrorCall = sendErrorEventStub.args.find(
+            (args) => args[1] === TelemetryActions.GenerateScript,
+        );
+        expect(scriptErrorCall, "GenerateScript error telemetry should be emitted").to.exist;
+        expect(scriptErrorCall[6].serverTypes).to.equal(expectedServerTypes);
+    });
 
     //#region SqlPackage Command Generation Tests
     /**
