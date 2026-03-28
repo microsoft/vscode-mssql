@@ -42,7 +42,7 @@ import { WebviewPanelController } from "./webviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { getErrorMessage } from "../utils/utils";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
