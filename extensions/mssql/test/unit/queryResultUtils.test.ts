@@ -125,6 +125,7 @@ suite("QueryResult Utils Tests", () => {
     suite("registerCommonRequestHandlers", () => {
         test("registers getExecutionPlan reducer that creates graphs from query-result xml plans", async () => {
             const reducers = new Map<string, Function>();
+            const executionPlanService = {};
             const controller = Object.create(QueryResultWebviewController.prototype) as {
                 onRequest: sinon.SinonStub;
                 onNotification: sinon.SinonStub;
@@ -136,10 +137,10 @@ suite("QueryResult Utils Tests", () => {
             controller.onRequest = sandbox.stub();
             controller.onNotification = sandbox.stub();
             controller.getSqlOutputContentProvider = sandbox.stub();
-            controller.executionPlanService = {};
             controller.registerReducer = (name: string, reducer: Function) => {
                 reducers.set(name, reducer);
             };
+            sandbox.stub(controller, "executionPlanService").get(() => executionPlanService);
 
             const createExecutionPlanGraphsStub = sandbox
                 .stub(sharedExecutionPlanUtils, "createExecutionPlanGraphs")
@@ -173,7 +174,7 @@ suite("QueryResult Utils Tests", () => {
 
             expect(createExecutionPlanGraphsStub).to.have.been.calledOnceWithExactly(
                 state,
-                controller.executionPlanService,
+                executionPlanService,
                 ["<ShowPlanXML />"],
                 "QueryResults",
             );
