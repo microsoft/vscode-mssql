@@ -8,9 +8,6 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as queryResultUtils from "../../src/queryResult/utils";
 import * as Constants from "../../src/constants/constants";
-import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
-import * as qr from "../../src/sharedInterfaces/queryResult";
-import * as sharedExecutionPlanUtils from "../../src/controllers/sharedExecutionPlanUtils";
 
 suite("QueryResult Utils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -120,64 +117,5 @@ suite("QueryResult Utils Tests", () => {
                 expect(queryResultUtils.bucketizeRowCount(value)).to.equal(expected);
             });
         }
-    });
-
-    suite("registerCommonRequestHandlers", () => {
-        test("registers getExecutionPlan reducer that creates graphs from query-result xml plans", async () => {
-            const reducers = new Map<string, Function>();
-            const executionPlanService = {};
-            const controller = Object.create(QueryResultWebviewController.prototype) as {
-                onRequest: sinon.SinonStub;
-                onNotification: sinon.SinonStub;
-                registerReducer: (name: string, reducer: Function) => void;
-                executionPlanService: unknown;
-                getSqlOutputContentProvider: sinon.SinonStub;
-            };
-
-            controller.onRequest = sandbox.stub();
-            controller.onNotification = sandbox.stub();
-            controller.getSqlOutputContentProvider = sandbox.stub();
-            controller.registerReducer = (name: string, reducer: Function) => {
-                reducers.set(name, reducer);
-            };
-            sandbox.stub(controller, "executionPlanService").get(() => executionPlanService);
-
-            const createExecutionPlanGraphsStub = sandbox
-                .stub(sharedExecutionPlanUtils, "createExecutionPlanGraphs")
-                .resolves({
-                    executionPlanState: {
-                        executionPlanGraphs: [{ root: { cost: 1, subTreeCost: 2 } }],
-                    },
-                } as qr.QueryResultWebviewState);
-
-            queryResultUtils.registerCommonRequestHandlers(
-                controller as unknown as QueryResultWebviewController,
-                "test-correlation-id",
-            );
-
-            const reducer = reducers.get("getExecutionPlan");
-            expect(reducer).to.exist;
-
-            const state = {
-                resultSetSummaries: {},
-                messages: [],
-                fontSettings: {},
-                executionPlanState: {
-                    executionPlanGraphs: [],
-                    xmlPlans: {
-                        "0,0": "<ShowPlanXML />",
-                    },
-                },
-            } as unknown as qr.QueryResultWebviewState;
-
-            await reducer?.(state, {});
-
-            expect(createExecutionPlanGraphsStub).to.have.been.calledOnceWithExactly(
-                state,
-                executionPlanService,
-                ["<ShowPlanXML />"],
-                "QueryResults",
-            );
-        });
     });
 });
