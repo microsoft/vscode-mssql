@@ -14,8 +14,8 @@ export class ServerInitializationResult {
     public constructor(
         public installedBeforeInitializing: boolean = false,
         public isRunning: boolean = false,
-        public serverPath: string = undefined,
-        public message: string = undefined,
+        public serverPath: string | undefined = undefined,
+        public message: string | undefined = undefined,
     ) {}
 }
 

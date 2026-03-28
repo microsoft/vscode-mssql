@@ -259,6 +259,9 @@ export default class SqlToolsServiceClient {
             );
         } catch (err) {
             this.logger.logDebug(Constants.serviceLoadingFailed + ": " + getErrorMessage(err));
+            if (err instanceof Error && err.stack) {
+                this.logger.logDebug(err.stack);
+            }
             Utils.showErrorMsg(Constants.serviceLoadingFailed);
 
             return new ServerInitializationResult(

@@ -16,7 +16,8 @@ import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import ExtConfig from "../../src/configurations/extConfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubVscodeWrapper } from "./utils";
+import { ServerInitializationResult } from "../../src/languageservice/serverStatus";
+import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -163,6 +164,53 @@ suite("Service Client tests", () => {
         expect(result).to.not.be.undefined;
         expect(result?.serverPath).to.equal(fixture.installedServerPath);
         expect(result?.installedBeforeInitializing).to.be.false;
+    });
+
+    test("initializeForPlatform should return isRunning=false when downloadServerFiles fails", async () => {
+        const errorMessage = "Download failed";
+        const platformInfo = new PlatformInformation("win32", "x86_64", undefined);
+
+        testServiceProvider.getServerPath.resolves(undefined);
+        testServiceProvider.downloadServerFiles.rejects(new Error(errorMessage));
+
+        const serviceClient = createServiceClient();
+
+        const result = await serviceClient.initializeForPlatform(platformInfo, undefined);
+
+        expect(result.isRunning).to.be.false;
+        expect(result.installedBeforeInitializing).to.be.false;
+        expect(result.message).to.equal(errorMessage);
+    });
+
+    test("initializeForPlatform should return isRunning=false when initializeLanguageClient fails", async () => {
+        const errorMessage = "Language client initialization failed";
+        const platformInfo = new PlatformInformation("win32", "x86_64", undefined);
+
+        testServiceProvider.getServerPath.resolves("path/to/server");
+
+        const serviceClient = createServiceClient();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        sandbox.stub(serviceClient as any, "initializeLanguageClient").rejects(new Error(errorMessage));
+
+        const result = await serviceClient.initializeForPlatform(platformInfo, undefined);
+
+        expect(result.isRunning).to.be.false;
+        expect(result.message).to.equal(errorMessage);
+    });
+
+    test("initialize should throw when initializeForPlatform returns isRunning=false", async () => {
+        const errorMessage = "Service failed to start";
+        const platformInfo = new PlatformInformation("win32", "x86_64", undefined);
+
+        sandbox.stub(PlatformInformation, "getCurrent").resolves(platformInfo);
+
+        const serviceClient = createServiceClient();
+        sandbox.stub(serviceClient, "initializeForPlatform").resolves(
+            new ServerInitializationResult(false, false, undefined, errorMessage),
+        );
+
+        const context = stubExtensionContext(sandbox);
+        await expect(serviceClient.initialize(context)).to.be.rejectedWith(Error, errorMessage);
     });
 
     test("handleLanguageServiceStatusNotification should change the UI status", () => {
