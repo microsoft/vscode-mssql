@@ -15,8 +15,8 @@ import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connect
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import { Dab } from "../../src/sharedInterfaces/dab";
-import { registerSchemaDesignerDabToolHandlers } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
-import { locConstants } from "../../src/reactviews/common/locConstants";
+import { registerSchemaDesignerDabToolHandlers } from "../../src/webviews/pages/SchemaDesigner/schemaDesignerRpcHandlers";
+import { locConstants } from "../../src/webviews/common/locConstants";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 import { IConnectionProfile } from "../../src/models/interfaces";

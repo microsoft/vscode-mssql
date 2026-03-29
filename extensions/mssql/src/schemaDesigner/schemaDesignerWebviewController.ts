@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
@@ -48,7 +48,7 @@ function getCopilotChatDiscoveryDismissedState(
     };
 }
 
-export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
+export class SchemaDesignerWebviewController extends WebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
 > {

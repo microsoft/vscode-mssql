@@ -4,24 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewBaseController } from "./reactWebviewBaseController";
+import { WebviewBaseController } from "./webviewBaseController";
 import VscodeWrapper from "./vscodeWrapper";
 
 /**
- * ReactWebviewViewController is a class that manages a vscode.WebviewView and provides
+ * WebviewViewController is a class that manages a vscode.WebviewView and provides
  * a way to communicate with it. It provides a way to register request handlers and reducers
  * that can be called from the webview. It also provides a way to post notifications to the webview.
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebviewViewController<State, Reducers>
-    extends ReactWebviewBaseController<State, Reducers>
+export class WebviewViewController<State, Reducers>
+    extends WebviewBaseController<State, Reducers>
     implements vscode.WebviewViewProvider
 {
     private _webviewView: vscode.WebviewView;
 
     /**
-     * Creates a new ReactWebviewViewController
+     * Creates a new WebviewViewController
      * @param _context Extension context
      * @param _sourceFile Source file that the webview will use
      * @param _viewId The id of the view, this should be the same id defined in the package.json

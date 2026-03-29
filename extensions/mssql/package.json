@@ -57,14 +57,14 @@
         "build:prepare": "npm run build:copy-assets && npm run build:runtime-localization",
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:extension-bundle": "node scripts/bundle-extension.js",
-        "build:webviews": "tsc -p tsconfig.react.json",
-        "build:webviews-bundle": "node scripts/bundle-reactviews.js",
+        "build:webviews": "tsc -p tsconfig.webviews.json",
+        "build:webviews-bundle": "node scripts/bundle-webviews.js",
         "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node scripts/bundle-extension.js --watch",
-        "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
-        "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
+        "watch:webviews": "tsc -watch -p tsconfig.webviews.json --preserveWatchOutput",
+        "watch:webviews-bundle": "node scripts/bundle-webviews.js --watch",
         "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "eslint --quiet --cache ./src ./test",
@@ -74,7 +74,7 @@
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
-        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
+        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
@@ -184,6 +184,9 @@
         }
     },
     "contributes": {
+        "vscode-sql-common-features": {
+            "uriOwnershipApi": true
+        },
         "viewsContainers": {
             "activitybar": [
                 {
@@ -382,8 +385,13 @@
         "menus": {
             "editor/title": [
                 {
+                    "command": "mssql.runQueryWithUriOwnership",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && !mssql.hideUIElements && mssql.hasCoordinatingExtensionsWithUriOwnership && resource not in mssql.connections && resource not in mssql.connecting",
+                    "group": "navigation@1"
+                },
+                {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && resource not in mssql.connecting",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && !mssql.hideUIElements && resource not in mssql.connecting && (resource in mssql.connections || !mssql.hasCoordinatingExtensionsWithUriOwnership)",
                     "group": "navigation@1"
                 },
                 {
@@ -397,8 +405,13 @@
                     "group": "navigation@2"
                 },
                 {
+                    "command": "mssql.connectWithUriOwnership",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && !mssql.hideUIElements && mssql.hasCoordinatingExtensionsWithUriOwnership && resource not in mssql.connecting",
+                    "group": "navigation@3"
+                },
+                {
                     "command": "mssql.connect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && resource not in mssql.connecting",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && !mssql.hideUIElements && !mssql.hasCoordinatingExtensionsWithUriOwnership && resource not in mssql.connecting",
                     "group": "navigation@3"
                 },
                 {
@@ -440,12 +453,12 @@
             "editor/context": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql",
+                    "when": "editorLangId == sql && !mssql.hideUIElements",
                     "group": "0_mssql"
                 },
                 {
                     "submenu": "mssql.copilot.editorSubmenu",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled && !mssql.hideUIElements",
                     "group": "0_mssql"
                 }
             ],
@@ -845,6 +858,14 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.runQueryWithUriOwnership",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.connectWithUriOwnership",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
@@ -975,6 +996,15 @@
                 "icon": "$(debug-start)"
             },
             {
+                "command": "mssql.runQueryWithUriOwnership",
+                "title": "%mssql.runQuery%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/runQueryUriOwnership_dark.svg",
+                    "light": "media/runQueryUriOwnership_light.svg"
+                }
+            },
+            {
                 "command": "mssql.runCurrentStatement",
                 "title": "%mssql.runCurrentStatement%",
                 "category": "MS SQL"
@@ -1006,6 +1036,15 @@
                 "title": "%mssql.connect%",
                 "category": "MS SQL",
                 "icon": "$(plug)"
+            },
+            {
+                "command": "mssql.connectWithUriOwnership",
+                "title": "%mssql.connect%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/connectUriOwnership_dark.svg",
+                    "light": "media/connectUriOwnership_light.svg"
+                }
             },
             {
                 "command": "mssql.disconnect",

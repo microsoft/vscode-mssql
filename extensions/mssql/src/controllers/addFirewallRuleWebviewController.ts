@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
 import { FirewallService } from "../firewall/firewallService";
@@ -21,7 +21,7 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 /**
  * Controller for the Add Firewall Rule dialog
  */
-export class AddFirewallRuleWebviewController extends ReactWebviewPanelController<
+export class AddFirewallRuleWebviewController extends WebviewPanelController<
     AddFirewallRuleState,
     AddFirewallRuleReducers,
     boolean

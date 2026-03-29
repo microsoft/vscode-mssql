@@ -13,7 +13,7 @@ import { FileBrowserService } from "../../src/services/fileBrowserService";
 import * as vscode from "vscode";
 import { stubVscodeWrapper } from "./utils";
 import { registerFileBrowserReducers } from "../../src/controllers/fileBrowserUtils";
-import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../../src/controllers/webviewPanelController";
 import {
     FileBrowserCloseResponse,
     FileBrowserExpandResponse,
@@ -34,7 +34,7 @@ suite("File Browser Utilities", () => {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     let mockContext: vscode.ExtensionContext;
-    let mockFileBrowserController: ReactWebviewPanelController<
+    let mockFileBrowserController: WebviewPanelController<
         FileBrowserWebviewState,
         FileBrowserReducers,
         void
@@ -285,7 +285,7 @@ suite("File Browser Utilities", () => {
 
 let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
-class TestFileBrowserWebviewController<TResult> extends ReactWebviewPanelController<
+class TestFileBrowserWebviewController<TResult> extends WebviewPanelController<
     FileBrowserWebviewState,
     FileBrowserReducers,
     TResult

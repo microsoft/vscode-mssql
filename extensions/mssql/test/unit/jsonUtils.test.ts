@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isJson } from "../../src/reactviews/common/jsonUtils";
+import { isJson } from "../../src/webviews/common/jsonUtils";
 import { expect } from "@playwright/test";
 
 suite("isJsonCell Tests", () => {

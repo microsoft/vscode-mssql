@@ -16,7 +16,7 @@
  *
  * DO NOT use `const enum` in this file. `const enum` declarations are inlined by the
  * TypeScript compiler and have no runtime representation, which breaks esbuild /
- * isolatedModules compilation used for React webview bundles. Always use plain `enum`.
+ * isolatedModules compilation used for webview bundles. Always use plain `enum`.
  *
  * TODO: Move all similar enums from other files to this centralized location.
  */

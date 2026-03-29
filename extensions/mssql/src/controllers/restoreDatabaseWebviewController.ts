@@ -54,7 +54,7 @@ import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { BlobItem } from "@azure/storage-blob";
 import { registerFileBrowserReducers } from "./fileBrowserUtils";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
@@ -340,7 +340,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         });
 
         registerFileBrowserReducers(
-            this as ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
+            this as WebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
             this.fileBrowserService,
             defaultBackupFileTypes,
         );

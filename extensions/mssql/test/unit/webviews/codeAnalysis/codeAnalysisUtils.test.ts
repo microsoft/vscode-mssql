@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { filterRules } from "../../../../src/reactviews/pages/CodeAnalysis/codeAnalysisUtils";
-import { allSeverities } from "../../../../src/reactviews/common/constants";
+import { filterRules } from "../../../../src/webviews/pages/CodeAnalysis/codeAnalysisUtils";
+import { allSeverities } from "../../../../src/webviews/common/constants";
 import {
     CodeAnalysisRuleSeverity,
     SqlCodeAnalysisRule,

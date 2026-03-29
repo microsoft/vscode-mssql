@@ -1,5 +1,5 @@
 ---
-applyTo: "extensions/mssql/src/reactviews/**"
+applyTo: "extensions/mssql/src/webviews/**"
 ---
 
 # Webview Code Review Instructions
