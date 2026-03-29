@@ -47,7 +47,7 @@ import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQu
 import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/projectEntry";
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
-import { DeploymentScenario, TaskExecutionMode } from "../common/enums";
+import { DeploymentScenario, ExtractTarget, TaskExecutionMode } from "../common/enums";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -1905,7 +1905,7 @@ export class ProjectsController {
         // the profile or it could be wrapped in another object
         return (
             (<any>context)?.connectionProfile ??
-            (context as mssqlVscode.ITreeNodeInfo).connectionInfo ??
+            (context as mssqlVscode.ITreeNodeInfo).connectionProfile ??
             context
         );
     }
@@ -2001,7 +2001,7 @@ export class ProjectsController {
                 .send();
 
             const scriptList: vscode.Uri[] =
-                model.extractTarget === mssqlVscode.ExtractTarget.file
+                model.extractTarget === ExtractTarget.file
                     ? [vscode.Uri.file(model.filePath)]
                     : await this.generateScriptList(model.filePath); // Create a list of all the files to be added to project
 
@@ -2035,15 +2035,15 @@ export class ProjectsController {
             model.projName,
             model.version,
             model.connectionUri,
-            model.extractTarget as mssqlVscode.ExtractTarget,
-            TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
+            model.extractTarget as ExtractTarget,
+            TaskExecutionMode.execute,
             model.includePermissions,
         );
         // TODO: Check for success; throw error
     }
 
     public setFilePath(model: ImportDataModel) {
-        if (model.extractTarget === mssqlVscode.ExtractTarget.file) {
+        if (model.extractTarget === ExtractTarget.file) {
             model.filePath = path.join(model.filePath, `${model.projName}.sql`); // File extractTarget specifies the exact file rather than the containing folder
         }
     }
@@ -2240,7 +2240,7 @@ export class ProjectsController {
             operationId,
             source as mssqlVscode.SchemaCompareEndpointInfo,
             target as mssqlVscode.SchemaCompareEndpointInfo,
-            mssqlVscode.TaskExecutionMode.execute,
+            TaskExecutionMode.execute,
             deploymentOptions.defaultDeploymentOptions,
         );
 
@@ -2278,7 +2278,7 @@ export class ProjectsController {
         const publishResult = await this.schemaComparePublishProjectChanges(
             operationId,
             target.projectFilePath,
-            target.extractTarget as mssqlVscode.ExtractTarget,
+            target.extractTarget as ExtractTarget,
         );
 
         if (publishResult.success) {
@@ -2311,7 +2311,7 @@ export class ProjectsController {
     public async schemaComparePublishProjectChanges(
         operationId: string,
         projectFilePath: string,
-        folderStructure: mssqlVscode.ExtractTarget,
+        folderStructure: ExtractTarget,
     ): Promise<mssqlVscode.SchemaComparePublishProjectResult> {
         const service = await utils.getSchemaCompareService();
         const projectPath = path.dirname(projectFilePath);
@@ -2320,8 +2320,8 @@ export class ProjectsController {
         const result = await (service as mssqlVscode.ISchemaCompareService).publishProjectChanges(
             operationId,
             projectPath,
-            folderStructure as mssqlVscode.ExtractTarget,
-            mssqlVscode.TaskExecutionMode.execute as any,
+            folderStructure,
+            TaskExecutionMode.execute,
         );
 
         if (!result.errorMessage) {

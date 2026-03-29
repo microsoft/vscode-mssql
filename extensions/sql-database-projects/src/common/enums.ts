@@ -39,3 +39,39 @@ export enum TaskExecutionMode {
     script = 1,
     executeAndScript = 2,
 }
+
+/**
+ * Specifies the target folder structure when extracting a project from a database.
+ * Must be kept in sync with ExtractTarget in vscode-mssql.d.ts.
+ */
+export enum ExtractTarget {
+    dacpac = 0,
+    file = 1,
+    flat = 2,
+    objectType = 3,
+    schema = 4,
+    schemaObjectType = 5,
+}
+
+/**
+ * Specifies the type of a schema compare endpoint.
+ * Must be kept in sync with SchemaCompareEndpointType in vscode-mssql.d.ts.
+ */
+export enum SchemaCompareEndpointType {
+    Database = 0,
+    Dacpac = 1,
+    Project = 2,
+}
+
+/**
+ * Well-known Authentication types.
+ * Must be kept in sync with AuthenticationType in vscode-mssql.d.ts.
+ */
+export const enum AuthenticationType {
+    SqlLogin = "SqlLogin",
+    Integrated = "Integrated",
+    AzureMFA = "AzureMFA",
+    AzureMFAAndUser = "AzureMFAAndUser",
+    DSTSAuth = "dstsAuth",
+    None = "None",
+}
