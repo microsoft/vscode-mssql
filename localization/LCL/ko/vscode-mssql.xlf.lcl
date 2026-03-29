@@ -11134,6 +11134,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Estimated Subtree Cost]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[예상 하위 트리 비용]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter shortcuts]]></Val>
@@ -12930,6 +12939,15 @@
           <Val><![CDATA[Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} URI의 이전에 보류 중이었던 다시 연결 프라미스가 {1} 오류가 발생하여 거부되었습니다. 필요한 경우 다시 연결을 시도합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Estimated Operator Cost]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[예상 연산자 비용]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19449,37 +19467,49 @@
       </Item>
       <Item ItemId=";package.mssql.cancelConnect" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Cancel Connection]]></Val>
+          <Val><![CDATA[Cancel Connection (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[연결 취소]]></Val>
+            <Val><![CDATA[연결 취소 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Cancel Connection]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.cancelQuery" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Cancel Query]]></Val>
+          <Val><![CDATA[Cancel Query (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[쿼리 취소]]></Val>
+            <Val><![CDATA[쿼리 취소 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Cancel Query]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.changeConnection" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Change Connection]]></Val>
+          <Val><![CDATA[Change Connection (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[연결 변경]]></Val>
+            <Val><![CDATA[연결 변경 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Change Connection]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.changeDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Change Database]]></Val>
+          <Val><![CDATA[Change Database (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터베이스 변경]]></Val>
+            <Val><![CDATA[데이터베이스 변경 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Change Database]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19557,10 +19587,13 @@
       </Item>
       <Item ItemId=";package.mssql.connect" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Connect]]></Val>
+          <Val><![CDATA[Connect (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[연결]]></Val>
+            <Val><![CDATA[연결 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Connect]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20337,19 +20370,25 @@
       </Item>
       <Item ItemId=";package.mssql.disableActualPlan" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Disable Actual Plan]]></Val>
+          <Val><![CDATA[Disable Actual Plan (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[실제 계획 사용 안 함]]></Val>
+            <Val><![CDATA[실제 계획 사용 안 함 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Disable Actual Plan]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.disconnect" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Disconnect]]></Val>
+          <Val><![CDATA[Disconnect (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[연결 끊기]]></Val>
+            <Val><![CDATA[연결 끊기 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Disconnect]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20391,10 +20430,13 @@
       </Item>
       <Item ItemId=";package.mssql.enableActualPlan" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Enable Actual Plan]]></Val>
+          <Val><![CDATA[Enable Actual Plan (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[실제 계획 사용]]></Val>
+            <Val><![CDATA[실제 계획 사용 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Enable Actual Plan]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21480,28 +21522,37 @@
       </Item>
       <Item ItemId=";package.mssql.revealQueryResult" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Reveal Query Result]]></Val>
+          <Val><![CDATA[Reveal Query Result (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[쿼리 결과 표시]]></Val>
+            <Val><![CDATA[쿼리 결과 표시 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Reveal Query Result]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.runCurrentStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Execute Current Statement]]></Val>
+          <Val><![CDATA[Execute Current Statement (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[현재 문 실행]]></Val>
+            <Val><![CDATA[현재 문 실행 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Execute Current Statement]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.runQuery" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Execute Query]]></Val>
+          <Val><![CDATA[Execute Query (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[쿼리 실행]]></Val>
+            <Val><![CDATA[쿼리 실행 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Execute Query]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21693,10 +21744,13 @@
       </Item>
       <Item ItemId=";package.mssql.showEstimatedPlan" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Estimated Plan]]></Val>
+          <Val><![CDATA[Estimated Plan (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[예상 플랜]]></Val>
+            <Val><![CDATA[예상 실행 계획 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Estimated Plan]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21804,10 +21858,13 @@
       </Item>
       <Item ItemId=";package.mssql.toggleQueryResultPanel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Toggle Query Result Panel Visibility]]></Val>
+          <Val><![CDATA[Toggle Query Result Panel Visibility (MSSQL)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[쿼리 결과 패널 표시 여부 토글]]></Val>
+            <Val><![CDATA[쿼리 결과 패널 표시 여부 토글 (MSSQL)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Toggle Query Result Panel Visibility]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
