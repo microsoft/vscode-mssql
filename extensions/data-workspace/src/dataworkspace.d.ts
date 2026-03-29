@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 declare module "dataworkspace" {
-  import * as azdata from "azdata";
   import * as vscode from "vscode";
+
+  export type IconPath = string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;
+  export type ThemedIconPath = { light: string | vscode.Uri; dark: string | vscode.Uri };
   export const enum extension {
     name = "Microsoft.data-workspace",
     vscodeName = "ms-mssql.data-workspace-vscode",
@@ -127,7 +129,7 @@ declare module "dataworkspace" {
     /**
      * Gets the project image to be used as background in dashboard container
      */
-    readonly image?: azdata.ThemedIconPath;
+    readonly image?: ThemedIconPath;
 
     /**
      * Whether or not the tree data provider supports drag and drop
@@ -170,7 +172,7 @@ declare module "dataworkspace" {
     /**
      * Gets the icon path of the project type
      */
-    readonly icon: azdata.IconPath;
+    readonly icon: IconPath;
 
     /**
      * Gets the target platforms that can be selected when creating a new project
@@ -227,7 +229,7 @@ declare module "dataworkspace" {
     /**
      * icon path of the project action
      */
-    readonly icon?: azdata.IconPath;
+    readonly icon?: IconPath;
 
     /**
      * Run context for each project action
@@ -277,7 +279,7 @@ declare module "dataworkspace" {
    */
   export interface IconCellValue {
     text: string;
-    icon: azdata.IconPath;
+    icon: IconPath;
   }
 
   /**
