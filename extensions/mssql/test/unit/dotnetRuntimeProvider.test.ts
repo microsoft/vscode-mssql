@@ -20,6 +20,8 @@ suite("DotnetRuntimeProvider tests", () => {
     let sandbox: sinon.SinonSandbox;
     let logger: sinon.SinonStubbedInstance<ILogger>;
     let executeCommandStub: sinon.SinonStub;
+    let getExtensionStub: sinon.SinonStub;
+    let activateExtensionStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
 
     setup(() => {
@@ -36,6 +38,17 @@ suite("DotnetRuntimeProvider tests", () => {
             appendLine: sandbox.stub(),
         };
         executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
+        activateExtensionStub = sandbox.stub().resolves(undefined);
+        getExtensionStub = sandbox
+            .stub(vscode.extensions, "getExtension")
+            .callsFake((extensionId: string) => {
+                if (extensionId === Constants.dotnetRuntimeExtensionId) {
+                    return {
+                        activate: activateExtensionStub,
+                    } as unknown as vscode.Extension<unknown>;
+                }
+                return undefined;
+            });
         showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
     });
 
@@ -62,6 +75,8 @@ suite("DotnetRuntimeProvider tests", () => {
                     requestingExtensionId: Constants.extensionId,
                 },
             );
+            expect(getExtensionStub).to.have.been.calledWith(Constants.dotnetRuntimeExtensionId);
+            expect(activateExtensionStub).to.have.been.called;
             expect(logger.verbose).to.have.been.calledWithMatch("Acquired .NET runtime via");
         });
 

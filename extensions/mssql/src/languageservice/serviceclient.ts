@@ -232,10 +232,10 @@ export default class SqlToolsServiceClient {
          * This is used for debugging and allows for launching a locally built version of the service without
          * having to replace the service in the extension installation folder.
          */
-        const sts_folder_override = process.env[STS_OVERRIDE_ENV_VAR];
-        if (sts_folder_override) {
+        const stsFolderOverride = process.env[STS_OVERRIDE_ENV_VAR];
+        if (stsFolderOverride) {
             try {
-                await launchServer(sts_folder_override, Runtime.Portable);
+                await launchServer(stsFolderOverride, Runtime.Portable);
                 this.sendServiceLaunchTelemetry("override", Runtime.Portable, platformInfo);
                 return;
             } catch (err) {
@@ -243,7 +243,7 @@ export default class SqlToolsServiceClient {
                     `Failed to launch SQL Tools Service with overridden path: ${getErrorMessage(err)}`,
                 );
                 /**
-                 * We shouldn't fall back to other launch attemps if the override env variable is set,
+                 * We shouldn't fall back to other launch attempts if the override env variable is set,
                  * since the user explicitly requested to launch from that location.
                  * Show an error message and don't attempt other launch options in this case.
                  */
@@ -303,7 +303,7 @@ export default class SqlToolsServiceClient {
         }
 
         /**
-         * Finally, attemp to download and launch the service for detected runtime. This is a temporary
+         * Finally, attempt to download and launch the service for detected runtime. This is a temporary
          * fallback and should be removed once we have confidence in the reliability of our portable service.
          */
         try {

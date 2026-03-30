@@ -204,29 +204,29 @@ export class PlatformInformation {
     public static async getCurrent(): Promise<PlatformInformation> {
         let platform = os.platform();
         let arch: string | undefined;
-        let disto: LinuxDistribution | undefined;
+        let distro: LinuxDistribution | undefined;
 
         switch (platform) {
             case "win32":
                 arch = this.getWindowsArchitecture();
-                disto = undefined;
+                distro = undefined;
                 break;
 
             case "darwin":
                 arch = await PlatformInformation.getUnixArchitecture();
-                disto = undefined;
+                distro = undefined;
                 break;
 
             case "linux":
                 arch = await PlatformInformation.getUnixArchitecture();
-                disto = await LinuxDistribution.getCurrent();
+                distro = await LinuxDistribution.getCurrent();
                 break;
 
             default:
                 throw new Error(`Unsupported platform: ${platform}`);
         }
 
-        return new PlatformInformation(platform, arch, disto);
+        return new PlatformInformation(platform, arch, distro);
     }
 
     private static getWindowsArchitecture(): string {

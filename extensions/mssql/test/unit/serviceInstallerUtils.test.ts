@@ -99,7 +99,7 @@ suite("Test Service Installer Util functions", () => {
         expect(path, "Service install directory root should not be null").to.not.be.null;
     });
 
-    test.skip("Test cleanAndInstallService function", async () => {
+    test("Test cleanAndInstallService function", async () => {
         await cleanAndInstallService(undefined);
     });
 });
