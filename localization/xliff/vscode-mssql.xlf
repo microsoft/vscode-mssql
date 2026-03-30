@@ -5586,6 +5586,9 @@
       <source xml:lang="en">Server {0} not found.</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
+      <source xml:lang="en">Service installation failed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
       <source xml:lang="en">Session creation timed out</source>
     </trans-unit>
@@ -6194,6 +6197,11 @@
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b9742c3b5b5914f9ac72f6be945f6f52a6ce05ffcd743f8cf4373e9fa4400a25">
+      <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
+      <note>{0} is the service name
+{1} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
@@ -6505,6 +6513,9 @@
     </trans-unit>
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
+      <source xml:lang="en">View known issues</source>
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
