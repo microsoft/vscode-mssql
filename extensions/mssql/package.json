@@ -585,8 +585,13 @@
                 },
                 {
                     "command": "mssql.profiler.launchFromObjectExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "4_MSSQL_discoverAndProfile@2"
+                },
+                {
+                    "command": "mssql.profiler.launchFromDatabase",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@2"
                 },
                 {
                     "command": "mssql.schemaDesigner",
@@ -757,11 +762,6 @@
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
                     "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
                     "group": "6_MSSQL_copilot@2"
-                },
-                {
-                    "command": "mssql.profiler.launchFromDatabase",
-                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
-                    "group": "3_MSSQL_databaseDiscover@2"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
