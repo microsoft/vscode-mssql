@@ -36,7 +36,11 @@ const useStyles = makeStyles({
     },
 });
 
-export const ExecutionPlanPage = () => {
+interface ExecutionPlanPageProps {
+    autoLoad?: boolean;
+}
+
+export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
@@ -45,6 +49,7 @@ export const ExecutionPlanPage = () => {
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     useEffect(() => {
         if (
+            autoLoad &&
             context &&
             executionPlanState &&
             // checks if execution plans have already been gotten
@@ -53,7 +58,7 @@ export const ExecutionPlanPage = () => {
         ) {
             context.getExecutionPlan();
         }
-    }, [executionPlanState]);
+    }, [autoLoad, executionPlanState]);
 
     const renderMainContent = () => {
         switch (loadState) {

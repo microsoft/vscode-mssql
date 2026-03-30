@@ -24,7 +24,7 @@ export const QueryExecutionPlanTab = () => {
             className={classes.queryResultContainer}
             style={{ height: "100%", minHeight: "300px" }}>
             <ExecutionPlanStateProvider>
-                <ExecutionPlanPage />
+                <ExecutionPlanPage autoLoad={false} />
             </ExecutionPlanStateProvider>
         </div>
     );

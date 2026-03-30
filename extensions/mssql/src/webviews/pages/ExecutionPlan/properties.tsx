@@ -487,17 +487,21 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 };
 
 function buildItemListFromProperties(
-    properties: ep.ExecutionPlanGraphElementProperty[],
+    properties: ep.ExecutionPlanGraphElementProperty[] | null | undefined,
     currentLength: number,
     level: number,
     isChild: boolean,
     parent: number,
 ): ep.ExecutionPlanPropertyTableItem[] {
+    if (!Array.isArray(properties)) {
+        return [];
+    }
+
     let items: ep.ExecutionPlanPropertyTableItem[] = [];
     for (const property of properties) {
         let children: number[] = [];
         let childrenItems: ep.ExecutionPlanPropertyTableItem[] = [];
-        if (typeof property.value !== "string") {
+        if (Array.isArray(property.value)) {
             childrenItems = buildItemListFromProperties(
                 property.value,
                 currentLength + 1,
@@ -517,8 +521,8 @@ function buildItemListFromProperties(
         }
         const item: ep.ExecutionPlanPropertyTableItem = {
             id: currentLength,
-            name: property.name,
-            value: property.displayValue,
+            name: property.name ?? "",
+            value: property.displayValue ?? "",
             parent: parent,
             children: children,
             displayOrder: property.displayOrder,
