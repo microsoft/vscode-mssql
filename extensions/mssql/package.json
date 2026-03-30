@@ -43,13 +43,13 @@
     "main": "./dist/extension",
     "l10n": "./l10n",
     "extensionDependencies": [
-        "vscode.sql",
-        "ms-dotnettools.vscode-dotnet-runtime"
+        "vscode.sql"
     ],
     "extensionPack": [
         "ms-mssql.data-workspace-vscode",
         "ms-mssql.sql-database-projects-vscode",
-        "ms-mssql.sql-bindings-vscode"
+        "ms-mssql.sql-bindings-vscode",
+        "ms-dotnettools.vscode-dotnet-runtime"
     ],
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js vscode-mssql .",

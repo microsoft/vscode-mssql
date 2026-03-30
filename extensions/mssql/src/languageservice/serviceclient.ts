@@ -37,7 +37,7 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
-const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.General;
+const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
 
 type ServiceLaunchType =
     | "override"
@@ -320,6 +320,20 @@ export default class SqlToolsServiceClient {
         } catch (err) {
             this.logger.error(
                 `Failed to download and launch SQL Tools Service: ${getErrorMessage(err)}`,
+            );
+            sendErrorEvent(
+                SERVICE_LAUNCH_TELEMETRY_VIEW,
+                TelemetryActions.ServiceStartFailed,
+                err instanceof Error ? err : new Error(getErrorMessage(err)),
+                false,
+                undefined,
+                undefined,
+                {
+                    launchType: "allLaunchStrategiesFailed",
+                    detectedRuntime: platformInfo.runtimeId,
+                    platform: platformInfo.platform,
+                    architecture: platformInfo.architecture,
+                },
             );
             const displayError = ServiceClient.unableToStartService(getErrorMessage(err));
             // Determine if this is a download failure or a runtime acquisition failure
