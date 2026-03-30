@@ -384,7 +384,7 @@ suite("Service Client tests", () => {
             expect(dotnetRuntimeProvider.acquireDotnetRuntime.notCalled).to.be.true;
         });
 
-        test("wraps dotnet runtime acquisition failures with launch context", async () => {
+        test("rethrows dotnet runtime acquisition failures without wrapping", async () => {
             const serviceClient = createServiceClient();
             dotnetRuntimeProvider.acquireDotnetRuntime.rejects(new Error("runtime missing"));
 
@@ -398,9 +398,7 @@ suite("Service Client tests", () => {
                 ).launchCommandAndArgs("MicrosoftSqlToolsServiceLayer.dll");
                 expect.fail("Expected launchCommandAndArgs to throw when dotnet acquisition fails");
             } catch (error) {
-                expect((error as Error).message).to.equal(
-                    "Failed to acquire .NET runtime for launching service: runtime missing",
-                );
+                expect((error as Error).message).to.equal("runtime missing");
             }
         });
     });

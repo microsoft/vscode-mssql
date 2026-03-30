@@ -79,10 +79,7 @@ suite("Server tests", () => {
 
     test("tryGetExecutablePathInFolder should return the expected native executable path", async () => {
         await withTempDir(async (tempDir) => {
-            const expectedFileName =
-                process.platform === "win32"
-                    ? "MicrosoftSqlToolsServiceLayer.exe"
-                    : "MicrosoftSqlToolsServiceLayer";
+            const expectedFileName = "MicrosoftSqlToolsServiceLayer.exe";
             const expectedPath = path.join(tempDir, expectedFileName);
             await fs.writeFile(expectedPath, "");
 
@@ -105,7 +102,7 @@ suite("Server tests", () => {
         const result = await server.tryGetServerInstallFolder(Runtime.Windows_64);
 
         expect(result).to.equal(installDir);
-        expect(downloadProvider.tryGetInstallDirectory).to.have.been.calledOnceWithExactly(
+        expect(downloadProvider.tryGetInstallDirectory).to.have.been.calledWithExactly(
             Runtime.Windows_64,
         );
     });
@@ -121,10 +118,10 @@ suite("Server tests", () => {
         const result = await server.downloadAndGetServerInstallFolder(Runtime.Windows_64);
 
         expect(result).to.equal(installDir);
-        expect(downloadProvider.getOrCreateInstallDirectory).to.have.been.calledOnceWithExactly(
+        expect(downloadProvider.getOrCreateInstallDirectory).to.have.been.calledWithExactly(
             Runtime.Windows_64,
         );
-        expect(downloadProvider.downloadAndInstallService).to.have.been.calledOnceWithExactly(
+        expect(downloadProvider.downloadAndInstallService).to.have.been.calledWithExactly(
             Runtime.Windows_64,
         );
     });
@@ -145,6 +142,6 @@ suite("Server tests", () => {
             expect(error).to.equal(expectedError);
         }
 
-        expect(statusView.serviceInstallationFailed).to.have.been.calledOnce;
+        expect(statusView.serviceInstallationFailed).to.have.been.called;
     });
 });

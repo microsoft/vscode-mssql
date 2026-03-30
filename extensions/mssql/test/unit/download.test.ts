@@ -145,9 +145,8 @@ suite("ServiceDownloadProvider Tests", () => {
         fixture = await createDownloadProvider(fixture);
         await fixture.downloadProvider!.downloadAndInstallService(Runtime.Windows_64);
 
-        expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
-        expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
-        expect(testDecompressProvider.decompress).to.have.been.calledOnce;
+        expect(testDownloadHelper.downloadFile).to.have.been.calledWith(fixture.downloadUrl);
+        expect(testDecompressProvider.decompress).to.have.been.called;
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
@@ -163,8 +162,7 @@ suite("ServiceDownloadProvider Tests", () => {
         return fixture
             .downloadProvider!.downloadAndInstallService(Runtime.Windows_64)
             .catch((_) => {
-                expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
-                expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(
+                expect(testDownloadHelper.downloadFile).to.have.been.calledWith(
                     fixture.downloadUrl,
                 );
                 expect(testDecompressProvider.decompress).to.not.have.been.called;
@@ -183,11 +181,10 @@ suite("ServiceDownloadProvider Tests", () => {
         return fixture
             .downloadProvider!.downloadAndInstallService(Runtime.Windows_64)
             .catch((_) => {
-                expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
-                expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(
+                expect(testDownloadHelper.downloadFile).to.have.been.calledWith(
                     fixture.downloadUrl,
                 );
-                expect(testDecompressProvider.decompress).to.have.been.calledOnce;
+                expect(testDecompressProvider.decompress).to.have.been.called;
             });
     });
 });

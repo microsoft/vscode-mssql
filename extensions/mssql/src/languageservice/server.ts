@@ -30,14 +30,13 @@ export default class ServerProvider {
         runtime: Runtime,
         filePrefix: string,
     ): Promise<string | undefined> {
-        let sqlToolsFilePrefix = filePrefix;
         let fileName;
         if (runtime === Runtime.Portable) {
-            fileName = `${sqlToolsFilePrefix}.dll`;
-        } else if (process.platform === "win32") {
-            fileName = `${sqlToolsFilePrefix}.exe`;
+            fileName = `${filePrefix}.dll`;
+        } else if (runtime === Runtime.Windows_64 || runtime === Runtime.Windows_ARM64) {
+            fileName = `${filePrefix}.exe`;
         } else {
-            fileName = sqlToolsFilePrefix;
+            fileName = filePrefix;
         }
         const resolvedPath = path.join(folderPath, fileName);
         const isFilePresent = await fs.access(resolvedPath).then(

@@ -93,7 +93,7 @@ export class LanguageClientErrorHandler {
      *
      * @memberOf LanguageClientErrorHandler
      */
-    error(error: Error, message: IMessage, count: number): ErrorAction {
+    error(error: Error, _message: IMessage, _count: number): ErrorAction {
         this.showOnErrorPrompt(getErrorMessage(error));
 
         // we don't retry running the service since crashes leave the extension
@@ -221,9 +221,9 @@ export default class SqlToolsServiceClient {
             `Detected runtime: ${platformInfo.platform} ${platformInfo.architecture}`,
         );
 
-        const launchServer = async (serverPath: string, runtime: Runtime) => {
-            this._sqlToolsServicePath = serverPath;
-            await this.initializeLanguageClient(serverPath, runtime, context);
+        const launchServer = async (serverInstallFolder: string, runtime: Runtime) => {
+            this._sqlToolsServicePath = serverInstallFolder;
+            await this.initializeLanguageClient(serverInstallFolder, runtime, context);
             await this._client.onReady();
         };
 
@@ -260,7 +260,7 @@ export default class SqlToolsServiceClient {
             );
             if (osSpecificServerPath) {
                 this._logger.verbose(
-                    `Found OS-specific SQL Tools Service executable path: ${osSpecificServerPath}`,
+                    `Found OS-specific SQL Tools Service install folder: ${osSpecificServerPath}`,
                 );
                 await launchServer(osSpecificServerPath, platformInfo.runtimeId);
                 this.sendServiceLaunchTelemetry(
@@ -291,7 +291,7 @@ export default class SqlToolsServiceClient {
                 );
             }
             this._logger.verbose(
-                `Found portable SQL Tools Service executable path: ${portableServerPath}`,
+                `Found portable SQL Tools Service install folder: ${portableServerPath}`,
             );
             await launchServer(portableServerPath, Runtime.Portable);
             this.sendServiceLaunchTelemetry(launchType, Runtime.Portable, platformInfo);
@@ -363,7 +363,7 @@ export default class SqlToolsServiceClient {
         }
 
         this._logger.verbose(
-            `Attempting to launch SQL Tools Service from path: ${serverFolder} for runtime: ${runtime}`,
+            `Attempting to launch SQL Tools Service from install folder: ${serverFolder} for runtime: ${runtime}`,
         );
 
         const sqlToolsServicePath = await this._server.tryGetExecutablePathInFolder(
@@ -443,11 +443,14 @@ export default class SqlToolsServiceClient {
     private async createResourceClient(executablePath: string): Promise<LanguageClient> {
         // add resource provider path here
         let serverOptions = await this.generateResourceServiceServerOptions(executablePath);
-        // client options are undefined since we don't want to send language events to the
-        // server, since it's handled by the main client
-        let client = new LanguageClient(Constants.resourceServiceName, serverOptions, {
+        const clientOptions: LanguageClientOptions = {
             errorHandler: new LanguageClientErrorHandler(Constants.resourceServiceName),
-        });
+        };
+        let client = new LanguageClient(
+            Constants.resourceServiceName,
+            serverOptions,
+            clientOptions,
+        );
         return client;
     }
 
@@ -489,20 +492,20 @@ export default class SqlToolsServiceClient {
                     args: [executablePath],
                 };
             } catch (err) {
+                const runtimeError =
+                    err instanceof Error ? err : new Error(ServiceClient.runtimeNotFoundError);
                 sendErrorEvent(
                     SERVICE_LAUNCH_TELEMETRY_VIEW,
                     TelemetryActions.AcquireDotnetRuntimeFailed,
-                    err instanceof Error ? err : new Error(getErrorMessage(err)),
+                    runtimeError,
                     true, // include error message
                     undefined,
                     undefined,
                 );
                 this._logger.error(
-                    `Failed to acquire .NET runtime for launching service: ${getErrorMessage(err)}`,
+                    `Failed to acquire .NET runtime for launching service: ${getErrorMessage(runtimeError)}`,
                 );
-                throw new Error(
-                    `Failed to acquire .NET runtime for launching service: ${getErrorMessage(err)}`,
-                );
+                throw runtimeError;
             }
         } else {
             return {
