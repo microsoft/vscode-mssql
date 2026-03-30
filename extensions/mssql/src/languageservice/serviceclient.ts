@@ -228,7 +228,7 @@ export default class SqlToolsServiceClient {
         };
 
         /**
-         * Attemp to launch the service from a path specified by an environment variable.
+         * Attempt to launch the service from a path specified by an environment variable.
          * This is used for debugging and allows for launching a locally built version of the service without
          * having to replace the service in the extension installation folder.
          */
