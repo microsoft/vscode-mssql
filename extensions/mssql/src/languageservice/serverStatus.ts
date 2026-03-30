@@ -6,33 +6,7 @@
 import { IStatusView } from "./interfaces";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
-
-/*
- * The status class which includes the service initialization result.
- */
-export class ServerInitializationResult {
-    public constructor(
-        public installedBeforeInitializing: Boolean = false,
-        public isRunning: Boolean = false,
-        public serverPath: string = undefined,
-    ) {}
-
-    public clone(): ServerInitializationResult {
-        return new ServerInitializationResult(
-            this.installedBeforeInitializing,
-            this.isRunning,
-            this.serverPath,
-        );
-    }
-
-    public withRunning(isRunning: Boolean): ServerInitializationResult {
-        return new ServerInitializationResult(
-            this.installedBeforeInitializing,
-            isRunning,
-            this.serverPath,
-        );
-    }
-}
+import { ServiceClient } from "../constants/locConstants";
 
 /*
  * The status class shows service installing progress in UI
@@ -78,7 +52,7 @@ export class ServerStatusView implements IStatusView, vscode.Disposable {
 
     public serviceInstallationFailed(): void {
         this._statusBarItem.command = undefined;
-        this._statusBarItem.text = Constants.serviceInstallationFailed;
+        this._statusBarItem.text = ServiceClient.installFailedStatusText;
         this._statusBarItem.show();
     }
 

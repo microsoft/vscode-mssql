@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as child_process from "child_process";
-import * as fs from "fs";
+import * as fs from "fs/promises";
 import * as os from "os";
 import * as semver from "semver";
 import * as plist from "plist";
@@ -26,7 +26,7 @@ export enum Runtime {
     Portable = "Portable",
 }
 
-export function getRuntimeDisplayName(runtime: Runtime): string {
+export function getRuntimeDisplayName(runtime: Runtime | undefined): string {
     switch (runtime) {
         case Runtime.Windows_64:
         case Runtime.Windows_ARM64:
@@ -57,28 +57,27 @@ export class LinuxDistribution {
         public idLike?: string[],
     ) {}
 
-    public static getCurrent(): Promise<LinuxDistribution> {
+    public static async getCurrent(): Promise<LinuxDistribution> {
         // Try /etc/os-release and fallback to /usr/lib/os-release per the synopsis
         // at https://www.freedesktop.org/software/systemd/man/os-release.html.
-        return LinuxDistribution.fromFilePath("/etc/os-release")
-            .catch(() => LinuxDistribution.fromFilePath("/usr/lib/os-release"))
-            .catch(() => Promise.resolve(new LinuxDistribution(unknown, unknown)));
+        try {
+            return await LinuxDistribution.fromFilePath("/etc/os-release");
+        } catch {
+            try {
+                return await LinuxDistribution.fromFilePath("/usr/lib/os-release");
+            } catch {
+                return new LinuxDistribution(unknown, unknown);
+            }
+        }
     }
 
     public toString(): string {
         return `name=${this.name}, version=${this.version}`;
     }
 
-    private static fromFilePath(filePath: string): Promise<LinuxDistribution> {
-        return new Promise<LinuxDistribution>((resolve, reject) => {
-            fs.readFile(filePath, "utf8", (error, data) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(LinuxDistribution.fromReleaseInfo(data));
-                }
-            });
-        });
+    private static async fromFilePath(filePath: string): Promise<LinuxDistribution> {
+        const fileData = await fs.readFile(filePath, "utf8");
+        return LinuxDistribution.fromReleaseInfo(fileData);
     }
 
     public static fromReleaseInfo(releaseInfo: string, eol: string = os.EOL): LinuxDistribution {
@@ -154,12 +153,14 @@ export class PlatformInformation {
         return getRuntimeDisplayName(this.runtimeId);
     }
 
-    public isMacVersionLessThan(version: string): boolean {
+    public async isMacVersionLessThan(version: string): Promise<boolean> {
         if (this.isMacOS) {
             try {
-                let versionInfo = plist.parse(
-                    fs.readFileSync("/System/Library/CoreServices/SystemVersion.plist", "utf-8"),
+                const systemVersion = await fs.readFile(
+                    "/System/Library/CoreServices/SystemVersion.plist",
+                    "utf-8",
                 );
+                let versionInfo = plist.parse(systemVersion);
                 if (
                     versionInfo &&
                     versionInfo["ProductVersion"] &&
@@ -196,61 +197,54 @@ export class PlatformInformation {
         return result;
     }
 
-    public static getCurrent(): Promise<PlatformInformation> {
+    /**
+     * Gets the current platform information.
+     * @returns A promise that resolves to a PlatformInformation object containing details about the current platform, including a supported .NET Core Runtime ID (RID) for the platform.
+     */
+    public static async getCurrent(): Promise<PlatformInformation> {
         let platform = os.platform();
-        let architecturePromise: Promise<string>;
-        let distributionPromise: Promise<LinuxDistribution>;
+        let arch: string | undefined;
+        let disto: LinuxDistribution | undefined;
 
         switch (platform) {
             case "win32":
-                architecturePromise = PlatformInformation.getWindowsArchitecture();
-                distributionPromise = Promise.resolve(undefined);
+                arch = this.getWindowsArchitecture();
+                disto = undefined;
                 break;
 
             case "darwin":
-                architecturePromise = PlatformInformation.getUnixArchitecture();
-                distributionPromise = Promise.resolve(undefined);
+                arch = await PlatformInformation.getUnixArchitecture();
+                disto = undefined;
                 break;
 
             case "linux":
-                architecturePromise = PlatformInformation.getUnixArchitecture();
-                distributionPromise = LinuxDistribution.getCurrent();
+                arch = await PlatformInformation.getUnixArchitecture();
+                disto = await LinuxDistribution.getCurrent();
                 break;
 
             default:
                 throw new Error(`Unsupported platform: ${platform}`);
         }
 
-        return architecturePromise.then((arch) => {
-            return distributionPromise.then((distro) => {
-                return new PlatformInformation(platform, arch, distro);
-            });
-        });
+        return new PlatformInformation(platform, arch, disto);
     }
 
-    private static getWindowsArchitecture(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            if (process.env.PROCESSOR_ARCHITECTURE === "ARM64") {
-                resolve("arm64");
-            } else if (
-                process.env.PROCESSOR_ARCHITECTURE === "x86" &&
-                process.env.PROCESSOR_ARCHITEW6432 === undefined
-            ) {
-                resolve("x86");
-            } else {
-                resolve("x86_64");
-            }
-        });
+    private static getWindowsArchitecture(): string {
+        if (process.env.PROCESSOR_ARCHITECTURE === "ARM64") {
+            return "arm64";
+        } else if (
+            process.env.PROCESSOR_ARCHITECTURE === "x86" &&
+            process.env.PROCESSOR_ARCHITEW6432 === undefined
+        ) {
+            return "x86";
+        } else {
+            return "x86_64";
+        }
     }
 
-    private static getUnixArchitecture(): Promise<string> {
-        return PlatformInformation.execChildProcess("uname -m").then((architecture) => {
-            if (architecture) {
-                return architecture.trim();
-            }
-
-            return undefined;
-        });
+    private static async getUnixArchitecture(): Promise<string | undefined> {
+        const arch = await PlatformInformation.execChildProcess("uname -m");
+        return arch?.trim() ?? undefined;
     }
 
     private static execChildProcess(process: string): Promise<string> {

@@ -315,15 +315,7 @@ export const serviceInstallingTo = "Installing SQL tools service to";
 export const serviceInstalling = "Installing";
 export const serviceDownloading = "Downloading";
 export const serviceInstalled = "Sql Tools Service installed";
-export const serviceInstallationFailed = "Failed to install Sql Tools Service";
-export const sqlToolsServiceCrashMessage = "SQL Tools Service component could not start.";
-export const sqlToolsServiceCrashButton = "View Known Issues";
-export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
-export const commandsNotAvailableWhileInstallingTheService =
-    "Note: mssql commands will be available after installing the service.";
-export const unsupportedPlatformErrorMessage = "The platform is not supported";
-export const serviceLoadingFailed = "Failed to load Sql Tools Service";
-export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
+
 export const sqlToolsServiceName = "SQLToolsService";
 export const resourceServiceName = "AzureResourceProvider";
 export const resourceProviderId = "azurePublicCloud";

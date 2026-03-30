@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
 import * as Constants from "../../src/constants/constants";
+import { ServiceClient } from "../../src/constants/locConstants";
 
 suite("Server Status View Tests", () => {
     let serverStatusView: ServerStatusView;
@@ -63,7 +64,7 @@ suite("Server Status View Tests", () => {
         expect(
             statusBarItem.text,
             "Status Bar Item text should show installation failure",
-        ).to.equal(Constants.serviceInstallationFailed);
+        ).to.equal(ServiceClient.installFailedStatusText);
         serverStatusView.dispose();
     });
 });

@@ -50,7 +50,6 @@ suite("ExtConfig Tests", () => {
 
         config = sandbox.createStubInstance(ConfigUtils);
         config.getSqlToolsConfigValue.returns(undefined);
-        config.getSqlToolsExecutableFiles.returns([]);
         config.getSqlToolsInstallDirectory?.returns?.("");
 
         const baseConfig = workspace.getConfiguration();

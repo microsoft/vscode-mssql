@@ -3343,4 +3343,14 @@ export class ServiceClient {
     public static downloadOfflineVsix = l10n.t("Download Offline VSIX");
     public static copyLinkToClipboard = l10n.t("Copy link");
     public static linkCopiedToClipboard = l10n.t("Link copied to clipboard");
+
+    public static serviceCrashed = (name: string, error: string) =>
+        l10n.t({
+            message: "The {0} service has crashed. Details: {1}",
+            args: [name, error],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static viewKnownIssues = l10n.t("View known issues");
+
+    public static installFailedStatusText = l10n.t("Service installation failed.");
 }

@@ -10,11 +10,10 @@ import { expect } from "chai";
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
-import { Logger, LogLevel } from "../../src/models/logger";
+import { Logger } from "../../src/models/logger";
 import { PlatformInformation } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
-import ExtConfig from "../../src/configurations/extConfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { stubVscodeWrapper } from "./utils";
 
@@ -28,17 +27,16 @@ interface IFixture {
 
 suite("Service Client tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let testConfig: sinon.SinonStubbedInstance<ExtConfig>;
     let testServiceProvider: sinon.SinonStubbedInstance<ServerProvider>;
-    const logger = new Logger((text) => console.log(text), LogLevel.Verbose, false);
+    let logger: sinon.SinonStubbedInstance<Logger>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        testConfig = sandbox.createStubInstance(ExtConfig);
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
+        logger = sandbox.createStubInstance(Logger);
         testStatusView = sandbox.createStubInstance(StatusView);
         vscodeWrapper = stubVscodeWrapper(sandbox);
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
@@ -50,7 +48,6 @@ suite("Service Client tests", () => {
 
     function createServiceClient(): SqlToolsServiceClient {
         return new SqlToolsServiceClient(
-            testConfig,
             testServiceProvider,
             logger,
             testStatusView,
@@ -61,13 +58,15 @@ suite("Service Client tests", () => {
 
     function setupMocks(fixture: IFixture): void {
         if (fixture.downloadedServerPath === undefined) {
-            testServiceProvider.downloadServerFiles.rejects(
+            testServiceProvider.downloadAndGetServerInstallFolder.rejects(
                 new Error("downloadServerFiles should not be called"),
             );
         } else {
-            testServiceProvider.downloadServerFiles.resolves(fixture.downloadedServerPath);
+            testServiceProvider.downloadAndGetServerInstallFolder.resolves(
+                fixture.downloadedServerPath,
+            );
         }
-        testServiceProvider.getServerPath.resolves(fixture.installedServerPath);
+        testServiceProvider.tryGetServerInstallFolder.resolves(fixture.installedServerPath);
     }
 
     test.skip("initializeForPlatform should not install the service if already exists", async () => {
@@ -80,11 +79,9 @@ suite("Service Client tests", () => {
         setupMocks(fixture);
         const serviceClient = createServiceClient();
 
-        const result = await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
+        await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
 
-        expect(result).to.not.be.undefined;
-        expect(result?.serverPath).to.equal(fixture.installedServerPath);
-        expect(result?.installedBeforeInitializing).to.be.false;
+        expect(serviceClient.sqlToolsServicePath).to.equal(fixture.installedServerPath);
     });
 
     test.skip("initializeForPlatform should install the service if not exists", async () => {
@@ -97,11 +94,9 @@ suite("Service Client tests", () => {
         setupMocks(fixture);
         const serviceClient = createServiceClient();
 
-        const result = await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
+        await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
 
-        expect(result).to.not.be.undefined;
-        expect(result?.serverPath).to.equal(fixture.downloadedServerPath);
-        expect(result?.installedBeforeInitializing).to.be.true;
+        expect(serviceClient.sqlToolsServicePath).to.equal(fixture.downloadedServerPath);
     });
 
     test("initializeForPlatform should fail given unsupported platform", async () => {
@@ -118,56 +113,10 @@ suite("Service Client tests", () => {
             await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
             expect.fail("Expected initializeForPlatform to throw for an invalid platform");
         } catch (error) {
-            expect(error).to.equal("Invalid Platform");
+            expect((error as Error).message).to.equal(
+                "Unsupported platform: invalid platform and architecture: x86_64",
+            );
         }
-    });
-
-    test.skip("initializeForPlatform should set v1 given mac 10.11 or lower", async () => {
-        const platformInfo = new PlatformInformation("darwin", "x86_64", undefined);
-        const isMacVersionLessThan = sandbox
-            .stub(platformInfo, "isMacVersionLessThan")
-            .returns(true);
-
-        const fixture: IFixture = {
-            installedServerPath: "already installed service",
-            downloadedServerPath: undefined,
-            platformInfo,
-        };
-
-        setupMocks(fixture);
-        const serviceClient = createServiceClient();
-
-        const result = await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
-
-        expect(isMacVersionLessThan).to.have.been.calledOnce;
-        expect(testConfig.useServiceVersion).to.have.been.calledOnceWithExactly(1);
-        expect(result).to.not.be.undefined;
-        expect(result?.serverPath).to.equal(fixture.installedServerPath);
-        expect(result?.installedBeforeInitializing).to.be.false;
-    });
-
-    test.skip("initializeForPlatform should ignore service version given mac 10.12 or higher", async () => {
-        const platformInfo = new PlatformInformation("darwin", "x86_64", undefined);
-        const isMacVersionLessThan = sandbox
-            .stub(platformInfo, "isMacVersionLessThan")
-            .returns(false);
-
-        const fixture: IFixture = {
-            installedServerPath: "already installed service",
-            downloadedServerPath: undefined,
-            platformInfo,
-        };
-
-        setupMocks(fixture);
-        const serviceClient = createServiceClient();
-
-        const result = await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
-
-        expect(isMacVersionLessThan).to.have.been.calledOnce;
-        expect(testConfig.useServiceVersion).to.not.have.been.called;
-        expect(result).to.not.be.undefined;
-        expect(result?.serverPath).to.equal(fixture.installedServerPath);
-        expect(result?.installedBeforeInitializing).to.be.false;
     });
 
     test("handleLanguageServiceStatusNotification should change the UI status", () => {

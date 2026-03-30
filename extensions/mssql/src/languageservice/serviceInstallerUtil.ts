@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Runtime, PlatformInformation } from "../models/platform";
+import { Runtime } from "../models/platform";
 import ConfigUtils from "../configurations/configUtils";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
@@ -11,6 +11,7 @@ import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
 import { IStatusView } from "./interfaces";
 import { ILogger } from "../models/interfaces";
+const del = require("del");
 
 export class StubStatusView implements IStatusView {
     constructor(private _log: (msg: string) => void) {}
@@ -87,53 +88,35 @@ let downloadProvider = new ServiceDownloadProvider(
     downloadHelper,
     decompressProvider,
 );
-let serverProvider = new ServerProvider(downloadProvider, config, statusView);
+let serverProvider = new ServerProvider(downloadProvider, statusView);
 
 /*
- * Installs the service for the given platform if it's not already installed.
+ * Cleans existing service install and reinstalls the service for the runtime.
  */
-export function installService(runtime: Runtime): Promise<String> {
-    if (runtime === undefined) {
-        return PlatformInformation.getCurrent().then((platformInfo) => {
-            if (platformInfo.isValidRuntime) {
-                return serverProvider.getOrDownloadServer(platformInfo.runtimeId);
-            } else {
-                throw new Error("unsupported runtime");
-            }
-        });
-    } else {
-        return serverProvider.getOrDownloadServer(runtime);
+export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
+    logger.verbose(`Cleaning and installing service for runtime: ${runtime}`);
+    const serviceInstallDirectoryRoot = getServiceInstallDirectoryRoot();
+    try {
+        await del(serviceInstallDirectoryRoot, { force: true });
+        logger.verbose(`Deleted service install directory: ${serviceInstallDirectoryRoot}`);
+    } catch (error) {
+        logger.error(`Error deleting service install directory: ${error.message}`);
+        throw error;
     }
-}
-
-/*
- * Returns the install folder path for given platform.
- */
-export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        if (runtime === undefined) {
-            PlatformInformation.getCurrent()
-                .then((platformInfo) => {
-                    if (platformInfo.isValidRuntime) {
-                        resolve(downloadProvider.getOrMakeInstallDirectory(platformInfo.runtimeId));
-                    } else {
-                        reject("unsupported runtime");
-                    }
-                })
-                .catch((error) => {
-                    reject(error);
-                });
-        } else {
-            resolve(downloadProvider.getOrMakeInstallDirectory(runtime));
-        }
-    });
+    try {
+        await serverProvider.downloadAndGetServerInstallFolder(runtime);
+    } catch (error) {
+        logger.error(`Error installing service for runtime ${runtime}: ${error.message}`);
+        throw error;
+    }
+    logger.verbose(`Service installation complete for runtime: ${runtime}`);
 }
 
 /*
  * Returns the path to the root folder of service install location.
  */
 export function getServiceInstallDirectoryRoot(): string {
-    let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
+    let directoryPath: string = downloadProvider.getInstallDirectoryRootPath();
     directoryPath = directoryPath.replace("\\{#version#}\\{#platform#}", "");
     directoryPath = directoryPath.replace("/{#version#}/{#platform#}", "");
     return directoryPath;

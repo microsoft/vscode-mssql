@@ -19,11 +19,6 @@ export const config = {
             Portable: "portable-net8.0.zip",
         },
         installDir: "./sqltoolsservice/{#version#}/{#platform#}",
-        executableFiles: [
-            "MicrosoftSqlToolsServiceLayer.dll",
-            "MicrosoftSqlToolsServiceLayer.exe",
-            "MicrosoftSqlToolsServiceLayer",
-        ],
     },
 };
 

@@ -8,10 +8,12 @@ const { execFileSync } = require("child_process");
 const { promisify } = require("util");
 const del = require("del");
 const logger = require("../../../scripts/terminal-logger");
+const path = require("path");
 
 const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
 const isOffline = args.includes("--offline");
+const skipServiceInstall = args.includes("--skip-service-install");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 // Platform configurations for offline packaging
@@ -61,14 +63,14 @@ async function withOfflinePackageManifest(action) {
 }
 
 /**
- * Install SQL Tools Service for a specific platform
+ * Install SQL Tools Service for a specific platform after cleaning the install folder.
  */
-async function installSqlToolsService(platform = null) {
+async function installSqlToolsService(platform) {
     logger.step("Installing SQL Tools Service...");
 
     try {
         const install = require("../dist/serviceInstallerUtil");
-        await install.installService(platform);
+        await install.cleanAndInstallService(platform);
         logger.success("SQL Tools Service installed");
     } catch (error) {
         logger.error(`Failed to install SQL Tools Service: ${error.message}`);
@@ -121,23 +123,23 @@ function packageExtension(packageName = null) {
 /**
  * Package extension for online distribution
  */
-async function packageOnline() {
+async function packageOnline(options = {}) {
+    const { skipServiceInstall = false } = options;
+
     logger.header("Package extension (Online Mode)");
     logger.info("Creating extension package with portable SQL Tools Service");
-    logger.newline();
-
     try {
-        // Clean service folder first
-        await cleanServiceInstallFolder();
-
-        // Download portable (framework-dependent) SQL Tools Service
-        const platform = require("../out/src/models/platform");
-        await installSqlToolsService(platform.Runtime.Portable);
-
+        if (skipServiceInstall) {
+            logger.info(
+                "Skipping SQL Tools Service install and using existing service files in the install folder",
+            );
+        } else {
+            // Download portable (framework-dependent) SQL Tools Service
+            const platform = require("../out/src/models/platform");
+            await installSqlToolsService(platform.Runtime.Portable);
+        }
         // Package the extension
         packageExtension();
-
-        logger.newline();
         logger.success("Online packaging completed successfully!");
     } catch (error) {
         logger.error(`Online packaging failed: ${error.message}`);
@@ -157,21 +159,14 @@ async function packageOfflinePlatform(platformConfig, packageName) {
         // Get the runtime constant
         const platform = require("../out/src/models/platform");
         const runtimeValue = platform.Runtime[runtime];
-
         if (!runtimeValue) {
             throw new Error(`Unknown runtime: ${runtime}`);
         }
-
         // Install native (self-contained) service for this platform
         await installSqlToolsService(runtimeValue);
-
         // Package with platform-specific name
         const platformPackageName = `${packageName}-${rid}.vsix`;
         packageExtension(platformPackageName);
-
-        // Clean up for next platform
-        await cleanServiceInstallFolder();
-
         logger.success(`${rid} package created`);
     } catch (error) {
         logger.error(`Failed to package ${rid}: ${error.message}`);
@@ -192,7 +187,6 @@ async function packageOffline() {
 
         logger.info(`Creating offline packages for: ${packageJson.name} v${packageJson.version}`);
         logger.info(`Total platforms: ${OFFLINE_PLATFORMS.length}`);
-        logger.newline();
 
         await withOfflinePackageManifest(async () => {
             // Clean service folder initially
@@ -235,11 +229,13 @@ Usage:
 Modes:
   --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
   --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
+    --skip-service-install  Online mode only. Reuse existing SQL Tools Service files and skip clean/install.
   --help       Show this help message
 
 Examples:
   node package-extension.js [--online]  # Create online package. Default behavior if none specified
   node package-extension.js --online    # Create online package
+    node package-extension.js --online --skip-service-install  # Package online using existing service files
   node package-extension.js --offline   # Create offline packages for all platforms
 
 Requirements:
@@ -269,9 +265,14 @@ async function main() {
         process.exit(1);
     }
 
+    if (skipServiceInstall && isOffline) {
+        logger.error("--skip-service-install can only be used with --online mode");
+        process.exit(1);
+    }
+
     try {
         if (isOnline) {
-            await packageOnline();
+            await packageOnline({ skipServiceInstall });
         } else if (isOffline) {
             await packageOffline();
         }
