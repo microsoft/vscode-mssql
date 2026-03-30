@@ -208,7 +208,7 @@ export default class SqlToolsServiceClient {
         context: vscode.ExtensionContext,
     ): Promise<void> {
         if (this._vscodeWrapper !== undefined) {
-            this._vscodeWrapper.outputChannel.show();
+            this._vscodeWrapper.outputChannel.show(true); // Preserve focus.
         }
 
         if (!platformInfo.isValidRuntime) {
