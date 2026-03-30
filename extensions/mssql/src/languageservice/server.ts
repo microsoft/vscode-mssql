@@ -39,11 +39,8 @@ export default class ServerProvider {
             fileName = filePrefix;
         }
         const resolvedPath = path.join(folderPath, fileName);
-        const isFilePresent = await fs.access(resolvedPath).then(
-            () => true,
-            () => false,
-        );
-        if (!isFilePresent) {
+        const stats = await fs.stat(resolvedPath).catch(() => undefined);
+        if (!stats?.isFile()) {
             return undefined;
         }
         return resolvedPath;

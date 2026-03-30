@@ -76,6 +76,10 @@ suite("Service Client tests", () => {
         );
     }
 
+    function outputChannelShowStub(): sinon.SinonStub {
+        return vscodeWrapper.outputChannel.show as sinon.SinonStub;
+    }
+
     function setupMocks(fixture: IFixture): void {
         testServiceProvider.tryGetServerInstallFolder.callsFake(async (runtime: Runtime) => {
             switch (runtime) {
@@ -232,6 +236,7 @@ suite("Service Client tests", () => {
             expect(testServiceProvider.tryGetServerInstallFolder.calledWith(Runtime.Windows_64)).to
                 .be.true;
             expect(testServiceProvider.downloadAndGetServerInstallFolder.notCalled).to.be.true;
+            expect(outputChannelShowStub()).to.not.have.been.called;
         });
 
         test("falls back to an installed portable service when the platform service is missing", async () => {
@@ -278,6 +283,7 @@ suite("Service Client tests", () => {
                 Runtime.Portable,
                 undefined,
             );
+            expect(outputChannelShowStub()).to.have.been.calledWith(true);
         });
 
         test("falls back to downloading the platform service when the portable launch fails", async () => {
@@ -344,6 +350,7 @@ suite("Service Client tests", () => {
             expect(openExternalStub).to.have.been.calledWith(
                 sinon.match((uri: vscode.Uri) => uri.toString() === Constants.offlineVsixUrl),
             );
+            expect(outputChannelShowStub()).to.have.been.calledWith(true);
         });
     });
 

@@ -94,6 +94,22 @@ suite("Server tests", () => {
         });
     });
 
+    test("tryGetExecutablePathInFolder should return undefined when the expected path is a directory", async () => {
+        await withTempDir(async (tempDir) => {
+            const expectedDirectory = path.join(tempDir, "MicrosoftSqlToolsServiceLayer.dll");
+            await fs.mkdir(expectedDirectory);
+
+            const server = createServer();
+            const result = await server.tryGetExecutablePathInFolder(
+                tempDir,
+                Runtime.Portable,
+                "MicrosoftSqlToolsServiceLayer",
+            );
+
+            expect(result).to.be.undefined;
+        });
+    });
+
     test("tryGetServerInstallFolder should delegate to the download provider", async () => {
         const installDir = path.join(os.tmpdir(), "sqltools-install");
         downloadProvider.tryGetInstallDirectory.withArgs(Runtime.Windows_64).resolves(installDir);

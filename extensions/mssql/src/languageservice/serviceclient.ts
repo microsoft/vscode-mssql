@@ -207,10 +207,6 @@ export default class SqlToolsServiceClient {
         platformInfo: PlatformInformation,
         context: vscode.ExtensionContext,
     ): Promise<void> {
-        if (this._vscodeWrapper !== undefined) {
-            this._vscodeWrapper.outputChannel.show(true); // Preserve focus.
-        }
-
         if (!platformInfo.isValidRuntime) {
             const unsupportedPlatformMessage = `Unsupported platform: ${platformInfo.platform} and architecture: ${platformInfo.architecture}`;
             this._logger.error(unsupportedPlatformMessage);
@@ -285,6 +281,7 @@ export default class SqlToolsServiceClient {
                 ? "portableInstalled"
                 : "portableDownloaded";
             if (!portableServerPath) {
+                this.showOutputChannelPreservingFocus();
                 this._logger.verbose(`Could not find portable SQL Tools Service executable.`);
                 portableServerPath = await this._server.downloadAndGetServerInstallFolder(
                     Runtime.Portable,
@@ -307,6 +304,7 @@ export default class SqlToolsServiceClient {
          * fallback and should be removed once we have confidence in the reliability of our portable service.
          */
         try {
+            this.showOutputChannelPreservingFocus();
             const downloadedServerPath = await this._server.downloadAndGetServerInstallFolder(
                 platformInfo.runtimeId,
             );
@@ -335,6 +333,7 @@ export default class SqlToolsServiceClient {
                     architecture: platformInfo.architecture,
                 },
             );
+            this.showOutputChannelPreservingFocus();
             const displayError = ServiceClient.unableToStartService(getErrorMessage(err));
             // Determine if this is a download failure or a runtime acquisition failure
             const action = await vscode.window.showErrorMessage(
@@ -350,6 +349,10 @@ export default class SqlToolsServiceClient {
             }
             throw new Error(displayError);
         }
+    }
+
+    private showOutputChannelPreservingFocus(): void {
+        this._vscodeWrapper?.outputChannel.show(true);
     }
 
     private async initializeLanguageClient(
