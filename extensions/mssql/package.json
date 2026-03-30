@@ -595,12 +595,12 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view === objectExplorer && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "2a_MSSQL_databaseDesign@1"
                 },
                 {
                     "command": "mssql.buildDataApi",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "when": "view === objectExplorer && (viewItem =~ /\\btype=(Database|Server)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "2a_MSSQL_databaseDesign@2"
                 },
                 {
