@@ -86,8 +86,7 @@ jobs:
       # that increase size
       - name: Package extensions
         run: |
-          cd extensions/mssql
-          yarn package
+          npm run package
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6

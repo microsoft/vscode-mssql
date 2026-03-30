@@ -33,8 +33,18 @@ import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { getErrorMessage } from "../utils/utils";
 import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
 import { serviceName } from "../azure/constants";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
+const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.General;
+
+type ServiceLaunchType =
+    | "override"
+    | "platformInstalled"
+    | "portableInstalled"
+    | "portableDownloaded"
+    | "platformDownloaded";
 
 /**
  * @interface IMessage
@@ -217,10 +227,16 @@ export default class SqlToolsServiceClient {
             await this._client.onReady();
         };
 
+        /**
+         * Attemp to launch the service from a path specified by an environment variable.
+         * This is used for debugging and allows for launching a locally built version of the service without
+         * having to replace the service in the extension installation folder.
+         */
         const sts_folder_override = process.env[STS_OVERRIDE_ENV_VAR];
         if (sts_folder_override) {
             try {
                 await launchServer(sts_folder_override, Runtime.Portable);
+                this.sendServiceLaunchTelemetry("override", Runtime.Portable, platformInfo);
                 return;
             } catch (err) {
                 this._logger.error(
@@ -247,6 +263,11 @@ export default class SqlToolsServiceClient {
                     `Found OS-specific SQL Tools Service executable path: ${osSpecificServerPath}`,
                 );
                 await launchServer(osSpecificServerPath, platformInfo.runtimeId);
+                this.sendServiceLaunchTelemetry(
+                    "platformInstalled",
+                    platformInfo.runtimeId,
+                    platformInfo,
+                );
                 return;
             }
         } catch (err) {
@@ -260,6 +281,9 @@ export default class SqlToolsServiceClient {
          */
         try {
             let portableServerPath = await this._server.tryGetServerInstallFolder(Runtime.Portable);
+            const launchType: ServiceLaunchType = portableServerPath
+                ? "portableInstalled"
+                : "portableDownloaded";
             if (!portableServerPath) {
                 this._logger.verbose(`Could not find portable SQL Tools Service executable.`);
                 portableServerPath = await this._server.downloadAndGetServerInstallFolder(
@@ -270,6 +294,7 @@ export default class SqlToolsServiceClient {
                 `Found portable SQL Tools Service executable path: ${portableServerPath}`,
             );
             await launchServer(portableServerPath, Runtime.Portable);
+            this.sendServiceLaunchTelemetry(launchType, Runtime.Portable, platformInfo);
             return;
         } catch (err) {
             this._logger.error(
@@ -286,6 +311,11 @@ export default class SqlToolsServiceClient {
                 platformInfo.runtimeId,
             );
             await launchServer(downloadedServerPath, platformInfo.runtimeId);
+            this.sendServiceLaunchTelemetry(
+                "platformDownloaded",
+                platformInfo.runtimeId,
+                platformInfo,
+            );
             return;
         } catch (err) {
             this.logger.error(
@@ -416,6 +446,20 @@ export default class SqlToolsServiceClient {
         };
     }
 
+    private sendServiceLaunchTelemetry(
+        launchType: ServiceLaunchType,
+        serviceRuntime: Runtime,
+        platformInfo: PlatformInformation,
+    ): void {
+        sendActionEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStarted, {
+            launchType,
+            serviceRuntime,
+            detectedRuntime: platformInfo.runtimeId,
+            platform: platformInfo.platform,
+            architecture: platformInfo.architecture,
+        });
+    }
+
     /**
      * Common logic to determine executable launch args based on whether the service is a .dll or an executable file.
      * @param executablePath The path to the service executable
@@ -431,6 +475,17 @@ export default class SqlToolsServiceClient {
                     args: [executablePath],
                 };
             } catch (err) {
+                sendErrorEvent(
+                    SERVICE_LAUNCH_TELEMETRY_VIEW,
+                    TelemetryActions.AcquireDotnetRuntimeFailed,
+                    err instanceof Error ? err : new Error(getErrorMessage(err)),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        executableType: "dll",
+                    },
+                );
                 this._logger.error(
                     `Failed to acquire .NET runtime for launching service: ${getErrorMessage(err)}`,
                 );
