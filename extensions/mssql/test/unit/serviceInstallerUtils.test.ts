@@ -10,7 +10,6 @@ import {
     StubStatusView,
     StubLogger,
     getServiceInstallDirectoryRoot,
-    cleanAndInstallService,
 } from "../../src/languageservice/serviceInstallerUtil";
 import * as sinon from "sinon";
 
