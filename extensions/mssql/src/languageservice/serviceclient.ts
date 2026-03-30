@@ -493,12 +493,9 @@ export default class SqlToolsServiceClient {
                     SERVICE_LAUNCH_TELEMETRY_VIEW,
                     TelemetryActions.AcquireDotnetRuntimeFailed,
                     err instanceof Error ? err : new Error(getErrorMessage(err)),
-                    false,
+                    true, // include error message
                     undefined,
                     undefined,
-                    {
-                        executableType: "dll",
-                    },
                 );
                 this._logger.error(
                     `Failed to acquire .NET runtime for launching service: ${getErrorMessage(err)}`,

@@ -31,9 +31,13 @@ export default class DotnetRuntimeProvider {
         if (this._cachedDotnetPath) {
             return this._cachedDotnetPath;
         }
-
-        // 1. ms-dotnettools.vscode-dotnet-runtime extension
         try {
+            const extension = vscode.extensions.getExtension(Constants.dotnetRuntimeExtensionId);
+            if (!extension) {
+                this._logger.error("The .NET runtime extension is not installed");
+                throw new Error(ServiceClient.runtimeNotFoundError);
+            }
+            await extension.activate();
             const result = await vscode.commands.executeCommand<{ dotnetPath: string }>(
                 Constants.dotnetAcquireCommand,
                 {
