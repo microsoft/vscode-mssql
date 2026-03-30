@@ -104,7 +104,7 @@ export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
         throw error;
     }
     try {
-        await resolvedDependencies.downloadAndGetServerInstallFolder(runtime);
+        await serverProvider.downloadAndGetServerInstallFolder(runtime);
     } catch (error) {
         logger.error(`Error installing service for runtime ${runtime}: ${error.message}`);
         throw error;
