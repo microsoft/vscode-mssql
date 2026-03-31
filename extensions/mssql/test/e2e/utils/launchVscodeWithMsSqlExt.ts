@@ -118,11 +118,18 @@ export async function launchVsCodeWithMssqlExtension(
         args: config.useVsix
             ? launchArgs
             : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
-        recordVideo: {
-            dir: videoDir,
-            size: { width: 1920, height: 1080 },
-        },
+        // Video recording interferes with Playwright's window detection locally (causes a
+        // blank window to be captured instead of the VS Code workbench). Only enable in CI.
+        ...(process.env.CI
+            ? {
+                  recordVideo: {
+                      dir: videoDir,
+                      size: { width: 1920, height: 1080 },
+                  },
+              }
+            : {}),
     });
+
     const page = await electronApp.firstWindow({ timeout: 10_000 });
 
     await page.setViewportSize({ width: 1920, height: 1080 });

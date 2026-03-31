@@ -244,6 +244,11 @@
                 "command": "sqlDatabaseProjects.newPublishProfile",
                 "title": "%sqlDatabaseProjects.newPublishProfile%",
                 "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
+                "command": "sqlDatabaseProjects.openDocumentation",
+                "title": "%sqlDatabaseProjects.openDocumentation%",
+                "category": "%sqlDatabaseProjects.displayName%"
             }
         ],
         "submenus": [
@@ -264,6 +269,11 @@
                     "command": "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
                     "when": "view == dataworkspace.views.main && (config.workbench.enablePreviewFeatures || config.sqlDatabaseProjects.enablePreviewFeatures)",
                     "group": "1_currentWorkspace@3"
+                },
+                {
+                    "command": "sqlDatabaseProjects.openDocumentation",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "2_documentation@1"
                 }
             ],
             "commandPalette": [
@@ -388,6 +398,9 @@
                 {
                     "command": "sqlDatabaseProjects.newPublishProfile",
                     "when": "false"
+                },
+                {
+                    "command": "sqlDatabaseProjects.openDocumentation"
                 }
             ],
             "sqlDatabaseProjects.objectExplorerSubmenu": [
@@ -539,6 +552,11 @@
                 {
                     "command": "sqlDatabaseProjects.addSqlCmdVariable",
                     "when": "view == dataworkspace.views.main && viewItem == databaseProject.itemType.sqlcmdVariablesRoot"
+                },
+                {
+                    "command": "sqlDatabaseProjects.openDocumentation",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "z_dbProjectsDocs@1"
                 }
             ]
         },
