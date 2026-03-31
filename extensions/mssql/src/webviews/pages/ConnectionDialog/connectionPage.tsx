@@ -13,6 +13,7 @@ import { DialogPageShell } from "../../common/dialogPageShell";
 import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
+import { useConnectionDialogSelector } from "./connectionDialogSelector";
 
 export const useStyles = makeStyles({
     root: {
@@ -48,12 +49,22 @@ export const ConnectionPage = () => {
     const classes = useStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
+    const isEditingConnection = useConnectionDialogSelector((s) => s.isEditingConnection);
+    const editingConnectionDisplayName = useConnectionDialogSelector(
+        (s) => s.editingConnectionDisplayName,
+    );
+
+    const title =
+        isEditingConnection && editingConnectionDisplayName
+            ? locConstants.connectionDialog.editDatabaseConnection(editingConnectionDisplayName)
+            : locConstants.connectionDialog.connectToDatabase;
+
     return (
         <div className={classes.root}>
             <div className={classes.mainContainer}>
                 <DialogPageShell
                     icon={<Database32Regular />}
-                    title={locConstants.connectionDialog.connectToDatabase}
+                    title={title}
                     footerStart={
                         <Button
                             onClick={() => {

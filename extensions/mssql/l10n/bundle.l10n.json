@@ -259,6 +259,18 @@
     "Connecting...": "Connecting...",
     "Save without connecting": "Save without connecting",
     "Connect to Database": "Connect to Database",
+    "Edit Database Connection - {0}/{0} is the name of the connection profile": {
+        "message": "Edit Database Connection - {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
+    "Edit {0}/{0} is the name of the connection profile": {
+        "message": "Edit {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
+    "Create new connection copied from {0}/{0} is the name of the connection profile": {
+        "message": "Create new connection copied from {0}",
+        "comment": ["{0} is the name of the connection profile"]
+    },
     "Connect to {0}/{0} is the name of the connection profile": {
         "message": "Connect to {0}",
         "comment": ["{0} is the name of the connection profile"]

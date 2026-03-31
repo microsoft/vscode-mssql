@@ -38,8 +38,13 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
     const commands = useMemo<ConnectionDialogContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            loadConnection: function (connection: IConnectionDialogProfile): void {
-                extensionRpc.action("loadConnection", {
+            loadConnectionForEdit: function (connection: IConnectionDialogProfile): void {
+                extensionRpc.action("loadConnectionForEdit", {
+                    connection: connection,
+                });
+            },
+            loadConnectionAsNewDraft: function (connection: IConnectionDialogProfile): void {
+                extensionRpc.action("loadConnectionAsNewDraft", {
                     connection: connection,
                 });
             },
