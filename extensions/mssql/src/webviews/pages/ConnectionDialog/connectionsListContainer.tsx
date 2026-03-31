@@ -312,34 +312,38 @@ export const ConnectionCard = ({
                     action={
                         actionButtons && actionButtons.length > 0 ? (
                             <div className={buttonContainer}>
-                                {actionButtons.map((actionButton, index) => (
-                                    <Tooltip
-                                        key={`${index}-${actionButton.tooltip(displayName)}`}
-                                        content={actionButton.tooltip(displayName)}
-                                        relationship="label">
-                                        <Button
-                                            icon={actionButton.icon}
-                                            appearance="subtle"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                actionButton.onClick(e);
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (
-                                                    e.code === KeyCode.Enter ||
-                                                    e.code === KeyCode.Space
-                                                ) {
-                                                    e.preventDefault();
+                                {actionButtons.map((actionButton, index) => {
+                                    const tooltipText = actionButton.tooltip(displayName);
+
+                                    return (
+                                        <Tooltip
+                                            key={index}
+                                            content={tooltipText}
+                                            relationship="label">
+                                            <Button
+                                                icon={actionButton.icon}
+                                                appearance="subtle"
+                                                onClick={(e) => {
                                                     e.stopPropagation();
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    actionButton.onClick(e as any);
-                                                }
-                                            }}
-                                            aria-label={actionButton.tooltip(displayName)}
-                                            tabIndex={0}
-                                        />
-                                    </Tooltip>
-                                ))}
+                                                    actionButton.onClick(e);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (
+                                                        e.code === KeyCode.Enter ||
+                                                        e.code === KeyCode.Space
+                                                    ) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        actionButton.onClick(e as any);
+                                                    }
+                                                }}
+                                                aria-label={tooltipText}
+                                                tabIndex={0}
+                                            />
+                                        </Tooltip>
+                                    );
+                                })}
                             </div>
                         ) : undefined
                     }
