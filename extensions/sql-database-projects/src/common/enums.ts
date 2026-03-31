@@ -33,6 +33,8 @@ export const enum DeploymentScenario {
 
 /**
  * Specifies the mode in which a task should be executed.
+ * Regular enum (not const) because the value is passed as a numeric argument to mssql/STS
+ * methods at runtime and must exist as a real JS object.
  */
 export enum TaskExecutionMode {
     execute = 0,
@@ -42,6 +44,8 @@ export enum TaskExecutionMode {
 
 /**
  * Specifies the target folder structure when extracting a project from a database.
+ * Regular enum (not const) because the value is passed as a numeric argument to mssql/STS
+ * methods at runtime and must exist as a real JS object.
  * Must be kept in sync with ExtractTarget in vscode-mssql.d.ts.
  */
 export enum ExtractTarget {
@@ -55,6 +59,8 @@ export enum ExtractTarget {
 
 /**
  * Specifies the type of a schema compare endpoint.
+ * Regular enum (not const) because the value is passed as a numeric argument to mssql/STS
+ * methods at runtime and must exist as a real JS object.
  * Must be kept in sync with SchemaCompareEndpointType in vscode-mssql.d.ts.
  */
 export enum SchemaCompareEndpointType {
@@ -65,7 +71,9 @@ export enum SchemaCompareEndpointType {
 
 /**
  * Well-known Authentication types.
- * Must be kept in sync with AuthenticationType in vscode-mssql.d.ts.
+ * const enum because values are strings — TypeScript inlines them as string literals at
+ * compile time, so no runtime JS object is needed. Not defined in vscode-mssql.d.ts;
+ * authenticationType is typed as plain `string` there.
  */
 export const enum AuthenticationType {
     SqlLogin = "SqlLogin",

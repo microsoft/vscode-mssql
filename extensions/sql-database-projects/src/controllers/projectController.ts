@@ -1897,17 +1897,7 @@ export class ProjectsController {
     private getConnectionProfileFromContext(
         context: mssqlVscode.ITreeNodeInfo | undefined,
     ): mssqlVscode.IConnectionInfo | undefined {
-        if (!context) {
-            return undefined;
-        }
-
-        // depending on where import new project is launched from, the connection profile could be passed as just
-        // the profile or it could be wrapped in another object
-        return (
-            (<any>context)?.connectionProfile ??
-            (context as mssqlVscode.ITreeNodeInfo).connectionProfile ??
-            context
-        );
+        return context?.connectionProfile;
     }
 
     private refreshProjectsTree(workspaceTreeItem: dataworkspace.WorkspaceTreeItem): void {
@@ -2035,8 +2025,8 @@ export class ProjectsController {
             model.projName,
             model.version,
             model.connectionUri,
-            model.extractTarget as ExtractTarget,
-            TaskExecutionMode.execute,
+            model.extractTarget as mssqlVscode.ExtractTarget,
+            TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
             model.includePermissions,
         );
         // TODO: Check for success; throw error
@@ -2240,7 +2230,7 @@ export class ProjectsController {
             operationId,
             source as mssqlVscode.SchemaCompareEndpointInfo,
             target as mssqlVscode.SchemaCompareEndpointInfo,
-            TaskExecutionMode.execute,
+            TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
             deploymentOptions.defaultDeploymentOptions,
         );
 
@@ -2278,7 +2268,7 @@ export class ProjectsController {
         const publishResult = await this.schemaComparePublishProjectChanges(
             operationId,
             target.projectFilePath,
-            target.extractTarget as ExtractTarget,
+            target.extractTarget as mssqlVscode.ExtractTarget,
         );
 
         if (publishResult.success) {
@@ -2311,7 +2301,7 @@ export class ProjectsController {
     public async schemaComparePublishProjectChanges(
         operationId: string,
         projectFilePath: string,
-        folderStructure: ExtractTarget,
+        folderStructure: mssqlVscode.ExtractTarget,
     ): Promise<mssqlVscode.SchemaComparePublishProjectResult> {
         const service = await utils.getSchemaCompareService();
         const projectPath = path.dirname(projectFilePath);
@@ -2320,8 +2310,8 @@ export class ProjectsController {
         const result = await (service as mssqlVscode.ISchemaCompareService).publishProjectChanges(
             operationId,
             projectPath,
-            folderStructure,
-            TaskExecutionMode.execute,
+            folderStructure as mssqlVscode.ExtractTarget,
+            TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
         );
 
         if (!result.errorMessage) {
