@@ -23,7 +23,7 @@ export default class DotnetRuntimeProvider {
     constructor(private _logger: ILogger) {}
 
     /**
-     * Acquires a path to a `dotnet` executable suitable for running .NET 8.0 assemblies.
+     * Acquires a path to a `dotnet` executable suitable for running service assemblies.
      * @returns The resolved dotnet executable path.
      * @throws If no runtime can be resolved.
      */
