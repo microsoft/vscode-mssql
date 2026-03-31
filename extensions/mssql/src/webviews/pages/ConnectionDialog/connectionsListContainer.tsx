@@ -160,14 +160,13 @@ export const ConnectionsListContainer = () => {
                     />
                 </div>
                 <div className={styles.main}>
-                    {savedConnections?.map((connection, index) => {
+                    {savedConnections?.map((connection, _index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
                                 key={
-                                    (connection.id ??
-                                        `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`) +
-                                    index
+                                    connection.id ??
+                                    `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`
                                 }
                                 onSelect={() => context.loadConnectionForEdit(connection)}
                                 actionButtons={[
@@ -212,14 +211,13 @@ export const ConnectionsListContainer = () => {
                 </div>
                 <Tree>
                     {// state may not be initialized yet due to async loading of context
-                    recentConnections?.map((connection, index) => {
+                    recentConnections?.map((connection, _index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
                                 key={
-                                    (connection.id ??
-                                        `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`) +
-                                    index
+                                    connection.id ??
+                                    `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`
                                 }
                                 onSelect={() => context.loadConnectionAsNewDraft(connection)}
                                 actionButtons={[
@@ -311,7 +309,7 @@ export const ConnectionCard = ({
                         onSelect();
                     }
                 }}
-                title={locConstants.connectionDialog.connectTo(displayName)}
+                title={cardTooltip}
                 role="button"
                 style={{ cursor: "pointer" }}>
                 <CardHeader
