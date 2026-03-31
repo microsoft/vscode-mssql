@@ -164,7 +164,7 @@ export const ConnectionsListContainer = () => {
                         return (
                             <ConnectionCard
                                 connection={connection}
-                                key={connection.id ?? "saved" + index}
+                                key={connection.id ?? `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`}
                                 onSelect={() => context.loadConnectionForEdit(connection)}
                                 actionButtons={[
                                     {
@@ -212,7 +212,7 @@ export const ConnectionsListContainer = () => {
                         return (
                             <ConnectionCard
                                 connection={connection}
-                                key={connection.id ?? "mru" + index}
+                                key={connection.id ?? `${connection.server}|${connection.database}|${connection.authenticationType}|${connection.profileName ?? ""}`}
                                 onSelect={() => context.loadConnectionAsNewDraft(connection)}
                                 actionButtons={[
                                     {
