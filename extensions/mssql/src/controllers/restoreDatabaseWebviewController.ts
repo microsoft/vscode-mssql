@@ -48,7 +48,7 @@ import {
 } from "./sharedDisasterRecoveryUtils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { BackupFile, MediaDeviceType } from "../sharedInterfaces/backup";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { getErrorMessage } from "../utils/utils";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { BlobItem } from "@azure/storage-blob";

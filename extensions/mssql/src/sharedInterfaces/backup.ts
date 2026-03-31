@@ -5,7 +5,7 @@
 
 import { FormContextProps, FormReducers } from "./form";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
-import { TaskExecutionMode } from "./schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import {
     DisasterRecoveryAzureFormState,
     DisasterRecoveryReducers,

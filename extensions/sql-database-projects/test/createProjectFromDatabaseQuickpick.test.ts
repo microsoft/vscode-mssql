@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import * as mssql from "vscode-mssql";
+import { ExtractTarget } from "../src/common/enums";
 import * as path from "path";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
@@ -398,7 +398,7 @@ suite("Create Project From Database Quickpick", () => {
             projName: "TestProject",
             filePath: projectFilePath,
             version: "1.0.0.0",
-            extractTarget: mssql.ExtractTarget.objectType,
+            extractTarget: ExtractTarget.objectType,
             sdkStyle: true,
             includePermissions: false,
         };

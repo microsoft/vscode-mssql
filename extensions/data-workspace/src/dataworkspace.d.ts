@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 declare module "dataworkspace" {
-  import * as azdata from "azdata";
   import * as vscode from "vscode";
+
   export const enum extension {
     name = "Microsoft.data-workspace",
     vscodeName = "ms-mssql.data-workspace-vscode",
@@ -110,11 +110,6 @@ declare module "dataworkspace" {
     ): Promise<vscode.Uri>;
 
     /**
-     * Gets the project data corresponding to the project file, to be placed in the dashboard container
-     */
-    getDashboardComponents(projectFile: string): IDashboardTable[];
-
-    /**
      * Gets the supported project types
      */
     readonly supportedProjectTypes: IProjectType[];
@@ -123,11 +118,6 @@ declare module "dataworkspace" {
      * Gets the project actions to be placed on the dashboard toolbar
      */
     readonly projectToolbarActions: (IProjectAction | IProjectActionGroup)[];
-
-    /**
-     * Gets the project image to be used as background in dashboard container
-     */
-    readonly image?: azdata.ThemedIconPath;
 
     /**
      * Whether or not the tree data provider supports drag and drop
@@ -170,7 +160,7 @@ declare module "dataworkspace" {
     /**
      * Gets the icon path of the project type
      */
-    readonly icon: azdata.IconPath;
+    readonly icon: vscode.IconPath;
 
     /**
      * Gets the target platforms that can be selected when creating a new project
@@ -227,7 +217,7 @@ declare module "dataworkspace" {
     /**
      * icon path of the project action
      */
-    readonly icon?: azdata.IconPath;
+    readonly icon?: vscode.IconPath;
 
     /**
      * Run context for each project action
@@ -243,45 +233,4 @@ declare module "dataworkspace" {
     actions: IProjectAction[];
   }
 
-  /**
-   * Defines table to be presented in the dashboard container
-   */
-  export interface IDashboardTable {
-    /**
-     * name of the table
-     */
-    name: string;
-
-    /**
-     * column definitions
-     */
-    columns: IDashboardColumnInfo[];
-
-    /**
-     * project data
-     */
-    data: (string | IconCellValue)[][];
-  }
-
-  /**
-   * Project dashboard table's column information
-   */
-  export interface IDashboardColumnInfo {
-    displayName: string;
-    width: number | string;
-    type?: IDashboardColumnType;
-  }
-
-  /**
-   * Cell value of an icon for the table data
-   */
-  export interface IconCellValue {
-    text: string;
-    icon: azdata.IconPath;
-  }
-
-  /**
-   * Union type representing data types in dashboard table
-   */
-  export type IDashboardColumnType = "string" | "icon";
 }

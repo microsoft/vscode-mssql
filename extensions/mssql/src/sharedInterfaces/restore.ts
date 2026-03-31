@@ -13,7 +13,7 @@ import {
 import { MediaDeviceType } from "./backup";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
 import { FormContextProps, FormReducers } from "./form";
-import { TaskExecutionMode } from "./schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { ApiStatus } from "./webview";
 import { BlobItem } from "@azure/storage-blob";
 

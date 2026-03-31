@@ -8,6 +8,7 @@ import * as vscodeMssql from "vscode-mssql";
 import * as templates from "../templates/templates";
 import * as path from "path";
 
+import { ExtractTarget } from "../common/enums";
 import { ProjectsController } from "./projectController";
 import {
     DBProjectConfigurationKey,
@@ -120,7 +121,7 @@ export default class MainController implements vscode.Disposable {
                 async (
                     operationId: string,
                     projectFilePath: string,
-                    folderStructure: vscodeMssql.ExtractTarget,
+                    folderStructure: ExtractTarget,
                 ): Promise<vscodeMssql.SchemaComparePublishProjectResult> => {
                     return await this.projectsController.schemaComparePublishProjectChanges(
                         operationId,

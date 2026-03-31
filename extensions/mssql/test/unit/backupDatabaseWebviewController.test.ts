@@ -29,7 +29,7 @@ import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as LocConstants from "../../src/constants/locConstants";
 import { allFileTypes, defaultBackupFileTypes, url } from "../../src/constants/constants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
-import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../../src/enums";
 import {
     DisasterRecoveryType,
     ObjectManagementDialogType,
