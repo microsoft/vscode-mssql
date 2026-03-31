@@ -273,6 +273,11 @@ export default class MainController implements vscode.Disposable {
             ),
         );
         this.context.subscriptions.push(
+            vscode.commands.registerCommand("sqlDatabaseProjects.openDocumentation", async () => {
+                await vscode.env.openExternal(vscode.Uri.parse(constants.documentationUrl));
+            }),
+        );
+        this.context.subscriptions.push(
             vscode.commands.registerCommand(
                 "sqlDatabaseProjects.openContainingFolder",
                 async (node: WorkspaceTreeItem) => {
