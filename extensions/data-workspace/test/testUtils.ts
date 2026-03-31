@@ -5,6 +5,7 @@
 
 import * as os from "os";
 import * as path from "path";
+import * as vscode from "vscode";
 import { IProjectType } from "dataworkspace";
 import { promises as fs } from "fs";
 import { ProjectProviderRegistry } from "../src/common/projectProviderRegistry";
@@ -13,7 +14,7 @@ export const testProjectType: IProjectType = {
     id: "tp1",
     description: "",
     projectFileExtension: "testproj",
-    icon: "",
+    icon: vscode.Uri.file(""),
     displayName: "test project",
 };
 

@@ -1035,6 +1035,9 @@
     <trans-unit id="sqlDatabaseProjects.description">
       <source xml:lang="en">Design and publish SQL database schemas</source>
     </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.openDocumentation">
+      <source xml:lang="en">Documentation</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.edit">
       <source xml:lang="en">Edit</source>
     </trans-unit>

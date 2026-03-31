@@ -36,7 +36,7 @@ import {
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { hasAnyMissingRequiredValues, getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ProjectController } from "../controllers/projectController";

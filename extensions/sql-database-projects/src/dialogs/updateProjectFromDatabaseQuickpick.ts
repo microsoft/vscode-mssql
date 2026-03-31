@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as mssqlVscode from "vscode-mssql";
+import { ExtractTarget, SchemaCompareEndpointType } from "../common/enums";
 import * as constants from "../common/constants";
 import { getSqlProjectsInWorkspace, getVscodeMssqlApi } from "../common/utils";
 import { IConnectionInfo } from "vscode-mssql";
@@ -148,14 +149,14 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
 
     // Construct the source endpoint (the database)
     const sourceEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo = {
-        endpointType: mssqlVscode.SchemaCompareEndpointType.Database,
+        endpointType: SchemaCompareEndpointType.Database,
         databaseName: selectedDatabase,
         serverDisplayName: connectionProfile.server,
         serverName: connectionProfile.server,
         connectionDetails: connectionDetails,
         ownerUri: connectionUri,
         projectFilePath: "",
-        extractTarget: mssqlVscode.ExtractTarget.schemaObjectType,
+        extractTarget: ExtractTarget.schemaObjectType,
         targetScripts: [],
         dataSchemaProvider: "",
         packageFilePath: "",
@@ -164,9 +165,9 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
 
     // Construct the target endpoint (the selected project)
     const targetEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo = {
-        endpointType: mssqlVscode.SchemaCompareEndpointType.Project,
+        endpointType: SchemaCompareEndpointType.Project,
         projectFilePath: projectFilePath,
-        extractTarget: mssqlVscode.ExtractTarget.schemaObjectType,
+        extractTarget: ExtractTarget.schemaObjectType,
         targetScripts: [],
         dataSchemaProvider: project.getProjectTargetVersion(),
         connectionDetails: connectionDetails,

@@ -10,6 +10,7 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Fixed an issue where SQL object templates (table, view, stored procedure) did not reflect the schema specified in the object name.
 - Fixed an issue where SQL projects with a missing `ProjectGuid` were silently modified on load with an invalid all-zeros GUID, causing unexpected git dirty state. The extension now prompts the user and generates a valid unique GUID only upon acceptance.
+- Added quick access to the [SQL Database Projects documentation](https://aka.ms/sqlprojects) from the project context menu and panel toolbar.
 
 ## [1.5.8] - 2026-03-18
 
