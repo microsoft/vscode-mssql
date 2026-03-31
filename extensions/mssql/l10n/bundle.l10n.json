@@ -3370,7 +3370,7 @@
         "message": "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Download Offline VSIX": "Download Offline VSIX",
+    "Download offline VSIX": "Download offline VSIX",
     "Copy link": "Copy link",
     "Link copied to clipboard": "Link copied to clipboard",
     "The {0} service has crashed. Details: {1}/{0} is the service name{1} is the error message": {

@@ -1959,8 +1959,8 @@
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
-    <trans-unit id="++CODE++a0bc2e7b8d5d900226fa1ada66859fe900386a7a07112ef81b2bf296bfc75b79">
-      <source xml:lang="en">Download Offline VSIX</source>
+    <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
+      <source xml:lang="en">Download offline VSIX</source>
     </trans-unit>
     <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
       <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
