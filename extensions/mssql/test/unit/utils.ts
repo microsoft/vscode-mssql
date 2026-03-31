@@ -19,10 +19,18 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 
+let activationPromise: Promise<IExtension> | undefined;
+
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
+    if (activationPromise) {
+        return activationPromise;
+    }
+
     const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
-    return await extension.activate();
+    activationPromise = Promise.resolve(extension.activate());
+
+    return activationPromise;
 }
 
 // Stubs the telemetry code
