@@ -471,12 +471,15 @@ export default class SqlToolsServiceClient {
         serviceRuntime: Runtime,
         platformInfo: PlatformInformation,
     ): void {
+        this._logger.verbose(
+            `Sending service launch telemetry: launchType=${launchType}, serviceRuntime=${serviceRuntime}, detectedRuntime=${platformInfo?.runtimeId}, platform=${platformInfo?.platform}, architecture=${platformInfo?.architecture}`,
+        );
         sendActionEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStarted, {
             launchType,
             serviceRuntime,
-            detectedRuntime: platformInfo.runtimeId,
-            platform: platformInfo.platform,
-            architecture: platformInfo.architecture,
+            detectedRuntime: platformInfo?.runtimeId,
+            platform: platformInfo?.platform,
+            architecture: platformInfo?.architecture,
         });
     }
 

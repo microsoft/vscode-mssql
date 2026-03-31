@@ -3340,7 +3340,7 @@ export class ServiceClient {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
-    public static downloadOfflineVsix = l10n.t("Download Offline VSIX");
+    public static downloadOfflineVsix = l10n.t("Download offline VSIX");
     public static copyLinkToClipboard = l10n.t("Copy link");
     public static linkCopiedToClipboard = l10n.t("Link copied to clipboard");
 

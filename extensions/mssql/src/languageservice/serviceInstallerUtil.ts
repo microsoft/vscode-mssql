@@ -103,13 +103,14 @@ export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
         logger.error(`Error deleting service install directory: ${error.message}`);
         throw error;
     }
+    let path: string;
     try {
-        await serverProvider.downloadAndGetServerInstallFolder(runtime);
+        path = await serverProvider.downloadAndGetServerInstallFolder(runtime);
     } catch (error) {
         logger.error(`Error installing service for runtime ${runtime}: ${error.message}`);
         throw error;
     }
-    logger.verbose(`Service installation complete for runtime: ${runtime}`);
+    logger.verbose(`Service installation complete for runtime: ${runtime}, path: ${path}`);
 }
 
 /*
