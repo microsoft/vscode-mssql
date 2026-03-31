@@ -364,6 +364,24 @@ export class LocConstants {
             connecting: l10n.t("Connecting..."),
             saveWithoutConnecting: l10n.t("Save without connecting"),
             connectToDatabase: l10n.t("Connect to Database"),
+            editDatabaseConnection: (profileName: string) =>
+                l10n.t({
+                    message: "Edit Database Connection - {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
+            editConnection: (profileName: string) =>
+                l10n.t({
+                    message: "Edit {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
+            createCopiedConnection: (profileName: string) =>
+                l10n.t({
+                    message: "Create new connection copied from {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
             connectTo: (profileName: string) =>
                 l10n.t({
                     message: "Connect to {0}",
