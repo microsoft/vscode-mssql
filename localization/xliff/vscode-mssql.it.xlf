@@ -2990,6 +2990,14 @@ Errore:
         <note>{0} is the error message</note>
         <target state="translated">Errore: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
+        <source xml:lang="en">Estimated Operator Cost</source>
+        <target state="translated">Costo stimato operatore</target>
+      </trans-unit>
+      <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
+        <source xml:lang="en">Estimated Subtree Cost</source>
+        <target state="translated">Costo stimato sottoalbero</target>
+      </trans-unit>
       <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
         <source xml:lang="en">Event details for {0}</source>
         <note>{0} is the name of the profiler event</note>
@@ -9168,20 +9176,20 @@ Query: {2}</target>
         <target state="translated">Compilare API Dati (anteprima)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
-        <source xml:lang="en">Cancel Connection</source>
-        <target state="translated">Annullare la connessione</target>
+        <source xml:lang="en">Cancel Connection (MSSQL)</source>
+        <target state="translated">Annulla connessione (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
-        <source xml:lang="en">Cancel Query</source>
-        <target state="translated">Annulla query</target>
+        <source xml:lang="en">Cancel Query (MSSQL)</source>
+        <target state="translated">Annulla query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
-        <source xml:lang="en">Change Connection</source>
-        <target state="translated">Modifica connessione</target>
+        <source xml:lang="en">Change Connection (MSSQL)</source>
+        <target state="translated">Cambia connessione (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
-        <source xml:lang="en">Change Database</source>
-        <target state="translated">Cambia database</target>
+        <source xml:lang="en">Change Database (MSSQL)</source>
+        <target state="translated">Modifica database (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.changeConnection">
         <source xml:lang="en">Change Notebook Connection</source>
@@ -9232,8 +9240,8 @@ Query: {2}</target>
         <target state="translated">Confronta schema...</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
-        <source xml:lang="en">Connect</source>
-        <target state="translated">Connetti</target>
+        <source xml:lang="en">Connect (MSSQL)</source>
+        <target state="translated">Connetti (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
         <source xml:lang="en">Connect to a SQL Database</source>
@@ -9322,8 +9330,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Distribuisci pacchetto di applicazione livello dati</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
-        <source xml:lang="en">Disable Actual Plan</source>
-        <target state="translated">Disabilita piano effettivo</target>
+        <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
+        <target state="translated">Disabilita piano effettivo (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
@@ -9338,8 +9346,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Disabilitato</target>
       </trans-unit>
       <trans-unit id="mssql.disconnect">
-        <source xml:lang="en">Disconnect</source>
-        <target state="translated">Disconnetti</target>
+        <source xml:lang="en">Disconnect (MSSQL)</source>
+        <target state="translated">Disconnetti (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
         <source xml:lang="en">Display results in a formatted text format.</source>
@@ -9374,8 +9382,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Modifica dati tabella...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
-        <source xml:lang="en">Enable Actual Plan</source>
-        <target state="translated">Abilita piano effettivo</target>
+        <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
+        <target state="translated">Abilita piano effettivo (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
@@ -9486,16 +9494,16 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Abilita le funzionalità sperimentali nell'estensione MSSQL. Le funzionalità non sono pronte per la produzione e potrebbero presentare bug o problemi. Riavvia Visual Studio Code dopo aver modificato questa impostazione.</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">Piano stimato</target>
+        <source xml:lang="en">Estimated Plan (MSSQL)</source>
+        <target state="translated">Piano stimato (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
-        <source xml:lang="en">Execute Current Statement</source>
-        <target state="translated">Esegui istruzione corrente</target>
+        <source xml:lang="en">Execute Current Statement (MSSQL)</source>
+        <target state="translated">Esegui istruzione corrente (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runQuery">
-        <source xml:lang="en">Execute Query</source>
-        <target state="translated">Esecuzione query</target>
+        <source xml:lang="en">Execute Query (MSSQL)</source>
+        <target state="translated">Esegui query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
@@ -9736,8 +9744,8 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Ripristina database (anteprima)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
-        <source xml:lang="en">Reveal Query Result</source>
-        <target state="translated">Mostra risultati query</target>
+        <source xml:lang="en">Reveal Query Result (MSSQL)</source>
+        <target state="translated">Mostra risultato della query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
@@ -10000,8 +10008,8 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Abilita/Disabilita piano effettivo</target>
       </trans-unit>
       <trans-unit id="mssql.toggleQueryResultPanel">
-        <source xml:lang="en">Toggle Query Result Panel Visibility</source>
-        <target state="translated">Attiva/Disattiva visibilità riquadro risultati query</target>
+        <source xml:lang="en">Toggle Query Result Panel Visibility (MSSQL)</source>
+        <target state="translated">Attiva/Disattiva visibilità riquadro risultati della query (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>

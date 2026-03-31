@@ -14,14 +14,14 @@ import {
     type SchemaChange,
     type SchemaChangesSummary,
     type TableChangeGroup,
-} from "../../src/reactviews/pages/SchemaDesigner/diff/diffUtils";
-import { describeChange } from "../../src/reactviews/pages/SchemaDesigner/diff/schemaDiff";
+} from "../../src/webviews/pages/SchemaDesigner/diff/diffUtils";
+import { describeChange } from "../../src/webviews/pages/SchemaDesigner/diff/schemaDiff";
 import {
     canRevertChange,
     computeRevertedSchema,
     type RevertMessages,
     type SchemaState,
-} from "../../src/reactviews/pages/SchemaDesigner/diff/revertChange";
+} from "../../src/webviews/pages/SchemaDesigner/diff/revertChange";
 
 // Test messages for revert validation
 const testRevertMessages: RevertMessages = {

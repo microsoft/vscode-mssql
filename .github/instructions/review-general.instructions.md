@@ -25,6 +25,6 @@ Use these alongside standard good practices when reviewing code.
 - DO check for strings in UIs and user-facing messages that should be localized.
 - DO check for duplication of strings within localization constants files, and suggest moving good candidates to the "common" bundle.
 - DO NOT comment on presence, lack of presence, or correctness of translations inside localization files (`*.l10n.json`, `*.xlf`, `*.lcl`). Those are handled in a separate process.
-- React/webview frontend localized strings go in: `extensions/mssql/src/reactviews/common/locConstants.ts`
+- React/webview frontend localized strings go in: `extensions/mssql/src/webviews/common/locConstants.ts`
 - All other localized strings go in: `extensions/mssql/src/constants/locConstants.ts`
 - "common" bundles: `LocConstants.common` for React strings, `LocConstants.Common` for backend strings.
