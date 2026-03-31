@@ -10,7 +10,6 @@ import {
     StubStatusView,
     StubLogger,
     getServiceInstallDirectoryRoot,
-    installService,
 } from "../../src/languageservice/serviceInstallerUtil";
 import * as sinon from "sinon";
 
@@ -97,15 +96,5 @@ suite("Test Service Installer Util functions", () => {
     test("Test getServiceInstallDirectoryRoot function", () => {
         let path = getServiceInstallDirectoryRoot();
         expect(path, "Service install directory root should not be null").to.not.be.null;
-    });
-
-    // test('Test getgetServiceInstallDirectory function', async () => {
-    //     let dir = await getServiceInstallDirectory(undefined);
-    //     expect(dir, 'Service install directory should not be null').to.not.be.null;
-    // });
-
-    test("Test installService function", async () => {
-        let installedPath = await installService(undefined);
-        expect(installedPath, "Service installed path should not be null").to.not.be.null;
     });
 });

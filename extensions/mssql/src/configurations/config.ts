@@ -5,6 +5,7 @@
 
 export const config = {
     service: {
+        dotnetRuntimeVersion: "10.0",
         downloadUrl:
             "https://github.com/Microsoft/sqltoolsservice/releases/download/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
         version: "6.0.20260330.1",
@@ -15,13 +16,9 @@ export const config = {
             OSX_ARM64: "osx-arm64-net10.0.tar.gz",
             Linux: "linux-x64-net10.0.tar.gz",
             Linux_ARM64: "linux-arm64-net10.0.tar.gz",
+            Portable: "portable-net10.0.zip",
         },
         installDir: "./sqltoolsservice/{#version#}/{#platform#}",
-        executableFiles: [
-            "MicrosoftSqlToolsServiceLayer.exe",
-            "MicrosoftSqlToolsServiceLayer",
-            "MicrosoftSqlToolsServiceLayer.dll",
-        ],
     },
 };
 

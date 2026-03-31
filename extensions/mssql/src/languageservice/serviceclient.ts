@@ -15,7 +15,6 @@ import {
     ErrorAction,
     CloseAction,
 } from "vscode-languageclient";
-import * as path from "path";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
 import { Logger } from "../models/logger";
@@ -25,17 +24,27 @@ import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
 import DownloadHelper from "./downloadHelper";
 import ExtConfig from "../configurations/extConfig";
-import { PlatformInformation } from "../models/platform";
-import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
+import DotnetRuntimeProvider from "./dotnetRuntimeProvider";
+import { PlatformInformation, Runtime } from "../models/platform";
+import { ServiceClient } from "../constants/locConstants";
+import { ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { IConfigUtils } from "./interfaces";
-import { exists } from "../utils/utils";
-import { env } from "process";
+import { getErrorMessage } from "../utils/utils";
 import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
 import { serviceName } from "../azure/constants";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
+const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
+
+type ServiceLaunchType =
+    | "override"
+    | "platformInstalled"
+    | "portableInstalled"
+    | "portableDownloaded"
+    | "platformDownloaded";
 
 /**
  * @interface IMessage
@@ -53,25 +62,23 @@ export class LanguageClientErrorHandler {
      * Creates an instance of LanguageClientErrorHandler.
      * @memberOf LanguageClientErrorHandler
      */
-    constructor(private vscodeWrapper?: VscodeWrapper) {
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
-        }
-    }
+    constructor(private _name: string) {}
 
     /**
      * Show an error message prompt with a link to known issues wiki page
      * @memberOf LanguageClientErrorHandler
      */
-    showOnErrorPrompt(): void {
-        this.vscodeWrapper
+    showOnErrorPrompt(message: string): void {
+        vscode.window
             .showErrorMessage(
-                Constants.sqlToolsServiceCrashMessage,
-                Constants.sqlToolsServiceCrashButton,
+                ServiceClient.serviceCrashed(this._name, message),
+                ServiceClient.viewKnownIssues,
             )
             .then((action) => {
-                if (action && action === Constants.sqlToolsServiceCrashButton) {
-                    vscode.env.openExternal(vscode.Uri.parse(Constants.sqlToolsServiceCrashLink));
+                if (action === ServiceClient.viewKnownIssues) {
+                    void vscode.env.openExternal(
+                        vscode.Uri.parse(Constants.sqlToolsServiceCrashLink),
+                    );
                 }
             });
     }
@@ -86,8 +93,8 @@ export class LanguageClientErrorHandler {
      *
      * @memberOf LanguageClientErrorHandler
      */
-    error(error: Error, message: IMessage, count: number): ErrorAction {
-        this.showOnErrorPrompt();
+    error(error: Error, _message: IMessage, _count: number): ErrorAction {
+        this.showOnErrorPrompt(getErrorMessage(error));
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
@@ -102,7 +109,7 @@ export class LanguageClientErrorHandler {
      * @memberOf LanguageClientErrorHandler
      */
     closed(): CloseAction {
-        this.showOnErrorPrompt();
+        this.showOnErrorPrompt("The service process was unexpectedly closed.");
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
@@ -148,11 +155,11 @@ export default class SqlToolsServiceClient {
     }
 
     constructor(
-        private _config: IConfigUtils,
         private _server: ServerProvider,
         private _logger: Logger,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
+        private _dotnetRuntimeProvider: DotnetRuntimeProvider,
     ) {}
 
     // gets or creates the singleton SQL Tools service client instance
@@ -173,14 +180,15 @@ export default class SqlToolsServiceClient {
                 downloadHelper,
                 decompressProvider,
             );
-            let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
+            let serviceProvider = new ServerProvider(downloadProvider, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);
+            let dotnetRuntimeProvider = new DotnetRuntimeProvider(logger);
             SqlToolsServiceClient._instance = new SqlToolsServiceClient(
-                config,
                 serviceProvider,
                 logger,
                 statusView,
                 vscodeWrapper,
+                dotnetRuntimeProvider,
             );
         }
         return SqlToolsServiceClient._instance;
@@ -188,204 +196,224 @@ export default class SqlToolsServiceClient {
 
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
-    public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
-        this._logger.appendLine(Constants.serviceInitializing);
+    public async initialize(context: vscode.ExtensionContext): Promise<void> {
+        this._logger.verbose("Initializing SQL Tools Service Client for mssql extension");
         this._logPath = context.logUri.fsPath;
-        return PlatformInformation.getCurrent().then((platformInfo) => {
-            return this.initializeForPlatform(platformInfo, context);
-        });
+        const platformInfo = await PlatformInformation.getCurrent();
+        return this.initializeForPlatform(platformInfo, context);
     }
 
-    public initializeForPlatform(
+    public async initializeForPlatform(
         platformInfo: PlatformInformation,
         context: vscode.ExtensionContext,
-    ): Promise<ServerInitializationResult> {
-        return new Promise<ServerInitializationResult>((resolve, reject) => {
-            this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
-            this._logger.appendLine();
-            this._logger.append(`Platform: ${platformInfo.toString()}`);
-            if (!platformInfo.isValidRuntime) {
-                Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                reject("Invalid Platform");
-            } else {
-                if (platformInfo.runtimeId) {
-                    this._logger.appendLine(` (${platformInfo.getRuntimeDisplayName()})`);
-                } else {
-                    this._logger.appendLine();
-                }
-                this._logger.appendLine();
+    ): Promise<void> {
+        if (!platformInfo.isValidRuntime) {
+            const unsupportedPlatformMessage = `Unsupported platform: ${platformInfo.platform} and architecture: ${platformInfo.architecture}`;
+            this._logger.error(unsupportedPlatformMessage);
+            throw new Error(unsupportedPlatformMessage);
+        }
 
-                // For macOS we need to ensure the tools service version is set appropriately
-                this.updateServiceVersion(platformInfo);
+        this._logger.verbose(
+            `Detected runtime: ${platformInfo.platform} ${platformInfo.architecture}`,
+        );
 
-                this._server
-                    .getServerPath(platformInfo.runtimeId)
-                    .then(async (serverPath) => {
-                        if (serverPath === undefined) {
-                            // Check if the service already installed and if not open the output channel to show the logs
-                            if (this._vscodeWrapper !== undefined) {
-                                this._vscodeWrapper.outputChannel.show();
-                            }
-                            let installedServerPath = await this._server.downloadServerFiles(
-                                platformInfo.runtimeId,
-                            );
-                            this._sqlToolsServicePath = path.dirname(installedServerPath);
-                            await this.initializeLanguageClient(
-                                installedServerPath,
-                                context,
-                                platformInfo.isWindows,
-                            );
-                            await this._client.onReady();
-                            resolve(
-                                new ServerInitializationResult(true, true, installedServerPath),
-                            );
-                        } else {
-                            this._sqlToolsServicePath = path.dirname(serverPath);
-                            await this.initializeLanguageClient(
-                                serverPath,
-                                context,
-                                platformInfo.isWindows,
-                            );
-                            await this._client.onReady();
-                            resolve(new ServerInitializationResult(false, true, serverPath));
-                        }
-                    })
-                    .catch((err) => {
-                        this.logger.logDebug(Constants.serviceLoadingFailed + " " + err);
-                        Utils.showErrorMsg(Constants.serviceLoadingFailed);
-                        reject(err);
-                    });
+        const launchServer = async (serverInstallFolder: string, runtime: Runtime) => {
+            this._sqlToolsServicePath = serverInstallFolder;
+            await this.initializeLanguageClient(serverInstallFolder, runtime, context);
+            await this._client.onReady();
+        };
+
+        /**
+         * Attempt to launch the service from a path specified by an environment variable.
+         * This is used for debugging and allows for launching a locally built version of the service without
+         * having to replace the service in the extension installation folder.
+         */
+        const stsFolderOverride = process.env[STS_OVERRIDE_ENV_VAR];
+        if (stsFolderOverride) {
+            try {
+                await launchServer(stsFolderOverride, Runtime.Portable);
+                this.sendServiceLaunchTelemetry("override", Runtime.Portable, platformInfo);
+                return;
+            } catch (err) {
+                this._logger.error(
+                    `Failed to launch SQL Tools Service with overridden path: ${getErrorMessage(err)}`,
+                );
+                /**
+                 * We shouldn't fall back to other launch attempts if the override env variable is set,
+                 * since the user explicitly requested to launch from that location.
+                 * Show an error message and don't attempt other launch options in this case.
+                 */
+                throw err;
             }
-        });
-    }
+        }
 
-    private updateServiceVersion(platformInfo: PlatformInformation): void {
-        if (platformInfo.isMacOS && platformInfo.isMacVersionLessThan("10.12.0")) {
-            // Version 1.0 is required as this is the last one supporting downlevel macOS versions
-            this._config.useServiceVersion(1);
+        /**
+         * Attempt to launch offline OS-specific version of service first.
+         */
+        try {
+            const osSpecificServerPath = await this._server.tryGetServerInstallFolder(
+                platformInfo.runtimeId,
+            );
+            if (osSpecificServerPath) {
+                this._logger.verbose(
+                    `Found OS-specific SQL Tools Service install folder: ${osSpecificServerPath}`,
+                );
+                await launchServer(osSpecificServerPath, platformInfo.runtimeId);
+                this.sendServiceLaunchTelemetry(
+                    "platformInstalled",
+                    platformInfo.runtimeId,
+                    platformInfo,
+                );
+                return;
+            }
+        } catch (err) {
+            this._logger.error(
+                `Failed to launch SQL Tools Service with OS-specific runtime: ${getErrorMessage(err)}`,
+            );
+        }
+
+        /**
+         * Attempt to launch portable version of service next, if not present then download and launch it.
+         */
+        try {
+            let portableServerPath = await this._server.tryGetServerInstallFolder(Runtime.Portable);
+            const launchType: ServiceLaunchType = portableServerPath
+                ? "portableInstalled"
+                : "portableDownloaded";
+            if (!portableServerPath) {
+                this.showOutputChannelPreservingFocus();
+                this._logger.verbose(`Could not find portable SQL Tools Service executable.`);
+                portableServerPath = await this._server.downloadAndGetServerInstallFolder(
+                    Runtime.Portable,
+                );
+            }
+            this._logger.verbose(
+                `Found portable SQL Tools Service install folder: ${portableServerPath}`,
+            );
+            await launchServer(portableServerPath, Runtime.Portable);
+            this.sendServiceLaunchTelemetry(launchType, Runtime.Portable, platformInfo);
+            return;
+        } catch (err) {
+            this._logger.error(
+                `Failed to launch SQL Tools Service with portable runtime: ${getErrorMessage(err)}`,
+            );
+        }
+
+        /**
+         * Finally, attempt to download and launch the service for detected runtime. This is a temporary
+         * fallback and should be removed once we have confidence in the reliability of our portable service.
+         */
+        try {
+            this.showOutputChannelPreservingFocus();
+            const downloadedServerPath = await this._server.downloadAndGetServerInstallFolder(
+                platformInfo.runtimeId,
+            );
+            await launchServer(downloadedServerPath, platformInfo.runtimeId);
+            this.sendServiceLaunchTelemetry(
+                "platformDownloaded",
+                platformInfo.runtimeId,
+                platformInfo,
+            );
+            return;
+        } catch (err) {
+            this.logger.error(
+                `Failed to download and launch SQL Tools Service: ${getErrorMessage(err)}`,
+            );
+            sendErrorEvent(
+                SERVICE_LAUNCH_TELEMETRY_VIEW,
+                TelemetryActions.ServiceStartFailed,
+                err instanceof Error ? err : new Error(getErrorMessage(err)),
+                false,
+                undefined,
+                undefined,
+                {
+                    launchType: "allLaunchStrategiesFailed",
+                    detectedRuntime: platformInfo.runtimeId,
+                    platform: platformInfo.platform,
+                    architecture: platformInfo.architecture,
+                },
+            );
+            this.showOutputChannelPreservingFocus();
+            const displayError = ServiceClient.unableToStartService(getErrorMessage(err));
+            // Determine if this is a download failure or a runtime acquisition failure
+            const action = await vscode.window.showErrorMessage(
+                displayError,
+                ServiceClient.downloadOfflineVsix,
+                ServiceClient.copyLinkToClipboard,
+            );
+            if (action === ServiceClient.downloadOfflineVsix) {
+                void vscode.env.openExternal(vscode.Uri.parse(Constants.offlineVsixUrl));
+            } else if (action === ServiceClient.copyLinkToClipboard) {
+                await vscode.env.clipboard.writeText(Constants.offlineVsixUrl);
+                void vscode.window.showInformationMessage(ServiceClient.linkCopiedToClipboard);
+            }
+            throw new Error(displayError);
         }
     }
 
-    /**
-     * Gets the known service version of the backing tools service. This can be useful for filtering
-     * commands that are not supported if the tools service is below a certain known version
-     *
-     * @returns
-     * @memberof SqlToolsServiceClient
-     */
-    public getServiceVersion(): number {
-        return this._config.getServiceVersion();
-    }
-
-    /**
-     * Initializes the SQL language configuration
-     *
-     * @memberOf SqlToolsServiceClient
-     */
-    private initializeLanguageConfiguration(): void {
-        vscode.languages.setLanguageConfiguration("sql", {
-            comments: {
-                lineComment: "--",
-                blockComment: ["/*", "*/"],
-            },
-
-            brackets: [
-                ["{", "}"],
-                ["[", "]"],
-                ["(", ")"],
-            ],
-
-            __characterPairSupport: {
-                autoClosingPairs: [
-                    { open: "{", close: "}" },
-                    { open: "[", close: "]" },
-                    { open: "(", close: ")" },
-                    { open: '"', close: '"', notIn: ["string"] },
-                    { open: "'", close: "'", notIn: ["string", "comment"] },
-                ],
-            },
-        });
+    private showOutputChannelPreservingFocus(): void {
+        this._vscodeWrapper?.outputChannel.show(true);
     }
 
     private async initializeLanguageClient(
-        serverPath: string,
+        serverFolder: string,
+        runtime: Runtime,
         context: vscode.ExtensionContext,
-        isWindows: boolean,
     ): Promise<void> {
-        if (serverPath === undefined) {
-            this.logger.logDebug(Constants.invalidServiceFilePath);
-            throw new Error(Constants.invalidServiceFilePath);
-        } else {
-            let overridePath: string | undefined = undefined;
-            this.initializeLanguageConfiguration();
-            // This env var is used to override the base install location of STS - primarily to be used for debugging scenarios.
-            try {
-                const exeFiles = this._config.getSqlToolsExecutableFiles();
-                const stsRootPath = env[STS_OVERRIDE_ENV_VAR];
-                if (stsRootPath) {
-                    for (const exeFile of exeFiles) {
-                        const serverFullPath = path.join(stsRootPath, exeFile);
-                        if (await exists(serverFullPath)) {
-                            const overrideMessage = `Using ${exeFile} from ${stsRootPath}`;
-                            void vscode.window.showInformationMessage(overrideMessage);
-                            console.log(overrideMessage);
-                            overridePath = serverFullPath;
-                            break;
-                        }
-                    }
-                    if (!overridePath) {
-                        console.warn(
-                            `Could not find valid SQL Tools Service EXE from ${JSON.stringify(exeFiles)} at ${stsRootPath}, falling back to config`,
-                        );
-                    }
-                }
-            } catch (err) {
-                console.warn(
-                    "Unexpected error getting override path for SQL Tools Service client ",
-                    err,
-                );
-                // Fall back to config if something unexpected happens here
-            }
-            // Use the override path if we have one, otherwise just use the original serverPath passed in
-            let serverOptions: ServerOptions = this.createServiceLayerServerOptions(
-                overridePath || serverPath,
+        if (serverFolder === undefined) {
+            this.logger.error("Service folder path is undefined.");
+            throw new Error("Service path is undefined.");
+        }
+
+        this._logger.verbose(
+            `Attempting to launch SQL Tools Service from install folder: ${serverFolder} for runtime: ${runtime}`,
+        );
+
+        const sqlToolsServicePath = await this._server.tryGetExecutablePathInFolder(
+            serverFolder,
+            runtime,
+            "MicrosoftSqlToolsServiceLayer",
+        );
+        if (!sqlToolsServicePath) {
+            this.logger.logDebug(
+                "Sql Tools Service executable was not found in expected location.",
             );
-            this.client = this.createLanguageClient(serverOptions);
-            let executablePath = isWindows
-                ? Constants.windowsResourceClientPath
-                : Constants.unixResourceClientPath;
-            let resourcePath = path.join(path.dirname(serverPath), executablePath);
-            // See if the override path exists and has the resource client as well, and if so use that instead
+            throw new Error("Sql Tools Service executable was not found in expected location.");
+        }
+        this.client = await this.createLanguageClient(sqlToolsServicePath);
 
-            if (overridePath) {
-                const overrideDir = path.dirname(overridePath);
-                const resourceOverridePath = path.join(overrideDir, executablePath);
-                const resourceClientOverrideExists = await exists(resourceOverridePath);
-                if (resourceClientOverrideExists) {
-                    const overrideMessage = `Using ${executablePath} from ${overrideDir}`;
-                    void vscode.window.showInformationMessage(overrideMessage);
-                    console.log(overrideMessage);
-                    resourcePath = resourceOverridePath;
-                }
-            }
-            this._resourceClient = this.createResourceClient(resourcePath);
+        const resourceProviderServicePath = await this._server.tryGetExecutablePathInFolder(
+            serverFolder,
+            runtime,
+            "SqlToolsResourceProviderService",
+        );
+        if (!resourceProviderServicePath) {
+            this.logger.logDebug(
+                "Resource Provider Service executable was not found in expected location.",
+            );
+            throw new Error(
+                "Resource Provider Service executable was not found in expected location.",
+            );
+        }
+        this._resourceClient = await this.createResourceClient(resourceProviderServicePath);
 
-            if (context !== undefined) {
-                // Create the language client and start the client.
-                let disposable = this.client.start();
+        if (context !== undefined) {
+            // Create the language client and start the client.
+            let disposable = this.client.start();
 
-                // Start the resource client
-                let resourceDisposable = this._resourceClient.start();
+            // Start the resource client
+            let resourceDisposable = this._resourceClient.start();
 
-                // Push the disposable to the context's subscriptions so that the
-                // client can be deactivated on extension deactivation
-                context.subscriptions.push(disposable);
-                context.subscriptions.push(resourceDisposable);
-            }
+            // Push the disposable to the context's subscriptions so that the
+            // client can be deactivated on extension deactivation
+            context.subscriptions.push(disposable);
+            context.subscriptions.push(resourceDisposable);
         }
     }
 
-    private createLanguageClient(serverOptions: ServerOptions): LanguageClient {
+    private async createLanguageClient(executablePath: string): Promise<LanguageClient> {
+        let serverOptions: ServerOptions =
+            await this.generateSqlToolsServiceServerOptions(executablePath);
         // Options to control the language client
         let clientOptions: LanguageClientOptions = {
             documentSelector: ["sql"],
@@ -396,7 +424,7 @@ export default class SqlToolsServiceClient {
                     Constants.telemetryConfigSectionName,
                 ],
             },
-            errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper),
+            errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
         };
 
         // cache the client instance for later use
@@ -415,25 +443,17 @@ export default class SqlToolsServiceClient {
         return client;
     }
 
-    private generateResourceServiceServerOptions(executablePath: string): ServerOptions {
-        let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(
-            executablePath,
-            this._logPath,
-            "resourceprovider.log",
-        );
-        return {
-            command: executablePath,
-            args: launchArgs,
-            transport: TransportKind.stdio,
-        };
-    }
-
-    private createResourceClient(resourcePath: string): LanguageClient {
+    private async createResourceClient(executablePath: string): Promise<LanguageClient> {
         // add resource provider path here
-        let serverOptions = this.generateResourceServiceServerOptions(resourcePath);
-        // client options are undefined since we don't want to send language events to the
-        // server, since it's handled by the main client
-        let client = new LanguageClient(Constants.resourceServiceName, serverOptions, undefined);
+        let serverOptions = await this.generateResourceServiceServerOptions(executablePath);
+        const clientOptions: LanguageClientOptions = {
+            errorHandler: new LanguageClientErrorHandler(Constants.resourceServiceName),
+        };
+        let client = new LanguageClient(
+            Constants.resourceServiceName,
+            serverOptions,
+            clientOptions,
+        );
         return client;
     }
 
@@ -446,72 +466,144 @@ export default class SqlToolsServiceClient {
         };
     }
 
-    private createServiceLayerServerOptions(servicePath: string): ServerOptions {
-        let serverArgs = [];
-        let serverCommand: string = servicePath;
-        if (servicePath.endsWith(".dll")) {
-            serverArgs = [servicePath];
-            serverCommand = "dotnet";
+    private sendServiceLaunchTelemetry(
+        launchType: ServiceLaunchType,
+        serviceRuntime: Runtime,
+        platformInfo: PlatformInformation,
+    ): void {
+        this._logger.verbose(
+            `Sending service launch telemetry: launchType=${launchType}, serviceRuntime=${serviceRuntime}, detectedRuntime=${platformInfo?.runtimeId}, platform=${platformInfo?.platform}, architecture=${platformInfo?.architecture}`,
+        );
+        sendActionEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStarted, {
+            launchType,
+            serviceRuntime,
+            detectedRuntime: platformInfo?.runtimeId,
+            platform: platformInfo?.platform,
+            architecture: platformInfo?.architecture,
+        });
+    }
+
+    /**
+     * Common logic to determine executable launch args based on whether the service is a .dll or an executable file.
+     * @param executablePath The path to the service executable
+     * @returns The command and args to launch the service with
+     */
+    private async launchCommandAndArgs(
+        executablePath: string,
+    ): Promise<{ command: string; args: string[] }> {
+        if (executablePath.endsWith(".dll")) {
+            try {
+                return {
+                    command: await this._dotnetRuntimeProvider.acquireDotnetRuntime(),
+                    args: [executablePath],
+                };
+            } catch (err) {
+                const runtimeError =
+                    err instanceof Error ? err : new Error(ServiceClient.runtimeNotFoundError);
+                sendErrorEvent(
+                    SERVICE_LAUNCH_TELEMETRY_VIEW,
+                    TelemetryActions.AcquireDotnetRuntimeFailed,
+                    runtimeError,
+                    true, // include error message
+                    undefined,
+                    undefined,
+                );
+                this._logger.error(
+                    `Failed to acquire .NET runtime for launching service: ${getErrorMessage(runtimeError)}`,
+                );
+                throw runtimeError;
+            }
+        } else {
+            return {
+                command: executablePath,
+                args: [],
+            };
         }
+    }
+
+    /**
+     * Generate launch commands and args for sts
+     * @param servicePath The path to the service executable
+     * @returns The server options to launch the service with
+     */
+    private async generateSqlToolsServiceServerOptions(
+        servicePath: string,
+    ): Promise<ServerOptions> {
+        let { command, args } = await this.launchCommandAndArgs(servicePath);
         // Get the extenion's configuration
-        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
-        if (config) {
-            // Populate common args
-            serverArgs = serverArgs.concat(
-                Utils.getCommonLaunchArgsAndCleanupOldLogFiles(
-                    servicePath,
-                    this._logPath,
-                    "sqltools.log",
-                ),
-            );
 
-            // Enable diagnostic logging in the service if it is configured
-            let logDebugInfo = config[Constants.configLogDebugInfo];
-            if (logDebugInfo) {
-                serverArgs.push("--enable-logging");
-            }
+        // Populate common args
+        args = args.concat(
+            Utils.getCommonLaunchArgsAndCleanupOldLogFiles(
+                servicePath,
+                this._logPath,
+                "sqltools.log",
+            ),
+        );
 
-            // Send application name and path to determine MSAL cache location
-            serverArgs.push("--application-name", serviceName);
-            serverArgs.push("--data-path", getAppDataPath());
+        // Send application name and path to determine MSAL cache location
+        args.push("--application-name", serviceName);
+        args.push("--data-path", getAppDataPath());
 
-            /**
-             * Adds a dummy argument to sts to indicate that the server is launched
-             * from the VS Code debug panel. This helps distinguish the sts process
-             * in the process list (for .NET Core attach), especially when multiple
-             * instances of the extension are running. This is particularly useful on
-             * macOS, where the process path is not visible in the process list.
-             */
-            if (process.env[STS_OVERRIDE_ENV_VAR]) {
-                serverArgs.push("--vscode-debug-launch");
-            }
-
-            // Enable SQL Auth Provider registration for Azure MFA Authentication
-            serverArgs.push("--enable-sql-authentication-provider");
-
-            // Enable Connection pooling to improve connection performance
-            const enableConnectionPooling = getEnableConnectionPoolingConfig();
-            if (enableConnectionPooling) {
-                serverArgs.push("--enable-connection-pooling");
-            }
-
-            let locale = vscode.env.language;
-            serverArgs.push("--locale");
-            serverArgs.push(locale);
-
-            // Enable parallel message processing to improve performance
-            serverArgs.push("--parallel-message-processing");
-            serverArgs.push("--parallel-message-processing-limit");
-            serverArgs.push(String(100));
+        /**
+         * Adds a dummy argument to sts to indicate that the server is launched
+         * from the VS Code debug panel. This helps distinguish the sts process
+         * in the process list (for .NET Core attach), especially when multiple
+         * instances of the extension are running. This is particularly useful on
+         * macOS, where the process path is not visible in the process list.
+         */
+        if (process.env[STS_OVERRIDE_ENV_VAR]) {
+            args.push("--vscode-debug-launch");
         }
+
+        // Enable SQL Auth Provider registration for Azure MFA Authentication
+        args.push("--enable-sql-authentication-provider");
+
+        // Enable Connection pooling to improve connection performance
+        const enableConnectionPooling = getEnableConnectionPoolingConfig();
+        if (enableConnectionPooling) {
+            args.push("--enable-connection-pooling");
+        }
+
+        let locale = vscode.env.language;
+        args.push("--locale");
+        args.push(locale);
+
+        // Enable parallel message processing to improve performance
+        args.push("--parallel-message-processing");
+        args.push("--parallel-message-processing-limit");
+        args.push(String(100));
 
         // run the service host using dotnet.exe from the path
-        let serverOptions: ServerOptions = {
-            command: serverCommand,
-            args: serverArgs,
+        return {
+            command,
+            args,
             transport: TransportKind.stdio,
         };
-        return serverOptions;
+    }
+
+    /**
+     * Generate launch commands and args for resource provider service
+     * @param executablePath The path to the resource provider service executable
+     * @returns The server options to launch the service with
+     */
+    private async generateResourceServiceServerOptions(
+        executablePath: string,
+    ): Promise<ServerOptions> {
+        let { command, args } = await this.launchCommandAndArgs(executablePath);
+        args = [
+            ...args,
+            ...Utils.getCommonLaunchArgsAndCleanupOldLogFiles(
+                executablePath,
+                this._logPath,
+                "resourceprovider.log",
+            ),
+        ];
+        return {
+            command,
+            args,
+            transport: TransportKind.stdio,
+        };
     }
 
     /**
@@ -520,7 +612,6 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    // tslint:disable-next-line:no-unused-variable
     public sendRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
             return this.client.sendRequest(type, params);
@@ -533,7 +624,6 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    // tslint:disable-next-line:no-unused-variable
     public sendResourceRequest<P, R, E, R0>(
         type: RequestType<P, R, E, R0>,
         params?: P,
@@ -545,9 +635,9 @@ export default class SqlToolsServiceClient {
 
     /**
      * Send a notification to the service client
+     * @param type The notification type to send
      * @param params The params to pass with the notification
      */
-    // tslint:disable-next-line:no-unused-variable
     public sendNotification<P, R0>(type: NotificationType<P, R0>, params?: P): void {
         if (this.client !== undefined) {
             this.client.sendNotification(type, params);
@@ -559,7 +649,6 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    // tslint:disable-next-line:no-unused-variable
     public onNotification<P, R0>(
         type: NotificationType<P, R0>,
         handler: NotificationHandler<P>,
@@ -569,6 +658,12 @@ export default class SqlToolsServiceClient {
         }
     }
 
+    /**
+     * Register a handler for a request type
+     * @param type The request type to register the handler for
+     * @param handler The handler to register
+     * @returns void
+     */
     public onRequest<P, R, E, R0>(
         type: RequestType<P, R, E, R0>,
         handler: (params: P) => Thenable<R> | R,

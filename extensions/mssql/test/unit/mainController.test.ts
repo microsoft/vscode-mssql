@@ -70,7 +70,7 @@ suite("MainController Tests", function () {
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        const vscodeWrapper = stubVscodeWrapper(sandbox);
         let getterCalls = 0;
         sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => {
             getterCalls += 1;
@@ -92,7 +92,7 @@ suite("MainController Tests", function () {
     });
 
     test("validateTextDocumentHasFocus returns true if there is an active text document", () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        const vscodeWrapper = stubVscodeWrapper(sandbox);
         sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
         const controller: MainController = new MainController(
             context,
@@ -109,7 +109,7 @@ suite("MainController Tests", function () {
     });
 
     test("onManageProfiles should call the connection manager to manage profiles", async () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        const vscodeWrapper = stubVscodeWrapper(sandbox);
         connectionManager.onManageProfiles.resolves();
 
         const controller: MainController = new MainController(

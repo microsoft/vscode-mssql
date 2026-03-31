@@ -3328,3 +3328,29 @@ export class RestoreDatabase {
         "Azure SQL Database is not supported for restore.",
     );
 }
+
+export class ServiceClient {
+    public static runtimeNotFoundError = l10n.t(
+        "A required .NET runtime could not be found or installed.",
+    );
+    public static unableToStartService = (errorMessage: string) =>
+        l10n.t({
+            message:
+                "The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    public static downloadOfflineVsix = l10n.t("Download offline VSIX");
+    public static copyLinkToClipboard = l10n.t("Copy link");
+    public static linkCopiedToClipboard = l10n.t("Link copied to clipboard");
+
+    public static serviceCrashed = (name: string, error: string) =>
+        l10n.t({
+            message: "The {0} service has crashed. Details: {1}",
+            args: [name, error],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static viewKnownIssues = l10n.t("View known issues");
+
+    public static installFailedStatusText = l10n.t("Service installation failed.");
+}
