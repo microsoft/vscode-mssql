@@ -135,6 +135,10 @@
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">이 편집기 세션에서 쿼리가 이미 실행 중입니다. 이 쿼리를 취소하거나 완료될 때까지 기다리세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
+        <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
+        <target state="new">A required .NET runtime could not be found or installed.</target>
+      </trans-unit>
       <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
         <source xml:lang="en">API Type</source>
         <target state="translated">API 유형</target>
@@ -1926,6 +1930,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Copy connection string to clipboard</source>
         <target state="translated">연결 문자열을 클립보드에 복사</target>
       </trans-unit>
+      <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
+        <source xml:lang="en">Copy link</source>
+        <target state="new">Copy link</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
         <target state="translated">스크립트 복사</target>
@@ -2056,6 +2064,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
         <target state="translated">스크립트로 만들기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
+        <source xml:lang="en">Create new connection copied from {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Create new connection copied from {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
@@ -2564,6 +2577,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Don't show this again</source>
         <target state="translated">다시 표시하지 않음</target>
       </trans-unit>
+      <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
+        <source xml:lang="en">Download offline VSIX</source>
+        <target state="new">Download offline VSIX</target>
+      </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
         <target state="translated">키맵 확장을 다운로드하면 Azure Data Studio에서 키 매핑을 자동으로 가져올 수 있습니다. 이 변경 사항은 키보드 바로 가기 기본 설정에 반영됩니다.</target>
@@ -2620,6 +2637,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Edit Data</source>
         <target state="translated">데이터 편집</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d593fb39b41430bb8c2c1162a76d2c273c1180b07a062108bb2c8e7ab2a3c6">
+        <source xml:lang="en">Edit Database Connection - {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Edit Database Connection - {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">테이블 편집</target>
@@ -2631,6 +2653,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
         <target state="translated">여기에서 변경 내용을 보려면 스키마를 편집합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8724cfbaf2b6567c288f9f3ec1f1138c9c48bd270325ecc4095993063e8691b">
+        <source xml:lang="en">Edit {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Edit {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -4495,6 +4522,10 @@ Error:
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">선 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
+        <source xml:lang="en">Link copied to clipboard</source>
+        <target state="new">Link copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
         <source xml:lang="en">List Connections</source>
@@ -7319,6 +7350,10 @@ Query: {2}</source>
         <note>{0} is the server name</note>
         <target state="translated">서버 {0}을(를) 찾을 수 없습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
+        <source xml:lang="en">Service installation failed.</source>
+        <target state="new">Service installation failed.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
         <target state="translated">세션 만들기 시간이 초과되었습니다.</target>
@@ -7987,6 +8022,11 @@ Query: {2}</source>
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">쿼리 프로파일러가 이제 Microsoft Fabric SQL 데이터베이스를 지원하며, 경량 T-SQL 프로파일링을 위한 {code-snippet-0}을 포함하는 새로운 Azure SQL Database 템플릿이 추가되었습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
+        <source xml:lang="en">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
         <target state="translated">XEL 파일을 찾을 수 없습니다.</target>
@@ -8115,6 +8155,12 @@ Query: {2}</source>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
         <target state="translated">기본 또는 고유 키 열을 포함하는 테이블입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9742c3b5b5914f9ac72f6be945f6f52a6ce05ffcd743f8cf4373e9fa4400a25">
+        <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
+        <note>{0} is the service name
+{1} is the error message</note>
+        <target state="new">The {0} service has crashed. Details: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
@@ -8525,6 +8571,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
         <source xml:lang="en">View Table Diagram</source>
         <target state="translated">테이블 다이어그램 보기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
+        <source xml:lang="en">View known issues</source>
+        <target state="new">View known issues</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
