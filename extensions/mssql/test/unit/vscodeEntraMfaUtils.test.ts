@@ -14,15 +14,13 @@ suite("vscodeEntraMfaUtils", () => {
 
         test("returns true when currentAccountId starts with expectedAccountId (legacy prefix)", () => {
             // Legacy account IDs may have extra suffixes appended (e.g. "|tenantId")
-            expect(
-                areCompatibleEntraAccountIds("user@example.com|tenant-abc", "user@example.com"),
-            ).to.be.true;
+            expect(areCompatibleEntraAccountIds("user@example.com|tenant-abc", "user@example.com"))
+                .to.be.true;
         });
 
         test("returns true when expectedAccountId starts with currentAccountId (reverse legacy prefix)", () => {
-            expect(
-                areCompatibleEntraAccountIds("user@example.com", "user@example.com|tenant-abc"),
-            ).to.be.true;
+            expect(areCompatibleEntraAccountIds("user@example.com", "user@example.com|tenant-abc"))
+                .to.be.true;
         });
 
         test("returns false when ids share a common prefix but neither is a prefix of the other", () => {
@@ -33,8 +31,10 @@ suite("vscodeEntraMfaUtils", () => {
             // IDs like "user@example.com" and "user@example.com2" where the former is a prefix of
             // the latter. The function uses startsWith so these are treated as compatible.
             // This documents the known behavior for cases where legacy IDs differ by a suffix.
-            expect(areCompatibleEntraAccountIds("user@example.com", "user@example.com|tenant-123")).to.be.true;
-            expect(areCompatibleEntraAccountIds("user@example.com|tenant-123", "user@example.com")).to.be.true;
+            expect(areCompatibleEntraAccountIds("user@example.com", "user@example.com|tenant-123"))
+                .to.be.true;
+            expect(areCompatibleEntraAccountIds("user@example.com|tenant-123", "user@example.com"))
+                .to.be.true;
         });
 
         test("returns false when currentAccountId is undefined", () => {
@@ -50,9 +50,8 @@ suite("vscodeEntraMfaUtils", () => {
         });
 
         test("returns false for completely different ids", () => {
-            expect(
-                areCompatibleEntraAccountIds("user1@example.com", "user2@example.com"),
-            ).to.be.false;
+            expect(areCompatibleEntraAccountIds("user1@example.com", "user2@example.com")).to.be
+                .false;
         });
     });
 });
