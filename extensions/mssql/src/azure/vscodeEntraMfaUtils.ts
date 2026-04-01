@@ -26,6 +26,9 @@ export function useVscodeAccountsForEntraMfa(): boolean {
         .get<boolean>(Constants.configUseVscodeAccountsForEntraMfa, false);
 }
 
+/**
+ * Determines if the provided account IDs are compatible, meaning they are either exactly the same or one is a prefix of the other.
+ */
 export function areCompatibleEntraAccountIds(
     currentAccountId?: string,
     expectedAccountId?: string,
