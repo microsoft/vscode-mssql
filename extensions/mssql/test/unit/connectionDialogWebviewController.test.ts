@@ -505,7 +505,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 tenantId: mockTenants[0].tenantId,
             } as IConnectionDialogProfile;
 
-            await controller["_reducerHandlers"].get("loadConnection")(controller.state, {
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
                 connection: testConnection,
             });
 
