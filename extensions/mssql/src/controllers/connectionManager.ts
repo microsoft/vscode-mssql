@@ -11,6 +11,10 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
+import {
+    acquireSqlAccessTokenFromVscodeAccount,
+    useVscodeAccountsForEntraMfa,
+} from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
@@ -1050,8 +1054,27 @@ export default class ConnectionManager {
             return;
         }
 
-        // 3. Collect Entra account information
-        let account: IAccount;
+        // 3. Refresh the token
+        // A3. If the user is using vscode accounts for Entra MFA, use that flow to refresh the token
+        if (useVscodeAccountsForEntraMfa()) {
+            const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                connectionInfo.accountId,
+                connectionInfo.tenantId,
+                connectionInfo.email ?? connectionInfo.user,
+            );
+
+            connectionInfo.azureAccountToken = tokenInfo.token.token;
+            connectionInfo.expiresOn = tokenInfo.token.expiresOn;
+            connectionInfo.accountId = tokenInfo.account.id;
+            connectionInfo.tenantId = tokenInfo.tenantId;
+            connectionInfo.user = tokenInfo.account.label;
+            connectionInfo.email = tokenInfo.session.account.label;
+            return;
+        }
+
+        // B3. Otherwise, use the old flow to refresh the token
+        // B3.1 Collect Entra account information
+        let account: IAccount | undefined;
         let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
@@ -1080,7 +1103,7 @@ export default class ConnectionManager {
         profile.user = account.displayInfo.displayName;
         profile.email = account.displayInfo.email;
 
-        // 4. Use cached token if present and valid/unexpired
+        // B4. Use cached token if present and valid/unexpired
         const cacheKey = this.getEntraSqlTokenCacheKey(
             connectionInfo,
             account.properties?.owningTenant?.id,
@@ -1108,7 +1131,7 @@ export default class ConnectionManager {
             }
         }
 
-        // 5. Lastly, refresh the token, cache the new token, and update the connection info with it
+        // B5. Lastly, refresh the token, cache the new token, and update the connection info with it
         const refreshTask = async () => {
             return await this.azureController.refreshAccessToken(
                 account,

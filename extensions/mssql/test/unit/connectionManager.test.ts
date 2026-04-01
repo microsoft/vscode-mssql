@@ -33,6 +33,7 @@ import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 
 chai.use(sinonChai);
 
@@ -47,6 +48,8 @@ suite("ConnectionManager Tests", () => {
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
+    let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
+    let mockAzureController: sinon.SinonStubbedInstance<MsalAzureController>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -57,6 +60,8 @@ suite("ConnectionManager Tests", () => {
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
         mockServiceClient = sandbox.createStubInstance(SqlToolsServerClient);
         mockStatusView = sandbox.createStubInstance(StatusView);
+        mockAccountStore = sandbox.createStubInstance(AccountStore);
+        mockAzureController = sandbox.createStubInstance(MsalAzureController);
 
         const initializedDeferred = new Deferred<void>();
         initializedDeferred.resolve();
@@ -84,7 +89,7 @@ suite("ConnectionManager Tests", () => {
                     mockConnectionStore,
                     mockCredentialStore,
                     undefined, // connectionUI
-                    undefined, // accountStore
+                    mockAccountStore,
                 );
             }).to.not.throw();
 
@@ -359,9 +364,6 @@ suite("ConnectionManager Tests", () => {
     });
 
     suite("refreshEntraTokenIfNeeded", () => {
-        let testConnectionManager: ConnectionManager;
-        let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
-        let mockAzureController: sinon.SinonStubbedInstance<MsalAzureController>;
         let withProgressStub: sinon.SinonStub;
 
         const account = {
@@ -389,7 +391,7 @@ suite("ConnectionManager Tests", () => {
         }
 
         setup(() => {
-            testConnectionManager = new ConnectionManager(
+            connectionManager = new ConnectionManager(
                 mockContext,
                 mockStatusView,
                 undefined,
@@ -404,8 +406,8 @@ suite("ConnectionManager Tests", () => {
 
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(MsalAzureController);
-            testConnectionManager.accountStore = mockAccountStore;
-            testConnectionManager.azureController = mockAzureController;
+            connectionManager.accountStore = mockAccountStore;
+            connectionManager.azureController = mockAzureController;
 
             mockAccountStore.getAccount.resolves(account);
 
@@ -428,10 +430,10 @@ suite("ConnectionManager Tests", () => {
                 expiresOn: Math.floor(Date.now() / 1000) + 3600,
             };
 
-            testConnectionManager["_entraSqlTokenCache"].set("account-1|tenant-1", cachedToken);
+            connectionManager["_entraSqlTokenCache"].set("account-1|tenant-1", cachedToken);
             const connectionInfo = createAzureMfaConnectionInfo();
 
-            await testConnectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
 
             expect(mockAzureController.refreshAccessToken).to.not.have.been.called;
             expect(withProgressStub).to.not.have.been.called;
@@ -446,7 +448,7 @@ suite("ConnectionManager Tests", () => {
             const connectionInfo = createAzureMfaConnectionInfo();
 
             try {
-                await testConnectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+                await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
                 expect.fail("Should have thrown an error");
             } catch (error) {
                 expect(error.message).to.include(LocalizedConstants.msgAccountRefreshFailed());
@@ -466,14 +468,14 @@ suite("ConnectionManager Tests", () => {
             mockAzureController.refreshAccessToken.resolves(refreshedToken);
 
             const connectionInfo = createAzureMfaConnectionInfo();
-            await testConnectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
 
             expect(withProgressStub).to.have.been.calledOnce;
             expect(mockAzureController.refreshAccessToken).to.have.been.calledOnce;
             expect(connectionInfo.azureAccountToken).to.equal("fresh-token");
             expect(connectionInfo.expiresOn).to.equal(refreshedToken.expiresOn);
             expect(
-                testConnectionManager["_entraSqlTokenCache"].get("account-1|tenant-1"),
+                connectionManager["_entraSqlTokenCache"].get("account-1|tenant-1"),
             ).to.deep.equal(refreshedToken);
         });
 
@@ -487,8 +489,8 @@ suite("ConnectionManager Tests", () => {
             const conn1 = createAzureMfaConnectionInfo();
             const conn2 = createAzureMfaConnectionInfo();
 
-            const promise1 = testConnectionManager.refreshEntraTokenIfNeeded(conn1);
-            const promise2 = testConnectionManager.refreshEntraTokenIfNeeded(conn2);
+            const promise1 = connectionManager.refreshEntraTokenIfNeeded(conn1);
+            const promise2 = connectionManager.refreshEntraTokenIfNeeded(conn2);
 
             await Promise.resolve();
             expect(withProgressStub).to.have.been.calledOnce;
@@ -507,7 +509,7 @@ suite("ConnectionManager Tests", () => {
             expect(conn1.azureAccountToken).to.equal("shared-refreshed-token");
             expect(conn2.azureAccountToken).to.equal("shared-refreshed-token");
             expect(
-                testConnectionManager["_entraSqlTokenCache"].get("account-1|tenant-1"),
+                connectionManager["_entraSqlTokenCache"].get("account-1|tenant-1"),
             ).to.deep.equal(sharedToken);
         });
 
@@ -516,7 +518,7 @@ suite("ConnectionManager Tests", () => {
                 authenticationType: "SqlLogin",
             });
 
-            await testConnectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
 
             expect(mockAccountStore.getAccount).to.not.have.been.called;
             expect(mockAzureController.refreshAccessToken).to.not.have.been.called;
@@ -524,13 +526,13 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("onClearAzureTokenCache clears shared cache and in-flight refresh map", async () => {
-            testConnectionManager["_entraSqlTokenCache"].set("account-1|tenant-1", {
+            connectionManager["_entraSqlTokenCache"].set("account-1|tenant-1", {
                 key: "account-1",
                 token: "cached",
                 tokenType: "Bearer",
                 expiresOn: Math.floor(Date.now() / 1000) + 3600,
             });
-            testConnectionManager["_entraSqlTokenRefreshInFlight"].set(
+            connectionManager["_entraSqlTokenRefreshInFlight"].set(
                 "account-1|tenant-1",
                 Promise.resolve({
                     key: "account-1",
@@ -540,11 +542,11 @@ suite("ConnectionManager Tests", () => {
                 }),
             );
 
-            testConnectionManager.onClearAzureTokenCache();
+            connectionManager.onClearAzureTokenCache();
 
             expect(mockAzureController.clearTokenCache).to.have.been.calledOnce;
-            expect(testConnectionManager["_entraSqlTokenCache"].size).to.equal(0);
-            expect(testConnectionManager["_entraSqlTokenRefreshInFlight"].size).to.equal(0);
+            expect(connectionManager["_entraSqlTokenCache"].size).to.equal(0);
+            expect(connectionManager["_entraSqlTokenRefreshInFlight"].size).to.equal(0);
         });
     });
 
@@ -755,6 +757,59 @@ suite("ConnectionManager Tests", () => {
             expect(result.email).to.equal("test@example.com");
             expect(result.accountId).to.equal("account123");
             expect(result.tenantId).to.equal("tenant456");
+        });
+    });
+
+    suite("refreshEntraTokenIfNeeded", () => {
+        setup(() => {
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
+
+            connectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                mockPrompter,
+                mockLogger,
+            );
+        });
+
+        test("uses VS Code account tokens when VS Code account mode is enabled", async () => {
+            sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+            sandbox.stub(AzureController, "isTokenValid").returns(false);
+            sandbox.stub(VscodeEntraMfaUtils, "acquireSqlAccessTokenFromVscodeAccount").resolves({
+                account: {
+                    id: "vscode-account-id.tenant-id",
+                    label: "user@contoso.com",
+                } as vscode.AuthenticationSessionAccountInformation,
+                session: {
+                    account: {
+                        id: "vscode-account-id.tenant-id",
+                        label: "user@contoso.com",
+                    },
+                } as vscode.AuthenticationSession,
+                tenantId: "tenant-id",
+                token: {
+                    key: "vscode-account-id.tenant-id",
+                    token: "vscode-token",
+                    tokenType: "Bearer",
+                    expiresOn: Date.now() / 1000 + 3600,
+                },
+            });
+
+            const connectionInfo = {
+                server: "testServer",
+                authenticationType: "AzureMFA",
+                accountId: "legacy-account-id",
+                tenantId: "legacy-tenant-id",
+                user: "legacy-user",
+            } as IConnectionInfo;
+
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+
+            expect(connectionInfo.azureAccountToken).to.equal("vscode-token");
+            expect(connectionInfo.accountId).to.equal("vscode-account-id.tenant-id");
+            expect(connectionInfo.tenantId).to.equal("tenant-id");
+            expect(connectionInfo.user).to.equal("user@contoso.com");
+            expect(connectionInfo.email).to.equal("user@contoso.com");
         });
     });
 

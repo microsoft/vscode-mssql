@@ -52,12 +52,14 @@ import {
     stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
+    mockAccounts,
     stubVscodeAzureHelperGetAccounts,
     mockServerName,
     mockUserName,
     mockTenants,
 } from "./azureHelperStubs";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
+import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
@@ -483,6 +485,34 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(testConnection.id).to.equal("existing-profile-id");
             expect(testConnection.profileName).to.equal("Test Profile");
             expect(testConnection.configSource).to.equal(vscode.ConfigurationTarget.Workspace);
+        });
+
+        test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {
+            sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount]);
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+                .resolves([mockTenants[0], mockTenants[1]]);
+
+            const testConnection = {
+                profileName: "Test Entra Connection",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: mockAccounts.signedInAccount.id.split(".")[0],
+                tenantId: mockTenants[0].tenantId,
+            } as IConnectionDialogProfile;
+
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
+                connection: testConnection,
+            });
+
+            expect(controller.state.connectionProfile.accountId).to.equal(
+                mockAccounts.signedInAccount.id,
+            );
+            expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
         });
 
         suite("connect", () => {
@@ -1003,5 +1033,34 @@ suite("ConnectionDialogWebviewController Tests", () => {
         buttons = await controller["getAzureActionButtons"]();
         expect(buttons.length).to.equal(2);
         expect(buttons[1].id).to.equal("refreshToken");
+    });
+
+    test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
+        sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+            .resolves([mockTenants[0], mockTenants[1]]);
+
+        const signInStub = sandbox.stub().callsFake(() => {
+            return true;
+        });
+
+        sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
+            signIn: signInStub,
+        } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+
+        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+        controller.state.connectionProfile.accountId = mockAccounts.signedInAccount.id;
+
+        const buttons = await controller["getAzureActionButtons"]();
+        expect(buttons).to.have.lengthOf(1);
+        expect(buttons[0].id).to.equal("azureSignIn");
+
+        await buttons[0].callback();
+
+        expect(signInStub).to.have.been.calledOnce;
     });
 });
