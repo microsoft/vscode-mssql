@@ -1388,6 +1388,10 @@ Proyectos:
         <source xml:lang="en">Design and publish SQL database schemas</source>
         <target state="translated">Diseñe y publique esquemas de base de datos SQL.</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openDocumentation">
+        <source xml:lang="en">Documentation</source>
+        <target state="new">Documentation</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>
         <target state="translated">Editar</target>
