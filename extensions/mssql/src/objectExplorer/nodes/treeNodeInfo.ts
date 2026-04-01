@@ -11,7 +11,6 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { removeUndefinedProperties, uuid } from "../../utils/utils";
-import { PreviewFeature, previewFeaturesService } from "../../previews/previewService";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -72,13 +71,11 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
         // Add command for table nodes to handle double-click
         if (this._nodeType === "Table") {
-            if (previewFeaturesService.isFeatureEnabled(PreviewFeature.TableNodeAction)) {
-                this.command = {
-                    command: Constants.cmdTableNodeAction,
-                    title: "",
-                    arguments: [this],
-                };
-            }
+            this.command = {
+                command: Constants.cmdTableNodeAction,
+                title: "",
+                arguments: [this],
+            };
         }
     }
 

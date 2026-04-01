@@ -19,7 +19,7 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { Logger } from "../../src/models/logger";
-import { previewFeaturesService } from "../../src/previews/previewService";
+import { PreviewFeature, previewFeaturesService } from "../../src/previews/previewService";
 
 let activationPromise: Promise<IExtension> | undefined;
 
@@ -257,9 +257,9 @@ export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.P
     sandbox.stub(path, "normalize").callsFake(platform.normalize);
 }
 
+export const TestFeature = "testFeature" as PreviewFeature;
+
 export function stubPreviewService(sandbox: sinon.SinonSandbox): void {
     sandbox.stub(previewFeaturesService, "experimentalFeaturesEnabled").get(() => false);
-    sandbox
-        .stub(previewFeaturesService, "getNonDefaultOverrides")
-        .returns({ tableNodeAction: true });
+    sandbox.stub(previewFeaturesService, "getNonDefaultOverrides").returns({ [TestFeature]: true });
 }
