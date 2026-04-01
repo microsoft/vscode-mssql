@@ -11,7 +11,7 @@ import DownloadHelper from "./downloadHelper";
 import ServerProvider from "./server";
 import { IStatusView } from "./interfaces";
 import { ILogger } from "../models/interfaces";
-const del = require("del");
+import * as fs from "fs";
 
 export class StubStatusView implements IStatusView {
     constructor(private _log: (msg: string) => void) {}
@@ -97,7 +97,7 @@ export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
     logger.verbose(`Cleaning and installing service for runtime: ${runtime}`);
     const serviceInstallDirectoryRoot = getServiceInstallDirectoryRoot();
     try {
-        await del(serviceInstallDirectoryRoot, { force: true });
+        await fs.promises.rm(serviceInstallDirectoryRoot, { recursive: true, force: true });
         logger.verbose(`Deleted service install directory: ${serviceInstallDirectoryRoot}`);
     } catch (error) {
         logger.error(`Error deleting service install directory: ${error.message}`);

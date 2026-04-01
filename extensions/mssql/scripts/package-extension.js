@@ -6,7 +6,6 @@
 const fs = require("fs");
 const { execFileSync } = require("child_process");
 const { promisify } = require("util");
-const del = require("del");
 const logger = require("../../../scripts/terminal-logger");
 const path = require("path");
 
@@ -89,7 +88,8 @@ async function cleanServiceInstallFolder() {
         const serviceInstallFolder = install.getServiceInstallDirectoryRoot();
 
         logger.debug(`Deleting: ${serviceInstallFolder}`);
-        await del(serviceInstallFolder + "/*");
+        await fs.promises.rm(serviceInstallFolder, { recursive: true, force: true });
+        await fs.promises.mkdir(serviceInstallFolder, { recursive: true });
         logger.success("Service install folder cleaned");
     } catch (error) {
         logger.error(`Failed to clean service folder: ${error.message}`);

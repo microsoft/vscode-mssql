@@ -114,7 +114,6 @@
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
         "chai": "^5.3.3",
         "cli-color": "^2.0.4",
-        "del": "^8.0.1",
         "esbuild": "^0.25.0",
         "html-to-image": "1.11.11",
         "mocha-junit-reporter": "^2.2.1",
