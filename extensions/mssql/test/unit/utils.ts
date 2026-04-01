@@ -19,6 +19,7 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { Logger } from "../../src/models/logger";
+import { previewFeaturesService } from "../../src/previews/previewService";
 
 let activationPromise: Promise<IExtension> | undefined;
 
@@ -41,7 +42,9 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
 } {
     const stubber = sandbox || sinon;
     return {
-        sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
+        sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake((...args) => {
+            console.log(...args);
+        }),
         sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
     };
 }
@@ -220,6 +223,7 @@ export function stubProfilerService(
     sandbox: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<ProfilerService> {
     const profilerService = sandbox.createStubInstance(ProfilerService);
+
     profilerService.startProfiling.resolves({
         uniqueSessionId: "test-unique-id",
         canPause: false,
@@ -232,6 +236,7 @@ export function stubProfilerService(
     profilerService.onEventsAvailable.returns(new vscode.Disposable(() => {}));
     profilerService.onSessionStopped.returns(new vscode.Disposable(() => {}));
     profilerService.onSessionCreated.returns(new vscode.Disposable(() => {}));
+
     return profilerService;
 }
 
@@ -250,4 +255,11 @@ export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.P
     sandbox.stub(path, "extname").callsFake(platform.extname);
     sandbox.stub(path, "isAbsolute").callsFake(platform.isAbsolute);
     sandbox.stub(path, "normalize").callsFake(platform.normalize);
+}
+
+export function stubPreviewService(sandbox: sinon.SinonSandbox): void {
+    sandbox.stub(previewFeaturesService, "experimentalFeaturesEnabled").get(() => false);
+    sandbox
+        .stub(previewFeaturesService, "getNonDefaultOverrides")
+        .returns({ tableNodeAction: true });
 }

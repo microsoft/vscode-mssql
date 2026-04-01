@@ -51,7 +51,6 @@ suite("PreviewFeaturesService", () => {
         sandbox.restore();
     });
 
-    // -------------------------------------------------------------------------
     suite("experimentalFeaturesEnabled", () => {
         test("returns true when enableExperimentalFeatures is true", () => {
             stubMssqlConfig(true);
@@ -69,7 +68,6 @@ suite("PreviewFeaturesService", () => {
         });
     });
 
-    // -------------------------------------------------------------------------
     suite("isFeatureEnabled - no per-feature override", () => {
         test("returns true when global flag is true and no override", () => {
             stubMssqlConfig(true);
@@ -139,15 +137,6 @@ suite("PreviewFeaturesService", () => {
             expect(service.getNonDefaultOverrides()).to.deep.equal({
                 [PreviewFeature.TableNodeAction]: false,
             });
-        });
-    });
-
-    // -------------------------------------------------------------------------
-    suite("singleton", () => {
-        test("getInstance always returns the same instance", () => {
-            const a = PreviewFeaturesService.getInstance();
-            const b = PreviewFeaturesService.getInstance();
-            expect(a).to.equal(b);
         });
     });
 });
