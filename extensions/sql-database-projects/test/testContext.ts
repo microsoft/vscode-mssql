@@ -6,6 +6,12 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as vscodeMssql from "vscode-mssql";
+import {
+    TaskExecutionMode,
+    ExtractTarget,
+    DeploymentScenario,
+    SchemaCompareEndpointType,
+} from "../src/common/enums";
 
 export interface TestContext {
     context: vscode.ExtensionContext;
@@ -60,7 +66,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _databaseName: string,
         _packageFilePath: string,
         _ownerUri: string,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _taskExecutionMode: TaskExecutionMode,
     ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
@@ -68,7 +74,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _packageFilePath: string,
         _databaseName: string,
         _ownerUri: string,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _taskExecutionMode: TaskExecutionMode,
     ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
@@ -78,7 +84,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _applicationName: string,
         _applicationVersion: string,
         _ownerUri: string,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _taskExecutionMode: TaskExecutionMode,
     ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
@@ -88,8 +94,8 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _applicationName: string,
         _applicationVersion: string,
         _ownerUri: string,
-        _extractTarget: vscodeMssql.ExtractTarget,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _extractTarget: ExtractTarget,
+        _taskExecutionMode: TaskExecutionMode,
         _includePermissions?: boolean,
     ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
@@ -99,7 +105,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _targetDatabaseName: string,
         _upgradeExisting: boolean,
         _ownerUri: string,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _taskExecutionMode: TaskExecutionMode,
         _sqlCommandVariableValues?: Map<string, string>,
         _deploymentOptions?: vscodeMssql.DeploymentOptions,
     ): Thenable<vscodeMssql.DacFxResult> {
@@ -109,7 +115,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _packageFilePath: string,
         _targetDatabaseName: string,
         _ownerUri: string,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _taskExecutionMode: TaskExecutionMode,
         _sqlCommandVariableValues?: Map<string, string>,
         _deploymentOptions?: vscodeMssql.DeploymentOptions,
     ): Thenable<vscodeMssql.DacFxResult> {
@@ -119,7 +125,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         _packageFilePath: string,
         _targetDatabaseName: string,
         _ownerUri: string,
-        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+        _taskExecutionMode: TaskExecutionMode,
     ): Thenable<vscodeMssql.GenerateDeployPlanResult> {
         return Promise.resolve(mockGenerateDeployPlanResult);
     }
@@ -142,7 +148,7 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         return Promise.resolve(mockSavePublishResult);
     }
     public getDeploymentOptions(
-        _scenario: vscodeMssql.DeploymentScenario,
+        _scenario: DeploymentScenario,
     ): Thenable<vscodeMssql.GetDeploymentOptionsResult> {
         return Promise.resolve({
             success: true,
@@ -157,6 +163,9 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
         return Promise.resolve({
             containsCreateTableStatement: false,
         });
+    }
+    public getCodeAnalysisRules(): Thenable<vscodeMssql.GetCodeAnalysisRulesResult> {
+        return Promise.resolve({ success: true, errorMessage: "", rules: [] });
     }
 }
 
@@ -270,9 +279,9 @@ export const mockConnectionInfo = {
 };
 
 export const mockProjectEndpointInfo: vscodeMssql.SchemaCompareEndpointInfo = {
-    endpointType: vscodeMssql.SchemaCompareEndpointType.Project,
+    endpointType: SchemaCompareEndpointType.Project,
     projectFilePath: "",
-    extractTarget: vscodeMssql.ExtractTarget.schemaObjectType,
+    extractTarget: ExtractTarget.schemaObjectType,
     targetScripts: [],
     dataSchemaProvider: "150",
     connectionDetails: mockConnectionInfo,
@@ -284,14 +293,14 @@ export const mockProjectEndpointInfo: vscodeMssql.SchemaCompareEndpointInfo = {
 };
 
 export const mockDatabaseEndpointInfo: vscodeMssql.SchemaCompareEndpointInfo = {
-    endpointType: vscodeMssql.SchemaCompareEndpointType.Database,
+    endpointType: SchemaCompareEndpointType.Database,
     databaseName: "My Database",
     serverDisplayName: "My Connection Name",
     serverName: "My Server",
     connectionDetails: mockConnectionInfo,
     ownerUri: "MockUri",
     projectFilePath: "",
-    extractTarget: vscodeMssql.ExtractTarget.schemaObjectType,
+    extractTarget: ExtractTarget.schemaObjectType,
     targetScripts: [],
     dataSchemaProvider: "",
     packageFilePath: "",

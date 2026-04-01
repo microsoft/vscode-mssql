@@ -335,69 +335,91 @@ This is a multi-extension monorepo. See the [developer documentation](https://gi
 
 ### Prerequisites
 
-- Node.js `>= 20.19.4`
-- Yarn `>= 1.22`
+- Node.js `>= 24`
+- npm `>= 11`
 - VS Code `>= 1.98.0`
 
-All commands below should be executed from the extension's folder unless noted otherwise.
+Install dependencies once from the repository root:
+
+```bash
+npm install
+```
+
+Use `npm run list:targets` to see the supported targets.
+
+All commands below should be executed from the repository root unless noted otherwise.
+
+### Root Workspace Commands
+
+```bash
+# Build everything
+npm run build
+
+# Build one or more targets
+npm run build -- --target mssql
+npm run build -- --target sql-database-projects,data-workspace
+
+# Watch everything
+npm run watch
+
+# Watch one or more targets
+npm run watch -- --target mssql
+npm run watch -- --target sql-database-projects,data-workspace
+
+# Run tests for everything or a subset
+npm run test
+npm run test -- --target data-workspace
+
+# Package one or more extensions
+npm run package -- --target mssql
+npm run package -- --target database-management-keymap
+```
 
 ### MSSQL Extension (`extensions/mssql/`)
 
 ```bash
-cd extensions/mssql
-
-# Development
-yarn                                # install extension dependencies
-yarn watch                          # continuous build (extension + webviews + bundles)
-yarn build                          # one-off full build
-yarn package [--online|--offline]   # produces VSIX
+npm run watch -- --target mssql
+npm run build -- --target mssql
+npm run build -- --target mssql --prod
+npm run package -- --target mssql --online
+npm run package -- --target mssql --offline
 
 # Testing
-yarn test                           # run unit tests
-yarn smoketest                      # run end-to-end tests (requires SQL instance)
+npm run test -- --target mssql
+npm run smoketest -- --target mssql
 ```
 
 ### SQL Database Projects Extension (`extensions/sql-database-projects/`)
 
 ```bash
-cd extensions/sql-database-projects
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build (extension + webviews + bundles)
-yarn build                # one-off full build
-yarn package              # produces VSIX
+npm run watch -- --target sql-database-projects
+npm run build -- --target sql-database-projects
+npm run package -- --target sql-database-projects
 
 # Testing
-yarn test                 # run unit tests; NOT CURRENTLY WORKING
+npm run test -- --target sql-database-projects
 ```
 
 ### Data Workspace Extension (`extensions/data-workspace/`)
 
 ```bash
-cd extensions/data-workspace
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build
-yarn build                # one-off full build
-yarn package              # produces VSIX
+npm run watch -- --target data-workspace
+npm run build -- --target data-workspace
+npm run package -- --target data-workspace
 
 # Testing
-yarn test                 # run unit tests
+npm run test -- --target data-workspace
 ```
 
 ### Debugging From The Root Workspace
 
 1. Open the repository root in VS Code.
-2. Run `yarn watch` from any or all extension subfolders
+2. Run `npm run watch` to watch everything, or `npm run watch -- --target <target>` to limit it
 3. Launch a run configuration from VS Code:
     - `Run All Extensions`
 
 ### Contributing Tips
 
-- Keep the extensions independent—run `yarn install` inside each folder instead of the repo root.
-- Shared code (e.g., telemetry helpers, typings) should live under `typings/` or a new sibling package to avoid implicit cross-imports.
 - When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
 - Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
 
@@ -411,71 +433,11 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
 
-## Privacy Statement
-
-The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
-
-## License
-
-This extension is [licensed under the MIT License](https://github.com/Microsoft/vscode-mssql/blob/main/mssql/LICENSE.txt). Please see the [third-party notices](https://github.com/Microsoft/vscode-mssql/blob/main/mssql/ThirdPartyNotices.txt) file for additional copyright notices and license terms applicable to portions of the software.
-
-# Development
-
-yarn # install extension dependencies
-yarn watch # continuous build (extension + webviews + bundles)
-yarn build # one-off full build
-yarn package # produces VSIX
-
-# Testing
-
-yarn test # run unit tests; NOT CURRENTLY WORKING
-
-````
-
-### Data Workspace Extension (`extensions/data-workspace/`)
-
-```bash
-cd extensions/data-workspace
-
-# Development
-yarn                      # install extension dependencies
-yarn watch                # continuous build
-yarn build                # one-off full build
-yarn package              # produces VSIX
-
-# Testing
-yarn test                 # run unit tests
-````
-
-## Debugging From The Root Workspace
-
-1. Open the repository root in VS Code.
-2. Run `yarn watch` from any or all extension subfolders
-3. Launch a run configuration from VS Code:
-    - `Run All Extensions`
-
-## Contributing Tips
-
-- Keep the extensions independent—run `yarn install` inside each folder instead of the repo root.
-- Shared code (e.g., telemetry helpers, typings) should live under `typings/` or a new sibling package to avoid implicit cross-imports.
-- When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
-- Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
-
-## Change Log
-
-See the [change log](https://github.com/Microsoft/vscode-mssql/blob/main/mssql/CHANGELOG.md) for a detailed list of changes in each version.
-
-## Code of Conduct
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Telemetry
-
-This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
+Administrators can set or disable feedback and telemetry collection across their entire organization/tenant with the same mechanism. Learn more about [setting feedback and telemetry collection policy](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) and [centrally managing VS Code settings with policies](https://code.visualstudio.com/docs/enterprise/policies).
 
 ## Privacy Statement
 
-The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
+The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=521839) describes the privacy statement of this software.
 
 ## License
 

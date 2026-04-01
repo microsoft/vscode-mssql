@@ -330,6 +330,14 @@ export namespace CopyAsInsertIntoRequest {
     export const type = new RequestType<CopyAsInsertIntoRequest, void, void>("copyAsInsertInto");
 }
 
+export interface CopyColumnNameRequestParams {
+    columnName: string;
+}
+
+export namespace CopyColumnNameRequest {
+    export const type = new RequestType<CopyColumnNameRequestParams, void, void>("copyColumnName");
+}
+
 export interface SetSelectionSummary {
     uri: string;
     batchId: number;

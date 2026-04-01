@@ -184,14 +184,6 @@ export class SqlDatabaseProjectProvider
         return [group, changeTargetPlatformAction];
     }
 
-    /**
-     * Gets the data to be displayed in the project dashboard.
-     * Dashboard is not used in VS Code, so this returns empty.
-     */
-    public getDashboardComponents(_projectFile: string): dataworkspace.IDashboardTable[] {
-        return [];
-    }
-
     public openSqlNewProjectDialog(
         allowedTargetPlatforms?: sqldbproj.SqlTargetPlatform[],
     ): Promise<vscode.Uri | undefined> {

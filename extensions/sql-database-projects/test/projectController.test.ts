@@ -12,7 +12,7 @@ import * as baselines from "./baselines/baselines";
 import * as templates from "../src/templates/templates";
 import * as testUtils from "./testUtils";
 import * as constants from "../src/common/constants";
-import * as mssql from "vscode-mssql";
+import { ExtractTarget } from "../src/common/enums";
 import * as utils from "../src/common/utils";
 
 import { SqlDatabaseProjectTreeViewProvider } from "../src/controllers/databaseProjectTreeViewProvider";
@@ -1250,7 +1250,7 @@ suite("ProjectsController", function (): void {
                 projName: projectName,
                 filePath: folderPath,
                 version: "1.0.0.0",
-                extractTarget: mssql.ExtractTarget.file,
+                extractTarget: ExtractTarget.file,
                 sdkStyle: false,
             };
 
@@ -1274,7 +1274,7 @@ suite("ProjectsController", function (): void {
                 projName: projectName,
                 filePath: folderPath,
                 version: "1.0.0.0",
-                extractTarget: mssql.ExtractTarget.schemaObjectType,
+                extractTarget: ExtractTarget.schemaObjectType,
                 sdkStyle: false,
             };
 

@@ -38,11 +38,11 @@ import {
 } from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { registerFileBrowserReducers } from "./fileBrowserUtils";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { getErrorMessage } from "../utils/utils";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
@@ -364,7 +364,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         });
 
         registerFileBrowserReducers(
-            this as ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
+            this as WebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
             this.fileBrowserService,
             defaultBackupFileTypes,
         );

@@ -67,8 +67,16 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 title: Loc.FlatFileImport.flatFileImportTitle,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "flatFileImport_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "flatFileImport_dark.svg",
+                    ),
                 },
             },
         );
@@ -408,9 +416,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * @returns A promise that resolves to an array of schema names
      */
     private async getSchemas(databaseName: string): Promise<string[]> {
-        const getSchemaQuery = `USE ${databaseName};
+        const safeDbName = `[${databaseName.replace(/]/g, "]]")}]`;
+        const getSchemaQuery = `
             SELECT name
-            FROM sys.schemas
+            FROM ${safeDbName}.sys.schemas
             WHERE name NOT IN ('sys', 'information_schema')
             ORDER BY name
             `;

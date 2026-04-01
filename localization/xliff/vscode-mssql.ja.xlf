@@ -135,6 +135,10 @@
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">このエディター セッションのクエリは既に実行中です。このクエリをキャンセルするか、完了まで待ってください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
+        <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
+        <target state="new">A required .NET runtime could not be found or installed.</target>
+      </trans-unit>
       <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
         <source xml:lang="en">API Type</source>
         <target state="translated">API の種類</target>
@@ -1878,6 +1882,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Copy As</source>
         <target state="translated">形式を指定してコピー</target>
       </trans-unit>
+      <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
+        <source xml:lang="en">Copy Column Name</source>
+        <target state="translated">列の名前をコピー</target>
+      </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
         <target state="translated">ヘッダーのコピー</target>
@@ -1921,6 +1929,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
         <target state="translated">接続文字列をクリップボードにコピーする</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
+        <source xml:lang="en">Copy link</source>
+        <target state="new">Copy link</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -2053,6 +2065,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create as Script</source>
         <target state="translated">スクリプトとして作成</target>
       </trans-unit>
+      <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
+        <source xml:lang="en">Create new connection copied from {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Create new connection copied from {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
@@ -2167,24 +2184,20 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
         <target state="translated">DacFx サービスは使用できません。スクリプトの発行および生成操作は実行できません。</target>
       </trans-unit>
-      <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
-        <source xml:lang="en">Data API Builder</source>
+      <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
+        <source xml:lang="en">Data API builder</source>
         <target state="translated">データ API ビルダー</target>
       </trans-unit>
-      <trans-unit id="++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5">
-        <source xml:lang="en">Data API Builder Configuration (Preview)</source>
+      <trans-unit id="++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb">
+        <source xml:lang="en">Data API builder Configuration (Preview)</source>
         <target state="translated">データ API ビルダーの構成 (プレビュー)</target>
       </trans-unit>
-      <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
-        <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+      <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
+        <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
         <note>{0} is the command identifier 'mssql_dab' and must not be translated
 {1} is the operation name 'get_state' and must not be translated
 {2} is the operation name 'apply_changes' and must not be translated</note>
         <target state="translated">データ API ビルダーが開きました。{0} 操作 ({1}/{2}) を続行します。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
-        <source xml:lang="en">Data API builder</source>
-        <target state="translated">データ API ビルダー</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -2564,12 +2577,16 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Don't show this again</source>
         <target state="translated">今後このメッセージを表示しない</target>
       </trans-unit>
+      <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
+        <source xml:lang="en">Download offline VSIX</source>
+        <target state="new">Download offline VSIX</target>
+      </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
         <target state="translated">キーマップ拡張機能をダウンロードして、Azure Data Studio からキー マッピングを自動的にインポートします。これらの変更はキーボード ショートカットの設定に反映されます。</target>
       </trans-unit>
-      <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
-        <source xml:lang="en">Downloading the Data API Builder container image</source>
+      <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
+        <source xml:lang="en">Downloading the Data API builder container image</source>
         <target state="translated">データ API ビルダー コンテナー イメージをダウンロードしています</target>
       </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
@@ -2620,6 +2637,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Edit Data</source>
         <target state="translated">データの編集</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d593fb39b41430bb8c2c1162a76d2c273c1180b07a062108bb2c8e7ab2a3c6">
+        <source xml:lang="en">Edit Database Connection - {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Edit Database Connection - {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">テーブルの編集</target>
@@ -2631,6 +2653,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
         <target state="translated">スキーマを編集すると、ここに変更が表示されます。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8724cfbaf2b6567c288f9f3ec1f1138c9c48bd270325ecc4095993063e8691b">
+        <source xml:lang="en">Edit {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Edit {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -2990,6 +3017,14 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">エラー: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
+        <source xml:lang="en">Estimated Operator Cost</source>
+        <target state="translated">操作の推定コスト</target>
+      </trans-unit>
+      <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
+        <source xml:lang="en">Estimated Subtree Cost</source>
+        <target state="translated">サブツリーの推定コスト</target>
+      </trans-unit>
       <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
         <source xml:lang="en">Event details for {0}</source>
         <note>{0} is the name of the profiler event</note>
@@ -3016,8 +3051,8 @@ Error:
         <source xml:lang="en">Execute</source>
         <target state="translated">実行</target>
       </trans-unit>
-      <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
-        <source xml:lang="en">Execute '{0}' operation on Data API Builder?</source>
+      <trans-unit id="++CODE++bb035c6e4172fa0ed22c5df8a72cbc77405f39715c9515c5eb7fe9db16adde4b">
+        <source xml:lang="en">Execute '{0}' operation on Data API builder?</source>
         <note>{0} is the operation name</note>
         <target state="translated">データ API ビルダーで '{0}' 操作を実行しますか?</target>
       </trans-unit>
@@ -3030,8 +3065,8 @@ Error:
         <source xml:lang="en">Execute SQL against SQL Server / Azure SQL</source>
         <target state="translated">SQL Server / Azure SQL に対して SQL を実行する</target>
       </trans-unit>
-      <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
-        <source xml:lang="en">Executing '{0}' operation on Data API Builder</source>
+      <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
+        <source xml:lang="en">Executing '{0}' operation on Data API builder</source>
         <note>{0} is the operation name</note>
         <target state="translated">データ API ビルダーで '{0}' 操作を実行しています</target>
       </trans-unit>
@@ -3144,6 +3179,10 @@ Error:
       <trans-unit id="++CODE++b9a5f7a679be3491c633f828f30741103a02f65654b87470f4a17a23a7838fc3">
         <source xml:lang="en">Export to JSON</source>
         <target state="translated">JSON にエクスポート</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ccd4fda2f60776da3700ab9349601e6fb2058888d091d6bad6dd7ffb9b32bd75">
+        <source xml:lang="en">Export to PDF</source>
+        <target state="translated">PDF にエクスポート</target>
       </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
@@ -4265,8 +4304,8 @@ Error:
         <source xml:lang="en">In progress</source>
         <target state="translated">処理中</target>
       </trans-unit>
-      <trans-unit id="++CODE++713772940f735da4b9d051c4f91c4e707ef5389f0014209b9cdd119407ee776c">
-        <source xml:lang="en">In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+      <trans-unit id="++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183">
+        <source xml:lang="en">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
         <target state="translated">データ API ビルダー (プレビュー) エクスペリエンスでは、ローカル コンテナーの展開は SQL 認証を使用した接続でのみ使用できます。現在の接続の種類はサポートされていません。</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
@@ -4483,6 +4522,10 @@ Error:
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">行 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
+        <source xml:lang="en">Link copied to clipboard</source>
+        <target state="new">Link copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
         <source xml:lang="en">List Connections</source>
@@ -4976,8 +5019,8 @@ Error:
         <note>{0} is the min</note>
         <target state="translated">最小: {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
-        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+      <trans-unit id="++CODE++42c869c9cf0bc65de28be00cb8d74e9103e69df8251055669978ecbc7b656d71">
+        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API builder.</source>
         <target state="translated">connectionId がありません。データ API ビルダーを開くには、connectionId を指定してください。</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
@@ -5032,6 +5075,10 @@ Error:
         <note>{0} is the qualified table name
 {1} is a list of property changes</note>
         <target state="translated">テーブル {0} を変更しました: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2b0fb3195207b0c3a2a2e4f9dfcec543b14670f9d9ea87452e108e589360152c">
+        <source xml:lang="en">Modify Columns</source>
+        <target state="translated">列の変更</target>
       </trans-unit>
       <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
         <source xml:lang="en">Modify Table</source>
@@ -5238,9 +5285,9 @@ Error:
         <source xml:lang="en">No active notebook.</source>
         <target state="translated">アクティブなノートブックがありません。</target>
       </trans-unit>
-      <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
-        <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation 'show' or from the UI.</source>
-        <target state="translated">アクティブなスキーマ デザイナーが見つかりません。最初に、操作 'show' で、または UI から、ssql_dab を使用して、データ API ビルダーを開いてください。</target>
+      <trans-unit id="++CODE++dbff7fc884da7e9804728876cc7995627f9f9d17b7041de1dc1d7b5559001270">
+        <source xml:lang="en">No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.</source>
+        <target state="translated">アクティブなスキーマ デザイナーが見つかりません。最初に、操作 'show' で ssql_dab を使用するか、UI から、データ API ビルダーを開いてください。</target>
       </trans-unit>
       <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
         <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.</source>
@@ -5645,9 +5692,9 @@ Error:
         <note>{0} is the comma separated list of connection display names</note>
         <target state="translated">1 つ以上の接続が存在しないグループを参照しており、無視されました: {0}。接続設定を更新して、これらのエントリを修正してください。</target>
       </trans-unit>
-      <trans-unit id="++CODE++71219533fa80ed5eeb848c111ee5ebb32cb091945385aeba0c8685617390b694">
-        <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.</source>
-        <target state="translated">1 つ以上のエンティティに、現在データ API ビルダーでサポートされていない列タイプが含まれています。これらのエンティティを展開用に選択することはできません。</target>
+      <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
+        <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
+        <target state="translated">1 つ以上のエンティティに、データ API ビルダーで現在サポートされていない列タイプが含まれています。これらのエンティティを展開用に選択することはできません。</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
@@ -5996,6 +6043,10 @@ Error:
       <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
         <source xml:lang="en">Preview</source>
         <target state="translated">プレビュー</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6e71512df696382fac6921ba12839603a2a39a6da6d68a85140c4f937e5f1165">
+        <source xml:lang="en">Preview Data</source>
+        <target state="translated">データのプレビュー</target>
       </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
@@ -6590,9 +6641,9 @@ Error:
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">値をプロジェクトの既定値に戻す</target>
       </trans-unit>
-      <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
-        <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
-        <target state="translated">チャットで API 構成の変更を確認または提案すると、GitHub Copilot はデータ API ビルダーですぐに構成を更新します。</target>
+      <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
+        <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
+        <target state="translated">チャットで API 構成の変更をレビューまたは提案すると、GitHub Copilot はデータ API ビルダーですぐに構成を更新します。</target>
       </trans-unit>
       <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
         <source xml:lang="en">Reviewing Copilot Change</source>
@@ -7299,6 +7350,10 @@ Query: {2}</source>
         <note>{0} is the server name</note>
         <target state="translated">サーバー {0} が見つかりません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
+        <source xml:lang="en">Service installation failed.</source>
+        <target state="new">Service installation failed.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
         <target state="translated">セッションの作成がタイムアウトしました</target>
@@ -7581,6 +7636,10 @@ Query: {2}</source>
         <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
         <target state="translated">列が NULL 値を持つことができるかどうかを指定します。</target>
       </trans-unit>
+      <trans-unit id="++CODE++58985ddaf5b41a741597a25373888d0bd61c8764c95b3eef48076bb0238fdca5">
+        <source xml:lang="en">Specify Input File</source>
+        <target state="translated">入力ファイルの指定</target>
+      </trans-unit>
       <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
         <source xml:lang="en">SqlPackage Command</source>
         <target state="translated">SqlPackage コマンド</target>
@@ -7660,21 +7719,11 @@ Query: {2}</source>
         <source xml:lang="en">Status</source>
         <target state="translated">状態</target>
       </trans-unit>
-      <trans-unit id="++CODE++6b3ad0a81a146978929aa5ff3cfeb5e1f1b6658c48ca1bed10ba991ca3be97c8">
-        <source xml:lang="en">Step 1: Specify Input File</source>
-        <target state="translated">手順 1: 入力ファイルの指定</target>
-      </trans-unit>
-      <trans-unit id="++CODE++64e67d642ec0bb6b76227ac3a15c8338599c92129010ee19d0de12a997fa3006">
-        <source xml:lang="en">Step 2: Preview Data</source>
-        <target state="translated">手順 2: データのプレビュー</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c4733c9b09467407fd987c336994bf9bfef9175b2eca699bab566e0373572578">
-        <source xml:lang="en">Step 3: Modify Columns</source>
-        <target state="translated">手順 3: 列を変更する</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ebb5f7790ae1660e99a26a345411dcead3a0e54d906277838b984a64aacdd2fd">
-        <source xml:lang="en">Step 4: Summary</source>
-        <target state="translated">手順 4: 概要</target>
+      <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
+        <source xml:lang="en">Step {0} of {1}</source>
+        <note>{0} is the current step number
+{1} is the total number of steps</note>
+        <target state="translated">手順 {0} ({1} 中)</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -7766,6 +7815,10 @@ Query: {2}</source>
         <note>{0} is the sum</note>
         <target state="translated">合計: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
+        <source xml:lang="en">Summary</source>
+        <target state="translated">要約</target>
+      </trans-unit>
       <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
         <source xml:lang="en">Summary loading canceled</source>
         <target state="translated">要約の読み込みが取り消されました</target>
@@ -7848,8 +7901,8 @@ Query: {2}</source>
         <source xml:lang="en">Table added to schema designer successfully.</source>
         <target state="translated">スキーマ デザイナーにテーブルが正常に追加されました。</target>
       </trans-unit>
-      <trans-unit id="++CODE++993e47be6175800df73275ac1ed9110d48278de2832d3dbc9a07f1c35f58876f">
-        <source xml:lang="en">Table contains column types not supported by Data API Builder: {0}</source>
+      <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
+        <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
         <note>{0} is a comma-separated list of column names and their data types</note>
         <target state="translated">テーブルには、データ API ビルダーでサポートされていない列タイプが含まれています: {0}</target>
       </trans-unit>
@@ -7861,8 +7914,8 @@ Query: {2}</source>
         <source xml:lang="en">Table id already exists.</source>
         <target state="translated">テーブル ID は既に存在します。</target>
       </trans-unit>
-      <trans-unit id="++CODE++c3b61e80e8a8149fcc5bcb2dc5d9c4f20589057596ae7592a6e165c0cfc71b05">
-        <source xml:lang="en">Table must have a primary key to be used with Data API Builder</source>
+      <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
+        <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
         <target state="translated">テーブルには、データ API ビルダーで使用する主キーが必要です</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
@@ -7968,6 +8021,11 @@ Query: {2}</source>
       <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">クエリ プロファイラーは、軽量 T-SQL プロファイリング用の {code-snippet-0} を含む新しい Azure SQL データベース テンプレートを使用して、Microsoft Fabric SQL Database 接続をサポートするようになりました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
+        <source xml:lang="en">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
@@ -8098,6 +8156,12 @@ Query: {2}</source>
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
         <target state="translated">主キー列または一意キー列を含むテーブルです。</target>
       </trans-unit>
+      <trans-unit id="++CODE++b9742c3b5b5914f9ac72f6be945f6f52a6ce05ffcd743f8cf4373e9fa4400a25">
+        <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
+        <note>{0} is the service name
+{1} is the error message</note>
+        <target state="new">The {0} service has crashed. Details: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">プロジェクトの更新中にエラーが発生しました</target>
@@ -8126,8 +8190,8 @@ Query: {2}</source>
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
         <target state="translated">この値は、Azure Data Studio 設定ファイルに指定されていませんでした。</target>
       </trans-unit>
-      <trans-unit id="++CODE++9140e5e357804946d2f6bec667449fd4ab6fd6060174b5cf3c36e1ccb3ff9b01">
-        <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
+      <trans-unit id="++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99">
+        <source xml:lang="en">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
         <note>{0} is a list of API types, e.g. 'REST and GraphQL'</note>
         <target state="translated">これにより、Docker を使用してデータ API ビルダー コンテナーがローカルに展開されます。コンテナーは構成に基づき、{0} API を公開します。</target>
       </trans-unit>
@@ -8507,6 +8571,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
         <source xml:lang="en">View Table Diagram</source>
         <target state="translated">テーブル ダイアグラムの表示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
+        <source xml:lang="en">View known issues</source>
+        <target state="new">View known issues</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
@@ -9158,20 +9226,20 @@ Query: {2}</source>
         <target state="translated">Data API のビルド (プレビュー)...</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
-        <source xml:lang="en">Cancel Connection</source>
-        <target state="translated">接続の取り消し</target>
+        <source xml:lang="en">Cancel Connection (MSSQL)</source>
+        <target state="translated">接続を取り消し (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
-        <source xml:lang="en">Cancel Query</source>
-        <target state="translated">クエリのキャンセル</target>
+        <source xml:lang="en">Cancel Query (MSSQL)</source>
+        <target state="translated">クエリを取り消し (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
-        <source xml:lang="en">Change Connection</source>
-        <target state="translated">接続の変更</target>
+        <source xml:lang="en">Change Connection (MSSQL)</source>
+        <target state="translated">接続を変更 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
-        <source xml:lang="en">Change Database</source>
-        <target state="translated">データベースの変更</target>
+        <source xml:lang="en">Change Database (MSSQL)</source>
+        <target state="translated">データベースを変更 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.notebooks.changeConnection">
         <source xml:lang="en">Change Notebook Connection</source>
@@ -9222,8 +9290,8 @@ Query: {2}</source>
         <target state="translated">スキーマの比較...</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
-        <source xml:lang="en">Connect</source>
-        <target state="translated">接続</target>
+        <source xml:lang="en">Connect (MSSQL)</source>
+        <target state="translated">接続 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
         <source xml:lang="en">Connect to a SQL Database</source>
@@ -9312,8 +9380,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">DACPAC の展開</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
-        <source xml:lang="en">Disable Actual Plan</source>
-        <target state="translated">実際のプランを無効にする</target>
+        <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
+        <target state="translated">実際のプランを無効にする (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
@@ -9328,8 +9396,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">無効</target>
       </trans-unit>
       <trans-unit id="mssql.disconnect">
-        <source xml:lang="en">Disconnect</source>
-        <target state="translated">切断</target>
+        <source xml:lang="en">Disconnect (MSSQL)</source>
+        <target state="translated">切断 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
         <source xml:lang="en">Display results in a formatted text format.</source>
@@ -9364,8 +9432,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">テーブル データの編集...</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
-        <source xml:lang="en">Enable Actual Plan</source>
-        <target state="translated">実際のプランを有効にする</target>
+        <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
+        <target state="translated">実際のプランを有効にする (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
@@ -9476,16 +9544,16 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">MSSQL 拡張機能の試験的な機能を有効にします。機能は運用環境に対応していないため、バグや問題が発生する可能性があります。この設定を変更した後、Visual Studio Code を再起動します。</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">推定プラン</target>
+        <source xml:lang="en">Estimated Plan (MSSQL)</source>
+        <target state="translated">推定プラン (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
-        <source xml:lang="en">Execute Current Statement</source>
-        <target state="translated">現在のステートメントを実行</target>
+        <source xml:lang="en">Execute Current Statement (MSSQL)</source>
+        <target state="translated">現在のステートメントを実行 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.runQuery">
-        <source xml:lang="en">Execute Query</source>
-        <target state="translated">クエリの実行</target>
+        <source xml:lang="en">Execute Query (MSSQL)</source>
+        <target state="translated">クエリを実行 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
@@ -9726,8 +9794,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">データベースの復元 (プレビュー)...</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
-        <source xml:lang="en">Reveal Query Result</source>
-        <target state="translated">クエリ結果を表示</target>
+        <source xml:lang="en">Reveal Query Result (MSSQL)</source>
+        <target state="translated">クエリ結果を表示 (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
@@ -9990,8 +10058,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">実際のプランの切り替え</target>
       </trans-unit>
       <trans-unit id="mssql.toggleQueryResultPanel">
-        <source xml:lang="en">Toggle Query Result Panel Visibility</source>
-        <target state="translated">クエリ結果パネルの表示を切り替える</target>
+        <source xml:lang="en">Toggle Query Result Panel Visibility (MSSQL)</source>
+        <target state="translated">クエリ結果パネルの表示/非表示を切り替え (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>

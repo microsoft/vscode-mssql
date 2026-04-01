@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
+import { AuthenticationType } from "../src/common/enums";
 import { RequestType } from "vscode-languageclient";
 
 export interface TestUtils {
@@ -17,6 +18,8 @@ export class MockVscodeMssqlIExtension implements vscodeMssql.IExtension {
     schemaCompare: vscodeMssql.ISchemaCompareService;
     azureAccountService: vscodeMssql.IAzureAccountService;
     azureResourceService: vscodeMssql.IAzureResourceService;
+    connectionSharing!: vscodeMssql.IConnectionSharingService;
+    uriOwnershipApi!: vscodeMssql.UriOwnershipApi;
 
     constructor() {
         this.dacFx = {} as vscodeMssql.IDacFxService;
@@ -75,7 +78,7 @@ export const mockConnectionInfo: vscodeMssql.IConnectionInfo = {
     accountId: "test-account-id",
     tenantId: "test-tenant-id",
     port: 1234,
-    authenticationType: vscodeMssql.AuthenticationType.SqlLogin,
+    authenticationType: AuthenticationType.SqlLogin,
     azureAccountToken: "",
     expiresOn: 0,
     encrypt: false,
@@ -102,4 +105,9 @@ export const mockConnectionInfo: vscodeMssql.IConnectionInfo = {
     typeSystemVersion: "Latest",
     connectionString: "",
     commandTimeout: undefined,
+    secureEnclaves: undefined,
+    columnEncryptionSetting: undefined,
+    attestationProtocol: undefined,
+    enclaveAttestationUrl: undefined,
+    containerName: undefined,
 };

@@ -23,11 +23,20 @@ import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
 import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
+import { UriOwnershipCoordinator } from "./uriOwnership/uriOwnershipCore";
+import {
+    createUriOwnershipCoordinator,
+    initializeUriOwnershipCoordinator,
+} from "./uriOwnership/uriOwnershipInitialization";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
+export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    // Create coordinator early so uriOwnershipApi is available for export
+    uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
+
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
@@ -47,6 +56,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     // Exposed for testing purposes
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
     await controller.activate();
+
+    initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
+
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
         createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context, controller),
@@ -195,6 +207,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                 );
             },
         } as vscodeMssql.IConnectionSharingService,
+        uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
     };
 }
 

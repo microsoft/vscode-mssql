@@ -7,6 +7,7 @@ export default defineConfig({
             label: "Unit Tests",
             files: "out/test/unit/**/*.test.js",
             version: "insiders",
+            installExtensions: ["ms-dotnettools.vscode-dotnet-runtime"],
             env: {
                 VSCODE_LOG_LEVEL: "error",
             },
