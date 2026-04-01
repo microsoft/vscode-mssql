@@ -8,7 +8,7 @@ export const config = {
         dotnetRuntimeVersion: "10.0",
         downloadUrl:
             "https://github.com/Microsoft/sqltoolsservice/releases/download/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        version: "6.0.20260330.1",
+        version: "6.0.20260401.1",
         downloadFileNames: {
             Windows_64: "win-x64-net10.0.zip",
             Windows_ARM64: "win-arm64-net10.0.zip",
