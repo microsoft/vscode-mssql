@@ -77,6 +77,35 @@ export async function clickContextMenuItem(vsCodePage: Page, menuItemLabel: stri
 }
 
 /**
+ * Waits for a database connection to be fully established and visible in the
+ * Object Explorer sidebar. Call this after addDatabaseConnection() to ensure
+ * the connection is ready before opening query editors or navigating the tree.
+ *
+ * After submitting the connection dialog the server node appears immediately in
+ * a *disconnected* state (data-vscode-context contains "disconnectedServer").
+ * Once the TCP handshake completes and metadata is loaded the node transitions
+ * to the connected state (data-vscode-context contains "Server" without
+ * "disconnected"). This helper polls until that connected state is present.
+ */
+export async function waitForConnectionReady(
+    vsCodePage: Page,
+    serverName: string,
+    timeoutMs = 60 * 1000,
+): Promise<void> {
+    // Wait for a treeitem with the server name whose vscode context indicates a
+    // fully-connected Server node (not a disconnectedServer node).
+    // Use CSS :not() so the attribute check applies to the treeitem element
+    // itself — .filter({ hasNot }) only checks descendant elements and would
+    // silently pass on a disconnected node whose attribute is on itself.
+    await vsCodePage
+        .locator(
+            `[role="treeitem"][aria-label*="${serverName}"]:not([data-vscode-context*="disconnected"])`,
+        )
+        .first()
+        .waitFor({ state: "visible", timeout: timeoutMs });
+}
+
+/**
  * Opens the MSSQL command palette and runs a specific command.
  */
 export async function runMssqlCommand(vsCodePage: Page, command: string): Promise<void> {

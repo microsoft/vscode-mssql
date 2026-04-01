@@ -22,13 +22,12 @@
  * the SQL Server Docker container.
  */
 
-import { FrameLocator } from "@playwright/test";
-import { screenshot } from "./utils/screenshotUtils";
+import { FrameLocator, Page } from "@playwright/test";
+import { screenshot, screenshotSetup } from "./utils/screenshotUtils";
 import {
     addDatabaseConnection,
     enterTextIntoQueryEditor,
     executeQuery,
-    getWebviewByTitle,
     openNewQueryEditor,
 } from "./utils/testHelpers";
 import {
@@ -46,27 +45,83 @@ import {
     expandObjectExplorerNode,
     rightClickObjectExplorerNode,
     clickContextMenuItem,
+    waitForConnectionReady,
 } from "./utils/objectExplorerHelpers";
 
 const BACKUP_SOURCE_DB = "E2EBackupSourceDB";
 const RESTORE_TARGET_DB = "E2ERestoreTargetDB";
 
 /**
- * Waits for an ObjectManagementDialog to finish loading by polling for
- * its primary action button (e.g. "Backup" or "Restore").
+ * Waits for an ObjectManagementDialog to finish loading by polling for its
+ * primary action button (e.g. "Backup" or "Restore"). Returns the FrameLocator
+ * for the dialog so callers can continue interacting with it.
+ *
+ * Performs its own frame-tree walk to find the specific outer webview host
+ * frame that contains an <iframe title="dialogTitle"> element, then builds a
+ * frameLocator keyed on that frame's unique name GUID. This avoids the
+ * strict-mode "resolved to N elements" error that occurs when multiple webview
+ * panels (e.g. query results + this dialog) are open simultaneously.
+ */
+/**
+ * Waits for an ObjectManagementDialog to finish loading by polling for its
+ * primary action button (e.g. "Backup" or "Restore"). Returns the FrameLocator
+ * for the dialog so callers can continue interacting with it.
+ *
+ * Performs its own frame-tree walk to find the specific outer webview host
+ * frame that contains an <iframe title="dialogTitle"> element, then builds a
+ * frameLocator keyed on that frame's unique name GUID. This avoids the
+ * strict-mode "resolved to N elements" error that occurs when multiple webview
+ * panels (e.g. query results + this dialog) are open simultaneously.
+ *
+ * The loop is necessary because the webview may not yet be in page.frames()
+ * when this is first called — we keep retrying until the frame appears and
+ * the primary button is visible inside it.
  */
 async function waitForObjectManagementDialog(
-    iframe: FrameLocator,
+    vsCodePage: Page,
+    dialogTitle: string,
     primaryButtonLabel: string,
     timeoutMs = 60 * 1000,
-): Promise<void> {
-    await iframe
-        .getByRole("button", { name: primaryButtonLabel, exact: true })
-        .first()
-        .waitFor({ state: "visible", timeout: timeoutMs });
+): Promise<FrameLocator> {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+        for (const frame of vsCodePage.frames()) {
+            try {
+                const found = await frame.evaluate(
+                    (t) => !!document.querySelector(`iframe[title="${t}"]`),
+                    dialogTitle,
+                );
+                if (found && frame.name()) {
+                    const iframe = vsCodePage
+                        .frameLocator(`iframe[name="${frame.name()}"]`)
+                        .frameLocator(`[title='${dialogTitle}']`);
+
+                    if (
+                        await iframe
+                            .getByRole("button", { name: primaryButtonLabel, exact: true })
+                            .isVisible()
+                            .catch(() => false)
+                    ) {
+                        return iframe;
+                    }
+                }
+            } catch {
+                // Frame not yet accessible — keep polling.
+            }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
+    throw new Error(
+        `Timed out after ${timeoutMs}ms waiting for "${dialogTitle}" dialog with "${primaryButtonLabel}" button`,
+    );
 }
 
 test.describe("MSSQL Extension - Backup and Restore", async () => {
+    // useSharedVsCodeLifecycle MUST be called here at describe scope — it registers
+    // test.beforeAll / afterEach / afterAll hooks during the describe phase.
+    // Never call it inside a test body or a helper function invoked from a test.
     const getContext = useSharedVsCodeLifecycle({
         afterLaunch: async ({ page: vsCodePage }) => {
             await addDatabaseConnection(
@@ -80,22 +135,29 @@ test.describe("MSSQL Extension - Backup and Restore", async () => {
                 getProfileName(),
             );
 
+            await screenshotSetup(vsCodePage, "backup-after-add-connection");
+
+            await waitForConnectionReady(vsCodePage, getServerName());
+            await screenshotSetup(vsCodePage, "backup-connection-ready");
+
             // Create the source database with a small amount of data
-            await openNewQueryEditor(vsCodePage);
+            await openNewQueryEditor(vsCodePage, getServerName());
+            await screenshotSetup(vsCodePage, "backup-query-editor-opened");
+
             const setup = `
-USE master;
-IF DB_ID(N'${BACKUP_SOURCE_DB}') IS NOT NULL
-BEGIN
-    ALTER DATABASE [${BACKUP_SOURCE_DB}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [${BACKUP_SOURCE_DB}];
-END
-CREATE DATABASE [${BACKUP_SOURCE_DB}];
-USE [${BACKUP_SOURCE_DB}];
-CREATE TABLE [dbo].[SalesData] (
-    SaleId  INT           NOT NULL PRIMARY KEY,
-    Amount  DECIMAL(10,2) NOT NULL
-);
-INSERT INTO [dbo].[SalesData] (SaleId, Amount)
+USE master;\n
+IF DB_ID(N'${BACKUP_SOURCE_DB}') IS NOT NULL\n
+BEGIN\n
+    ALTER DATABASE [${BACKUP_SOURCE_DB}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;\n
+    DROP DATABASE [${BACKUP_SOURCE_DB}];\n
+END\n
+CREATE DATABASE [${BACKUP_SOURCE_DB}];\n
+USE [${BACKUP_SOURCE_DB}];\n
+CREATE TABLE [dbo].[SalesData] (\n
+    SaleId  INT           NOT NULL PRIMARY KEY,\n
+    Amount  DECIMAL(10,2) NOT NULL\n
+);\n
+INSERT INTO [dbo].[SalesData] (SaleId, Amount)\n
 VALUES (1, 100.00), (2, 250.50), (3, 75.25);`;
             await enterTextIntoQueryEditor(vsCodePage, setup);
             await executeQuery(vsCodePage);
@@ -121,6 +183,13 @@ END`;
         },
     });
 
+    // Screenshots of the initial state can be taken here in beforeEach, which
+    // does have access to testInfo, unlike afterLaunch (which runs in beforeAll).
+    test.beforeEach(async ({}, testInfo) => {
+        const { page: vsCodePage } = getContext();
+        await screenshot(vsCodePage, testInfo, "setup-complete");
+    });
+
     test("Backup database dialog opens with correct database pre-populated", async ({}, testInfo) => {
         const { page: vsCodePage } = getContext();
 
@@ -134,11 +203,12 @@ END`;
         await screenshot(vsCodePage, testInfo, "backup-dialog-opening");
 
         // Dialog webview title includes the database name
-        const iframe = await getWebviewByTitle(
+        const iframe = await waitForObjectManagementDialog(
             vsCodePage,
             `Backup Database (Preview) - ${BACKUP_SOURCE_DB}`,
+            "Backup",
+            60 * 1000,
         );
-        await waitForObjectManagementDialog(iframe, "Backup", 60 * 1000);
         await screenshot(vsCodePage, testInfo, "backup-dialog-loaded");
 
         // Database name should appear in the dialog subtitle area
@@ -157,11 +227,12 @@ END`;
         await rightClickObjectExplorerNode(vsCodePage, BACKUP_SOURCE_DB, 20 * 1000);
         await clickContextMenuItem(vsCodePage, "Backup");
 
-        const iframe = await getWebviewByTitle(
+        const iframe = await waitForObjectManagementDialog(
             vsCodePage,
             `Backup Database (Preview) - ${BACKUP_SOURCE_DB}`,
+            "Backup",
+            60 * 1000,
         );
-        await waitForObjectManagementDialog(iframe, "Backup", 60 * 1000);
         await screenshot(vsCodePage, testInfo, "backup-dialog-loaded");
 
         // "Save to Disk" radio must be present (and is the default)
@@ -234,8 +305,12 @@ SELECT 'BACKUP_SUCCESS' AS result, @FileName AS backup_path;`;
         await clickContextMenuItem(vsCodePage, "Restore");
         await screenshot(vsCodePage, testInfo, "restore-dialog-opening");
 
-        const iframe = await getWebviewByTitle(vsCodePage, "Restore Database (Preview)");
-        await waitForObjectManagementDialog(iframe, "Restore", 60 * 1000);
+        const iframe = await waitForObjectManagementDialog(
+            vsCodePage,
+            "Restore Database (Preview)",
+            "Restore",
+            60 * 1000,
+        );
         await screenshot(vsCodePage, testInfo, "restore-dialog-loaded");
 
         // Source type options should both be present
