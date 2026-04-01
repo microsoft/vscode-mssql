@@ -11,6 +11,16 @@ interface SqlLanguageConfiguration {
     wordPattern?: string;
 }
 
+interface SqlPackageManifest {
+    contributes?: {
+        configurationDefaults?: {
+            "[sql]"?: {
+                "editor.wordSeparators"?: string;
+            };
+        };
+    };
+}
+
 function getSqlLanguageConfiguration(): SqlLanguageConfiguration {
     const configurationPath = path.join(
         __dirname,
@@ -22,6 +32,12 @@ function getSqlLanguageConfiguration(): SqlLanguageConfiguration {
     );
 
     return JSON.parse(fs.readFileSync(configurationPath, "utf8")) as SqlLanguageConfiguration;
+}
+
+function getSqlPackageManifest(): SqlPackageManifest {
+    const packagePath = path.join(__dirname, "..", "..", "..", "package.json");
+
+    return JSON.parse(fs.readFileSync(packagePath, "utf8")) as SqlPackageManifest;
 }
 
 function getSqlWordPattern(): RegExp {
@@ -39,6 +55,19 @@ function getWordMatches(value: string): string[] {
 }
 
 suite("SQL language configuration", () => {
+    test("keeps parameter and temp table prefixes out of SQL word separators", () => {
+        const sqlWordSeparators =
+            getSqlPackageManifest().contributes?.configurationDefaults?.["[sql]"]?.[
+                "editor.wordSeparators"
+            ];
+
+        expect(sqlWordSeparators, "Expected SQL-specific editor.wordSeparators override").to.be.a(
+            "string",
+        );
+        expect(sqlWordSeparators).to.not.include("@");
+        expect(sqlWordSeparators).to.not.include("#");
+    });
+
     test("treats temp table prefixes as part of a word", () => {
         // Regression coverage for https://github.com/microsoft/azuredatastudio/issues/21611
         expect(getWordMatches("#ExampleTable")).to.deep.equal(["#ExampleTable"]);
