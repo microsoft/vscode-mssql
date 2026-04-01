@@ -140,51 +140,60 @@ test.describe("MSSQL Extension - Backup and Restore", async () => {
             await waitForConnectionReady(vsCodePage, getServerName());
             await screenshotSetup(vsCodePage, "backup-connection-ready");
 
-            // Create the source database with a small amount of data
+            // Create a test database with some data
             await openNewQueryEditor(vsCodePage, getServerName());
             await screenshotSetup(vsCodePage, "backup-query-editor-opened");
 
             const setup = `
-USE master;\n
-IF DB_ID(N'${BACKUP_SOURCE_DB}') IS NOT NULL\n
-BEGIN\n
-    ALTER DATABASE [${BACKUP_SOURCE_DB}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;\n
-    DROP DATABASE [${BACKUP_SOURCE_DB}];\n
-END\n
-CREATE DATABASE [${BACKUP_SOURCE_DB}];\n
-USE [${BACKUP_SOURCE_DB}];\n
-CREATE TABLE [dbo].[SalesData] (\n
-    SaleId  INT           NOT NULL PRIMARY KEY,\n
-    Amount  DECIMAL(10,2) NOT NULL\n
-);\n
-INSERT INTO [dbo].[SalesData] (SaleId, Amount)\n
-VALUES (1, 100.00), (2, 250.50), (3, 75.25);`;
-            await enterTextIntoQueryEditor(vsCodePage, setup);
-            await executeQuery(vsCodePage);
-            await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
-        },
-        beforeClose: async ({ page: vsCodePage }) => {
-            await openNewQueryEditor(vsCodePage);
-            const cleanup = `
 USE master;
 IF DB_ID(N'${BACKUP_SOURCE_DB}') IS NOT NULL
 BEGIN
     ALTER DATABASE [${BACKUP_SOURCE_DB}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE [${BACKUP_SOURCE_DB}];
 END
+GO
+
+CREATE DATABASE [${BACKUP_SOURCE_DB}];
+GO
+
+USE [${BACKUP_SOURCE_DB}];
+GO
+
+CREATE TABLE [SalesData] (
+    SaleId  INT           NOT NULL PRIMARY KEY,
+    Amount  DECIMAL(10,2) NOT NULL
+);
+INSERT INTO [SalesData] (SaleId, Amount)
+VALUES (1, 100.00), (2, 250.50), (3, 75.25);`;
+            await enterTextIntoQueryEditor(vsCodePage, setup);
+            await executeQuery(vsCodePage);
+            await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
+        },
+        beforeClose: async ({ page: vsCodePage }) => {
+            await openNewQueryEditor(vsCodePage, getServerName());
+            const cleanup = `
+USE master;
+GO
+
+IF DB_ID(N'${BACKUP_SOURCE_DB}') IS NOT NULL
+BEGIN
+    ALTER DATABASE [${BACKUP_SOURCE_DB}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [${BACKUP_SOURCE_DB}];
+END
+GO
+
 IF DB_ID(N'${RESTORE_TARGET_DB}') IS NOT NULL
 BEGIN
     ALTER DATABASE [${RESTORE_TARGET_DB}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE [${RESTORE_TARGET_DB}];
-END`;
+END
+GO`;
             await enterTextIntoQueryEditor(vsCodePage, cleanup);
             await executeQuery(vsCodePage);
             await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
         },
     });
 
-    // Screenshots of the initial state can be taken here in beforeEach, which
-    // does have access to testInfo, unlike afterLaunch (which runs in beforeAll).
     test.beforeEach(async ({}, testInfo) => {
         const { page: vsCodePage } = getContext();
         await screenshot(vsCodePage, testInfo, "setup-complete");

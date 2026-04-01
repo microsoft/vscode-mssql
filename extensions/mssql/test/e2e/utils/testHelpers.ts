@@ -90,30 +90,42 @@ export async function openNewQueryEditor(
     vsCodePage: Page,
     connectedServerName?: string,
 ): Promise<void> {
-    await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(">MS SQL: New Query");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
-
-    // Wait for the mssql code lens to appear in the new editor. The code lens
-    // is rendered as an anchor inside a .codelens-decoration span and contains
-    // the active connection's server name. Its presence confirms that the
-    // editor is open and the extension has attached a connection to it.
-    // If no serverName is supplied we wait for any codelens-decoration to
-    // appear, which is still a reliable signal that the editor is ready.
     if (connectedServerName) {
-        await vsCodePage
-            .locator(".codelens-decoration")
-            .filter({ hasText: connectedServerName })
-            .first()
-            .waitFor({ state: "visible", timeout: 30 * 1000 });
+        // When a server name is provided, open the new query via the OE context menu instead of the command palette
+        const serverNode = vsCodePage
+            .locator(
+                `[role="treeitem"][aria-label*="${connectedServerName}"]:not([data-vscode-context*="disconnected"])`,
+            )
+            .first();
+        await serverNode.waitFor({ state: "visible", timeout: 20 * 1000 });
+
+        const contextMenu = vsCodePage.locator(".context-view.monaco-menu-container");
+        await serverNode.click({ button: "right" });
+        await contextMenu.waitFor({ state: "visible", timeout: 5 * 1000 });
+        const menuItem = await contextMenu
+            .locator('[role="menuitem"]')
+            .filter({ hasText: /^New Query$/ })
+            .first();
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        await menuItem.click({ timeout: 3 * 1000 });
     } else {
-        await vsCodePage
-            .locator(".codelens-decoration")
-            .first()
-            .waitFor({ state: "visible", timeout: 30 * 1000 });
+        // No server context — fall back to the command palette.
+        // This may display the connection quick-pick if there's no default connection.
+        await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.type(">MS SQL: New Query");
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.press("Enter");
     }
+
+    // Wait for the mssql code lens to appear, confirming the editor is open
+    // and the extension has attached a connection to it.
+    const codeLens = connectedServerName
+        ? vsCodePage.locator(".codelens-decoration").filter({ hasText: connectedServerName })
+        : vsCodePage.locator(".codelens-decoration");
+    await codeLens.first().waitFor({ state: "visible", timeout: 30 * 1000 });
 }
 
 export async function disconnect(vsCodePage: Page): Promise<void> {
