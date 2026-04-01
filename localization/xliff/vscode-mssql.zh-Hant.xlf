@@ -2122,6 +2122,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">認證錯誤: 嘗試重新整理帳戶憑證時發生錯誤。請重新驗證。</target>
       </trans-unit>
+      <trans-unit id="++CODE++36d37fc43209cbab12c2155e6a214b4d880350cd721cc4e9e45216daaefaeb49">
+        <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
         <source xml:lang="en">Currently signed in as:</source>
         <target state="translated">目前登入身分:</target>
@@ -7564,9 +7569,10 @@ Query: {2}</source>
         <source xml:lang="en">Sign into tenant</source>
         <target state="translated">登入租用戶</target>
       </trans-unit>
-      <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
-        <source xml:lang="en">Signing in to Azure...</source>
-        <target state="translated">正在登入 Azure...</target>
+      <trans-unit id="++CODE++81ecb58c552f0960f49fca72a0105a414beccc57b3a401f3d74904af931ccbf1">
+        <source xml:lang="en">Signing in to Azure as {0}...</source>
+        <note>{0} is the account name</note>
+        <target state="new">Signing in to Azure as {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
         <source xml:lang="en">Simple</source>
