@@ -11,7 +11,7 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { removeUndefinedProperties, uuid } from "../../utils/utils";
-import { PreviewFeature, previewFeaturesService } from "../../featureFlags/previewFeaturesService";
+import { PreviewFeature, previewFeaturesService } from "../../previews/previewService";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
