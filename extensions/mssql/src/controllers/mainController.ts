@@ -47,7 +47,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
-import { previewFeaturesService } from "../featureFlags/previewFeaturesService";
+import { previewFeaturesService } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";

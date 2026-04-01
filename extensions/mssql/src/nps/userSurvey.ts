@@ -13,7 +13,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
-import { previewFeaturesService } from "../featureFlags/previewFeaturesService";
+import { previewFeaturesService } from "../previews/previewService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
