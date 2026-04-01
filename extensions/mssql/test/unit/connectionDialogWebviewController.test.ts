@@ -255,6 +255,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ]);
 
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+            expect(controller.state.isEditingConnection).to.be.false;
+            expect(controller.state.editingConnectionDisplayName).to.be.undefined;
             expect(controller.state.savedConnections).to.have.lengthOf(1);
             expect(controller.state.savedConnections[0]).to.deep.include(testSavedConnection);
 
@@ -293,6 +295,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.readyToConnect,
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
+            expect(controller.state.isEditingConnection).to.be.true;
+            expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
         });
 
         test("should initialize correctly when editing connection with password", async () => {
@@ -324,6 +328,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.readyToConnect,
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
+            expect(controller.state.isEditingConnection).to.be.true;
+            expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
         });
     });
 
@@ -399,7 +405,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
-        test("loadConnection", async () => {
+        test("loadConnectionForEdit", async () => {
             controller.state.formMessage = { message: "Sample error" };
 
             expect(
@@ -419,14 +425,14 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile;
 
-            await controller["_reducerHandlers"].get("loadConnection")(controller.state, {
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
                 connection: testConnection,
             });
 
             expect(
                 controller["_connectionBeingEdited"],
                 "connection being edited should have the same properties as the one passed to the reducer",
-            ).to.deep.equal(testConnection);
+            ).to.deep.include(testConnection);
             expect(
                 controller["_connectionBeingEdited"],
                 "connection being edited should be a clone of the one passed to the reducer, not the original",
@@ -441,6 +447,44 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.readyToConnect,
                 "should be ready to connect after profile has been loaded",
             ).to.be.true;
+            expect(controller.state.isEditingConnection).to.be.true;
+            expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
+        });
+
+        test("loadConnectionAsNewDraft", async () => {
+            controller.state.formMessage = { message: "Sample error" };
+
+            const testConnection = {
+                id: "existing-profile-id",
+                profileName: "Test Profile",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+                configSource: vscode.ConfigurationTarget.Workspace,
+            } as IConnectionProfileWithSource;
+
+            await controller["_reducerHandlers"].get("loadConnectionAsNewDraft")(controller.state, {
+                connection: testConnection,
+            });
+
+            expect(
+                controller["_connectionBeingEdited"],
+                "new draft mode should not track a profile as being edited",
+            ).to.be.undefined;
+            expect(controller.state.connectionProfile.id).to.be.undefined;
+            expect(controller.state.connectionProfile.profileName).to.be.undefined;
+            expect(
+                (controller.state.connectionProfile as IConnectionProfileWithSource).configSource,
+            ).to.be.undefined;
+            expect(controller.state.isEditingConnection).to.be.false;
+            expect(controller.state.editingConnectionDisplayName).to.be.undefined;
+            expect(controller.state.formMessage).to.be.undefined;
+            expect(controller.state.readyToConnect).to.be.true;
+
+            // Ensure source object wasn't mutated
+            expect(testConnection.id).to.equal("existing-profile-id");
+            expect(testConnection.profileName).to.equal("Test Profile");
+            expect(testConnection.configSource).to.equal(vscode.ConfigurationTarget.Workspace);
         });
 
         test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {

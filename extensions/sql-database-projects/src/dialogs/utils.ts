@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as constants from "../common/constants";
-import * as vscodeMssql from "vscode-mssql";
+import { ExtractTarget } from "../common/enums";
 import { IUserDatabaseReferenceSettings } from "../models/IDatabaseReferenceSettings";
 import { removeSqlCmdVariableFormatting } from "../common/utils";
 
@@ -13,19 +13,19 @@ import { removeSqlCmdVariableFormatting } from "../common/utils";
  * @param inputTarget folder structure in string
  * @returns folder structure in enum format
  */
-export function mapExtractTargetEnum(inputTarget: string): vscodeMssql.ExtractTarget {
+export function mapExtractTargetEnum(inputTarget: string): ExtractTarget {
     if (inputTarget) {
         switch (inputTarget) {
             case constants.file:
-                return vscodeMssql.ExtractTarget.file;
+                return ExtractTarget.file;
             case constants.flat:
-                return vscodeMssql.ExtractTarget.flat;
+                return ExtractTarget.flat;
             case constants.objectType:
-                return vscodeMssql.ExtractTarget.objectType;
+                return ExtractTarget.objectType;
             case constants.schema:
-                return vscodeMssql.ExtractTarget.schema;
+                return ExtractTarget.schema;
             case constants.schemaObjectType:
-                return vscodeMssql.ExtractTarget.schemaObjectType;
+                return ExtractTarget.schemaObjectType;
             default:
                 throw new Error(constants.invalidInput(inputTarget));
         }

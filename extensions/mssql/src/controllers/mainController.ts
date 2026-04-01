@@ -2636,13 +2636,7 @@ export default class MainController implements vscode.Disposable {
             if (!self.canRunCommand()) {
                 return;
             }
-            if (!self.canRunV2Command()) {
-                // Notify the user that this is not supported on this version
-                await this._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.macSierraRequiredErrorMessage,
-                );
-                return;
-            }
+
             if (!self.validateTextDocumentHasFocus()) {
                 return;
             }
@@ -2851,14 +2845,6 @@ export default class MainController implements vscode.Disposable {
         }
 
         return await this._connectionMgr.connectionUI.promptToChangeLanguageMode();
-    }
-
-    /**
-     * Verifies the tools service version is high enough to support certain commands
-     */
-    private canRunV2Command(): boolean {
-        let version: number = SqlToolsServerClient.instance.getServiceVersion();
-        return version > 1;
     }
 
     private async showOnLaunchPrompts(): Promise<void> {

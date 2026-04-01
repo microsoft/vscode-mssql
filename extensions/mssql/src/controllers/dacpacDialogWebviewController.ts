@@ -18,7 +18,7 @@ import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 import * as dacpacDialog from "../sharedInterfaces/dacpacDialog";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";

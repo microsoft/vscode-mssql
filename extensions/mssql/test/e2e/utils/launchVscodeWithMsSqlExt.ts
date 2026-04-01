@@ -27,6 +27,35 @@ export const DEFAULT_USER_CONFIG = {
     "mssql.showChangelogOnUpdate": false,
 };
 
+const DOTNET_RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+
+function installExtension(
+    cliPath: string,
+    extensionIdOrVsix: string,
+    userDataDir: string,
+    extensionsDir: string,
+): void {
+    const result = cp.spawnSync(
+        cliPath,
+        [
+            "--install-extension",
+            extensionIdOrVsix,
+            `--user-data-dir=${userDataDir}`,
+            `--extensions-dir=${extensionsDir}`,
+        ],
+        {
+            encoding: "utf-8",
+            stdio: "pipe",
+        },
+    );
+
+    console.log(`Extension install (${extensionIdOrVsix}) stdout:`, result.stdout);
+    console.log(`Extension install (${extensionIdOrVsix}) stderr:`, result.stderr);
+    if (result.status !== 0 || result.error) {
+        throw result.error || new Error(`Extension install failed with status ${result.status}`);
+    }
+}
+
 export async function launchVsCodeWithMssqlExtension(
     options: mssqlExtensionLaunchConfig = {},
 ): Promise<{
@@ -77,6 +106,9 @@ export async function launchVsCodeWithMssqlExtension(
         `--extensions-dir=${extensionsDir}`,
     ];
 
+    console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
+    installExtension(cliPath, DOTNET_RUNTIME_EXTENSION_ID, userDataDir, extensionsDir);
+
     if (config.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) throw new Error("BUILT_VSIX_PATH environment variable is not set.");
@@ -87,27 +119,9 @@ export async function launchVsCodeWithMssqlExtension(
          * in the codebase (as a dev dependency) but not in the vsix package. This can lead to false positives
          */
         console.log("Installing VSIX before launch...");
-        const result = cp.spawnSync(
-            cliPath,
-            [
-                "--install-extension",
-                vsixPath,
-                `--user-data-dir=${userDataDir}`,
-                `--extensions-dir=${extensionsDir}`,
-            ],
-            {
-                encoding: "utf-8",
-                stdio: "pipe",
-            },
-        );
-
-        console.log("VSIX install stdout:", result.stdout);
-        console.log("VSIX install stderr:", result.stderr);
-        if (result.status !== 0 || result.error) {
-            throw result.error || new Error(`VSIX install failed with status ${result.status}`);
-        }
+        installExtension(cliPath, vsixPath, userDataDir, extensionsDir);
     } else {
-        launchArgs.push("--temp-profile", "--disable-extensions");
+        launchArgs.push("--temp-profile");
     }
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
@@ -118,11 +132,18 @@ export async function launchVsCodeWithMssqlExtension(
         args: config.useVsix
             ? launchArgs
             : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
-        recordVideo: {
-            dir: videoDir,
-            size: { width: 1920, height: 1080 },
-        },
+        // Video recording interferes with Playwright's window detection locally (causes a
+        // blank window to be captured instead of the VS Code workbench). Only enable in CI.
+        ...(process.env.CI
+            ? {
+                  recordVideo: {
+                      dir: videoDir,
+                      size: { width: 1920, height: 1080 },
+                  },
+              }
+            : {}),
     });
+
     const page = await electronApp.firstWindow({ timeout: 10_000 });
 
     await page.setViewportSize({ width: 1920, height: 1080 });

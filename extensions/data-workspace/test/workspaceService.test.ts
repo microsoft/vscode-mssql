@@ -134,14 +134,14 @@ suite("WorkspaceService", function (): void {
                     id: "tp1",
                     description: "",
                     projectFileExtension: "testproj",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "test project",
                 },
                 {
                     id: "tp2",
                     description: "",
                     projectFileExtension: "testproj1",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "test project 1",
                 },
             ],
@@ -159,18 +159,6 @@ suite("WorkspaceService", function (): void {
                     },
                 },
             ],
-            [
-                {
-                    name: "tableInfo1",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
-                },
-                {
-                    name: "tableInfo2",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
-                },
-            ],
         );
         const provider2 = createProjectProvider(
             [
@@ -178,7 +166,7 @@ suite("WorkspaceService", function (): void {
                     id: "sp1",
                     description: "",
                     projectFileExtension: "sqlproj",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "sql project",
                 },
             ],
@@ -212,18 +200,6 @@ suite("WorkspaceService", function (): void {
                     run: async (): Promise<any> => {
                         return Promise.resolve();
                     },
-                },
-            ],
-            [
-                {
-                    name: "Deployments",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
-                },
-                {
-                    name: "Builds",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
                 },
             ],
         );
@@ -287,7 +263,7 @@ suite("WorkspaceService", function (): void {
                         id: "sp1",
                         description: "",
                         projectFileExtension: "sqlproj",
-                        icon: "",
+                        icon: vscode.Uri.file(""),
                         displayName: "test project",
                     },
                 ],
@@ -323,18 +299,6 @@ suite("WorkspaceService", function (): void {
                         },
                     },
                 ],
-                [
-                    {
-                        name: "Deployments",
-                        columns: [{ displayName: "c1", width: 75, type: "string" }],
-                        data: [["d1"]],
-                    },
-                    {
-                        name: "Builds",
-                        columns: [{ displayName: "c1", width: 75, type: "string" }],
-                        data: [["d1"]],
-                    },
-                ],
             ),
         );
         let provider = await service.getProjectProvider(vscode.Uri.file("abc.sqlproj"));
@@ -358,7 +322,7 @@ suite("WorkspaceService", function (): void {
                         id: "tp2",
                         description: "",
                         projectFileExtension: "csproj",
-                        icon: "",
+                        icon: vscode.Uri.file(""),
                         displayName: "test cs project",
                     },
                 ],
@@ -368,13 +332,6 @@ suite("WorkspaceService", function (): void {
                         run: async (): Promise<any> => {
                             return Promise.resolve();
                         },
-                    },
-                ],
-                [
-                    {
-                        name: "tableInfo2",
-                        columns: [{ displayName: "c1", width: 75, type: "string" }],
-                        data: [["d1"]],
                     },
                 ],
             ),

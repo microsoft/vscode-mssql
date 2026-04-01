@@ -6,7 +6,7 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as schemaCompareContracts from "../models/contracts/schemaCompare/schemaCompareContracts";
 import * as mssql from "vscode-mssql";
-import { ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { ExtractTarget, TaskExecutionMode } from "../enums";
 
 export class SchemaCompareService implements mssql.ISchemaCompareService {
     constructor(private _client: SqlToolsServiceClient) {}
