@@ -120,6 +120,13 @@ import { AzureBlobService } from "../services/azureBlobService";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
+import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvider";
+import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
+import {
+    BackgroundTaskState,
+    BackgroundTasksService,
+} from "../backgroundTasks/backgroundTasksService";
+import { DeploymentType } from "../sharedInterfaces/deployment";
 
 /**
  * The main controller class that initializes the extension
@@ -136,12 +143,17 @@ export default class MainController implements vscode.Disposable {
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
+    private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
     private _logger: Logger;
+    private _lastBackgroundTaskClickTime = 0;
+    private _lastBackgroundTaskId: string | undefined;
+    private _backgroundTaskTestSequence = 0;
 
     public sqlTasksService: SqlTasksService;
+    public backgroundTasksService: BackgroundTasksService;
     public dacFxService: DacFxService;
     public objectManagementService: ObjectManagementService;
     public schemaCompareService: SchemaCompareService;
@@ -372,6 +384,14 @@ export default class MainController implements vscode.Disposable {
                 );
 
                 migrationController.revealToForeground();
+            });
+            this.registerCommand(Constants.cmdStartBackgroundTaskTest);
+            this._event.on(Constants.cmdStartBackgroundTaskTest, () => {
+                void this.startBackgroundTaskTest();
+            });
+            this.registerCommand(Constants.cmdStartFailedBackgroundTaskTest);
+            this._event.on(Constants.cmdStartFailedBackgroundTaskTest, () => {
+                void this.startFailedBackgroundTaskTest();
             });
 
             this._context.subscriptions.push(
@@ -619,11 +639,13 @@ export default class MainController implements vscode.Disposable {
             );
 
             this.initializeQueryHistory();
+            this.initializeBackgroundTasks();
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
                 this._vscodeWrapper,
+                this.backgroundTasksService,
             );
             this.dacFxService = new DacFxService(
                 SqlToolsServerClient.instance,
@@ -2254,6 +2276,221 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Initializes the Background Tasks commands
+     */
+    private initializeBackgroundTasks(): void {
+        this._backgroundTasksProvider = new BackgroundTasksProvider();
+        this.backgroundTasksService = this._backgroundTasksProvider.backgroundTasksService;
+
+        this._context.subscriptions.push(
+            vscode.window.registerTreeDataProvider(
+                Constants.backgroundTasks,
+                this._backgroundTasksProvider,
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdClearFinishedBackgroundTasks, () => {
+                this._backgroundTasksProvider.clearFinished();
+            }),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenBackgroundTask,
+                async (node: BackgroundTaskNode) => {
+                    await this._backgroundTasksProvider.openTask(node.taskId);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCancelBackgroundTask,
+                async (node: BackgroundTaskNode) => {
+                    await this._backgroundTasksProvider.cancelTask(node.taskId);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdBackgroundTaskAction,
+                async (node: BackgroundTaskNode) => {
+                    await this.handleBackgroundTaskNodeAction(node);
+                },
+            ),
+        );
+    }
+
+    private async handleBackgroundTaskNodeAction(node: BackgroundTaskNode): Promise<void> {
+        const currentTime = Date.now();
+        const doubleClickThreshold = 500;
+
+        if (
+            this._lastBackgroundTaskId === node.taskId &&
+            currentTime - this._lastBackgroundTaskClickTime < doubleClickThreshold
+        ) {
+            await this._backgroundTasksProvider.openTask(node.taskId);
+            this._lastBackgroundTaskId = undefined;
+            this._lastBackgroundTaskClickTime = 0;
+        } else {
+            this._lastBackgroundTaskId = node.taskId;
+            this._lastBackgroundTaskClickTime = currentTime;
+        }
+    }
+
+    private async startBackgroundTaskTest(): Promise<void> {
+        await this.startBackgroundTaskDemo(false);
+    }
+
+    private async startFailedBackgroundTaskTest(): Promise<void> {
+        await this.startBackgroundTaskDemo(true);
+    }
+
+    private async startBackgroundTaskDemo(shouldFail: boolean): Promise<void> {
+        this._backgroundTaskTestSequence++;
+
+        const taskName = vscode.l10n.t(
+            shouldFail ? "Background Task Failure Demo #{0}" : "Background Task Demo #{0}",
+            this._backgroundTaskTestSequence,
+        );
+        let percentComplete = 0;
+        let phase = vscode.l10n.t("Queued");
+        let statusMessage = vscode.l10n.t("Waiting to begin");
+        let isCanceled = false;
+        let isCompleted = false;
+        let nextTick: NodeJS.Timeout | undefined;
+
+        const clearScheduledTick = () => {
+            if (nextTick) {
+                clearTimeout(nextTick);
+                nextTick = undefined;
+            }
+        };
+
+        const createTooltip = () =>
+            [
+                vscode.l10n.t(
+                    "Synthetic background task used to validate the Background Tasks view.",
+                ),
+                vscode.l10n.t("Phase: {0}", phase),
+                vscode.l10n.t("Status: {0}", statusMessage),
+                vscode.l10n.t("Progress: {0}%", percentComplete),
+            ].join("\n\n");
+
+        const showTaskDetails = async () => {
+            await this._vscodeWrapper.showInformationMessage(
+                vscode.l10n.t("{0}: {1} ({2}%)", taskName, statusMessage, percentComplete),
+            );
+        };
+
+        let handle = this.backgroundTasksService.registerTask({
+            displayText: taskName,
+            tooltip: createTooltip(),
+            percent: percentComplete,
+            canCancel: true,
+            cancel: async () => {
+                if (isCanceled || isCompleted) {
+                    return;
+                }
+
+                isCanceled = true;
+                phase = vscode.l10n.t("Canceled");
+                statusMessage = vscode.l10n.t("Canceled by user");
+                clearScheduledTick();
+                handle.complete(BackgroundTaskState.Canceled, {
+                    displayText: `${taskName} (${phase})`,
+                    tooltip: createTooltip(),
+                    percent: percentComplete,
+                    message: statusMessage,
+                    open: showTaskDetails,
+                });
+                await this._vscodeWrapper.showWarningMessage(
+                    vscode.l10n.t("{0} canceled", taskName),
+                );
+            },
+            open: showTaskDetails,
+            source: vscode.l10n.t("Test Command"),
+            message: statusMessage,
+            state: BackgroundTaskState.NotStarted,
+        });
+
+        const advanceTask = () => {
+            if (isCanceled || isCompleted) {
+                return;
+            }
+
+            percentComplete = Math.min(100, percentComplete + 10);
+
+            if (percentComplete < 30) {
+                phase = vscode.l10n.t("Preparing");
+                statusMessage = vscode.l10n.t("Preparing demo workload");
+            } else if (percentComplete < 70) {
+                phase = vscode.l10n.t("Running");
+                statusMessage = vscode.l10n.t("Running synthetic workload");
+            } else if (percentComplete < 100) {
+                phase = vscode.l10n.t("Finalizing");
+                statusMessage = vscode.l10n.t("Finalizing results");
+            } else {
+                phase = shouldFail ? vscode.l10n.t("Failed") : vscode.l10n.t("Completed");
+                statusMessage = shouldFail
+                    ? vscode.l10n.t("Synthetic failure for testing")
+                    : vscode.l10n.t("Completed successfully");
+            }
+
+            if (percentComplete >= 100) {
+                isCompleted = true;
+                clearScheduledTick();
+                handle.complete(
+                    shouldFail ? BackgroundTaskState.Failed : BackgroundTaskState.Succeeded,
+                    {
+                        displayText: `${taskName} (${phase})`,
+                        tooltip: createTooltip(),
+                        percent: percentComplete,
+                        message: statusMessage,
+                        open: showTaskDetails,
+                    },
+                );
+                if (shouldFail) {
+                    void this._vscodeWrapper.showErrorMessage(
+                        vscode.l10n.t("{0} failed", taskName),
+                    );
+                } else {
+                    void this._vscodeWrapper.showInformationMessage(
+                        vscode.l10n.t("{0} completed", taskName),
+                    );
+                }
+                return;
+            }
+
+            handle.update({
+                displayText: `${taskName} (${percentComplete}%)`,
+                tooltip: createTooltip(),
+                percent: percentComplete,
+                canCancel: true,
+                open: showTaskDetails,
+                message: statusMessage,
+                state: BackgroundTaskState.InProgress,
+            });
+
+            nextTick = setTimeout(advanceTask, 1000);
+        };
+
+        handle.update({
+            displayText: `${taskName} (${percentComplete}%)`,
+            tooltip: createTooltip(),
+            percent: percentComplete,
+            canCancel: true,
+            open: showTaskDetails,
+            message: vscode.l10n.t("Starting"),
+            state: BackgroundTaskState.InProgress,
+        });
+
+        nextTick = setTimeout(advanceTask, 1000);
+    }
+
+    /**
      * Initializes the Query History commands
      */
     private initializeQueryHistory(): void {
@@ -2554,7 +2791,11 @@ export default class MainController implements vscode.Disposable {
         return true;
     }
 
-    public onDeployNewDatabase(initialConnectionGroup?: string): void {
+    public onDeployNewDatabase(
+        initialConnectionGroup?: string,
+        initialDeploymentType?: DeploymentType,
+        initialWizardPageId?: string,
+    ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
@@ -2562,6 +2803,8 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
             this,
             initialConnectionGroup,
+            initialDeploymentType,
+            initialWizardPageId,
         );
         reactPanel.revealToForeground();
     }

@@ -13,6 +13,11 @@ import { TaskExecutionMode } from "../enums";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import {
+    BackgroundTaskHandle,
+    BackgroundTasksService,
+    BackgroundTaskState,
+} from "../backgroundTasks/backgroundTasksService";
 
 export enum TaskStatus {
     NotStarted = 0,
@@ -66,6 +71,7 @@ type ActiveTaskInfo = {
     taskInfo: TaskInfo;
     progressCallback: ProgressCallback;
     completionPromise: Deferred<void>;
+    backgroundTaskHandle?: BackgroundTaskHandle;
     lastMessage?: string;
     /** Script content received from any notification, used as fallback when script arrives out of order */
     script?: string;
@@ -163,6 +169,7 @@ export class SqlTasksService {
         private _client: SqlToolsServiceClient,
         private _sqlDocumentService: SqlDocumentService,
         private _vscodeWrapper: VscodeWrapper,
+        private _backgroundTasksService?: BackgroundTasksService,
     ) {
         this._client.onNotification(TaskCreatedNotification.type, (taskInfo) =>
             this.handleTaskCreatedNotification(taskInfo),
@@ -216,6 +223,20 @@ export class SqlTasksService {
                 return;
             },
             completionPromise: new Deferred<void>(),
+            backgroundTaskHandle: this._backgroundTasksService?.registerTask({
+                displayText: taskInfo.name,
+                details: this.createBackgroundTaskDetails(taskInfo),
+                tooltip: this.createBackgroundTaskTooltip(taskInfo),
+                canCancel: taskInfo.isCancelable,
+                cancel: taskInfo.isCancelable
+                    ? async () => {
+                          await this.cancelTask(taskInfo.taskId);
+                      }
+                    : undefined,
+                source: taskInfo.providerName,
+                message: taskInfo.description,
+                state: toBackgroundTaskState(taskInfo.status),
+            }),
         };
 
         vscode.window.withProgress(
@@ -258,6 +279,12 @@ export class SqlTasksService {
             taskInfo.lastMessage = taskProgressInfo.message;
         }
 
+        const backgroundTaskMessage =
+            taskProgressInfo.message &&
+            taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
+                ? taskProgressInfo.message
+                : taskInfo.lastMessage;
+
         // Always store script content from any notification that has one.
         // STS sends script content via a ScriptAdded notification that may arrive
         // out of order relative to the final StatusChanged notification.
@@ -279,6 +306,11 @@ export class SqlTasksService {
                 !taskInfo.completedStatus
             ) {
                 taskInfo.completedStatus = taskProgressInfo;
+                taskInfo.backgroundTaskHandle?.update({
+                    message: backgroundTaskMessage,
+                    state: toBackgroundTaskState(taskProgressInfo.status),
+                    canCancel: false,
+                });
                 return;
             }
 
@@ -303,6 +335,24 @@ export class SqlTasksService {
             const targetLocation = handler
                 ? handler.getTargetLocation(taskInfo.taskInfo)
                 : undefined;
+            const backgroundTaskOpenHandler =
+                taskProgressInfo.status === TaskStatus.Succeeded
+                    ? this.createBackgroundTaskOpenHandler(
+                          taskInfo.taskInfo,
+                          handler,
+                          targetLocation,
+                      )
+                    : undefined;
+
+            taskInfo.backgroundTaskHandle?.complete(
+                toBackgroundTaskState(taskProgressInfo.status),
+                {
+                    message: backgroundTaskMessage,
+                    open: backgroundTaskOpenHandler,
+                    canCancel: false,
+                },
+            );
+
             if (taskProgressInfo.status === TaskStatus.Succeeded && handler && targetLocation) {
                 // Show custom notification with optional action button
                 const successMessage = handler.getSuccessMessage(taskInfo.taskInfo, targetLocation);
@@ -310,18 +360,21 @@ export class SqlTasksService {
 
                 if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
-                    void this._vscodeWrapper
-                        .showInformationMessage(successMessage, actionButtonText)
-                        .then((selection) => {
-                            if (selection === actionButtonText) {
-                                const command = handler.actionCommand!;
-                                const args = handler.getActionCommandArgs!(
-                                    taskInfo.taskInfo,
-                                    targetLocation,
-                                );
-                                void this._vscodeWrapper.executeCommand(command, ...args);
-                            }
-                        });
+                    void Promise.resolve(
+                        this._vscodeWrapper.showInformationMessage(
+                            successMessage,
+                            actionButtonText,
+                        ),
+                    ).then((selection) => {
+                        if (selection === actionButtonText) {
+                            const command = handler.actionCommand!;
+                            const args = handler.getActionCommandArgs!(
+                                taskInfo.taskInfo,
+                                targetLocation,
+                            );
+                            void this._vscodeWrapper.executeCommand(command, ...args);
+                        }
+                    });
                 } else {
                     // Show notification without action button
                     void this._vscodeWrapper.showInformationMessage(successMessage);
@@ -374,8 +427,66 @@ export class SqlTasksService {
                           taskProgressInfo.message,
                       )
                     : taskStatusString;
+            taskInfo.backgroundTaskHandle?.update({
+                message: backgroundTaskMessage,
+                state: toBackgroundTaskState(taskProgressInfo.status),
+                canCancel:
+                    taskInfo.taskInfo.isCancelable &&
+                    taskProgressInfo.status !== TaskStatus.Canceling,
+                cancel:
+                    taskInfo.taskInfo.isCancelable &&
+                    taskProgressInfo.status !== TaskStatus.Canceling
+                        ? async () => {
+                              await this.cancelTask(taskInfo.taskInfo.taskId);
+                          }
+                        : undefined,
+            });
             taskInfo.progressCallback({ message: taskMessage });
         }
+    }
+
+    private createBackgroundTaskTooltip(taskInfo: TaskInfo): string {
+        const tooltipSections = [taskInfo.description];
+        const connectionLabel = this.createBackgroundTaskDetails(taskInfo);
+        if (connectionLabel) {
+            tooltipSections.push(vscode.l10n.t("Connection: {0}", connectionLabel));
+        }
+        if (taskInfo.targetLocation) {
+            tooltipSections.push(vscode.l10n.t("Target: {0}", taskInfo.targetLocation));
+        }
+        return tooltipSections.filter(Boolean).join("\n\n");
+    }
+
+    private createBackgroundTaskDetails(taskInfo: TaskInfo): string | undefined {
+        const connectionLabel = [taskInfo.serverName, taskInfo.databaseName]
+            .filter((value) => Boolean(value))
+            .join("/");
+
+        return connectionLabel || undefined;
+    }
+
+    private createBackgroundTaskOpenHandler(
+        taskInfo: TaskInfo,
+        handler: TaskCompletionHandler | undefined,
+        targetLocation: string | undefined,
+    ): (() => Thenable<void>) | undefined {
+        if (
+            !handler ||
+            !targetLocation ||
+            !handler.actionButtonText ||
+            !handler.actionCommand ||
+            !handler.getActionCommandArgs
+        ) {
+            return undefined;
+        }
+
+        return () =>
+            Promise.resolve(
+                this._vscodeWrapper.executeCommand(
+                    handler.actionCommand!,
+                    ...handler.getActionCommandArgs!(taskInfo, targetLocation),
+                ),
+            ).then(() => {});
     }
 
     /**
@@ -439,5 +550,25 @@ function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
         default:
             console.warn(`Don't have display string for task status ${taskStatus}`);
             return (<any>taskStatus).toString(); // Typescript warns that we can never get here because we've used all the enum values so cast to any
+    }
+}
+
+function toBackgroundTaskState(taskStatus: TaskStatus): BackgroundTaskState {
+    switch (taskStatus) {
+        case TaskStatus.Canceled:
+            return BackgroundTaskState.Canceled;
+        case TaskStatus.Failed:
+            return BackgroundTaskState.Failed;
+        case TaskStatus.Succeeded:
+            return BackgroundTaskState.Succeeded;
+        case TaskStatus.SucceededWithWarning:
+            return BackgroundTaskState.SucceededWithWarning;
+        case TaskStatus.Canceling:
+            return BackgroundTaskState.Canceling;
+        case TaskStatus.NotStarted:
+            return BackgroundTaskState.NotStarted;
+        case TaskStatus.InProgress:
+        default:
+            return BackgroundTaskState.InProgress;
     }
 }
