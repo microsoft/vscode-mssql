@@ -333,7 +333,9 @@ suite("FlatFileImportWebviewController", () => {
     test("openVSCodeFileBrowser reducer sets flatFilePath and tableName correctly", async () => {
         // Mock VS Code file picker
         const mockFilePath = "/path/to/file.csv";
-        sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(mockFilePath)]);
+        sandbox
+            .stub(vscode.window, "showOpenDialog")
+            .resolves([{ fsPath: mockFilePath } as vscode.Uri]);
         sandbox.stub(path, "sep").value("/");
 
         const state = {

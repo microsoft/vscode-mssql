@@ -48,6 +48,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
+import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
@@ -205,6 +206,21 @@ export default class MainController implements vscode.Disposable {
         );
     }
 
+    private onConnectCommand(): void {
+        if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+            return;
+        }
+        void this.runAndLogErrors(this.promptToConnect());
+    }
+
+    private onRunQueryCommand(): void {
+        if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+            return;
+        }
+        void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
+        void this.onRunQuery();
+    }
+
     /**
      * Disposes the controller
      */
@@ -234,9 +250,9 @@ export default class MainController implements vscode.Disposable {
         if (didInitialize) {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
-            this._event.on(Constants.cmdConnect, () => {
-                void this.runAndLogErrors(this.promptToConnect());
-            });
+            this._event.on(Constants.cmdConnect, () => this.onConnectCommand());
+            this.registerCommand(Constants.cmdConnectWithUriOwnership);
+            this._event.on(Constants.cmdConnectWithUriOwnership, () => this.onConnectCommand());
             this.registerCommand(Constants.cmdChangeConnection);
             this._event.on(Constants.cmdChangeConnection, () => {
                 void this.runAndLogErrors(this.promptToConnect());
@@ -250,10 +266,9 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onCancelConnect());
             });
             this.registerCommand(Constants.cmdRunQuery);
-            this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
-                void this.onRunQuery();
-            });
+            this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
+            this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
+            this._event.on(Constants.cmdRunQueryWithUriOwnership, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdManageConnectionProfiles);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => {
                 await this.onManageProfiles();
@@ -265,12 +280,8 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string;
-                if (args) {
-                    if (args instanceof ConnectionGroupNode) {
-                        initialConnectionGroup = args.connectionGroup?.id;
-                    } else if (typeof args === "object" && args.id) {
-                        initialConnectionGroup = args.id;
-                    }
+                if (args && args instanceof ConnectionGroupNode) {
+                    initialConnectionGroup = args.connectionGroup?.id;
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
             });
@@ -2625,13 +2636,7 @@ export default class MainController implements vscode.Disposable {
             if (!self.canRunCommand()) {
                 return;
             }
-            if (!self.canRunV2Command()) {
-                // Notify the user that this is not supported on this version
-                await this._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.macSierraRequiredErrorMessage,
-                );
-                return;
-            }
+
             if (!self.validateTextDocumentHasFocus()) {
                 return;
             }
@@ -2842,14 +2847,6 @@ export default class MainController implements vscode.Disposable {
         return await this._connectionMgr.connectionUI.promptToChangeLanguageMode();
     }
 
-    /**
-     * Verifies the tools service version is high enough to support certain commands
-     */
-    private canRunV2Command(): boolean {
-        let version: number = SqlToolsServerClient.instance.getServiceVersion();
-        return version > 1;
-    }
-
     private async showOnLaunchPrompts(): Promise<void> {
         // All prompts should be async and _not_ awaited so that we don't block the rest of the extension
         void this.showFirstLaunchPrompts();
@@ -3055,6 +3052,7 @@ export default class MainController implements vscode.Disposable {
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
+            Constants.configUseVscodeAccountsForEntraMfa,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

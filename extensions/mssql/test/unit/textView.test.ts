@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { locConstants } from "../../src/reactviews/common/locConstants";
+import { locConstants } from "../../src/webviews/common/locConstants";
 
 suite("TextView - rows affected formatting", () => {
     test("rowsAffected returns string with single parentheses for 0 rows", () => {

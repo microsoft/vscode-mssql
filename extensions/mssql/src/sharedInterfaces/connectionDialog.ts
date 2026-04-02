@@ -52,6 +52,8 @@ export class ConnectionDialogWebviewState
     public azureTenantSignInCounts: IAzureTenantSignInStatus | undefined;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
+    public isEditingConnection: boolean = false;
+    public editingConnectionDisplayName: string | undefined;
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public connectionAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
     public testConnectionSucceeded: boolean = false;
@@ -226,7 +228,8 @@ export enum AuthenticationType {
 
 export interface ConnectionDialogContextProps extends FormContextProps<IConnectionDialogProfile> {
     // Reducers
-    loadConnection: (connection: IConnectionDialogProfile) => void;
+    loadConnectionForEdit: (connection: IConnectionDialogProfile) => void;
+    loadConnectionAsNewDraft: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
     testConnection: () => void;
@@ -264,7 +267,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
     };
-    loadConnection: {
+    loadConnectionForEdit: {
+        connection: IConnectionDialogProfile;
+    };
+    loadConnectionAsNewDraft: {
         connection: IConnectionDialogProfile;
     };
     connect: {};

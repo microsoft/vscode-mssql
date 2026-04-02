@@ -3,9 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscodeMssql from "vscode-mssql";
-
-type ExtractTarget = vscodeMssql.ExtractTarget;
+import { ExtractTarget } from "../../common/enums";
 
 /**
  * Data model to communicate for Import API

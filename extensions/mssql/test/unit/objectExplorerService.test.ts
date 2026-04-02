@@ -54,8 +54,11 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils } from "./utils";
+import { initializeIconUtils, stubLogger } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
+import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
@@ -2442,6 +2445,238 @@ suite("OE Service Tests", () => {
             );
         });
     });
+
+    suite(
+        "ObjectExplorerService - prepareConnectionProfile MissingVsCodeEntraAuthError Tests",
+        () => {
+            let sandbox: sinon.SinonSandbox;
+            let objectExplorerService: ObjectExplorerService;
+            let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+            let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+            let signInStub: sinon.SinonStub;
+            let executeCommandStub: sinon.SinonStub;
+            let useVscodeAccountsStub: sinon.SinonStub;
+
+            setup(() => {
+                initializeIconUtils();
+                sandbox = sinon.createSandbox();
+
+                mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+                mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+                mockConnectionManager.connectionStore = sandbox.createStubInstance(ConnectionStore);
+                mockConnectionManager.client = sandbox.createStubInstance(SqlToolsServiceClient);
+
+                stubLogger(sandbox);
+
+                sandbox.stub(telemetry, "startActivity").returns({
+                    end: sandbox.stub(),
+                    endFailed: sandbox.stub(),
+                    correlationId: "",
+                    startTime: 0,
+                    update: sandbox.stub(),
+                });
+
+                // Stub useVscodeAccountsForEntraMfa so the MissingVsCodeEntraAuthError handler is reached.
+                // The real implementation reads a VS Code workspace config that defaults to false,
+                // which would short-circuit before the instanceof check in the tests.
+                useVscodeAccountsStub = sandbox
+                    .stub(vscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa")
+                    .returns(true);
+
+                // Stub VsCodeAzureHelper.signIn used by the "Sign In and Retry" path
+                signInStub = sandbox
+                    .stub(azureHelpers.VsCodeAzureHelper, "signIn")
+                    .resolves(undefined as any);
+
+                // Stub vscode.commands.executeCommand for the "Edit Connection Profile" path
+                executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+                objectExplorerService = new ObjectExplorerService(
+                    mockVscodeWrapper,
+                    mockConnectionManager,
+                    () => {},
+                );
+                objectExplorerService.initialized.resolve();
+            });
+
+            teardown(() => {
+                sandbox.restore();
+            });
+
+            test("should prompt with Sign In and Edit options when MissingVsCodeEntraAuthError is thrown", async () => {
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+                // User dismisses the dialog
+                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined when user dismisses dialog").to.be
+                    .undefined;
+                expect(
+                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    "showErrorMessage should be called once",
+                ).to.be.true;
+
+                const [_msg, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
+                expect(signInButton, "First button should be Sign In and Retry").to.equal(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+                expect(editButton, "Second button should be Edit Connection Profile").to.equal(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
+                );
+            });
+
+            test("should call signIn and retry prepareConnectionInfo when user chooses Sign In and Retry", async () => {
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const preparedProfile = createMockConnectionProfile({
+                    id: "prepared-id",
+                    authenticationType: "AzureMFA",
+                });
+
+                // First call throws, second call (after sign-in) succeeds
+                mockConnectionManager.prepareConnectionInfo
+                    .onFirstCall()
+                    .rejects(authError)
+                    .onSecondCall()
+                    .resolves(preparedProfile);
+
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
+                expect(
+                    mockConnectionManager.prepareConnectionInfo.calledTwice,
+                    "prepareConnectionInfo should be called twice (initial + retry)",
+                ).to.be.true;
+                expect(result, "Result should be the prepared profile from retry").to.equal(
+                    preparedProfile,
+                );
+            });
+
+            test("should return undefined if retry after sign-in also fails", async () => {
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+
+                // Both the initial call and the retry fail
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
+                );
+
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
+                expect(
+                    mockConnectionManager.prepareConnectionInfo.calledTwice,
+                    "prepareConnectionInfo should be called twice (initial + retry)",
+                ).to.be.true;
+                expect(result, "Result should be undefined when retry also fails").to.be.undefined;
+            });
+
+            test("should open connection dialog when user chooses Edit Connection Profile", async () => {
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+
+                mockVscodeWrapper.showErrorMessage.resolves(
+                    LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
+                );
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined after opening edit dialog").to.be
+                    .undefined;
+                expect(signInStub.called, "signIn should not be called").to.be.false;
+                expect(executeCommandStub.calledOnce, "executeCommand should be called once").to.be
+                    .true;
+                expect(
+                    executeCommandStub.calledWith(
+                        Constants.cmdAddObjectExplorer,
+                        connectionProfile,
+                    ),
+                    "executeCommand should open the connection dialog with the profile",
+                ).to.be.true;
+            });
+
+            test("should return undefined without prompting when user dismisses the error dialog", async () => {
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined when dialog is dismissed").to.be
+                    .undefined;
+                expect(signInStub.called, "signIn should not be called").to.be.false;
+                expect(executeCommandStub.called, "executeCommand should not be called").to.be
+                    .false;
+            });
+
+            test("should log and return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
+                const genericError = new Error("Some unexpected error");
+                mockConnectionManager.prepareConnectionInfo.rejects(genericError);
+
+                const connectionProfile = createMockConnectionProfile();
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined for generic errors").to.be.undefined;
+                expect(
+                    mockVscodeWrapper.showErrorMessage.called,
+                    "showErrorMessage should not be called for generic errors",
+                ).to.be.false;
+            });
+
+            test("should log and return undefined immediately when useVscodeAccountsForEntraMfa is disabled", async () => {
+                useVscodeAccountsStub.returns(false);
+
+                const authError = new MissingVsCodeEntraAuthError("Account not available");
+                mockConnectionManager.prepareConnectionInfo.rejects(authError);
+
+                const connectionProfile = createMockConnectionProfile({
+                    authenticationType: "AzureMFA",
+                });
+                const result = await (objectExplorerService as any).prepareConnectionProfile(
+                    connectionProfile,
+                );
+
+                expect(result, "Result should be undefined").to.be.undefined;
+                expect(
+                    mockVscodeWrapper.showErrorMessage.called,
+                    "showErrorMessage should not be called when feature is disabled",
+                ).to.be.false;
+            });
+        },
+    );
 });
 
 function createMockConnectionProfiles(

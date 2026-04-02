@@ -17,11 +17,11 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import {
     ExtractTarget,
-    SchemaCompareWebViewState,
     SchemaDifferenceType,
     SchemaUpdateAction,
     TaskExecutionMode,
-} from "../../src/sharedInterfaces/schemaCompare";
+} from "../../src/enums";
+import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IconUtils } from "../../src/utils/iconUtils";

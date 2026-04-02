@@ -76,7 +76,7 @@
       </trans-unit>
       <trans-unit id="++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8">
         <source xml:lang="en">Add ProjectGuid</source>
-        <target state="new">Add ProjectGuid</target>
+        <target state="translated">Ajouter ProjectGuid</target>
       </trans-unit>
       <trans-unit id="++CODE++7287537df41bee4b40e151d7c5f2f345d70fdcf9b16a48ec51a07013cd23a6ac">
         <source xml:lang="en">Add SQLCMD variable '{0}' to project without default value?</source>
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c">
         <source xml:lang="en">Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?</source>
-        <target state="new">Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?</target>
+        <target state="translated">Le projet « {0} » ne possède pas de ProjectGuid. Un ProjectGuid unique permet d'identifier le projet pour les références inter-projets. Souhaiteriez-vous qu'on en ajoute un ?</target>
       </trans-unit>
       <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
         <source xml:lang="en">Project (.sqlproj)</source>
@@ -1283,9 +1283,9 @@
 
 Projects:
 {1}</source>
-        <target state="new">{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?
+        <target state="translated">{0} projets de cet espace de travail ne disposent pas de ProjectGuid. Un ProjectGuid unique permet d'identifier les projets pour les références inter-projets. Souhaitez-vous qu'un soit ajouté à chaque projet ?
 
-Projects:
+Projets :
 {1}</target>
       </trans-unit>
     </body>
@@ -1387,6 +1387,10 @@ Projects:
       <trans-unit id="sqlDatabaseProjects.description">
         <source xml:lang="en">Design and publish SQL database schemas</source>
         <target state="translated">Concevoir et publier des schémas de base de données SQL</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openDocumentation">
+        <source xml:lang="en">Documentation</source>
+        <target state="new">Documentation</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>

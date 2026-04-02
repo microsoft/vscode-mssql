@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDashboardTable, IProjectProvider, WorkspaceTreeItem } from "dataworkspace";
+import { IProjectProvider, WorkspaceTreeItem } from "dataworkspace";
 import "mocha";
 import * as chai from "chai";
 import { expect } from "chai";
@@ -82,7 +82,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
                 {
                     id: "sp1",
                     projectFileExtension: "sqlproj",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "sql project",
                     description: "",
                 },
@@ -127,20 +127,6 @@ suite("workspaceTreeDataProvider Tests", function (): void {
                     },
                 },
             ],
-            getDashboardComponents: (projectFile: string): IDashboardTable[] => {
-                return [
-                    {
-                        name: "Deployments",
-                        columns: [{ displayName: "c1", width: 75, type: "string" }],
-                        data: [["d1"]],
-                    },
-                    {
-                        name: "Builds",
-                        columns: [{ displayName: "c1", width: 75, type: "string" }],
-                        data: [["d1"]],
-                    },
-                ];
-            },
         };
         const getProjectProviderStub = sandbox.stub(workspaceService, "getProjectProvider");
         getProjectProviderStub.onFirstCall().resolves(undefined);

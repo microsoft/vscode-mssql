@@ -35,10 +35,6 @@ export default class ConfigUtils implements IConfigUtils {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceInstallDirConfigKey);
     }
 
-    public getSqlToolsExecutableFiles(): string[] {
-        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceExecutableFilesConfigKey);
-    }
-
     public getSqlToolsPackageVersion(): string {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }

@@ -18,11 +18,20 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import { Logger } from "../../src/models/logger";
+
+let activationPromise: Promise<IExtension> | undefined;
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
+    if (activationPromise) {
+        return activationPromise;
+    }
+
     const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
-    return await extension.activate();
+    activationPromise = Promise.resolve(extension.activate());
+
+    return activationPromise;
 }
 
 // Stubs the telemetry code
@@ -164,6 +173,13 @@ export function stubExtensionContext(
     } as unknown as vscode.ExtensionContext;
 
     return context;
+}
+
+export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
+    const stubber = sandbox || sinon;
+    const logger = stubber.createStubInstance(Logger);
+    stubber.stub(Logger, "create").returns(logger);
+    return logger;
 }
 
 export function stubPrompter(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<IPrompter> {
