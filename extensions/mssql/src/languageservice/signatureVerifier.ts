@@ -164,11 +164,8 @@ export async function validateExtractedBinaries(
     const isMacOS = runtime === Runtime.OSX || runtime === Runtime.OSX_ARM64;
 
     if (!isWindows && !isMacOS) {
-        // .NET DLLs do not support OS-level signature verification on this platform.
-        logger.warn(
-            `Signature validation is not supported on this platform (${runtime}). ` +
-                "Skipping binary signature checks.",
-        );
+        // Signature verification is only supported for Windows and macOS native binaries.
+        logger.logDebug(`Skipping binary signature checks for runtime: ${runtime}.`);
         return;
     }
 
