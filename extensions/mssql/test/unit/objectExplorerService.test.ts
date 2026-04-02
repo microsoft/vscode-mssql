@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
 import {
     CreateSessionResult,
     ObjectExplorerService,
@@ -61,6 +63,8 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { PreviewFeature } from "../../src/previews/previewService";
 const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
 
+chai.use(sinonChai);
+
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
@@ -77,6 +81,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            stubLogger(sandbox);
 
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
@@ -925,7 +930,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockLogger = sandbox.createStubInstance(Logger);
+            mockLogger = stubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
@@ -1126,6 +1131,7 @@ suite("OE Service Tests", () => {
             const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             const mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            stubLogger(sandbox);
             mockConnectionManager.client = mockClient;
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -2206,6 +2212,7 @@ suite("OE Service Tests", () => {
         let endFailedStub: sinon.SinonStub;
 
         setup(() => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             // Create stubs for dependencies
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
