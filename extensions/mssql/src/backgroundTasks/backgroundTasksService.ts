@@ -84,6 +84,7 @@ export class BackgroundTasksService {
     constructor(
         private readonly _refreshCallback: () => void,
         private readonly _maxFinishedTasks: number = DEFAULT_MAX_FINISHED_BACKGROUND_TASKS,
+        private readonly _revealCallback?: () => void,
     ) {}
 
     public registerTask(registration: BackgroundTaskRegistration): BackgroundTaskHandle {
@@ -115,6 +116,7 @@ export class BackgroundTasksService {
         this._tasks.set(id, entry);
         this.trimFinishedTasks();
         this._refreshCallback();
+        this._revealCallback?.();
 
         return {
             id,

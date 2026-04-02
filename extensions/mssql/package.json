@@ -531,7 +531,7 @@
                     "command": "mssql.clearFinishedBackgroundTasks",
                     "when": "view == backgroundTasks",
                     "title": "%mssql.clearFinishedBackgroundTasks%",
-                    "group": "secondary"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorer.enableGroupBySchema",
@@ -1360,7 +1360,8 @@
             {
                 "command": "mssql.clearFinishedBackgroundTasks",
                 "title": "%mssql.clearFinishedBackgroundTasks%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(trash)"
             },
             {
                 "command": "mssql.openBackgroundTask",

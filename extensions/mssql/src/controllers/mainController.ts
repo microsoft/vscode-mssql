@@ -126,7 +126,7 @@ import {
     BackgroundTaskState,
     BackgroundTasksService,
 } from "../backgroundTasks/backgroundTasksService";
-import { DeploymentType } from "../sharedInterfaces/deployment";
+import { DeploymentResumeStateArgs } from "../sharedInterfaces/deployment";
 
 /**
  * The main controller class that initializes the extension
@@ -295,7 +295,7 @@ export default class MainController implements vscode.Disposable {
                 if (args && args instanceof ConnectionGroupNode) {
                     initialConnectionGroup = args.connectionGroup?.id;
                 }
-                this.onDeployNewDatabase(initialConnectionGroup);
+                this.onDeployNewDatabase({ initialConnectionGroup });
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -2282,12 +2282,13 @@ export default class MainController implements vscode.Disposable {
         this._backgroundTasksProvider = new BackgroundTasksProvider();
         this.backgroundTasksService = this._backgroundTasksProvider.backgroundTasksService;
 
-        this._context.subscriptions.push(
-            vscode.window.registerTreeDataProvider(
-                Constants.backgroundTasks,
-                this._backgroundTasksProvider,
-            ),
-        );
+        const treeView = vscode.window.createTreeView(Constants.backgroundTasks, {
+            treeDataProvider: this._backgroundTasksProvider,
+        });
+
+        this._backgroundTasksProvider.treeView = treeView;
+
+        this._context.subscriptions.push(treeView);
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdClearFinishedBackgroundTasks, () => {
@@ -2791,11 +2792,12 @@ export default class MainController implements vscode.Disposable {
         return true;
     }
 
-    public onDeployNewDatabase(
-        initialConnectionGroup?: string,
-        initialDeploymentType?: DeploymentType,
-        initialWizardPageId?: string,
-    ): void {
+    public onDeployNewDatabase({
+        initialConnectionGroup,
+        initialDeploymentType,
+        initialWizardPageId,
+        initialState,
+    }: DeploymentResumeStateArgs = {}): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
@@ -2805,6 +2807,7 @@ export default class MainController implements vscode.Disposable {
             initialConnectionGroup,
             initialDeploymentType,
             initialWizardPageId,
+            initialState,
         );
         reactPanel.revealToForeground();
     }

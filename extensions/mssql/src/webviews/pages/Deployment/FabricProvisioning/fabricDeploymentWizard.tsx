@@ -21,10 +21,12 @@ import { FabricDeploymentProvisioningPage } from "./fabricDeploymentProvisioning
 
 interface FabricDeploymentWizardProps {
     onBackToStart: () => void;
+    initialPageId?: string;
 }
 
 export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
     onBackToStart,
+    initialPageId,
 }) => {
     const context = useContext(DeploymentContext);
     const loadState = useFabricDeploymentSelector((s) => s.loadState);
@@ -135,6 +137,7 @@ export const FabricDeploymentWizard: React.FC<FabricDeploymentWizardProps> = ({
             pages={pages}
             onCancel={() => context.dispose()}
             maxContentWidth="wide"
+            initialPageId={initialPageId}
         />
     );
 };

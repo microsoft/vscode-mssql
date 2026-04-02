@@ -35,6 +35,13 @@ suite("localContainers logic", () => {
         deploymentController = {
             state: {},
             updateState: updateStateStub,
+            syncBackgroundTask: sandbox.stub(),
+            isDisposed: false,
+            operationId: "local-op",
+            applyDeploymentTypeState: sandbox.stub().callsFake((_type, state) => {
+                deploymentController.state.deploymentTypeState = state;
+            }),
+            publishDeploymentState: sandbox.stub(),
             registerReducer: sandbox.stub().callsFake((name, fn) => {
                 (deploymentController as any)[name] = fn;
             }),
@@ -186,6 +193,32 @@ suite("localContainers logic", () => {
         expect(sendActionEvent).to.have.been.called;
     });
 
+    test("completeDockerStep continues through later steps up to the requested target", async () => {
+        const firstStepStub = sandbox.stub().resolves({ success: true });
+        const secondStepStub = sandbox.stub().resolves({ success: true });
+        const state: any = {
+            deploymentTypeState: {
+                currentDockerStep: 0,
+                dockerSteps: [
+                    { loadState: ApiStatus.NotStarted, argNames: [], stepAction: firstStepStub },
+                    { loadState: ApiStatus.NotStarted, argNames: [], stepAction: secondStepStub },
+                ],
+                formState: { version: "1.0" },
+            },
+        };
+
+        localContainersHelpers.registerLocalContainersReducers(deploymentController);
+        const newState = await (deploymentController as any).completeDockerStep(state, {
+            dockerStep: 1,
+        });
+
+        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Loaded);
+        expect(newState.deploymentTypeState.dockerSteps[1].loadState).to.equal(ApiStatus.Loaded);
+        expect(newState.deploymentTypeState.currentDockerStep).to.equal(2);
+        expect(firstStepStub).to.have.been.calledOnce;
+        expect(secondStepStub).to.have.been.calledOnce;
+    });
+
     test("completeDockerStep updates state on failed step", async () => {
         const stepActionStub = sandbox
             .stub()
@@ -327,6 +360,17 @@ suite("localContainers logic", () => {
     test("updateLocalContainersState updates state", async () => {
         await localContainersHelpers.updateLocalContainersState(deploymentController, {} as any);
 
-        expect(updateStateStub).to.have.been.calledOnce;
+        expect(deploymentController.publishDeploymentState).to.have.been.calledOnce;
+    });
+
+    test("updateLocalContainersState skips webview updates after disposal", async () => {
+        Object.defineProperty(deploymentController, "isDisposed", {
+            configurable: true,
+            value: true,
+        });
+
+        await localContainersHelpers.updateLocalContainersState(deploymentController, {} as any);
+
+        expect(deploymentController.publishDeploymentState).to.have.been.calledOnce;
     });
 });

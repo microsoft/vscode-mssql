@@ -15,10 +15,16 @@ export class BackgroundTasksProvider implements vscode.TreeDataProvider<Backgrou
     >();
     public readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
     private readonly _backgroundTasksService: BackgroundTasksService;
+    public treeView: vscode.TreeView<BackgroundTasksTreeNode> | undefined;
 
     constructor(backgroundTasksService?: BackgroundTasksService) {
         this._backgroundTasksService =
-            backgroundTasksService ?? new BackgroundTasksService(() => this.refresh());
+            backgroundTasksService ??
+            new BackgroundTasksService(
+                () => this.refresh(),
+                undefined,
+                () => this.revealTreeView(),
+            );
     }
 
     public get backgroundTasksService(): BackgroundTasksService {
@@ -52,5 +58,16 @@ export class BackgroundTasksProvider implements vscode.TreeDataProvider<Backgrou
 
     public clearFinished(): void {
         this._backgroundTasksService.clearFinished();
+    }
+
+    private revealTreeView(): void {
+        if (this.treeView) {
+            // Reveal the background tasks tree without stealing focus from the editor.
+            // This also opens the Object Explorer view container if it isn't visible.
+            this.treeView.reveal(this.getChildren()[0], {
+                focus: false,
+                select: false,
+            });
+        }
     }
 }

@@ -11,7 +11,7 @@ import { LocalContainersState } from "../../../../sharedInterfaces/localContaine
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 /**
- * Runs a Docker step if the current step is less than or equal to the last step.
+ * Runs Docker steps until the requested last step if the current step is within range.
  * @param context The context containing the methods to complete Docker steps.
  * @param state The state containing the deployment type state.
  * @param lastStep The index of the last step to check against.
@@ -32,9 +32,9 @@ export async function runDockerStep(
     }
 
     // If the current step is less than or equal to the last step,
-    // complete the step to move to the next one
+    // run through the remaining steps up to the requested target.
     if (currentStep <= lastStep) {
-        await context.completeDockerStep(currentStep);
+        await context.completeDockerStep(lastStep);
     }
 }
 

@@ -25,10 +25,12 @@ import { checkStepErrored, isLastStepLoaded } from "./localContainersDeploymentU
 
 interface LocalContainersDeploymentWizardProps {
     onBackToStart: () => void;
+    initialPageId?: string;
 }
 
 export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeploymentWizardProps> = ({
     onBackToStart,
+    initialPageId,
 }) => {
     const context = useContext(DeploymentContext);
     const loadState = useLocalContainersDeploymentSelector((s) => s.loadState);
@@ -152,6 +154,7 @@ export const LocalContainersDeploymentWizard: React.FC<LocalContainersDeployment
             pages={pages}
             onCancel={() => context.dispose()}
             maxContentWidth="wide"
+            initialPageId={initialPageId}
         />
     );
 };

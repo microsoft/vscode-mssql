@@ -38,8 +38,11 @@ export const DeploymentStartPage = () => {
     const errorMessage = useDeploymentSelector((s) => s.errorMessage);
     const deploymentType = useDeploymentSelector((s) => s.deploymentType);
     const deploymentTypeState = useDeploymentSelector((s) => s.deploymentTypeState);
+    const resumedDeploymentType = useDeploymentSelector((s) => s.resumedDeploymentType);
+    const resumedWizardPageId = useDeploymentSelector((s) => s.resumedWizardPageId);
     const [activeDeploymentType, setActiveDeploymentType] = useState<DeploymentType>();
     const [pendingDeploymentType, setPendingDeploymentType] = useState<DeploymentType>();
+    const [resumeConsumed, setResumeConsumed] = useState(false);
 
     const isLocalContainersStateReady = (state: unknown) =>
         Array.isArray((state as LocalContainersState | undefined)?.dockerSteps);
@@ -73,6 +76,30 @@ export const DeploymentStartPage = () => {
         }
     }, [deploymentType, deploymentTypeState, pendingDeploymentType]);
 
+    useEffect(() => {
+        if (
+            resumeConsumed ||
+            activeDeploymentType !== undefined ||
+            resumedDeploymentType === undefined
+        ) {
+            return;
+        }
+
+        if (
+            resumedDeploymentType === DeploymentType.LocalContainers &&
+            isLocalContainersStateReady(deploymentTypeState)
+        ) {
+            setActiveDeploymentType(DeploymentType.LocalContainers);
+            setResumeConsumed(true);
+        } else if (
+            resumedDeploymentType === DeploymentType.FabricProvisioning &&
+            isFabricStateReady(deploymentTypeState)
+        ) {
+            setActiveDeploymentType(DeploymentType.FabricProvisioning);
+            setResumeConsumed(true);
+        }
+    }, [activeDeploymentType, deploymentTypeState, resumeConsumed, resumedDeploymentType]);
+
     if (!context || !loadState) {
         return undefined;
     }
@@ -80,6 +107,7 @@ export const DeploymentStartPage = () => {
     if (activeDeploymentType === DeploymentType.LocalContainers) {
         return (
             <LocalContainersDeploymentWizard
+                initialPageId={resumedWizardPageId}
                 onBackToStart={() => {
                     setActiveDeploymentType(undefined);
                     setPendingDeploymentType(undefined);
@@ -91,6 +119,7 @@ export const DeploymentStartPage = () => {
     if (activeDeploymentType === DeploymentType.FabricProvisioning) {
         return (
             <FabricDeploymentWizard
+                initialPageId={resumedWizardPageId}
                 onBackToStart={() => {
                     setActiveDeploymentType(undefined);
                     setPendingDeploymentType(undefined);

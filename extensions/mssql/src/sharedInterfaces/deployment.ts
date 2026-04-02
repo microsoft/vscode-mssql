@@ -25,13 +25,23 @@ export class DeploymentWebviewState
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
+    operationId?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
+    resumedDeploymentType?: DeploymentType;
+    resumedWizardPageId?: string;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;
     formComponents: Partial<Record<keyof DeploymentFormState, DeploymentFormItemSpec>> = {};
     formErrors: string[] = [];
     connectionGroupOptions: FormItemOptions[] = [];
+}
+
+export interface DeploymentResumeStateArgs {
+    initialConnectionGroup?: string;
+    initialDeploymentType?: DeploymentType;
+    initialWizardPageId?: string;
+    initialState?: DeploymentWebviewState;
 }
 
 export interface DeploymentCommonReducers {
