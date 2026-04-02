@@ -42,9 +42,7 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
 } {
     const stubber = sandbox || sinon;
     return {
-        sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake((...args) => {
-            console.log(...args);
-        }),
+        sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
         sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
     };
 }
