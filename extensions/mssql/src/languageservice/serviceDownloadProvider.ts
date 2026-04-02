@@ -135,7 +135,7 @@ export default class ServiceDownloadProvider {
             .get<boolean>(Constants.configDisableSignatureVerification, false);
 
         if (verificationDisabled) {
-            this._logger.appendLine(
+            this._logger.warn(
                 "[WARN] Signature verification is disabled by configuration " +
                     `(${Constants.extensionConfigSectionName}.${Constants.configDisableSignatureVerification}). ` +
                     "Skipping binary signature checks.",
@@ -150,7 +150,7 @@ export default class ServiceDownloadProvider {
             try {
                 await fs.rm(installDirectory, { recursive: true, force: true });
             } catch (cleanupErr) {
-                this._logger.appendLine(
+                this._logger.error(
                     `[ERROR] Failed to remove install directory after signature validation failure: ${cleanupErr}`,
                 );
             }
