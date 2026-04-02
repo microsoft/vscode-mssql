@@ -71,6 +71,7 @@
         "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "npm run instrument && npm run e2eTest",
+        "postinstall": "node scripts/patch-vscode-test-electron.mjs",
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
