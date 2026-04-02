@@ -1679,6 +1679,7 @@
     "Always Encrypted": "Always Encrypted",
     "Replication": "Replication",
     "{0} (filtered)": "{0} (filtered)",
+    "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.": "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
     "Public": "Public",
@@ -3367,6 +3368,5 @@
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases.",
-    "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.": "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety."
+    "Error loading Azure databases.": "Error loading Azure databases."
 }
