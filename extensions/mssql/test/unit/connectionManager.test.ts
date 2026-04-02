@@ -774,7 +774,9 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("uses VS Code account tokens when VS Code account mode is enabled", async () => {
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            stubPreviewService(sandbox, {
+                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+            });
 
             sandbox.stub(AzureController, "isTokenValid").returns(false);
             sandbox.stub(VscodeEntraMfaUtils, "acquireSqlAccessTokenFromVscodeAccount").resolves({

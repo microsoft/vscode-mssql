@@ -258,18 +258,20 @@ export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.P
 }
 
 export const TestFeature = "testFeature" as PreviewFeature;
+export const TestFeatureTwo = "testFeatureTwo" as PreviewFeature;
 
 export function stubPreviewService(
     sandbox: sinon.SinonSandbox,
-    previews: Record<PreviewFeature, boolean>,
+    previews: Record<string, boolean>,
+    experimentalFeaturesEnabled: boolean = false,
 ): void {
-    sandbox.stub(previewService, "experimentalFeaturesEnabled").get(() => false);
-    sandbox.stub(previewService, "getNonDefaultOverrides").returns({ [TestFeature]: true });
+    sandbox
+        .stub(previewService, "experimentalFeaturesEnabled")
+        .get(() => experimentalFeaturesEnabled);
 
-    for (const [feature, enabled] of Object.entries(previews)) {
-        sandbox
-            .stub(previewService, "isFeatureEnabled")
-            .withArgs(feature as PreviewFeature)
-            .returns(enabled);
-    }
+    sandbox.stub(previewService, "getNonDefaultOverrides").returns(previews);
+
+    sandbox
+        .stub(previewService, "isFeatureEnabled")
+        .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
 }
