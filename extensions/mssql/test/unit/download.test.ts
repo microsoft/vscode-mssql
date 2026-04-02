@@ -203,10 +203,9 @@ suite("ServiceDownloadProvider Tests", () => {
 
         fixture = await createDownloadProvider(fixture);
 
-        // Stub signature validation to simulate a failure.
-        sandbox
-            .stub(signatureVerifier, "validateExtractedBinaries")
-            .rejects(new Error("Signature is not valid for MicrosoftSqlToolsServiceLayer.exe"));
+        // Reuse the existing validateExtractedBinaries stub to simulate a failure.
+        const validateStub = signatureVerifier.validateExtractedBinaries as unknown as sinon.SinonStub;
+        validateStub.rejects(new Error("Signature is not valid for MicrosoftSqlToolsServiceLayer.exe"));
 
         // Stub fs.rm to verify it is called with the install directory.
         const rmStub = sandbox.stub(fs, "rm").resolves();
