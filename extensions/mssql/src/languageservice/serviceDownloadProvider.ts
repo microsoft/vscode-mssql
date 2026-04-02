@@ -5,7 +5,6 @@
 
 import * as path from "path";
 import * as tmp from "tmp";
-import * as vscode from "vscode";
 import { Runtime, getRuntimeDisplayName } from "../models/platform";
 import {
     IConfigUtils,
@@ -144,9 +143,10 @@ export default class ServiceDownloadProvider {
             throw err;
         }
 
-        const verificationDisabled = vscode.workspace
-            .getConfiguration(Constants.extensionConfigSectionName)
-            .get<boolean>(Constants.configDisableSignatureVerification, false);
+        const verificationDisabled = this._config.getWorkspaceConfig(
+            Constants.configDisableSignatureVerification,
+            false,
+        );
 
         if (verificationDisabled) {
             this._logger.warn(
@@ -169,9 +169,7 @@ export default class ServiceDownloadProvider {
                 );
             }
             throw new Error(
-                vscode.l10n.t(
-                    "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.",
-                ),
+                "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.",
             );
         }
 
