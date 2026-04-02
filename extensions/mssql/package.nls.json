@@ -70,7 +70,7 @@
     "mssql.toggleActualPlan": "Toggle Actual Plan",
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",
     "mssql.logDebugInfo": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
-    "mssql.disableSignatureVerification": "[Optional] Disable Authenticode signature verification of downloaded SQL Tools Service binaries.",
+    "mssql.disableSignatureVerification": "[Optional] Disable signature verification of downloaded SQL Tools Service binaries.",
     "mssql.maxRecentConnections": "The maximum number of recently used connections to store in the connection list.",
     "mssql.profiler.eventBufferSize": "Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.",
     "mssql.connections": "Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.",

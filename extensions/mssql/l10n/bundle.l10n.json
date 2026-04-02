@@ -3367,5 +3367,6 @@
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases."
+    "Error loading Azure databases.": "Error loading Azure databases.",
+    "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.": "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety."
 }

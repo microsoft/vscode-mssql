@@ -15,11 +15,6 @@ export interface RequiredSignedBinary {
     expectedThumbprint?: string; // optional, for stricter pinning
 }
 
-// TODO: Add expectedThumbprint for stricter pinning once the production thumbprint is confirmed.
-// To retrieve the thumbprint from a known-good binary, run in PowerShell:
-//   $sig = Get-AuthenticodeSignature "path\to\MicrosoftSqlToolsServiceLayer.exe"
-//   $sig.SignerCertificate.Thumbprint
-//   $sig.SignerCertificate.Subject
 const WINDOWS_REQUIRED_BINARIES: RequiredSignedBinary[] = [
     { fileName: "MicrosoftSqlToolsServiceLayer.exe", expectedPublisher: "Microsoft Corporation" },
     {
@@ -169,10 +164,9 @@ export async function validateExtractedBinaries(
     const isMacOS = runtime === Runtime.OSX || runtime === Runtime.OSX_ARM64;
 
     if (!isWindows && !isMacOS) {
-        // Linux: .NET DLLs do not support OS-level Authenticode verification.
-        // Skipping signature validation on this platform.
-        logger.appendLine(
-            "[WARN] Authenticode signature validation is not supported on Linux. " +
+        // .NET DLLs do not support OS-level signature verification on this platform.
+        logger.warn(
+            `Signature validation is not supported on this platform (${runtime}). ` +
                 "Skipping binary signature checks.",
         );
         return;

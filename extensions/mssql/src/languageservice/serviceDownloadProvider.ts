@@ -136,7 +136,7 @@ export default class ServiceDownloadProvider {
 
         if (verificationDisabled) {
             this._logger.warn(
-                "[WARN] Signature verification is disabled by configuration " +
+                `Signature verification is disabled by configuration ` +
                     `(${Constants.extensionConfigSectionName}.${Constants.configDisableSignatureVerification}). ` +
                     "Skipping binary signature checks.",
             );
@@ -146,17 +146,18 @@ export default class ServiceDownloadProvider {
         try {
             await validateExtractedBinaries(installDirectory, platform, this._logger);
         } catch (err) {
-            this._logger.appendLine(`[ERROR] ${err}`);
+            this._logger.error(String(err));
             try {
                 await fs.rm(installDirectory, { recursive: true, force: true });
             } catch (cleanupErr) {
                 this._logger.error(
-                    `[ERROR] Failed to remove install directory after signature validation failure: ${cleanupErr}`,
+                    `Failed to remove install directory after signature validation failure: ${cleanupErr}`,
                 );
             }
             throw new Error(
-                "SQL Tools Service installation failed because one or more downloaded binaries " +
-                    "did not pass Microsoft signature validation. The downloaded files were removed for safety.",
+                vscode.l10n.t(
+                    "SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.",
+                ),
             );
         }
 
