@@ -11476,6 +11476,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy Column Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Copier le nom de la colonne]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[I have read the summary and understand the potential risks.]]></Val>
@@ -21343,6 +21352,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.resultsGrid.alternatingRowColors" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activer l'alternance des couleurs de fond des lignes (effet zébré) dans la grille de résultats. La couleur est dérivée du thème VS Code actuel.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.resultsGrid.autoSizeColumnsMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).]]></Val>
@@ -21366,6 +21384,60 @@
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Contrôle le nombre maximal de lignes autorisées pour effectuer le filtrage et le tri en mémoire. Si ce nombre est dépassé, le tri et le filtrage sont désactivés. Avertissement : l’augmentation de cette valeur peut avoir un impact sur les performances.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.rowPadding" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rembourrage vertical supplémentaire, exprimé en pixels, ajouté à chaque ligne de la grille de résultats et contrôlant la densité des lignes. Plage valide : 0-10.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Control which grid lines are visible in the results grid.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Contrôlez quelles lignes de grille sont visibles dans la grille de résultats.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.both" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show both horizontal and vertical grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher les lignes de grille horizontales et verticales]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.horizontal" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show only horizontal grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher uniquement les lignes de grille horizontales]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.none" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide all grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Masquer toutes les lignes de grille]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.showGridLines.vertical" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show only vertical grid lines]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher uniquement les lignes de grille verticales]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21651,12 +21723,12 @@
       </Item>
       <Item ItemId=";package.mssql.startContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start SQLContainer]]></Val>
+          <Val><![CDATA[Start SQL Container]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Démarrer SQLContainer]]></Val>
+            <Val><![CDATA[Démarrer le conteneur SQL]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Start Container]]></Val>
+            <Val><![CDATA[Start SQLContainer]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />

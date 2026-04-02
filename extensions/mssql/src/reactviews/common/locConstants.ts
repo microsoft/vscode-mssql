@@ -70,6 +70,12 @@ export class LocConstants {
             general: l10n.t("General"),
             previous: l10n.t("Previous"),
             ok: l10n.t("OK"),
+            stepOf: (currentStep: number, totalSteps: number) =>
+                l10n.t({
+                    message: "Step {0} of {1}",
+                    args: [currentStep, totalSteps],
+                    comment: ["{0} is the current step number", "{1} is the total number of steps"],
+                }),
             learnMore: l10n.t("Learn more"),
         };
     }
@@ -746,6 +752,7 @@ export class LocConstants {
             sort: l10n.t("Sort"),
             filter: l10n.t("Filter"),
             resize: l10n.t("Resize"),
+            copyColumnName: l10n.t("Copy Column Name"),
             resizeColumn: (columnName: string) => {
                 return l10n.t({
                     message: "Resize column '{0}'",
@@ -835,7 +842,7 @@ export class LocConstants {
             ),
             dabCopilotDiscoveryTitle: l10n.t("Build APIs with GitHub Copilot"),
             dabCopilotDiscoveryBody: l10n.t(
-                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.",
+                "Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.",
             ),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
@@ -1292,8 +1299,8 @@ export class LocConstants {
                     ],
                 }),
 
-            // DAB (Data API Builder) strings
-            dabTitle: l10n.t("Data API Builder Configuration (Preview)"),
+            // DAB (Data API builder) strings
+            dabTitle: l10n.t("Data API builder Configuration (Preview)"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -1323,11 +1330,11 @@ export class LocConstants {
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
-                "In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
+                "In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
             unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
             dabUnsupportedDataTypesBanner: l10n.t(
-                "One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.",
+                "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
             ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
@@ -1390,7 +1397,7 @@ export class LocConstants {
             deployDabContainerDescription: (apiTypes: string) =>
                 l10n.t({
                     message:
-                        "This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
+                        "This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.",
                     args: [apiTypes],
                     comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
                 }),
@@ -1427,11 +1434,11 @@ export class LocConstants {
 
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: l10n.t(
-                "Table must have a primary key to be used with Data API Builder",
+                "Table must have a primary key to be used with Data API builder",
             ),
             unsupportedDataTypes: (columns: string) =>
                 l10n.t({
-                    message: "Table contains column types not supported by Data API Builder: {0}",
+                    message: "Table contains column types not supported by Data API builder: {0}",
                     args: [columns],
                     comment: ["{0} is a comma-separated list of column names and their data types"],
                 }),
@@ -1444,7 +1451,7 @@ export class LocConstants {
             checkingDockerEngine: l10n.t("Checking Docker engine"),
             verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
             pullingDabImage: l10n.t("Pulling DAB container image"),
-            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API builder container image"),
             startingDabContainer: l10n.t("Starting DAB container"),
             creatingAndStartingContainer: l10n.t("Creating and starting the container"),
             checkingContainerReadiness: l10n.t("Checking container readiness"),
@@ -2494,21 +2501,21 @@ export class LocConstants {
     public get flatFileImport() {
         return {
             importFile: l10n.t("Import File (Preview)"),
-            stepOne: l10n.t("Step 1: Specify Input File"),
+            stepOne: l10n.t("Specify Input File"),
             loadingFlatFileImport: l10n.t("Loading flat file import..."),
             loadingTablePreview: l10n.t("Loading table preview..."),
             browse: l10n.t("Browse"),
-            stepTwo: l10n.t("Step 2: Preview Data"),
+            stepTwo: l10n.t("Preview Data"),
             operationPreviewText: l10n.t(
                 "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
             ),
-            stepThree: l10n.t("Step 3: Modify Columns"),
+            stepThree: l10n.t("Modify Columns"),
             columnName: l10n.t("Column Name"),
             dataType: l10n.t("Data Type"),
             allowNulls: l10n.t("Allow Nulls"),
             primaryKey: l10n.t("Primary Key"),
             importData: l10n.t("Import Data"),
-            stepFour: l10n.t("Step 4: Summary"),
+            stepFour: l10n.t("Summary"),
             importInformation: l10n.t("Import Information"),
             importStatus: l10n.t("Import Status"),
             objectType: l10n.t("Object Type"),
