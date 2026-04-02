@@ -6,7 +6,7 @@
 import * as ep from "../sharedInterfaces/executionPlan";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { WebviewPanelController } from "./webviewPanelController";
 import SqlDocumentService from "./sqlDocumentService";
 import {
     createExecutionPlanGraphs,
@@ -18,7 +18,7 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "./vscodeWrapper";
 
-export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
+export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
     ep.ExecutionPlanReducers
 > {

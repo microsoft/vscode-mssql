@@ -1,5 +1,29 @@
 # Developer Guide
 
+## Prerequisites
+
+- Node.js `>= 24`
+- npm `>= 11`
+- VS Code `>= 1.98.0`
+
+## Build and Test
+
+Run MSSQL extension development commands from the repository root:
+
+```bash
+npm install
+npm run build -- --target mssql
+npm run build -- --target mssql --prod
+npm run watch -- --target mssql
+npm run lint -- --target mssql
+npm run test -- --target mssql
+npm run smoketest -- --target mssql
+npm run package -- --target mssql --online
+npm run package -- --target mssql --offline
+```
+
+See the [root README](../../README.md) for shared monorepo commands and other workspace targets.
+
 ## SQL Tools Service (STS)
 
 ### Using locally built binaries (for debugging/testing)

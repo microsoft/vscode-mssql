@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDashboardTable, IProjectAction, IProjectProvider, IProjectType } from "dataworkspace";
+import { IProjectAction, IProjectProvider, IProjectType } from "dataworkspace";
 import "mocha";
 import { expect } from "chai";
 import * as vscode from "vscode";
@@ -23,7 +23,6 @@ export class MockTreeDataProvider implements vscode.TreeDataProvider<any> {
 export function createProjectProvider(
     projectTypes: IProjectType[],
     projectActions: IProjectAction[],
-    dashboardComponents: IDashboardTable[],
 ): IProjectProvider {
     const treeDataProvider = new MockTreeDataProvider();
     const projectProvider: IProjectProvider = {
@@ -41,9 +40,6 @@ export function createProjectProvider(
             return Promise.resolve(location);
         },
         projectToolbarActions: projectActions,
-        getDashboardComponents: (projectFile: string): IDashboardTable[] => {
-            return dashboardComponents;
-        },
     };
     return projectProvider;
 }
@@ -59,14 +55,14 @@ suite("ProjectProviderRegistry Tests", function (): void {
                 {
                     id: "tp1",
                     projectFileExtension: "testproj",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "test project",
                     description: "",
                 },
                 {
                     id: "tp2",
                     projectFileExtension: "testproj1",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "test project 1",
                     description: "",
                 },
@@ -85,25 +81,13 @@ suite("ProjectProviderRegistry Tests", function (): void {
                     },
                 },
             ],
-            [
-                {
-                    name: "tableInfo1",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
-                },
-                {
-                    name: "tableInfo2",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
-                },
-            ],
         );
         const provider2 = createProjectProvider(
             [
                 {
                     id: "sp1",
                     projectFileExtension: "sqlproj",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "sql project",
                     description: "",
                 },
@@ -138,18 +122,6 @@ suite("ProjectProviderRegistry Tests", function (): void {
                     run: async (): Promise<any> => {
                         return Promise.resolve();
                     },
-                },
-            ],
-            [
-                {
-                    name: "Deployments",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
-                },
-                {
-                    name: "Builds",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
                 },
             ],
         );
@@ -244,7 +216,7 @@ suite("ProjectProviderRegistry Tests", function (): void {
                 {
                     id: "tp1",
                     projectFileExtension: "testproj",
-                    icon: "",
+                    icon: vscode.Uri.file(""),
                     displayName: "test project",
                     description: "",
                 },
@@ -255,13 +227,6 @@ suite("ProjectProviderRegistry Tests", function (): void {
                     run: async (): Promise<any> => {
                         return Promise.resolve();
                     },
-                },
-            ],
-            [
-                {
-                    name: "tableInfo1",
-                    columns: [{ displayName: "c1", width: 75, type: "string" }],
-                    data: [["d1"]],
                 },
             ],
         );

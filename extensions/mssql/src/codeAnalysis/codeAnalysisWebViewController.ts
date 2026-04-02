@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     CodeAnalysisState,
@@ -26,7 +26,7 @@ import { parseSqlprojRuleOverrides } from "../publishProject/projectUtils";
 /**
  * Controller for the Code Analysis dialog webview
  */
-export class CodeAnalysisWebViewController extends ReactWebviewPanelController<
+export class CodeAnalysisWebViewController extends WebviewPanelController<
     CodeAnalysisState,
     CodeAnalysisReducers
 > {

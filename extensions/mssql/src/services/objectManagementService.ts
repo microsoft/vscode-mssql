@@ -34,7 +34,7 @@ import {
     RestorePlanResponse,
     RestoreResponse,
 } from "../sharedInterfaces/restore";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 
 export class ObjectManagementService {
     constructor(private _client: SqlToolsServiceClient) {}

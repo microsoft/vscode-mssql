@@ -8,19 +8,33 @@ import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import { SimpleExecuteResult } from "vscode-mssql";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FlatFileImportWebviewController } from "../../src/controllers/flatFileImportWebviewController";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as Loc from "../../src/constants/locConstants";
-import { FlatFileProvider } from "../../src/models/contracts/flatFile";
+import {
+    ChangeColumnSettingsParams,
+    ChangeColumnSettingsRequest,
+    ChangeColumnSettingsResponse,
+    DisposeSessionRequest,
+    DisposeSessionResponse,
+    InsertDataRequest,
+    InsertDataResponse,
+    ProseDiscoveryRequest,
+    ProseDiscoveryResponse,
+} from "../../src/models/contracts/flatFile";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { defaultSchema } from "../../src/constants/constants";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubTelemetry, stubVscodeWrapper } from "./utils";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as path from "path";
-import { FlatFileStepType } from "../../src/sharedInterfaces/flatFileImport";
+import {
+    FlatFileImportReducers,
+    FlatFileStepType,
+} from "../../src/sharedInterfaces/flatFileImport";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 
 chai.use(sinonChai);
@@ -33,7 +47,6 @@ suite("FlatFileImportWebviewController", () => {
 
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockProvider: FlatFileProvider;
     let mockConnectionProfile: ConnectionProfile;
 
     let sendActionEvent: sinon.SinonStub;
@@ -41,13 +54,30 @@ suite("FlatFileImportWebviewController", () => {
 
     const databases = ["db1", "db2"];
 
+    function createSchemaQueryResult(schemaNames: string[]): SimpleExecuteResult {
+        return {
+            rowCount: schemaNames.length,
+            columnInfo: [],
+            rows: schemaNames.map((schemaName) => [
+                {
+                    displayValue: schemaName,
+                    invariantCultureDisplayValue: schemaName,
+                    isNull: false,
+                },
+            ]),
+        };
+    }
+
+    function getReducer(reducerName: keyof FlatFileImportReducers) {
+        const reducer = controller["_reducerHandlers"].get(reducerName);
+        expect(reducer).to.not.be.undefined;
+        return reducer!;
+    }
+
     setup(async () => {
         sandbox = sinon.createSandbox();
 
-        mockContext = {
-            extensionUri: vscode.Uri.parse("https://localhost"),
-            extensionPath: "path",
-        } as unknown as vscode.ExtensionContext;
+        mockContext = stubExtensionContext(sandbox);
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
         ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
@@ -56,29 +86,18 @@ suite("FlatFileImportWebviewController", () => {
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockConnectionManager.listDatabases.resolves(databases);
 
-        mockProvider = {
-            sendProseDiscoveryRequest: sandbox.stub(),
-            sendChangeColumnSettingsRequest: sandbox.stub(),
-            sendInsertDataRequest: sandbox.stub(),
-        } as FlatFileProvider;
+        mockConnectionProfile = new ConnectionProfile();
+        mockConnectionProfile.server = "testServer";
+        mockConnectionProfile.database = "db1";
+        mockConnectionProfile.azureAccountToken = undefined;
 
-        mockConnectionProfile = {
-            server: "testServer",
-            database: "db1",
-            azureAccountToken: undefined,
-        } as unknown as ConnectionProfile;
-
-        mockClient.sendRequest.resolves({
-            rowCount: 2,
-            rows: [[{ displayValue: "dbo" }], [{ displayValue: "custom" }]],
-        } as any);
+        mockClient.sendRequest.resolves(createSchemaQueryResult(["dbo", "custom"]));
 
         controller = new FlatFileImportWebviewController(
             mockContext,
             vscodeWrapper,
             mockClient,
             mockConnectionManager,
-            mockProvider,
             mockConnectionProfile,
             "ownerUri",
             databases[0], // pass initial database name
@@ -136,7 +155,7 @@ suite("FlatFileImportWebviewController", () => {
     });
 
     test("handleLoadSchemas loads schemas successfully", async () => {
-        await (controller as any)["handleLoadSchemas"]();
+        await controller["handleLoadSchemas"]();
 
         expect(controller.state.schemaLoadStatus).to.equal(ApiStatus.Loaded);
 
@@ -148,16 +167,17 @@ suite("FlatFileImportWebviewController", () => {
     test("handleLoadSchemas handles error", async () => {
         mockClient.sendRequest.rejects(new Error("boom"));
 
-        await (controller as any)["handleLoadSchemas"]();
+        await controller["handleLoadSchemas"]();
 
         expect(controller.state.schemaLoadStatus).to.equal(ApiStatus.Error);
         expect(controller.state.errorMessage).to.equal(Loc.FlatFileImport.fetchSchemasError);
     });
 
     test("formAction reducer reloads schemas when database changes", async () => {
-        const loadSchemasStub = sandbox.stub(controller as any, "handleLoadSchemas");
+        mockClient.sendRequest.resetHistory();
+        mockClient.sendRequest.resolves(createSchemaQueryResult(["sales", "reporting"]));
 
-        await (controller["_reducerHandlers"] as any).get("formAction")(controller.state, {
+        await getReducer("formAction")(controller.state, {
             event: {
                 propertyName: "databaseName",
                 value: "db2",
@@ -165,68 +185,107 @@ suite("FlatFileImportWebviewController", () => {
             },
         });
 
-        expect(loadSchemasStub).to.have.been.calledOnce;
+        expect(controller.state.formState.databaseName).to.equal("db2");
+        expect(controller.state.formState.tableSchema).to.equal("sales");
+        expect(controller.state.formComponents["tableSchema"].options).to.deep.equal([
+            { displayName: "sales", value: "sales" },
+            { displayName: "reporting", value: "reporting" },
+        ]);
     });
 
     test("setColumnChanges reducer updates state", async () => {
-        const columnChanges = [{ id: 1 } as any, { id: 2 } as any];
-        const state = await (controller["_reducerHandlers"] as any).get("setColumnChanges")(
-            controller.state,
-            { columnChanges: columnChanges },
-        );
+        const columnChanges: ChangeColumnSettingsParams[] = [{ index: 0 }, { index: 1 }];
+        const state = await getReducer("setColumnChanges")(controller.state, {
+            columnChanges: columnChanges,
+        });
         expect(state.columnChanges).to.equal(columnChanges);
     });
 
     test("getTablePreview reducer success", async () => {
-        (mockProvider.sendProseDiscoveryRequest as sinon.SinonStub).resolves({
-            columns: [],
-        } as any);
+        const operationId = controller["operationId"];
+        const tablePreview: ProseDiscoveryResponse = {
+            dataPreview: [],
+            columnInfo: [],
+        };
 
-        const state = await (controller["_reducerHandlers"] as any).get("getTablePreview")(
-            controller.state,
-            {
-                filePath: "file.csv",
-                tableName: "table",
-                schemaName: "dbo",
-            },
-        );
+        mockClient.sendRequest
+            .withArgs(
+                ProseDiscoveryRequest.type,
+                sinon.match({
+                    operationId,
+                    filePath: "file.csv",
+                    tableName: "table",
+                    schemaName: "dbo",
+                }),
+            )
+            .resolves(tablePreview);
+
+        const state = await getReducer("getTablePreview")(controller.state, {
+            filePath: "file.csv",
+            tableName: "table",
+            schemaName: "dbo",
+        });
 
         expect(state.tablePreviewStatus).to.equal(ApiStatus.Loaded);
     });
 
     test("getTablePreview reducer failure", async () => {
-        (mockProvider.sendProseDiscoveryRequest as sinon.SinonStub).rejects(new Error("fail"));
+        const operationId = controller["operationId"];
+        mockClient.sendRequest
+            .withArgs(
+                ProseDiscoveryRequest.type,
+                sinon.match({
+                    operationId,
+                    filePath: "file.csv",
+                    tableName: "table",
+                    schemaName: "dbo",
+                }),
+            )
+            .rejects(new Error("fail"));
 
-        const state = await (controller["_reducerHandlers"] as any).get("getTablePreview")(
-            controller.state,
-            {
-                filePath: "file.csv",
-                tableName: "table",
-                schemaName: "dbo",
-            },
-        );
+        const state = await getReducer("getTablePreview")(controller.state, {
+            filePath: "file.csv",
+            tableName: "table",
+            schemaName: "dbo",
+        });
 
         expect(state.tablePreviewStatus).to.equal(ApiStatus.Error);
         expect(state.errorMessage).to.equal(Loc.FlatFileImport.fetchTablePreviewError);
     });
 
     test("importData reducer success path", async () => {
-        controller.state.columnChanges = [{ id: 1 } as any];
+        controller.state.columnChanges = [{ index: 0, newName: "col_a" }];
+        const operationId = controller["operationId"];
+        const changeColumnSettingsResponse: ChangeColumnSettingsResponse = {
+            result: { success: true, errorMessage: "" },
+        };
+        const insertDataResponse: InsertDataResponse = {
+            result: { success: true, errorMessage: "" },
+        };
 
-        mockConnectionManager.createConnectionDetails.returns({} as any);
-        mockConnectionManager.getConnectionString.resolves("connString");
+        mockClient.sendRequest
+            .withArgs(
+                ChangeColumnSettingsRequest.type,
+                sinon.match({
+                    index: 0,
+                    newName: "col_a",
+                    operationId,
+                }),
+            )
+            .resolves(changeColumnSettingsResponse);
+        mockClient.sendRequest
+            .withArgs(
+                InsertDataRequest.type,
+                sinon.match({
+                    operationId,
+                    ownerUri: "ownerUri",
+                    databaseName: "db1",
+                    batchSize: 1000,
+                }),
+            )
+            .resolves(insertDataResponse);
 
-        (mockProvider.sendChangeColumnSettingsRequest as sinon.SinonStub).resolves({
-            result: { success: true },
-        } as any);
-        (mockProvider.sendInsertDataRequest as sinon.SinonStub).resolves({
-            result: { success: true },
-        } as any);
-
-        const state = await (controller["_reducerHandlers"] as any).get("importData")(
-            controller.state,
-            {},
-        );
+        const state = await getReducer("importData")(controller.state, {});
 
         expect(state.importDataStatus).to.equal(ApiStatus.Loaded);
         expect(sendActionEvent).to.have.been.calledWith(
@@ -237,18 +296,38 @@ suite("FlatFileImportWebviewController", () => {
 
     test("importData reducer failure path", async () => {
         controller.state.columnChanges = [];
+        const operationId = controller["operationId"];
 
-        mockConnectionManager.createConnectionDetails.returns({} as any);
-        mockConnectionManager.getConnectionString.rejects(new Error("fail"));
+        mockClient.sendRequest
+            .withArgs(
+                InsertDataRequest.type,
+                sinon.match({
+                    operationId,
+                    ownerUri: "ownerUri",
+                    databaseName: "db1",
+                    batchSize: 1000,
+                }),
+            )
+            .rejects(new Error("fail"));
 
-        const state = await (controller["_reducerHandlers"] as any).get("importData")(
-            controller.state,
-            {},
-        );
+        const state = await getReducer("importData")(controller.state, {});
 
         expect(state.importDataStatus).to.equal(ApiStatus.Error);
         expect(state.errorMessage).to.equal(Loc.FlatFileImport.importFailed);
         expect(sendErrorEvent).to.have.been.called;
+    });
+
+    test("importData reducer returns existing state when already running", async () => {
+        controller.state.importDataStatus = ApiStatus.Loading;
+
+        const state = await getReducer("importData")(controller.state, {});
+
+        expect(state).to.equal(controller.state);
+        expect(state.importDataStatus).to.equal(ApiStatus.Loading);
+        expect(mockClient.sendRequest).to.not.have.been.calledWith(
+            ChangeColumnSettingsRequest.type,
+        );
+        expect(mockClient.sendRequest).to.not.have.been.calledWith(InsertDataRequest.type);
     });
 
     test("openVSCodeFileBrowser reducer sets flatFilePath and tableName correctly", async () => {
@@ -299,25 +378,42 @@ suite("FlatFileImportWebviewController", () => {
     test("dispose reducer disposes controller", async () => {
         // Stub controller dispose
         const disposeStub = sandbox.stub(controller, "dispose");
+        const operationId = controller["operationId"];
+        const disposeSessionResponse: DisposeSessionResponse = {
+            result: { success: true, errorMessage: "" },
+        };
+
+        mockClient.sendRequest
+            .withArgs(
+                DisposeSessionRequest.type,
+                sinon.match({
+                    operationId,
+                }),
+            )
+            .resolves(disposeSessionResponse);
 
         const state = { ...controller.state };
 
         const newState = await controller["_reducerHandlers"].get("dispose")(state, {});
 
-        expect(disposeStub).to.have.been.calledTwice; // once from controller and once from panel
+        expect(disposeStub).to.have.been.calledOnce; // panel.dispose() triggers onDidDispose which calls dispose()
         expect(newState).to.equal(state);
     });
 
     test("resetState reducer handles all reset types correctly", async () => {
-        const reducer = controller["_reducerHandlers"].get("resetState");
+        const reducer = getReducer("resetState");
+        const tablePreview: ProseDiscoveryResponse = {
+            dataPreview: [],
+            columnInfo: [],
+        };
 
         // start with a fully-populated state
         let state = {
             ...controller.state,
             importDataStatus: ApiStatus.Loaded,
-            columnChanges: [{ id: 1 } as any],
+            columnChanges: [{ index: 0 }],
             tablePreviewStatus: ApiStatus.Loaded,
-            tablePreview: { dataPreview: [] } as any,
+            tablePreview,
             formErrors: ["flatFilePath"],
             formState: {
                 databaseName: "db1",
@@ -335,7 +431,7 @@ suite("FlatFileImportWebviewController", () => {
         expect(state.currentStep).to.equal(FlatFileStepType.ColumnChanges);
 
         // ---- ColumnChanges branch ----
-        state.columnChanges = [{ id: 2 } as any]; // repopulate
+        state.columnChanges = [{ index: 1 }]; // repopulate
         state = await reducer(state, { resetType: FlatFileStepType.ColumnChanges });
 
         expect(state.columnChanges).to.deep.equal([]);
@@ -343,7 +439,7 @@ suite("FlatFileImportWebviewController", () => {
 
         // ---- TablePreview branch ----
         state.tablePreviewStatus = ApiStatus.Loaded;
-        state.tablePreview = { dataPreview: [] } as any;
+        state.tablePreview = tablePreview;
 
         state = await reducer(state, { resetType: FlatFileStepType.TablePreview });
 
@@ -353,9 +449,9 @@ suite("FlatFileImportWebviewController", () => {
 
         // ---- default / full reset branch ----
         state.importDataStatus = ApiStatus.Loaded;
-        state.columnChanges = [{ id: 3 } as any];
+        state.columnChanges = [{ index: 2 }];
         state.tablePreviewStatus = ApiStatus.Loaded;
-        state.tablePreview = { dataPreview: [] } as any;
+        state.tablePreview = tablePreview;
         state.formErrors = ["flatFilePath"];
         state.formState = {
             databaseName: "db1",
@@ -382,10 +478,7 @@ suite("FlatFileImportWebviewController", () => {
 
     test("setStep reducer updates state", async () => {
         const step = FlatFileStepType.ColumnChanges;
-        const state = await (controller["_reducerHandlers"] as any).get("setStep")(
-            controller.state,
-            { step: step },
-        );
+        const state = await getReducer("setStep")(controller.state, { step: step });
         expect(state.currentStep).to.equal(step);
     });
 });

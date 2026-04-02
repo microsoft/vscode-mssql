@@ -18,6 +18,7 @@ export enum ApiStatus {
     Loading = "loading",
     Loaded = "loaded",
     Error = "error",
+    Cancelled = "cancelled",
 }
 
 /**
@@ -27,6 +28,32 @@ export enum ApiStatus {
 export interface Status {
     status: ApiStatus;
     message?: string;
+}
+
+function isApiStatus(value: unknown): value is ApiStatus {
+    return typeof value === "string" && (Object.values(ApiStatus) as string[]).includes(value);
+}
+
+export function isStatus(error: unknown): error is Status {
+    if (!error || typeof error !== "object") {
+        return false;
+    }
+
+    const candidate = error as { status?: unknown; message?: unknown };
+
+    if (!isApiStatus(candidate.status)) {
+        return false;
+    }
+
+    if (
+        "message" in candidate &&
+        candidate.message !== undefined &&
+        typeof candidate.message !== "string"
+    ) {
+        return false;
+    }
+
+    return true;
 }
 
 export interface WebviewTelemetryActionEvent {

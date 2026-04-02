@@ -6,7 +6,7 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import { DownloadType, IStatusView } from "../../src/languageservice/interfaces";
+import { IStatusView } from "../../src/languageservice/interfaces";
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import DownloadHelper from "../../src/languageservice/downloadHelper";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
@@ -56,13 +56,12 @@ suite("ServiceDownloadProvider Tests", () => {
         config.getSqlToolsPackageVersion.returns(expectedVersionFromConfig);
         const downloadProvider = new ServiceDownloadProvider(
             config,
-            undefined,
+            testLogger,
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
-        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
+        const actual = await downloadProvider.getOrCreateInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
     });
 
@@ -74,13 +73,12 @@ suite("ServiceDownloadProvider Tests", () => {
         config.getSqlToolsPackageVersion.returns(expectedVersionFromConfig);
         const downloadProvider = new ServiceDownloadProvider(
             config,
-            undefined,
+            testLogger,
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
-        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
+        const actual = await downloadProvider.getOrCreateInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
     });
 
@@ -93,30 +91,13 @@ suite("ServiceDownloadProvider Tests", () => {
         config.getSqlToolsPackageVersion.returns(expectedVersionFromConfig);
         const downloadProvider = new ServiceDownloadProvider(
             config,
-            undefined,
+            testLogger,
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
-        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
+        const actual = await downloadProvider.getOrCreateInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
-    });
-
-    test("getDownloadFileName should return the expected file name given a runtime", () => {
-        const expectedName = "expected";
-        const fileNamesJson = { Windows_64: expectedName };
-        config.getSqlToolsConfigValue.withArgs("downloadFileNames").returns(fileNamesJson);
-        const downloadProvider = new ServiceDownloadProvider(
-            config,
-            undefined,
-            statusView,
-            testDownloadHelper,
-            testDecompressProvider,
-            DownloadType.SqlToolsService,
-        );
-        const actual = downloadProvider.getDownloadFileName(Runtime.Windows_64);
-        expect(actual).to.equal(expectedName);
     });
 
     async function createDownloadProvider(fixture: IFixture): Promise<IFixture> {
@@ -126,11 +107,7 @@ suite("ServiceDownloadProvider Tests", () => {
         const installFolder = path.join(__dirname, "testService");
         const fileNamesJson = { Windows_64: fileName };
         const downloadUrl = "baseDownloadUrl/1.0.0/fileName";
-        try {
-            await fs.rmdir(installFolder);
-        } catch (err) {
-            console.error(err);
-        }
+        await fs.rm(installFolder, { recursive: true, force: true });
 
         config.getSqlToolsInstallDirectory.returns(installFolder);
         config.getSqlToolsConfigValue.withArgs("downloadFileNames").returns(fileNamesJson);
@@ -151,7 +128,6 @@ suite("ServiceDownloadProvider Tests", () => {
             statusView,
             testDownloadHelper,
             testDecompressProvider,
-            DownloadType.SqlToolsService,
         );
         fixture.downloadUrl = downloadUrl;
         fixture.downloadProvider = downloadProvider;
@@ -167,11 +143,10 @@ suite("ServiceDownloadProvider Tests", () => {
         };
 
         fixture = await createDownloadProvider(fixture);
-        await fixture.downloadProvider!.installService(Runtime.Windows_64);
+        await fixture.downloadProvider!.downloadAndInstallService(Runtime.Windows_64);
 
-        expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
-        expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
-        expect(testDecompressProvider.decompress).to.have.been.calledOnce;
+        expect(testDownloadHelper.downloadFile).to.have.been.calledWith(fixture.downloadUrl);
+        expect(testDecompressProvider.decompress).to.have.been.called;
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
@@ -184,11 +159,14 @@ suite("ServiceDownloadProvider Tests", () => {
         };
 
         fixture = await createDownloadProvider(fixture);
-        return fixture.downloadProvider!.installService(Runtime.Windows_64).catch((_) => {
-            expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
-            expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
-            expect(testDecompressProvider.decompress).to.not.have.been.called;
-        });
+        return fixture
+            .downloadProvider!.downloadAndInstallService(Runtime.Windows_64)
+            .catch((_) => {
+                expect(testDownloadHelper.downloadFile).to.have.been.calledWith(
+                    fixture.downloadUrl,
+                );
+                expect(testDecompressProvider.decompress).to.not.have.been.called;
+            });
     });
 
     test.skip("installSQLToolsService should not update status to installed decompress fails", async () => {
@@ -200,10 +178,13 @@ suite("ServiceDownloadProvider Tests", () => {
         };
 
         fixture = await createDownloadProvider(fixture);
-        return fixture.downloadProvider!.installService(Runtime.Windows_64).catch((_) => {
-            expect(testDownloadHelper.downloadFile).to.have.been.calledOnce;
-            expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
-            expect(testDecompressProvider.decompress).to.have.been.calledOnce;
-        });
+        return fixture
+            .downloadProvider!.downloadAndInstallService(Runtime.Windows_64)
+            .catch((_) => {
+                expect(testDownloadHelper.downloadFile).to.have.been.calledWith(
+                    fixture.downloadUrl,
+                );
+                expect(testDecompressProvider.decompress).to.have.been.called;
+            });
     });
 });

@@ -9,7 +9,7 @@ import { NotificationType, RequestType } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
-import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../enums";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";

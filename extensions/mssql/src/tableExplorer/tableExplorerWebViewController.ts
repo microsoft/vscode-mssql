@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     TableExplorerWebViewState,
     TableExplorerReducers,
@@ -25,7 +25,7 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
-export class TableExplorerWebViewController extends ReactWebviewPanelController<
+export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerWebViewState,
     TableExplorerReducers
 > {

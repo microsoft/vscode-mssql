@@ -129,24 +129,37 @@ export class HttpClientCore {
 
         await new Promise<void>((resolve, reject) => {
             const tmpFile = fs.createWriteStream("", { fd: destinationFd });
+            let isSettled = false;
+
+            const rejectDownload = (err: NodeJS.ErrnoException) => {
+                if (isSettled) {
+                    return;
+                }
+
+                isSettled = true;
+                response.data.destroy();
+                tmpFile.destroy();
+                reject(new HttpDownloadError("response", err));
+            };
 
             response.data.on("data", (data: Buffer) => {
                 options?.onData?.(data);
             });
 
-            response.data.on("error", (err: NodeJS.ErrnoException) => {
-                reject(new HttpDownloadError("response", err));
-            });
+            response.data.on("error", rejectDownload);
 
-            tmpFile.on("error", (err: NodeJS.ErrnoException) => {
-                reject(new HttpDownloadError("response", err));
-            });
+            tmpFile.on("error", rejectDownload);
 
-            response.data.on("end", () => {
+            tmpFile.on("close", () => {
+                if (isSettled) {
+                    return;
+                }
+
+                isSettled = true;
                 resolve();
             });
 
-            response.data.pipe(tmpFile, { end: false });
+            response.data.pipe(tmpFile);
         });
 
         return {

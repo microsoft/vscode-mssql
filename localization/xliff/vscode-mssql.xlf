@@ -102,6 +102,9 @@
     <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
       <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
+      <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
@@ -1431,6 +1434,9 @@
     <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
       <source xml:lang="en">Copy As</source>
     </trans-unit>
+    <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
+      <source xml:lang="en">Copy Column Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
       <source xml:lang="en">Copy Headers</source>
     </trans-unit>
@@ -1463,6 +1469,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
       <source xml:lang="en">Copy connection string to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
+      <source xml:lang="en">Copy link</source>
     </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
@@ -1564,6 +1573,10 @@
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
+      <source xml:lang="en">Create new connection copied from {0}</source>
+      <note>{0} is the name of the connection profile</note>
+    </trans-unit>
     <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
@@ -1603,6 +1616,10 @@
     </trans-unit>
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++36d37fc43209cbab12c2155e6a214b4d880350cd721cc4e9e45216daaefaeb49">
+      <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
       <source xml:lang="en">Currently signed in as:</source>
@@ -1651,20 +1668,17 @@
     <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
       <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
     </trans-unit>
-    <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
-      <source xml:lang="en">Data API Builder</source>
+    <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
+      <source xml:lang="en">Data API builder</source>
     </trans-unit>
-    <trans-unit id="++CODE++7eea85aa6004312fe7cc5d4ff233a76023b0493855ff87a0809ab895e291a4c5">
-      <source xml:lang="en">Data API Builder Configuration (Preview)</source>
+    <trans-unit id="++CODE++817f5f09a6d707d92c3926808ded36489dab38b529e972985cf5314eac7dbdbb">
+      <source xml:lang="en">Data API builder Configuration (Preview)</source>
     </trans-unit>
-    <trans-unit id="++CODE++72c36bbb31611e3c467fa0c761ecb6ab1ddf304e0e8a01ee97490486342028f1">
-      <source xml:lang="en">Data API Builder opened. Continue with {0} operations ({1}/{2}).</source>
+    <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
+      <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
       <note>{0} is the command identifier &apos;mssql_dab&apos; and must not be translated
 {1} is the operation name &apos;get_state&apos; and must not be translated
 {2} is the operation name &apos;apply_changes&apos; and must not be translated</note>
-    </trans-unit>
-    <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
-      <source xml:lang="en">Data API builder</source>
     </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
@@ -1953,11 +1967,14 @@
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
+    <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
+      <source xml:lang="en">Download offline VSIX</source>
+    </trans-unit>
     <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
       <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
-      <source xml:lang="en">Downloading the Data API Builder container image</source>
+    <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
+      <source xml:lang="en">Downloading the Data API builder container image</source>
     </trans-unit>
     <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
       <source xml:lang="en">Drop</source>
@@ -1990,11 +2007,12 @@
       <source xml:lang="en">Edit Connection Group: {0}</source>
       <note>{0} is the name of the connection group being edited</note>
     </trans-unit>
-    <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
-      <source xml:lang="en">Edit Connection Profile</source>
-    </trans-unit>
     <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
       <source xml:lang="en">Edit Data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++08d593fb39b41430bb8c2c1162a76d2c273c1180b07a062108bb2c8e7ab2a3c6">
+      <source xml:lang="en">Edit Database Connection - {0}</source>
+      <note>{0} is the name of the connection profile</note>
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
@@ -2002,8 +2020,15 @@
     <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
       <source xml:lang="en">Edit an existing connection profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f60c38f32a4cbb47dd3fd2e4e95d272a157dd89834e124e294b31261139390a">
+      <source xml:lang="en">Edit connection profile</source>
+    </trans-unit>
     <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
       <source xml:lang="en">Edit your schema to see changes here.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c8724cfbaf2b6567c288f9f3ec1f1138c9c48bd270325ecc4095993063e8691b">
+      <source xml:lang="en">Edit {0}</source>
+      <note>{0} is the name of the connection profile</note>
     </trans-unit>
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -2276,6 +2301,12 @@
       <source xml:lang="en">Error: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
+      <source xml:lang="en">Estimated Operator Cost</source>
+    </trans-unit>
+    <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
+      <source xml:lang="en">Estimated Subtree Cost</source>
+    </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
       <note>{0} is the name of the profiler event</note>
@@ -2296,8 +2327,8 @@
     <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
       <source xml:lang="en">Execute</source>
     </trans-unit>
-    <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
-      <source xml:lang="en">Execute &apos;{0}&apos; operation on Data API Builder?</source>
+    <trans-unit id="++CODE++bb035c6e4172fa0ed22c5df8a72cbc77405f39715c9515c5eb7fe9db16adde4b">
+      <source xml:lang="en">Execute &apos;{0}&apos; operation on Data API builder?</source>
       <note>{0} is the operation name</note>
     </trans-unit>
     <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
@@ -2307,8 +2338,8 @@
     <trans-unit id="++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d">
       <source xml:lang="en">Execute SQL against SQL Server / Azure SQL</source>
     </trans-unit>
-    <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
-      <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API Builder</source>
+    <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
+      <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API builder</source>
       <note>{0} is the operation name</note>
     </trans-unit>
     <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
@@ -2393,6 +2424,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b9a5f7a679be3491c633f828f30741103a02f65654b87470f4a17a23a7838fc3">
       <source xml:lang="en">Export to JSON</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ccd4fda2f60776da3700ab9349601e6fb2058888d091d6bad6dd7ffb9b32bd75">
+      <source xml:lang="en">Export to PDF</source>
     </trans-unit>
     <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
       <source xml:lang="en">Export to tab delimited</source>
@@ -3255,8 +3289,8 @@
     <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
       <source xml:lang="en">In progress</source>
     </trans-unit>
-    <trans-unit id="++CODE++713772940f735da4b9d051c4f91c4e707ef5389f0014209b9cdd119407ee776c">
-      <source xml:lang="en">In the Data API Builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
+    <trans-unit id="++CODE++8a95be6d8f6c4312ed4415b9bde10c28f765b025b375245f7f53575ccbe94183">
+      <source xml:lang="en">In the Data API builder (Preview) experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
       <source xml:lang="en">Include</source>
@@ -3420,6 +3454,9 @@
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
+      <source xml:lang="en">Link copied to clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
       <source xml:lang="en">List Connections</source>
@@ -3799,8 +3836,8 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
-    <trans-unit id="++CODE++43c943a50a5c949750e977b8ea6d927613eb5ae6ed67ffc79f136ba934e3000d">
-      <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API Builder.</source>
+    <trans-unit id="++CODE++42c869c9cf0bc65de28be00cb8d74e9103e69df8251055669978ecbc7b656d71">
+      <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API builder.</source>
     </trans-unit>
     <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
       <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
@@ -3843,6 +3880,9 @@
       <source xml:lang="en">Modified table {0}: {1}</source>
       <note>{0} is the qualified table name
 {1} is a list of property changes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2b0fb3195207b0c3a2a2e4f9dfcec543b14670f9d9ea87452e108e589360152c">
+      <source xml:lang="en">Modify Columns</source>
     </trans-unit>
     <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
       <source xml:lang="en">Modify Table</source>
@@ -3977,6 +4017,10 @@
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab3f47847de3f238eecec8fd478cfd34c2fb816a4d35949a205060f84eca6177">
+      <source xml:lang="en">No SQL resource is configured for the current cloud &apos;{0}&apos;. Please update your Azure account settings.</source>
+      <note>{0} is the display name of the current cloud</note>
+    </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
@@ -3998,8 +4042,8 @@
     <trans-unit id="++CODE++e1c3c2a43f6c136ccb3687ab46c28b72d02912b8f0a2775c64c649f4a8735c19">
       <source xml:lang="en">No active notebook.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ddb807c272e3ef0e2a7c29029c3cce1ca7ac2a6d3094be7df3090b859d719938">
-      <source xml:lang="en">No active schema designer found. Please open Data API Builder first using mssql_dab with operation &apos;show&apos; or from the UI.</source>
+    <trans-unit id="++CODE++dbff7fc884da7e9804728876cc7995627f9f9d17b7041de1dc1d7b5559001270">
+      <source xml:lang="en">No active schema designer found. Please open Data API builder first using mssql_dab with operation &apos;show&apos; or from the UI.</source>
     </trans-unit>
     <trans-unit id="++CODE++917ad1534b0bc335acc90386a675181740f75e6e5ad193ce8cf5b64340143e43">
       <source xml:lang="en">No active schema designer found. Please open one first using mssql_schema_designer with operation &apos;show&apos; or from the UI.</source>
@@ -4305,8 +4349,8 @@
       <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
       <note>{0} is the comma separated list of connection display names</note>
     </trans-unit>
-    <trans-unit id="++CODE++71219533fa80ed5eeb848c111ee5ebb32cb091945385aeba0c8685617390b694">
-      <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API Builder. These entities cannot be selected for deployment.</source>
+    <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
+      <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
     </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
@@ -4570,6 +4614,9 @@
     </trans-unit>
     <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
       <source xml:lang="en">Preview</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e71512df696382fac6921ba12839603a2a39a6da6d68a85140c4f937e5f1165">
+      <source xml:lang="en">Preview Data</source>
     </trans-unit>
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
@@ -5024,8 +5071,8 @@
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>
     </trans-unit>
-    <trans-unit id="++CODE++33be2480ef4307229f1a98d3352f905fb602c396ecf06810058f2aa3ac029104">
-      <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API Builder.</source>
+    <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
+      <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
@@ -5559,6 +5606,9 @@
       <source xml:lang="en">Server {0} not found.</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
+      <source xml:lang="en">Service installation failed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
       <source xml:lang="en">Session creation timed out</source>
     </trans-unit>
@@ -5688,6 +5738,9 @@
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>
     </trans-unit>
+    <trans-unit id="++CODE++d1d42f9f45fb411d15e6cbe63ade191eacc7b913567fcaa14b1b197afdcb9088">
+      <source xml:lang="en">Sign in and retry</source>
+    </trans-unit>
     <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
       <source xml:lang="en">Sign in to a new account</source>
     </trans-unit>
@@ -5719,8 +5772,9 @@
     <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
       <source xml:lang="en">Sign into tenant</source>
     </trans-unit>
-    <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
-      <source xml:lang="en">Signing in to Azure...</source>
+    <trans-unit id="++CODE++81ecb58c552f0960f49fca72a0105a414beccc57b3a401f3d74904af931ccbf1">
+      <source xml:lang="en">Signing in to Azure as {0}...</source>
+      <note>{0} is the account name</note>
     </trans-unit>
     <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
       <source xml:lang="en">Simple</source>
@@ -5772,6 +5826,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
       <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58985ddaf5b41a741597a25373888d0bd61c8764c95b3eef48076bb0238fdca5">
+      <source xml:lang="en">Specify Input File</source>
     </trans-unit>
     <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
       <source xml:lang="en">SqlPackage Command</source>
@@ -5833,17 +5890,10 @@
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
-    <trans-unit id="++CODE++6b3ad0a81a146978929aa5ff3cfeb5e1f1b6658c48ca1bed10ba991ca3be97c8">
-      <source xml:lang="en">Step 1: Specify Input File</source>
-    </trans-unit>
-    <trans-unit id="++CODE++64e67d642ec0bb6b76227ac3a15c8338599c92129010ee19d0de12a997fa3006">
-      <source xml:lang="en">Step 2: Preview Data</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c4733c9b09467407fd987c336994bf9bfef9175b2eca699bab566e0373572578">
-      <source xml:lang="en">Step 3: Modify Columns</source>
-    </trans-unit>
-    <trans-unit id="++CODE++ebb5f7790ae1660e99a26a345411dcead3a0e54d906277838b984a64aacdd2fd">
-      <source xml:lang="en">Step 4: Summary</source>
+    <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
+      <source xml:lang="en">Step {0} of {1}</source>
+      <note>{0} is the current step number
+{1} is the total number of steps</note>
     </trans-unit>
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
@@ -5914,6 +5964,9 @@
       <source xml:lang="en">Sum: {0}</source>
       <note>{0} is the sum</note>
     </trans-unit>
+    <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
+      <source xml:lang="en">Summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
       <source xml:lang="en">Summary loading canceled</source>
     </trans-unit>
@@ -5977,8 +6030,8 @@
     <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
       <source xml:lang="en">Table added to schema designer successfully.</source>
     </trans-unit>
-    <trans-unit id="++CODE++993e47be6175800df73275ac1ed9110d48278de2832d3dbc9a07f1c35f58876f">
-      <source xml:lang="en">Table contains column types not supported by Data API Builder: {0}</source>
+    <trans-unit id="++CODE++04996289cd69a5a2f94fb144afcff1a6109090bb48cf8bb340d7b205323c4e81">
+      <source xml:lang="en">Table contains column types not supported by Data API builder: {0}</source>
       <note>{0} is a comma-separated list of column names and their data types</note>
     </trans-unit>
     <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
@@ -5987,8 +6040,8 @@
     <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
       <source xml:lang="en">Table id already exists.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c3b61e80e8a8149fcc5bcb2dc5d9c4f20589057596ae7592a6e165c0cfc71b05">
-      <source xml:lang="en">Table must have a primary key to be used with Data API Builder</source>
+    <trans-unit id="++CODE++472c40383c9c44c12e38bdcddaa5c135927972c845e6f86965dc814ef56607a6">
+      <source xml:lang="en">Table must have a primary key to be used with Data API builder</source>
     </trans-unit>
     <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
       <source xml:lang="en">Table must include at least one column.</source>
@@ -6067,6 +6120,10 @@
     </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
+      <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
@@ -6161,8 +6218,18 @@
     <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
       <source xml:lang="en">The selected file is not a valid XEL file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
+      <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos; on tenant &apos;{1}&apos;, but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
+      <note>{0} is the account ID or label
+{1} is the tenant ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b9742c3b5b5914f9ac72f6be945f6f52a6ce05ffcd743f8cf4373e9fa4400a25">
+      <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
+      <note>{0} is the service name
+{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
@@ -6185,8 +6252,8 @@
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
     </trans-unit>
-    <trans-unit id="++CODE++9140e5e357804946d2f6bec667449fd4ab6fd6060174b5cf3c36e1ccb3ff9b01">
-      <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
+    <trans-unit id="++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99">
+      <source xml:lang="en">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
       <note>{0} is a list of API types, e.g. &apos;REST and GraphQL&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
@@ -6267,6 +6334,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
       <source xml:lang="en">URL copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++174af08052d23280b455e65ee7fe31307b6b838514937562db1a66605ce1cd68">
+      <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</source>
+      <note>{0} is the account label or ID</note>
     </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -6475,6 +6546,9 @@
     </trans-unit>
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
+      <source xml:lang="en">View known issues</source>
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
@@ -6982,16 +7056,16 @@
       <source xml:lang="en">Build Data API (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.cancelConnect">
-      <source xml:lang="en">Cancel Connection</source>
+      <source xml:lang="en">Cancel Connection (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
-      <source xml:lang="en">Cancel Query</source>
+      <source xml:lang="en">Cancel Query (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
-      <source xml:lang="en">Change Connection</source>
+      <source xml:lang="en">Change Connection (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.changeDatabase">
-      <source xml:lang="en">Change Database</source>
+      <source xml:lang="en">Change Database (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.changeConnection">
       <source xml:lang="en">Change Notebook Connection</source>
@@ -7030,7 +7104,7 @@
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
-      <source xml:lang="en">Connect</source>
+      <source xml:lang="en">Connect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
@@ -7049,6 +7123,9 @@
     </trans-unit>
     <trans-unit id="extension.connections">
       <source xml:lang="en">Connections</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines">
+      <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
@@ -7093,7 +7170,7 @@
       <source xml:lang="en">Deploy DACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
-      <source xml:lang="en">Disable Actual Plan</source>
+      <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
@@ -7105,7 +7182,7 @@
       <source xml:lang="en">Disabled</source>
     </trans-unit>
     <trans-unit id="mssql.disconnect">
-      <source xml:lang="en">Disconnect</source>
+      <source xml:lang="en">Disconnect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
       <source xml:lang="en">Display results in a formatted text format.</source>
@@ -7132,7 +7209,7 @@
       <source xml:lang="en">Edit Table Data...</source>
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
-      <source xml:lang="en">Enable Actual Plan</source>
+      <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
@@ -7200,6 +7277,9 @@
     <trans-unit id="mssql.query.xactAbortOn">
       <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.alternatingRowColors">
+      <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
+    </trans-unit>
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
@@ -7213,19 +7293,22 @@
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
-      <source xml:lang="en">Estimated Plan</source>
+      <source xml:lang="en">Estimated Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
-      <source xml:lang="en">Execute Current Statement</source>
+      <source xml:lang="en">Execute Current Statement (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.runQuery">
-      <source xml:lang="en">Execute Query</source>
+      <source xml:lang="en">Execute Query (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.explainQuery">
       <source xml:lang="en">Explain Query</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.export">
       <source xml:lang="en">Export BACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.rowPadding">
+      <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.extract">
       <source xml:lang="en">Extract DACPAC</source>
@@ -7247,6 +7330,9 @@
     </trans-unit>
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.none">
+      <source xml:lang="en">Hide all grid lines</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
@@ -7390,7 +7476,7 @@
       <source xml:lang="en">Restore Database (Preview)...</source>
     </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
-      <source xml:lang="en">Reveal Query Result</source>
+      <source xml:lang="en">Reveal Query Result (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>
@@ -7482,8 +7568,17 @@
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.both">
+      <source xml:lang="en">Show both horizontal and vertical grid lines</source>
+    </trans-unit>
     <trans-unit id="mssql.showChangelogOnUpdate">
       <source xml:lang="en">Show changelog after extension updates</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
+      <source xml:lang="en">Show only horizontal grid lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
+      <source xml:lang="en">Show only vertical grid lines</source>
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
@@ -7528,7 +7623,7 @@
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
     <trans-unit id="mssql.startContainer">
-      <source xml:lang="en">Start SQLContainer</source>
+      <source xml:lang="en">Start SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.stopContainer">
       <source xml:lang="en">Stop SQL Container</source>
@@ -7579,7 +7674,7 @@
       <source xml:lang="en">Toggle Actual Plan</source>
     </trans-unit>
     <trans-unit id="mssql.toggleQueryResultPanel">
-      <source xml:lang="en">Toggle Query Result Panel Visibility</source>
+      <source xml:lang="en">Toggle Query Result Panel Visibility (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
@@ -7601,6 +7696,9 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.useVscodeAccountsForEntraID.description">
+      <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

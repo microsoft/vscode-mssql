@@ -16,7 +16,7 @@ import {
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
 
 suite("SqlTasksService Tests", () => {
