@@ -26,7 +26,7 @@ export function createMochaConfig(base = {}, options = {}) {
         ...base,
         reporter: "mocha-multi-reporters",
         reporterOptions: {
-            reporterEnabled: "dot, mocha-junit-reporter",
+            reporterEnabled: "spec, mocha-junit-reporter",
             mochaJunitReporterReporterOptions: {
                 mochaFile: junitFile,
             },
