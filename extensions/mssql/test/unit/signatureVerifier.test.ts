@@ -298,8 +298,9 @@ suite("SignatureVerifier Tests", () => {
             await validateExtractedBinaries(tempDir, Runtime.Linux, testLogger);
 
             expect(execFileStub).not.to.have.been.called;
-            expect(testLogger.appendLine).to.have.been.calledWithMatch(/WARN/);
-            expect(testLogger.appendLine).to.have.been.calledWithMatch(/Linux/);
+            expect(testLogger.warn).to.have.been.called;
+            expect(testLogger.warn).to.have.been.calledWithMatch(/Linux/i);
+            expect(testLogger.warn).to.have.been.calledWithMatch(/skip|skipping/i);
         });
 
         test("Linux ARM64 also skips validation", async () => {
