@@ -4530,7 +4530,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
         <source xml:lang="en">Link copied to clipboard</source>
-        <target state="new">Link copied to clipboard</target>
+        <target state="translated">链接已复制到剪贴板</target>
       </trans-unit>
       <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
         <source xml:lang="en">List Connections</source>

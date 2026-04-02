@@ -137,7 +137,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
         <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
-        <target state="new">A required .NET runtime could not be found or installed.</target>
+        <target state="translated">O runtime .NET necessário não pôde ser encontrado ou instalado.</target>
       </trans-unit>
       <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
         <source xml:lang="en">API Type</source>
@@ -1932,7 +1932,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
         <source xml:lang="en">Copy link</source>
-        <target state="new">Copy link</target>
+        <target state="translated">Copiar link</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -2068,7 +2068,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
         <source xml:lang="en">Create new connection copied from {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Create new connection copied from {0}</target>
+        <target state="translated">Criar conexão copiada de {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
@@ -2584,7 +2584,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
         <source xml:lang="en">Download offline VSIX</source>
-        <target state="new">Download offline VSIX</target>
+        <target state="translated">Baixar VSIX offline</target>
       </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
@@ -2641,7 +2641,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++08d593fb39b41430bb8c2c1162a76d2c273c1180b07a062108bb2c8e7ab2a3c6">
         <source xml:lang="en">Edit Database Connection - {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Edit Database Connection - {0}</target>
+        <target state="translated">Editar Conexão de Banco de Dados - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
@@ -2662,7 +2662,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++c8724cfbaf2b6567c288f9f3ec1f1138c9c48bd270325ecc4095993063e8691b">
         <source xml:lang="en">Edit {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Edit {0}</target>
+        <target state="translated">Editar {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -4530,7 +4530,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
         <source xml:lang="en">Link copied to clipboard</source>
-        <target state="new">Link copied to clipboard</target>
+        <target state="translated">Link copiado para a área de transferência</target>
       </trans-unit>
       <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
         <source xml:lang="en">List Connections</source>
@@ -7362,7 +7362,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
         <source xml:lang="en">Service installation failed.</source>
-        <target state="new">Service installation failed.</target>
+        <target state="translated">A instalação do serviço falhou.</target>
       </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
@@ -8040,7 +8040,7 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
         <source xml:lang="en">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</target>
+        <target state="translated">A extensão do SQL Server não pôde ser iniciada porque seu serviço em segundo plano necessário falhou ao iniciar. Instale o VSIX offline para seu sistema operacional ou verifique sua conexão de rede e tente novamente. Detalhes: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
@@ -8181,7 +8181,7 @@ Consulta: {2}</target>
         <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
         <note>{0} is the service name
 {1} is the error message</note>
-        <target state="new">The {0} service has crashed. Details: {1}</target>
+        <target state="translated">O serviço {0} falhou. Detalhes: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
@@ -8600,7 +8600,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
         <source xml:lang="en">View known issues</source>
-        <target state="new">View known issues</target>
+        <target state="translated">Exibir problemas conhecidos</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
