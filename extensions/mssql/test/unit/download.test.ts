@@ -212,15 +212,16 @@ suite("ServiceDownloadProvider Tests", () => {
         const rmStub = sandbox.stub(fs, "rm").resolves();
 
         try {
-            await fixture.downloadProvider!.installService(Runtime.Windows_64);
+            await fixture.downloadProvider!.downloadAndInstallService(Runtime.Windows_64);
             expect.fail("Expected an error to be thrown");
         } catch (err: any) {
             expect(err.message).to.include("did not pass Microsoft signature validation");
             expect(err.message).to.include("removed for safety");
         }
 
-        expect(rmStub).to.have.been.calledOnce;
-        const rmArgs = rmStub.firstCall.args;
-        expect(rmArgs[1]).to.deep.include({ recursive: true, force: true });
+        expect(rmStub).to.have.been.calledWithMatch(
+            sinon.match.any,
+            sinon.match({ recursive: true, force: true }),
+        );
     });
 });
