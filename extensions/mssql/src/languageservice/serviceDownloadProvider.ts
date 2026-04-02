@@ -150,7 +150,7 @@ export default class ServiceDownloadProvider {
             try {
                 await fs.rm(installDirectory, { recursive: true, force: true });
             } catch (cleanupErr) {
-                this._logger.appendLine(
+                this._logger.error(
                     `[ERROR] Failed to remove install directory after signature validation failure: ${cleanupErr}`,
                 );
             }
