@@ -6,7 +6,11 @@
 import * as sinon from "sinon";
 import { expect } from "chai";
 import * as vscode from "vscode";
-import { PreviewFeature, PreviewFeaturesService } from "../../src/previews/previewService";
+import {
+    CONFIG_PREVIEW_PREFIX,
+    PreviewFeature,
+    PreviewFeaturesService,
+} from "../../src/previews/previewService";
 import { createWorkspaceConfiguration } from "./stubs";
 import { TestFeature } from "./utils";
 
@@ -69,22 +73,22 @@ suite("PreviewFeaturesService", () => {
     });
 
     suite("isFeatureEnabled - per-feature override takes precedence", () => {
-        test("override true + global false → enabled", () => {
+        test("global disabled, but override is enabled", () => {
             stubMssqlConfig(false, { [TestFeature]: true });
             expect(service.isFeatureEnabled(TestFeature)).to.be.true;
         });
 
-        test("override false + global true → disabled", () => {
+        test("global enabled, but override is disabled", () => {
             stubMssqlConfig(true, { [TestFeature]: false });
             expect(service.isFeatureEnabled(TestFeature)).to.be.false;
         });
 
-        test("override true + global true → still enabled", () => {
+        test("both global and override enabled", () => {
             stubMssqlConfig(true, { [TestFeature]: true });
             expect(service.isFeatureEnabled(TestFeature)).to.be.true;
         });
 
-        test("override false + global false → still disabled", () => {
+        test("both global and override disabled", () => {
             stubMssqlConfig(false, { [TestFeature]: false });
             expect(service.isFeatureEnabled(TestFeature)).to.be.false;
         });
@@ -96,24 +100,26 @@ suite("PreviewFeaturesService", () => {
             expect(service.getNonDefaultOverrides()).to.deep.equal({});
         });
 
-        test("returns empty object when override matches global flag (both true)", () => {
+        test("returns empty object when override matches global flag", () => {
+            // both true
             stubMssqlConfig(true, { [TestFeature]: true });
             expect(service.getNonDefaultOverrides()).to.deep.equal({});
-        });
 
-        test("returns empty object when override matches global flag (both false)", () => {
+            // both false
+            getConfigurationStub.reset();
             stubMssqlConfig(false, { [TestFeature]: false });
             expect(service.getNonDefaultOverrides()).to.deep.equal({});
         });
 
-        test("includes feature when override is true and global is false", () => {
+        test("includes feature when override differs from global flag", () => {
+            // override true + global false
             stubMssqlConfig(false, { [TestFeature]: true });
             expect(service.getNonDefaultOverrides()).to.deep.equal({
                 [TestFeature]: true,
             });
-        });
 
-        test("includes feature when override is false and global is true", () => {
+            // override false + global true
+            getConfigurationStub.reset();
             stubMssqlConfig(true, { [TestFeature]: false });
             expect(service.getNonDefaultOverrides()).to.deep.equal({
                 [TestFeature]: false,
@@ -138,10 +144,10 @@ suite("PreviewFeaturesService", () => {
         }
 
         for (const [feature, value] of Object.entries(featureOverrides)) {
-            items[`preview.${feature}`] = value;
+            items[`${CONFIG_PREVIEW_PREFIX}${feature}`] = value;
         }
 
         const config = createWorkspaceConfiguration(items);
-        getConfigurationStub.withArgs("mssql").returns(config);
+        getConfigurationStub.returns(config);
     }
 });

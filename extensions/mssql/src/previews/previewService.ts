@@ -44,7 +44,9 @@ export class PreviewFeaturesService {
             .getConfiguration()
             .get<boolean | undefined>(getPreviewConfigKey(feature));
 
-        if (!!subFlag) {
+        // eslint-disable-next-line no-restricted-syntax
+        if (subFlag !== undefined && subFlag !== null) {
+            // value may be null when read from configuration
             return subFlag;
         }
         return this.experimentalFeaturesEnabled;
