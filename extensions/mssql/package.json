@@ -1628,8 +1628,11 @@
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
-                    "type": "boolean",
-                    "default": false,
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
                     "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },

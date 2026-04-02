@@ -42,9 +42,9 @@ export class PreviewFeaturesService {
     public isFeatureEnabled(feature: PreviewFeature): boolean {
         const subFlag = vscode.workspace
             .getConfiguration()
-            .get<boolean>(getPreviewConfigKey(feature));
+            .get<boolean | undefined>(getPreviewConfigKey(feature));
 
-        if (subFlag !== undefined) {
+        if (!!subFlag) {
             return subFlag;
         }
         return this.experimentalFeaturesEnabled;

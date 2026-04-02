@@ -1523,11 +1523,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             callback: async () => {
                 if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
                     const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-                    const selectedAccount = await resolveVscodeEntraAccount(
-                        this.state.connectionProfile.accountId,
+                    const existingAccountIds = new Set(
+                        (await VsCodeAzureHelper.getAccounts()).map((account) => account.id),
                     );
+                    const signedIn = await auth.signIn();
 
-                    const signedIn = await auth.signIn(undefined, selectedAccount);
                     if (!signedIn) {
                         this.logger.warn("VS Code Azure sign-in was canceled or failed.");
                         return;
@@ -1540,6 +1540,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     }
 
                     accountsComponent.options = await this.getEntraMfaAccountOptions();
+
+                    const newlyAddedAccount = accountsComponent.options.find(
+                        (accountOption) => !existingAccountIds.has(accountOption.value),
+                    );
+
+                    if (newlyAddedAccount) {
+                        this.state.connectionProfile.accountId = newlyAddedAccount.value;
+                    }
 
                     if (!this.state.connectionProfile.accountId && accountsComponent.options[0]) {
                         this.state.connectionProfile.accountId = accountsComponent.options[0].value;
