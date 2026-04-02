@@ -14,6 +14,12 @@ export enum PreviewFeature {
     UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
+export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
+
+export function getPreviewConfigKey(feature: PreviewFeature): string {
+    return `${CONFIG_PREVIEW_PREFIX}${feature}`;
+}
+
 export class PreviewFeaturesService {
     private static _instance: PreviewFeaturesService;
 
@@ -35,8 +41,8 @@ export class PreviewFeaturesService {
      */
     public isFeatureEnabled(feature: PreviewFeature): boolean {
         const subFlag = vscode.workspace
-            .getConfiguration("mssql")
-            .get<boolean>(`preview.${feature}`);
+            .getConfiguration()
+            .get<boolean>(getPreviewConfigKey(feature));
 
         if (subFlag !== undefined) {
             return subFlag;

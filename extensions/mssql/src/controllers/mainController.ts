@@ -47,7 +47,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
-import { previewService } from "../previews/previewService";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -3047,11 +3047,10 @@ export default class MainController implements vscode.Disposable {
         const configSettingsRequiringReload = [
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
-            Constants.configPreviewFeaturesPrefix,
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
-            Constants.configUseVscodeAccountsForEntraMfa,
+            getPreviewConfigKey(PreviewFeature.UseVscodeAccountsForEntraMFA),
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
