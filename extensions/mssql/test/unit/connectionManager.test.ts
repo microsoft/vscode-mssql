@@ -364,7 +364,7 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("refreshEntraTokenIfNeeded", () => {
+    suite("refreshEntraTokenIfNeeded - self-managed auth", () => {
         let withProgressStub: sinon.SinonStub;
 
         const account = {
@@ -761,7 +761,7 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("refreshEntraTokenIfNeeded", () => {
+    suite("refreshEntraTokenIfNeeded - VSCode account auth", () => {
         setup(() => {
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
