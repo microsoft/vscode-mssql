@@ -5170,9 +5170,6 @@
       <source xml:lang="en">SQL Server {0} - latest</source>
       <note>{0} is the SQL Server version</note>
     </trans-unit>
-    <trans-unit id="++CODE++baebe33d24c129de98737bf95a6c166ea4dfe2e5eea378643d747c6c0ef199b6">
-      <source xml:lang="en">SQL Tools Service installation failed because one or more downloaded binaries did not pass Microsoft signature validation. The downloaded files were removed for safety.</source>
-    </trans-unit>
     <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
       <source xml:lang="en">SQL database in Fabric</source>
     </trans-unit>
