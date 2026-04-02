@@ -13,7 +13,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
-import { previewFeaturesService } from "../previews/previewService";
+import { previewService } from "../previews/previewService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
@@ -277,13 +277,10 @@ export function sendSurveyTelemetry(
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
-            experimentalFeaturesEnabled:
-                previewFeaturesService.experimentalFeaturesEnabled.toString(),
+            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             surveySource: surveySource,
             ...stringAnswers,
-            previewFeatureOverrides: JSON.stringify(
-                previewFeaturesService.getNonDefaultOverrides(),
-            ),
+            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         },
         numericalAnswers,
     );

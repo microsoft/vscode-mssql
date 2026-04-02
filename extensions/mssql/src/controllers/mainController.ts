@@ -47,7 +47,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
-import { previewFeaturesService } from "../previews/previewService";
+import { previewService } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -1055,19 +1055,16 @@ export default class MainController implements vscode.Disposable {
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
-            experimentalFeaturesEnabled:
-                previewFeaturesService.experimentalFeaturesEnabled.toString(),
+            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             cloudType: getCloudId(),
-            previewFeatureOverrides: JSON.stringify(
-                previewFeaturesService.getNonDefaultOverrides(),
-            ),
+            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         });
 
         // Set context for experimental features (used for conditional menu visibility)
         await vscode.commands.executeCommand(
             "setContext",
             "mssql.experimentalFeaturesEnabled",
-            previewFeaturesService.experimentalFeaturesEnabled,
+            previewService.experimentalFeaturesEnabled,
         );
 
         await this._connectionMgr.initialized;

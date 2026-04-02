@@ -11,7 +11,7 @@ import * as vscode from "vscode";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
-    UseVscodeAccountsForEntraID = "useVscodeAccountsForEntraID",
+    UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
 export class PreviewFeaturesService {
@@ -62,11 +62,10 @@ export class PreviewFeaturesService {
      */
     public getNonDefaultOverrides(): Partial<Record<PreviewFeature, boolean>> {
         const globalEnabled = this.experimentalFeaturesEnabled;
-        const config = vscode.workspace.getConfiguration("mssql");
         const overrides: Partial<Record<PreviewFeature, boolean>> = {};
 
         for (const feature of Object.values(PreviewFeature)) {
-            const subFlag = config.get<boolean>(`preview.${feature}`);
+            const subFlag = this.isFeatureEnabled(feature);
             if (subFlag !== undefined && subFlag !== globalEnabled) {
                 overrides[feature] = subFlag;
             }
@@ -76,4 +75,4 @@ export class PreviewFeaturesService {
     }
 }
 
-export const previewFeaturesService = PreviewFeaturesService.getInstance();
+export const previewService = PreviewFeaturesService.getInstance();

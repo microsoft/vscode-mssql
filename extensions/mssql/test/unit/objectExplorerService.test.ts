@@ -54,10 +54,11 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils, stubLogger } from "./utils";
+import { initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import { PreviewFeature } from "../../src/previews/previewService";
 const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
 
 suite("OE Service Tests", () => {
@@ -2455,7 +2456,6 @@ suite("OE Service Tests", () => {
             let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
             let signInStub: sinon.SinonStub;
             let executeCommandStub: sinon.SinonStub;
-            let useVscodeAccountsStub: sinon.SinonStub;
 
             setup(() => {
                 initializeIconUtils();
@@ -2475,13 +2475,6 @@ suite("OE Service Tests", () => {
                     startTime: 0,
                     update: sandbox.stub(),
                 });
-
-                // Stub useVscodeAccountsForEntraMfa so the MissingVsCodeEntraAuthError handler is reached.
-                // The real implementation reads a VS Code workspace config that defaults to false,
-                // which would short-circuit before the instanceof check in the tests.
-                useVscodeAccountsStub = sandbox
-                    .stub(vscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa")
-                    .returns(true);
 
                 // Stub VsCodeAzureHelper.signIn used by the "Sign In and Retry" path
                 signInStub = sandbox
@@ -2504,6 +2497,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should prompt with Sign In and Edit options when MissingVsCodeEntraAuthError is thrown", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
@@ -2533,6 +2529,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should call signIn and retry prepareConnectionInfo when user chooses Sign In and Retry", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2568,6 +2567,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined if retry after sign-in also fails", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2593,6 +2595,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should open connection dialog when user chooses Edit Connection Profile", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
@@ -2622,6 +2627,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined without prompting when user dismisses the error dialog", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
@@ -2641,6 +2649,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should log and return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const genericError = new Error("Some unexpected error");
                 mockConnectionManager.prepareConnectionInfo.rejects(genericError);
 
@@ -2657,7 +2668,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should log and return undefined immediately when useVscodeAccountsForEntraMfa is disabled", async () => {
-                useVscodeAccountsStub.returns(false);
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
 
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);

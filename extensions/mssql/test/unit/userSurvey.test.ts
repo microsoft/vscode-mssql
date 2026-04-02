@@ -26,6 +26,7 @@ import {
     stubPreviewService,
     stubTelemetry,
     stubVscodeWrapper,
+    TestFeature,
 } from "./utils";
 import * as constants from "../../src/constants/constants";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -117,7 +118,7 @@ suite("UserSurvey Tests", () => {
             onSubmit: onSubmitStub,
             onCancel: onCancelStub,
         };
-        stubPreviewService(sandbox);
+        stubPreviewService(sandbox, { [TestFeature]: true });
 
         // Use callsFake to simulate onSubmit getting triggered when it's called
         onSubmitStub.callsFake((callback) => {
@@ -144,7 +145,7 @@ suite("UserSurvey Tests", () => {
                 q2: "answer2",
                 experimentalFeaturesEnabled: "false",
                 surveySource: "testSource",
-                previewFeatureOverrides: '{"tableNodeAction":true}',
+                previewFeatureOverrides: `{"${TestFeature}":true}`,
             },
             {
                 q3: 3,

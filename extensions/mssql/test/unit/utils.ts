@@ -19,7 +19,7 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { Logger } from "../../src/models/logger";
-import { PreviewFeature, previewFeaturesService } from "../../src/previews/previewService";
+import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 let activationPromise: Promise<IExtension> | undefined;
 
@@ -259,7 +259,17 @@ export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.P
 
 export const TestFeature = "testFeature" as PreviewFeature;
 
-export function stubPreviewService(sandbox: sinon.SinonSandbox): void {
-    sandbox.stub(previewFeaturesService, "experimentalFeaturesEnabled").get(() => false);
-    sandbox.stub(previewFeaturesService, "getNonDefaultOverrides").returns({ [TestFeature]: true });
+export function stubPreviewService(
+    sandbox: sinon.SinonSandbox,
+    previews: Record<PreviewFeature, boolean>,
+): void {
+    sandbox.stub(previewService, "experimentalFeaturesEnabled").get(() => false);
+    sandbox.stub(previewService, "getNonDefaultOverrides").returns({ [TestFeature]: true });
+
+    for (const [feature, enabled] of Object.entries(previews)) {
+        sandbox
+            .stub(previewService, "isFeatureEnabled")
+            .withArgs(feature as PreviewFeature)
+            .returns(enabled);
+    }
 }

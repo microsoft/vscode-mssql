@@ -44,6 +44,7 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCod
 import {
     initializeIconUtils,
     stubGetCapabilitiesRequest,
+    stubPreviewService,
     stubTelemetry,
     stubUserSurvey,
     stubVscodeWrapper,
@@ -59,7 +60,6 @@ import {
     mockTenants,
 } from "./azureHelperStubs";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
-import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
@@ -72,6 +72,7 @@ import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
+import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -488,7 +489,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {
-            sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
                 .resolves([mockAccounts.signedInAccount]);
@@ -1036,7 +1037,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
-        sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+
         sandbox
             .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
             .resolves([mockAccounts.signedInAccount]);
