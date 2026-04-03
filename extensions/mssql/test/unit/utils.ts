@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from "../../src/constants/constants";
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
-import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -19,20 +17,6 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { Logger } from "../../src/models/logger";
-
-let activationPromise: Promise<IExtension> | undefined;
-
-// Launches and activates the extension
-export async function activateExtension(): Promise<IExtension> {
-    if (activationPromise) {
-        return activationPromise;
-    }
-
-    const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
-    activationPromise = Promise.resolve(extension.activate());
-
-    return activationPromise;
-}
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
