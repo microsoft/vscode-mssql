@@ -188,6 +188,11 @@
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
+        "configurationDefaults": {
+            "[sql]": {
+                "editor.wordSeparators": "`~!$%^&*()-=+[{]}\\|;:'\",.<>/?"
+            }
+        },
         "viewsContainers": {
             "activitybar": [
                 {
