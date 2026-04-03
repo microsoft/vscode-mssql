@@ -100,6 +100,62 @@ suite("ServiceDownloadProvider Tests", () => {
         expect(actual).to.equal(expected);
     });
 
+    test("tryGetInstallDirectory returns undefined when portable install folder exists but required files are missing", async () => {
+        const installRoot = path.join(__dirname, "testServicePortableMissing");
+        const installDirectory = path.join(installRoot, "1.0.0", "Portable");
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+        await fs.mkdir(installDirectory, { recursive: true });
+
+        config.getSqlToolsInstallDirectory.returns(
+            path.join(installRoot, "{#version#}", "{#platform#}"),
+        );
+        config.getSqlToolsPackageVersion.returns("1.0.0");
+
+        const downloadProvider = new ServiceDownloadProvider(
+            config,
+            testLogger,
+            statusView,
+            testDownloadHelper,
+            testDecompressProvider,
+        );
+
+        const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
+
+        expect(actual).to.be.undefined;
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+    });
+
+    test("tryGetInstallDirectory returns the folder when portable required files are present", async () => {
+        const installRoot = path.join(__dirname, "testServicePortablePresent");
+        const installDirectory = path.join(installRoot, "1.0.0", "Portable");
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+        await fs.mkdir(installDirectory, { recursive: true });
+        await fs.writeFile(path.join(installDirectory, "MicrosoftSqlToolsServiceLayer.dll"), "");
+        await fs.writeFile(path.join(installDirectory, "SqlToolsResourceProviderService.dll"), "");
+
+        config.getSqlToolsInstallDirectory.returns(
+            path.join(installRoot, "{#version#}", "{#platform#}"),
+        );
+        config.getSqlToolsPackageVersion.returns("1.0.0");
+
+        const downloadProvider = new ServiceDownloadProvider(
+            config,
+            testLogger,
+            statusView,
+            testDownloadHelper,
+            testDecompressProvider,
+        );
+
+        const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
+
+        expect(actual).to.equal(installDirectory);
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+    });
+
     async function createDownloadProvider(fixture: IFixture): Promise<IFixture> {
         const fileName = "fileName";
         const baseDownloadUrl = "baseDownloadUrl/{#version#}/{#fileName#}";
