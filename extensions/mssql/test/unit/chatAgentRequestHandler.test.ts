@@ -26,6 +26,7 @@ import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connect
 import { connectedLabelPrefix, disconnectedLabelPrefix } from "../../src/copilot/chatConstants";
 import { IConnectionInfo } from "vscode-mssql";
 import * as utils from "../../src/utils/utils";
+import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -98,7 +99,7 @@ suite("Chat Agent Request Handler Tests", () => {
         } as IConnectionInfo;
 
         // Mock VscodeWrapper
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => sampleConnectionUri);
 
         // Mock configuration

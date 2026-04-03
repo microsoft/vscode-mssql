@@ -323,9 +323,20 @@ export function msgPromptRetryFirewallRuleSignedIn(clientIp: string, serverName:
 export let msgPromptRetryFirewallRuleAdded = l10n.t(
     "Firewall rule successfully added. Retry profile creation? ",
 );
-export let msgAccountRefreshFailed = l10n.t(
-    "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
-);
+export function msgAccountRefreshFailed(error?: string) {
+    if (!error) {
+        return l10n.t(
+            "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.",
+        );
+    } else {
+        return l10n.t({
+            message:
+                "Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    }
+}
 export let msgPromptProfileUpdateFailed = l10n.t(
     "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.",
 );
@@ -767,7 +778,8 @@ export class ObjectExplorer {
         "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
     );
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
-    public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
+    public static FailedOEConnectionErrorUpdate = l10n.t("Edit connection profile");
+    public static FailedOEConnectionErrorSignIn = l10n.t("Sign in and retry");
     public static Connecting = l10n.t("Connecting...");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
@@ -794,7 +806,13 @@ export class ObjectExplorer {
     public static ScriptDeleteLabel = l10n.t("Delete");
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
-    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
+    public static AzureSignInMessage(accountName: string) {
+        return l10n.t({
+            message: "Signing in to Azure as {0}...",
+            args: [accountName],
+            comment: ["{0} is the account name"],
+        });
+    }
 
     public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
@@ -903,10 +921,28 @@ export class FirewallRule {
 }
 
 export class Azure {
-    public static errorSigningIntoAzure(arg0: string): string {
+    public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
+        return l10n.t({
+            message:
+                "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
+            args: [accountDisplayName],
+            comment: ["{0} is the account label or ID"],
+        });
+    }
+
+    public static noSqlResourceConfiguredForCurrentCloud(cloudName: string): string {
+        return l10n.t({
+            message:
+                "No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.",
+            args: [cloudName],
+            comment: ["{0} is the display name of the current cloud"],
+        });
+    }
+
+    public static errorSigningIntoAzure(errorMessage: string): string {
         return l10n.t({
             message: "Error signing into Azure: {0}",
-            args: [arg0],
+            args: [errorMessage],
             comment: ["{0} is the error message"],
         });
     }
@@ -1094,6 +1130,14 @@ export class Fabric {
 }
 
 export class Accounts {
+    static accountNotAvailableThroughVsCode(accountDisplayName: string, tenantId: string): string {
+        return l10n.t({
+            message:
+                "The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.",
+            args: [accountDisplayName, tenantId],
+            comment: ["{0} is the account ID or label", "{1} is the tenant ID"],
+        });
+    }
     public static invalidEntraAccountsRemoved = (numRemoved: number) => {
         return l10n.t({
             message:

@@ -40,7 +40,7 @@ service.connect.resolves(false); // Type-safe, no cast needed
 - ALWAYS check `test/unit/utils.ts` for reusable stubs before creating new ones. Add shared Sinon helpers there when they'll be reused.
 - Prefer `SinonStubbedInstance` via `sandbox.createStubInstance` over plain-object stubs for classes, and reserve loosely-defined/plain-object stubs only for interface-only types where `createStubInstance` cannot be used.
 - DO check for places where stubs are created outside of a sandbox.
-- DO check that stubs and verifications accessed multiple times within a test use parameters, not "n-th call" (e.g., avoid `calledOnce`, `getCall(0)`, `firstCall`). Rationale: "n-th call" checks are brittle and easily broken by incidental changes.
+- DO check that telemetry and logging stubs and verifications accessed multiple times within a test use parameters, not "n-th call" (e.g., avoid `calledOnce`, `getCall(0)`, `firstCall`). Rationale: "n-th call" checks are brittle and easily broken by incidental changes.
 
 ## VS Code Service Stubs
 

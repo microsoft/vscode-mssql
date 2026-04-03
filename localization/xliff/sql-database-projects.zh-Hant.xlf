@@ -1388,6 +1388,10 @@ Projects:
         <source xml:lang="en">Design and publish SQL database schemas</source>
         <target state="translated">設計及發佈 SQL 資料庫結構描述</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openDocumentation">
+        <source xml:lang="en">Documentation</source>
+        <target state="new">Documentation</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>
         <target state="translated">編輯</target>
