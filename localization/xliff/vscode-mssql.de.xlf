@@ -10117,7 +10117,7 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
         <source xml:lang="en">Use only row data to size columns automatically</source>
         <target state="translated">Nur Zeilendaten für die automatische Anpassung der Spaltengröße verwenden</target>
       </trans-unit>
-      <trans-unit id="mssql.preview.useVscodeAccountsForEntraID.description">
+      <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
         <target state="new">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>

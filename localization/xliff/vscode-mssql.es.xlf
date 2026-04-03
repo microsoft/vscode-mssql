@@ -10117,7 +10117,7 @@ Vea el plan estimado sin ejecutar la consulta, o vea el plan de consulta real de
         <source xml:lang="en">Use only row data to size columns automatically</source>
         <target state="translated">Usar solo datos de fila para ajustar el tamaño de las columnas automáticamente</target>
       </trans-unit>
-      <trans-unit id="mssql.preview.useVscodeAccountsForEntraID.description">
+      <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
         <target state="new">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>

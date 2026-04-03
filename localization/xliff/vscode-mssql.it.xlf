@@ -10117,7 +10117,7 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
         <source xml:lang="en">Use only row data to size columns automatically</source>
         <target state="translated">Usa solo i dati delle righe per ridimensionare automaticamente le colonne</target>
       </trans-unit>
-      <trans-unit id="mssql.preview.useVscodeAccountsForEntraID.description">
+      <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
         <target state="new">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>
