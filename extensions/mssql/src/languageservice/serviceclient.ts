@@ -35,6 +35,7 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ServiceExecutable } from "./serviceExecutablePaths";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
@@ -375,7 +376,7 @@ export default class SqlToolsServiceClient {
         const sqlToolsServicePath = await this._server.tryGetExecutablePathInFolder(
             serverFolder,
             runtime,
-            "MicrosoftSqlToolsServiceLayer",
+            ServiceExecutable.MicrosoftSqlToolsServiceLayer,
         );
         if (!sqlToolsServicePath) {
             this.logger.logDebug(
@@ -388,7 +389,7 @@ export default class SqlToolsServiceClient {
         const resourceProviderServicePath = await this._server.tryGetExecutablePathInFolder(
             serverFolder,
             runtime,
-            "SqlToolsResourceProviderService",
+            ServiceExecutable.SqlToolsResourceProviderService,
         );
         if (!resourceProviderServicePath) {
             this.logger.logDebug(

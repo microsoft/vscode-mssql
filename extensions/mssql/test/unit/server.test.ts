@@ -15,6 +15,7 @@ import ServerProvider from "../../src/languageservice/server";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
 import { Runtime } from "../../src/models/platform";
 import { IStatusView } from "../../src/languageservice/interfaces";
+import { ServiceExecutable } from "../../src/languageservice/serviceExecutablePaths";
 
 chai.use(sinonChai);
 
@@ -55,7 +56,7 @@ suite("Server tests", () => {
             const result = await server.tryGetExecutablePathInFolder(
                 tempDir,
                 Runtime.Portable,
-                "MicrosoftSqlToolsServiceLayer",
+                ServiceExecutable.MicrosoftSqlToolsServiceLayer,
             );
             expect(result).to.be.undefined;
         });
@@ -70,7 +71,7 @@ suite("Server tests", () => {
             const result = await server.tryGetExecutablePathInFolder(
                 tempDir,
                 Runtime.Portable,
-                "MicrosoftSqlToolsServiceLayer",
+                ServiceExecutable.MicrosoftSqlToolsServiceLayer,
             );
 
             expect(result).to.equal(expectedPath);
@@ -87,7 +88,7 @@ suite("Server tests", () => {
             const result = await server.tryGetExecutablePathInFolder(
                 tempDir,
                 Runtime.Windows_64,
-                "MicrosoftSqlToolsServiceLayer",
+                ServiceExecutable.MicrosoftSqlToolsServiceLayer,
             );
 
             expect(result).to.equal(expectedPath);
@@ -103,7 +104,7 @@ suite("Server tests", () => {
             const result = await server.tryGetExecutablePathInFolder(
                 tempDir,
                 Runtime.Portable,
-                "MicrosoftSqlToolsServiceLayer",
+                ServiceExecutable.MicrosoftSqlToolsServiceLayer,
             );
 
             expect(result).to.be.undefined;

@@ -7,7 +7,7 @@ import { Runtime } from "../models/platform";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import { IStatusView } from "./interfaces";
 import * as fs from "fs/promises";
-import { getServiceExecutablePath, ServiceExecutablePrefix } from "./serviceExecutablePaths";
+import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 
 /*
  * Service Provider class finds the SQL tools service executable file or downloads it if doesn't exist.
@@ -28,7 +28,7 @@ export default class ServerProvider {
     public async tryGetExecutablePathInFolder(
         folderPath: string,
         runtime: Runtime,
-        filePrefix: ServiceExecutablePrefix,
+        filePrefix: ServiceExecutable,
     ): Promise<string | undefined> {
         const resolvedPath = getServiceExecutablePath(folderPath, runtime, filePrefix);
         const stats = await fs.stat(resolvedPath).catch(() => undefined);
