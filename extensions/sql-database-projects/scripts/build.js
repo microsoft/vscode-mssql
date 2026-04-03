@@ -1,10 +1,11 @@
 const { execFileSync } = require("child_process");
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const npmCommand = "npm";
+const execOptions = { stdio: "inherit", shell: process.platform === "win32" };
 
 try {
-    execFileSync(npmCommand, ["run", "build:prepare"], { stdio: "inherit" });
-    execFileSync(npmCommand, ["run", "build:extension"], { stdio: "inherit" });
+    execFileSync(npmCommand, ["run", "build:prepare"], execOptions);
+    execFileSync(npmCommand, ["run", "build:extension"], execOptions);
 } catch (error) {
     process.exit(1);
 }
