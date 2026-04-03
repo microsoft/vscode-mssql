@@ -1627,10 +1627,13 @@
                     ],
                     "scope": "application"
                 },
-                "mssql.preview.useVscodeAccountsForEntraID": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.useVscodeAccountsForEntraID.description%",
+                "mssql.preview.useVscodeAccountsForEntraMFA": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },
                 "mssql.logDebugInfo": {

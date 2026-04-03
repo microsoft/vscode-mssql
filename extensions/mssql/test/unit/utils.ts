@@ -17,6 +17,7 @@ import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { Logger } from "../../src/models/logger";
+import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -204,6 +205,7 @@ export function stubProfilerService(
     sandbox: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<ProfilerService> {
     const profilerService = sandbox.createStubInstance(ProfilerService);
+
     profilerService.startProfiling.resolves({
         uniqueSessionId: "test-unique-id",
         canPause: false,
@@ -216,6 +218,7 @@ export function stubProfilerService(
     profilerService.onEventsAvailable.returns(new vscode.Disposable(() => {}));
     profilerService.onSessionStopped.returns(new vscode.Disposable(() => {}));
     profilerService.onSessionCreated.returns(new vscode.Disposable(() => {}));
+
     return profilerService;
 }
 
@@ -234,4 +237,23 @@ export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.P
     sandbox.stub(path, "extname").callsFake(platform.extname);
     sandbox.stub(path, "isAbsolute").callsFake(platform.isAbsolute);
     sandbox.stub(path, "normalize").callsFake(platform.normalize);
+}
+
+export const TestFeature = "testFeature" as PreviewFeature;
+export const TestFeatureTwo = "testFeatureTwo" as PreviewFeature;
+
+export function stubPreviewService(
+    sandbox: sinon.SinonSandbox,
+    previews: Record<string, boolean>,
+    experimentalFeaturesEnabled: boolean = false,
+): void {
+    sandbox
+        .stub(previewService, "experimentalFeaturesEnabled")
+        .get(() => experimentalFeaturesEnabled);
+
+    sandbox.stub(previewService, "getNonDefaultOverrides").returns(previews);
+
+    sandbox
+        .stub(previewService, "isFeatureEnabled")
+        .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
 }

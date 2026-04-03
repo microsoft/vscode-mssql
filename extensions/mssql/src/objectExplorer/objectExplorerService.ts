@@ -57,11 +57,9 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import {
-    MissingVsCodeEntraAuthError,
-    useVscodeAccountsForEntraMfa,
-} from "../azure/vscodeEntraMfaUtils";
+import { MissingVsCodeEntraAuthError } from "../azure/vscodeEntraMfaUtils";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -748,7 +746,7 @@ export class ObjectExplorerService {
         try {
             return await prepareConnectionProfile();
         } catch (error) {
-            if (!useVscodeAccountsForEntraMfa()) {
+            if (!previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
                 this._logger.error(
                     `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
                 );

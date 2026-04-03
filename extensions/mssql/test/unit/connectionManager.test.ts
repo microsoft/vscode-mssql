@@ -29,11 +29,12 @@ import { azureCloudProviderId } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
-import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubPreviewService, stubVscodeWrapper } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
+import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -363,7 +364,7 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("refreshEntraTokenIfNeeded", () => {
+    suite("refreshEntraTokenIfNeeded - self-managed auth", () => {
         let withProgressStub: sinon.SinonStub;
 
         const account = {
@@ -760,7 +761,7 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("refreshEntraTokenIfNeeded", () => {
+    suite("refreshEntraTokenIfNeeded - VSCode account auth", () => {
         setup(() => {
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
@@ -773,7 +774,10 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("uses VS Code account tokens when VS Code account mode is enabled", async () => {
-            sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+            stubPreviewService(sandbox, {
+                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+            });
+
             sandbox.stub(AzureController, "isTokenValid").returns(false);
             sandbox.stub(VscodeEntraMfaUtils, "acquireSqlAccessTokenFromVscodeAccount").resolves({
                 account: {
