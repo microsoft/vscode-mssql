@@ -2125,7 +2125,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++36d37fc43209cbab12c2155e6a214b4d880350cd721cc4e9e45216daaefaeb49">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</target>
+        <target state="translated">Ошибка учетных данных: произошла ошибка при попытке обновить данные учетной записи. Повторите проверку подлинности. Ошибка: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
         <source xml:lang="en">Currently signed in as:</source>
@@ -2653,7 +2653,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++3f60c38f32a4cbb47dd3fd2e4e95d272a157dd89834e124e294b31261139390a">
         <source xml:lang="en">Edit connection profile</source>
-        <target state="new">Edit connection profile</target>
+        <target state="translated">Изменить профиль подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -5265,7 +5265,7 @@ Error:
       <trans-unit id="++CODE++ab3f47847de3f238eecec8fd478cfd34c2fb816a4d35949a205060f84eca6177">
         <source xml:lang="en">No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.</source>
         <note>{0} is the display name of the current cloud</note>
-        <target state="new">No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.</target>
+        <target state="translated">Для текущего облака «{0}» не настроены ресурсы SQL. Обновите параметры учетной записи Azure.</target>
       </trans-unit>
       <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
         <source xml:lang="en">No account selected</source>
@@ -7535,7 +7535,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++d1d42f9f45fb411d15e6cbe63ade191eacc7b913567fcaa14b1b197afdcb9088">
         <source xml:lang="en">Sign in and retry</source>
-        <target state="new">Sign in and retry</target>
+        <target state="translated">Войти и повторить попытку</target>
       </trans-unit>
       <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
         <source xml:lang="en">Sign in to a new account</source>
@@ -7581,7 +7581,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++81ecb58c552f0960f49fca72a0105a414beccc57b3a401f3d74904af931ccbf1">
         <source xml:lang="en">Signing in to Azure as {0}...</source>
         <note>{0} is the account name</note>
-        <target state="new">Signing in to Azure as {0}...</target>
+        <target state="translated">Выполняется вход в Azure в качестве {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
         <source xml:lang="en">Simple</source>
@@ -8171,7 +8171,7 @@ Query: {2}</source>
         <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
         <note>{0} is the account ID or label
 {1} is the tenant ID</note>
-        <target state="new">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</target>
+        <target state="translated">Выбранный профиль проходит проверку подлинности через Entra ID «{0}» в клиенте «{1}», но эта учетная запись недоступна через вход в VS Code. Измените подключение или войдите в VS Code с этой учетной записью для подключения.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -8322,7 +8322,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++174af08052d23280b455e65ee7fe31307b6b838514937562db1a66605ce1cd68">
         <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</source>
         <note>{0} is the account label or ID</note>
-        <target state="new">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</target>
+        <target state="translated">Не удалось получить токен Microsoft Entra из VS Code для выбранной учетной записи: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
