@@ -81,7 +81,7 @@ suite("SQL language configuration", () => {
         expect(sqlWordSeparators).to.not.include("#");
     });
 
-    test("treats temp table prefixes as part of a word", () => {
+    test("Testing common SQL word separators", () => {
         // Regression coverage for https://github.com/microsoft/azuredatastudio/issues/21611
         const wordSeparators = getSqlEditorWordSeparators();
 
