@@ -27,6 +27,27 @@ interface IFixture {
     decompressResult: Promise<void>;
 }
 
+async function writeRequiredServiceFiles(
+    installDirectory: string,
+    runtime: Runtime,
+): Promise<void> {
+    const fileExtension =
+        runtime === Runtime.Portable
+            ? ".dll"
+            : runtime === Runtime.Windows_64 || runtime === Runtime.Windows_ARM64
+              ? ".exe"
+              : "";
+
+    await fs.writeFile(
+        path.join(installDirectory, `MicrosoftSqlToolsServiceLayer${fileExtension}`),
+        "",
+    );
+    await fs.writeFile(
+        path.join(installDirectory, `SqlToolsResourceProviderService${fileExtension}`),
+        "",
+    );
+}
+
 suite("ServiceDownloadProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let config: sinon.SinonStubbedInstance<ConfigUtils>;
@@ -105,26 +126,28 @@ suite("ServiceDownloadProvider Tests", () => {
         const installDirectory = path.join(installRoot, "1.0.0", "Portable");
 
         await fs.rm(installRoot, { recursive: true, force: true });
-        await fs.mkdir(installDirectory, { recursive: true });
+        try {
+            await fs.mkdir(installDirectory, { recursive: true });
 
-        config.getSqlToolsInstallDirectory.returns(
-            path.join(installRoot, "{#version#}", "{#platform#}"),
-        );
-        config.getSqlToolsPackageVersion.returns("1.0.0");
+            config.getSqlToolsInstallDirectory.returns(
+                path.join(installRoot, "{#version#}", "{#platform#}"),
+            );
+            config.getSqlToolsPackageVersion.returns("1.0.0");
 
-        const downloadProvider = new ServiceDownloadProvider(
-            config,
-            testLogger,
-            statusView,
-            testDownloadHelper,
-            testDecompressProvider,
-        );
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
 
-        const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
+            const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
 
-        expect(actual).to.be.undefined;
-
-        await fs.rm(installRoot, { recursive: true, force: true });
+            expect(actual).to.be.undefined;
+        } finally {
+            await fs.rm(installRoot, { recursive: true, force: true });
+        }
     });
 
     test("tryGetInstallDirectory returns the folder when portable required files are present", async () => {
@@ -132,28 +155,59 @@ suite("ServiceDownloadProvider Tests", () => {
         const installDirectory = path.join(installRoot, "1.0.0", "Portable");
 
         await fs.rm(installRoot, { recursive: true, force: true });
-        await fs.mkdir(installDirectory, { recursive: true });
-        await fs.writeFile(path.join(installDirectory, "MicrosoftSqlToolsServiceLayer.dll"), "");
-        await fs.writeFile(path.join(installDirectory, "SqlToolsResourceProviderService.dll"), "");
+        try {
+            await fs.mkdir(installDirectory, { recursive: true });
+            await writeRequiredServiceFiles(installDirectory, Runtime.Portable);
 
-        config.getSqlToolsInstallDirectory.returns(
-            path.join(installRoot, "{#version#}", "{#platform#}"),
-        );
-        config.getSqlToolsPackageVersion.returns("1.0.0");
+            config.getSqlToolsInstallDirectory.returns(
+                path.join(installRoot, "{#version#}", "{#platform#}"),
+            );
+            config.getSqlToolsPackageVersion.returns("1.0.0");
 
-        const downloadProvider = new ServiceDownloadProvider(
-            config,
-            testLogger,
-            statusView,
-            testDownloadHelper,
-            testDecompressProvider,
-        );
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
 
-        const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
+            const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
 
-        expect(actual).to.equal(installDirectory);
+            expect(actual).to.equal(installDirectory);
+        } finally {
+            await fs.rm(installRoot, { recursive: true, force: true });
+        }
+    });
+
+    test("tryGetInstallDirectory returns the folder when Windows required files are present", async () => {
+        const installRoot = path.join(__dirname, "testServiceWindowsPresent");
+        const installDirectory = path.join(installRoot, "1.0.0", "Windows");
 
         await fs.rm(installRoot, { recursive: true, force: true });
+        try {
+            await fs.mkdir(installDirectory, { recursive: true });
+            await writeRequiredServiceFiles(installDirectory, Runtime.Windows_64);
+
+            config.getSqlToolsInstallDirectory.returns(
+                path.join(installRoot, "{#version#}", "{#platform#}"),
+            );
+            config.getSqlToolsPackageVersion.returns("1.0.0");
+
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
+
+            const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Windows_64);
+
+            expect(actual).to.equal(installDirectory);
+        } finally {
+            await fs.rm(installRoot, { recursive: true, force: true });
+        }
     });
 
     async function createDownloadProvider(fixture: IFixture): Promise<IFixture> {
