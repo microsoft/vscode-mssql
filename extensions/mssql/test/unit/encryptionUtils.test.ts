@@ -29,7 +29,7 @@ suite("encryptionUtils", () => {
         const encryptionKey = generateEncryptionKey();
         const encryptedData = encryptData("sensitive query history", encryptionKey);
 
-        encryptedData.ciphertext = `A${encryptedData.ciphertext.slice(1)}`;
+        encryptedData.ciphertext = `Some tampering${encryptedData.ciphertext.slice(1)}`;
 
         expect(() => decryptData(encryptedData, encryptionKey)).to.throw();
     });
