@@ -233,11 +233,14 @@ export default class SqlToolsServiceClient {
             try {
                 await launchServer(stsFolderOverride, Runtime.Portable);
                 this.sendServiceLaunchTelemetry("override", Runtime.Portable, platformInfo);
+                vscode.window.showInformationMessage(
+                    `Launched SQL Tools Service from overridden path: ${stsFolderOverride}`,
+                );
                 return;
             } catch (err) {
-                this._logger.error(
-                    `Failed to launch SQL Tools Service with overridden path: ${getErrorMessage(err)}`,
-                );
+                const errorMessage = `Failed to launch SQL Tools Service with overridden path: ${stsFolderOverride} ${getErrorMessage(err)}`;
+                this._logger.error(errorMessage);
+                vscode.window.showErrorMessage(errorMessage);
                 /**
                  * We shouldn't fall back to other launch attempts if the override env variable is set,
                  * since the user explicitly requested to launch from that location.
