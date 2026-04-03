@@ -68,7 +68,20 @@ function getSqlEditorWordSeparators(): string {
 }
 
 suite("SQL language configuration", () => {
-    test("keeps parameter and temp table prefixes out of SQL editor word separators", () => {
+    test("keeps parameter and temp table prefixes out of SQL word separators", () => {
+        const sqlWordSeparators =
+            getSqlPackageManifest().contributes?.configurationDefaults?.["[sql]"]?.[
+                "editor.wordSeparators"
+            ];
+
+        expect(sqlWordSeparators, "Expected SQL-specific editor.wordSeparators override").to.be.a(
+            "string",
+        );
+        expect(sqlWordSeparators).to.not.include("@");
+        expect(sqlWordSeparators).to.not.include("#");
+    });
+
+    test("treats temp table prefixes as part of a word", () => {
         // Regression coverage for https://github.com/microsoft/azuredatastudio/issues/21611
         const wordSeparators = getSqlEditorWordSeparators();
 
