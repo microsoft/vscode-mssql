@@ -31,6 +31,7 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
 import { Logger } from "../../src/models/logger";
 import {
+    stubLogger,
     stubExtensionContext,
     initializeIconUtils,
     stubUserSurvey,
@@ -65,7 +66,7 @@ suite("Scripting Service", () => {
     let configurationGetStub: sinon.SinonStub;
     let registerCommandStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let loggerStub: { error: sinon.SinonStub; verbose: sinon.SinonStub };
+    let loggerStub: sinon.SinonStubbedInstance<Logger>;
     let objectExplorerTree: { selection: TreeNodeInfo[] };
     let scriptingProgressHandler: ProgressHandler | undefined;
     let scriptingCompleteHandler: ProgressHandler | undefined;
@@ -216,11 +217,7 @@ suite("Scripting Service", () => {
             return activity;
         });
 
-        loggerStub = {
-            error: sandbox.stub(),
-            verbose: sandbox.stub(),
-        };
-        sandbox.stub(Logger, "create").returns(loggerStub as unknown as Logger);
+        loggerStub = stubLogger(sandbox);
 
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         client = sandbox.createStubInstance(SqlToolsServiceClient);

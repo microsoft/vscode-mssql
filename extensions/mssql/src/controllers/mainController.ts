@@ -47,6 +47,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -247,10 +248,6 @@ export default class MainController implements vscode.Disposable {
         Utils.logDebug("de-activated.");
         await this.onDisconnect();
         this._statusview.dispose();
-    }
-
-    public get isExperimentalEnabled(): boolean {
-        return this.configuration.get(Constants.configEnableExperimentalFeatures);
     }
 
     /**
@@ -1080,15 +1077,16 @@ export default class MainController implements vscode.Disposable {
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
-            experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
+            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             cloudType: getCloudId(),
+            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         });
 
         // Set context for experimental features (used for conditional menu visibility)
         await vscode.commands.executeCommand(
             "setContext",
             "mssql.experimentalFeaturesEnabled",
-            this.isExperimentalEnabled,
+            previewService.experimentalFeaturesEnabled,
         );
 
         await this._connectionMgr.initialized;
@@ -3298,7 +3296,7 @@ export default class MainController implements vscode.Disposable {
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
-            Constants.configUseVscodeAccountsForEntraMfa,
+            getPreviewConfigKey(PreviewFeature.UseVscodeAccountsForEntraMFA),
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

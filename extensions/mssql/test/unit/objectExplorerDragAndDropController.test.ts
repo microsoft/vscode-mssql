@@ -12,17 +12,15 @@ import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGr
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { Logger } from "../../src/models/logger";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { IConnectionProfile, IConnectionGroup } from "../../src/models/interfaces";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils } from "./utils";
+import { initializeIconUtils, stubLogger } from "./utils";
 
 suite("ObjectExplorerDragAndDropController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let controller: ObjectExplorerDragAndDropController;
     let getQualifiedNameStub: sinon.SinonStub;
     let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
@@ -32,10 +30,8 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
         sandbox = sinon.createSandbox();
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
-        mockLogger = sandbox.createStubInstance(Logger);
+        stubLogger(sandbox);
         mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
-
-        sandbox.stub(Logger, "create").returns(mockLogger);
 
         getQualifiedNameStub = sandbox.stub(ObjectExplorerUtils, "getQualifiedName");
 

@@ -133,6 +133,8 @@
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
+        "vscode-oniguruma": "^2.0.1",
+        "vscode-textmate": "^9.3.2",
         "xliff": "^6.2.1",
         "yargs": "^17.7.2"
     },
@@ -158,7 +160,7 @@
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
-        "lodash": "^4.17.21",
+        "lodash": "^4.18.1",
         "opener": "1.5.2",
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
@@ -360,7 +362,10 @@
             {
                 "language": "sql",
                 "scopeName": "source.sql",
-                "path": "./syntaxes/SQL.plist"
+                "path": "./syntaxes/SQL.plist",
+                "unbalancedBracketScopes": [
+                    "constant.character.bracket.sql"
+                ]
             }
         ],
         "snippets": [
@@ -371,7 +376,7 @@
         ],
         "configurationDefaults": {
             "[sql]": {
-                "editor.wordSeparators": "~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+                "editor.wordSeparators": "`~!$%^&*()-=+[{]}\\|;:'\",.<>/?"
             }
         },
         "submenus": [
@@ -1678,12 +1683,6 @@
                         "%mssql.authCodeGrant.description%",
                         "%mssql.deviceCode.description%"
                     ],
-                    "scope": "application"
-                },
-                "mssql.preview.useVscodeAccountsForEntraID": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.useVscodeAccountsForEntraID.description%",
                     "scope": "application"
                 },
                 "mssql.logDebugInfo": {

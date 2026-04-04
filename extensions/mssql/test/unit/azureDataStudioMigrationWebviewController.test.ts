@@ -19,11 +19,11 @@ import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import {
     stubTelemetry,
+    stubLogger,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubExtensionContext,
 } from "./utils";
-import { Logger } from "../../src/models/logger";
 import * as utils from "../../src/utils/utils";
 import { AzureDataStudioMigration } from "../../src/constants/locConstants";
 import {
@@ -54,8 +54,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
 
-        const loggerStub = sandbox.createStubInstance(Logger);
-        sandbox.stub(Logger, "create").returns(loggerStub);
+        stubLogger(sandbox);
         sandbox.stub(utils, "getNonce").returns("nonce");
 
         sandbox.stub(vscode.window, "onDidChangeActiveColorTheme").callsFake(() => {

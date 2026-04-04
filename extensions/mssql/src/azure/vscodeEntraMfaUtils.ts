@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { AzureTenant, getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth";
 
-import * as Constants from "../constants/constants";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
@@ -18,12 +17,6 @@ export interface VscodeEntraSqlTokenInfo {
     session: vscode.AuthenticationSession;
     tenantId: string;
     token: IToken;
-}
-
-export function useVscodeAccountsForEntraMfa(): boolean {
-    return vscode.workspace
-        .getConfiguration()
-        .get<boolean>(Constants.configUseVscodeAccountsForEntraMfa, false);
 }
 
 /**

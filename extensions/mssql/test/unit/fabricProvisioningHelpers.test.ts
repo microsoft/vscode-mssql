@@ -11,17 +11,18 @@ import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
 import { AzureController } from "../../src/azure/azureController";
 import * as fabricHelpers from "../../src/deployment/fabricProvisioningHelpers";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import { stubTelemetry } from "./utils";
+import { createStubLogger, stubTelemetry } from "./utils";
 import { FormItemOptions, FormItemType } from "../../src/sharedInterfaces/form";
 import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
+import { Logger } from "../../src/models/logger";
 
 chai.use(sinonChai);
 
 suite("Fabric Provisioning logic", () => {
     let sandbox: sinon.SinonSandbox;
     let deploymentController: any;
-    let logger: any;
+    let logger: sinon.SinonStubbedInstance<Logger>;
     let sendActionEvent: sinon.SinonStub;
     let accountOptions = [{ label: "acct1", id: "account1" }];
     let tenantOptions = [{ displayName: "tenant1", tenantId: "tenant1" }];
@@ -57,7 +58,7 @@ suite("Fabric Provisioning logic", () => {
             publishDeploymentState: sandbox.stub(),
             updateState: updateStateStub,
         };
-        logger = { verbose: sandbox.stub(), error: sandbox.stub(), log: sandbox.stub() };
+        logger = createStubLogger(sandbox);
     });
 
     teardown(() => {

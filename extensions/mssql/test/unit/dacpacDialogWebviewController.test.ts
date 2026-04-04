@@ -43,13 +43,13 @@ import {
 import * as LocConstants from "../../src/constants/locConstants";
 import {
     stubTelemetry,
+    stubLogger,
     stubUserSurvey,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
 } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { Logger } from "../../src/models/logger";
 import * as utils from "../../src/utils/utils";
 import { DacFxResult } from "vscode-mssql";
 import { ListDatabasesRequest } from "../../src/models/contracts/connection";
@@ -83,8 +83,7 @@ suite("DacpacDialogWebviewController", () => {
         stubTelemetry(sandbox);
         stubUserSurvey(sandbox);
 
-        const loggerStub = sandbox.createStubInstance(Logger);
-        sandbox.stub(Logger, "create").returns(loggerStub);
+        stubLogger(sandbox);
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         const connection = stubWebviewConnectionRpc(sandbox);
         requestHandlers = connection.requestHandlers;

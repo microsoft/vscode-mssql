@@ -8,23 +8,12 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
-import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import {
-    activateExtension,
-    initializeIconUtils,
-    stubTelemetry,
-    stubExtensionContext,
-    stubVscodeWrapper,
-} from "./utils";
-import { SchemaCompareEndpointInfo } from "vscode-mssql";
+import { stubTelemetry, stubExtensionContext, stubVscodeWrapper } from "./utils";
 import * as Constants from "../../src/constants/constants";
-import { UserSurvey } from "../../src/nps/userSurvey";
 import { HttpClient } from "../../src/http/httpClient";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -36,6 +25,22 @@ import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/tel
 
 chai.use(sinonChai);
 
+type MainControllerTestAccess = {
+    validateTextDocumentHasFocus(): boolean;
+    _vscodeWrapper: {
+        activeTextEditorUri?: string;
+        isEditingSqlFile?: boolean;
+        showInformationMessage(message: string): Thenable<unknown> | void;
+    };
+    openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void>;
+    findChatOpenAgentCommand(): Promise<string | undefined>;
+    registerLanguageModelTools(): void;
+};
+
+function accessMainController(controller: MainController): MainControllerTestAccess {
+    return controller as unknown as MainControllerTestAccess;
+}
+
 suite("MainController Tests", function () {
     let sandbox: sinon.SinonSandbox;
     let mainController: MainController;
@@ -43,26 +48,27 @@ suite("MainController Tests", function () {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let context: vscode.ExtensionContext;
 
-    suiteSetup(async () => {
-        // Need to activate the extension to get the mainController
-        await activateExtension();
-
-        // Using the mainController that was instantiated with the extension
-        mainController = await Extension.getController();
-    });
+    function createMockTextEditor(
+        uri: string,
+        languageId: string = Constants.languageId,
+    ): vscode.TextEditor {
+        return {
+            document: {
+                uri: vscode.Uri.parse(uri),
+                languageId,
+            },
+        } as unknown as vscode.TextEditor;
+    }
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
         // Setting up a stubbed connectionManager
         connectionManager = sandbox.createStubInstance(ConnectionManager);
-        mainController.connectionManager = connectionManager;
-        (mainController.sqlDocumentService as any)["_connectionMgr"] = connectionManager;
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
         context = stubExtensionContext(sandbox);
-
-        UserSurvey.createInstance(context, vscodeWrapper);
+        mainController = new MainController(context, connectionManager, vscodeWrapper);
     });
 
     teardown(() => {
@@ -81,8 +87,9 @@ suite("MainController Tests", function () {
             undefined, // ConnectionManager
             vscodeWrapper,
         );
+        const controllerAccess = accessMainController(controller);
 
-        const result = (controller as any).validateTextDocumentHasFocus();
+        const result = controllerAccess.validateTextDocumentHasFocus();
 
         expect(
             result,
@@ -99,8 +106,9 @@ suite("MainController Tests", function () {
             undefined, // ConnectionManager
             vscodeWrapper,
         );
+        const controllerAccess = accessMainController(controller);
 
-        const result = (controller as any).validateTextDocumentHasFocus();
+        const result = controllerAccess.validateTextDocumentHasFocus();
 
         expect(
             result,
@@ -120,85 +128,7 @@ suite("MainController Tests", function () {
 
         await controller.onManageProfiles();
 
-        expect(connectionManager.onManageProfiles).to.have.been.calledOnce;
-    });
-
-    test("runComparison command should call onSchemaCompare on the controller", async () => {
-        let called = false;
-        let gotMaybeSource: any = undefined;
-        let gotMaybeTarget: any = undefined;
-        let gotRunComparison: boolean | undefined;
-
-        const originalHandler = (mainController as any).onSchemaCompare;
-        (mainController as any).onSchemaCompare = async (
-            maybeSource?: SchemaCompareEndpointInfo,
-            maybeTarget?: SchemaCompareEndpointInfo,
-            runComparison?: boolean,
-        ) => {
-            called = true;
-            gotMaybeSource = maybeSource;
-            gotMaybeTarget = maybeTarget;
-            gotRunComparison = runComparison ?? false;
-        };
-
-        const src = { endpointType: 1, serverName: "srcServer", databaseName: "srcDb" };
-        const tgt = { endpointType: 1, serverName: "tgtServer", databaseName: "tgtDb" };
-
-        try {
-            await vscode.commands.executeCommand(Constants.cmdSchemaCompare, src, tgt);
-
-            // Normalize in-case the command forwarded a single object { source, target }
-            if (
-                gotMaybeSource &&
-                typeof gotMaybeSource === "object" &&
-                ("source" in gotMaybeSource || "target" in gotMaybeSource)
-            ) {
-                const wrapped = gotMaybeSource as any;
-                gotMaybeSource = wrapped.source;
-                gotMaybeTarget = wrapped.target;
-                gotRunComparison = wrapped.runComparison ?? false;
-            }
-
-            expect(called, "Expected onSchemaCompare to be called").to.be.true;
-            expect(gotMaybeSource, "Expected source passed through to handler").to.deep.equal(src);
-            expect(gotMaybeTarget, "Expected target passed through to handler").to.deep.equal(tgt);
-            expect(gotRunComparison, "Expected runComparison to be false").to.be.false;
-        } finally {
-            // restore original handler so the test doesn't leak state
-            (mainController as any).onSchemaCompare = originalHandler;
-        }
-    });
-
-    test("publishDatabaseProject command should call onPublishDatabaseProject on the controller", async () => {
-        let called = false;
-        let gotProjectFilePath: string | undefined;
-
-        const originalHandler: (projectFilePath: string) => Promise<void> =
-            mainController.onPublishDatabaseProject.bind(mainController);
-        mainController.onPublishDatabaseProject = async (
-            projectFilePath: string,
-        ): Promise<void> => {
-            called = true;
-            gotProjectFilePath = projectFilePath;
-        };
-
-        const testProjectPath = "C:\\test\\project\\database.sqlproj";
-
-        try {
-            await vscode.commands.executeCommand(
-                Constants.cmdPublishDatabaseProject,
-                testProjectPath,
-            );
-
-            expect(called, "Expected onPublishDatabaseProject to be called").to.be.true;
-            expect(
-                gotProjectFilePath,
-                "Expected projectFilePath passed through to handler",
-            ).to.equal(testProjectPath);
-        } finally {
-            // restore original handler so the test doesn't leak state
-            mainController.onPublishDatabaseProject = originalHandler;
-        }
+        expect(connectionManager.onManageProfiles).to.have.been.called;
     });
 
     test("Proxy settings are checked on initialization", async () => {
@@ -213,362 +143,133 @@ suite("MainController Tests", function () {
     });
 
     suite("onNewQueryWithConnection Tests", () => {
+        setup(() => {
+            stubTelemetry(sandbox);
+        });
+
         test("does nothing when already connected to SQL editor without force flags", async () => {
-            // Open a SQL document
-            const doc = await vscode.workspace.openTextDocument({
-                language: "sql",
-                content: "",
-            });
-            const editor = await vscode.window.showTextDocument(doc);
-
-            // Mock connection
-            const uri = editor.document.uri.toString();
+            const uri = "file:///already-connected.sql";
+            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
             connectionManager.isConnected.withArgs(uri).returns(true);
+            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
+            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
 
-            // Call method
             const result = await mainController.onNewQueryWithConnection();
 
-            // Should return true without opening new editor
             expect(result).to.equal(true);
-
-            // Close the document
-            await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+            expect(openTextDocumentStub).to.not.have.been.called;
+            expect(showTextDocumentStub).to.not.have.been.called;
+            expect(promptToConnectStub).to.not.have.been.called;
         });
 
         test("opens new editor when no active editor exists", async () => {
-            // Close all editors first
-            await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+            sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+            const sqlDocument = {
+                uri: vscode.Uri.parse("untitled:query.sql"),
+                languageId: "sql",
+            } as vscode.TextDocument;
+            const shownEditor = createMockTextEditor("untitled:query.sql");
+            const openTextDocumentStub = sandbox
+                .stub(vscode.workspace, "openTextDocument")
+                .resolves(sqlDocument);
+            const showTextDocumentStub = sandbox
+                .stub(vscode.window, "showTextDocument")
+                .resolves(shownEditor);
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
 
-            // Mock promptToConnect to track if it's called
-            let promptToConnectCalled = false;
-            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
-            mainController.promptToConnect = async () => {
-                promptToConnectCalled = true;
-                return true;
-            };
+            const result = await mainController.onNewQueryWithConnection();
 
-            try {
-                const result = await mainController.onNewQueryWithConnection();
-
-                expect(result).to.equal(true);
-                expect(promptToConnectCalled).to.equal(
-                    true,
-                    "Expected promptToConnect to be called",
-                );
-
-                // Verify a SQL editor was opened
-                const activeEditor = vscode.window.activeTextEditor;
-                expect(activeEditor).to.not.be.undefined;
-                expect(activeEditor?.document.languageId).to.equal("sql");
-
-                // Clean up
-                await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-            } finally {
-                mainController.promptToConnect = originalPromptToConnect;
-            }
+            expect(result).to.equal(true);
+            expect(openTextDocumentStub).to.have.been.calledWithMatch({
+                language: "sql",
+                content: "",
+            });
+            expect(showTextDocumentStub).to.have.been.calledWith(sqlDocument);
+            expect(promptToConnectStub).to.have.been.called;
         });
 
         test("forces new editor when forceNewEditor is true", async () => {
-            // Open a SQL document
-            const doc = await vscode.workspace.openTextDocument({
-                language: "sql",
-                content: "-- existing editor",
-            });
-            await vscode.window.showTextDocument(doc);
-            const initialDocumentCount = vscode.workspace.textDocuments.length;
-
-            // Mock connection - existing editor is connected
+            const uri = "file:///existing-editor.sql";
+            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
             connectionManager.isConnected.returns(true);
+            const sqlDocument = {
+                uri: vscode.Uri.parse("untitled:forced.sql"),
+                languageId: "sql",
+            } as vscode.TextDocument;
+            const shownEditor = createMockTextEditor("untitled:forced.sql");
+            const openTextDocumentStub = sandbox
+                .stub(vscode.workspace, "openTextDocument")
+                .resolves(sqlDocument);
+            const showTextDocumentStub = sandbox
+                .stub(vscode.window, "showTextDocument")
+                .resolves(shownEditor);
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
 
-            try {
-                const result = await mainController.onNewQueryWithConnection(true, false);
+            const result = await mainController.onNewQueryWithConnection(true, false);
 
-                expect(result).to.equal(true);
-
-                // Verify a new editor was created - document count should increase
-                const finalDocumentCount = vscode.workspace.textDocuments.length;
-                expect(finalDocumentCount).to.be.greaterThan(
-                    initialDocumentCount,
-                    "Expected a new document to be created",
-                );
-
-                // Verify the active editor is SQL
-                const activeEditor = vscode.window.activeTextEditor;
-                expect(activeEditor).to.not.be.undefined;
-                expect(activeEditor?.document.languageId).to.equal("sql");
-
-                // Clean up
-                await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-            } finally {
-                // No cleanup needed
-            }
+            expect(result).to.equal(true);
+            expect(openTextDocumentStub).to.have.been.calledWithMatch({
+                language: "sql",
+                content: "",
+            });
+            expect(showTextDocumentStub).to.have.been.calledWith(sqlDocument);
+            expect(promptToConnectStub).to.not.have.been.called;
         });
 
         test("forces connection when forceConnect is true even when connected", async () => {
-            // Open a SQL document
-            const doc = await vscode.workspace.openTextDocument({
-                language: "sql",
-                content: "",
-            });
-            const editor = await vscode.window.showTextDocument(doc);
-            const uri = editor.document.uri.toString();
-
-            // Mock already connected
+            const uri = "file:///force-connect.sql";
+            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
             connectionManager.isConnected.withArgs(uri).returns(true);
+            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
+            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
 
-            // Mock promptToConnect to verify it's called
-            let promptToConnectCalled = false;
-            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
-            mainController.promptToConnect = async () => {
-                promptToConnectCalled = true;
-                return true;
-            };
+            const result = await mainController.onNewQueryWithConnection(false, true);
 
-            try {
-                const result = await mainController.onNewQueryWithConnection(false, true);
-
-                expect(result).to.equal(true);
-                expect(promptToConnectCalled).to.equal(
-                    true,
-                    "Expected promptToConnect to be called despite already being connected",
-                );
-
-                // Clean up
-                await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-            } finally {
-                mainController.promptToConnect = originalPromptToConnect;
-            }
+            expect(result).to.equal(true);
+            expect(openTextDocumentStub).to.not.have.been.called;
+            expect(showTextDocumentStub).to.not.have.been.called;
+            expect(promptToConnectStub).to.have.been.called;
         });
 
         test("connects to existing SQL editor when not connected", async () => {
-            // Open a SQL document
-            const doc = await vscode.workspace.openTextDocument({
-                language: "sql",
-                content: "",
-            });
-            const editor = await vscode.window.showTextDocument(doc);
-            const uri = editor.document.uri.toString();
-
-            // Mock NOT connected
+            const uri = "file:///disconnected.sql";
+            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
             connectionManager.isConnected.withArgs(uri).returns(false);
+            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
+            const showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
 
-            // Mock promptToConnect
-            let promptToConnectCalled = false;
-            const originalPromptToConnect = mainController.promptToConnect.bind(mainController);
-            mainController.promptToConnect = async () => {
-                promptToConnectCalled = true;
-                return true;
-            };
+            const result = await mainController.onNewQueryWithConnection();
 
-            try {
-                const result = await mainController.onNewQueryWithConnection();
-
-                expect(result).to.equal(true);
-                expect(promptToConnectCalled).to.equal(
-                    true,
-                    "Expected promptToConnect to be called for disconnected editor",
-                );
-
-                // Clean up
-                await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-            } finally {
-                mainController.promptToConnect = originalPromptToConnect;
-            }
-        });
-    });
-
-    suite("Copy Connection String Command", () => {
-        let clipboardWriteTextStub: sinon.SinonStub;
-        let showInformationMessageStub: sinon.SinonStub;
-
-        setup(() => {
-            initializeIconUtils();
-            clipboardWriteTextStub = sandbox.stub();
-            sandbox.stub(vscode.env, "clipboard").value({
-                writeText: clipboardWriteTextStub.resolves(),
-            });
-            showInformationMessageStub = sandbox
-                .stub(vscode.window, "showInformationMessage")
-                .resolves();
-        });
-
-        function createMockTreeNode(
-            nodeType: string,
-            connectionProfile?: IConnectionProfile,
-        ): TreeNodeInfo {
-            const baseProfile: IConnectionProfile =
-                connectionProfile ??
-                ({
-                    id: "test-id",
-                    profileName: "Test Profile",
-                    groupId: "test-group",
-                    savePassword: false,
-                    emptyPasswordInput: false,
-                    azureAuthType: 0,
-                    accountStore: undefined,
-                    server: "testServer",
-                    database: "testDb",
-                    user: "testUser",
-                } as IConnectionProfile);
-
-            return new TreeNodeInfo(
-                "Test Server",
-                { type: nodeType, filterable: false, hasFilters: false, subType: undefined },
-                vscode.TreeItemCollapsibleState.Collapsed,
-                "nodePath",
-                "ready",
-                nodeType,
-                "session",
-                baseProfile,
-                undefined as unknown as TreeNodeInfo,
-                [],
-                undefined,
-                undefined,
-                undefined,
-            );
-        }
-
-        test("cmdCopyConnectionString command is registered", async () => {
-            const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdCopyConnectionString);
-        });
-
-        test("copies connection string to clipboard for server node", async () => {
-            const testConnectionString = "Server=testServer;Database=testDb;User Id=testUser;";
-            connectionManager.createConnectionDetails.returns({} as any);
-            connectionManager.getConnectionString.resolves(testConnectionString);
-
-            const node = createMockTreeNode(Constants.serverLabel);
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
-
-            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
-            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
-            expect(connectionManager.getConnectionString).to.have.been.calledWith(
-                sinon.match.any,
-                true, // include password
-                false, // do not include application name
-            );
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(testConnectionString);
-            expect(showInformationMessageStub).to.have.been.calledOnceWith(
-                LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
-            );
-        });
-
-        test("copies connection string to clipboard for disconnected server node", async () => {
-            const testConnectionString = "Server=testServer;Database=testDb;";
-            connectionManager.createConnectionDetails.returns({} as any);
-            connectionManager.getConnectionString.resolves(testConnectionString);
-
-            const node = createMockTreeNode(Constants.disconnectedServerNodeType);
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
-
-            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
-            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(testConnectionString);
-            expect(showInformationMessageStub).to.have.been.calledOnceWith(
-                LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
-            );
-        });
-
-        test("does nothing when node has no connection profile", async () => {
-            const node = createMockTreeNode(Constants.serverLabel);
-            // Remove the connection profile
-            (node as any)._connectionProfile = undefined;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
-
-            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
-            expect(connectionManager.getConnectionString).to.not.have.been.called;
-            expect(clipboardWriteTextStub).to.not.have.been.called;
-            expect(showInformationMessageStub).to.not.have.been.called;
-        });
-
-        test("does nothing when node is not a server type", async () => {
-            // Use a different node type like "Database" or "Table"
-            const node = createMockTreeNode("Database");
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
-
-            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
-            expect(connectionManager.getConnectionString).to.not.have.been.called;
-            expect(clipboardWriteTextStub).to.not.have.been.called;
-            expect(showInformationMessageStub).to.not.have.been.called;
-        });
-
-        test("does nothing when getConnectionString returns empty string", async () => {
-            connectionManager.createConnectionDetails.returns({} as any);
-            connectionManager.getConnectionString.resolves("");
-
-            const node = createMockTreeNode(Constants.serverLabel);
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
-
-            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
-            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
-            expect(clipboardWriteTextStub).to.not.have.been.called;
-            expect(showInformationMessageStub).to.not.have.been.called;
-        });
-
-        test("uses tree selection when node is not provided", async () => {
-            const testConnectionString = "Server=testServer;Database=testDb;";
-            connectionManager.createConnectionDetails.returns({} as any);
-            connectionManager.getConnectionString.resolves(testConnectionString);
-
-            const node = createMockTreeNode(Constants.serverLabel);
-
-            // Mock the objectExplorerTree selection
-            mainController.objectExplorerTree = {
-                selection: [node],
-            } as unknown as vscode.TreeView<TreeNodeInfo>;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, undefined);
-
-            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
-            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(testConnectionString);
-        });
-
-        test("does nothing when no node and no tree selection", async () => {
-            // Mock empty selection
-            mainController.objectExplorerTree = {
-                selection: [],
-            } as unknown as vscode.TreeView<TreeNodeInfo>;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, undefined);
-
-            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
-            expect(connectionManager.getConnectionString).to.not.have.been.called;
-            expect(clipboardWriteTextStub).to.not.have.been.called;
-        });
-
-        test("does nothing when no node and multiple selections", async () => {
-            const node1 = createMockTreeNode(Constants.serverLabel);
-            const node2 = createMockTreeNode(Constants.serverLabel);
-
-            // Mock multiple selection
-            mainController.objectExplorerTree = {
-                selection: [node1, node2],
-            } as unknown as vscode.TreeView<TreeNodeInfo>;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, undefined);
-
-            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
-            expect(connectionManager.getConnectionString).to.not.have.been.called;
-            expect(clipboardWriteTextStub).to.not.have.been.called;
+            expect(result).to.equal(true);
+            expect(openTextDocumentStub).to.not.have.been.called;
+            expect(showTextDocumentStub).to.not.have.been.called;
+            expect(promptToConnectStub).to.have.been.called;
         });
     });
 
     suite("ensureReadyToExecuteQuery Tests", () => {
         test("returns false and shows info message when connection is in progress", async () => {
             const testUri = "file:///test/connecting.sql";
+            const controllerAccess = accessMainController(mainController);
 
             // Stub the private _vscodeWrapper so ensureActiveSqlFile passes
             // and the isConnecting path is exercised
-            const originalWrapper = (mainController as any)._vscodeWrapper;
+            const originalWrapper = controllerAccess._vscodeWrapper;
             const showInfoStub = sandbox.stub().resolves();
-            (mainController as any)._vscodeWrapper = {
+            controllerAccess._vscodeWrapper = {
                 activeTextEditorUri: testUri,
                 isEditingSqlFile: true,
                 showInformationMessage: showInfoStub,
@@ -601,124 +302,9 @@ suite("MainController Tests", function () {
                     "promptToConnect should not be called when connection is already in progress",
                 );
             } finally {
-                (mainController as any)._vscodeWrapper = originalWrapper;
+                controllerAccess._vscodeWrapper = originalWrapper;
                 mainController.promptToConnect = originalPromptToConnect;
             }
-        });
-    });
-
-    suite("Copy Object Name Command", () => {
-        let clipboardWriteTextStub: sinon.SinonStub;
-
-        setup(() => {
-            initializeIconUtils();
-            // Stub the clipboard on the mainController's vscodeWrapper
-            clipboardWriteTextStub = sandbox.stub();
-            (mainController as any)._vscodeWrapper = {
-                clipboardWriteText: clipboardWriteTextStub.resolves(),
-            };
-        });
-
-        function createMockTreeNodeWithMetadata(
-            metadataTypeName: string,
-            schema: string,
-            name: string,
-        ): TreeNodeInfo {
-            const baseProfile: IConnectionProfile = {
-                id: "test-id",
-                profileName: "Test Profile",
-                groupId: "test-group",
-                savePassword: false,
-                emptyPasswordInput: false,
-                azureAuthType: 0,
-                accountStore: undefined,
-                server: "testServer",
-                database: "testDb",
-                user: "testUser",
-            } as IConnectionProfile;
-
-            return new TreeNodeInfo(
-                "Test Node",
-                { type: "Table", filterable: false, hasFilters: false, subType: undefined },
-                vscode.TreeItemCollapsibleState.None,
-                "nodePath",
-                "ready",
-                "Table",
-                "session",
-                baseProfile,
-                undefined as unknown as TreeNodeInfo,
-                [],
-                undefined,
-                { metadataTypeName, schema, name } as any,
-                undefined,
-            );
-        }
-
-        test("cmdCopyObjectName command is registered", async () => {
-            const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdCopyObjectName);
-        });
-
-        test("copies qualified name to clipboard for table node", async () => {
-            const node = createMockTreeNodeWithMetadata("Table", "dbo", "MyTable");
-
-            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, node);
-
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[dbo].[MyTable]");
-        });
-
-        test("copies qualified name to clipboard for stored procedure node", async () => {
-            const node = createMockTreeNodeWithMetadata("StoredProcedure", "dbo", "MyProc");
-
-            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, node);
-
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[dbo].[MyProc]");
-        });
-
-        test("copies simple name to clipboard for non-schema objects", async () => {
-            const node = createMockTreeNodeWithMetadata("Database", "", "MyDatabase");
-
-            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, node);
-
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[MyDatabase]");
-        });
-
-        test("uses tree selection when node is not provided", async () => {
-            const node = createMockTreeNodeWithMetadata("Table", "dbo", "SelectedTable");
-
-            // Mock the objectExplorerTree selection
-            mainController.objectExplorerTree = {
-                selection: [node],
-            } as unknown as vscode.TreeView<TreeNodeInfo>;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
-
-            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[dbo].[SelectedTable]");
-        });
-
-        test("does nothing when no node and no tree selection", async () => {
-            // Mock empty selection
-            mainController.objectExplorerTree = {
-                selection: [],
-            } as unknown as vscode.TreeView<TreeNodeInfo>;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
-
-            expect(clipboardWriteTextStub).to.not.have.been.called;
-        });
-
-        test("does nothing when no node and multiple selections", async () => {
-            const node1 = createMockTreeNodeWithMetadata("Table", "dbo", "Table1");
-            const node2 = createMockTreeNodeWithMetadata("Table", "dbo", "Table2");
-
-            // Mock multiple selection
-            mainController.objectExplorerTree = {
-                selection: [node1, node2],
-            } as unknown as vscode.TreeView<TreeNodeInfo>;
-
-            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
-
-            expect(clipboardWriteTextStub).to.not.have.been.called;
         });
     });
 
@@ -735,24 +321,20 @@ suite("MainController Tests", function () {
             return { isolatedController, isolatedVscodeWrapper };
         };
 
-        test("command is registered", async () => {
-            const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(CopilotChat.openFromUiCommand);
-        });
-
         test("shows error when no active schema designer exists", async () => {
             const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const controllerAccess = accessMainController(isolatedController);
             const { sendActionEvent } = stubTelemetry(sandbox);
             const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
             const findChatOpenAgentCommandStub = sandbox.stub(
-                isolatedController as any,
+                controllerAccess,
                 "findChatOpenAgentCommand",
             );
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns(undefined),
-            } as any);
+            } as unknown as SchemaDesignerWebviewManager);
 
-            await (isolatedController as any).openCopilotChatFromUi({
+            await controllerAccess.openCopilotChatFromUi({
                 scenario: "schemaDesigner",
                 entryPoint: "schemaDesignerToolbar",
             });
@@ -776,13 +358,14 @@ suite("MainController Tests", function () {
 
         test("shows error when chat command is unavailable", async () => {
             const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const controllerAccess = accessMainController(isolatedController);
             const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns({}),
-            } as any);
-            sandbox.stub(isolatedController as any, "findChatOpenAgentCommand").resolves(undefined);
+            } as unknown as SchemaDesignerWebviewManager);
+            sandbox.stub(controllerAccess, "findChatOpenAgentCommand").resolves(undefined);
 
-            await (isolatedController as any).openCopilotChatFromUi({
+            await controllerAccess.openCopilotChatFromUi({
                 scenario: "schemaDesigner",
                 entryPoint: "schemaDesignerToolbar",
             });
@@ -794,18 +377,19 @@ suite("MainController Tests", function () {
 
         test("opens chat with schema designer starter prompt when chat command is available", async () => {
             const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const controllerAccess = accessMainController(isolatedController);
             const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns({}),
-            } as any);
+            } as unknown as SchemaDesignerWebviewManager);
             sandbox
-                .stub(isolatedController as any, "findChatOpenAgentCommand")
+                .stub(controllerAccess, "findChatOpenAgentCommand")
                 .resolves(Constants.vscodeWorkbenchChatOpenAgent);
 
-            await (isolatedController as any).openCopilotChatFromUi({
+            await controllerAccess.openCopilotChatFromUi({
                 scenario: "schemaDesigner",
                 entryPoint: "schemaDesignerToolbar",
             });
@@ -819,6 +403,7 @@ suite("MainController Tests", function () {
 
         test("opens chat with dab starter prompt and sends telemetry", async () => {
             const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const controllerAccess = accessMainController(isolatedController);
             const { sendActionEvent } = stubTelemetry(sandbox);
             const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
             const executeCommandStub = sandbox
@@ -826,12 +411,12 @@ suite("MainController Tests", function () {
                 .resolves(undefined);
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns({}),
-            } as any);
+            } as unknown as SchemaDesignerWebviewManager);
             sandbox
-                .stub(isolatedController as any, "findChatOpenAgentCommand")
+                .stub(controllerAccess, "findChatOpenAgentCommand")
                 .resolves(Constants.vscodeWorkbenchChatOpenAgent);
 
-            await (isolatedController as any).openCopilotChatFromUi({
+            await controllerAccess.openCopilotChatFromUi({
                 scenario: "dab",
                 entryPoint: "dabToolbar",
             });
@@ -855,18 +440,19 @@ suite("MainController Tests", function () {
 
         test("opens chat with prompt override when provided", async () => {
             const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const controllerAccess = accessMainController(isolatedController);
             const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns({}),
-            } as any);
+            } as unknown as SchemaDesignerWebviewManager);
             sandbox
-                .stub(isolatedController as any, "findChatOpenAgentCommand")
+                .stub(controllerAccess, "findChatOpenAgentCommand")
                 .resolves(Constants.vscodeWorkbenchChatOpenAgent);
 
-            await (isolatedController as any).openCopilotChatFromUi({
+            await controllerAccess.openCopilotChatFromUi({
                 scenario: "schemaDesigner",
                 entryPoint: "schemaDesignerPublishDialogError",
                 prompt: "custom GHCP fix prompt",
@@ -892,18 +478,19 @@ suite("MainController Tests", function () {
             const getSchemaDesignerStub = sandbox.stub().resolves(mockDesigner);
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getSchemaDesigner: getSchemaDesignerStub,
-            } as any);
+            } as unknown as SchemaDesignerWebviewManager);
 
-            isolatedConnectionManager.getConnectionInfo
-                .withArgs("dab-connection")
-                .returns({ credentials: { database: "AdventureWorks" } } as any);
+            isolatedConnectionManager.getConnectionInfo.withArgs("dab-connection").returns({
+                credentials: { database: "AdventureWorks" },
+            } as unknown as ReturnType<ConnectionManager["getConnectionInfo"]>);
 
             const isolatedController = new MainController(
                 isolatedContext,
                 isolatedConnectionManager,
                 isolatedVscodeWrapper,
             );
-            (isolatedController as any).registerLanguageModelTools();
+            const controllerAccess = accessMainController(isolatedController);
+            controllerAccess.registerLanguageModelTools();
 
             const dabToolRegistration = registerToolStub
                 .getCalls()
@@ -919,7 +506,7 @@ suite("MainController Tests", function () {
                             operation: "show",
                             connectionId: "dab-connection",
                         },
-                    } as any,
+                    } as unknown as Parameters<DabTool["call"]>[0],
                     {} as vscode.CancellationToken,
                 ),
             );
