@@ -251,14 +251,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
         const self = this;
         return (result: EditSessionReadyParams): void => {
-            console.log(
-                `[runTableQuery] EditSessionReady notification - ownerUri: "${result.ownerUri}", success: ${result.success}, message: "${result.message}"`,
-            );
             // Only handle notifications matching this controller's expected ownerUri
             if (result.ownerUri !== self._expectedOwnerUri) {
-                console.log(
-                    `[runTableQuery] Ignoring notification - expected ownerUri: "${self._expectedOwnerUri}", got: "${result.ownerUri}"`,
-                );
                 return;
             }
 
@@ -273,16 +267,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
-        console.log(
-            `[runTableQuery] loadResultSet called - ownerUri: "${this.state.ownerUri}", rowStart: 0, rowCount: ${this.state.currentRowCount}`,
-        );
         const subsetResult = await this._tableExplorerService.subset(
             this.state.ownerUri,
             0,
             this.state.currentRowCount,
-        );
-        console.log(
-            `[runTableQuery] subsetResult - rowCount: ${subsetResult.rowCount}, subsetLength: ${subsetResult.subset?.length}, columns: ${subsetResult.columnInfo?.map((c: { name: string }) => c.name).join(", ")}`,
         );
         this.state.resultSet = subsetResult;
         this.state.loadStatus = ApiStatus.Loaded;
@@ -1389,7 +1377,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("runTableQuery", async (state, payload) => {
             this.logger.verbose(`Running custom table query - OperationId: ${this.operationId}`);
-            console.log(`[runTableQuery] Payload queryString: "${payload.queryString}"`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1475,9 +1462,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
                 // Re-initialize with the custom query
-                console.log(
-                    `[runTableQuery] Sending to STS initialize - ownerUri: "${state.ownerUri}", objectName: "${objectName}", schemaName: "${schemaName}", objectType: "${objectType}", queryString: "${payload.queryString}"`,
-                );
                 await this._tableExplorerService.initialize(
                     state.ownerUri,
                     objectName,
