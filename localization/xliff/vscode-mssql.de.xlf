@@ -137,7 +137,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
         <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
-        <target state="new">A required .NET runtime could not be found or installed.</target>
+        <target state="translated">Eine erforderliche .NET-Laufzeitumgebung konnte nicht gefunden oder installiert werden.</target>
       </trans-unit>
       <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
         <source xml:lang="en">API Type</source>
@@ -1932,7 +1932,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
         <source xml:lang="en">Copy link</source>
-        <target state="new">Copy link</target>
+        <target state="translated">Link kopieren</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -2068,7 +2068,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
         <source xml:lang="en">Create new connection copied from {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Create new connection copied from {0}</target>
+        <target state="translated">Neue aus {0} kopierte Verbindung erstellen</target>
       </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
@@ -2121,6 +2121,11 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">Anmeldeinformationsfehler: Beim Aktualisieren der Kontoanmeldeinformationen ist ein Fehler aufgetreten. Bitte authentifizieren Sie sich erneut.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++36d37fc43209cbab12c2155e6a214b4d880350cd721cc4e9e45216daaefaeb49">
+        <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Anmeldeinformationsfehler: Beim Aktualisieren der Kontoanmeldeinformationen ist ein Fehler aufgetreten. Bitte authentifizieren Sie sich erneut. Fehler: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
         <source xml:lang="en">Currently signed in as:</source>
@@ -2579,7 +2584,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
         <source xml:lang="en">Download offline VSIX</source>
-        <target state="new">Download offline VSIX</target>
+        <target state="translated">VSIX offline herunterladen</target>
       </trans-unit>
       <trans-unit id="++CODE++342f82d48698a8da781e445917d1fc3b3b2426d771d0a96b949f0b42b428ab6f">
         <source xml:lang="en">Download the keymap extension to automatically import key mappings from Azure Data Studio. These changes will show in your keyboard shortcut preferences.</source>
@@ -2629,10 +2634,6 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <note>{0} is the name of the connection group being edited</note>
         <target state="translated">Verbindungsgruppe bearbeiten: {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
-        <source xml:lang="en">Edit Connection Profile</source>
-        <target state="translated">Verbindungsprofil bearbeiten</target>
-      </trans-unit>
       <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
         <source xml:lang="en">Edit Data</source>
         <target state="translated">Daten bearbeiten</target>
@@ -2640,7 +2641,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++08d593fb39b41430bb8c2c1162a76d2c273c1180b07a062108bb2c8e7ab2a3c6">
         <source xml:lang="en">Edit Database Connection - {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Edit Database Connection - {0}</target>
+        <target state="translated">Datenbankverbindung bearbeiten – {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
@@ -2650,6 +2651,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Edit an existing connection profile</source>
         <target state="translated">Vorhandenes Verbindungsprofil bearbeiten</target>
       </trans-unit>
+      <trans-unit id="++CODE++3f60c38f32a4cbb47dd3fd2e4e95d272a157dd89834e124e294b31261139390a">
+        <source xml:lang="en">Edit connection profile</source>
+        <target state="translated">Verbindungsprofil bearbeiten</target>
+      </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
         <target state="translated">Bearbeiten Sie Ihr Schema, um hier Änderungen zu sehen.</target>
@@ -2657,7 +2662,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++c8724cfbaf2b6567c288f9f3ec1f1138c9c48bd270325ecc4095993063e8691b">
         <source xml:lang="en">Edit {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Edit {0}</target>
+        <target state="translated">{0} bearbeiten</target>
       </trans-unit>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -4525,7 +4530,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
         <source xml:lang="en">Link copied to clipboard</source>
-        <target state="new">Link copied to clipboard</target>
+        <target state="translated">Link wurde in die Zwischenablage kopiert</target>
       </trans-unit>
       <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
         <source xml:lang="en">List Connections</source>
@@ -5256,6 +5261,11 @@ Fehler:
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">Keine Abfragen vorhanden.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ab3f47847de3f238eecec8fd478cfd34c2fb816a4d35949a205060f84eca6177">
+        <source xml:lang="en">No SQL resource is configured for the current cloud '{0}'. Please update your Azure account settings.</source>
+        <note>{0} is the display name of the current cloud</note>
+        <target state="translated">Für die aktuelle Cloud „{0}“ ist keine SQL-Ressource konfiguriert. Aktualisieren Sie Ihre Azure-Kontoeinstellungen.</target>
       </trans-unit>
       <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
         <source xml:lang="en">No account selected</source>
@@ -7352,7 +7362,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
         <source xml:lang="en">Service installation failed.</source>
-        <target state="new">Service installation failed.</target>
+        <target state="translated">Fehler bei der Dienstinstallation.</target>
       </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
@@ -7523,6 +7533,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Sign in</source>
         <target state="translated">Anmelden</target>
       </trans-unit>
+      <trans-unit id="++CODE++d1d42f9f45fb411d15e6cbe63ade191eacc7b913567fcaa14b1b197afdcb9088">
+        <source xml:lang="en">Sign in and retry</source>
+        <target state="translated">Anmelden und erneut versuchen</target>
+      </trans-unit>
       <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
         <source xml:lang="en">Sign in to a new account</source>
         <target state="translated">Anmelden bei einem neuen Konto</target>
@@ -7564,9 +7578,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Sign into tenant</source>
         <target state="translated">Anmelden beim Mandanten</target>
       </trans-unit>
-      <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
-        <source xml:lang="en">Signing in to Azure...</source>
-        <target state="translated">Anmeldung bei Azure wird durchgeführt...</target>
+      <trans-unit id="++CODE++81ecb58c552f0960f49fca72a0105a414beccc57b3a401f3d74904af931ccbf1">
+        <source xml:lang="en">Signing in to Azure as {0}...</source>
+        <note>{0} is the account name</note>
+        <target state="translated">Anmeldung bei Azure als {0} wird durchgeführt …</target>
       </trans-unit>
       <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
         <source xml:lang="en">Simple</source>
@@ -8025,7 +8040,7 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
         <source xml:lang="en">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</target>
+        <target state="translated">Die SQL Server-Erweiterung konnte nicht gestartet werden, da der erforderliche Hintergrunddienst nicht gestartet werden konnte. Installieren Sie das Offline-VSIX für Ihr Betriebssystem, oder überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut. Details: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
         <source xml:lang="en">The XEL file was not found.</source>
@@ -8152,6 +8167,12 @@ Abfrage: {2}</target>
         <source xml:lang="en">The selected file is not a valid XEL file.</source>
         <target state="translated">Die ausgewählte Datei ist keine gültige XEL-Datei.</target>
       </trans-unit>
+      <trans-unit id="++CODE++17fc9cf78ccc4c6485ababb4c5c9ec97a19cb70c7531bdcf315dfe27f8d2c5da">
+        <source xml:lang="en">The selected profile authenticates using Entra ID '{0}' on tenant '{1}', but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
+        <note>{0} is the account ID or label
+{1} is the tenant ID</note>
+        <target state="translated">Das ausgewählte Profil authentifiziert sich mit Entra ID „{0}“ im Mandanten „{1}“, aber dieses Konto ist über die VS Code-Anmeldung nicht verfügbar. Bearbeiten Sie die Verbindung oder melden Sie sich mit diesem Konto in VS Code an, um eine Verbindung herzustellen.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
         <target state="translated">Die Tabelle, die die PRIMARY KEY- oder UNIQUE KEY-Spalte enthält.</target>
@@ -8160,7 +8181,7 @@ Abfrage: {2}</target>
         <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
         <note>{0} is the service name
 {1} is the error message</note>
-        <target state="new">The {0} service has crashed. Details: {1}</target>
+        <target state="translated">Der {0}-Dienst ist abgestürzt. Details: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
@@ -8297,6 +8318,11 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++2f396c3e6698a5aefbc9dbd89992cd1b65545a314b6d48bbed7dd703ba526dbc">
         <source xml:lang="en">URL copied to clipboard</source>
         <target state="translated">URL in Zwischenablage kopiert</target>
+      </trans-unit>
+      <trans-unit id="++CODE++174af08052d23280b455e65ee7fe31307b6b838514937562db1a66605ce1cd68">
+        <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</source>
+        <note>{0} is the account label or ID</note>
+        <target state="translated">Für das ausgewählte Konto kann kein Microsoft Entra-Token von VS Code abgerufen werden: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -8574,7 +8600,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
         <source xml:lang="en">View known issues</source>
-        <target state="new">View known issues</target>
+        <target state="translated">Bekannte Probleme anzeigen</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
@@ -10090,6 +10116,10 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
       <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
         <source xml:lang="en">Use only row data to size columns automatically</source>
         <target state="translated">Nur Zeilendaten für die automatische Anpassung der Spaltengröße verwenden</target>
+      </trans-unit>
+      <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
+        <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
+        <target state="new">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
