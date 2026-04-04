@@ -56,7 +56,7 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
+import { createStubLogger, initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -225,8 +225,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             });
             // Mock the Logger.create static method
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             mockLogger.verbose = sandbox.stub();
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -697,7 +696,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockLogger = sandbox.createStubInstance(Logger);
+            mockLogger = createStubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.handleConnectionErrors.resolves({
                 isHandled: false,
@@ -720,8 +719,7 @@ suite("OE Service Tests", () => {
                 endFailed: sandbox.stub(),
                 startTime: performance.now(),
             };
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
 
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -1215,8 +1213,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             };
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -1896,7 +1893,6 @@ suite("OE Service Tests", () => {
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
         let objectExplorerService: ObjectExplorerService;
 
         setup(() => {
@@ -1917,8 +1913,7 @@ suite("OE Service Tests", () => {
                 startTime: 0,
                 update: sandbox.stub(),
             });
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -2262,8 +2257,7 @@ suite("OE Service Tests", () => {
             mockRefreshCallback = sandbox.stub();
 
             // Mock the Logger.create static method
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             mockLogger.verbose = sandbox.stub();
             mockLogger.error = sandbox.stub();
 

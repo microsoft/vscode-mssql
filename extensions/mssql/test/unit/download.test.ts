@@ -17,6 +17,7 @@ import { Logger } from "../../src/models/logger";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -62,7 +63,7 @@ suite("ServiceDownloadProvider Tests", () => {
         statusView = sandbox.createStubInstance(ServerStatusView);
         testDownloadHelper = sandbox.createStubInstance(DownloadHelper);
         testDecompressProvider = sandbox.createStubInstance(DecompressProvider);
-        testLogger = sandbox.createStubInstance(Logger);
+        testLogger = createStubLogger(sandbox);
     });
 
     teardown(() => {

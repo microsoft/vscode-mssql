@@ -28,6 +28,7 @@ import {
     ViewMetadataResult,
 } from "../../src/sharedInterfaces/metadata";
 import { Logger } from "../../src/models/logger";
+import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
 
@@ -40,9 +41,7 @@ suite("Metadata Service Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = sandbox.createStubInstance(Logger);
-
-        sandbox.stub(mockClient, "logger").get(() => mockLogger);
+        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         metadataService = new MetadataService(mockClient);
     });
