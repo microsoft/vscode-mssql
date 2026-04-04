@@ -14,6 +14,7 @@ import axios, { AxiosResponse } from "axios";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
 import { Logger } from "../../src/models/logger";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -25,7 +26,7 @@ suite("HttpClient tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        logger = sandbox.createStubInstance(Logger);
+        logger = createStubLogger(sandbox);
         httpClient = new HttpClient(logger);
     });
 

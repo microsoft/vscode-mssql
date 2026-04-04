@@ -32,6 +32,7 @@ import * as msalNode from "@azure/msal-node";
 import * as azureUtils from "../../src/azure/utils";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import CodeAdapter from "../../src/prompts/adapter";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -50,7 +51,7 @@ suite("CloudAuthApplication Tests", () => {
 
         // Create stubs for dependencies
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockLogger = sandbox.createStubInstance(Logger);
+        mockLogger = createStubLogger(sandbox);
         mockCachePluginProvider = sandbox.createStubInstance(MsalCachePluginProvider);
 
         loggerCallback = sandbox.stub();

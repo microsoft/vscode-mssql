@@ -9,19 +9,17 @@ import { Runtime } from "../models/platform";
 /**
  * The service executables required for a SQL Tools Service installation to be considered runnable.
  */
-export const requiredServiceExecutablePrefixes = [
-    "MicrosoftSqlToolsServiceLayer",
-    "SqlToolsResourceProviderService",
-] as const;
-
-export type ServiceExecutablePrefix = (typeof requiredServiceExecutablePrefixes)[number];
+export enum ServiceExecutable {
+    MicrosoftSqlToolsServiceLayer = "MicrosoftSqlToolsServiceLayer",
+    SqlToolsResourceProviderService = "SqlToolsResourceProviderService",
+}
 
 /**
  * Returns the expected service executable file name for a runtime.
  */
 export function getServiceExecutableFileName(
     runtime: Runtime,
-    filePrefix: ServiceExecutablePrefix,
+    filePrefix: ServiceExecutable,
 ): string {
     if (runtime === Runtime.Portable) {
         return `${filePrefix}.dll`;
@@ -40,7 +38,7 @@ export function getServiceExecutableFileName(
 export function getServiceExecutablePath(
     folderPath: string,
     runtime: Runtime,
-    filePrefix: ServiceExecutablePrefix,
+    filePrefix: ServiceExecutable,
 ): string {
     return path.join(folderPath, getServiceExecutableFileName(runtime, filePrefix));
 }

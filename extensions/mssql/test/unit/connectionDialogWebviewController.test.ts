@@ -42,6 +42,7 @@ import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
+    createStubLogger,
     initializeIconUtils,
     stubGetCapabilitiesRequest,
     stubPreviewService,
@@ -65,7 +66,6 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
-import { Logger } from "../../src/models/logger";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
@@ -811,7 +811,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("unknown button", async () => {
                 const unknownButtonId = "unknownButtonId";
 
-                const loggerStub = sandbox.createStubInstance(Logger);
+                const loggerStub = createStubLogger(sandbox);
                 controller["logger"] = loggerStub;
 
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {

@@ -17,10 +17,7 @@ import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 import { ILogger } from "../models/interfaces";
 import DownloadHelper from "./downloadHelper";
-import {
-    getServiceExecutablePath,
-    requiredServiceExecutablePrefixes,
-} from "./serviceExecutablePaths";
+import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools service.
@@ -71,7 +68,7 @@ export default class ServiceDownloadProvider {
         installDirectory: string,
         runtime: Runtime,
     ): Promise<boolean> {
-        for (const filePrefix of requiredServiceExecutablePrefixes) {
+        for (const filePrefix of Object.values(ServiceExecutable)) {
             const filePath = getServiceExecutablePath(installDirectory, runtime, filePrefix);
             const stats = await fs.stat(filePath).catch(() => undefined);
             if (!stats?.isFile()) {
