@@ -1,6 +1,7 @@
 const { execFileSync } = require("child_process");
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const npmCommand = "npm";
+const execOptions = { stdio: "inherit", shell: process.platform === "win32" };
 
 const isProd = process.argv.includes("--prod");
 
@@ -11,7 +12,7 @@ function runScript(scriptName, args = []) {
         npmArgs.push("--", ...args);
     }
 
-    execFileSync(npmCommand, npmArgs, { stdio: "inherit" });
+    execFileSync(npmCommand, npmArgs, execOptions);
 }
 
 try {
