@@ -539,21 +539,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     console.log(`Added row ${dataRow.id} at bottom using gridService`);
                 }
 
-                // Update existing rows whose data may have changed (e.g., after a custom query
-                // where STS reuses row IDs but with different data)
-                const overlappingRows = resultSet.subset.filter((row: any) =>
-                    previousIds.has(row.id),
-                );
-                for (let i = 0; i < overlappingRows.length; i++) {
-                    const newRow = overlappingRows[i];
-                    const oldRow = previousResultSet?.subset?.find((r: any) => r.id === newRow.id);
-                    if (!oldRow || JSON.stringify(newRow) !== JSON.stringify(oldRow)) {
-                        const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, i);
-                        reactGridRef.current.dataView.updateItem(dataRow.id, dataRow);
-                        console.log(`Updated existing row ${dataRow.id} with new data`);
-                    }
-                }
-
                 // Remove deleted rows (rows in previous but not in current)
                 const rowsToRemove = (previousResultSet?.subset || []).filter(
                     (row: any) => !currentIds.has(row.id),
@@ -561,11 +546,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 console.log(`Removing ${rowsToRemove.length} deleted row(s) by ID`);
                 for (const removedRow of rowsToRemove) {
                     reactGridRef.current.gridService.deleteItemById(removedRow.id);
-                }
-
-                // Invalidate the grid to ensure all changes are rendered
-                if (reactGridRef.current?.slickGrid) {
-                    reactGridRef.current.slickGrid.invalidate();
                 }
             }
             // Scenario 3: Row count same - incremental updates only
