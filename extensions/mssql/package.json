@@ -158,7 +158,7 @@
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
-        "lodash": "^4.17.21",
+        "lodash": "^4.18.1",
         "opener": "1.5.2",
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
