@@ -926,10 +926,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     async updateItemVisibility() {
         let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
 
-        if (this.state.connectionProfile.authenticationType === AuthenticationType.Integrated) {
+        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
             hiddenProperties.push("user", "password", "savePassword");
-        } else if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
-            hiddenProperties.push("password", "savePassword");
         }
         if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
             hiddenProperties.push("accountId", "tenantId");
