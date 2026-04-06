@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from "../../src/constants/constants";
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
-import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -18,21 +16,9 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import { ILogger } from "../../src/models/interfaces";
 import { Logger } from "../../src/models/logger";
-
-let activationPromise: Promise<IExtension> | undefined;
-
-// Launches and activates the extension
-export async function activateExtension(): Promise<IExtension> {
-    if (activationPromise) {
-        return activationPromise;
-    }
-
-    const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
-    activationPromise = Promise.resolve(extension.activate());
-
-    return activationPromise;
-}
+import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -175,10 +161,41 @@ export function stubExtensionContext(
     return context;
 }
 
+export function createStubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
+    const stubber = sandbox || sinon;
+    return stubber.createStubInstance(Logger);
+}
+
 export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
     const stubber = sandbox || sinon;
-    const logger = stubber.createStubInstance(Logger);
+    const logger = createStubLogger(sandbox);
     stubber.stub(Logger, "create").returns(logger);
+    return logger;
+}
+
+export function stubILogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
+    const stubber = sandbox || sinon;
+
+    return {
+        logDebug: stubber.stub(),
+        verbose: stubber.stub(),
+        warn: stubber.stub(),
+        error: stubber.stub(),
+        piiSanitized: stubber.stub(),
+        increaseIndent: stubber.stub(),
+        decreaseIndent: stubber.stub(),
+        append: stubber.stub(),
+        appendLine: stubber.stub(),
+        info: stubber.stub(),
+    } as sinon.SinonStubbedInstance<ILogger>;
+}
+
+export function stubLoggerGetter<T extends { logger: Logger }>(
+    sandbox: sinon.SinonSandbox,
+    target: T,
+    logger: sinon.SinonStubbedInstance<Logger> = createStubLogger(sandbox),
+): sinon.SinonStubbedInstance<Logger> {
+    sandbox.stub(target, "logger").get(() => logger);
     return logger;
 }
 
@@ -220,6 +237,7 @@ export function stubProfilerService(
     sandbox: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<ProfilerService> {
     const profilerService = sandbox.createStubInstance(ProfilerService);
+
     profilerService.startProfiling.resolves({
         uniqueSessionId: "test-unique-id",
         canPause: false,
@@ -232,6 +250,7 @@ export function stubProfilerService(
     profilerService.onEventsAvailable.returns(new vscode.Disposable(() => {}));
     profilerService.onSessionStopped.returns(new vscode.Disposable(() => {}));
     profilerService.onSessionCreated.returns(new vscode.Disposable(() => {}));
+
     return profilerService;
 }
 
@@ -250,4 +269,23 @@ export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.P
     sandbox.stub(path, "extname").callsFake(platform.extname);
     sandbox.stub(path, "isAbsolute").callsFake(platform.isAbsolute);
     sandbox.stub(path, "normalize").callsFake(platform.normalize);
+}
+
+export const TestFeature = "testFeature" as PreviewFeature;
+export const TestFeatureTwo = "testFeatureTwo" as PreviewFeature;
+
+export function stubPreviewService(
+    sandbox: sinon.SinonSandbox,
+    previews: Record<string, boolean>,
+    experimentalFeaturesEnabled: boolean = false,
+): void {
+    sandbox
+        .stub(previewService, "experimentalFeaturesEnabled")
+        .get(() => experimentalFeaturesEnabled);
+
+    sandbox.stub(previewService, "getNonDefaultOverrides").returns(previews);
+
+    sandbox
+        .stub(previewService, "isFeatureEnabled")
+        .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
 }

@@ -42,8 +42,10 @@ import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
+    createStubLogger,
     initializeIconUtils,
     stubGetCapabilitiesRequest,
+    stubPreviewService,
     stubTelemetry,
     stubUserSurvey,
     stubVscodeWrapper,
@@ -59,19 +61,18 @@ import {
     mockTenants,
 } from "./azureHelperStubs";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
-import * as VscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
-import { Logger } from "../../src/models/logger";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
+import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -501,7 +502,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {
-            sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
                 .resolves([mockAccounts.signedInAccount]);
@@ -823,7 +824,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("unknown button", async () => {
                 const unknownButtonId = "unknownButtonId";
 
-                const loggerStub = sandbox.createStubInstance(Logger);
+                const loggerStub = createStubLogger(sandbox);
                 controller["logger"] = loggerStub;
 
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
@@ -1068,7 +1069,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
-        sandbox.stub(VscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa").returns(true);
+        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+
         sandbox
             .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
             .resolves([mockAccounts.signedInAccount]);

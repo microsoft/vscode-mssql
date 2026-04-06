@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
 import {
     CreateSessionResult,
     ObjectExplorerService,
@@ -54,11 +56,14 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils, stubLogger } from "./utils";
+import { createStubLogger, initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import { PreviewFeature } from "../../src/previews/previewService";
 const { MissingVsCodeEntraAuthError } = vscodeEntraMfaUtils;
+
+chai.use(sinonChai);
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
@@ -76,6 +81,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            stubLogger(sandbox);
 
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
@@ -219,8 +225,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             });
             // Mock the Logger.create static method
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             mockLogger.verbose = sandbox.stub();
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -691,7 +696,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockLogger = sandbox.createStubInstance(Logger);
+            mockLogger = createStubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.handleConnectionErrors.resolves({
                 isHandled: false,
@@ -714,8 +719,7 @@ suite("OE Service Tests", () => {
                 endFailed: sandbox.stub(),
                 startTime: performance.now(),
             };
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
 
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -924,7 +928,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockLogger = sandbox.createStubInstance(Logger);
+            mockLogger = stubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
@@ -1125,6 +1129,7 @@ suite("OE Service Tests", () => {
             const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             const mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            stubLogger(sandbox);
             mockConnectionManager.client = mockClient;
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
@@ -1208,8 +1213,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             };
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -1889,7 +1893,6 @@ suite("OE Service Tests", () => {
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
-        let mockLogger: sinon.SinonStubbedInstance<Logger>;
         let objectExplorerService: ObjectExplorerService;
 
         setup(() => {
@@ -1910,8 +1913,7 @@ suite("OE Service Tests", () => {
                 startTime: 0,
                 update: sandbox.stub(),
             });
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(
                 mockVscodeWrapper,
                 mockConnectionManager,
@@ -2205,6 +2207,7 @@ suite("OE Service Tests", () => {
         let endFailedStub: sinon.SinonStub;
 
         setup(() => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             // Create stubs for dependencies
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
@@ -2254,8 +2257,7 @@ suite("OE Service Tests", () => {
             mockRefreshCallback = sandbox.stub();
 
             // Mock the Logger.create static method
-            mockLogger = sandbox.createStubInstance(Logger);
-            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger = stubLogger(sandbox);
             mockLogger.verbose = sandbox.stub();
             mockLogger.error = sandbox.stub();
 
@@ -2455,7 +2457,6 @@ suite("OE Service Tests", () => {
             let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
             let signInStub: sinon.SinonStub;
             let executeCommandStub: sinon.SinonStub;
-            let useVscodeAccountsStub: sinon.SinonStub;
 
             setup(() => {
                 initializeIconUtils();
@@ -2475,13 +2476,6 @@ suite("OE Service Tests", () => {
                     startTime: 0,
                     update: sandbox.stub(),
                 });
-
-                // Stub useVscodeAccountsForEntraMfa so the MissingVsCodeEntraAuthError handler is reached.
-                // The real implementation reads a VS Code workspace config that defaults to false,
-                // which would short-circuit before the instanceof check in the tests.
-                useVscodeAccountsStub = sandbox
-                    .stub(vscodeEntraMfaUtils, "useVscodeAccountsForEntraMfa")
-                    .returns(true);
 
                 // Stub VsCodeAzureHelper.signIn used by the "Sign In and Retry" path
                 signInStub = sandbox
@@ -2504,6 +2498,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should prompt with Sign In and Edit options when MissingVsCodeEntraAuthError is thrown", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
@@ -2533,6 +2530,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should call signIn and retry prepareConnectionInfo when user chooses Sign In and Retry", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2568,6 +2568,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined if retry after sign-in also fails", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2593,6 +2596,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should open connection dialog when user chooses Edit Connection Profile", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
@@ -2622,6 +2628,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined without prompting when user dismisses the error dialog", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
@@ -2641,6 +2650,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should log and return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
                 const genericError = new Error("Some unexpected error");
                 mockConnectionManager.prepareConnectionInfo.rejects(genericError);
 
@@ -2657,7 +2669,9 @@ suite("OE Service Tests", () => {
             });
 
             test("should log and return undefined immediately when useVscodeAccountsForEntraMfa is disabled", async () => {
-                useVscodeAccountsStub.returns(false);
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
 
                 const authError = new MissingVsCodeEntraAuthError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);

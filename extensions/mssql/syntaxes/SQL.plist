@@ -21,10 +21,39 @@
 			<string>text.variable</string>
 		</dict>
 		<dict>
-			<key>match</key>
-			<string>(\[)[^\]]*(\])</string>
+			<key>applyEndPatternLast</key>
+			<integer>1</integer>
+			<key>begin</key>
+			<string>\[</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.bracket.begin.sql</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\]</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.bracket.end.sql</string>
+				</dict>
+			</dict>
 			<key>name</key>
 			<string>text.bracketed</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>\[|\]\]</string>
+					<key>name</key>
+					<string>constant.character.bracket.sql</string>
+				</dict>
+			</array>
 		</dict>
 		<dict>
 			<key>include</key>

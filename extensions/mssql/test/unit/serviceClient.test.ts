@@ -18,7 +18,7 @@ import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { createStubLogger, stubTelemetry, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -48,7 +48,7 @@ suite("Service Client tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
-        logger = sandbox.createStubInstance(Logger);
+        logger = createStubLogger(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
         vscodeWrapper = stubVscodeWrapper(sandbox);
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);

@@ -23,6 +23,7 @@ import {
     DisconnectSessionParams,
     ProfilingSessionType,
 } from "../../src/models/contracts/profiler";
+import { stubLoggerGetter } from "./utils";
 
 suite("ProfilerService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -47,11 +48,7 @@ suite("ProfilerService Tests", () => {
             },
         );
 
-        // Stub logger
-        loggerErrorStub = sandbox.stub();
-        Object.defineProperty(sqlToolsClientStub, "logger", {
-            get: () => ({ error: loggerErrorStub }),
-        });
+        loggerErrorStub = stubLoggerGetter(sandbox, sqlToolsClientStub).error;
 
         profilerService = new ProfilerService(sqlToolsClientStub);
     });

@@ -35,6 +35,7 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ServiceExecutable } from "./serviceExecutablePaths";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
@@ -233,11 +234,14 @@ export default class SqlToolsServiceClient {
             try {
                 await launchServer(stsFolderOverride, Runtime.Portable);
                 this.sendServiceLaunchTelemetry("override", Runtime.Portable, platformInfo);
+                vscode.window.showInformationMessage(
+                    `Launched SQL Tools Service from overridden path: ${stsFolderOverride}`,
+                );
                 return;
             } catch (err) {
-                this._logger.error(
-                    `Failed to launch SQL Tools Service with overridden path: ${getErrorMessage(err)}`,
-                );
+                const errorMessage = `Failed to launch SQL Tools Service with overridden path: ${stsFolderOverride} ${getErrorMessage(err)}`;
+                this._logger.error(errorMessage);
+                vscode.window.showErrorMessage(errorMessage);
                 /**
                  * We shouldn't fall back to other launch attempts if the override env variable is set,
                  * since the user explicitly requested to launch from that location.
@@ -372,7 +376,7 @@ export default class SqlToolsServiceClient {
         const sqlToolsServicePath = await this._server.tryGetExecutablePathInFolder(
             serverFolder,
             runtime,
-            "MicrosoftSqlToolsServiceLayer",
+            ServiceExecutable.MicrosoftSqlToolsServiceLayer,
         );
         if (!sqlToolsServicePath) {
             this.logger.logDebug(
@@ -385,7 +389,7 @@ export default class SqlToolsServiceClient {
         const resourceProviderServicePath = await this._server.tryGetExecutablePathInFolder(
             serverFolder,
             runtime,
-            "SqlToolsResourceProviderService",
+            ServiceExecutable.SqlToolsResourceProviderService,
         );
         if (!resourceProviderServicePath) {
             this.logger.logDebug(

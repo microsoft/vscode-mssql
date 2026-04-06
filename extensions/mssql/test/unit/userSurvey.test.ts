@@ -21,7 +21,14 @@ import {
     UserSurveyWebviewController,
     getGithubIssueText,
 } from "../../src/nps/userSurvey";
-import { stubExtensionContext, stubTelemetry, stubVscodeWrapper } from "./utils";
+import {
+    TestFeature,
+    TestFeatureTwo,
+    stubExtensionContext,
+    stubPreviewService,
+    stubTelemetry,
+    stubVscodeWrapper,
+} from "./utils";
 import * as constants from "../../src/constants/constants";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
@@ -112,6 +119,11 @@ suite("UserSurvey Tests", () => {
             onSubmit: onSubmitStub,
             onCancel: onCancelStub,
         };
+        const previewOverrides: Record<string, boolean> = {};
+        previewOverrides[TestFeature] = true;
+        previewOverrides[TestFeatureTwo] = true;
+
+        stubPreviewService(sandbox, previewOverrides);
 
         // Use callsFake to simulate onSubmit getting triggered when it's called
         onSubmitStub.callsFake((callback) => {
@@ -123,7 +135,7 @@ suite("UserSurvey Tests", () => {
         });
 
         userSurvey["_webviewController"] =
-            mockWebviewController as undefined as UserSurveyWebviewController;
+            mockWebviewController as unknown as UserSurveyWebviewController;
 
         await userSurvey["promptUserForNPSFeedbackAsync"]("testSource");
 
@@ -136,8 +148,9 @@ suite("UserSurvey Tests", () => {
                 surveyId: "nps",
                 q1: "answer1",
                 q2: "answer2",
-                experimentalFeaturesEnabled: false,
+                experimentalFeaturesEnabled: "false",
                 surveySource: "testSource",
+                previewFeatureOverrides: JSON.stringify(previewOverrides),
             },
             {
                 q3: 3,

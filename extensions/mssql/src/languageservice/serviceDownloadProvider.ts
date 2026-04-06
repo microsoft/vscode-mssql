@@ -17,6 +17,7 @@ import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 import { ILogger } from "../models/interfaces";
 import DownloadHelper from "./downloadHelper";
+import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools service.
@@ -37,7 +38,10 @@ export default class ServiceDownloadProvider {
      * Returns the download url for given platform
      */
     private getRuntimeDownloadPackageFileName(platform: Runtime): string {
-        let fileNamesJson: any = this._config.getSqlToolsConfigValue("downloadFileNames");
+        let fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames") as Record<
+            string,
+            string | undefined
+        >;
 
         let fileName = fileNamesJson[platform.toString()];
 
@@ -60,6 +64,21 @@ export default class ServiceDownloadProvider {
         return basePath;
     }
 
+    private async hasExpectedServiceFiles(
+        installDirectory: string,
+        runtime: Runtime,
+    ): Promise<boolean> {
+        for (const filePrefix of Object.values(ServiceExecutable)) {
+            const filePath = getServiceExecutablePath(installDirectory, runtime, filePrefix);
+            const stats = await fs.stat(filePath).catch(() => undefined);
+            if (!stats?.isFile()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Checks if the service is present and return the path of the installed service and if not present, returns undefined.
      * @param runtime
@@ -68,6 +87,9 @@ export default class ServiceDownloadProvider {
         let basePath = await this.getInstallDirectoryPathForRuntime(runtime);
         try {
             await fs.access(basePath);
+            if (!(await this.hasExpectedServiceFiles(basePath, runtime))) {
+                return undefined;
+            }
             return basePath;
         } catch {
             return undefined;

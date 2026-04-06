@@ -11,10 +11,7 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
-import {
-    acquireSqlAccessTokenFromVscodeAccount,
-    useVscodeAccountsForEntraMfa,
-} from "../azure/vscodeEntraMfaUtils";
+import { acquireSqlAccessTokenFromVscodeAccount } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
@@ -57,6 +54,7 @@ import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1056,7 +1054,7 @@ export default class ConnectionManager {
 
         // 3. Refresh the token
         // A3. If the user is using vscode accounts for Entra MFA, use that flow to refresh the token
-        if (useVscodeAccountsForEntraMfa()) {
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
                 connectionInfo.accountId,
                 connectionInfo.tenantId,

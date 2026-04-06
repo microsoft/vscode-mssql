@@ -193,7 +193,7 @@
     "mssql.ignorePlatformWarning": "[Optional] Do not show unsupported platform warnings",
     "mssql.Configuration": "MSSQL configuration",
     "mssql.chooseAuthMethod": "Chooses which Authentication method to use",
-    "mssql.preview.useVscodeAccountsForEntraID.description": "Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.",
+    "mssql.preview.useVscodeAccountsForEntraMFA.description": "Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.",
     "mssql.authCodeGrant.description": "Prompts users to sign in using their browser.",
     "mssql.deviceCode.description": "Allows users to sign in to input-constrained devices.",
     "mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription": "When enabled, connection groups will be collapsed instead of expanded at startup.",

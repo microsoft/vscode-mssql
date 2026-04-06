@@ -11,14 +11,13 @@ import * as chai from "chai";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
-import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
 import { uuid } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
-import { stubGetCapabilitiesRequest } from "./utils";
+import { stubGetCapabilitiesRequest, stubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -27,7 +26,6 @@ suite("MssqlProtocolHandler Tests", () => {
     let mssqlProtocolHandler: MssqlProtocolHandler;
     let sqlToolsServiceClientMock: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let openConnectionDialogStub: sinon.SinonStub;
     let connectProfileStub: sinon.SinonStub;
@@ -40,7 +38,7 @@ suite("MssqlProtocolHandler Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockLogger = sandbox.createStubInstance(Logger);
+        stubLogger(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
 
         const outputChannel = sinon.stub({
@@ -51,8 +49,6 @@ suite("MssqlProtocolHandler Tests", () => {
         sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => {
             return outputChannel;
         });
-
-        sandbox.stub(Logger, "create").returns(mockLogger);
 
         sqlToolsServiceClientMock = stubGetCapabilitiesRequest(sandbox);
 

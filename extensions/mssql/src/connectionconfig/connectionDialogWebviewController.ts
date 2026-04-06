@@ -101,8 +101,8 @@ import {
     getVscodeEntraTenantOptions,
     normalizeVscodeEntraAccountId,
     resolveVscodeEntraAccount,
-    useVscodeAccountsForEntraMfa,
 } from "../azure/vscodeEntraMfaUtils";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
@@ -1499,7 +1499,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getEntraMfaAccountOptions(): Promise<FormItemOptions[]> {
-        if (useVscodeAccountsForEntraMfa()) {
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             return getVscodeEntraAccountOptions();
         }
 
@@ -1511,7 +1511,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return [];
         }
 
-        if (useVscodeAccountsForEntraMfa()) {
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             return getVscodeEntraTenantOptions(accountId);
         }
 
@@ -1524,13 +1524,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             label: Loc.signIn,
             id: "azureSignIn",
             callback: async () => {
-                if (useVscodeAccountsForEntraMfa()) {
+                if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
                     const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-                    const selectedAccount = await resolveVscodeEntraAccount(
-                        this.state.connectionProfile.accountId,
+                    const existingAccountIds = new Set(
+                        (await VsCodeAzureHelper.getAccounts()).map((account) => account.id),
                     );
+                    const signedIn = await auth.signIn();
 
-                    const signedIn = await auth.signIn(undefined, selectedAccount);
                     if (!signedIn) {
                         this.logger.warn("VS Code Azure sign-in was canceled or failed.");
                         return;
@@ -1543,6 +1543,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     }
 
                     accountsComponent.options = await this.getEntraMfaAccountOptions();
+
+                    const newlyAddedAccount = accountsComponent.options.find(
+                        (accountOption) => !existingAccountIds.has(accountOption.value),
+                    );
+
+                    if (newlyAddedAccount) {
+                        this.state.connectionProfile.accountId = newlyAddedAccount.value;
+                    }
 
                     if (!this.state.connectionProfile.accountId && accountsComponent.options[0]) {
                         this.state.connectionProfile.accountId = accountsComponent.options[0].value;
@@ -1583,7 +1591,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             },
         });
 
-        if (useVscodeAccountsForEntraMfa()) {
+        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
             return actionButtons;
         }
 
@@ -1674,7 +1682,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         accountComponent.options = await this.getEntraMfaAccountOptions();
 
-        if (useVscodeAccountsForEntraMfa() && this.state.connectionProfile.accountId) {
+        if (
+            previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA) &&
+            this.state.connectionProfile.accountId
+        ) {
             const normalizedAccountId = await normalizeVscodeEntraAccountId(
                 this.state.connectionProfile.accountId,
             );
@@ -2248,7 +2259,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             toProfile.authenticationType === AuthenticationType.AzureMFA &&
             toProfile.user !== undefined
         ) {
-            if (useVscodeAccountsForEntraMfa()) {
+            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
                 const matchingAccount = await resolveVscodeEntraAccount(undefined, toProfile.user);
                 if (matchingAccount) {
                     toProfile.accountId = matchingAccount.id;

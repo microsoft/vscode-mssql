@@ -15,7 +15,7 @@ import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/mode
 import { MatchScore } from "../../src/models/utils";
 import { Deferred } from "../../src/protocol";
 import { azureAuthConn, sqlAuthConn, connStringConn } from "./utils.test";
-import { stubExtensionContext } from "./utils";
+import { createStubLogger, stubExtensionContext } from "./utils";
 
 suite("ConnectionStore Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -33,7 +33,7 @@ suite("ConnectionStore Tests", () => {
 
         mockContext = stubExtensionContext(sandbox);
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockLogger = sandbox.createStubInstance(Logger);
+        mockLogger = createStubLogger(sandbox);
 
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
         mockCredentialStore.readCredential.resolves(undefined as any);

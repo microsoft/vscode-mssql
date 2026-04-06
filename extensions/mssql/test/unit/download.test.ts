@@ -17,6 +17,7 @@ import { Logger } from "../../src/models/logger";
 import * as fs from "fs/promises";
 import { expect } from "chai";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -25,6 +26,27 @@ interface IFixture {
     downloadProvider?: ServiceDownloadProvider;
     downloadResult: Promise<void>;
     decompressResult: Promise<void>;
+}
+
+async function writeRequiredServiceFiles(
+    installDirectory: string,
+    runtime: Runtime,
+): Promise<void> {
+    const fileExtension =
+        runtime === Runtime.Portable
+            ? ".dll"
+            : runtime === Runtime.Windows_64 || runtime === Runtime.Windows_ARM64
+              ? ".exe"
+              : "";
+
+    await fs.writeFile(
+        path.join(installDirectory, `MicrosoftSqlToolsServiceLayer${fileExtension}`),
+        "",
+    );
+    await fs.writeFile(
+        path.join(installDirectory, `SqlToolsResourceProviderService${fileExtension}`),
+        "",
+    );
 }
 
 suite("ServiceDownloadProvider Tests", () => {
@@ -41,7 +63,7 @@ suite("ServiceDownloadProvider Tests", () => {
         statusView = sandbox.createStubInstance(ServerStatusView);
         testDownloadHelper = sandbox.createStubInstance(DownloadHelper);
         testDecompressProvider = sandbox.createStubInstance(DecompressProvider);
-        testLogger = sandbox.createStubInstance(Logger);
+        testLogger = createStubLogger(sandbox);
     });
 
     teardown(() => {
@@ -98,6 +120,95 @@ suite("ServiceDownloadProvider Tests", () => {
         );
         const actual = await downloadProvider.getOrCreateInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
+    });
+
+    test("tryGetInstallDirectory returns undefined when portable install folder exists but required files are missing", async () => {
+        const installRoot = path.join(__dirname, "testServicePortableMissing");
+        const installDirectory = path.join(installRoot, "1.0.0", "Portable");
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+        try {
+            await fs.mkdir(installDirectory, { recursive: true });
+
+            config.getSqlToolsInstallDirectory.returns(
+                path.join(installRoot, "{#version#}", "{#platform#}"),
+            );
+            config.getSqlToolsPackageVersion.returns("1.0.0");
+
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
+
+            const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
+
+            expect(actual).to.be.undefined;
+        } finally {
+            await fs.rm(installRoot, { recursive: true, force: true });
+        }
+    });
+
+    test("tryGetInstallDirectory returns the folder when portable required files are present", async () => {
+        const installRoot = path.join(__dirname, "testServicePortablePresent");
+        const installDirectory = path.join(installRoot, "1.0.0", "Portable");
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+        try {
+            await fs.mkdir(installDirectory, { recursive: true });
+            await writeRequiredServiceFiles(installDirectory, Runtime.Portable);
+
+            config.getSqlToolsInstallDirectory.returns(
+                path.join(installRoot, "{#version#}", "{#platform#}"),
+            );
+            config.getSqlToolsPackageVersion.returns("1.0.0");
+
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
+
+            const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Portable);
+
+            expect(actual).to.equal(installDirectory);
+        } finally {
+            await fs.rm(installRoot, { recursive: true, force: true });
+        }
+    });
+
+    test("tryGetInstallDirectory returns the folder when Windows required files are present", async () => {
+        const installRoot = path.join(__dirname, "testServiceWindowsPresent");
+        const installDirectory = path.join(installRoot, "1.0.0", "Windows");
+
+        await fs.rm(installRoot, { recursive: true, force: true });
+        try {
+            await fs.mkdir(installDirectory, { recursive: true });
+            await writeRequiredServiceFiles(installDirectory, Runtime.Windows_64);
+
+            config.getSqlToolsInstallDirectory.returns(
+                path.join(installRoot, "{#version#}", "{#platform#}"),
+            );
+            config.getSqlToolsPackageVersion.returns("1.0.0");
+
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
+
+            const actual = await downloadProvider.tryGetInstallDirectory(Runtime.Windows_64);
+
+            expect(actual).to.equal(installDirectory);
+        } finally {
+            await fs.rm(installRoot, { recursive: true, force: true });
+        }
     });
 
     async function createDownloadProvider(fixture: IFixture): Promise<IFixture> {
