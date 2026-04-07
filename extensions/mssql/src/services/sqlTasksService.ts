@@ -58,7 +58,6 @@ export interface TaskInfo {
     operationName?: string;
     percentComplete?: number;
     progressMessage?: string;
-    messages?: TaskMessage[];
     duration?: number;
 }
 
@@ -345,21 +344,20 @@ export class SqlTasksService {
 
                 if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
-                    void Promise.resolve(
-                        this._vscodeWrapper.showInformationMessage(
-                            successMessage,
-                            actionButtonText,
-                        ),
-                    ).then((selection) => {
-                        if (selection === actionButtonText) {
-                            const command = handler.actionCommand!;
-                            const args = handler.getActionCommandArgs!(
-                                taskInfo.taskInfo,
-                                targetLocation,
-                            );
-                            void this._vscodeWrapper.executeCommand(command, ...args);
-                        }
-                    });
+
+                    const selection = await this._vscodeWrapper.showInformationMessage(
+                        successMessage,
+                        actionButtonText,
+                    );
+
+                    if (selection === actionButtonText) {
+                        const command = handler.actionCommand!;
+                        const args = handler.getActionCommandArgs!(
+                            taskInfo.taskInfo,
+                            targetLocation,
+                        );
+                        void this._vscodeWrapper.executeCommand(command, ...args);
+                    }
                 } else {
                     // Show notification without action button
                     void this._vscodeWrapper.showInformationMessage(successMessage);
