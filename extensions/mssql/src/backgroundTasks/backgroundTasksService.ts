@@ -9,13 +9,13 @@ import { uuid } from "../utils/utils";
 import logger2 from "../models/logger2";
 
 export enum BackgroundTaskState {
-    NotStarted = 0,
-    InProgress = 1,
-    Succeeded = 2,
-    SucceededWithWarning = 3,
-    Failed = 4,
-    Canceled = 5,
-    Canceling = 6,
+    NotStarted = "NotStarted",
+    InProgress = "InProgress",
+    Succeeded = "Succeeded",
+    SucceededWithWarning = "SucceededWithWarning",
+    Failed = "Failed",
+    Canceled = "Canceled",
+    Canceling = "Canceling",
 }
 
 export type BackgroundTaskIcon =
@@ -285,8 +285,8 @@ export function toBackgroundTaskStateDisplayString(state: BackgroundTaskState): 
         case BackgroundTaskState.NotStarted:
             return localizedConstants.notStarted;
         default:
-            logger.warn(`Unexpected background task state: ${String(state)}`);
-            return String(state);
+            logger.warn(`Unexpected background task state: ${state}`);
+            return state;
     }
 }
 
