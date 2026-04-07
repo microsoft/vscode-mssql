@@ -2017,6 +2017,32 @@
         "message": "Elapsed time: {0}",
         "comment": ["{0} is the task elapsed time"]
     },
+    "{0}ms/{0} is the elapsed time in milliseconds": {
+        "message": "{0}ms",
+        "comment": ["{0} is the elapsed time in milliseconds"]
+    },
+    "{0}s/{0} is the elapsed time in seconds": {
+        "message": "{0}s",
+        "comment": ["{0} is the elapsed time in seconds"]
+    },
+    "{0}m {1}s/{0} is the elapsed time in minutes{1} is the remaining elapsed time in seconds": {
+        "message": "{0}m {1}s",
+        "comment": [
+            "{0} is the elapsed time in minutes",
+            "{1} is the remaining elapsed time in seconds"
+        ]
+    },
+    "{0}h {1}m/{0} is the elapsed time in hours{1} is the remaining elapsed time in minutes": {
+        "message": "{0}h {1}m",
+        "comment": [
+            "{0} is the elapsed time in hours",
+            "{1} is the remaining elapsed time in minutes"
+        ]
+    },
+    "{0}d {1}h/{0} is the elapsed time in days{1} is the remaining elapsed time in hours": {
+        "message": "{0}d {1}h",
+        "comment": ["{0} is the elapsed time in days", "{1} is the remaining elapsed time in hours"]
+    },
     "{0}: {1}/{0} is the task name{1} is the status": {
         "message": "{0}: {1}",
         "comment": ["{0} is the task name", "{1} is the status"]
