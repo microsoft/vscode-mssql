@@ -246,7 +246,9 @@ suite("Background Tasks Provider Tests", () => {
         });
 
         await Promise.resolve();
+        await Promise.resolve();
 
+        expect(executeCommandStub).to.have.been.calledWith(Constants.cmdOpenObjectExplorerCommand);
         expect(executeCommandStub).to.have.been.calledWith(`${Constants.backgroundTasks}.focus`);
         expect(revealStub).to.have.been.calledWith(
             sinon.match.instanceOf(BackgroundTaskNode),

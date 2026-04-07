@@ -62,9 +62,14 @@ export class BackgroundTasksProvider implements vscode.TreeDataProvider<Backgrou
     }
 
     private revealTreeView(): void {
+        void this.showAndRevealTreeView();
+    }
+
+    private async showAndRevealTreeView(): Promise<void> {
         if (this.treeView) {
-            void vscode.commands.executeCommand(`${Constants.backgroundTasks}.focus`);
-            void this.treeView.reveal(this.getChildren()[0], {
+            await vscode.commands.executeCommand(Constants.cmdOpenObjectExplorerCommand);
+            await vscode.commands.executeCommand(`${Constants.backgroundTasks}.focus`);
+            await this.treeView.reveal(this.getChildren()[0], {
                 focus: false,
                 select: false,
             });
