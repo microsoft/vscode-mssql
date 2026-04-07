@@ -3420,6 +3420,5 @@
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
     "Error loading Azure databases.": "Error loading Azure databases.",
     "No background tasks": "No background tasks",
-    "Source: {0}": "Source: {0}",
-    "Succeeded with Warning": "Succeeded with Warning"
+    "Source: {0}": "Source: {0}"
 }

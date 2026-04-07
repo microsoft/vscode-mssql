@@ -6,6 +6,7 @@
 import * as os from "os";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
+import * as localizedConstants from "../constants/locConstants";
 import { IconUtils } from "../utils/iconUtils";
 import {
     BackgroundTaskEntry,
@@ -18,7 +19,7 @@ export class EmptyBackgroundTaskNode extends vscode.TreeItem {
     public static readonly contextValue = "emptyBackgroundTaskNode";
 
     constructor() {
-        super(vscode.l10n.t("No background tasks"), vscode.TreeItemCollapsibleState.None);
+        super(localizedConstants.noBackgroundTasks, vscode.TreeItemCollapsibleState.None);
         this.contextValue = EmptyBackgroundTaskNode.contextValue;
     }
 }
@@ -73,7 +74,7 @@ function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownS
             sections.push(task.message);
         }
         if (task.source) {
-            sections.push(vscode.l10n.t("Source: {0}", task.source));
+            sections.push(localizedConstants.backgroundTaskSource(task.source));
         }
         return sections.join(`${os.EOL}${os.EOL}`);
     }
@@ -90,7 +91,9 @@ function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownS
     }
 
     if (task.source) {
-        tooltip.appendMarkdown(`\n\n${escapeMarkdown(vscode.l10n.t("Source: {0}", task.source))}`);
+        tooltip.appendMarkdown(
+            `\n\n${escapeMarkdown(localizedConstants.backgroundTaskSource(task.source))}`,
+        );
     }
 
     return tooltip;

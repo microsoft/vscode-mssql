@@ -500,10 +500,10 @@ export class SqlTasksService {
         const tooltipSections = [taskInfo.description];
         const connectionLabel = this.createBackgroundTaskDetails(taskInfo);
         if (connectionLabel) {
-            tooltipSections.push(vscode.l10n.t("Connection: {0}", connectionLabel));
+            tooltipSections.push(localizedConstants.backgroundTaskConnection(connectionLabel));
         }
         if (taskInfo.targetLocation) {
-            tooltipSections.push(vscode.l10n.t("Target: {0}", taskInfo.targetLocation));
+            tooltipSections.push(localizedConstants.backgroundTaskTarget(taskInfo.targetLocation));
         }
         return tooltipSections.filter(Boolean).join("\n\n");
     }

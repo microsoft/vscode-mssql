@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as localizedConstants from "../constants/locConstants";
 import { uuid } from "../utils/utils";
 
 export enum BackgroundTaskState {
@@ -251,19 +252,19 @@ export function isBackgroundTaskCompleted(state: BackgroundTaskState): boolean {
 export function toBackgroundTaskStateDisplayString(state: BackgroundTaskState): string {
     switch (state) {
         case BackgroundTaskState.Canceled:
-            return vscode.l10n.t("Canceled");
+            return localizedConstants.canceled;
         case BackgroundTaskState.Failed:
-            return vscode.l10n.t("Failed");
+            return localizedConstants.failed;
         case BackgroundTaskState.Succeeded:
-            return vscode.l10n.t("Succeeded");
+            return localizedConstants.succeeded;
         case BackgroundTaskState.SucceededWithWarning:
-            return vscode.l10n.t("Succeeded with Warning");
+            return localizedConstants.succeededWithWarning;
         case BackgroundTaskState.InProgress:
-            return vscode.l10n.t("In progress");
+            return localizedConstants.inProgress;
         case BackgroundTaskState.Canceling:
-            return vscode.l10n.t("Canceling");
+            return localizedConstants.canceling;
         case BackgroundTaskState.NotStarted:
-            return vscode.l10n.t("Not started");
+            return localizedConstants.notStarted;
         default:
             return (state as unknown as number).toString();
     }

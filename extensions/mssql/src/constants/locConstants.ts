@@ -553,6 +553,28 @@ export let azureSignInToAzureCloud = l10n.t("Azure: Sign In to Azure Cloud");
 export let azureSignInToAzureCloudDescription = l10n.t(
     "Sign in to your Azure subscription in one of the sovereign clouds.",
 );
+export let noBackgroundTasks = l10n.t("No background tasks");
+export function backgroundTaskSource(source: string) {
+    return l10n.t({
+        message: "Source: {0}",
+        args: [source],
+        comment: ["{0} is the task source"],
+    });
+}
+export function backgroundTaskConnection(connectionLabel: string) {
+    return l10n.t({
+        message: "Connection: {0}",
+        args: [connectionLabel],
+        comment: ["{0} is the task connection label"],
+    });
+}
+export function backgroundTaskTarget(targetLocation: string) {
+    return l10n.t({
+        message: "Target: {0}",
+        args: [targetLocation],
+        comment: ["{0} is the task target location"],
+    });
+}
 export function taskStatusWithName(taskName: string, status: string) {
     return l10n.t({
         message: "{0}: {1}",
