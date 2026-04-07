@@ -2013,6 +2013,10 @@
         "message": "Target: {0}",
         "comment": ["{0} is the task target location"]
     },
+    "Elapsed time: {0}/{0} is the task elapsed time": {
+        "message": "Elapsed time: {0}",
+        "comment": ["{0} is the task elapsed time"]
+    },
     "{0}: {1}/{0} is the task name{1} is the status": {
         "message": "{0}: {1}",
         "comment": ["{0} is the task name", "{1} is the status"]

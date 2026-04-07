@@ -6,16 +6,21 @@
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import { BackgroundTaskNode, EmptyBackgroundTaskNode } from "./backgroundTaskNode";
-import { BackgroundTasksService } from "./backgroundTasksService";
+import { BackgroundTasksService, isBackgroundTaskCompleted } from "./backgroundTasksService";
 
 export type BackgroundTasksTreeNode = BackgroundTaskNode | EmptyBackgroundTaskNode;
 
-export class BackgroundTasksProvider implements vscode.TreeDataProvider<BackgroundTasksTreeNode> {
+const ACTIVE_TASK_REFRESH_INTERVAL_MS = 1000;
+
+export class BackgroundTasksProvider
+    implements vscode.TreeDataProvider<BackgroundTasksTreeNode>, vscode.Disposable
+{
     private readonly _onDidChangeTreeData = new vscode.EventEmitter<
         BackgroundTasksTreeNode | undefined
     >();
     public readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
     private readonly _backgroundTasksService: BackgroundTasksService;
+    private readonly _activeTaskRefreshInterval: ReturnType<typeof setInterval>;
     public treeView: vscode.TreeView<BackgroundTasksTreeNode> | undefined;
 
     constructor(backgroundTasksService?: BackgroundTasksService) {
@@ -26,6 +31,17 @@ export class BackgroundTasksProvider implements vscode.TreeDataProvider<Backgrou
                 undefined,
                 () => this.revealTreeView(),
             );
+
+        this._activeTaskRefreshInterval = setInterval(() => {
+            if (
+                this._backgroundTasksService.tasks.some(
+                    (task) => !isBackgroundTaskCompleted(task.state),
+                )
+            ) {
+                this.refresh();
+            }
+        }, ACTIVE_TASK_REFRESH_INTERVAL_MS);
+        this._activeTaskRefreshInterval.unref?.();
     }
 
     public get backgroundTasksService(): BackgroundTasksService {
@@ -59,6 +75,11 @@ export class BackgroundTasksProvider implements vscode.TreeDataProvider<Backgrou
 
     public clearFinished(): void {
         this._backgroundTasksService.clearFinished();
+    }
+
+    public dispose(): void {
+        clearInterval(this._activeTaskRefreshInterval);
+        this._onDidChangeTreeData.dispose();
     }
 
     private revealTreeView(): void {

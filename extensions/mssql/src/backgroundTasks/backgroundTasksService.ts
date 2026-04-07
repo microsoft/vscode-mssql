@@ -270,6 +270,17 @@ export function toBackgroundTaskStateDisplayString(state: BackgroundTaskState): 
     }
 }
 
+export function getBackgroundTaskElapsedTimeMs(
+    task: BackgroundTaskEntry,
+    now: number = Date.now(),
+): number {
+    const endTime = isBackgroundTaskCompleted(task.state)
+        ? (task.completedAt ?? task.updatedAt)
+        : now;
+
+    return Math.max(0, endTime - task.createdAt);
+}
+
 function compareTasks(left: BackgroundTaskEntry, right: BackgroundTaskEntry): number {
     const leftCompleted = isBackgroundTaskCompleted(left.state);
     const rightCompleted = isBackgroundTaskCompleted(right.state);

@@ -2273,6 +2273,7 @@ export default class MainController implements vscode.Disposable {
 
         this._backgroundTasksProvider.treeView = treeView;
 
+        this._context.subscriptions.push(this._backgroundTasksProvider);
         this._context.subscriptions.push(treeView);
 
         this._context.subscriptions.push(

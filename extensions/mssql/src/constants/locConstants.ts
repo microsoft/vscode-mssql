@@ -575,6 +575,54 @@ export function backgroundTaskTarget(targetLocation: string) {
         comment: ["{0} is the task target location"],
     });
 }
+export function backgroundTaskElapsedTime(elapsedTime: string) {
+    return l10n.t({
+        message: "Elapsed time: {0}",
+        args: [elapsedTime],
+        comment: ["{0} is the task elapsed time"],
+    });
+}
+export function backgroundTaskElapsedMilliseconds(milliseconds: number) {
+    return l10n.t({
+        message: "{0}ms",
+        args: [milliseconds],
+        comment: ["{0} is the elapsed time in milliseconds"],
+    });
+}
+export function backgroundTaskElapsedSeconds(seconds: number) {
+    return l10n.t({
+        message: "{0}s",
+        args: [seconds],
+        comment: ["{0} is the elapsed time in seconds"],
+    });
+}
+export function backgroundTaskElapsedMinutesAndSeconds(minutes: number, seconds: number) {
+    return l10n.t({
+        message: "{0}m {1}s",
+        args: [minutes, seconds],
+        comment: [
+            "{0} is the elapsed time in minutes",
+            "{1} is the remaining elapsed time in seconds",
+        ],
+    });
+}
+export function backgroundTaskElapsedHoursAndMinutes(hours: number, minutes: number) {
+    return l10n.t({
+        message: "{0}h {1}m",
+        args: [hours, minutes],
+        comment: [
+            "{0} is the elapsed time in hours",
+            "{1} is the remaining elapsed time in minutes",
+        ],
+    });
+}
+export function backgroundTaskElapsedDaysAndHours(days: number, hours: number) {
+    return l10n.t({
+        message: "{0}d {1}h",
+        args: [days, hours],
+        comment: ["{0} is the elapsed time in days", "{1} is the remaining elapsed time in hours"],
+    });
+}
 export function taskStatusWithName(taskName: string, status: string) {
     return l10n.t({
         message: "{0}: {1}",

@@ -44,6 +44,7 @@ suite("Background Tasks Provider Tests", () => {
     });
 
     test("registering and updating a task refreshes rendered fields", () => {
+        const clock = sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const icon = new vscode.ThemeIcon("loading~spin");
         const handle = provider.backgroundTasksService.registerTask({
@@ -52,6 +53,8 @@ suite("Background Tasks Provider Tests", () => {
             percent: 10,
             icon,
         });
+
+        clock.tick(5000);
 
         handle.update({
             displayText: "Import complete",
@@ -67,41 +70,49 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(node).to.be.instanceOf(BackgroundTaskNode);
         expect(node.label).to.equal("Import complete");
-        expect(node.description).to.equal("100% | localhost/AdventureWorks2022");
-        expect(node.tooltip).to.equal("Import finished\n\nIn progress\n\nCompleted successfully");
+        expect(node.description).to.equal("100% | localhost/AdventureWorks2022 | 5s");
+        expect(node.tooltip).to.equal(
+            "Import finished\n\nIn progress\n\nCompleted successfully\n\nElapsed time: 5s",
+        );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
     });
 
     test("completed tasks remain visible until cleared", () => {
+        const clock = sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Export bacpac",
             tooltip: "Exporting",
         });
 
+        clock.tick(3000);
         handle.complete(BackgroundTaskState.Succeeded, { message: "Done" });
 
         const nodes = provider.getChildren();
         const node = nodes[0] as BackgroundTaskNode;
 
         expect(nodes).to.have.length(1);
+        expect(node.description).to.equal("3s");
         expect(node.contextValue).to.contain("completed=true");
-        expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone");
+        expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s");
         expect((node.iconPath as vscode.Uri).path).to.contain("backgroundTasks/completedTask.svg");
     });
 
     test("failed tasks use the custom failed icon", () => {
+        const clock = sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Failed task",
             tooltip: "Running",
         });
 
+        clock.tick(250);
         handle.complete(BackgroundTaskState.Failed, { message: "Failed badly" });
 
         const node = provider.getChildren()[0] as BackgroundTaskNode;
 
-        expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly");
+        expect(node.description).to.equal("250ms");
+        expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms");
         expect((node.iconPath as vscode.Uri).path).to.contain("backgroundTasks/failedTask.svg");
     });
 
@@ -116,8 +127,29 @@ suite("Background Tasks Provider Tests", () => {
 
         const node = provider.getChildren()[0] as BackgroundTaskNode;
 
-        expect(node.tooltip).to.equal("Running\n\nCanceled\n\nStopped by user");
+        expect(node.tooltip).to.equal(
+            "Running\n\nCanceled\n\nStopped by user\n\nElapsed time: 0ms",
+        );
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("circle-slash");
+    });
+
+    test("active task descriptions show live elapsed time", () => {
+        const clock = sandbox.useFakeTimers();
+        const provider = new BackgroundTasksProvider();
+
+        provider.backgroundTasksService.registerTask({
+            displayText: "Long-running task",
+            tooltip: "Working",
+        });
+
+        let node = provider.getChildren()[0] as BackgroundTaskNode;
+        expect(node.description).to.equal("0ms");
+
+        clock.tick(65000);
+
+        node = provider.getChildren()[0] as BackgroundTaskNode;
+        expect(node.description).to.equal("1m 5s");
+        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 1m 5s");
     });
 
     test("clearFinished removes only completed tasks", () => {
@@ -210,6 +242,7 @@ suite("Background Tasks Provider Tests", () => {
         const node = provider.getChildren()[0] as BackgroundTaskNode;
         await provider.cancelTask(node.taskId);
 
+        expect(node.description).to.equal("0ms");
         expect(cancelSpy).to.have.been.calledOnce;
         const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
         expect(refreshedNode.contextValue).to.contain("cancelable=false");

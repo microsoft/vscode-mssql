@@ -11,6 +11,7 @@ import { IconUtils } from "../utils/iconUtils";
 import {
     BackgroundTaskEntry,
     BackgroundTaskState,
+    getBackgroundTaskElapsedTimeMs,
     isBackgroundTaskCompleted,
     toBackgroundTaskStateDisplayString,
 } from "./backgroundTasksService";
@@ -53,6 +54,7 @@ function createTaskDescription(task: BackgroundTaskEntry): string | undefined {
     if (task.details) {
         sections.push(task.details);
     }
+    sections.push(formatElapsedTime(task));
     return sections.length > 0 ? sections.join(" | ") : undefined;
 }
 
@@ -67,6 +69,7 @@ function createTaskContextValue(task: BackgroundTaskEntry): string {
 
 function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownString {
     const status = toBackgroundTaskStateDisplayString(task.state);
+    const elapsedTime = localizedConstants.backgroundTaskElapsedTime(formatElapsedTime(task));
 
     if (typeof task.tooltip === "string") {
         const sections = [task.tooltip, status];
@@ -76,6 +79,7 @@ function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownS
         if (task.source) {
             sections.push(localizedConstants.backgroundTaskSource(task.source));
         }
+        sections.push(elapsedTime);
         return sections.join(`${os.EOL}${os.EOL}`);
     }
 
@@ -96,7 +100,39 @@ function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownS
         );
     }
 
+    tooltip.appendMarkdown(`\n\n${escapeMarkdown(elapsedTime)}`);
+
     return tooltip;
+}
+
+function formatElapsedTime(task: BackgroundTaskEntry): string {
+    const elapsedTimeMs = getBackgroundTaskElapsedTimeMs(task);
+
+    if (elapsedTimeMs < 1000) {
+        return localizedConstants.backgroundTaskElapsedMilliseconds(elapsedTimeMs);
+    }
+
+    const totalSeconds = Math.floor(elapsedTimeMs / 1000);
+    const seconds = totalSeconds % 60;
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const totalHours = Math.floor(totalMinutes / 60);
+    const hours = totalHours % 24;
+    const days = Math.floor(totalHours / 24);
+
+    if (days > 0) {
+        return localizedConstants.backgroundTaskElapsedDaysAndHours(days, hours);
+    }
+
+    if (totalHours > 0) {
+        return localizedConstants.backgroundTaskElapsedHoursAndMinutes(totalHours, minutes);
+    }
+
+    if (totalMinutes > 0) {
+        return localizedConstants.backgroundTaskElapsedMinutesAndSeconds(totalMinutes, seconds);
+    }
+
+    return localizedConstants.backgroundTaskElapsedSeconds(totalSeconds);
 }
 
 function getDefaultIconForState(
