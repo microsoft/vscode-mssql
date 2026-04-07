@@ -95,10 +95,10 @@ suite("Background Tasks Provider Tests", () => {
         expect(node.description).to.equal("3s");
         expect(node.contextValue).to.contain("completed=true");
         expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s");
-        expect((node.iconPath as vscode.Uri).path).to.contain("backgroundTasks/completedTask.svg");
+        expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
     });
 
-    test("failed tasks use the custom failed icon", () => {
+    test("failed tasks use the error theme icon", () => {
         const clock = sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
@@ -113,10 +113,10 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(node.description).to.equal("250ms");
         expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms");
-        expect((node.iconPath as vscode.Uri).path).to.contain("backgroundTasks/failedTask.svg");
+        expect((node.iconPath as vscode.ThemeIcon).id).to.equal("error");
     });
 
-    test("canceled tasks use the custom canceled icon", () => {
+    test("canceled tasks use the canceled theme icon", () => {
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Canceled task",

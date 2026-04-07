@@ -7,7 +7,6 @@ import * as os from "os";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as localizedConstants from "../constants/locConstants";
-import { IconUtils } from "../utils/iconUtils";
 import {
     BackgroundTaskEntry,
     BackgroundTaskState,
@@ -140,11 +139,11 @@ function getDefaultIconForState(
 ): vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } {
     switch (state) {
         case BackgroundTaskState.Succeeded:
-            return IconUtils.getIcon("backgroundTasks", "completedTask.svg");
+            return new vscode.ThemeIcon("pass");
         case BackgroundTaskState.SucceededWithWarning:
             return new vscode.ThemeIcon("warning");
         case BackgroundTaskState.Failed:
-            return IconUtils.getIcon("backgroundTasks", "failedTask.svg");
+            return new vscode.ThemeIcon("error");
         case BackgroundTaskState.Canceled:
             return new vscode.ThemeIcon("circle-slash");
         case BackgroundTaskState.Canceling:
