@@ -240,6 +240,10 @@ export default class ConnectionManager {
                 SecurityTokenRequest.type,
                 this.handleSecurityTokenRequest.bind(this),
             );
+            this.client.onNotification(
+                ConnectionContracts.RefreshTokenNotification.type,
+                this.handleRefreshTokenNotification(),
+            );
         }
         void this.initialize();
     }
@@ -610,6 +614,80 @@ export default class ConnectionManager {
 
                 self.vscodeWrapper.logToOutputChannel(logMessage);
             }
+        };
+    }
+
+    /**
+     * Handles the account/refreshToken notification from the service.
+     * Acquires a fresh token using VS Code accounts or MSAL, then sends
+     * account/tokenRefreshed back to the service.
+     */
+    public handleRefreshTokenNotification(): NotificationHandler<ConnectionContracts.RefreshTokenParams> {
+        const self = this;
+        return (params: ConnectionContracts.RefreshTokenParams): void => {
+            void (async () => {
+                try {
+                    let token: string | undefined;
+                    let expiresOn: number | undefined;
+
+                    if (
+                        previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
+                    ) {
+                        const tokenInfo = await acquireSqlAccessTokenFromVscodeAccount(
+                            params.accountId,
+                            params.tenantId,
+                        );
+                        token = tokenInfo.token.token;
+                        expiresOn = tokenInfo.token.expiresOn;
+                    } else {
+                        if (!params.accountId) {
+                            self._logger?.verbose(
+                                `Cannot refresh token: no accountId provided in refresh request for URI ${params.uri}`,
+                            );
+                            return;
+                        }
+
+                        const account = await self.accountStore.getAccount(params.accountId);
+                        if (!account) {
+                            self._logger?.verbose(
+                                `Cannot refresh token: account ${params.accountId} not found in account store`,
+                            );
+                            return;
+                        }
+
+                        const resource =
+                            params.resource ??
+                            getCloudProviderSettings(account.key.providerId).settings.sqlResource!;
+
+                        const refreshedToken = await self.azureController.refreshAccessToken(
+                            account,
+                            self.accountStore,
+                            params.tenantId,
+                            resource,
+                        );
+
+                        if (refreshedToken) {
+                            token = refreshedToken.token;
+                            expiresOn = refreshedToken.expiresOn;
+                        }
+                    }
+
+                    if (token && self.client) {
+                        self.client.sendNotification(
+                            ConnectionContracts.TokenRefreshedNotification.type,
+                            {
+                                token: token,
+                                expiresOn: expiresOn ?? 0,
+                                uri: params.uri,
+                            },
+                        );
+                    }
+                } catch (error) {
+                    self._logger?.verbose(
+                        `Failed to refresh token for URI ${params.uri}: ${error}`,
+                    );
+                }
+            })();
         };
     }
 

@@ -299,3 +299,41 @@ export interface CapabilitiesResult {
 }
 
 //#endregion
+
+// ------------------------------- < Refresh Token Notification > --------------------------------------
+
+/**
+ * Parameters sent by the service when it needs a refreshed access token.
+ */
+export class RefreshTokenParams {
+    public tenantId: string;
+    public provider: string;
+    public resource: string;
+    public accountId: string;
+    public uri: string;
+}
+
+/**
+ * Notification sent from the service to request a refreshed token.
+ */
+export namespace RefreshTokenNotification {
+    export const type = new NotificationType<RefreshTokenParams, void>("account/refreshToken");
+}
+
+/**
+ * Parameters sent back to the service with the refreshed token.
+ */
+export class TokenRefreshedParams {
+    public token: string;
+    public expiresOn: number;
+    public uri: string;
+}
+
+/**
+ * Notification sent to the service with the refreshed token.
+ */
+export namespace TokenRefreshedNotification {
+    export const type = new NotificationType<TokenRefreshedParams, void>("account/tokenRefreshed");
+}
+
+// ------------------------------- </ Refresh Token Notification > ------------------------------------
