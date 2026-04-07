@@ -26,8 +26,7 @@ export enum TaskStatus {
     SucceededWithWarning = 3,
     Failed = 4,
     Canceled = 5,
-    Canceling = 6,
-    CancelRequested = 7,
+    CancelRequested = 6,
 }
 
 // tslint:disable: interface-name
@@ -37,10 +36,8 @@ export interface TaskProgressInfo {
     message: string;
     script?: string | undefined;
     duration?: number;
-    progressCurrent?: number;
-    progressGoal?: number;
     percentComplete?: number;
-    phase?: string;
+    progressMessage?: string;
 }
 
 export interface TaskMessage {
@@ -60,10 +57,8 @@ export interface TaskInfo {
     isCancelable: boolean;
     targetLocation: string;
     operationName?: string;
-    progressCurrent?: number;
-    progressGoal?: number;
     percentComplete?: number;
-    phase?: string;
+    progressMessage?: string;
     messages?: TaskMessage[];
     duration?: number;
 }
@@ -254,7 +249,7 @@ export class SqlTasksService {
                       }
                     : undefined,
                 source: taskInfo.providerName,
-                message: taskInfo.phase ?? taskInfo.description,
+                message: taskInfo.progressMessage ?? taskInfo.description,
                 state: toBackgroundTaskState(taskInfo.status),
                 percent:
                     taskInfo.percentComplete !== undefined && taskInfo.percentComplete >= 0
@@ -444,7 +439,9 @@ export class SqlTasksService {
             // notifications include this string as the message
 
             // Build a rich message that includes phase info if available
-            const phasePrefix = taskProgressInfo.phase ? `[${taskProgressInfo.phase}] ` : "";
+            const progressMsgPrefix = taskProgressInfo.progressMessage
+                ? `[${taskProgressInfo.progressMessage}] `
+                : "";
             const progressSuffix =
                 taskProgressInfo.percentComplete !== undefined &&
                 taskProgressInfo.percentComplete >= 0
@@ -454,8 +451,8 @@ export class SqlTasksService {
             const taskMessage =
                 taskProgressInfo.message &&
                 taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
-                    ? `${phasePrefix}${taskProgressInfo.message}${progressSuffix}`
-                    : `${phasePrefix}${taskStatusString}${progressSuffix}`;
+                    ? `${progressMsgPrefix}${taskProgressInfo.message}${progressSuffix}`
+                    : `${progressMsgPrefix}${taskStatusString}${progressSuffix}`;
 
             // Compute the progress increment for the VS Code notification progress bar
             const currentPercent =
@@ -474,8 +471,8 @@ export class SqlTasksService {
             const backgroundMessage =
                 taskProgressInfo.message &&
                 taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
-                    ? `${phasePrefix}${taskProgressInfo.message}`
-                    : (taskProgressInfo.phase ?? backgroundTaskMessage);
+                    ? `${progressMsgPrefix}${taskProgressInfo.message}`
+                    : (taskProgressInfo.progressMessage ?? backgroundTaskMessage);
 
             taskInfo.backgroundTaskHandle?.update({
                 message: backgroundMessage,
@@ -483,11 +480,9 @@ export class SqlTasksService {
                 percent: currentPercent !== undefined ? Math.round(currentPercent) : undefined,
                 canCancel:
                     taskInfo.taskInfo.isCancelable &&
-                    taskProgressInfo.status !== TaskStatus.Canceling &&
                     taskProgressInfo.status !== TaskStatus.CancelRequested,
                 cancel:
                     taskInfo.taskInfo.isCancelable &&
-                    taskProgressInfo.status !== TaskStatus.Canceling &&
                     taskProgressInfo.status !== TaskStatus.CancelRequested
                         ? async () => {
                               await this.cancelTask(taskInfo.taskInfo.taskId);
@@ -599,8 +594,6 @@ function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
             return localizedConstants.succeededWithWarning;
         case TaskStatus.InProgress:
             return localizedConstants.inProgress;
-        case TaskStatus.Canceling:
-            return localizedConstants.canceling;
         case TaskStatus.CancelRequested:
             return localizedConstants.canceling;
         case TaskStatus.NotStarted:
@@ -621,7 +614,6 @@ function toBackgroundTaskState(taskStatus: TaskStatus): BackgroundTaskState {
             return BackgroundTaskState.Succeeded;
         case TaskStatus.SucceededWithWarning:
             return BackgroundTaskState.SucceededWithWarning;
-        case TaskStatus.Canceling:
         case TaskStatus.CancelRequested:
             return BackgroundTaskState.Canceling;
         case TaskStatus.NotStarted:
