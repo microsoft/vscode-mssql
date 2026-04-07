@@ -1363,6 +1363,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++12c0e720b154a3910b2620259c4cbcc2fbacc311bc9626a8d222692488a3dd8b">
+      <source xml:lang="en">Connection: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
       <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
     </trans-unit>
@@ -4054,6 +4057,9 @@
     <trans-unit id="++CODE++0e5e6762f01f3c5690e6d1628a2105cca05b94b94ccfc5d51534f4231aa4a533">
       <source xml:lang="en">No authentication required</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10">
+      <source xml:lang="en">No background tasks</source>
+    </trans-unit>
     <trans-unit id="++CODE++8dc89c7190143e4d1630ac2bbd2eb03c2f94480f7d5511fb638179da5c0cab43">
       <source xml:lang="en">No backup sets found in the restore plan</source>
     </trans-unit>
@@ -5821,6 +5827,9 @@
     <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
       <source xml:lang="en">Source Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++693ce1c206ceef29709882ad66c4b7c00adbebbb4df5555f77e4b97b930c2042">
+      <source xml:lang="en">Source: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
     </trans-unit>
@@ -5940,6 +5949,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6d9a6f97a5fdaf3b90a0cf02e0b43d8b7ec1d05c0e4718e02ddd1c5b450e5b39">
       <source xml:lang="en">Succeeded</source>
+    </trans-unit>
+    <trans-unit id="++CODE++247901d3efe12be180b9eb6520afea6a877fceab3430cbdbff1433392eca06ba">
+      <source xml:lang="en">Succeeded with Warning</source>
     </trans-unit>
     <trans-unit id="++CODE++5443b1422a140475d5703c916c7686007233ea92292881588670e73409a7f1cd">
       <source xml:lang="en">Succeeded with warning</source>
@@ -6084,6 +6096,9 @@
     </trans-unit>
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++13d85ead3fb9984f3f8d3ee5e13f378f8a6be32ceb10ded45e8c5c70a0b91789">
+      <source xml:lang="en">Target: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
       <source xml:lang="en">Tenant</source>
@@ -7014,21 +7029,6 @@
     <trans-unit id="++CODE++786e414ca02e9f29012f60d724020a6925dc54275709eb8ac3b2aacbb7262945">
       <source xml:lang="en">👋 I&apos;m GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.</source>
     </trans-unit>
-    <trans-unit id="++CODE++12c0e720b154a3910b2620259c4cbcc2fbacc311bc9626a8d222692488a3dd8b">
-      <source xml:lang="en">Connection: {0}</source>
-    </trans-unit>
-    <trans-unit id="++CODE++backgroundTasksSourceLabel">
-      <source xml:lang="en">Source: {0}</source>
-    </trans-unit>
-    <trans-unit id="++CODE++backgroundTasksTargetLabel">
-      <source xml:lang="en">Target: {0}</source>
-    </trans-unit>
-    <trans-unit id="++CODE++backgroundTasksEmptyState">
-      <source xml:lang="en">No background tasks</source>
-    </trans-unit>
-    <trans-unit id="++CODE++backgroundTasksSucceededWithWarning">
-      <source xml:lang="en">Succeeded with Warning</source>
-    </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
     <trans-unit id="mssql.addObjectExplorer">
@@ -7064,6 +7064,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
       <source xml:lang="en">Azure MFA</source>
     </trans-unit>
+    <trans-unit id="extension.backgroundTasks">
+      <source xml:lang="en">Background Tasks</source>
+    </trans-unit>
     <trans-unit id="mssql.backupDatabase">
       <source xml:lang="en">Backup Database (Preview)...</source>
     </trans-unit>
@@ -7075,6 +7078,9 @@
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.cancelBackgroundTask">
+      <source xml:lang="en">Cancel Task</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
       <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -7105,6 +7111,9 @@
     </trans-unit>
     <trans-unit id="mssql.clearFilters">
       <source xml:lang="en">Clear Filters</source>
+    </trans-unit>
+    <trans-unit id="mssql.clearFinishedBackgroundTasks">
+      <source xml:lang="en">Clear Finished Tasks</source>
     </trans-unit>
     <trans-unit id="mssql.clearAzureAccountTokenCache">
       <source xml:lang="en">Clear Microsoft Entra account token cache</source>
@@ -7441,6 +7450,9 @@
     </trans-unit>
     <trans-unit id="mssql.profiler.openXelFile">
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
+    </trans-unit>
+    <trans-unit id="mssql.openBackgroundTask">
+      <source xml:lang="en">Open Task Result</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
       <source xml:lang="en">Open in GitHub Copilot Agent</source>
@@ -7897,18 +7909,6 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
       <source xml:lang="en">user</source>
-    </trans-unit>
-    <trans-unit id="extension.backgroundTasks">
-      <source xml:lang="en">Background Tasks</source>
-    </trans-unit>
-    <trans-unit id="mssql.cancelBackgroundTask">
-      <source xml:lang="en">Cancel Task</source>
-    </trans-unit>
-    <trans-unit id="mssql.clearFinishedBackgroundTasks">
-      <source xml:lang="en">Clear Finished Tasks</source>
-    </trans-unit>
-    <trans-unit id="mssql.openBackgroundTask">
-      <source xml:lang="en">Open Task Result</source>
     </trans-unit>
   </body></file>
 </xliff>
