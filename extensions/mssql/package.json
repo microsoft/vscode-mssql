@@ -1380,16 +1380,6 @@
                 "icon": "$(debug-stop)"
             },
             {
-                "command": "mssql.startBackgroundTaskTest",
-                "title": "%mssql.startBackgroundTaskTest%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.startFailedBackgroundTaskTest",
-                "title": "%mssql.startFailedBackgroundTaskTest%",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.startQueryHistoryCapture",
                 "title": "%mssql.startQueryHistoryCapture%",
                 "category": "MS SQL",

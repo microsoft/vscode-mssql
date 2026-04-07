@@ -49,13 +49,6 @@ suite("Fabric Provisioning logic", () => {
                 },
             },
             state: { formState: {} },
-            syncBackgroundTask: sandbox.stub(),
-            isDisposed: false,
-            operationId: "fabric-op",
-            applyDeploymentTypeState: sandbox.stub().callsFake((_type, state) => {
-                deploymentController.state.deploymentTypeState = state;
-            }),
-            publishDeploymentState: sandbox.stub(),
             updateState: updateStateStub,
         };
         logger = createStubLogger(sandbox);
@@ -261,7 +254,8 @@ suite("Fabric Provisioning logic", () => {
         expect(result.workspaces).to.deep.equal([]);
         expect(result.databaseNamesInWorkspace).to.deep.equal([]);
 
-        expect(deploymentController.publishDeploymentState).to.have.been.calledOnce;
+        // Check that updateFabricProvisioningState was called
+        expect(updateStateStub).to.have.been.calledOnce;
     });
 
     test("getWorkspaceOptions returns correct options based on permissions", () => {
@@ -315,25 +309,5 @@ suite("Fabric Provisioning logic", () => {
 
         // Call the function
         await fabricHelpers.getWorkspaces(deploymentController);
-    });
-
-    test("updateFabricProvisioningState updates state and syncs background tasks", () => {
-        const state = new fp.FabricProvisioningState();
-
-        fabricHelpers.updateFabricProvisioningState(deploymentController, state);
-
-        expect(deploymentController.publishDeploymentState).to.have.been.calledOnce;
-    });
-
-    test("updateFabricProvisioningState skips webview updates after disposal", () => {
-        Object.defineProperty(deploymentController, "isDisposed", {
-            configurable: true,
-            value: true,
-        });
-        const state = new fp.FabricProvisioningState();
-
-        fabricHelpers.updateFabricProvisioningState(deploymentController, state);
-
-        expect(deploymentController.publishDeploymentState).to.have.been.calledOnce;
     });
 });

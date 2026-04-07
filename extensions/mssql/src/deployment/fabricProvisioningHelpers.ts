@@ -31,7 +31,6 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { UserSurvey } from "../nps/userSurvey";
-import { DeploymentType } from "../sharedInterfaces/deployment";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -752,7 +751,8 @@ export function updateFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     newState: fp.FabricProvisioningState,
 ) {
-    deploymentController.publishDeploymentState(DeploymentType.FabricProvisioning, newState);
+    deploymentController.state.deploymentTypeState = newState;
+    deploymentController.updateState(deploymentController.state);
 }
 
 export function handleCreateDatabase(
