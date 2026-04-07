@@ -1680,8 +1680,6 @@
     "Check Constraints": "Check Constraints",
     "Check Constraint": "Check Constraint",
     "New Check Constraint": "New Check Constraint",
-    "Connection: {0}": "Connection: {0}",
-    "Target: {0}": "Target: {0}",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -2002,6 +2000,19 @@
     "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work": "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work",
     "Azure: Sign In to Azure Cloud": "Azure: Sign In to Azure Cloud",
     "Sign in to your Azure subscription in one of the sovereign clouds.": "Sign in to your Azure subscription in one of the sovereign clouds.",
+    "No background tasks": "No background tasks",
+    "Source: {0}/{0} is the task source": {
+        "message": "Source: {0}",
+        "comment": ["{0} is the task source"]
+    },
+    "Connection: {0}/{0} is the task connection label": {
+        "message": "Connection: {0}",
+        "comment": ["{0} is the task connection label"]
+    },
+    "Target: {0}/{0} is the task target location": {
+        "message": "Target: {0}",
+        "comment": ["{0} is the task target location"]
+    },
     "{0}: {1}/{0} is the task name{1} is the status": {
         "message": "{0}: {1}",
         "comment": ["{0} is the task name", "{1} is the status"]
@@ -3418,7 +3429,5 @@
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases.",
-    "No background tasks": "No background tasks",
-    "Source: {0}": "Source: {0}"
+    "Error loading Azure databases.": "Error loading Azure databases."
 }

@@ -1363,8 +1363,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
-    <trans-unit id="++CODE++12c0e720b154a3910b2620259c4cbcc2fbacc311bc9626a8d222692488a3dd8b">
+    <trans-unit id="++CODE++deba39e2531aa2d4ef487b5740425abeedf2ea1de021e46347bfba33105643b3">
       <source xml:lang="en">Connection: {0}</source>
+      <note>{0} is the task connection label</note>
     </trans-unit>
     <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
       <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
@@ -5827,8 +5828,9 @@
     <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
       <source xml:lang="en">Source Table</source>
     </trans-unit>
-    <trans-unit id="++CODE++693ce1c206ceef29709882ad66c4b7c00adbebbb4df5555f77e4b97b930c2042">
+    <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
+      <note>{0} is the task source</note>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -6094,8 +6096,9 @@
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
     </trans-unit>
-    <trans-unit id="++CODE++13d85ead3fb9984f3f8d3ee5e13f378f8a6be32ceb10ded45e8c5c70a0b91789">
+    <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
       <source xml:lang="en">Target: {0}</source>
+      <note>{0} is the task target location</note>
     </trans-unit>
     <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
       <source xml:lang="en">Tenant</source>
