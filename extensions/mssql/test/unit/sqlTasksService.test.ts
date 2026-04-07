@@ -5,8 +5,6 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import sinonChai from "sinon-chai";
-import * as chai from "chai";
 import { expect } from "chai";
 import {
     SqlTasksService,
@@ -21,8 +19,6 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
 import { stubLoggerGetter } from "./utils";
-
-chai.use(sinonChai);
 
 suite("SqlTasksService Tests", () => {
     let sandbox: sinon.SinonSandbox;
