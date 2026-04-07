@@ -96,6 +96,7 @@ suite("Background Tasks Provider Tests", () => {
         expect(node.contextValue).to.contain("completed=true");
         expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s");
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
+        expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconPassed");
     });
 
     test("failed tasks use the error theme icon", () => {
@@ -114,6 +115,7 @@ suite("Background Tasks Provider Tests", () => {
         expect(node.description).to.equal("250ms");
         expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms");
         expect((node.iconPath as vscode.ThemeIcon).id).to.equal("error");
+        expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconFailed");
     });
 
     test("canceled tasks use the canceled theme icon", () => {

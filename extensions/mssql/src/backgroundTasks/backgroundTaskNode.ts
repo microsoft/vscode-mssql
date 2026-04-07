@@ -139,11 +139,11 @@ function getDefaultIconForState(
 ): vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } {
     switch (state) {
         case BackgroundTaskState.Succeeded:
-            return new vscode.ThemeIcon("pass");
+            return new vscode.ThemeIcon("pass", new vscode.ThemeColor("testing.iconPassed"));
         case BackgroundTaskState.SucceededWithWarning:
             return new vscode.ThemeIcon("warning");
         case BackgroundTaskState.Failed:
-            return new vscode.ThemeIcon("error");
+            return new vscode.ThemeIcon("error", new vscode.ThemeColor("testing.iconFailed"));
         case BackgroundTaskState.Canceled:
             return new vscode.ThemeIcon("circle-slash");
         case BackgroundTaskState.Canceling:
