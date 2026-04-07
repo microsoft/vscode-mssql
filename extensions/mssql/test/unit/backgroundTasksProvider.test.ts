@@ -148,7 +148,7 @@ suite("Background Tasks Provider Tests", () => {
 
         node = provider.getChildren()[0] as BackgroundTaskNode;
         expect(node.description).to.equal("1m 5s");
-        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 1m 5s");
+        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 01:05");
     });
 
     test("clearFinished removes only completed tasks", () => {

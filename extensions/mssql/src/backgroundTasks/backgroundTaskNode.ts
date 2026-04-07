@@ -73,7 +73,9 @@ function createTaskContextValue(task: BackgroundTaskEntry): string {
 
 function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownString {
     const status = toBackgroundTaskStateDisplayString(task.state);
-    const elapsedTime = localizedConstants.backgroundTaskElapsedTime(formatElapsedTime(task));
+    const elapsedTime = localizedConstants.backgroundTaskElapsedTime(
+        formatTooltipElapsedTime(task),
+    );
 
     if (typeof task.tooltip === "string") {
         const sections = [task.tooltip, status];
@@ -137,6 +139,29 @@ function formatElapsedTime(task: BackgroundTaskEntry): string {
     }
 
     return localizedConstants.backgroundTaskElapsedSeconds(totalSeconds);
+}
+
+function formatTooltipElapsedTime(task: BackgroundTaskEntry): string {
+    const elapsedTimeMs = getBackgroundTaskElapsedTimeMs(task);
+    if (elapsedTimeMs < 60_000) {
+        return formatElapsedTime(task);
+    }
+
+    const totalSeconds = Math.floor(elapsedTimeMs / 1000);
+    const seconds = totalSeconds % 60;
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const totalHours = Math.floor(totalMinutes / 60);
+
+    if (totalHours > 0) {
+        return `${padClockSegment(totalHours)}:${padClockSegment(minutes)}:${padClockSegment(seconds)}`;
+    }
+
+    return `${padClockSegment(totalMinutes)}:${padClockSegment(seconds)}`;
+}
+
+function padClockSegment(value: number): string {
+    return value.toString().padStart(2, "0");
 }
 
 function getDefaultIconForState(
