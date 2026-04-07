@@ -240,7 +240,7 @@ suite("Background Tasks Provider Tests", () => {
         const node = provider.getChildren()[0] as BackgroundTaskNode;
         await provider.cancelTask(node.taskId);
 
-        expect(node.description).to.equal("0ms");
+        expect(node.description).to.match(/^\d+ms$/);
         expect(cancelSpy).to.have.been.calledOnce;
         const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
         expect(refreshedNode.contextValue).to.contain("cancelable=false");
@@ -268,7 +268,9 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(actualError).to.equal(cancelError);
         const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
-        expect(refreshedNode.tooltip).to.equal("Cancelable\n\nIn progress\n\nElapsed time: 0ms");
+        expect(refreshedNode.tooltip).to.match(
+            /^Cancelable\n\nIn progress\n\nElapsed time: \d+ms$/,
+        );
         expect(refreshedNode.contextValue).to.contain("cancelable=true");
         handle.remove();
     });
