@@ -1579,6 +1579,15 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
+                "mssql.preview.useVscodeAccountsForEntraMFA": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
+                    "scope": "application"
+                },
                 "mssql.openQueryResultsInTabByDefault": {
                     "type": "boolean",
                     "default": false,
