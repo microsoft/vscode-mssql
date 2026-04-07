@@ -30,18 +30,23 @@ export class BackgroundTaskNode extends vscode.TreeItem {
     constructor(task: BackgroundTaskEntry) {
         super(task.displayText, vscode.TreeItemCollapsibleState.None);
         this.taskId = task.id;
+        this.update(task);
+    }
+
+    public update(task: BackgroundTaskEntry): void {
+        this.label = task.displayText;
         this.description = createTaskDescription(task);
         this.tooltip = createTaskTooltip(task);
         this.iconPath = task.icon ?? getDefaultIconForState(task.state);
         this.contextValue = createTaskContextValue(task);
 
-        if (task.open) {
-            this.command = {
-                command: Constants.cmdBackgroundTaskAction,
-                title: "",
-                arguments: [this],
-            };
-        }
+        this.command = task.open
+            ? {
+                  command: Constants.cmdBackgroundTaskAction,
+                  title: "",
+                  arguments: [this],
+              }
+            : undefined;
     }
 }
 

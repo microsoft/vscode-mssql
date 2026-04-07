@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as localizedConstants from "../constants/locConstants";
 import { uuid } from "../utils/utils";
+import logger2 from "../models/logger2";
 
 export enum BackgroundTaskState {
     NotStarted = 0,
@@ -77,6 +78,8 @@ export interface BackgroundTaskEntry {
 }
 
 export const DEFAULT_MAX_FINISHED_BACKGROUND_TASKS = 25;
+
+const logger = logger2.withPrefix("BackgroundTasksService");
 
 export class BackgroundTasksService {
     private _tasks = new Map<string, BackgroundTaskEntry>();
@@ -160,6 +163,8 @@ export class BackgroundTasksService {
             return;
         }
 
+        const previousState = task.state;
+        const previousCanCancel = task.canCancel;
         const cancelCallback = task.cancel;
 
         this.updateTask(taskId, {
@@ -168,7 +173,21 @@ export class BackgroundTasksService {
             cancel: undefined,
         });
 
-        await Promise.resolve(cancelCallback());
+        try {
+            await Promise.resolve(cancelCallback());
+        } catch (error) {
+            const currentTask = this._tasks.get(taskId);
+            if (currentTask) {
+                currentTask.state = previousState;
+                currentTask.canCancel = Boolean(previousCanCancel && cancelCallback);
+                currentTask.cancel = cancelCallback;
+                currentTask.updatedAt = Date.now();
+                this.trimFinishedTasks();
+                this._refreshCallback();
+            }
+
+            throw error;
+        }
     }
 
     private updateTask(taskId: string, update: BackgroundTaskUpdate): void {
@@ -266,7 +285,8 @@ export function toBackgroundTaskStateDisplayString(state: BackgroundTaskState): 
         case BackgroundTaskState.NotStarted:
             return localizedConstants.notStarted;
         default:
-            return (state as unknown as number).toString();
+            logger.warn(`Unexpected background task state: ${String(state)}`);
+            return String(state);
     }
 }
 
@@ -281,6 +301,11 @@ export function getBackgroundTaskElapsedTimeMs(
     return Math.max(0, endTime - task.createdAt);
 }
 
+/**
+ * Sorts active tasks ahead of completed tasks.
+ * Active tasks are ordered newest-first by registration sequence, and completed tasks are ordered
+ * newest-first by completion time so the most relevant items stay closest to the top.
+ */
 function compareTasks(left: BackgroundTaskEntry, right: BackgroundTaskEntry): number {
     const leftCompleted = isBackgroundTaskCompleted(left.state);
     const rightCompleted = isBackgroundTaskCompleted(right.state);

@@ -18,19 +18,19 @@ export class BackgroundTasksProvider
     private readonly _onDidChangeTreeData = new vscode.EventEmitter<
         BackgroundTasksTreeNode | undefined
     >();
+    private readonly _emptyBackgroundTaskNode = new EmptyBackgroundTaskNode();
+    private readonly _taskNodes = new Map<string, BackgroundTaskNode>();
     public readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
     private readonly _backgroundTasksService: BackgroundTasksService;
     private readonly _activeTaskRefreshInterval: ReturnType<typeof setInterval>;
     public treeView: vscode.TreeView<BackgroundTasksTreeNode> | undefined;
 
-    constructor(backgroundTasksService?: BackgroundTasksService) {
-        this._backgroundTasksService =
-            backgroundTasksService ??
-            new BackgroundTasksService(
-                () => this.refresh(),
-                undefined,
-                () => this.revealTreeView(),
-            );
+    constructor(maxFinishedTasks?: number) {
+        this._backgroundTasksService = new BackgroundTasksService(
+            () => this.refresh(),
+            maxFinishedTasks,
+            () => this.revealTreeView(),
+        );
 
         this._activeTaskRefreshInterval = setInterval(() => {
             if (
@@ -59,10 +59,28 @@ export class BackgroundTasksProvider
     public getChildren(_element?: BackgroundTasksTreeNode): BackgroundTasksTreeNode[] {
         const tasks = this._backgroundTasksService.tasks;
         if (tasks.length === 0) {
-            return [new EmptyBackgroundTaskNode()];
+            this._taskNodes.clear();
+            return [this._emptyBackgroundTaskNode];
         }
 
-        return tasks.map((task) => new BackgroundTaskNode(task));
+        const taskIds = new Set(tasks.map((task) => task.id));
+        for (const taskId of this._taskNodes.keys()) {
+            if (!taskIds.has(taskId)) {
+                this._taskNodes.delete(taskId);
+            }
+        }
+
+        return tasks.map((task) => {
+            let node = this._taskNodes.get(task.id);
+            if (!node) {
+                node = new BackgroundTaskNode(task);
+                this._taskNodes.set(task.id, node);
+            } else {
+                node.update(task);
+            }
+
+            return node;
+        });
     }
 
     public async openTask(taskId: string): Promise<void> {
@@ -79,6 +97,7 @@ export class BackgroundTasksProvider
 
     public dispose(): void {
         clearInterval(this._activeTaskRefreshInterval);
+        this._taskNodes.clear();
         this._onDidChangeTreeData.dispose();
     }
 
@@ -90,7 +109,13 @@ export class BackgroundTasksProvider
         if (this.treeView) {
             await vscode.commands.executeCommand(Constants.cmdOpenObjectExplorerCommand);
             await vscode.commands.executeCommand(`${Constants.backgroundTasks}.focus`);
-            await this.treeView.reveal(this.getChildren()[0], {
+
+            const firstNode = this.getChildren()[0];
+            if (firstNode instanceof EmptyBackgroundTaskNode) {
+                return;
+            }
+
+            await this.treeView.reveal(firstNode, {
                 focus: false,
                 select: false,
             });

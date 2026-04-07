@@ -9,10 +9,7 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as Constants from "../../src/constants/constants";
-import {
-    BackgroundTaskState,
-    BackgroundTasksService,
-} from "../../src/backgroundTasks/backgroundTasksService";
+import { BackgroundTaskState } from "../../src/backgroundTasks/backgroundTasksService";
 import { BackgroundTasksProvider } from "../../src/backgroundTasks/backgroundTasksProvider";
 import {
     BackgroundTaskNode,
@@ -178,17 +175,16 @@ suite("Background Tasks Provider Tests", () => {
 
     test("trimFinished keeps active tasks and caps finished tasks", () => {
         const clock = sandbox.useFakeTimers();
-        const service = new BackgroundTasksService(() => undefined, 2);
-        const provider = new BackgroundTasksProvider(service);
+        const provider = new BackgroundTasksProvider(2);
 
-        service.registerTask({
+        provider.backgroundTasksService.registerTask({
             displayText: "Active task",
             tooltip: "Active",
         });
 
         const finishedLabels = ["Finished 1", "Finished 2", "Finished 3"];
         for (const label of finishedLabels) {
-            const handle = service.registerTask({
+            const handle = provider.backgroundTasksService.registerTask({
                 displayText: label,
                 tooltip: label,
             });
@@ -251,6 +247,32 @@ suite("Background Tasks Provider Tests", () => {
         handle.remove();
     });
 
+    test("cancel command restores task state when the cancel callback fails", async () => {
+        const provider = new BackgroundTasksProvider();
+        const cancelError = new Error("cancel failed");
+        const handle = provider.backgroundTasksService.registerTask({
+            displayText: "Cancelable task",
+            tooltip: "Cancelable",
+            canCancel: true,
+            cancel: sandbox.stub().rejects(cancelError),
+        });
+
+        const node = provider.getChildren()[0] as BackgroundTaskNode;
+
+        let actualError: Error | undefined;
+        try {
+            await provider.cancelTask(node.taskId);
+        } catch (error) {
+            actualError = error as Error;
+        }
+
+        expect(actualError).to.equal(cancelError);
+        const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
+        expect(refreshedNode.tooltip).to.equal("Cancelable\n\nIn progress\n\nElapsed time: 0ms");
+        expect(refreshedNode.contextValue).to.contain("cancelable=true");
+        handle.remove();
+    });
+
     test("open command executes immediately for actionable tasks", async () => {
         const provider = new BackgroundTasksProvider();
         const openSpy = sandbox.stub().resolves();
@@ -285,8 +307,9 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(executeCommandStub).to.have.been.calledWith(Constants.cmdOpenObjectExplorerCommand);
         expect(executeCommandStub).to.have.been.calledWith(`${Constants.backgroundTasks}.focus`);
+        const currentNode = provider.getChildren()[0] as BackgroundTaskNode;
         expect(revealStub).to.have.been.calledWith(
-            sinon.match.instanceOf(BackgroundTaskNode),
+            currentNode,
             sinon.match({ focus: false, select: false }),
         );
     });
