@@ -24,7 +24,7 @@ import {
     BackgroundTasksService,
     BackgroundTaskState,
 } from "../../src/backgroundTasks/backgroundTasksService";
-import { stubVscodeWrapper, stubWithProgress } from "./utils";
+import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -72,17 +72,6 @@ suite("SqlTasksService Background Tasks Tests", () => {
         sqlToolsClientStub.onNotification.returnsThis();
         sqlToolsClientStub.sendRequest.resolves(true);
 
-        stubWithProgress(sandbox, async (_options, task) => {
-            const progress = {
-                report: sandbox.stub(),
-            } as unknown as vscode.Progress<{ message?: string; increment?: number }>;
-            const token = {
-                isCancellationRequested: false,
-                onCancellationRequested: () => ({ dispose: sandbox.stub() }),
-            } as unknown as vscode.CancellationToken;
-            return task(progress, token);
-        });
-
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,
             sqlDocumentServiceStub,
@@ -110,6 +99,14 @@ suite("SqlTasksService Background Tasks Tests", () => {
             message: "Export operation",
             state: BackgroundTaskState.InProgress,
         });
+    });
+
+    test("does not show a progress notification when a SQL task is created", () => {
+        const withProgressStub = sandbox.stub(vscode.window, "withProgress");
+
+        taskCreatedHandler(baseTaskInfo);
+
+        expect(withProgressStub).to.not.have.been.called;
     });
 
     test("uses connection info in the secondary text for SQL tasks and keeps it in the tooltip", () => {

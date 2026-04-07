@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
+import * as Constants from "../../src/constants/constants";
 import {
     BackgroundTaskState,
     BackgroundTasksService,
@@ -228,5 +229,28 @@ suite("Background Tasks Provider Tests", () => {
         await provider.openTask(node.taskId);
 
         expect(openSpy).to.have.been.calledOnce;
+    });
+
+    test("new tasks show the background tasks view", async () => {
+        const provider = new BackgroundTasksProvider();
+        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+        const revealStub = sandbox.stub().resolves();
+
+        provider.treeView = {
+            reveal: revealStub,
+        } as unknown as vscode.TreeView<BackgroundTaskNode | EmptyBackgroundTaskNode>;
+
+        provider.backgroundTasksService.registerTask({
+            displayText: "Openable task",
+            tooltip: "Openable",
+        });
+
+        await Promise.resolve();
+
+        expect(executeCommandStub).to.have.been.calledWith(`${Constants.backgroundTasks}.focus`);
+        expect(revealStub).to.have.been.calledWith(
+            sinon.match.instanceOf(BackgroundTaskNode),
+            sinon.match({ focus: false, select: false }),
+        );
     });
 });

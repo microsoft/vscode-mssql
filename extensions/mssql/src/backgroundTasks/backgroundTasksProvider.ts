@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as Constants from "../constants/constants";
 import { BackgroundTaskNode, EmptyBackgroundTaskNode } from "./backgroundTaskNode";
 import { BackgroundTasksService } from "./backgroundTasksService";
 
@@ -62,9 +63,8 @@ export class BackgroundTasksProvider implements vscode.TreeDataProvider<Backgrou
 
     private revealTreeView(): void {
         if (this.treeView) {
-            // Reveal the background tasks tree without stealing focus from the editor.
-            // This also opens the Object Explorer view container if it isn't visible.
-            this.treeView.reveal(this.getChildren()[0], {
+            void vscode.commands.executeCommand(`${Constants.backgroundTasks}.focus`);
+            void this.treeView.reveal(this.getChildren()[0], {
                 focus: false,
                 select: false,
             });

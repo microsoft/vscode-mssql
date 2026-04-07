@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { NotificationType, RequestType } from "vscode-languageclient";
-import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../enums";
@@ -81,8 +80,6 @@ namespace CancelTaskRequest {
 
 type ActiveTaskInfo = {
     taskInfo: TaskInfo;
-    progressCallback: ProgressCallback;
-    completionPromise: Deferred<void>;
     backgroundTaskHandle?: BackgroundTaskHandle;
     lastMessage?: string;
     /** Script content received from any notification, used as fallback when script arrives out of order */
@@ -92,10 +89,7 @@ type ActiveTaskInfo = {
      * When a subsequent notification delivers the script, this stored status is replayed to finish the task.
      */
     completedStatus?: TaskProgressInfo;
-    /** Last reported percent complete, used to compute increments for VS Code progress API */
-    lastPercentComplete?: number;
 };
-type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
 /**
  * Arguments to pass to a VS Code command when an action button is clicked.
@@ -227,17 +221,8 @@ export class SqlTasksService {
      * @param taskInfo The info for the new task that was created
      */
     private handleTaskCreatedNotification(taskInfo: TaskInfo): void {
-        // Default to no-op for the progressCallback since we don't have the progress callback from the notification yet. There's
-        // potential here for a race condition in which the first update comes in before this callback is updated - if that starts
-        // happening then we'd want to look into keeping track of the latest update message to display as soon as the progress
-        // callback is set such that we update the notification correctly.
         const newTaskInfo: ActiveTaskInfo = {
             taskInfo,
-            progressCallback: () => {
-                return;
-            },
-            completionPromise: new Deferred<void>(),
-            lastPercentComplete: 0,
             backgroundTaskHandle: this._backgroundTasksService?.registerTask({
                 displayText: taskInfo.name,
                 details: this.createBackgroundTaskDetails(taskInfo),
@@ -257,21 +242,6 @@ export class SqlTasksService {
                         : undefined,
             }),
         };
-
-        vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: taskInfo.name,
-                cancellable: taskInfo.isCancelable,
-            },
-            async (progress, token): Promise<void> => {
-                newTaskInfo.progressCallback = (value) => progress.report(value);
-                token.onCancellationRequested(() => {
-                    this.cancelTask(taskInfo.taskId);
-                });
-                await newTaskInfo.completionPromise;
-            },
-        );
         this._activeTasks.set(taskInfo.taskId, newTaskInfo);
 
         // Fire the task created event for any listeners
@@ -344,12 +314,6 @@ export class SqlTasksService {
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.
             this._activeTasks.delete(taskProgressInfo.taskId);
-
-            if (taskProgressInfo.status === TaskStatus.Canceled) {
-                taskInfo.completionPromise.reject(new Error("Task cancelled"));
-            } else {
-                taskInfo.completionPromise.resolve();
-            }
 
             const targetLocation = handler
                 ? handler.getTargetLocation(taskInfo.taskInfo)
@@ -434,39 +398,14 @@ export class SqlTasksService {
             await this.handleTaskChangedNotification(taskInfo.completedStatus);
         } else {
             // Task is still ongoing so just update the progress notification
-            // The progress notification already has the name, so we just need to update the message with the latest status info.
-            // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
-            // notifications include this string as the message
-
-            // Build a rich message that includes phase info if available
             const progressMsgPrefix = taskProgressInfo.progressMessage
                 ? `[${taskProgressInfo.progressMessage}] `
                 : "";
-            const progressSuffix =
-                taskProgressInfo.percentComplete !== undefined &&
-                taskProgressInfo.percentComplete >= 0
-                    ? ` (${Math.round(taskProgressInfo.percentComplete)}%)`
-                    : "";
-
-            const taskMessage =
-                taskProgressInfo.message &&
-                taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
-                    ? `${progressMsgPrefix}${taskProgressInfo.message}${progressSuffix}`
-                    : `${progressMsgPrefix}${taskStatusString}${progressSuffix}`;
-
-            // Compute the progress increment for the VS Code notification progress bar
             const currentPercent =
                 taskProgressInfo.percentComplete !== undefined &&
                 taskProgressInfo.percentComplete >= 0
                     ? taskProgressInfo.percentComplete
                     : undefined;
-            const increment =
-                currentPercent !== undefined
-                    ? currentPercent - (taskInfo.lastPercentComplete ?? 0)
-                    : undefined;
-            if (currentPercent !== undefined) {
-                taskInfo.lastPercentComplete = currentPercent;
-            }
 
             const backgroundMessage =
                 taskProgressInfo.message &&
@@ -488,10 +427,6 @@ export class SqlTasksService {
                               await this.cancelTask(taskInfo.taskInfo.taskId);
                           }
                         : undefined,
-            });
-            taskInfo.progressCallback({
-                message: taskMessage,
-                increment: increment !== undefined && increment > 0 ? increment : undefined,
             });
         }
     }
