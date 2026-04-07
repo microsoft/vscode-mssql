@@ -117,12 +117,14 @@ suite("Background Tasks Provider Tests", () => {
     });
 
     test("canceled tasks use the custom canceled icon", () => {
+        const clock = sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Canceled task",
             tooltip: "Running",
         });
 
+        clock.tick(0);
         handle.complete(BackgroundTaskState.Canceled, { message: "Stopped by user" });
 
         const node = provider.getChildren()[0] as BackgroundTaskNode;

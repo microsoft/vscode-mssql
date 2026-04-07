@@ -95,9 +95,11 @@ suite("SqlTasksService Background Tasks Tests", () => {
         expect(backgroundTasksServiceStub.registerTask.firstCall.args[0]).to.deep.include({
             displayText: "Export bacpac",
             canCancel: true,
+            description: "Export operation",
             source: "MSSQL",
             message: "Export operation",
             state: BackgroundTaskState.InProgress,
+            target: "/tmp/export.bacpac",
         });
     });
 
@@ -120,7 +122,9 @@ suite("SqlTasksService Background Tasks Tests", () => {
         expect(backgroundTasksServiceStub.registerTask).to.have.been.calledOnce;
         expect(backgroundTasksServiceStub.registerTask.firstCall.args[0]).to.deep.include({
             displayText: "Backup Database",
+            description: "Export operation",
             details: "localhost/AdventureWorks2022",
+            target: "/tmp/export.bacpac",
         });
         expect(backgroundTasksServiceStub.registerTask.firstCall.args[0].tooltip).to.contain(
             "Connection: localhost/AdventureWorks2022",

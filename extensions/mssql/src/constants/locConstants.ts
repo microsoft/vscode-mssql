@@ -623,6 +623,66 @@ export function backgroundTaskElapsedDaysAndHours(days: number, hours: number) {
         comment: ["{0} is the elapsed time in days", "{1} is the remaining elapsed time in hours"],
     });
 }
+export function backgroundTaskName(taskName: string) {
+    return l10n.t({
+        message: "Task: {0}",
+        args: [taskName],
+        comment: ["{0} is the task name"],
+    });
+}
+export function backgroundTaskDescription(description: string) {
+    return l10n.t({
+        message: "Description: {0}",
+        args: [description],
+        comment: ["{0} is the task description"],
+    });
+}
+export function backgroundTaskStatus(status: string) {
+    return l10n.t({
+        message: "Status: {0}",
+        args: [status],
+        comment: ["{0} is the task status"],
+    });
+}
+export let backgroundTaskLogsHeader = l10n.t("Logs");
+export let backgroundTaskNoLogEntries = l10n.t("No log entries yet.");
+export let backgroundTaskLogUnavailable = l10n.t("Task log is unavailable.");
+export function backgroundTaskLogLine(timestamp: string, entry: string) {
+    return l10n.t({
+        message: "[{0}] {1}",
+        args: [timestamp, entry],
+        comment: ["{0} is the log timestamp", "{1} is the log entry text"],
+    });
+}
+export function backgroundTaskLogStateWithMessage(status: string, message: string) {
+    return l10n.t({
+        message: "{0}: {1}",
+        args: [status, message],
+        comment: ["{0} is the task status", "{1} is the task log message"],
+    });
+}
+export function backgroundTaskLogStateWithProgress(status: string, percent: number) {
+    return l10n.t({
+        message: "{0} ({1}%)",
+        args: [status, percent],
+        comment: ["{0} is the task status", "{1} is the task progress percentage"],
+    });
+}
+export function backgroundTaskLogStateWithProgressAndMessage(
+    status: string,
+    percent: number,
+    message: string,
+) {
+    return l10n.t({
+        message: "{0} ({1}%): {2}",
+        args: [status, percent, message],
+        comment: [
+            "{0} is the task status",
+            "{1} is the task progress percentage",
+            "{2} is the task log message",
+        ],
+    });
+}
 export function taskStatusWithName(taskName: string, status: string) {
     return l10n.t({
         message: "{0}: {1}",

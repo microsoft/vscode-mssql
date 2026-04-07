@@ -225,7 +225,9 @@ export class SqlTasksService {
             taskInfo,
             backgroundTaskHandle: this._backgroundTasksService?.registerTask({
                 displayText: taskInfo.name,
+                description: taskInfo.description,
                 details: this.createBackgroundTaskDetails(taskInfo),
+                target: taskInfo.targetLocation,
                 tooltip: this.createBackgroundTaskTooltip(taskInfo),
                 canCancel: taskInfo.isCancelable,
                 cancel: taskInfo.isCancelable
