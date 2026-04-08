@@ -22,7 +22,9 @@ export class BackgroundTaskLogContentProvider
 
     constructor(private readonly _backgroundTasksService: BackgroundTasksService) {
         this._logSubscription = this._backgroundTasksService.onDidChangeTaskLog((taskId) => {
-            this._onDidChange.fire(this.getUri(taskId));
+            const uri = this.getUri(taskId);
+            this._onDidChange.fire(uri);
+            void this.revealLatestVisibleLogEntry(uri);
         });
     }
 
@@ -40,7 +42,8 @@ export class BackgroundTaskLogContentProvider
 
     public async showTaskLog(taskId: string): Promise<void> {
         const document = await vscode.workspace.openTextDocument(this.getUri(taskId));
-        await vscode.window.showTextDocument(document, { preview: false });
+        const editor = await vscode.window.showTextDocument(document, { preview: false });
+        this.revealLatestLine(editor);
     }
 
     public provideTextDocumentContent(uri: vscode.Uri): string {
@@ -60,6 +63,22 @@ export class BackgroundTaskLogContentProvider
     public dispose(): void {
         this._logSubscription.dispose();
         this._onDidChange.dispose();
+    }
+
+    private async revealLatestVisibleLogEntry(uri: vscode.Uri): Promise<void> {
+        const document = await vscode.workspace.openTextDocument(uri);
+        for (const editor of vscode.window.visibleTextEditors) {
+            if (editor.document.uri.toString() === document.uri.toString()) {
+                this.revealLatestLine(editor);
+            }
+        }
+    }
+
+    private revealLatestLine(editor: vscode.TextEditor): void {
+        const lastLine = Math.max(0, editor.document.lineCount - 1);
+        const lastCharacter = editor.document.lineAt(lastLine).text.length;
+        const range = new vscode.Range(lastLine, lastCharacter, lastLine, lastCharacter);
+        editor.revealRange(range, vscode.TextEditorRevealType.Default);
     }
 }
 
@@ -129,12 +148,13 @@ function renderTaskLogEntry(entry: BackgroundTaskLogEntry): string {
 
 function formatTaskLogTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
-    return [
-        padClockSegment(date.getHours()),
-        padClockSegment(date.getMinutes()),
-        padClockSegment(date.getSeconds()),
-        padMilliseconds(date.getMilliseconds()),
-    ].join(":");
+    return (
+        [
+            padClockSegment(date.getHours()),
+            padClockSegment(date.getMinutes()),
+            padClockSegment(date.getSeconds()),
+        ].join(":") + `.${padMilliseconds(date.getMilliseconds())}`
+    );
 }
 
 function padClockSegment(value: number): string {
