@@ -47,7 +47,9 @@ import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
+import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
@@ -116,10 +118,7 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
-import { FlatFileClient } from "../flatFile/flatFileClient";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
-import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
-import { FlatFileProvider } from "../models/contracts/flatFile";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 
@@ -163,8 +162,6 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
-    public flatFileClient: FlatFileClient;
-    public flatFileProvider: FlatFileProvider;
     public sqlNotebookController: SqlNotebookController;
 
     /**
@@ -210,6 +207,21 @@ export default class MainController implements vscode.Disposable {
         );
     }
 
+    private onConnectCommand(): void {
+        if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+            return;
+        }
+        void this.runAndLogErrors(this.promptToConnect());
+    }
+
+    private onRunQueryCommand(): void {
+        if (uriOwnershipCoordinator?.isActiveEditorOwnedByOtherExtensionWithWarning()) {
+            return;
+        }
+        void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
+        void this.onRunQuery();
+    }
+
     /**
      * Disposes the controller
      */
@@ -226,10 +238,6 @@ export default class MainController implements vscode.Disposable {
         this._statusview.dispose();
     }
 
-    public get isExperimentalEnabled(): boolean {
-        return this.configuration.get(Constants.configEnableExperimentalFeatures);
-    }
-
     /**
      * Initializes the extension
      */
@@ -239,9 +247,9 @@ export default class MainController implements vscode.Disposable {
         if (didInitialize) {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
-            this._event.on(Constants.cmdConnect, () => {
-                void this.runAndLogErrors(this.promptToConnect());
-            });
+            this._event.on(Constants.cmdConnect, () => this.onConnectCommand());
+            this.registerCommand(Constants.cmdConnectWithUriOwnership);
+            this._event.on(Constants.cmdConnectWithUriOwnership, () => this.onConnectCommand());
             this.registerCommand(Constants.cmdChangeConnection);
             this._event.on(Constants.cmdChangeConnection, () => {
                 void this.runAndLogErrors(this.promptToConnect());
@@ -255,10 +263,9 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onCancelConnect());
             });
             this.registerCommand(Constants.cmdRunQuery);
-            this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
-                void this.onRunQuery();
-            });
+            this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
+            this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
+            this._event.on(Constants.cmdRunQueryWithUriOwnership, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdManageConnectionProfiles);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => {
                 await this.onManageProfiles();
@@ -270,12 +277,8 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string;
-                if (args) {
-                    if (args instanceof ConnectionGroupNode) {
-                        initialConnectionGroup = args.connectionGroup?.id;
-                    } else if (typeof args === "object" && args.id) {
-                        initialConnectionGroup = args.id;
-                    }
+                if (args && args instanceof ConnectionGroupNode) {
+                    initialConnectionGroup = args.connectionGroup?.id;
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
             });
@@ -735,8 +738,13 @@ export default class MainController implements vscode.Disposable {
             // Register a virtual document provider once during extension activation
             vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
                 provideTextDocumentContent: (uri) => {
-                    // The content is stored in the URI fragment
-                    return decodeURIComponent(uri.fragment);
+                    // Attempt to decode the URI fragment
+                    try {
+                        return decodeURIComponent(uri.fragment);
+                    } catch {
+                        // If decoding fails, return the raw fragment as a fallback.  Some characters (like '%') can cause decodeURIComponent to throw an error.
+                        return uri.fragment;
+                    }
                 },
             });
 
@@ -1003,11 +1011,6 @@ export default class MainController implements vscode.Disposable {
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
-        // Initialize flat file client
-        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
-            this.flatFileProvider = provider;
-        });
-
         /**
          * TODO: aaskhan
          * Good candidate for dependency injection.
@@ -1052,15 +1055,16 @@ export default class MainController implements vscode.Disposable {
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
-            experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
+            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             cloudType: getCloudId(),
+            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         });
 
         // Set context for experimental features (used for conditional menu visibility)
         await vscode.commands.executeCommand(
             "setContext",
             "mssql.experimentalFeaturesEnabled",
-            this.isExperimentalEnabled,
+            previewService.experimentalFeaturesEnabled,
         );
 
         await this._connectionMgr.initialized;
@@ -1658,7 +1662,6 @@ export default class MainController implements vscode.Disposable {
                         this._vscodeWrapper,
                         SqlToolsServerClient.instance,
                         this.connectionManager,
-                        this.flatFileProvider,
                         node.connectionProfile,
                         node.sessionId,
                         database,
@@ -2264,6 +2267,7 @@ export default class MainController implements vscode.Disposable {
                 this._sqlDocumentService,
                 this._statusview,
                 this._prompter,
+                this._context,
             );
 
             this._context.subscriptions.push(
@@ -2630,13 +2634,7 @@ export default class MainController implements vscode.Disposable {
             if (!self.canRunCommand()) {
                 return;
             }
-            if (!self.canRunV2Command()) {
-                // Notify the user that this is not supported on this version
-                await this._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.macSierraRequiredErrorMessage,
-                );
-                return;
-            }
+
             if (!self.validateTextDocumentHasFocus()) {
                 return;
             }
@@ -2847,14 +2845,6 @@ export default class MainController implements vscode.Disposable {
         return await this._connectionMgr.connectionUI.promptToChangeLanguageMode();
     }
 
-    /**
-     * Verifies the tools service version is high enough to support certain commands
-     */
-    private canRunV2Command(): boolean {
-        let version: number = SqlToolsServerClient.instance.getServiceVersion();
-        return version > 1;
-    }
-
     private async showOnLaunchPrompts(): Promise<void> {
         // All prompts should be async and _not_ awaited so that we don't block the rest of the extension
         void this.showFirstLaunchPrompts();
@@ -3060,6 +3050,7 @@ export default class MainController implements vscode.Disposable {
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
+            getPreviewConfigKey(PreviewFeature.UseVscodeAccountsForEntraMFA),
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

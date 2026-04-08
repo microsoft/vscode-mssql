@@ -80,6 +80,14 @@ suite("Templates", function (): void {
             tableTemplate.templateScript,
             "Table template should contain CREATE TABLE",
         ).to.include("CREATE TABLE");
+        expect(
+            tableTemplate.templateScript,
+            "Table template should contain @@SCHEMA_NAME@@ placeholder",
+        ).to.include("@@SCHEMA_NAME@@");
+        expect(
+            tableTemplate.templateScript,
+            "Table template should contain @@OBJECT_NAME@@ placeholder",
+        ).to.include("@@OBJECT_NAME@@");
     });
 
     test("Should have View item template", async function (): Promise<void> {
@@ -89,6 +97,14 @@ suite("Templates", function (): void {
         expect(viewTemplate.templateScript, "View template should contain CREATE VIEW").to.include(
             "CREATE VIEW",
         );
+        expect(
+            viewTemplate.templateScript,
+            "View template should contain @@SCHEMA_NAME@@ placeholder",
+        ).to.include("@@SCHEMA_NAME@@");
+        expect(
+            viewTemplate.templateScript,
+            "View template should contain @@OBJECT_NAME@@ placeholder",
+        ).to.include("@@OBJECT_NAME@@");
     });
 
     test("Should have Stored Procedure item template", async function (): Promise<void> {
@@ -101,6 +117,14 @@ suite("Templates", function (): void {
             spTemplate.templateScript,
             "Stored Procedure template should contain CREATE PROCEDURE",
         ).to.include("CREATE PROCEDURE");
+        expect(
+            spTemplate.templateScript,
+            "Stored Procedure template should contain @@SCHEMA_NAME@@ placeholder",
+        ).to.include("@@SCHEMA_NAME@@");
+        expect(
+            spTemplate.templateScript,
+            "Stored Procedure template should contain @@OBJECT_NAME@@ placeholder",
+        ).to.include("@@OBJECT_NAME@@");
     });
 
     test("Should have Script item template", async function (): Promise<void> {

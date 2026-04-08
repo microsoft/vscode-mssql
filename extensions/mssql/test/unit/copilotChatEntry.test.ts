@@ -13,12 +13,12 @@ chai.use(sinonChai);
 
 suite("CopilotChatEntry", () => {
     let sandbox: sinon.SinonSandbox;
-    let CopilotChatEntry: typeof import("../../src/reactviews/common/copilot/copilotChatEntry").CopilotChatEntry;
+    let CopilotChatEntry: typeof import("../../src/webviews/common/copilot/copilotChatEntry").CopilotChatEntry;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         CopilotChatEntry =
-            require("../../src/reactviews/common/copilot/copilotChatEntry").CopilotChatEntry;
+            require("../../src/webviews/common/copilot/copilotChatEntry").CopilotChatEntry;
     });
 
     teardown(() => {

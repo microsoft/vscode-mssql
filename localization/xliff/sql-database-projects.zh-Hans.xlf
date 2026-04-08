@@ -74,6 +74,10 @@
         <source xml:lang="en">Add Item</source>
         <target state="translated">添加项</target>
       </trans-unit>
+      <trans-unit id="++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8">
+        <source xml:lang="en">Add ProjectGuid</source>
+        <target state="translated">添加 ProjectGuid</target>
+      </trans-unit>
       <trans-unit id="++CODE++7287537df41bee4b40e151d7c5f2f345d70fdcf9b16a48ec51a07013cd23a6ac">
         <source xml:lang="en">Add SQLCMD variable '{0}' to project without default value?</source>
         <target state="translated">是否将 SQLCMD 变量 "{0}" 添加到没有默认值的项目?</target>
@@ -738,6 +742,10 @@
         <source xml:lang="en">Project '{0}' is already opened.</source>
         <target state="translated">已打开项目“{0}”。</target>
       </trans-unit>
+      <trans-unit id="++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c">
+        <source xml:lang="en">Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?</source>
+        <target state="translated">项目 '{0}' 缺少 ProjectGuid。唯一的 ProjectGuid 有助于识别跨项目引用的项目。是否要添加一个?</target>
+      </trans-unit>
       <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
         <source xml:lang="en">Project (.sqlproj)</source>
         <target state="translated">项目(.sqlproj)</target>
@@ -1270,6 +1278,16 @@
         <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
         <target state="translated">{0} 如果项目是在 SSDT 中创建的，它将继续在这两个工具中工作。是否要更新项目?</target>
       </trans-unit>
+      <trans-unit id="++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de">
+        <source xml:lang="en">{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?
+
+Projects:
+{1}</source>
+        <target state="translated">此工作区中的 {0} 个项目缺少 ProjectGuid。唯一的 ProjectGuid 有助于识别跨项目引用的项目。是否要为每个项目添加一个?
+
+项目:
+{1}</target>
+      </trans-unit>
     </body>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="zh-Hans">
@@ -1369,6 +1387,10 @@
       <trans-unit id="sqlDatabaseProjects.description">
         <source xml:lang="en">Design and publish SQL database schemas</source>
         <target state="translated">设计和发布 SQL 数据库架构</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openDocumentation">
+        <source xml:lang="en">Documentation</source>
+        <target state="translated">文档</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>

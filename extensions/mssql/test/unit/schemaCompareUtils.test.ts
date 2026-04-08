@@ -9,7 +9,7 @@ import * as path from "path";
 import * as mssql from "vscode-mssql";
 
 import * as schemaCompareUtils from "../../src/schemaCompare/schemaCompareUtils";
-import { ExtractTarget, TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
+import { ExtractTarget, TaskExecutionMode } from "../../src/enums";
 
 suite("Schema Compare Utils Tests", () => {
     let sandbox: sinon.SinonSandbox;

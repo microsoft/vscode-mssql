@@ -1,15 +1,29 @@
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
+
+const npmCommand = "npm";
+const execOptions = { stdio: "inherit", shell: process.platform === "win32" };
 
 const isProd = process.argv.includes("--prod");
-const prodArg = isProd ? "--prod" : "";
+
+function runScript(scriptName, args = []) {
+    const npmArgs = ["run", scriptName];
+
+    if (args.length > 0) {
+        npmArgs.push("--", ...args);
+    }
+
+    execFileSync(npmCommand, npmArgs, execOptions);
+}
 
 try {
-    execSync("yarn build:prepare", { stdio: "inherit" });
-    execSync("yarn build:extension", { stdio: "inherit" });
-    execSync(`yarn build:extension-bundle ${prodArg}`, { stdio: "inherit" });
-    execSync(`yarn build:webviews`, { stdio: "inherit" });
-    execSync(`yarn build:webviews-bundle ${prodArg}`, { stdio: "inherit" });
-    execSync(`yarn build:notebook-renderer-bundle ${prodArg}`, { stdio: "inherit" });
+    const bundleArgs = isProd ? ["--prod"] : [];
+
+    runScript("build:prepare");
+    runScript("build:extension");
+    runScript("build:extension-bundle", bundleArgs);
+    runScript("build:webviews");
+    runScript("build:webviews-bundle", bundleArgs);
+    runScript("build:notebook-renderer-bundle", bundleArgs);
 } catch (error) {
     process.exit(1);
 }

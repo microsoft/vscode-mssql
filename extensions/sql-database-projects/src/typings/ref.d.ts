@@ -3,11 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// /// <reference path='../../../../src/vscode-dts/vscode.d.ts'/>
-/// <reference path='../../../../typings/dataworkspace.d.ts'/>
-/// <reference path='../../../../typings/mssql.d.ts'/>
-/// TODO: switch to this direct reference:
-// /// <reference path='../../../mssql/typings/vscode-mssql.d.ts'/>
-// TODO: remove this typings file (ported from ADS)
-/// <reference path='../../../../typings/vscode-mssql.d.ts'/>
+/// <reference path='../../../data-workspace/src/dataworkspace.d.ts'/>
+/// <reference path='../../../mssql/typings/vscode-mssql.d.ts'/>
 /// <reference types='@types/node'/>

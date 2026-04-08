@@ -186,6 +186,7 @@ export interface ILogger {
     decreaseIndent(): void;
     append(message?: string): void;
     appendLine(message?: string): void;
+    info(msg: any, ...vals: any[]): void;
 }
 
 export interface IAzureSignInQuickPickItem extends vscode.QuickPickItem {

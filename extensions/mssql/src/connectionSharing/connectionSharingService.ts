@@ -526,6 +526,8 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             `Executing script operation "${operation}" for connection URI: ${connectionUri}`,
         );
         this.validateConnection(connectionUri);
+        await this._connectionManager.refreshAzureAccountToken(connectionUri);
+
         const serverInfo = this.getServerInfo(connectionUri); // Ensure connection is valid
         const scriptingParams = this._scriptingService.createScriptingRequestParams(
             serverInfo,

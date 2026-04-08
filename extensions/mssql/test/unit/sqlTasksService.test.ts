@@ -16,8 +16,9 @@ import {
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
+import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
+import { stubLoggerGetter } from "./utils";
 
 suite("SqlTasksService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,11 +47,7 @@ suite("SqlTasksService Tests", () => {
         // Stub telemetry
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
 
-        // Stub logger - use defineProperty since logger is a getter
-        loggerErrorStub = sandbox.stub();
-        Object.defineProperty(sqlToolsClientStub, "logger", {
-            get: () => ({ error: loggerErrorStub }),
-        });
+        loggerErrorStub = stubLoggerGetter(sandbox, sqlToolsClientStub).error;
 
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,

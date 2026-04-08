@@ -49,7 +49,11 @@ export default class DownloadHelper {
                 {
                     onHeaders: (headers) => {
                         progress.packageSize = this.getPackageSize(headers["content-length"]);
-                        logger.append(`(${Math.ceil(progress.packageSize / 1024)} KB) `);
+                        if (progress.packageSize > 0) {
+                            logger.verbose(
+                                `Package size: ${this.formatBytes(progress.packageSize)} (${Math.ceil(progress.packageSize / 1024)} KB)`,
+                            );
+                        }
                     },
                     onData: (data) => {
                         this.handleDataReceivedEvent(progress, data, logger, statusView);
@@ -58,7 +62,7 @@ export default class DownloadHelper {
             );
 
             if (result.status !== 200) {
-                logger.appendLine(`failed (error code '${result.status}')`);
+                logger.error(`failed (error code '${result.status}')`);
                 throw new PackageError(result.status.toString(), pkg);
             }
         } catch (error: unknown) {
@@ -93,20 +97,49 @@ export default class DownloadHelper {
 
         // Update status bar item with percentage
         if (progress.packageSize > 0) {
-            let newPercentage = Math.ceil(100 * (progress.downloadedBytes / progress.packageSize));
+            let newPercentage = Math.min(
+                100,
+                Math.ceil(100 * (progress.downloadedBytes / progress.packageSize)),
+            );
             if (newPercentage !== progress.downloadPercentage) {
                 statusView.updateServiceDownloadingProgress(newPercentage);
                 progress.downloadPercentage = newPercentage;
             }
 
-            // Update dots after package name in output console
+            // Emit a readable progress update every 5%.
             let newDots = Math.ceil(progress.downloadPercentage / 5);
             if (newDots > progress.dots) {
-                logger.append(".".repeat(newDots - progress.dots));
+                logger.info(this.formatProgressMessage(progress));
                 progress.dots = newDots;
             }
         }
         return;
+    }
+
+    private formatProgressMessage(progress: IDownloadProgress): string {
+        const totalSteps = 20;
+        const completedSteps = Math.min(totalSteps, Math.ceil(progress.downloadPercentage / 5));
+        const progressBar = `${"#".repeat(completedSteps)}${"-".repeat(totalSteps - completedSteps)}`;
+        const downloadedDisplay = this.formatBytes(
+            Math.min(progress.downloadedBytes, progress.packageSize),
+        );
+        const totalDisplay = this.formatBytes(progress.packageSize);
+
+        return `Download progress [${progressBar}] ${progress.downloadPercentage}% (${downloadedDisplay} / ${totalDisplay})`;
+    }
+
+    private formatBytes(bytes: number): string {
+        if (bytes < 1024) {
+            return `${bytes} B`;
+        }
+
+        const kilobytes = bytes / 1024;
+        if (kilobytes < 1024) {
+            return `${kilobytes.toFixed(1)} KB`;
+        }
+
+        const megabytes = kilobytes / 1024;
+        return `${megabytes.toFixed(1)} MB`;
     }
 
     private getPackageSize(contentLengthHeader: unknown): number {

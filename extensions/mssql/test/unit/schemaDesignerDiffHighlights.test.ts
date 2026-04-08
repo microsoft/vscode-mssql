@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import * as sd from "../../src/sharedInterfaces/schemaDesigner";
-import { calculateSchemaDiff } from "../../src/reactviews/pages/SchemaDesigner/diff/diffUtils";
+import { calculateSchemaDiff } from "../../src/webviews/pages/SchemaDesigner/diff/diffUtils";
 import {
     getDeletedColumnIdsByTable,
     getDeletedTableIds,
@@ -16,7 +16,7 @@ import {
     getModifiedColumnHighlights,
     getModifiedTableHighlights,
     getModifiedForeignKeyIds,
-} from "../../src/reactviews/pages/SchemaDesigner/diff/diffHighlights";
+} from "../../src/webviews/pages/SchemaDesigner/diff/diffHighlights";
 
 function makeColumn(id: string, name: string): sd.SchemaDesigner.Column {
     return {

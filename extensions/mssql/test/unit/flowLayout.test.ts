@@ -9,7 +9,7 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import {
     DEFAULT_FLOW_LAYOUT_OPTIONS,
     layoutFlowComponents,
-} from "../../src/reactviews/pages/SchemaDesigner/model";
+} from "../../src/webviews/pages/SchemaDesigner/model";
 
 suite("SchemaDesigner flow layout", () => {
     function createColumn(id: string, name: string): SchemaDesigner.Column {

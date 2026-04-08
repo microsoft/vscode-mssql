@@ -4,14 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const { promisify } = require("util");
-const del = require("del");
 const logger = require("../../../scripts/terminal-logger");
+const path = require("path");
 
 const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
 const isOffline = args.includes("--offline");
+const skipServiceInstall = args.includes("--skip-service-install");
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 // Platform configurations for offline packaging
 const OFFLINE_PLATFORMS = [
@@ -23,15 +25,51 @@ const OFFLINE_PLATFORMS = [
     { rid: "linux-arm64", runtime: "Linux_ARM64" },
 ];
 
+const RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+const PACKAGE_JSON_PATH = path.resolve(__dirname, "..", "package.json");
+
+function readPackageJson() {
+    return JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8"));
+}
+
+function writePackageJson(packageJson) {
+    fs.writeFileSync(PACKAGE_JSON_PATH, `${JSON.stringify(packageJson, null, 4)}\n`, "utf8");
+}
+
 /**
- * Install SQL Tools Service for a specific platform
+ * For offline packaging, we need to remove dependency on the runtime extension since we are including the self-contained STS.
+ * This is done as users might not have access to the marketplace to download the runtime extension when they install the vsix,
+ * so we need to make sure the extension can work without it. We will restore the original package.json after packaging is done.
  */
-async function installSqlToolsService(platform = null) {
+async function withOfflinePackageManifest(action) {
+    const originalPackageJson = fs.readFileSync(PACKAGE_JSON_PATH, "utf8");
+    const packageJson = JSON.parse(originalPackageJson);
+
+    packageJson.extensionDependencies = (packageJson.extensionDependencies || []).filter(
+        (extensionId) => extensionId !== RUNTIME_EXTENSION_ID,
+    );
+    packageJson.extensionPack = (packageJson.extensionPack || []).filter(
+        (extensionId) => extensionId !== RUNTIME_EXTENSION_ID,
+    );
+
+    writePackageJson(packageJson);
+
+    try {
+        return await action();
+    } finally {
+        fs.writeFileSync(PACKAGE_JSON_PATH, originalPackageJson, "utf8");
+    }
+}
+
+/**
+ * Install SQL Tools Service for a specific platform after cleaning the install folder.
+ */
+async function installSqlToolsService(platform) {
     logger.step("Installing SQL Tools Service...");
 
     try {
         const install = require("../dist/serviceInstallerUtil");
-        await install.installService(platform);
+        await install.cleanAndInstallService(platform);
         logger.success("SQL Tools Service installed");
     } catch (error) {
         logger.error(`Failed to install SQL Tools Service: ${error.message}`);
@@ -50,7 +88,8 @@ async function cleanServiceInstallFolder() {
         const serviceInstallFolder = install.getServiceInstallDirectoryRoot();
 
         logger.debug(`Deleting: ${serviceInstallFolder}`);
-        await del(serviceInstallFolder + "/*");
+        await fs.promises.rm(serviceInstallFolder, { recursive: true, force: true });
+        await fs.promises.mkdir(serviceInstallFolder, { recursive: true });
         logger.success("Service install folder cleaned");
     } catch (error) {
         logger.error(`Failed to clean service folder: ${error.message}`);
@@ -65,16 +104,15 @@ function packageExtension(packageName = null) {
     logger.step("Packaging extension with vsce...");
 
     try {
-        const vsceArgs = ["yarn", "vsce", "package"];
+        const vsceArgs = ["exec", "--", "vsce", "package", "--no-dependencies"];
 
         if (packageName) {
             vsceArgs.push("-o", packageName);
         }
 
-        const command = vsceArgs.join(" ");
-        logger.debug(`Running: ${command}`);
+        logger.debug(`Running: ${npmCommand} ${vsceArgs.join(" ")}`);
 
-        execSync(command, { stdio: "inherit" });
+        execFileSync(npmCommand, vsceArgs, { stdio: "inherit" });
         logger.success(`Extension packaged${packageName ? `: ${packageName}` : ""}`);
     } catch (error) {
         logger.error(`Packaging failed: ${error.message}`);
@@ -85,19 +123,23 @@ function packageExtension(packageName = null) {
 /**
  * Package extension for online distribution
  */
-async function packageOnline() {
+async function packageOnline(options = {}) {
+    const { skipServiceInstall = false } = options;
+
     logger.header("Package extension (Online Mode)");
-    logger.info("Creating extension package for online distribution");
-    logger.newline();
-
+    logger.info("Creating extension package with portable SQL Tools Service");
     try {
-        // Clean service folder first
-        await cleanServiceInstallFolder();
-
+        if (skipServiceInstall) {
+            logger.info(
+                "Skipping SQL Tools Service install and using existing service files in the install folder",
+            );
+        } else {
+            // Download portable (framework-dependent) SQL Tools Service
+            const platform = require("../out/src/models/platform");
+            await installSqlToolsService(platform.Runtime.Portable);
+        }
         // Package the extension
         packageExtension();
-
-        logger.newline();
         logger.success("Online packaging completed successfully!");
     } catch (error) {
         logger.error(`Online packaging failed: ${error.message}`);
@@ -117,21 +159,14 @@ async function packageOfflinePlatform(platformConfig, packageName) {
         // Get the runtime constant
         const platform = require("../out/src/models/platform");
         const runtimeValue = platform.Runtime[runtime];
-
         if (!runtimeValue) {
             throw new Error(`Unknown runtime: ${runtime}`);
         }
-
-        // Install service for this platform
+        // Install native (self-contained) service for this platform
         await installSqlToolsService(runtimeValue);
-
         // Package with platform-specific name
         const platformPackageName = `${packageName}-${rid}.vsix`;
         packageExtension(platformPackageName);
-
-        // Clean up for next platform
-        await cleanServiceInstallFolder();
-
         logger.success(`${rid} package created`);
     } catch (error) {
         logger.error(`Failed to package ${rid}: ${error.message}`);
@@ -147,29 +182,32 @@ async function packageOffline() {
 
     try {
         // Read package.json for name and version
-        const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+        const packageJson = readPackageJson();
         const packageName = `${packageJson.name}-${packageJson.version}`;
 
         logger.info(`Creating offline packages for: ${packageJson.name} v${packageJson.version}`);
         logger.info(`Total platforms: ${OFFLINE_PLATFORMS.length}`);
-        logger.newline();
 
-        // Clean service folder initially
-        await cleanServiceInstallFolder();
+        await withOfflinePackageManifest(async () => {
+            // Clean service folder initially
+            await cleanServiceInstallFolder();
 
-        // Package for each platform sequentially
-        for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
-            const platform = OFFLINE_PLATFORMS[i];
-            logger.info(`[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platform.rid}...`);
+            // Package for each platform sequentially with native (self-contained) service
+            for (let i = 0; i < OFFLINE_PLATFORMS.length; i++) {
+                const platformConfig = OFFLINE_PLATFORMS[i];
+                logger.info(
+                    `[${i + 1}/${OFFLINE_PLATFORMS.length}] Processing ${platformConfig.rid}...`,
+                );
 
-            try {
-                await packageOfflinePlatform(platform, packageName);
-            } catch (error) {
-                logger.warning(`Skipping ${platform.rid}: ${error.message}`);
+                try {
+                    await packageOfflinePlatform(platformConfig, packageName);
+                } catch (error) {
+                    logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
+                }
+
+                logger.newline();
             }
-
-            logger.newline();
-        }
+        });
 
         logger.success("Offline packaging completed for all platforms!");
     } catch (error) {
@@ -189,18 +227,20 @@ Usage:
   node package-extension.js [mode]
 
 Modes:
-  --online     Package for online distribution (downloads service at runtime)
-  --offline    Package for offline distribution (includes service for all platforms). Defaults to online mode if no argument is provided.
+  --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
+  --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
+    --skip-service-install  Online mode only. Reuse existing SQL Tools Service files and skip clean/install.
   --help       Show this help message
 
 Examples:
   node package-extension.js [--online]  # Create online package. Default behavior if none specified
   node package-extension.js --online    # Create online package
+    node package-extension.js --online --skip-service-install  # Package online using existing service files
   node package-extension.js --offline   # Create offline packages for all platforms
 
 Requirements:
-  - vsce must be installed globally: npm install -g vsce
-  - Extension must be built first: yarn build
+    - Install workspace dependencies from the repository root: npm ci
+    - Extension must be built first: npm run build -- --target mssql
 `);
 }
 
@@ -225,9 +265,14 @@ async function main() {
         process.exit(1);
     }
 
+    if (skipServiceInstall && isOffline) {
+        logger.error("--skip-service-install can only be used with --online mode");
+        process.exit(1);
+    }
+
     try {
         if (isOnline) {
-            await packageOnline();
+            await packageOnline({ skipServiceInstall });
         } else if (isOffline) {
             await packageOffline();
         }

@@ -16,41 +16,21 @@ import {
     SchemaCompareOpenScmpResult,
 } from "vscode-mssql";
 import { CoreRPCs } from "./webview";
+import {
+    ExtractTarget,
+    SchemaCompareEndpointType,
+    SchemaDifferenceType,
+    SchemaUpdateAction,
+    TaskExecutionMode,
+} from "../enums";
 
-export const enum SchemaUpdateAction {
-    Delete = 0,
-    Change = 1,
-    Add = 2,
-}
-
-export const enum SchemaCompareEndpointType {
-    Database = 0,
-    Dacpac = 1,
-    Project = 2,
-    // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
-    // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
-}
-
-// If this enum changes, then please update the ExtractTarget enum in vscode-mssql.d.ts.
-export const enum ExtractTarget {
-    dacpac = 0,
-    file = 1,
-    flat = 2,
-    objectType = 3,
-    schema = 4,
-    schemaObjectType = 5,
-}
-
-export const enum TaskExecutionMode {
-    execute = 0,
-    script = 1,
-    executeAndScript = 2,
-}
-
-export const enum SchemaDifferenceType {
-    Object = 0,
-    Property = 1,
-}
+export {
+    ExtractTarget,
+    SchemaCompareEndpointType,
+    SchemaDifferenceType,
+    SchemaUpdateAction,
+    TaskExecutionMode,
+};
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;

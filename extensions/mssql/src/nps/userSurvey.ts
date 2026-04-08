@@ -11,8 +11,9 @@ import * as os from "os";
 import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterfaces/userSurvey";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { previewService } from "../previews/previewService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
@@ -276,17 +277,16 @@ export function sendSurveyTelemetry(
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
-            experimentalFeaturesEnabled: vscode.workspace
-                .getConfiguration()
-                .get(constants.configEnableExperimentalFeatures),
+            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             surveySource: surveySource,
             ...stringAnswers,
+            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         },
         numericalAnswers,
     );
 }
 
-export class UserSurveyWebviewController extends ReactWebviewPanelController<
+export class UserSurveyWebviewController extends WebviewPanelController<
     UserSurveyState,
     UserSurveyReducers
 > {

@@ -24,6 +24,7 @@ export interface ColumnInfo {
  * FlatFilePreviewRequest
  */
 export interface ProseDiscoveryParams {
+    operationId: string;
     filePath: string;
     tableName: string;
     schemaName?: string;
@@ -49,6 +50,7 @@ export namespace ProseDiscoveryRequest {
  * ChangeColumnSettingsRequest
  */
 export interface ChangeColumnSettingsParams {
+    operationId?: string;
     index: number;
     newName?: string;
     newDataType?: string;
@@ -73,13 +75,10 @@ export namespace ChangeColumnSettingsRequest {
  * InsertDataRequest
  */
 export interface InsertDataParams {
-    connectionString: string;
+    operationId: string;
+    ownerUri: string;
+    databaseName?: string;
     batchSize: number;
-    /**
-     * For azure MFA connections we need to send the account token to establish a connection
-     * from flatFile service without doing Oauth.
-     */
-    azureAccessToken: string | undefined;
 }
 
 export namespace InsertDataRequest {
@@ -92,16 +91,16 @@ export interface InsertDataResponse {
     result: Result;
 }
 
-export interface FlatFileProvider {
-    providerId?: string;
-
-    sendProseDiscoveryRequest(params: ProseDiscoveryParams): Thenable<ProseDiscoveryResponse>;
-    sendChangeColumnSettingsRequest(
-        params: ChangeColumnSettingsParams,
-    ): Thenable<ChangeColumnSettingsResponse>;
-    sendInsertDataRequest(params: InsertDataParams): Thenable<InsertDataResponse>;
+export interface DisposeSessionParams {
+    operationId: string;
 }
 
-export enum FlatFileApiType {
-    FlatFileProvider = "FlatFileProvider",
+export interface DisposeSessionResponse {
+    result: Result;
+}
+
+export namespace DisposeSessionRequest {
+    export const type = new RequestType<DisposeSessionParams, DisposeSessionResponse, void, void>(
+        "flatfile/disposeSession",
+    );
 }

@@ -1,7 +1,7 @@
 # Build outputs
 out
 dist
-packages
+BuildDirectory
 extensions/sql-database-projects/BuildDirectory/*
 
 # Dependencies
@@ -55,3 +55,4 @@ src/constants/localizedConstants.ts
 .nyc_output
 *.tsbuildinfo
 samples/connection-sharing-sample/dist
+.claude/

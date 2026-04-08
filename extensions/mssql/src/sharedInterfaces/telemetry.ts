@@ -47,6 +47,7 @@ export enum TelemetryViews {
     Profiler = "Profiler",
     Restore = "Restore",
     SqlNotebooks = "SqlNotebooks",
+    ServiceClient = "ServiceClient",
 }
 
 export enum TelemetryActions {
@@ -234,6 +235,8 @@ export enum TelemetryActions {
     RefreshResults = "RefreshResults",
     Search = "Search",
     ServiceStarted = "ServiceStarted",
+    ServiceStartFailed = "ServiceStartFailed",
+    AcquireDotnetRuntimeFailed = "AcquireDotnetRuntimeFailed",
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
