@@ -1457,23 +1457,27 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this._queryCancelled = false;
             this.updateState();
 
+            // Dispose the current edit session — may already be disposed after a cancel
             try {
-                // Dispose the current edit session
                 await this._tableExplorerService.dispose(state.ownerUri);
+            } catch {
+                // Session may already be disposed (e.g., after cancel) — safe to ignore
+            }
 
-                // Clear pending changes immediately after dispose — the backend session
-                // is gone so these are stale regardless of whether re-initialize succeeds
-                state.newRows = [];
-                state.deletedRows = [];
-                state.failedCells = [];
-                state.originalCellValues?.clear();
-                state.updateScript = undefined;
-                this.showRestorePromptAfterClose = false;
+            // Clear pending changes immediately after dispose — the backend session
+            // is gone so these are stale regardless of whether re-initialize succeeds
+            state.newRows = [];
+            state.deletedRows = [];
+            state.failedCells = [];
+            state.originalCellValues?.clear();
+            state.updateScript = undefined;
+            this.showRestorePromptAfterClose = false;
 
-                const objectName = state.tableName;
-                const schemaName = state.schemaName;
-                const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
+            const objectName = state.tableName;
+            const schemaName = state.schemaName;
+            const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
+            try {
                 // Re-initialize with the custom query
                 await this._tableExplorerService.initialize(
                     state.ownerUri,
@@ -1502,10 +1506,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 // Attempt to restore original session
                 try {
-                    const objectName = state.tableName;
-                    const schemaName = state.schemaName;
-                    const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
-
                     await this._tableExplorerService.initialize(
                         state.ownerUri,
                         objectName,
