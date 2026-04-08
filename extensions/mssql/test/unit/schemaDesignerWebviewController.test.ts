@@ -25,6 +25,7 @@ import {
     stubWebviewPanel,
     stubWebviewConnectionRpc,
 } from "./utils";
+import { mockManagedInstanceList } from "./azureHelperStubs";
 
 chai.use(sinonChai);
 
@@ -233,6 +234,9 @@ suite("SchemaDesignerWebviewController tests", () => {
                 notificationHandlers.has(
                     SchemaDesigner.CloseSchemaDesignerNotification.type.method,
                 ),
+            ).to.be.true;
+            expect(
+                notificationHandlers.has(SchemaDesigner.UpdateFilterTablesNotification.type.method),
             ).to.be.true;
         });
     });
@@ -487,6 +491,17 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const handler = notificationHandlers.get(
                 SchemaDesigner.ExportToFileNotification.type.method,
+            );
+            expect(handler).to.be.a("function");
+        });
+    });
+
+    suite("UpdateFilterTablesNotification handler", () => {
+        test("should register UpdateFilterTablesNotification handler", () => {
+            createController();
+
+            const handler = notificationHandlers.get(
+                SchemaDesigner.UpdateFilterTablesNotification.type.method,
             );
             expect(handler).to.be.a("function");
         });

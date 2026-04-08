@@ -166,28 +166,27 @@ export const DabEntityTable = () => {
 
     const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
-    const initialEnabledEntities = useRef<string[]>(
-        dabConfig?.entities
-            .filter((e) => e.isEnabled)
-            .map((e) => `${e.schemaName}.${e.tableName}`) ?? [],
+    const initialEnabledEntities = useRef<Set<string>>(
+        new Set(
+            dabConfig?.entities
+                .filter((e) => e.isEnabled)
+                .map((e) => `${e.schemaName}.${e.tableName}`) ?? [],
+        ),
     );
 
     useEffect(() => {
         if (!dabConfig) return;
 
-        const tablesToCheck =
+        const tablesToCheck: Set<string> =
             currentFilteredTables.length > 0
-                ? currentFilteredTables
+                ? new Set(currentFilteredTables)
                 : initialEnabledEntities.current;
 
         dabConfig.entities.forEach((entity) => {
             const fullName = `${entity.schemaName}.${entity.tableName}`;
-            const shouldCheck = tablesToCheck.includes(fullName);
+            const shouldCheck = tablesToCheck.has(fullName);
 
-            if (
-                initialEnabledEntities.current.includes(fullName) &&
-                shouldCheck !== entity.isEnabled
-            ) {
+            if (initialEnabledEntities.current.has(fullName) && shouldCheck !== entity.isEnabled) {
                 toggleDabEntity(entity.id, shouldCheck);
             }
         });
@@ -530,7 +529,6 @@ export const DabEntityTable = () => {
             renderActionHeaderCell,
             renderActionCell,
             setSettingsEntityId,
-            currentFilteredTables,
         ],
     );
 
