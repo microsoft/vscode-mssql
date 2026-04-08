@@ -171,6 +171,14 @@ export interface EditDisposeResult {}
 
 //#endregion
 
+//#region edit/cancel
+
+export interface EditCancelParams extends IEditSessionOperationParams {}
+
+export interface EditCancelResult {}
+
+//#endregion
+
 //#region edit/script
 
 export interface EditScriptParams extends IEditSessionOperationParams {}
@@ -218,6 +226,7 @@ export interface TableExplorerContextProps {
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
     showTableQuery: () => void;
     runTableQuery: (queryString: string) => void;
+    cancelTableQuery: () => void;
     modifyTable: () => void;
     viewTableDiagram: () => void;
 }
@@ -238,6 +247,7 @@ export interface TableExplorerReducers {
     saveResults: { format: SupportedSaveFormats; data: ExportData };
     showTableQuery: {};
     runTableQuery: { queryString: string };
+    cancelTableQuery: {};
     modifyTable: {};
     viewTableDiagram: {};
 }
