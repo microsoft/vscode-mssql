@@ -13,7 +13,7 @@ import {
     DesignerDefinitionTabs,
 } from "../../common/definitionPanel";
 import { Button, makeStyles, shorthands, Spinner } from "@fluentui/react-components";
-import { PlayRegular } from "@fluentui/react-icons";
+import { PlayRegular, StopRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -231,14 +231,26 @@ export const TableExplorerPage: React.FC = () => {
                                             </div>
                                         ),
                                         headerActions: (
-                                            <Button
-                                                size="small"
-                                                appearance="primary"
-                                                icon={<PlayRegular />}
-                                                onClick={() => context.runTableQuery(editableQuery)}
-                                                disabled={!editableQuery.trim() || isLoading}>
-                                                {loc.tableExplorer.runQuery}
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    size="small"
+                                                    appearance="primary"
+                                                    icon={<PlayRegular />}
+                                                    onClick={() =>
+                                                        context.runTableQuery(editableQuery)
+                                                    }
+                                                    disabled={!editableQuery.trim() || isLoading}>
+                                                    {loc.tableExplorer.runQuery}
+                                                </Button>
+                                                <Button
+                                                    size="small"
+                                                    appearance="subtle"
+                                                    icon={<StopRegular />}
+                                                    onClick={() => context.cancelTableQuery()}
+                                                    disabled={!isLoading}>
+                                                    {loc.tableExplorer.cancelQuery}
+                                                </Button>
+                                            </>
                                         ),
                                     } satisfies DefinitionPanelCustomTab<"tableQuery">,
                                 ]}

@@ -1952,6 +1952,7 @@ export class LocConstants {
             scriptChanges: l10n.t("Script Changes"),
             tableQuery: l10n.t("Table Query"),
             runQuery: l10n.t("Run"),
+            cancelQuery: l10n.t("Cancel"),
         };
     }
 

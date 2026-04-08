@@ -51,6 +51,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
+    private _queryCancelled = false;
     private _expectedOwnerUri: string = "";
     private _documentVersions = new Map<string, number>();
     private _documentEndPosition = new Map<string, { line: number; character: number }>();
@@ -262,6 +263,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 self.updateState();
 
                 void self.loadResultSet();
+            } else if (self._queryCancelled) {
+                // Query was cancelled by the user - treat as "no results"
+                self._queryCancelled = false;
+                self.state.loadStatus = ApiStatus.Loaded;
+                self.state.resultSet = undefined;
+                self._preserveTableQuery = false;
+                self.updateState();
             }
         };
     }
@@ -1446,6 +1454,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             // guaranteeing a full grid re-initialization (Scenario 1) rather than an incremental
             // update (Scenario 3) when the new result set arrives via loadResultSet().
             state.resultSet = undefined;
+            this._queryCancelled = false;
             this.updateState();
 
             try {
@@ -1527,6 +1536,36 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRunTableQuery(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+
+        this.registerReducer("cancelTableQuery", async (state, _payload) => {
+            this.logger.verbose(`Cancelling table query - OperationId: ${this.operationId}`);
+
+            if (state.loadStatus !== ApiStatus.Loading || !state.ownerUri) {
+                return state;
+            }
+
+            this._queryCancelled = true;
+
+            try {
+                await this._tableExplorerService.cancelQuery(state.ownerUri);
+            } catch (error) {
+                this.logger.error(
+                    `Error cancelling query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+            }
+
+            // Dispose the partially-initialized session so STS cleans up
+            try {
+                await this._tableExplorerService.dispose(state.ownerUri);
+            } catch (error) {
+                // Session may not exist yet if still initializing
+                this.logger.verbose(
+                    `Dispose after cancel (may be expected): ${getErrorMessage(error)}`,
                 );
             }
 
