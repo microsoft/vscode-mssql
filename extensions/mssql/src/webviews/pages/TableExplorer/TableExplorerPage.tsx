@@ -143,135 +143,133 @@ export const TableExplorerPage: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            {isLoading && !resultSet ? (
-                <div className={classes.loadingContainer}>
-                    <Spinner label={loc.tableExplorer.loadingTableData} labelPosition="below" />
-                </div>
-            ) : (
-                <PanelGroup direction="vertical" className={classes.panelGroup}>
-                    <Panel defaultSize={75}>
-                        <div className={classes.contentArea}>
-                            <TableExplorerToolbar
-                                onSaveComplete={handleSaveComplete}
-                                cellChangeCount={cellChangeCount}
-                                deletionCount={deletionCount}
-                                currentRowCount={currentRowCount}
-                                onLoadSubset={context?.loadSubset}
-                            />
-                            {resultSet ? (
-                                <div className={classes.dataGridContainer}>
-                                    {isLoading && (
-                                        <div className={classes.loadingOverlay}>
-                                            <Spinner
-                                                label={loc.tableExplorer.loadingTableData}
-                                                labelPosition="below"
+            <PanelGroup direction="vertical" className={classes.panelGroup}>
+                <Panel defaultSize={75}>
+                    <div className={classes.contentArea}>
+                        <TableExplorerToolbar
+                            onSaveComplete={handleSaveComplete}
+                            cellChangeCount={cellChangeCount}
+                            deletionCount={deletionCount}
+                            currentRowCount={currentRowCount}
+                            onLoadSubset={context?.loadSubset}
+                        />
+                        {resultSet ? (
+                            <div className={classes.dataGridContainer}>
+                                {isLoading && (
+                                    <div className={classes.loadingOverlay}>
+                                        <Spinner
+                                            label={loc.tableExplorer.loadingTableData}
+                                            labelPosition="below"
+                                        />
+                                    </div>
+                                )}
+                                <TableDataGrid
+                                    ref={gridRef}
+                                    resultSet={resultSet}
+                                    themeKind={themeKind}
+                                    currentRowCount={currentRowCount}
+                                    failedCells={failedCells}
+                                    deletedRows={deletedRows}
+                                    tableQuery={tableQuery}
+                                    onDeleteRow={context?.deleteRow}
+                                    onUpdateCell={context?.updateCell}
+                                    onRevertCell={context?.revertCell}
+                                    onRevertRow={context?.revertRow}
+                                    onLoadSubset={context?.loadSubset}
+                                    onCellChangeCountChanged={handleCellChangeCountChanged}
+                                    onDeletionCountChanged={handleDeletionCountChanged}
+                                    onSaveResults={context?.saveResults}
+                                    onModifyTable={context?.modifyTable}
+                                />
+                            </div>
+                        ) : isLoading ? (
+                            <div className={classes.loadingContainer}>
+                                <Spinner
+                                    label={loc.tableExplorer.loadingTableData}
+                                    labelPosition="below"
+                                />
+                            </div>
+                        ) : (
+                            <p>{loc.tableExplorer.noDataAvailable}</p>
+                        )}
+                    </div>
+                </Panel>
+                {showScriptPane && (
+                    <>
+                        <PanelResizeHandle className={classes.resizeHandle} />
+                        <DefinitionPanel<"tableQuery">
+                            scriptTab={{
+                                value: updateScript || `-- ${loc.tableExplorer.noPendingChanges}`,
+                                themeKind,
+                                language: "sql",
+                                label: loc.tableExplorer.scriptChanges,
+                                openInEditor: () => context.openScriptInEditor(),
+                                copyToClipboard: () => context.copyScriptToClipboard(),
+                            }}
+                            customTabs={[
+                                {
+                                    id: "tableQuery" as const,
+                                    label: loc.tableExplorer.tableQuery,
+                                    content: (
+                                        <div className={classes.editorPane}>
+                                            <VscodeEditor
+                                                height={"100%"}
+                                                width={"100%"}
+                                                language="sql"
+                                                themeKind={themeKind}
+                                                value={editableQuery}
+                                                options={{
+                                                    readOnly: false,
+                                                    fixedOverflowWidgets: true,
+                                                }}
+                                                onChange={(value) => {
+                                                    const text = value ?? "";
+                                                    setEditableQuery(text);
+                                                    onContentChange(text);
+                                                }}
+                                                beforeMount={beforeMount}
                                             />
                                         </div>
-                                    )}
-                                    <TableDataGrid
-                                        ref={gridRef}
-                                        resultSet={resultSet}
-                                        themeKind={themeKind}
-                                        currentRowCount={currentRowCount}
-                                        failedCells={failedCells}
-                                        deletedRows={deletedRows}
-                                        tableQuery={tableQuery}
-                                        onDeleteRow={context?.deleteRow}
-                                        onUpdateCell={context?.updateCell}
-                                        onRevertCell={context?.revertCell}
-                                        onRevertRow={context?.revertRow}
-                                        onLoadSubset={context?.loadSubset}
-                                        onCellChangeCountChanged={handleCellChangeCountChanged}
-                                        onDeletionCountChanged={handleDeletionCountChanged}
-                                        onSaveResults={context?.saveResults}
-                                        onModifyTable={context?.modifyTable}
-                                    />
-                                </div>
-                            ) : (
-                                <p>{loc.tableExplorer.noDataAvailable}</p>
-                            )}
-                        </div>
-                    </Panel>
-                    {showScriptPane && (
-                        <>
-                            <PanelResizeHandle className={classes.resizeHandle} />
-                            <DefinitionPanel<"tableQuery">
-                                scriptTab={{
-                                    value:
-                                        updateScript || `-- ${loc.tableExplorer.noPendingChanges}`,
-                                    themeKind,
-                                    language: "sql",
-                                    label: loc.tableExplorer.scriptChanges,
-                                    openInEditor: () => context.openScriptInEditor(),
-                                    copyToClipboard: () => context.copyScriptToClipboard(),
-                                }}
-                                customTabs={[
-                                    {
-                                        id: "tableQuery" as const,
-                                        label: loc.tableExplorer.tableQuery,
-                                        content: (
-                                            <div className={classes.editorPane}>
-                                                <VscodeEditor
-                                                    height={"100%"}
-                                                    width={"100%"}
-                                                    language="sql"
-                                                    themeKind={themeKind}
-                                                    value={editableQuery}
-                                                    options={{
-                                                        readOnly: false,
-                                                        fixedOverflowWidgets: true,
-                                                    }}
-                                                    onChange={(value) => {
-                                                        const text = value ?? "";
-                                                        setEditableQuery(text);
-                                                        onContentChange(text);
-                                                    }}
-                                                    beforeMount={beforeMount}
-                                                />
-                                            </div>
-                                        ),
-                                        headerActions: (
-                                            <>
-                                                <Button
-                                                    size="small"
-                                                    appearance="primary"
-                                                    icon={<PlayRegular />}
-                                                    onClick={() =>
-                                                        context.runTableQuery(editableQuery)
-                                                    }
-                                                    disabled={!editableQuery.trim() || isLoading}>
-                                                    {loc.tableExplorer.runQuery}
-                                                </Button>
-                                                <Button
-                                                    size="small"
-                                                    appearance="subtle"
-                                                    icon={<StopRegular />}
-                                                    onClick={() => context.cancelTableQuery()}
-                                                    disabled={!isLoading}>
-                                                    {loc.tableExplorer.cancelQuery}
-                                                </Button>
-                                            </>
-                                        ),
-                                    } satisfies DefinitionPanelCustomTab<"tableQuery">,
-                                ]}
-                                activeTab={
-                                    sqlPaneMode === SqlPaneMode.TableQuery
-                                        ? "tableQuery"
-                                        : DesignerDefinitionTabs.Script
+                                    ),
+                                    headerActions: (
+                                        <>
+                                            <Button
+                                                size="small"
+                                                appearance="primary"
+                                                icon={<PlayRegular />}
+                                                onClick={() => context.runTableQuery(editableQuery)}
+                                                disabled={!editableQuery.trim() || isLoading}>
+                                                {loc.tableExplorer.runQuery}
+                                            </Button>
+                                            <Button
+                                                size="small"
+                                                appearance="subtle"
+                                                icon={<StopRegular />}
+                                                onClick={() => context.cancelTableQuery()}
+                                                disabled={!isLoading}>
+                                                {loc.tableExplorer.cancelQuery}
+                                            </Button>
+                                        </>
+                                    ),
+                                } satisfies DefinitionPanelCustomTab<"tableQuery">,
+                            ]}
+                            activeTab={
+                                sqlPaneMode === SqlPaneMode.TableQuery
+                                    ? "tableQuery"
+                                    : DesignerDefinitionTabs.Script
+                            }
+                            setActiveTab={(tab) => {
+                                if (tab === "tableQuery") {
+                                    context.showTableQuery();
+                                } else {
+                                    context.generateScript();
                                 }
-                                setActiveTab={(tab) => {
-                                    if (tab === "tableQuery") {
-                                        context.showTableQuery();
-                                    } else {
-                                        context.generateScript();
-                                    }
-                                }}
-                                onClose={() => context.toggleScriptPane()}
-                            />
-                        </>
-                    )}
-                </PanelGroup>
-            )}
+                            }}
+                            onClose={() => context.toggleScriptPane()}
+                        />
+                    </>
+                )}
+            </PanelGroup>
         </div>
     );
 };
