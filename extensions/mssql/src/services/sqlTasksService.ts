@@ -216,8 +216,8 @@ export class SqlTasksService {
     }
 
     /**
-     * Handles a new task being created. This will start up a progress notification toast for the task and set up
-     * callbacks to update the status of that task as it runs.
+     * Handles a new task being created by registering it in the background tasks view and setting up callbacks to
+     * update its status as it runs.
      * @param taskInfo The info for the new task that was created
      */
     private handleTaskCreatedNotification(taskInfo: TaskInfo): void {
