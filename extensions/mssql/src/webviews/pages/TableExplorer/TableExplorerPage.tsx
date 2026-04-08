@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
@@ -109,6 +109,64 @@ export const TableExplorerPage: React.FC = () => {
     const isLoading = loadStatus === ApiStatus.Loading;
 
     const { beforeMount, onContentChange } = useMonacoSqlIntellisense(ownerUri, extensionRpc);
+
+    const handleEditorMount = useCallback(
+        (
+            editor: import("monaco-editor").editor.IStandaloneCodeEditor,
+            monaco: typeof import("monaco-editor"),
+        ) => {
+            // Register clipboard keybindings so copy/cut/paste work in VS Code webviews
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
+                const selection = editor.getSelection();
+                const model = editor.getModel();
+                if (selection && model) {
+                    const text = selection.isEmpty()
+                        ? model.getLineContent(selection.startLineNumber) + model.getEOL()
+                        : model.getValueInRange(selection);
+                    void navigator.clipboard.writeText(text);
+                }
+            });
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
+                const selection = editor.getSelection();
+                const model = editor.getModel();
+                if (selection && model) {
+                    let range: import("monaco-editor").IRange;
+                    let text: string;
+                    if (selection.isEmpty()) {
+                        const lineCount = model.getLineCount();
+                        text = model.getLineContent(selection.startLineNumber) + model.getEOL();
+                        range =
+                            selection.startLineNumber < lineCount
+                                ? {
+                                      startLineNumber: selection.startLineNumber,
+                                      startColumn: 1,
+                                      endLineNumber: selection.startLineNumber + 1,
+                                      endColumn: 1,
+                                  }
+                                : {
+                                      startLineNumber: selection.startLineNumber,
+                                      startColumn: 1,
+                                      endLineNumber: selection.startLineNumber,
+                                      endColumn: model.getLineMaxColumn(selection.startLineNumber),
+                                  };
+                    } else {
+                        text = model.getValueInRange(selection);
+                        range = selection;
+                    }
+                    void navigator.clipboard.writeText(text);
+                    editor.executeEdits("cut", [{ range, text: "" }]);
+                }
+            });
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
+                void navigator.clipboard.readText().then((text) => {
+                    editor.trigger("keyboard", "type", { text });
+                });
+            });
+        },
+        [],
+    );
 
     const [editableQuery, setEditableQuery] = useState("");
 
@@ -227,6 +285,7 @@ export const TableExplorerPage: React.FC = () => {
                                                     setEditableQuery(text);
                                                     onContentChange(text);
                                                 }}
+                                                onMount={handleEditorMount}
                                                 beforeMount={beforeMount}
                                             />
                                         </div>
