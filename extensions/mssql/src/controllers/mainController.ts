@@ -121,6 +121,7 @@ import { AzureBlobService } from "../services/azureBlobService";
 import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
 import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
+import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvider";
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
@@ -140,6 +141,7 @@ export default class MainController implements vscode.Disposable {
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
+    private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
@@ -2266,6 +2268,9 @@ export default class MainController implements vscode.Disposable {
     private initializeBackgroundTasks(): void {
         this._backgroundTasksProvider = new BackgroundTasksProvider();
         this.backgroundTasksService = this._backgroundTasksProvider.backgroundTasksService;
+        this._backgroundTaskLogContentProvider = new BackgroundTaskLogContentProvider(
+            this.backgroundTasksService,
+        );
 
         const treeView = vscode.window.createTreeView(Constants.backgroundTasks, {
             treeDataProvider: this._backgroundTasksProvider,
@@ -2273,6 +2278,13 @@ export default class MainController implements vscode.Disposable {
 
         this._backgroundTasksProvider.treeView = treeView;
 
+        this._context.subscriptions.push(this._backgroundTaskLogContentProvider);
+        this._context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider(
+                Constants.backgroundTaskLogUriScheme,
+                this._backgroundTaskLogContentProvider,
+            ),
+        );
         this._context.subscriptions.push(this._backgroundTasksProvider);
         this._context.subscriptions.push(treeView);
 
@@ -2287,6 +2299,15 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdOpenBackgroundTask,
                 async (node: BackgroundTaskNode) => {
                     await this._backgroundTasksProvider.openTask(node.taskId);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdViewBackgroundTaskLogs,
+                async (node: BackgroundTaskNode) => {
+                    await this._backgroundTaskLogContentProvider.showTaskLog(node.taskId);
                 },
             ),
         );

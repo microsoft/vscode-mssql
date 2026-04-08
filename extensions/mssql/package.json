@@ -856,21 +856,6 @@
                     "group": "MS_SQL@3"
                 },
                 {
-                    "command": "mssql.openBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
-                    "group": "MS_SQL@1"
-                },
-                {
-                    "command": "mssql.cancelBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "MS_SQL@2"
-                },
-                {
-                    "command": "mssql.cancelBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "inline@1"
-                },
-                {
                     "command": "mssql.stopContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@1"
@@ -884,6 +869,31 @@
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
+                },
+                {
+                    "command": "mssql.openBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
+                    "group": "MS_SQL@1"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "MS_SQL@2"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
+                    "group": "inline@2"
                 }
             ],
             "commandPalette": [
@@ -1372,6 +1382,12 @@
                 "command": "mssql.openBackgroundTask",
                 "title": "%mssql.openBackgroundTask%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.viewBackgroundTaskLogs",
+                "title": "%mssql.viewBackgroundTaskLogs%",
+                "category": "MS SQL",
+                "icon": "$(output)"
             },
             {
                 "command": "mssql.cancelBackgroundTask",

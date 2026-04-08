@@ -554,6 +554,27 @@ export let azureSignInToAzureCloudDescription = l10n.t(
     "Sign in to your Azure subscription in one of the sovereign clouds.",
 );
 export let noBackgroundTasks = l10n.t("No background tasks");
+export function backgroundTaskName(taskName: string) {
+    return l10n.t({
+        message: "Task: {0}",
+        args: [taskName],
+        comment: ["{0} is the task name"],
+    });
+}
+export function backgroundTaskDescription(description: string) {
+    return l10n.t({
+        message: "Description: {0}",
+        args: [description],
+        comment: ["{0} is the task description"],
+    });
+}
+export function backgroundTaskStatus(status: string) {
+    return l10n.t({
+        message: "Status: {0}",
+        args: [status],
+        comment: ["{0} is the task status"],
+    });
+}
 export function backgroundTaskSource(source: string) {
     return l10n.t({
         message: "Source: {0}",
@@ -580,6 +601,45 @@ export function backgroundTaskElapsedTime(elapsedTime: string) {
         message: "Elapsed time: {0}",
         args: [elapsedTime],
         comment: ["{0} is the task elapsed time"],
+    });
+}
+export let backgroundTaskLogsHeader = l10n.t("Logs");
+export let backgroundTaskNoLogEntries = l10n.t("No log entries yet.");
+export let backgroundTaskLogUnavailable = l10n.t("Task log is unavailable.");
+export function backgroundTaskLogLine(timestamp: string, entry: string) {
+    return l10n.t({
+        message: "[{0}] {1}",
+        args: [timestamp, entry],
+        comment: ["{0} is the timestamp", "{1} is the log entry text"],
+    });
+}
+export function backgroundTaskLogStateWithMessage(status: string, message: string) {
+    return l10n.t({
+        message: "{0}: {1}",
+        args: [status, message],
+        comment: ["{0} is the task status", "{1} is the task message"],
+    });
+}
+export function backgroundTaskLogStateWithProgress(status: string, percent: number) {
+    return l10n.t({
+        message: "{0} ({1}%)",
+        args: [status, percent],
+        comment: ["{0} is the task status", "{1} is the completion percent"],
+    });
+}
+export function backgroundTaskLogStateWithProgressAndMessage(
+    status: string,
+    percent: number,
+    message: string,
+) {
+    return l10n.t({
+        message: "{0} ({1}%): {2}",
+        args: [status, percent, message],
+        comment: [
+            "{0} is the task status",
+            "{1} is the completion percent",
+            "{2} is the task message",
+        ],
     });
 }
 export function backgroundTaskElapsedMilliseconds(milliseconds: number) {

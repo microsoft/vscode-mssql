@@ -79,9 +79,29 @@ suite("Background Task Log Content Provider Tests", () => {
         expect(content).to.contain("Connection: localhost/AdventureWorks2022");
         expect(content).to.contain("Target: /tmp/export.bacpac");
         expect(content).to.contain("Description: Export operation");
-        expect(content).to.contain("In progress: Starting export");
-        expect(content).to.contain("In progress (50%): Halfway there");
-        expect(content).to.contain("Succeeded: Done");
+        expect(content).to.match(/\[\d{2}:\d{2}:\d{2}\.000\] In progress: Starting export/);
+        expect(content).to.match(/\[\d{2}:\d{2}:\d{2}\.000\] In progress \(50%\): Halfway there/);
+        expect(content).to.match(/\[\d{2}:\d{2}:\d{2}\.000\] Succeeded: Done/);
+    });
+
+    test("renders millisecond precision for log timestamps", () => {
+        const clock = sandbox.useFakeTimers();
+        const service = new BackgroundTasksService(() => undefined);
+        const provider = new BackgroundTaskLogContentProvider(service);
+
+        const handle = service.registerTask({
+            displayText: "Import data",
+            tooltip: "Import data",
+            message: "Queued",
+        });
+
+        clock.tick(123);
+        handle.update({ message: "Running" });
+
+        const content = provider.provideTextDocumentContent(provider.getUri(handle.id));
+
+        expect(content).to.match(/\[\d{2}:\d{2}:\d{2}\.000\] In progress: Queued/);
+        expect(content).to.match(/\[\d{2}:\d{2}:\d{2}\.123\] In progress: Running/);
     });
 
     test("fires change events as task logs update", () => {

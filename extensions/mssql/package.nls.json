@@ -27,6 +27,7 @@
     "mssql.clearAllQueryHistory": "Clear All Query History",
     "mssql.clearFinishedBackgroundTasks": "Clear Finished Tasks",
     "mssql.openBackgroundTask": "Open Task Result",
+    "mssql.viewBackgroundTaskLogs": "View Task Logs",
     "mssql.cancelBackgroundTask": "Cancel Task",
     "mssql.enableQueryHistoryCapture": "Enable Query History Capture",
     "mssql.startQueryHistoryCapture": "Start Query History Capture",

@@ -95,7 +95,7 @@ function renderTaskLog(taskLog: BackgroundTaskLog): string {
         sections.push(
             ...taskLog.entries.map((entry) =>
                 localizedConstants.backgroundTaskLogLine(
-                    new Date(entry.timestamp).toLocaleTimeString(),
+                    formatTaskLogTimestamp(entry.timestamp),
                     renderTaskLogEntry(entry),
                 ),
             ),
@@ -125,4 +125,22 @@ function renderTaskLogEntry(entry: BackgroundTaskLogEntry): string {
     }
 
     return status;
+}
+
+function formatTaskLogTimestamp(timestamp: number): string {
+    const date = new Date(timestamp);
+    return [
+        padClockSegment(date.getHours()),
+        padClockSegment(date.getMinutes()),
+        padClockSegment(date.getSeconds()),
+        padMilliseconds(date.getMilliseconds()),
+    ].join(":");
+}
+
+function padClockSegment(value: number): string {
+    return value.toString().padStart(2, "0");
+}
+
+function padMilliseconds(value: number): string {
+    return value.toString().padStart(3, "0");
 }
