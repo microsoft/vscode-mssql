@@ -28,7 +28,7 @@ import {
     Warning16Regular,
 } from "@fluentui/react-icons";
 import { Schema16Regular } from "../../../common/icons/fluentIcons";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 import { Dab } from "../../../../sharedInterfaces/dab";
@@ -161,10 +161,37 @@ export const DabEntityTable = () => {
         toggleDabEntityAction,
         updateDabEntitySettings,
         dabTextFilter,
+        currentFilteredTables,
     } = context;
 
     const [collapsedSchemas, setCollapsedSchemas] = useState<Set<string>>(new Set());
     const [settingsEntityId, setSettingsEntityId] = useState<string | null>(null);
+    const initialEnabledEntities = useRef<string[]>(
+        dabConfig?.entities
+            .filter((e) => e.isEnabled)
+            .map((e) => `${e.schemaName}.${e.tableName}`) ?? [],
+    );
+
+    useEffect(() => {
+        if (!dabConfig) return;
+
+        const tablesToCheck =
+            currentFilteredTables.length > 0
+                ? currentFilteredTables
+                : initialEnabledEntities.current;
+
+        dabConfig.entities.forEach((entity) => {
+            const fullName = `${entity.schemaName}.${entity.tableName}`;
+            const shouldCheck = tablesToCheck.includes(fullName);
+
+            if (
+                initialEnabledEntities.current.includes(fullName) &&
+                shouldCheck !== entity.isEnabled
+            ) {
+                toggleDabEntity(entity.id, shouldCheck);
+            }
+        });
+    }, [currentFilteredTables]); // only runs when user changes schema designer filter
 
     const toggleSchemaCollapsed = useCallback((schemaName: string) => {
         setCollapsedSchemas((prev) => {
@@ -503,6 +530,7 @@ export const DabEntityTable = () => {
             renderActionHeaderCell,
             renderActionCell,
             setSettingsEntityId,
+            currentFilteredTables,
         ],
     );
 

@@ -398,6 +398,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             this.updateCacheItem(undefined, payload.hasChanges);
         });
 
+        this.onNotification(SchemaDesigner.UpdateFilterTablesNotification.type, (payload) => {
+            this.updateState({
+                ...this.state,
+                currentFilteredTables: payload.currentFilteredTables,
+            });
+        });
+
         this.onRequest(SchemaDesigner.GetBaselineSchemaRequest.type, async () => {
             const cacheItem = this.schemaDesignerCache.get(this._key);
             // Prefer cached baseline so it survives controller recreation (webview restore)

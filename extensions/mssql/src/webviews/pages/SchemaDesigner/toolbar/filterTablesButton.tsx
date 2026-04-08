@@ -366,6 +366,7 @@ export function FilterTablesButton() {
                 }
             });
         }
+        context.updateFilterTables(selectedTables);
     }, [selectedTables, showTableRelationships]);
 
     useEffect(() => {
