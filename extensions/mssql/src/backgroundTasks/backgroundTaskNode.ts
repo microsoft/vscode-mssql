@@ -7,7 +7,6 @@ import * as os from "os";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as localizedConstants from "../constants/locConstants";
-import { IconUtils } from "../utils/iconUtils";
 import {
     BackgroundTaskEntry,
     BackgroundTaskState,
@@ -31,18 +30,23 @@ export class BackgroundTaskNode extends vscode.TreeItem {
     constructor(task: BackgroundTaskEntry) {
         super(task.displayText, vscode.TreeItemCollapsibleState.None);
         this.taskId = task.id;
+        this.update(task);
+    }
+
+    public update(task: BackgroundTaskEntry): void {
+        this.label = task.displayText;
         this.description = createTaskDescription(task);
         this.tooltip = createTaskTooltip(task);
         this.iconPath = task.icon ?? getDefaultIconForState(task.state);
         this.contextValue = createTaskContextValue(task);
 
-        if (task.open) {
-            this.command = {
-                command: Constants.cmdBackgroundTaskAction,
-                title: "",
-                arguments: [this],
-            };
-        }
+        this.command = task.open
+            ? {
+                  command: Constants.cmdBackgroundTaskAction,
+                  title: "",
+                  arguments: [this],
+              }
+            : undefined;
     }
 }
 
@@ -69,7 +73,9 @@ function createTaskContextValue(task: BackgroundTaskEntry): string {
 
 function createTaskTooltip(task: BackgroundTaskEntry): string | vscode.MarkdownString {
     const status = toBackgroundTaskStateDisplayString(task.state);
-    const elapsedTime = localizedConstants.backgroundTaskElapsedTime(formatElapsedTime(task));
+    const elapsedTime = localizedConstants.backgroundTaskElapsedTime(
+        formatTooltipElapsedTime(task),
+    );
 
     if (typeof task.tooltip === "string") {
         const sections = [task.tooltip, status];
@@ -135,16 +141,39 @@ function formatElapsedTime(task: BackgroundTaskEntry): string {
     return localizedConstants.backgroundTaskElapsedSeconds(totalSeconds);
 }
 
+function formatTooltipElapsedTime(task: BackgroundTaskEntry): string {
+    const elapsedTimeMs = getBackgroundTaskElapsedTimeMs(task);
+    if (elapsedTimeMs < 60_000) {
+        return formatElapsedTime(task);
+    }
+
+    const totalSeconds = Math.floor(elapsedTimeMs / 1000);
+    const seconds = totalSeconds % 60;
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const totalHours = Math.floor(totalMinutes / 60);
+
+    if (totalHours > 0) {
+        return `${padClockSegment(totalHours)}:${padClockSegment(minutes)}:${padClockSegment(seconds)}`;
+    }
+
+    return `${padClockSegment(totalMinutes)}:${padClockSegment(seconds)}`;
+}
+
+function padClockSegment(value: number): string {
+    return value.toString().padStart(2, "0");
+}
+
 function getDefaultIconForState(
     state: BackgroundTaskState,
 ): vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } {
     switch (state) {
         case BackgroundTaskState.Succeeded:
-            return IconUtils.getIcon("backgroundTasks", "completedTask.svg");
+            return new vscode.ThemeIcon("pass", new vscode.ThemeColor("testing.iconPassed"));
         case BackgroundTaskState.SucceededWithWarning:
             return new vscode.ThemeIcon("warning");
         case BackgroundTaskState.Failed:
-            return IconUtils.getIcon("backgroundTasks", "failedTask.svg");
+            return new vscode.ThemeIcon("error", new vscode.ThemeColor("testing.iconFailed"));
         case BackgroundTaskState.Canceled:
             return new vscode.ThemeIcon("circle-slash");
         case BackgroundTaskState.Canceling:

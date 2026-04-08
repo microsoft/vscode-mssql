@@ -861,24 +861,14 @@
                     "group": "MS_SQL@1"
                 },
                 {
-                    "command": "mssql.viewBackgroundTaskLogs",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
+                    "command": "mssql.cancelBackgroundTask",
+                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
                     "group": "MS_SQL@2"
                 },
                 {
                     "command": "mssql.cancelBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "MS_SQL@3"
-                },
-                {
-                    "command": "mssql.viewBackgroundTaskLogs",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bbackgroundTaskNode\\b/",
                     "group": "inline@1"
-                },
-                {
-                    "command": "mssql.cancelBackgroundTask",
-                    "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
-                    "group": "inline@2"
                 },
                 {
                     "command": "mssql.stopContainer",
@@ -1382,12 +1372,6 @@
                 "command": "mssql.openBackgroundTask",
                 "title": "%mssql.openBackgroundTask%",
                 "category": "MS SQL"
-            },
-            {
-                "command": "mssql.viewBackgroundTaskLogs",
-                "title": "%mssql.viewBackgroundTaskLogs%",
-                "category": "MS SQL",
-                "icon": "$(output)"
             },
             {
                 "command": "mssql.cancelBackgroundTask",

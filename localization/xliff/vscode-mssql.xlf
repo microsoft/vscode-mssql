@@ -1860,10 +1860,6 @@
     <trans-unit id="++CODE++b16cf0590a6c78b2e8047509582e5448bd55e408cd112bd1f064e34529f6ce3d">
       <source xml:lang="en">Description for the table.</source>
     </trans-unit>
-    <trans-unit id="++CODE++defd2829d94341dd9a553fb0272dd8d95fbfb3ba7f7450083039aeb221014b5a">
-      <source xml:lang="en">Description: {0}</source>
-      <note>{0} is the task description</note>
-    </trans-unit>
     <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
       <source xml:lang="en">Deselect All</source>
     </trans-unit>
@@ -3696,9 +3692,6 @@
     <trans-unit id="++CODE++ddeb248a914ea9f6af2303de9341990c1da5d7dfdfc631d25734d57768e85394">
       <source xml:lang="en">Logical file name</source>
     </trans-unit>
-    <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
-      <source xml:lang="en">Logs</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
       <source xml:lang="en">Logs copied to clipboard</source>
     </trans-unit>
@@ -4175,9 +4168,6 @@
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
-    </trans-unit>
-    <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
-      <source xml:lang="en">No log entries yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
       <source xml:lang="en">No matches found</source>
@@ -5915,10 +5905,6 @@
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
-    <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
-      <source xml:lang="en">Status: {0}</source>
-      <note>{0} is the task status</note>
-    </trans-unit>
     <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
       <source xml:lang="en">Step {0} of {1}</source>
       <note>{0} is the current step number
@@ -6117,13 +6103,6 @@
     <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
       <source xml:lang="en">Target: {0}</source>
       <note>{0} is the task target location</note>
-    </trans-unit>
-    <trans-unit id="++CODE++ce802c2881fc734c4e0eff3836c5cb3a775844c1c34faabf5d0ff3bd8687b262">
-      <source xml:lang="en">Task log is unavailable.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++945322014369cb3209e969128e2294919076dc40a5005906320dd8a099cb418a">
-      <source xml:lang="en">Task: {0}</source>
-      <note>{0} is the task name</note>
     </trans-unit>
     <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
       <source xml:lang="en">Tenant</source>
@@ -6757,11 +6736,6 @@
     <trans-unit id="++CODE++48a9c1333b8297748a7cf4f38e479f6d1722302a0ce72f8516d8a749fe49d752">
       <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
     </trans-unit>
-    <trans-unit id="++CODE++3ca34e4fde4c6c6396f73421cb53247a93981d09fa91d6fe416839b170b55dc2">
-      <source xml:lang="en">[{0}] {1}</source>
-      <note>{0} is the log timestamp
-{1} is the log entry text</note>
-    </trans-unit>
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
     </trans-unit>
@@ -6838,17 +6812,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++828bb2aac1d368d8f5a1fc837bfe1358ff1e7588bb34c9c10fa79d6478b92388">
-      <source xml:lang="en">{0} ({1}%)</source>
-      <note>{0} is the task status
-{1} is the task progress percentage</note>
-    </trans-unit>
-    <trans-unit id="++CODE++1cbfd1b209b8901ef586a1b1d3a7692bc1c4f6578f0ebf95bb914bcfb1dbf0d8">
-      <source xml:lang="en">{0} ({1}%): {2}</source>
-      <note>{0} is the task status
-{1} is the task progress percentage
-{2} is the task log message</note>
     </trans-unit>
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
@@ -7035,11 +6998,6 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the task name
 {1} is the status</note>
-    </trans-unit>
-    <trans-unit id="++CODE++a76a4b9969df9343258f9e77fe9e1a11df68c45f5679f9a816e25dcfbb98ef0c">
-      <source xml:lang="en">{0}: {1}</source>
-      <note>{0} is the task status
-{1} is the task log message</note>
     </trans-unit>
     <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
       <source xml:lang="en">{0}: {1}</source>
@@ -7795,9 +7753,6 @@
     </trans-unit>
     <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.viewBackgroundTaskLogs">
-      <source xml:lang="en">View Task Logs</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

@@ -58,6 +58,7 @@ export interface TaskInfo {
     operationName?: string;
     percentComplete?: number;
     progressMessage?: string;
+    messages?: TaskMessage[];
     duration?: number;
 }
 
@@ -215,8 +216,8 @@ export class SqlTasksService {
     }
 
     /**
-     * Handles a new task being created. This will start up a progress notification toast for the task and set up
-     * callbacks to update the status of that task as it runs.
+     * Handles a new task being created by registering it in the background tasks view and setting up callbacks to
+     * update its status as it runs.
      * @param taskInfo The info for the new task that was created
      */
     private handleTaskCreatedNotification(taskInfo: TaskInfo): void {
@@ -224,9 +225,7 @@ export class SqlTasksService {
             taskInfo,
             backgroundTaskHandle: this._backgroundTasksService?.registerTask({
                 displayText: taskInfo.name,
-                description: taskInfo.description,
                 details: this.createBackgroundTaskDetails(taskInfo),
-                target: taskInfo.targetLocation,
                 tooltip: this.createBackgroundTaskTooltip(taskInfo),
                 canCancel: taskInfo.isCancelable,
                 cancel: taskInfo.isCancelable
@@ -344,20 +343,21 @@ export class SqlTasksService {
 
                 if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
-
-                    const selection = await this._vscodeWrapper.showInformationMessage(
-                        successMessage,
-                        actionButtonText,
-                    );
-
-                    if (selection === actionButtonText) {
-                        const command = handler.actionCommand!;
-                        const args = handler.getActionCommandArgs!(
-                            taskInfo.taskInfo,
-                            targetLocation,
-                        );
-                        void this._vscodeWrapper.executeCommand(command, ...args);
-                    }
+                    void Promise.resolve(
+                        this._vscodeWrapper.showInformationMessage(
+                            successMessage,
+                            actionButtonText,
+                        ),
+                    ).then((selection) => {
+                        if (selection === actionButtonText) {
+                            const command = handler.actionCommand!;
+                            const args = handler.getActionCommandArgs!(
+                                taskInfo.taskInfo,
+                                targetLocation,
+                            );
+                            void this._vscodeWrapper.executeCommand(command, ...args);
+                        }
+                    });
                 } else {
                     // Show notification without action button
                     void this._vscodeWrapper.showInformationMessage(successMessage);

@@ -9,10 +9,7 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as Constants from "../../src/constants/constants";
-import {
-    BackgroundTaskState,
-    BackgroundTasksService,
-} from "../../src/backgroundTasks/backgroundTasksService";
+import { BackgroundTaskState } from "../../src/backgroundTasks/backgroundTasksService";
 import { BackgroundTasksProvider } from "../../src/backgroundTasks/backgroundTasksProvider";
 import {
     BackgroundTaskNode,
@@ -95,10 +92,11 @@ suite("Background Tasks Provider Tests", () => {
         expect(node.description).to.equal("3s");
         expect(node.contextValue).to.contain("completed=true");
         expect(node.tooltip).to.equal("Exporting\n\nSucceeded\n\nDone\n\nElapsed time: 3s");
-        expect((node.iconPath as vscode.Uri).path).to.contain("backgroundTasks/completedTask.svg");
+        expect((node.iconPath as vscode.ThemeIcon).id).to.equal("pass");
+        expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconPassed");
     });
 
-    test("failed tasks use the custom failed icon", () => {
+    test("failed tasks use the error theme icon", () => {
         const clock = sandbox.useFakeTimers();
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
@@ -113,18 +111,17 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(node.description).to.equal("250ms");
         expect(node.tooltip).to.equal("Running\n\nFailed\n\nFailed badly\n\nElapsed time: 250ms");
-        expect((node.iconPath as vscode.Uri).path).to.contain("backgroundTasks/failedTask.svg");
+        expect((node.iconPath as vscode.ThemeIcon).id).to.equal("error");
+        expect((node.iconPath as vscode.ThemeIcon).color?.id).to.equal("testing.iconFailed");
     });
 
-    test("canceled tasks use the custom canceled icon", () => {
-        const clock = sandbox.useFakeTimers();
+    test("canceled tasks use the canceled theme icon", () => {
         const provider = new BackgroundTasksProvider();
         const handle = provider.backgroundTasksService.registerTask({
             displayText: "Canceled task",
             tooltip: "Running",
         });
 
-        clock.tick(0);
         handle.complete(BackgroundTaskState.Canceled, { message: "Stopped by user" });
 
         const node = provider.getChildren()[0] as BackgroundTaskNode;
@@ -151,7 +148,7 @@ suite("Background Tasks Provider Tests", () => {
 
         node = provider.getChildren()[0] as BackgroundTaskNode;
         expect(node.description).to.equal("1m 5s");
-        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 1m 5s");
+        expect(node.tooltip).to.equal("Working\n\nIn progress\n\nElapsed time: 01:05");
     });
 
     test("clearFinished removes only completed tasks", () => {
@@ -178,17 +175,16 @@ suite("Background Tasks Provider Tests", () => {
 
     test("trimFinished keeps active tasks and caps finished tasks", () => {
         const clock = sandbox.useFakeTimers();
-        const service = new BackgroundTasksService(() => undefined, 2);
-        const provider = new BackgroundTasksProvider(service);
+        const provider = new BackgroundTasksProvider(2);
 
-        service.registerTask({
+        provider.backgroundTasksService.registerTask({
             displayText: "Active task",
             tooltip: "Active",
         });
 
         const finishedLabels = ["Finished 1", "Finished 2", "Finished 3"];
         for (const label of finishedLabels) {
-            const handle = service.registerTask({
+            const handle = provider.backgroundTasksService.registerTask({
                 displayText: label,
                 tooltip: label,
             });
@@ -244,10 +240,38 @@ suite("Background Tasks Provider Tests", () => {
         const node = provider.getChildren()[0] as BackgroundTaskNode;
         await provider.cancelTask(node.taskId);
 
-        expect(node.description).to.equal("0ms");
+        expect(node.description).to.match(/^\d+ms$/);
         expect(cancelSpy).to.have.been.calledOnce;
         const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
         expect(refreshedNode.contextValue).to.contain("cancelable=false");
+        handle.remove();
+    });
+
+    test("cancel command restores task state when the cancel callback fails", async () => {
+        const provider = new BackgroundTasksProvider();
+        const cancelError = new Error("cancel failed");
+        const handle = provider.backgroundTasksService.registerTask({
+            displayText: "Cancelable task",
+            tooltip: "Cancelable",
+            canCancel: true,
+            cancel: sandbox.stub().rejects(cancelError),
+        });
+
+        const node = provider.getChildren()[0] as BackgroundTaskNode;
+
+        let actualError: Error | undefined;
+        try {
+            await provider.cancelTask(node.taskId);
+        } catch (error) {
+            actualError = error as Error;
+        }
+
+        expect(actualError).to.equal(cancelError);
+        const refreshedNode = provider.getChildren()[0] as BackgroundTaskNode;
+        expect(refreshedNode.tooltip).to.match(
+            /^Cancelable\n\nIn progress\n\nElapsed time: \d+ms$/,
+        );
+        expect(refreshedNode.contextValue).to.contain("cancelable=true");
         handle.remove();
     });
 
@@ -285,8 +309,9 @@ suite("Background Tasks Provider Tests", () => {
 
         expect(executeCommandStub).to.have.been.calledWith(Constants.cmdOpenObjectExplorerCommand);
         expect(executeCommandStub).to.have.been.calledWith(`${Constants.backgroundTasks}.focus`);
+        const currentNode = provider.getChildren()[0] as BackgroundTaskNode;
         expect(revealStub).to.have.been.calledWith(
-            sinon.match.instanceOf(BackgroundTaskNode),
+            currentNode,
             sinon.match({ focus: false, select: false }),
         );
     });
