@@ -2032,6 +2032,8 @@
     "Logs": "Logs",
     "No log entries yet.": "No log entries yet.",
     "Task log is unavailable.": "Task log is unavailable.",
+    "Are you sure you want to cancel this background task?": "Are you sure you want to cancel this background task?",
+    "Cancel Task": "Cancel Task",
     "[{0}] {1}/{0} is the timestamp{1} is the log entry text": {
         "message": "[{0}] {1}",
         "comment": ["{0} is the timestamp", "{1} is the log entry text"]
