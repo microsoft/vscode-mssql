@@ -287,9 +287,9 @@
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
     "mssql.profiler.openXelFile": "Open Query Profiler (Preview) XEL File",
     "mssql.profiler.xelEditorDisplayName": "SQL Server Extended Events Log",
-    "mssql.backupDatabase": "Backup Database (Preview)...",
-    "mssql.restoreDatabase": "Restore Database (Preview)...",
-    "mssql.flatFileImport": "Import Data (Preview)...",
+    "mssql.backupDatabase": "Backup Database...",
+    "mssql.restoreDatabase": "Restore Database...",
+    "mssql.flatFileImport": "Import Data...",
     "mssql.notebooks.createNotebook": "Create SQL Notebook (Preview)",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
     "mssql.notebooks.changeConnection": "Change Notebook Connection"
